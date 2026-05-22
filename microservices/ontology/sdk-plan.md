@@ -166,7 +166,7 @@ Public API mirrors Rust SDK; supports:
 | GA | crates.io | npm + PyPI |
 | Semver | Major version per breaking REST/gRPC change; minor per Function/Action addition; patch per bug fix | Same |
 | Deprecation policy | Per Bominal ADR-0149 (inherited); ≥ 90 days warning + sunset | Same |
-| Breaking change | LEAN lane `oya-foundry-fitness-api-semver` refuses any incompatible change | Same |
+| Breaking change | LEAN lane `oya-governance-api-semver` refuses any incompatible change | Same |
 
 ## SDK Generation Toolchain
 
@@ -186,7 +186,7 @@ Every SDK is regenerated on:
 2. Proto change → re-run codegen + verify compilation across all Tier-A + Tier-B.
 3. AsyncAPI 3.0 change → regenerate event subscriber types.
 
-CI lane `oya-foundry-fitness-sdk-regen-conformance` ensures generated code matches the spec; PRs with stale generated code fail the lane.
+CI lane `oya-governance-sdk-regen-conformance` ensures generated code matches the spec; PRs with stale generated code fail the lane.
 
 ## Testing
 

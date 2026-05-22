@@ -131,7 +131,7 @@ The workflow engine does not own the audit chain (ADR-0003), does not own the ag
 - Per-workflow SLO catalog: state-transition P95 latency, saga-compensation success rate, agent-authored-step audit completeness.
 - Per-version migration runbook; version sunset cascade per ADR-0038.
 - Per-jurisdiction overlay regulator review annual.
-- Workflow lane: `oya-foundry-fitness-workflow-cohesion` — every workflow step's external call must be a capability ref.
+- Workflow lane: `oya-governance-workflow-cohesion` — every workflow step's external call must be a capability ref.
 
 ---
 

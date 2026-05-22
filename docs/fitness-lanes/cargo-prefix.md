@@ -9,13 +9,13 @@ doc_status: published
 - purpose: Verify every crate id follows the canonical `oya-{layer}-{axis}[-{role}]-{shape}` prefix grammar.
 - enforces: STANDARD/cargo-prefix; existing crate `oya-foundry-cargo-prefix-kernel` (EXISTING; extend with verdict).
 - kernel_crate: `oya-foundry-cargo-prefix-kernel` (EXISTING) — `CrateId { crate_id }`, verdict `CargoPrefixFitnessReport { crates_checked }`.
-- runner_path: `tools/oya-foundry-fitness-cargo-prefix`
+- runner_path: `tools/oya-governance-cargo-prefix`
 - inputs: workspace `Cargo.toml` member list, layer/axis/shape registries.
 - failure_modes:
   - crate id `oya-frobnicate` (no axis)
   - shape token not in {kernel, api, app, sdk, fitness}
   - crate id contains uppercase
-- ci_invocation: `cargo run -p oya-foundry-fitness-cargo-prefix`
+- ci_invocation: `cargo run -p oya-governance-cargo-prefix`
 - runtime_budget: 150 ms
 - severity: BLOCKER
 - kernel_sketch:

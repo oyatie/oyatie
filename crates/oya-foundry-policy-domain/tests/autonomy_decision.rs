@@ -117,20 +117,17 @@ fn autonomy_inputs_default_absent_caps_to_t4_and_break_ties_deterministically() 
 }
 
 #[test]
-fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
+fn vertical_pack_caps_health_and_financial_regulated_data_with_neutral_markers() {
     let healthcare_phi = capability_with_classes(
         "cap.healthcare.chart",
         AutonomyTier::T4AutoExecute,
         vec![privacy_class(DataClass::Phi)],
     );
     assert_eq!(
-        vertical_pack_cap(&["health-regulated-pack".into()], &healthcare_phi),
+        vertical_pack_cap(&["clinical-safety-pack".into()], &healthcare_phi),
         AutonomyTier::T2Advisory
     );
-    assert_eq!(
-        vertical_pack_cap(&["healthcare-pack".into()], &healthcare_phi),
-        AutonomyTier::T2Advisory
-    );
+
     let healthcare_article_23 = capability_with_classes(
         "cap.healthcare.article-23",
         AutonomyTier::T4AutoExecute,
@@ -140,7 +137,7 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         ],
     );
     assert_eq!(
-        vertical_pack_cap(&["health-pack".into()], &healthcare_article_23),
+        vertical_pack_cap(&["protected-health-pack".into()], &healthcare_article_23),
         AutonomyTier::T2Advisory
     );
 
@@ -153,27 +150,24 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         vertical_pack_cap(&["payment-card-pack".into()], &fintech_pci),
         AutonomyTier::T2Advisory
     );
-    assert_eq!(
-        vertical_pack_cap(&["financial-regulated-pack".into()], &fintech_pci),
-        AutonomyTier::T2Advisory
-    );
+
     let fintech_credit = capability_with_classes(
         "cap.fintech.credit-report",
         AutonomyTier::T4AutoExecute,
         vec![
-            privacy_class(DataClass::FinancialCredit),
+            privacy_class(DataClass::FinancialRegulatedCredit),
             privacy_class(DataClass::Financial),
         ],
     );
     assert_eq!(
-        vertical_pack_cap(&["financial-pack".into()], &fintech_credit),
+        vertical_pack_cap(&["regulated-credit-pack".into()], &fintech_credit),
         AutonomyTier::T2Advisory
     );
 
     let internal = capability("cap.demo.internal", AutonomyTier::T4AutoExecute);
     assert_eq!(
         vertical_pack_cap(
-            &["health-regulated-pack".into(), "payment-card-pack".into()],
+            &["clinical-safety-pack".into(), "payment-card-pack".into()],
             &internal
         ),
         AutonomyTier::T4AutoExecute

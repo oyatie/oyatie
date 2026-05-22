@@ -55,7 +55,7 @@ This phase advances master-plan principles:
 
 | µservice | Bounded Contexts | Files / crates affected | BNF v4.1 crate names |
 |---|---|---|---|
-| `translate` | `translate-router`, `translation-memory`, `termbase-and-glossary`, `quality-estimation`, `language-detection`, `document-translation`, `bulk-translate`, `real-time-stream`, `engine-adapters` (per vendor + per backend) | All under `microservices/translate/` per ADR-0131 | `oya-translate-router-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}`, `oya-translate-tm-*`, `oya-translate-termbase-*`, `oya-translate-qe-*`, `oya-translate-langdetect-*`, `oya-translate-doc-*`, `oya-translate-bulk-*`, `oya-translate-stream-*`, `oya-translate-adapter-{postgres,redis,s3,meilisearch,foundry-runtime,anthropic,openai,google-translate,deepl,pandoc,libreoffice}` |
+| `translate` | `translate-router`, `translation-memory`, `termbase-and-glossary`, `quality-estimation`, `language-detection`, `document-translation`, `bulk-translate`, `real-time-stream`, `engine-adapters` (per vendor + per backend) | All under `microservices/translate/` per ADR-0131 | `oya-translate-router-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}`, `oya-translate-tm-*`, `oya-translate-termbase-*`, `oya-translate-qe-*`, `oya-translate-langdetect-*`, `oya-translate-doc-*`, `oya-translate-bulk-*`, `oya-translate-stream-*`, `oya-translate-adapter-{postgres,valkey,s3,meilisearch,foundry-runtime,anthropic,openai,google-translate,deepl,pandoc,libreoffice}` |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 - `.github/branch-protection.yaml` — add `oya-translate-credential-isolation` BLOCKER lane and `oya-translate-data-residency-correctness` BLOCKER lane to `required_status_checks` on `dev` + `staging`.
@@ -81,7 +81,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 |---|---|---|---|---|
 | [`IP-001-iac-and-pack-overlays.md`](IP-001-iac-and-pack-overlays.md) | Helm chart + kustomize base + pack-kr/pack-eu/pack-jp/pack-cn-stub overlays; Postgres + Valkey + Meilisearch + S3 wiring | pending | axis-translate + ops-iac | — |
 | [`IP-002-translate-router-kernel.md`](IP-002-translate-router-kernel.md) | `oya-translate-router-kernel`: port traits (`TranslateInvoker`, `EngineRouter`, `TmLeverageQuery`, `TermbaseQuery`, `QualityEstimator`, `LanguageDetector`, `DocumentTranslator`), entities, sealed traits | pending | axis-translate | IP-001 |
-| [`IP-003-translate-router-domain.md`](IP-003-translate-router-domain.md) | `oya-translate-router-domain`: routing algebra (capability-fit × cost × residency × quality-tier × health); placeholder/plural preservation logic; pure | pending | axis-translate | IP-002 |
+| [`IP-003-translate-router-domain.md`](IP-003-translate-router-domain.md) | `oya-translate-router-domain`: routing algebra (capability-fit × cost × residency × quality-profile × health); placeholder/plural preservation logic; pure | pending | axis-translate | IP-002 |
 | [`IP-004-translate-router-usecase-and-api.md`](IP-004-translate-router-usecase-and-api.md) | `oya-translate-router-usecase` + `oya-translate-router-api`: orchestration + protocol-neutral typed contracts | pending | axis-translate | IP-003 |
 | [`IP-005-translation-memory-stack.md`](IP-005-translation-memory-stack.md) | `oya-translate-tm-*` (kernel/domain/usecase/api/adapter-postgres/adapter-meilisearch/rest/worker/sdk/app); minhash-LSH leverage per ADR-TRANSLATE-0002 | pending | axis-translate | IP-002 |
 | [`IP-006-termbase-and-glossary-stack.md`](IP-006-termbase-and-glossary-stack.md) | `oya-translate-termbase-*` (kernel/domain/usecase/api/adapter-postgres/rest/worker/sdk/app); TBX import/export | pending | axis-translate | IP-002 |
@@ -102,7 +102,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | kernel | 90 % | 80 % | required | port-sealed; entity-invariant tests |
 | domain | 95 % | 90 % | required | routing algebra + placeholder/plural rules are math; canonical worked examples |
 | usecase | 85 % | 70 % | optional | orchestration |
-| adapter (backend-store) | 80 % | 70 % | as-needed | testcontainers (Postgres/Redis/Meilisearch); honest integration tests under tests/integration |
+| adapter (backend-store) | 80 % | 70 % | as-needed | testcontainers (Postgres/Valkey/Meilisearch); honest integration tests under tests/integration |
 | adapter (engine-vendor) | 80 % | 70 % | as-needed | upstream-mocked; live-key smoke tests behind feature flag |
 | rest / worker / app | 70 % | 60 % | optional | thin composition layers |
 | sdk | 80 % | 70 % | optional | client surface |

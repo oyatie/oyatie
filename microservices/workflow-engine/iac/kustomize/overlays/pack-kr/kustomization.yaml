@@ -49,7 +49,7 @@ secretGenerator:
   - name: openbao-secret-paths
     literals:
       - POSTGRES_PATH=secret/pack-kr/workflow-engine/postgres
-      - REDIS_PATH=secret/pack-kr/workflow-engine/redis
+      - VALKEY_PATH=secret/pack-kr/workflow-engine/valkey
       - CLICKHOUSE_PATH=secret/pack-kr/workflow-engine/clickhouse
       - AUDIT_CHAIN_KEY_PATH=secret/pack-kr/workflow-engine/audit-chain
       - SPEC_SIGNING_KEY_PATH=secret/pack-kr/workflow-engine/spec-signing

@@ -1,0 +1,247 @@
+{
+  "facet": "F8-Maintenance",
+  "facet_definition": "Long-term operability. Hot-reload feasibility for Cedar fragments and schema revisions, realism of version sunset windows, ability for the corpus to evolve without rewriting every ADR, documentation of migration paths (ADR-0284 indirection, ADR-0257 schema versioning), and 5+ year doctrine maintainability.",
+  "subject": "keystone-bundle-2026-05-20",
+  "round": 1,
+  "reviewer_lens": "F8-Maintenance — single-axis review; correctness/perf/security only invoked where they directly compromise long-term operability",
+  "date_utc": "2026-05-20",
+  "corpus": [
+    "docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md",
+    "docs/decisions/ADR-0258-api-versioning-model.md",
+    "docs/decisions/ADR-0263-observability-emission-contract.md",
+    "docs/decisions/ADR-0284-platform-owner-name-indirection.md",
+    "docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md",
+    "docs/decisions/ADR-0258-api-versioning-model.md#appendix-a-pattern-attribution",
+    "docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md#appendix-a-hyperscaler-pattern-attribution",
+    "docs/decisions/ADR-0263-observability-emission-contract.md#appendix-a-hyperscaler-pattern-attribution-matrix",
+    "docs/architecture/keystone-bundle-reading-order.md"
+  ],
+  "verdict": "APPROVE_WITH_REVISIONS",
+  "verdict_rationale": "The bundle is fundamentally maintainable: every public contract carries a versioning + deprecation + sunset surface, all literals collapse to single sources of truth, hot-reload paths are explicit, and CHANGELOG/maintenance-protocol hooks exist on the load-bearing surfaces. The maintainability ceiling is high enough to credibly support a 5+ year horizon. However, three substantive maintenance gaps remain — they are remediable but should not be deferred: (1) ADR-0263 §D-15 'breaking schema change' for log/metric/trace v1->v2 references a forthcoming ADR that is not in the bundle, leaving a contract-evolution path with no canonical authority; (2) ADR-0280 DAG-spec is canonical but the per-microservice manifest sync lane is advisory-until-prerequisite, with no end-state ADR-amendment workflow for adding a substrate (every new Tier-1 substrate today requires hand-editing five derived surfaces); (3) the reading-order doc and per-ADR pattern attribution matrices have no drift-detection mechanism — they are owned by humans, with no CI lane verifying they stay aligned to the ADR set they claim to index. None of these block acceptance; all three need follow-on IPs filed before BLOCKER promotion.",
+  "5_year_maintainability": {
+    "rating": "B+",
+    "rating_scale": "A=trivially maintainable / B=maintainable with disciplined process / C=maintainable but doctrine-fragile / D=catastrophic rebrand or evolution cost / F=ball-of-mud",
+    "rationale": "The bundle clears every named hyperscaler benchmark on the load-bearing surfaces (Stripe API versioning, Palantir SchemaRevision, RFC 8594 Sunset, Charity Majors Three Pillars, Foote+Yoder Big Ball of Mud anti-pattern guard). Indirection via ADR-0284 PLATFORM_OWNER_TENANT_SLUG converts a multi-week rebrand into a one-constant-change-plus-ceremony. ADR-0257 deprecation handshake with 12-month grace + per-consumer acknowledgement matches Palantir's Tectonic-cleanup-prevention pattern. ADR-0280 DAG with Tarjan-SCC validator prevents the distributed-monolith failure mode at PR time. The B+ (not A) reflects that ADR-0263's log/metric/trace breaking-change path defers to a future ADR, ADR-0280's substrate-addition workflow is implicit, and drift detection on derived documentation surfaces is missing.",
+    "named_strengths": [
+      {
+        "id": "S1",
+        "claim": "Every public contract has a documented sunset path",
+        "evidence": "ADR-0257 §D-3 (12-month minimum grace + consumer-acknowledgement), ADR-0258 §D-4 (RFC 8594 Sunset header, 12-month minimum), ADR-0258 §D-5 (6-month deprecation announcement), ADR-0263 §D-15 (additive-only + multi-stage handshake), ADR-0284 §D-7 (7-year backward-compat alias on rebrand). No public surface lacks an exit ramp."
+      },
+      {
+        "id": "S2",
+        "claim": "Hot-reload feasibility is concrete and bounded",
+        "evidence": "ADR-0257 §D-6 (5s p99 cross-cell propagation budget broken down per hop; Valkey hot-cache with 5s TTL + push invalidation). ADR-0258 D-9 negotiation algorithm is request-time with Valkey-cached manifests. ADR-0284 §D-1 uses compile-time constant — explicitly rejects runtime config (Alt-1/2/3) to avoid split-brain during reload. Cedar fragments in ADR-0257 §D-8 are signed at build artifact (post-substitution) and reloaded via push-based invalidation."
+      },
+      {
+        "id": "S3",
+        "claim": "Literals collapse to single sources of truth",
+        "evidence": "ADR-0284 enumerates 16 categories of literal-string usage of 'oyatie' and routes all of them through PLATFORM_OWNER_TENANT_SLUG with codegen for Cedar, SQL, and JSON-schema templates. CI lane oya-check-no-hardcoded-platform-owner-slug enforces. ADR-0280 makes /specs/substrate-dependency-dag.json the canonical source from which bootstrap.sh, Cedar permits, SLO composition, and per-µservice manifests derive."
+      },
+      {
+        "id": "S4",
+        "claim": "Cycle-prevention is mechanically enforced",
+        "evidence": "ADR-0280 §D-3 Tarjan SCC validator (<10ms for |V|=10) plus 16 forbidden_edges_assertion entries (negative-space invariants). Prevents the silent introduction of cycles that was observed twice in PR #143 review."
+      },
+      {
+        "id": "S5",
+        "claim": "Schema evolution is additive-by-default with mechanical diff classification",
+        "evidence": "ADR-0257 §D-2 buf-style breaking-change checker; ADR-0258 §D-8 oasdiff Patch/Minor/Major classification; ADR-0263 §D-15 additive-only rule. All three citations name mechanical (not human-judgement) diff tools."
+      },
+      {
+        "id": "S6",
+        "claim": "Migration ceremonies are reversible and documented",
+        "evidence": "ADR-0258 §Rollback explicitly analyses each state change as reversible within the W+30 rollout. ADR-0284 §D-6 13-stage rebrand ceremony with pre-rebrand gates + verification checklist. ADR-0257 dual-write window with per-BreakingChange back-projection lambdas."
+      }
+    ]
+  },
+  "migration_path_gaps": [
+    {
+      "id": "MG-1",
+      "severity": "HIGH",
+      "title": "ADR-0263 log/metric/trace breaking-change path defers to a forthcoming ADR",
+      "evidence": "ADR-0263 §D-15 line 965-976: 'A truly breaking schema change (e.g., oyatie/log/v1 -> oyatie/log/v2 with new mandatory field) requires: ADR-class document (forthcoming).' The 180-day sunset window and version-aware substrate are stated but the actual authoring authority for that breaking-change ADR is not designated. Compare ADR-0257 §D-3 which is itself the authority for ontology schema breaks; observability has no peer.",
+      "5_year_impact": "Without a designated authority, the first observability breaking change (likely within 2-3 years as OTel semantic conventions evolve through their LTS cycle) will require ad-hoc ADR authoring under time pressure. This is the exact pattern ADR-0257 §F-MISSED-2 (Palantir Tectonic) warns against.",
+      "remediation": "File F-OBSERVABILITY-BREAKING-CHANGE-AUTHORITY IP: either fold the breaking-change authority into ADR-0263 §D-15 as a structured sub-clause (preferred) or commit a date to the forthcoming ADR in the bundle migration ledger.",
+      "blocking_acceptance": false
+    },
+    {
+      "id": "MG-2",
+      "severity": "MEDIUM",
+      "title": "ADR-0280 substrate-addition workflow is implicit, not codified",
+      "evidence": "ADR-0280 §D-1 declares the DAG canonical and lists Tier-1 as 10 substrates. ADR-0280 §Rule R-11 mentions Foundry promotion to Tier-S5 but does not describe the workflow. There is no explicit 'add a new Tier-1 substrate' procedure parallel to ADR-0284 §D-6 rebrand ceremony. New substrate addition today requires hand-editing: (a) /specs/substrate-dependency-dag.json, (b) per-µservice manifest, (c) policy-engine Cedar permits, (d) bootstrap.sh derivation logic, (e) ADR-0242 §D-5 bootstrap order text. The five surfaces are listed in the prerequisite gate but no single 'substrate-addition IP template' anchors them.",
+      "5_year_impact": "Over 5 years, adding intelligence subsystem variants (e.g., a separate substrate for fine-tuning, a separate substrate for embeddings/vector-store extraction) is plausible. Without a codified addition workflow, each addition is an ad-hoc ceremony with regression risk.",
+      "remediation": "Add a §D-13 to ADR-0280 'Adding a new Tier-1 substrate: ceremony' parallel to ADR-0284 §D-6. Make it a strict ordered checklist + signed migration-ledger entry under /migration-ledger/substrate-add/.",
+      "blocking_acceptance": false
+    },
+    {
+      "id": "MG-3",
+      "severity": "MEDIUM",
+      "title": "Reading-order doc and per-ADR pattern attribution matrices have no drift-detection lane",
+      "evidence": "docs/architecture/keystone-bundle-reading-order.md §17 declares maintenance ownership ('council-engineering + axis-devrel + council-architecture') and a CHANGELOG but no CI lane verifies the doc matches the ADR set. ADR-0257 Appendix A, ADR-0258 Appendix A, ADR-0263 Appendix A pattern attribution matrices similarly have no validator — they could silently drift as ADRs are amended (e.g., if D-7 in ADR-0257 changes semantics, Appendix A row for D-7 attribution may stay stale).",
+      "5_year_impact": "Documentation drift is the silent killer at decade-scale per ADR-0212 buildability doctrine. The reading-order doc is the agent-onboarding entry point per §16 ('How to use this document with an agent'). If it drifts, every new agent session bootstraps on stale doctrine.",
+      "remediation": "Author oya-check-keystone-bundle-reading-order-drift lane that (a) parses the reading-order doc's Phase sections, (b) extracts ADR references, (c) verifies each referenced ADR's status field matches the doc's claim, (d) flags any ADR amended after the reading-order doc's version field. Similar lane for pattern attribution matrices using ADR-section-ID -> Appendix-A-row mapping.",
+      "blocking_acceptance": false
+    },
+    {
+      "id": "MG-4",
+      "severity": "LOW",
+      "title": "ADR-0257 12-month grace minimum lacks shortening exception path beyond council-architecture",
+      "evidence": "ADR-0257 §D-3: 'shortening below 12 months is *not* permitted except via exception ADR.' This is correct policy but the exception-ADR template/workflow is not specified. Compare ADR-0258 §D-4 which explicitly bounds per-tenant extension up to 24 months via Cedar advice — a tractable mechanism. The shortening case has no analogous mechanism.",
+      "5_year_impact": "Low likelihood (deprecation-shortening is rare) but high consequence if needed (e.g., emergency security tombstone of a compromised schema must be possible faster than 12 months). The exception-ADR path under PR-pressure is the failure mode this gap creates.",
+      "remediation": "Add ADR-0257 §D-3.1 'Emergency-shortening procedure' citing the exception-ADR-template and the ops-compliance-plus-council-security signoff required. Bound the minimum (suggest 30-day floor for security-incident-driven tombstones)."
+    },
+    {
+      "id": "MG-5",
+      "severity": "LOW",
+      "title": "ADR-0284 ADR text exempted from rebrand sweep, but no link-back marker is mechanically enforced",
+      "evidence": "ADR-0284 §D-2: 'ADRs are similarly exempted by directory (docs/decisions/). On rebrand, ADRs are not retroactively rewritten; they carry historical-slug-intentionally markers in the rebrand migration ledger (per §D-6).' But the historical-slug-intentionally marker is described only at the ledger level — there is no per-ADR forward-link mechanism so a future reader of ADR-0257 (which says 'oyatie') has no signal that the slug has changed.",
+      "5_year_impact": "Post-rebrand, agent sessions reading historical ADRs by literal slug match (the common pattern for ADR retrieval) will not auto-discover the rebrand. The migration ledger is the source-of-truth but is not discoverable from the ADR text.",
+      "remediation": "On rebrand, prepend a Front-matter field 'rebrand_history: see /migration-ledger/rebrand/<id>' to every ADR file mechanically via the Stage R-11 documentation sweep. Make the prepend a verified step in the rebrand-verification checklist."
+    }
+  ],
+  "evolution_blockers": [
+    {
+      "id": "EB-1",
+      "severity": "NONE (informational)",
+      "title": "Sealed audit-chain rows commit to literal slugs",
+      "evidence": "ADR-0284 §Context lines 167-176 acknowledges this: 'Every Cedar fragment signed during bootstrap (per ADR-0242 §D-5 step 5) cryptographically commits to the literal. Every audit-chain entry sealed after bootstrap (per ADR-0028 inheritance + Merkle sealing) cryptographically commits to the stream names. Re-signing those artifacts after a slug change is not a textual sed operation; it requires re-running cryptographic ceremonies under the org root key.'",
+      "blocker_status": "NOT_A_BLOCKER — ADR-0284 §D-6 R-7 explicitly preserves old streams append-only and creates new streams with bridge events. Aggregation views union them. This is the correct hyperscale pattern (Stripe never deletes audit history); the 'cost' is forever-storage which is acceptable.",
+      "5_year_impact": "None. Storage cost grows linearly; no functional blocker."
+    },
+    {
+      "id": "EB-2",
+      "severity": "LOW",
+      "title": "Schema-evolution event volume could grow at scale",
+      "evidence": "ADR-0257 §D-5 emits ObjectTypeSchemaEvolved with 7 subtypes for every state transition. At projected 500+ Object Types with periodic evolution, this is potentially 500 events/quarter steady-state. Audit-chain capacity per ADR-0028 should absorb this comfortably.",
+      "blocker_status": "NOT_A_BLOCKER — well within audit-chain steady-state budget. Mentioned for completeness.",
+      "5_year_impact": "None at projected scale."
+    },
+    {
+      "id": "EB-3",
+      "severity": "LOW",
+      "title": "Per-consumer pin range may calcify at scale",
+      "evidence": "ADR-0257 §D-4 mandates manifest pinning; ADR-0258 §D-7 stores per-tenant pin as Cedar advice. As consumer count grows (target 50+ µservices per ADR-0245 substrate-roster), every breaking change ripples through every consumer's manifest. The deprecation handshake bounds this (12-month grace) but the operational cost of 'find all consumers, file PRs to update their manifest pin, await merge' is non-trivial.",
+      "blocker_status": "NOT_A_BLOCKER — the cost is the explicit choice (alternative is silent regression). ADR-0257 §D-4 caret-range recommendation mitigates this: pin to >=2.3.0,<3.0.0 absorbs all 2.x minor evolution automatically. Recommend strengthening the caret-range recommendation to a default+exception (rather than recommendation) in a future amendment.",
+      "5_year_impact": "Tractable with the caret-range default."
+    },
+    {
+      "id": "EB-4",
+      "severity": "MEDIUM",
+      "title": "Cedar fragment hot-reload depends on Cedar v4.2 LTS advice extension",
+      "evidence": "ADR-0258 §D-7 cites 'Cedar v4.2 LTS advice extension' for the per-tenant pin propagation. ADR-0257 §D-8 similarly relies on Cedar fragment evaluation. The fragment hot-reload story is concrete (Valkey 5s TTL + push invalidation) but the upstream Cedar advice extension is a single point of dependency.",
+      "blocker_status": "MITIGATABLE — Cedar is open-source; the LTS commitment is real but the platform's substrate-vendor-lock-in concerns per ADR-0173/0211 suggest a future need to either (a) fork Cedar if the advice extension is removed upstream, or (b) replace with an oyatie-internal mechanism. ADR-0246 already promoted policy-engine to substrate so this is anticipated.",
+      "5_year_impact": "Survivable. Worst case is one substrate-internal patch over 5 years. Recommend tracking Cedar LTS cycle in /migration-ledger/dependencies/cedar/."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F8-F1",
+      "severity": "HIGH",
+      "category": "Migration path",
+      "summary": "ADR-0263 §D-15 forthcoming-ADR reference creates a hole in the observability breaking-change authority",
+      "detail": "Line 970: 'ADR-class document (forthcoming).' The corpus-wide pattern is that each Tier-1 contract ADR self-contains its breaking-change authority (ADR-0257 §D-3 is the authority for Ontology; ADR-0258 §D-8 + §D-10 for API). Observability is the only Tier-1 emission contract that defers its breaking-change authority.",
+      "recommendation": "Fold breaking-change authority into ADR-0263 §D-15 as a structured sub-clause before BLOCKER promotion."
+    },
+    {
+      "id": "F8-F2",
+      "severity": "MEDIUM",
+      "category": "Migration path",
+      "summary": "ADR-0280 lacks explicit substrate-addition ceremony (parallel to ADR-0284 §D-6 rebrand ceremony)",
+      "detail": "New Tier-1 substrate addition is implicit — five derived surfaces require synchronized update with no codified ceremony.",
+      "recommendation": "Add ADR-0280 §D-13 substrate-addition ceremony + signed /migration-ledger/substrate-add/<id> entry pattern."
+    },
+    {
+      "id": "F8-F3",
+      "severity": "MEDIUM",
+      "category": "Drift detection",
+      "summary": "Reading-order doc + per-ADR pattern attribution matrices have no CI-enforced drift detection",
+      "detail": "Human-owned documentation surfaces with no validator; high agent-onboarding impact if stale.",
+      "recommendation": "Author oya-check-keystone-bundle-reading-order-drift + oya-check-pattern-attribution-matrix-drift lanes."
+    },
+    {
+      "id": "F8-F4",
+      "severity": "LOW",
+      "category": "Migration path",
+      "summary": "ADR-0257 lacks emergency-shortening exception procedure within the 12-month grace floor",
+      "detail": "Security-incident-driven tombstone faster than 12 months has no codified path beyond 'exception ADR'.",
+      "recommendation": "Add ADR-0257 §D-3.1 emergency-shortening procedure with 30-day floor + ops-compliance + council-security dual signoff."
+    },
+    {
+      "id": "F8-F5",
+      "severity": "LOW",
+      "category": "Migration path",
+      "summary": "ADR-0284 rebrand sweep exempts ADR text but does not mechanically prepend a forward-link marker",
+      "detail": "Post-rebrand, ADR readers have no in-text signal that the slug has changed; must consult migration ledger out-of-band.",
+      "recommendation": "Add Stage R-11 sub-step: prepend rebrand_history front-matter to every ADR file referencing the prior slug."
+    },
+    {
+      "id": "F8-F6",
+      "severity": "LOW",
+      "category": "5-year evolution",
+      "summary": "Caret-range pinning is a recommendation in ADR-0257 §D-4, not a default",
+      "detail": "Exact-version pins create per-patch operational burden; recommendation language permits the bad pattern.",
+      "recommendation": "Strengthen ADR-0257 §D-4 to make caret-range the default + require explicit pin_rationale for any non-caret range."
+    },
+    {
+      "id": "F8-F7",
+      "severity": "INFO",
+      "category": "5-year evolution",
+      "summary": "Cedar advice extension upstream dependency should be tracked in a migration-ledger entry",
+      "detail": "Per ADR-0246 substrate promotion, Cedar is already a load-bearing dependency. LTS cycle tracking is good hygiene.",
+      "recommendation": "Create /migration-ledger/dependencies/cedar/v4.2-lts.json with cycle dates + fork-trigger criteria."
+    }
+  ],
+  "positive_evidence": [
+    {
+      "id": "PE-1",
+      "category": "Hot-reload feasibility",
+      "claim": "ADR-0257 §D-6 5s p99 cross-cell schema-revision propagation is realistic and budget-decomposed",
+      "evidence": "Per-hop budget: 50ms producer adapter + 50ms Postgres+outbox + 200ms Kafka + 2000ms cross-cell + 100ms invalidate + 200ms worker + 500ms reload = 3100ms p50. p99 5000ms is achievable with Valkey 5s TTL and push-based invalidation."
+    },
+    {
+      "id": "PE-2",
+      "category": "Sunset window realism",
+      "claim": "12-month minimum + 6-month deprecation announcement + 24-month per-tenant extension matches every named hyperscaler benchmark",
+      "evidence": "ADR-0258 §D-4 explicitly cites Stripe (12+ months), SOC2 Type II (12-month observation), HIPAA (quarterly review cycle), KR public-sector (annual procurement). Realistic."
+    },
+    {
+      "id": "PE-3",
+      "category": "Corpus evolution without rewrite",
+      "claim": "ADR-0284 indirection mechanism converts rebrand from N-week sed to one-constant ceremony",
+      "evidence": "ADR-0284 §D-1 spec-file + generated-crate pattern. §D-6 13-stage ceremony bounded to mechanical operations. ADR text exempted (preserves historical record). Migration cost is bounded; cost of NOT preparing is unbounded."
+    },
+    {
+      "id": "PE-4",
+      "category": "5-year doctrine maintainability",
+      "claim": "Every ADR carries a maintenance hook (CHANGELOG / migration-ledger / sunset_topic / enforcement_status field)",
+      "evidence": "ADR-0257 enforcement_status=advisory-until-schema-revision-lands; ADR-0258 sunset_topic=adr-0258-api-versioning-model; ADR-0263 enforcement_status=advisory-until-emission-client-lands; ADR-0280 enforcement_status=advisory-until-dag-spec-lands-and-validator-green; ADR-0284 enforcement_status=advisory-until-constant-crate-lands. Pattern is uniform. Reading-order doc has §17 Document maintenance + CHANGELOG."
+    },
+    {
+      "id": "PE-5",
+      "category": "Cycle prevention",
+      "claim": "ADR-0280 prevents the Foote+Yoder Big Ball of Mud failure mode at PR time, not retrospectively",
+      "evidence": "ADR-0280 §D-3 Tarjan SCC O(V+E) validator runs <10ms; 16 explicit forbidden_edges_assertion entries are negative-space invariants the validator enforces."
+    }
+  ],
+  "facet_recommendations_ranked": [
+    "F8-F1 (HIGH): file IP to fold observability breaking-change authority into ADR-0263 §D-15 before BLOCKER promotion",
+    "F8-F2 (MEDIUM): add ADR-0280 §D-13 substrate-addition ceremony",
+    "F8-F3 (MEDIUM): author drift-detection CI lanes for reading-order doc and pattern attribution matrices",
+    "F8-F4 (LOW): add emergency-shortening procedure to ADR-0257 §D-3",
+    "F8-F5 (LOW): mechanize rebrand front-matter prepend in ADR-0284 Stage R-11",
+    "F8-F6 (LOW): strengthen caret-range to default in ADR-0257 §D-4",
+    "F8-F7 (INFO): track Cedar advice-extension LTS dependency in migration ledger"
+  ],
+  "blocking_for_acceptance": [],
+  "non_blocking_followups": [
+    "F8-F1", "F8-F2", "F8-F3", "F8-F4", "F8-F5", "F8-F6", "F8-F7"
+  ],
+  "confidence": 0.86,
+  "confidence_rationale": "High confidence on the in-scope corpus (read 5 ADRs + reading-order doc + 3 pattern-attribution appendices). Moderate confidence on the cross-corpus assertions about derived surface coherence (per-µservice manifests, /specs/ files) since those were sampled, not exhaustively walked.",
+  "review_metadata": {
+    "reviewer_persona": "F8-Maintenance specialist subagent",
+    "tooling_used": ["Read", "Bash:grep", "structural inspection of ADR front-matter"],
+    "lens_isolation": "Reviewed only maintenance/operability/migration/evolution dimensions; intentionally did not opine on security, performance, or correctness except where they directly compromise long-term operability."
+  }
+}

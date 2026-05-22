@@ -59,11 +59,11 @@ Tables `rule_definitions`, `cedar_fragments`, `false_positive_escalations`, `dec
 
 PostgreSQL connection-level setting `app.tenant_id` is set by the application after authenticating; never user-controllable from outside the typed `RuleStore` port.
 
-LEAN lane `oya-foundry-fitness-postgres-rls-enforced` verifies RLS is on for every tenant-scoped table.
+LEAN lane `oya-governance-postgres-rls-enforced` verifies RLS is on for every tenant-scoped table.
 
 ### TI-02: Typed RuleStore port — no raw SQL
 
-The kernel `RuleStore` trait is the ONLY interface to Postgres rule-store. Direct SQL access from application code refused by `oya-foundry-fitness-no-raw-sql` lane (AST inspection).
+The kernel `RuleStore` trait is the ONLY interface to Postgres rule-store. Direct SQL access from application code refused by `oya-governance-no-raw-sql` lane (AST inspection).
 
 ### TI-03: Per-row `tenant_id` + `pack` columns
 
@@ -81,7 +81,7 @@ Per pack: one HA primary + 2 RR Postgres cluster. Cross-pack queries impossible 
 
 Application-side connection pool sets `app.tenant_id` at acquire-time + resets at release. Pool re-use never leaks tenancy.
 
-LEAN lane `oya-foundry-fitness-pg-pool-tenancy-reset` validates.
+LEAN lane `oya-governance-pg-pool-tenancy-reset` validates.
 
 ## Cedar Engine Tenancy Invariants
 
@@ -107,7 +107,7 @@ Cedar bundle stored in ConfigMap (production)/in-process compile (sidecar); SHA 
 
 Classifier-serving pods accept prompt input + return verdict + score. NO per-tenant state retained between requests. Pods cannot leak tenant state.
 
-LEAN lane `oya-foundry-fitness-statelessness --microservice foundry-guardrails` validates.
+LEAN lane `oya-governance-statelessness --microservice foundry-guardrails` validates.
 
 ### TI-12: Per-pack classifier-model artifacts
 

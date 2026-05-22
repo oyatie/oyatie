@@ -43,8 +43,8 @@ channels:
   foundry-supervisor-autonomy-decided:
     address: workflow-events/foundry.supervisor.autonomy.decided
     messages:
-      AutonomyTierDecidedMessage: {$ref: '#/components/messages/AutonomyTierDecided'}
-    description: foundry-supervisor announces an autonomy-tier decision.
+      AutonomyLevelDecidedMessage: {$ref: '#/components/messages/AutonomyLevelDecided'}
+    description: foundry-supervisor announces an autonomy-ceiling decision.
 
   # Outbound
   foundry-evidence-pack-assembled:
@@ -93,7 +93,7 @@ operations:
   receiveInvocationCompleted: {action: receive, channel: {$ref: '#/channels/foundry-runtime-invocation-completed'}}
   receiveEvalVerdictPublished: {action: receive, channel: {$ref: '#/channels/foundry-eval-verdict-published'}}
   receiveGuardrailDecisionEmitted: {action: receive, channel: {$ref: '#/channels/foundry-guardrails-decision-emitted'}}
-  receiveAutonomyTierDecided: {action: receive, channel: {$ref: '#/channels/foundry-supervisor-autonomy-decided'}}
+  receiveAutonomyLevelDecided: {action: receive, channel: {$ref: '#/channels/foundry-supervisor-autonomy-decided'}}
   sendPackAssembled: {action: send, channel: {$ref: '#/channels/foundry-evidence-pack-assembled'}}
   sendPackAssemblyFailed: {action: send, channel: {$ref: '#/channels/foundry-evidence-pack-assembly-failed'}}
   sendPackSuperseded: {action: send, channel: {$ref: '#/channels/foundry-evidence-pack-superseded'}}
@@ -107,7 +107,7 @@ components:
     InvocationCompleted: {name: InvocationCompleted, payload: {$ref: '#/components/schemas/InvocationCompletedPayload'}}
     EvalVerdictPublished: {name: EvalVerdictPublished, payload: {$ref: '#/components/schemas/EvalVerdictPublishedPayload'}}
     GuardrailDecisionEmitted: {name: GuardrailDecisionEmitted, payload: {$ref: '#/components/schemas/GuardrailDecisionEmittedPayload'}}
-    AutonomyTierDecided: {name: AutonomyTierDecided, payload: {$ref: '#/components/schemas/AutonomyTierDecidedPayload'}}
+    AutonomyLevelDecided: {name: AutonomyLevelDecided, payload: {$ref: '#/components/schemas/AutonomyLevelDecidedPayload'}}
     PackAssembled: {name: PackAssembled, payload: {$ref: '#/components/schemas/PackAssembledPayload'}}
     PackAssemblyFailed: {name: PackAssemblyFailed, payload: {$ref: '#/components/schemas/PackAssemblyFailedPayload'}}
     PackSuperseded: {name: PackSuperseded, payload: {$ref: '#/components/schemas/PackSupersededPayload'}}
@@ -165,13 +165,13 @@ components:
         source_microservice: {type: string, enum: [foundry-guardrails]}
         publisher_spiffe_signature: {type: string}
 
-    AutonomyTierDecidedPayload:
+    AutonomyLevelDecidedPayload:
       type: object
-      required: [invocation_id, autonomy_tier_decision, rationale_hash, decided_at, source_microservice]
+      required: [invocation_id, autonomy_level_decision, rationale_hash, decided_at, source_microservice]
       properties:
         schema_version: {type: string}
         invocation_id: {type: string, format: ulid}
-        autonomy_tier_decision: {type: string, enum: [T0, T1, T2, T3]}
+        autonomy_level_decision: {type: string, enum: [T0, T1, T2, T3]}
         rationale_hash: {type: string}
         decided_at: {type: string, format: date-time}
         source_microservice: {type: string, enum: [foundry-supervisor]}
@@ -258,7 +258,7 @@ components:
         pack_id: {type: string, format: ulid}
         invocation_id: {type: string, format: ulid}
         source_microservice: {type: string}
-        signal_class: {type: string, enum: [eval-verdict, guardrail-decision, autonomy-tier, invocation-completed]}
+        signal_class: {type: string, enum: [eval-verdict, guardrail-decision, autonomy-ceiling, invocation-completed]}
         lateness_seconds: {type: number}
         observed_at: {type: string, format: date-time}
         materially_significant: {type: boolean}

@@ -62,8 +62,8 @@ postgres_storage_per_day       = (total_runs_per_day × run_state_per_row)
 postgres_storage_90d_hot       = postgres_storage_per_day × 90
 clickhouse_storage_24mo_cold   = postgres_storage_per_day × 730 × 0.5  (ClickHouse compression)
 
-redis_state_per_run            ≈ 200B (lease + ephemeral)
-redis_total                    = total_active_runs × redis_state_per_run × 2 (HA replication)
+valkey_state_per_run            ≈ 200B (lease + ephemeral)
+valkey_total                    = total_active_runs × valkey_state_per_run × 2 (HA replication)
 ```
 
 ## Per-Component Replica Formulae
@@ -72,7 +72,7 @@ redis_total                    = total_active_runs × redis_state_per_run × 2 (
 postgres_coordinator_replicas      = 2  (HA primary + standby; always)
 postgres_worker_replicas           = ceil(total_active_runs / 200_000) × 1.2 buffer
 postgres_read_replica_replicas     = postgres_worker_replicas × 1  (1:1 ratio)
-redis_sentinel_replicas            = 3  (quorum)
+valkey_sentinel_replicas            = 3  (quorum)
 clickhouse_replicas                = ceil(total_audit_seals_per_sec / 1000) × 1.2
 
 execution_engine_worker_replicas   = max(3, ceil(total_steps_per_sec / 2000)) × 1.5 buffer
@@ -125,13 +125,13 @@ References: Citus docs — `docs.citusdata.com/`. Verify-at-deploy.
 ## Valkey Sizing
 
 ```
-total_redis_keys               = total_active_runs × 3 (lease + step-claim + heartbeat)
+total_valkey_keys               = total_active_runs × 3 (lease + step-claim + heartbeat)
                               + total_active_subscriptions
-redis_memory                   = total_redis_keys × 200B + 1GB Sentinel overhead
-redis_replicas                 = 3 (quorum)
+valkey_memory                   = total_valkey_keys × 200B + 1GB Sentinel overhead
+valkey_replicas                 = 3 (quorum)
 ```
 
-References: Valkey Sentinel — `redis.io/topics/sentinel`.
+References: Valkey Sentinel — `valkey.io/topics/sentinel`.
 
 ## ClickHouse Sizing
 
@@ -170,7 +170,7 @@ Replica counts:
   postgres_coordinator     = 2
   postgres_worker          = max(ceil(200 / 200_000), 4) → 4 (HA minimum)
   postgres_read_replica    = 4
-  redis_sentinel           = 3
+  valkey_sentinel           = 3
   clickhouse_replica       = 2
   execution_engine_worker  = max(3, ceil(1.2 / 2000)) = 3
   execution_engine_rest    = 2 (HA min)
@@ -197,7 +197,7 @@ Cost projections per scale tier in `cost-budget.md`.
 ## References
 
 - Postgres + Citus docs — `docs.citusdata.com/`.
-- Valkey Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `valkey.io/topics/sentinel`.
 - ClickHouse operations — `clickhouse.com/docs/en/operations/`.
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - `microservices/workflow-engine/cost-budget.md`.

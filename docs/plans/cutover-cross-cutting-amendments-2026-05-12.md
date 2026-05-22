@@ -24,11 +24,10 @@ These 12 directives were issued by the user across the planning loop. Every phas
 5. **Distroless + smallest-image** for containers. Static binaries; musl static linking; CI image-size budget.
 6. **AWS / Google / Microsoft / Oracle launch-quality bar** throughout.
 7. **Linus-style discipline**: delete bureaucracy; reshape data to eliminate special cases.
-8. **Current LTS dependencies, CI-enforced** via `oya-foundry-fitness-lts-dependency`.
+8. **Current LTS dependencies, CI-enforced** via `oya-governance-lts-dependency`.
 9. **Hyperscaler-bar internal toolchain** + architectural robustness.
 10. **Auto-doc generation + purpose-driven artifacts + agentic-development optimization** with three fitness lanes: doc-freshness, orphan-detection, agentic-navigability.
 11. **Visualization-as-code, Foundry-owned, auto-updated**: `oya-foundry-architecture-map-kernel` + freshness lane. Mermaid + D2 + Graphviz outputs.
-12. **Pragmatic git/gh** — permitted when genuine need + documented rationale via `icm store -t direct-tool-invocations`.
 
 ## 2. LTS-pin amendments for cutover deliverables
 
@@ -65,7 +64,7 @@ The helper is a binary. If it ships as a container (for sandboxed agent runners)
 - Build: `cargo build --release --target x86_64-unknown-linux-musl` (musl static).
 - Multi-arch: `linux/amd64` + `linux/arm64`.
 - Size budget: target `<= 15 MB` for the static-musl binary; the distroless wrapper adds `~2 MB` for cert bundle.
-- CI lane: `oya-foundry-fitness-image-size-budget` (new; scaffolded as part of M-CC Visualization+Image-discipline workstream — out of cutover scope but referenced).
+- CI lane: `oya-governance-image-size-budget` (new; scaffolded as part of M-CC Visualization+Image-discipline workstream — out of cutover scope but referenced).
 - Signing: Cosign `>= 3.0.6` with `--bundle`. Image attestation includes SBOM via Syft (current stable).
 
 ## 4. Hyperscaler-practice inheritance for cutover phases
@@ -77,7 +76,7 @@ Pending the hyperscaler-research agent's output at `.omc/scratch/hyperscaler-bes
 - **Blameless postmortems** (Google SRE): if any cutover phase rolls back, a postmortem lands at `oyatie/docs/runbooks/<axis>/postmortem-<event>.md`.
 - **OKRs**: cutover deliverables map to wave-1 W-Foundation acceptance gates (per ROADMAP).
 - **Trunk-based development**: cutover lands on `main` (session-less mode); no long-lived branches.
-- **1ES templated pipelines** (Microsoft): every cutover CI lane (`oya-foundry-fitness-*`) is a templated reusable workflow.
+- **1ES templated pipelines** (Microsoft): every cutover CI lane (`oya-governance-*`) is a templated reusable workflow.
 - **Sigstore / SLSA**: every cutover binary deliverable is Cosign-signed; provenance attestation per SLSA L3.
 - **SBOM**: every cutover binary deliverable ships an SBOM (Syft + Grype attestation).
 
@@ -89,8 +88,6 @@ Per Directive 10, every cutover output (P0.5 ADR-0054, P1 ADR-0052, P2 helper cr
 
 - **Purpose declared**: each new file has frontmatter (markdown) or top-comment (Rust) stating "Purpose: <one line>".
 - **Machine-readable index**: each new directory has `INDEX.md` listing contents with purpose.
-- **Grit-claimable symbols enumerated**: each new Rust crate exposes its public API via documented `pub` declarations indexable by `grit symbols`.
-- **Icm-store payload**: each phase emits a documented `icm store -t <topic> -c <content>` event at completion (named in the phase Implementation Plan).
 - **Predictable naming**: all new crates follow `oya-<context>-<role>[-<capability>]`; all new docs follow the existing oyatie/docs/ convention.
 
 ## 6. Visualization integration (Directive 11)
@@ -109,15 +106,9 @@ The visualization kernel, when scaffolded later, reads these cutover artifacts a
 
 The cutover plan's P6/P7/P9 carve-outs originally framed `git mv` / `git rm` / `gh issue create` as "human-orchestrator only." Under Directive 12, these are reframed as:
 
-> "Any operator (agent or human) may invoke git/gh when (a) no grit/icm primitive exists for the operation AND (b) inventing one would be over-engineering AND (c) rationale is documented via `icm store -t direct-tool-invocations -c '<why>' -i critical` BEFORE invocation."
 
-The audit trail requirement is the load-bearing piece: every direct git/gh invocation during the cutover MUST have a matching icm-store record. The `oya-foundry-fitness-banned-primitives` lane (P5) MUST catch UNDOCUMENTED invocations, not all invocations. Specifically, the lane:
 
-- Greps agent-instruction sections for `\bgit\b`, `\bgh\b`, `rtk git`, `rtk gh`.
-- Cross-references each match against `icm recall -t direct-tool-invocations` for a same-day rationale.
-- Fails CI only if a match has no corresponding icm record OR the icm record is older than 24h.
 
-This satisfies the spec's §Constraints item 1 ("Sanctioned primitives are `{grit, icm, oya-tooling-agent-read}` only") by treating `{git, gh}` as documented-exception primitives rather than wholly-banned ones.
 
 ## 8. Master Plan integration
 

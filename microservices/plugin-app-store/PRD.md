@@ -11,7 +11,7 @@ bominal_source:
   - ADR-0037   # Plugin substrate (superseded for new work by ADR-0213)
   - ADR-0028   # Audit chain
   - ADR-0022   # Autonomy tiers
-related_adrs: [ADR-0001, ADR-0007, ADR-0008, ADR-0056, ADR-0065, ADR-0105, ADR-0110, ADR-0123, ADR-0131, ADR-0132, ADR-0139, ADR-0147, ADR-0181, ADR-0200, ADR-0211, ADR-0212, ADR-0213]
+related_adrs: [ADR-0001, ADR-0007, ADR-0008, ADR-0056, ADR-0065, ADR-0105, ADR-0110, ADR-0123, ADR-0131, ADR-0132, ADR-0139, ADR-0147, ADR-0181, ADR-0200, ADR-0211, ADR-0212, ADR-0213, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/plugin-app-store.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0213
 unbundle_sibling: microservices/developer-sdk/
@@ -61,7 +61,7 @@ This µservice operates at the **application** layer of the 12-layer Workflow + 
 | FR-12 | tenant operator | to view per-plugin audit trail (every action it took on my tenant data) | I have forensic visibility | audit-stream | Must |
 | FR-13 | tenant admin | to set per-plugin rate-limit overrides (allow higher quota for trusted plugins) | trusted plugins are not throttled inappropriately | per-plugin-rate-limit | Should |
 | FR-14 | finops-portal | to receive per-plugin billing events for invoice aggregation | tenant gets one consolidated invoice | subscription-billing | Must |
-| FR-15 | tenant operator | to manage subscriptions (pause, resume, cancel, upgrade tier) | I control my spend | subscription-billing | Must |
+| FR-15 | tenant operator | to manage subscriptions (pause, resume, cancel, change billing_components) | I control my spend | subscription-billing | Must |
 | FR-16 | plugin runtime | to be denied + audit-logged when it attempts an action outside its declared capabilities | declared-capability scope is enforced | per-plugin-permissions | Must |
 | FR-17 | platform admin | to view vetting-queue health (submissions / day, p95 vetting-decision latency, rejection rate by cause) | I tune the vetting pipeline | vetting-pipeline | Should |
 
@@ -101,7 +101,37 @@ This µservice operates at the **application** layer of the 12-layer Workflow + 
 
 ### Cost
 - Vetting pipeline budget: $0.50 per submitted version (Trivy + Cosign + Wasmtime ephemeral run).
-- Per-plugin runtime cost passed through to plugin's subscription tier (free plugins on shared cells; paid plugins on dedicated cells per ADR-0199).
+- Per-plugin runtime cost passed through to plugin's billing_components contract (free plugins on shared cells; paid plugins on dedicated cells per ADR-0199).
+
+### DR posture (ADR-0343)
+
+- RTO/RPO target: manifest-declared RTO p99 900s and RPO p99 60s for catalog, install grants, vetting decisions, and subscription-billing events. Applicable floors are EU-AI-ACT-2024-HIGH-RISK 1800s/300s with multi-region required for AI plugins, SOC2-T2 14400s/900s, and ISO27001-2022 14400s/3600s; the manifest target is stricter than those floors.
+- Failover reference: manifest `failover_runbook` is `runbooks/dr-failover.md`; supporting drills remain `microservices/plugin-app-store/multi-region.md`, `runbooks/plugin-revoke-propagation-slow.md`, `runbooks/vetting-pipeline-stuck.md`, and `runbooks/wasmtime-sandbox-escape-suspected.md`.
+- Multi-region active-active posture: true per manifest; replication shape is `active-active-multi-az-cross-region-warm` across `postgres_wal_g`, versioned object storage, Valkey, and audit-chain Merkle seals.
+- Tenant-visible behavior: tenants can still browse catalog entries during a regional event, while install and revoke actions either complete once with a sealed audit row or enter a visible retry state.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: manifest-declared 0.25 vCPU, 512 MiB RAM, 2 GB storage, three Postgres connections, four Valkey connections, and eight outbound HTTP connections.
+- Scaling dimension: `per_capability` per manifest for install, vetting, signing, permission checks, and Wasmtime admission, with `per_request` for catalog/search and `per_plugin_invocation` for runtime accounting as secondary dimensions.
+- Cell placement class: Tier-2 capability cell for catalog, install, vetting, and billing state; Tier-0 pod runtime is reserved for tenant plugin execution sandboxes declared by ADR-0338.
+- Autoscaling boundaries: catalog and install APIs scale 3-100 replicas per active region, vetting workers scale 2-50 per queue, and Tier-0 sandbox engines scale from 100 to 1000 warm engines per cell with per-installation concurrency caps.
+- Tenant load profile: serves 100k catalog plugins, 10k concurrent installs, and 1M active tenant-plugin installations while keeping kill-switch propagation under the plugin revoke SLO.
+
+### Sustainability and cost attribution (ADR-0344)
+
+- Per-call emission claim: catalog search, install, revoke, vetting stage, runtime invocation, and subscription-billing audit rows emit `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with tenant, plugin, provider, cell, and compliance_pack axes.
+- Carbon-aware provider routing: yes for vetting batches, catalog indexing, and non-urgent package replication; no for plugin revoke, kill-switch propagation, sandbox-escape response, or tenant install consent writes.
+- Tenant transparency surface: plugin admin and finops-portal show per-plugin catalog, vetting, runtime, and subscription line items alongside the consolidated invoice.
+- Regulatory driver: CSRD, SB-253, and SEC climate disclosure reporting need plugin ecosystem emissions separated from core platform cost, especially when third-party plugins drive tenant spend.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet across version header, URL prefix, and proto3 field for catalog, install, permission, vetting, rating, and billing contracts.
+- SDK semver model: plugin marketplace SDKs use `major.minor.patch`; breaking catalog or install contract changes require a major SDK bump plus a new date-versioned public API.
+- Support window: last 3 public versions are supported for at least 180 days.
+- Per-tenant pinning: yes for plugin manifests, install APIs, permission grants, and tenant admin automations.
+- Internal-mesh exemption: yes; ADR-0145 direct gRPC remains valid between catalog, vetting, billing, and runtime-adjacent internal components.
 
 ## Acceptance Criteria (AC)
 
@@ -113,7 +143,7 @@ This µservice operates at the **application** layer of the 12-layer Workflow + 
 | AC-04 | Vetting pipeline fails open (rejects) on Cosign signature absent | unit test in `vetting-pipeline-domain` |
 | AC-05 | Vetting pipeline rejects Trivy CVE-Critical-unfixed | unit test in `vetting-pipeline-domain` |
 | AC-06 | Per-plugin Cedar policy denies out-of-scope action + audit-logs | integration test |
-| AC-07 | Per-plugin rate-limit enforces declared cap with no leakage | integration test against Redis |
+| AC-07 | Per-plugin rate-limit enforces declared cap with no leakage | integration test against Valkey |
 | AC-08 | Per-plugin runtime cold-start ≤ 300ms p99 | bench test |
 | AC-09 | Audit-chain seal emitted for every plugin action on tenant data | integration test with audit-chain stub |
 | AC-10 | Billing aggregation feeds finops-portal with byte-equal totals | integration test with finops-portal stub |
@@ -203,3 +233,23 @@ This µservice operates at the **application** layer of the 12-layer Workflow + 
 - ADR-0131 (per-microservice flat layout).
 - ADR-0132 (no-suite policy).
 - Memory: `feedback_quality_performance_scalability_bar.md`; `feedback_workflow_objectgraph_adapter_layer.md`; `feedback_canonical_base_localization.md`.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `plugin-app-store` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `plugin-app-store` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 4 module pin(s) across 1 context(s).
+- Scaling input: `per_capability` with cell placement `Tier-2` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

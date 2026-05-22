@@ -38,7 +38,7 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites
 - Unit: URL-routing precedence (specific > wildcard); hreflang reciprocity.
 - Integration: Postgres RLS coverage; legal-hold preserves history.
 - Integration: AI-page-build refusal for HR/legal/medical overlays.
-- Golden corpus: redirect-signature-stability (Hyrum #1 from migration guide).
+- reference corpus: redirect-signature-stability (Hyrum #1 from migration guide).
 
 ## References
 

@@ -16,9 +16,9 @@ use oya_cloud_network_domain::{
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;
 
-const PUBLIC_ZONE_ID: &str = "oya:cloud:home-region:ten_alpha:dns-zone:example-com";
-const PRIVATE_ZONE_ID: &str = "oya:cloud:home-region:ten_alpha:dns-zone:internal-example";
-const VPC_ID: &str = "oya:cloud:home-region:ten_alpha:vpc:prod";
+const PUBLIC_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:example-com";
+const PRIVATE_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:internal-example";
+const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkDnsApiBoundaryContext {
     CloudNetworkDnsApiBoundaryContext {
@@ -51,11 +51,11 @@ fn public_zone_body(resource_id: &str) -> CloudNetworkDnsZoneCreateRequest {
     CloudNetworkDnsZoneCreateRequest {
         resource_id: resource_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         name: "example.com".to_string(),
         kind: "public".to_string(),
         vpc_id: None,
-        dnssec_key_ref: Some("dnssec/home-region/ten_alpha/example-com".to_string()),
+        dnssec_key_ref: Some("dnssec/region-home/ten_alpha/example-com".to_string()),
         data_class: "PUBLIC".to_string(),
         created_at_epoch_seconds: 1_700_000_030,
     }
@@ -65,7 +65,7 @@ fn private_zone_body(resource_id: &str) -> CloudNetworkDnsZoneCreateRequest {
     CloudNetworkDnsZoneCreateRequest {
         resource_id: resource_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         name: "internal.example".to_string(),
         kind: "private".to_string(),
         vpc_id: Some(VPC_ID.to_string()),
@@ -112,7 +112,7 @@ fn seed_vpc(catalog: &mut CloudNetworkCatalog) {
         .create_vpc(VpcCreate {
             resource_id: VPC_ID.to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region: "home-region".to_string(),
+            region: "region-home".to_string(),
             cidr_v4: "10.42.0.0/16".to_string(),
             cidr_v6: "2001:db8:42::/56".to_string(),
             flow_logs_enabled: true,
@@ -135,7 +135,7 @@ fn seed_vpc(catalog: &mut CloudNetworkCatalog) {
                     description: "tenant https ingress".to_string(),
                 }],
             }],
-            residency: ResidencyClass::StrictHome,
+            residency: ResidencyClass::StrictHomeRegion,
             state: VpcState::Creating,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_000,
@@ -178,13 +178,13 @@ fn dns_zone_create_api_creates_public_zone_once_and_replays_same_idempotent_resu
     assert_eq!(first.metadata.request_id, "req-network-dns-create");
     assert_eq!(first.data.resource_id, PUBLIC_ZONE_ID);
     assert_eq!(first.data.tenant_id, "ten_alpha");
-    assert_eq!(first.data.region, "home-region");
+    assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.name, "example.com");
     assert_eq!(first.data.kind, "public");
     assert_eq!(first.data.vpc_id, None);
     assert_eq!(
         first.data.dnssec_key_ref,
-        Some("dnssec/home-region/ten_alpha/example-com".to_string())
+        Some("dnssec/region-home/ten_alpha/example-com".to_string())
     );
     assert_eq!(first.data.data_class, "PUBLIC");
     assert_eq!(first.data.state, "creating");
@@ -215,7 +215,7 @@ fn dns_zone_create_api_rejects_path_body_zone_drift_before_catalog_mutation() {
     let mut catalog = CloudNetworkCatalog::default();
     let mut ledger = CloudNetworkDnsZoneCreateIdempotencyLedger::default();
     let mut request = create_public_request("req-network-dns-drift", "idem-network-dns-drift");
-    request.body.resource_id = "oya:cloud:home-region:ten_alpha:dns-zone:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:dns-zone:other".to_string();
 
     let error = create_cloud_network_dns_zone_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body DNS zone drift is rejected");
@@ -224,7 +224,7 @@ fn dns_zone_create_api_rejects_path_body_zone_drift_before_catalog_mutation() {
         error,
         CloudNetworkDnsApiError::ZoneIdMismatch {
             path_zone_id: PUBLIC_ZONE_ID.to_string(),
-            body_resource_id: "oya:cloud:home-region:ten_alpha:dns-zone:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:dns-zone:other".to_string(),
         }
     );
     assert_eq!(error.dns_zone_create_status_code(), 400);

@@ -1,0 +1,21 @@
+[package]
+name = "oya-audit-chain-emission-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Wave 15-IMPL-truth-up scaffold (2026-05-21):
+# Pure-domain envelope validation per IP-004.
+
+[dependencies]
+oya-audit-chain-emission-kernel = { path = "../oya-audit-chain-emission-kernel" }
+
+[lib]
+name = "oya_audit_chain_emission_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

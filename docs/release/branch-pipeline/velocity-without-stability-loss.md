@@ -11,8 +11,8 @@ purpose: |
   origin/dev → staging, 5-gate staging → prod) beats both trunk-based and
   review-on-every-stage. Metrics, accepted risks, comparison table.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-regression-sla
-  - oya-foundry-fitness-promotion-gate-staging-to-prod
+  - oya-governance-canary-regression-sla
+  - oya-governance-promotion-gate-staging-to-prod
 related_adrs: [ADR-0040, ADR-0041, ADR-0050, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -20,7 +20,6 @@ doc_status: published
 
 # Velocity Without Stability Loss — The Trade-Off Doc
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. The deliberate deviation
 
@@ -28,7 +27,6 @@ Hyperscaler default (Google, Microsoft) is **trunk-based development** — one l
 
 Oyatie deliberately deviates by adopting a **four-layer** model and placing gates **asymmetrically**:
 
-- **Layer 0 (worktree)** and **Layer 1 (agent local dev clone)**: autonomous; agents may sync local-dev to/from origin/dev at any time without ceremony. `grit done` is the atomic primitive.
 - **Layer 1 → Layer 2 (local-dev → origin/dev)**: **3-gate** (PR shape + reviewer-agent `APPROVE` + CI green). This is the first shared-world boundary; quality goes in here.
 - **Layer 2 → Layer 3 (origin/dev → staging)**: **autonomous** — CI was already cleared at dev entry, no re-verification needed.
 - **Layer 3 → Layer 4 (staging → prod)**: **5-gate** (comments-resolved + CI-green ≥ N runs + canary-100% ≥ M hrs + zero-SLO-fast + optional reviewer-re-affirm). This is the runtime-validation boundary.
@@ -69,32 +67,31 @@ We do **not** treat canary regression as a defect to be eliminated. We treat it 
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Reviewer agent rubber-stamps a PR; bad code lands on origin/dev | Med | Verdict-quality lane `oya-foundry-fitness-reviewer-verdict-quality` (MED) tracks per-reviewer-agent baseline acceptance rates; outliers feed back into reviewer governance. CI green is an independent gate. |
-| `dev-promoter` orchestration fails (reviewer agent timeout, CI flakiness) | Med | Per-reviewer P95 SLO ≤ 15 min (lane `oya-foundry-fitness-reviewer-verdict-latency`); flakes retried up to 3 times; persistent failures route to `staging-fixer` Mode-B-equivalent. |
+| Reviewer agent rubber-stamps a PR; bad code lands on origin/dev | Med | Verdict-quality lane `oya-governance-reviewer-verdict-quality` (MED) tracks per-reviewer-agent baseline acceptance rates; outliers feed back into reviewer governance. CI green is an independent gate. |
+| `dev-promoter` orchestration fails (reviewer agent timeout, CI flakiness) | Med | Per-reviewer P95 SLO ≤ 15 min (lane `oya-governance-reviewer-verdict-latency`); flakes retried up to 3 times; persistent failures route to `staging-fixer` Mode-B-equivalent. |
 | Canary regression detection lag (staging cohort too small to catch tail issue) | Med | Canary cohort sized per [`canary-rail-spec.md`](../progressive-delivery/canary-rail-spec.md) (≥ 200 sampled requests at gate 1; stage-progression bounded by SLO-burn-rate-bounded holds). |
 | 5-gate verification stuck (perpetual red on one gate) | Med | Per-gate metrics emitted; `prod_promotion_failure_rate` > 5% triggers HIGH alert to council-architecture. |
-| Direct push to origin/dev bypassing PR flow | Catastrophic if it happened | `oya-foundry-fitness-no-direct-origin-dev-commit` (BLOCKER) — every origin/dev commit traces to a PR merge by `dev-promoter`. Branch-protection mutator allowlist. |
-| Reviewer-agent skew (different reviewers approve same change differently over time) | Low | Reviewer verdict templates versioned; per-reviewer training data tracked in `icm` topic; periodic calibration audit. |
+| Direct push to origin/dev bypassing PR flow | Catastrophic if it happened | `oya-governance-no-direct-origin-dev-commit` (BLOCKER) — every origin/dev commit traces to a PR merge by `dev-promoter`. Branch-protection mutator allowlist. |
 
 ## 7. Velocity metrics (targets, lane-enforced)
 
 | Metric | Target | Lane |
 |---|---|---|
-| `local_dev_pr_open_to_merge_p95_minutes` (local-dev PR open → origin/dev merge) | ≤ 30 min | `oya-foundry-fitness-dev-promotion-cadence` (MED) |
-| `dev_to_staging_p95_minutes` | ≤ 5 min (autonomous) | `oya-foundry-fitness-dev-promotion-cadence` (MED) |
-| `staging_to_prod_p95_hours` (from canary-complete to prod-promoted) | ≤ 8 h (post-canary tail; M=24h canary is the floor) | `oya-foundry-fitness-promotion-gate-staging-to-prod` |
-| `reviewer_verdict_p95_minutes` (per change class) | ≤ 15 min | `oya-foundry-fitness-reviewer-verdict-latency` |
+| `local_dev_pr_open_to_merge_p95_minutes` (local-dev PR open → origin/dev merge) | ≤ 30 min | `oya-governance-dev-promotion-cadence` (MED) |
+| `dev_to_staging_p95_minutes` | ≤ 5 min (autonomous) | `oya-governance-dev-promotion-cadence` (MED) |
+| `staging_to_prod_p95_hours` (from canary-complete to prod-promoted) | ≤ 8 h (post-canary tail; M=24h canary is the floor) | `oya-governance-promotion-gate-staging-to-prod` |
+| `reviewer_verdict_p95_minutes` (per change class) | ≤ 15 min | `oya-governance-reviewer-verdict-latency` |
 
 ## 8. Stability metrics (targets, lane-enforced)
 
 | Metric | Target | Lane |
 |---|---|---|
-| `prod_promotion_failure_rate` (gate-red percentage of prod-promoter evaluations) | ≤ 5% | `oya-foundry-fitness-promotion-gate-staging-to-prod` |
-| `canary_regression_to_stable_p95_hours` | ≤ 4 h | `oya-foundry-fitness-canary-regression-sla` (HIGH) |
-| `direct_origin_dev_commit_count` | 0 (BLOCKER) | `oya-foundry-fitness-no-direct-origin-dev-commit` |
-| `direct_staging_commit_count` | 0 (BLOCKER) | `oya-foundry-fitness-no-direct-staging-commit` |
-| `direct_prod_commit_count` | 0 (BLOCKER) | `oya-foundry-fitness-no-direct-prod-commit` |
-| `pr_review_verdict_present_rate` (at local-dev → origin/dev) | 100% (BLOCKER) | `oya-foundry-fitness-pr-review-verdict-present` |
+| `prod_promotion_failure_rate` (gate-red percentage of prod-promoter evaluations) | ≤ 5% | `oya-governance-promotion-gate-staging-to-prod` |
+| `canary_regression_to_stable_p95_hours` | ≤ 4 h | `oya-governance-canary-regression-sla` (HIGH) |
+| `direct_origin_dev_commit_count` | 0 (BLOCKER) | `oya-governance-no-direct-origin-dev-commit` |
+| `direct_staging_commit_count` | 0 (BLOCKER) | `oya-governance-no-direct-staging-commit` |
+| `direct_prod_commit_count` | 0 (BLOCKER) | `oya-governance-no-direct-prod-commit` |
+| `pr_review_verdict_present_rate` (at local-dev → origin/dev) | 100% (BLOCKER) | `oya-governance-pr-review-verdict-present` |
 
 ## 9. Comparison table — five branching models
 
@@ -118,5 +115,4 @@ The four-layer model is the simplest representation that places each gate at the
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all promoter agents use `grit` + `icm` + `oya-tooling-agent-read`; reviewer verdicts stored via `icm store -t pr-review-verdicts`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — this document is the trade-off justification for the four-layer pipeline defined in ADR-0055.

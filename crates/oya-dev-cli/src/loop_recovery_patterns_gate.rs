@@ -443,6 +443,7 @@ where
     let program_label = program.as_ref().to_string_lossy().into_owned();
     let output = Command::new(program.as_ref())
         .args(args)
+        .env_remove("RUSTC_WRAPPER")
         .output()
         .map_err(|error| {
             format!(

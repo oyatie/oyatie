@@ -125,7 +125,7 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 2. **Zero-silent-loss CRDT (AC-06) with cross-µservice library alignment** — Loro shared with workflow-studio via published port-trait re-export; competitor solutions are OT (Google/MS/Etherpad) or Yjs (Notion).
 3. **Dual-context (Personal / Professional) structural isolation enforced in code** — competitor solutions are policy-only or account-switching.
 4. **Audit-chain (Ed25519 + Merkle) on every document lifecycle** — beyond what enterprise competitors offer; eIDAS-compliant.
-5. **OOXML round-trip fidelity ≥ 95% on Microsoft corpus** — best-effort tier per ADR-DOCS-0006; Microsoft Word Web is the bar; Notion + Coda + Quip lag.
+5. **OOXML round-trip fidelity ≥ 95% on Microsoft corpus** — best-effort fidelity per ADR-DOCS-0006; Microsoft Word Web is the bar; Notion + Coda + Quip lag.
 6. **PDF/A-1b + PDF/A-2u archival-grade export** — Google Docs has no PDF/A; Microsoft Word has PDF/A; LibreOffice/Collabora have PDF/A.
 7. **11-pack regulatory overlay** — per-jurisdiction retention, Hijri/imperial calendar in PDF metadata, Sharia retention extension.
 8. **eIDAS PAdES B-LT signed PDF export** for legal-evidence tenants (pack-eu) — Microsoft Word has partial; competitors lag.

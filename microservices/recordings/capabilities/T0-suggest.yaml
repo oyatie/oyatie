@@ -48,7 +48,7 @@ regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-
 
 pack_overrides:
   pack-eu:
-    eu_ai_act_classification: minimal_risk
+    risk_classification: minimal_risk
     transparency_obligation: must-label-as-AI-generated; no high-risk obligation
   pack-us-healthcare:
     requires: signed BAA (PHI inference at chapter boundaries is metadata-only; still PHI-adjacent)
@@ -66,9 +66,9 @@ cedar_policy_fragments:
   - microservices/recordings/policy/cedar/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/recordings/capabilities/eval/t0-chapter-suggest-golden.jsonl
+  baseline_inputs_path: microservices/recordings/capabilities/eval/t0-chapter-suggest-baseline.jsonl
   pass_threshold: 0.85
-  eval_metric: chapter-boundary precision@5 (human-labelled golden set)
+  eval_metric: chapter-boundary precision@5 (human-labelled baseline set)
   cadence: per-release
 
 sunset:

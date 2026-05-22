@@ -47,11 +47,11 @@ spec:
       ports: [{protocol: TCP, port: 5432}]
     # Valkey hot-feed cache
     - to:
-        - podSelector: {matchLabels: {app.kubernetes.io/name: community-redis-hot}}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: community-valkey-hot}}
       ports: [{protocol: TCP, port: 6379}]
     # Valkey vote buffer
     - to:
-        - podSelector: {matchLabels: {app.kubernetes.io/name: community-redis-votes}}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: community-valkey-votes}}
       ports: [{protocol: TCP, port: 6379}]
     # Meilisearch (per ADR-COMM-0004)
     - to:

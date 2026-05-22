@@ -18,7 +18,7 @@ related_artifacts:
   - microservices/foundry/contracts/openapi/foundry-runtime.yaml
   - microservices/foundry/policy/data-residency.md
 
-autonomy_tier: T1
+autonomy_level: T1
 # T1 = read-only metadata + write to own tenant scope; lower tier than T2 capability-execute.
 
 inputs:
@@ -84,7 +84,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/session-create-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/session-create-baseline.jsonl
   pass_threshold: 1.0
   eval_metric: session-creation-success-rate AND cross-pack-refusal-correctness
   cadence: per-release

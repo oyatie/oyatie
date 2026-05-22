@@ -1025,7 +1025,7 @@
       "owner_team": "regional-packs"
     }
   },
-  "validation_lane": "oya-foundry-fitness-doc-catalog",
+  "validation_lane": "oya-governance-doc-catalog",
   "validation_runs_on": "every PR touching docs/**",
   "purpose": "Machine-readable catalog of every consolidated doc + per-product PRD + team charter + regional pack. Mirrored from DOC-CATALOG.md."
 }

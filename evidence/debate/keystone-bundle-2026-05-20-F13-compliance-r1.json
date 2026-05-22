@@ -1,0 +1,310 @@
+{
+  "schema_version": "multispectrum-review-v2.4.0",
+  "review_id": "keystone-bundle-2026-05-20-F13-compliance-r1",
+  "review_date": "2026-05-20",
+  "facet": "F13-Regulatory-Compliance",
+  "reviewer": "claude-opus-4-7-subagent-F13-compliance",
+  "bundle_id": "keystone-bundle-2026-05-20",
+  "verdict": "APPROVE-WITH-FINDINGS",
+  "summary": "The keystone bundle establishes a structurally defensible compliance posture across the 14+ regimes in scope (GDPR, KR-PIPA, HIPAA, PCI DSS, FedRAMP Moderate/High, EU AI Act, EU NIS2, EU DSA, JP APPI, SG PDPA, KSA NDMO/PDPL, DoD IL5/6, COPPA, KOSA, plus EU ePrivacy, UK GDPR/AADC, LGPD, CCPA/CPRA, DPDPA, AU Privacy Act, Quebec Law 25, CH revFADP, and ISO 27001/27701/22301/42001/SOC2). ADR-0251 is the keystone compliance-pack primitive that binds all other regimes through the pack registry; ADR-0272 (cookie consent), ADR-0273 (email auth), ADR-0276 (GDPR Article 20 portability), and ADR-0292 (minor-user/COPPA/KOSA) are tight regime-specific overlays that compose cleanly onto ADR-0251. ADR-0240/0241 provide the sovereign-cloud and DR/BC substrate that satisfies the operational-evidence requirements of CSAP, K-ISMS-P, GAIA-X, NDMO, FedRAMP, and ISO 22301. Notable strengths: per-jurisdiction overlay matrix with strictest-wins semantics; verifiable parental consent state machine; dual-signature (Ed25519 + cosign) attestation for portability; per-tenant DKIM/SPF/DMARC isolation preventing reputation cross-contamination; per-microservice audit emission convention. Findings: NIS2 cybersecurity-incident notification cadence is underspecified relative to its 24-hour early-warning requirement; ePrivacy Regulation 2024 draft is treated as soft anchor but its ratification path could shift before substrate ships; DSA Article 16 notice-and-action and Article 24 transparency-report cadence are not wired into ADR-0251's regulator_evidence_cadence enum; APPI cross-border transfer (Article 28) lacks an explicit consent-record schema parallel to GDPR SCC; KSA NDMO data-classification taxonomy (Open/Public/Restricted/Confidential/Top-Secret) is not explicitly mapped to the data-class-registry; COPPA Safe Harbor enrollment (kidSAFE/Privo) is mentioned as out-of-scope but should have a binding decision point; FERPA 60-day audit-cure window is in the cert-level matrix but lacks dedicated workflow; PCI DSS 4.0.1 QSA scope-confirmation cadence is missing from the install workflow; IL5/IL6 cleared-personnel attestation cadence underspecified; cookie-consent IAB TCF v2.2 forward-compat seam may collide with EU APD Belgium 2022 ruling that TCF strings are themselves PII. Overall the bundle is APPROVE for synthesis: gaps are addressable through follow-up overlay ADRs without restructuring the keystone primitive.",
+  "per_adr_findings": [
+    {
+      "adr_id": "ADR-0251",
+      "verdict": "APPROVE-WITH-FINDINGS",
+      "regulation_coverage_quality": "excellent",
+      "strengths": [
+        "Compliance Pack as first-class versioned signed bundle is the right primitive; mirrors AWS Audit Manager / Microsoft Purview Compliance Manager / Google Assured Workloads pattern",
+        "38+ regulations enumerated explicitly in the context table; each pack carries Article/Section citations in REGULATORY-MAPPING.md",
+        "Cell certification level matrix with 18 levels covers the major regime intersections (hipaa-pci-certified composite cell is correctly anticipated)",
+        "Cross-pack traffic matrix correctly treats classified (IL5/IL6) as unconditional FORBIDDEN with no override path; Schrems II cross-border with SCC reference is correctly conditional",
+        "BAA + DPA + SCC + subprocessor disclosure agreement-lifecycle saga binds the contractual layer to the technical layer",
+        "Ed25519 + Sigstore Rekor cosign signature with co-signer surface (DPO + CISO + external counsel + third-party auditor) addresses regulator chain-of-trust requirements",
+        "Pack sunset on regulation update closes the drift gap that plagued ad-hoc compliance"
+      ],
+      "gaps": [
+        "EU NIS2 Article 23 early-warning notification (24h) is in the table but breach_notification_workflow schema does not enumerate the three-stage cadence (24h early warning + 72h incident notification + 1-month final report)",
+        "EU DSA Article 16 (notice-and-action) and Article 24 (semi-annual transparency report) are listed in eu-sovereign certification but not mapped to regulator_evidence_cadence enum (cadence enum lacks 'semi-annual-DSA-public-transparency-report' option)",
+        "JP APPI Article 28 cross-border transfer consent-record schema is not surfaced in agreement_template_refs (only BAA/DPA/SCC are enumerated)",
+        "KSA NDMO data classification taxonomy (5-level: Public/Internal/Confidential/Restricted/Top Secret) is referenced but the data_class_extensions schema does not enforce mapping",
+        "IN DPDPA 2023 cross-border transfer rules (Section 16) and consent manager (Section 6(7)) are absent from the regulation table",
+        "FedRAMP continuous-monitoring per NIST 800-137 is named but audit_chain_requirements.required_event_classes do not enumerate the FedRAMP-mandated control-effectiveness assessments",
+        "PCI DSS 4.0.1 QSA annual scope-confirmation, quarterly ASV scans, and semi-annual penetration testing are not explicitly bound to pack lifecycle Stage 6",
+        "FDA 21 CFR Part 11 system validation per GAMP 5 lacks explicit evidence-emission class"
+      ]
+    },
+    {
+      "adr_id": "ADR-0272",
+      "verdict": "APPROVE",
+      "regulation_coverage_quality": "excellent",
+      "strengths": [
+        "GDPR + ePrivacy + KR-PIPA + KSA-PDPL + US-CCPA/CPRA + BR-LGPD + UK-GDPR + CH-revFADP per-jurisdiction overlay with strictest-wins resolver is exactly the right architecture",
+        "Five-purpose closed enum (necessary/preference/statistics/marketing/personalization) cleanly maps to PIPA Article 22 separation requirement and GDPR recital 32 specificity",
+        "Cookie-less analytics default correctly exercises ePR draft Article 8(1)(c) audience-measurement carve-out + CNIL March 2022 + ICO August 2024 guidance",
+        "GPC honoring on Sec-GPC header + navigator.globalPrivacyControl satisfies CPPA April 2024 ruling",
+        "No-pre-checked + equal-prominence reject + dark-pattern lint addresses EDPB Guidelines 03/2022 + CNIL Google/Meta/Amazon fines",
+        "Tenant-policy override is bounded by strictest-wins; cannot loosen below statutory floor",
+        "12-month re-consent default aligns with CNIL guidance",
+        "WCAG 2.2 AA + screen-reader audit + RTL Arabic + locale parity makes the surface inclusive"
+      ],
+      "gaps": [
+        "EU APD Belgium February 2022 decision held that IAB TCF consent strings are themselves personal data; D-8 reserves TCF v2.2 as forward-compat but the schema does not surface this Belgian ruling's implications (TCF activation under EU residency requires its own lawful basis)",
+        "ePrivacy Regulation 2024 ratification path is unsettled; D-2 cookie-less-analytics carve-out depends on Article 8(1)(c) language that may shift in trilogue",
+        "China PIPL Article 13 + CAC cross-border security assessment are absent from the in-scope jurisdictions; presumably scoped out but the geographic boundary should be explicit",
+        "Quebec Law 25 (stricter consent + automated-decision rules than federal PIPEDA) is not explicitly enumerated in the overlay set"
+      ]
+    },
+    {
+      "adr_id": "ADR-0273",
+      "verdict": "APPROVE",
+      "regulation_coverage_quality": "excellent",
+      "strengths": [
+        "Per-tenant DKIM keys correctly prevent cross-tenant reputation contamination — a HIPAA BAA + KR-FSS + KSA NDMO compliance requirement masquerading as a deliverability concern",
+        "Ed25519 (RFC 8463) + RSA-2048 (RFC 6376) dual signatures hedge against future deprecation while satisfying all current verifiers",
+        "90-day rotation cadence with 7-day deprecation overlap satisfies SOC 2 cryptoperiod control",
+        "No-human-readable-DKIM-key posture (private keys never leave HSM/OpenBao) addresses insider-risk control under HIPAA Security Rule §164.308 and FedRAMP IA-5",
+        "DMARC progression p=none → quarantine → reject + RUA aggregate ingestion is the correct enforcement ladder; Gmail Feb 2024 + Microsoft May 2025 + Yahoo bulk-sender bar all satisfied",
+        "ARC handling closes the forwarder-loss gap (Google Groups, Microsoft 365 DLs, university mailing lists)",
+        "BIMI VMC + CMC support satisfies brand-impersonation defense + EU DMA gatekeeper transparency obligations",
+        "RFC 8058 one-click unsubscribe + List-Unsubscribe-Post satisfies Apple Hide-My-Email + Gmail bulk-sender",
+        "0.3% Gmail complaint threshold automation prevents reputation collapse without human-review latency"
+      ],
+      "gaps": [
+        "EU eIDAS 2.0 + EU DKIM-bound identity-wallet integration (referenced in 2024 draft) not addressed; may emerge as a requirement for EU government-cloud (German BSI) by 2027",
+        "DMARC RUF forensic report content can contain third-party PII; opt-out is offered but the GDPR Article 6 lawful basis for processing RUF content is not enumerated",
+        "ARC trusted-forwarder list governance: quarterly review is named but the regulator-evidence cadence for the list itself is not bound",
+        "KR-PIPA Article 24-2 sensitive-data processing rules (e.g., when bounce reports inadvertently expose health-related sender behavior) lack an explicit redaction rule for the deliverability dashboard"
+      ]
+    },
+    {
+      "adr_id": "ADR-0276",
+      "verdict": "APPROVE",
+      "regulation_coverage_quality": "excellent",
+      "strengths": [
+        "GDPR Article 20 + KR-PIPA Article 35-2 + CCPA + LGPD Article 18 + PIPEDA Principle 9 + POPIA §23 satisfied through one canonical format",
+        "JSON-LD 1.1 satisfies 'structured, commonly used, machine-readable' triple test directly; @context inline declaration is regulator-defensible",
+        "Per-microservice schemas at canonical URIs respect ADR-0145 boundary discipline + flat-catalog doctrine while still enabling cross-microservice references via URN @id",
+        "Dual-signature (tenant Ed25519 + oyatie Sigstore cosign with Rekor transparency log) closes both forgery directions",
+        "Three encryption modes (none/oyatie-default/tenant-BYOK) accommodate financial-services regimes that forbid 'none' via Cedar gating",
+        "30-day GDPR Article 12(3) + 45-day CCPA SLAs satisfied with 7-day internal target",
+        "5-year (planned 10-year) re-import compatibility commitment matches Google Takeout + Apple Data + Privacy industry benchmark",
+        "Audit-chain Merkle root export with RFC 9162 inclusion proofs preserves regulator-visible evidence chain after tenant exit",
+        "Cross-tenant restore with Cedar acceptance + principal mapping handles M&A + B2C-to-B2B migration without manual data-engineering"
+      ],
+      "gaps": [
+        "GDPR Article 20(2) 'direct controller-to-controller transmission' is not explicitly designed; streaming HTTP API named as future work but Article 20 'where technically feasible' may bind sooner than expected for VLOPs under DSA",
+        "KR-PIPA Article 35-2 requires KO-language portability declaration; manifest README.md states 'multilingual' but does not bind a per-jurisdiction language matrix",
+        "Tenant BYOK key rotation during the 5-year re-import window: a tenant whose BYOK key is rotated cannot necessarily decrypt a 4-year-old bundle without retaining old keys; recommend explicit key-lifecycle annotation in manifest.encryption",
+        "China PIPL Article 36 cross-border data-export security assessment is not addressed (presumably scoped out via residency pinning, but should be explicit)",
+        "EU Data Act 2025-09-12 effective date (Regulation 2023/2854) introduces switching + portability obligations; ADR-0276 aligns with the spirit but does not name-cite the Data Act"
+      ]
+    },
+    {
+      "adr_id": "ADR-0292",
+      "verdict": "APPROVE-WITH-FINDINGS",
+      "regulation_coverage_quality": "excellent",
+      "strengths": [
+        "Per-jurisdiction age threshold matrix (US/COPPA-13, US/KOSA-17, EU/GDPR-Art-8 member-state-varying-13-to-16, UK-AADC-13/17, KR-PIPA-14, JP-18, BR-LGPD-12/18, IN-DPDPA-18, AE-21, KSA-18) is the most comprehensive matrix in the portfolio",
+        "Eight age-assurance methods with per-jurisdiction provider matrix (Yoti EU/UK, Persona US, NICE PASS KR, DOCOMO JP, Aadhaar IN, UAE Pass AE) addresses the most-rejected pattern (single global provider)",
+        "Six COPPA Rule §312.5(b) verifiable-parental-consent methods enumerated (KBA + gov-ID + credit-card + video + signed-form + email-plus) plus KR PASS-based + JP carrier-bound",
+        "Default-restricted feature surface matrix (14 features × 4 age bands) closes the per-microservice drift problem",
+        "Age-down protection (birth_date write-once, age-increase requires high-assurance + cooling-off + parent notification, age-decrease routes to T&S) closes the false-claim attack",
+        "Age-of-majority migration workflow with T-30/T-7/T-0/T+30 cadence and irreversible transition preserves regulatory evidence chain",
+        "Algorithm transparency for minors satisfies KOSA + DSA Article 27/28 + UK AADC Standard 4",
+        "Marketplace + payments restrictions (no sell-side listings, parental approval per transaction, no loot-boxes, refund-friendly defaults) address UK Gambling Commission + CMA + FTC + EU UCPD jurisprudence",
+        "minor_policy_decision_v1 audit event class with model_lineage_ref enables per-recommendation DSAR fulfilment",
+        "Statutory-floor-binding tenant overrides preserve regulator-visible compliance bound"
+      ],
+      "gaps": [
+        "China PIPL Article 31 separate consent for minor data + CAC Regulations on the Protection of Minors in Cyberspace (2024-01-01 effective) are absent; if China is in-scope, this is a P0 gap; if out-of-scope, it should be explicit",
+        "COPPA Safe Harbor enrollment decision (kidSAFE Seal / Privo / TRUSTe Children's Privacy / ESRB Privacy Certified) is named as out-of-scope but a binding decision point should be scheduled — FTC enforcement risk-reduction is material",
+        "FERPA 20 USC §1232g education-record handling referenced via student-records-ferpa cert level (ADR-0251) but ADR-0292 does not bind FERPA's directory-information opt-out to the minor_policy_decision_v1 event class",
+        "FTC COPPA Rule 2024 final amendments (expected H1 2026) introduce 'persistent identifier' clarifications + biometric prohibition + targeted-advertising default-off; D-4 anticipates these but version pin should accommodate via schema-evolution gate",
+        "EU AI Act Article 5(b) prohibits AI systems exploiting vulnerabilities of minors; D-11 algorithm transparency aligns but ADR-0144 tier model binding to under-13/13-17/16-17 bands should be explicit",
+        "Australia eSafety Commissioner Age Assurance Trial 2024-2025 results may shift AU age-assurance provider matrix; commit to provider matrix review on trial publication",
+        "Quebec Law 25 Article 4.1 (age 14 threshold, sensitive-data parental consent for under-14) is in the matrix but not bound to the workflow",
+        "Verifiable parental consent record retention: 7 years US is correct but KR PIPA §22-5 may require 5 years post-revocation evidence; the longest-of formula in D-6 retention_rules should be more explicit"
+      ]
+    },
+    {
+      "adr_id": "ADR-0240",
+      "verdict": "APPROVE",
+      "regulation_coverage_quality": "good",
+      "strengths": [
+        "Per-pack sovereign cloud overlay correctly binds CSAP/K-ISMS-P (KR), NDMO/SDAIA (KSA), GAIA-X (EU), METI Cloud Security Mark (JP), IRAP (AU), FedRAMP/IL substrates (US-Gov)",
+        "Cross-provider denial at admission emits SovereignCloudDeny event — regulator-evidence emission is automatic",
+        "Per-provider OpenTofu module catalog with canonical interface preserves cloud-agnostic application layer (ADR-0211 in-house + ADR-0173 vendor lock-in avoidance)",
+        "Cell mapping to single provider with inter-provider mesh tunnel constraint correctly bounds sovereign egress"
+      ],
+      "gaps": [
+        "China sovereign cloud (Alibaba/Tencent/Huawei) absent; if PRC is in-scope this is a gap",
+        "India MeitY MeghRaj cloud-empanelment requirements (CIRA empanelment) not bound to a pack overlay",
+        "Provider-failure handling D-7 says sovereign data REMAINS unavailable until primary recovers — correct legally but ADR-0241 DR/BC interaction needs explicit cross-reference"
+      ]
+    },
+    {
+      "adr_id": "ADR-0241",
+      "verdict": "APPROVE",
+      "regulation_coverage_quality": "good",
+      "strengths": [
+        "Four DR tiers (T1<5min/RPO0 → T4<24h/RPO<1h) with quarterly/semi-annual drill cadence satisfies HIPAA §164.308(a)(7) Contingency Plan + FedRAMP High RPO≤4h + ISO 22301 + SOC 2 + CSAP business-continuity requirements",
+        "Per-microservice manifest declaration with last_drill_evidence_id audit-chain binding enables regulator-auditable evidence-pack assembly",
+        "Tabletop drills for cyber-attack/ransomware/pandemic/multi-cell-loss extend beyond infrastructure failure",
+        "Brown-out signal API (ADR-0176) carries the degraded-dependency state for cross-tier coordination"
+      ],
+      "gaps": [
+        "Regulator-evidence cadence is quarterly (DrBcQuarterlyEvidence class) — CSAP requires this, but FedRAMP continuous-monitoring is monthly and ISO 22301 is annual; pack-specific cadence multiplexing should be explicit",
+        "Cross-pack DR coordination: a T1 microservice serving HIPAA tenant on cell-A and PCI tenant on cell-B during failover — per-pack-evidence segregation rule not stated"
+      ]
+    }
+  ],
+  "regulation_coverage": {
+    "EU_GDPR": "excellent — Articles 6/7/8/13/14/15/17/20/28/32/33/35 all bound; SCCs + Schrems II + DPF adequacy decision wired",
+    "EU_ePrivacy_Directive": "excellent — Article 5(3) cookie consent bound; ePR 2024 draft Article 8(1)(c) audience-measurement carve-out exercised correctly",
+    "EU_NIS2": "good — eu-sovereign cert level lists NIS2-2022 but breach-notification three-stage cadence (24h/72h/1mo) not enumerated; Article 23 specifically",
+    "EU_DSA": "good — eu-sovereign cert level lists DSA-2022 but Article 16 notice-and-action + Article 24 transparency-report cadence + Article 28 minor risk-mitigation not bound to regulator_evidence_cadence enum",
+    "EU_DMA": "fair — listed but no gatekeeper-specific bindings; presumably scoped to defer",
+    "EU_Data_Act_2023_2854": "fair — 2025-09-12 effective; not name-cited in ADR-0276 although structurally satisfied",
+    "EU_AI_Act_2024_1689": "good — ADR-0144 binds graduated tiers; pack ai_act_tier_binding field surfaces obligations; Article 5(b) minor-vulnerability prohibition binding to under-13 band not explicit",
+    "KR_PIPA": "excellent — Articles 15/22/22-2/35/35-2 all bound; KO-language requirement, 5-year retention, PASS-based age verification surfaced",
+    "KR_FSS_KR_EFTA": "excellent — kr-fss-financial + kr-csap cert levels bind 전자금융감독규정 + 결제대행업 + KR-resident personnel + Naver/KT substrate",
+    "JP_APPI": "good — 2022 amendment listed; medical APPI subtype in healthcare-sovereign cert; Article 28 cross-border consent-record schema underspecified",
+    "JP_METI_Cloud_Security_Mark": "good — jp-government cert level binds Sakura/KDDI substrate",
+    "SG_PDPA": "good — listed; PDPC 2017 Children's Personal Data Advisory referenced in ADR-0292 D-1",
+    "KSA_PDPL_NDMO_SDAIA": "good — ksa-government cert level binds STC/Mobily substrate; NDMO 5-level data classification not explicitly mapped to data-class-registry",
+    "AU_Privacy_Act_2024_reforms": "good — au-government IRAP-PROTECTED cert level; Notifiable Data Breaches 30-day timing bound",
+    "BR_LGPD": "good — Articles 8/9/14/18 bound; minor 12/18 threshold in matrix",
+    "IN_DPDPA_2023": "fair — Section 9 under-18 in matrix; Section 16 cross-border + Section 6(7) consent manager absent from ADR-0251 regulation table",
+    "UK_GDPR_PECR_AADC": "excellent — AADC 15 standards informed default-restricted matrix; ICO 2023 cookie guidance honored",
+    "CH_revFADP": "good — listed in overlay matrix; pack/ch-revfadp/cedar/consent.cedar registered",
+    "US_HIPAA_HITECH": "excellent — hipaa-certified + hipaa-pci-certified composite cells; §164.308/.310/.312 safeguards bound; 60-day breach notification §164.404 bound",
+    "US_FedRAMP_Moderate_High": "excellent — fedramp-moderate + fedramp-high cert levels; NIST 800-53 Rev 5; GovCloud/Azure-Gov/Google Assured Workloads substrate; US-persons-only + FIPS 140-2 L2/L3",
+    "US_DoD_IL4_IL5_IL6": "excellent — il4/il5/il6 cert levels; DISA SRG v1r5; CMMC 2.0; CONUS-only + cleared-personnel + NSA Type 1 crypto for IL6",
+    "US_FERPA": "good — student-records-ferpa cert level; 60-day audit-cure workflow underspecified",
+    "US_PCI_DSS_4_0_1": "good — pci-certified + hipaa-pci-certified composite cell; QSA annual scope-confirmation cadence underspecified",
+    "US_COPPA": "excellent — ADR-0292 D-1 + D-3 + D-7 fully bind; 6 VPC methods enumerated; per-jurisdiction provider matrix; $50,120 per-child statutory ceiling acknowledged",
+    "US_KOSA": "good — pre-enforcement; ADR-0292 anticipates duty-of-care + transparency requirements; pack-versioned to absorb final-rule changes",
+    "US_CCPA_CPRA": "excellent — pack/us-ccpa-cpra/cedar/opt-out.cedar bound; GPC signal honored per CPPA April 2024 ruling",
+    "US_state_laws": "good — CO/CT/VA/UT/TX/IA/MT/IN/OR/DE/NJ/TN/MN/MD in-scope per ADR-0272 BLOCKER list; universal opt-out signal model",
+    "US_SOX_404": "good — finance-sox cert level; 7-year audit retention bound",
+    "US_GLBA_Safeguards": "good — finance-sox cert level; 2024 revisions referenced",
+    "US_FDA_21CFR_Part_11": "fair — fda-regulated cert level; GAMP 5 validation referenced but no explicit evidence-emission class",
+    "CA_AADC": "good — in ADR-0292 D-1 matrix; mirrors UK AADC structure",
+    "CA_PIPEDA_CPPA": "fair — in ADR-0292 D-1 matrix but pack/ca-can/ not enumerated in ADR-0251 baseline",
+    "QC_Law_25": "fair — listed in ADR-0292 D-1 (age 14 threshold) but pack/qc-law-25/ not enumerated in ADR-0251",
+    "ISO_27001_2022": "excellent — general cert level baseline",
+    "ISO_27701_2019": "excellent — privacy mgmt baseline in general cert",
+    "ISO_22301_2019": "excellent — general cert level + ADR-0241 DR/BC",
+    "ISO_42001_2023": "good — listed but AI management system binding to ADR-0144/ADR-0255 not explicit",
+    "SOC2_T2_2024": "excellent — SOC2-T2-2024 pack is first baseline; AICPA TSC 2024 cited",
+    "CSA_STAR": "good — general cert baseline cites CSA STAR Level 2",
+    "China_PIPL_2021": "absent — likely scoped out but boundary should be explicit",
+    "M3AAWG_ARC_trust": "good — ADR-0273 D-7 binds; oyatie-corp dogfood as first joiner"
+  },
+  "compliance_gaps": [
+    {
+      "severity": "P1",
+      "regulation": "EU NIS2 Article 23",
+      "description": "Three-stage incident notification cadence (24h early warning + 72h incident notification + 1-month final report) not enumerated in ADR-0251 breach_notification_workflow schema",
+      "remediation": "Extend breach_notification_workflow schema with nis2_three_stage_cadence object; bind to eu-sovereign cert level"
+    },
+    {
+      "severity": "P1",
+      "regulation": "EU DSA Article 24 + Article 28",
+      "description": "Semi-annual transparency report (Art 24) and minor risk-mitigation cadence (Art 28) not in ADR-0251 regulator_evidence_cadence enum",
+      "remediation": "Add 'semi-annual-DSA-public-transparency' option to enum; bind ADR-0292 D-11 risk-rating disclosure to Art 35 systemic-risk report"
+    },
+    {
+      "severity": "P1",
+      "regulation": "China PIPL / CAC Minor Cyberspace Regulations 2024",
+      "description": "PRC jurisdiction scope is ambiguous; if in-scope, separate consent + CAC security assessment + minor cyberspace rules are P0 gaps; if out-of-scope, the boundary should be explicit in ADR-0251 jurisdiction table",
+      "remediation": "Add explicit PRC scope decision to ADR-0251; if in-scope, draft pack/cn-pipl/ overlay"
+    },
+    {
+      "severity": "P2",
+      "regulation": "Quebec Law 25",
+      "description": "Listed in ADR-0292 D-1 matrix but pack/qc-law-25/ not enumerated in ADR-0251 baseline packs; CA-can pack does not absorb Quebec's stricter rules",
+      "remediation": "Author pack/qc-law-25/ overlay; bind to ca-can cert level as overlay"
+    },
+    {
+      "severity": "P2",
+      "regulation": "IN DPDPA 2023 Section 16 + Section 6(7)",
+      "description": "Cross-border transfer rules + consent manager primitives absent from ADR-0251 regulation table",
+      "remediation": "Extend pack/in-dpdpa-2023/ to surface consent manager workflow and cross-border whitelist"
+    },
+    {
+      "severity": "P2",
+      "regulation": "JP APPI Article 28 cross-border consent record",
+      "description": "Schema parallel to GDPR SCC absent from ADR-0251 agreement_template_refs",
+      "remediation": "Add appi_cross_border_consent_template_ref to agreement_template_refs"
+    },
+    {
+      "severity": "P2",
+      "regulation": "FERPA + PCI DSS 4.0.1 + IL5/6 + FDA 21 CFR Part 11",
+      "description": "Cadence/workflow specifics (FERPA 60-day audit cure, PCI QSA annual scope, IL cleared-personnel attestation cadence, FDA GAMP 5 validation evidence) underspecified",
+      "remediation": "Per-pack stage-6 onboarding workflow extensions"
+    },
+    {
+      "severity": "P3",
+      "regulation": "EU APD Belgium 2022 TCF ruling",
+      "description": "ADR-0272 D-8 reserves TCF v2.2 as forward-compat but does not address that TCF strings are themselves PII under EU APD ruling",
+      "remediation": "Add D-8.1: TCF activation under EU residency requires its own lawful basis; bind to lawful_basis enum"
+    },
+    {
+      "severity": "P3",
+      "regulation": "COPPA Safe Harbor enrollment",
+      "description": "kidSAFE/Privo/TRUSTe/ESRB Safe Harbor named as out-of-scope but enrollment decision should be scheduled",
+      "remediation": "Schedule Safe Harbor decision ADR for post-bootstrap quarter"
+    },
+    {
+      "severity": "P3",
+      "regulation": "FTC COPPA Rule 2024 Final amendments",
+      "description": "Final rule expected H1 2026 with persistent-identifier + biometric prohibition + targeted-ad default-off; ADR-0292 should pre-version MINOR-USER-2024.1.0 to absorb",
+      "remediation": "Schema-evolution gate on MINOR-USER-2024 pack to absorb FTC final rule on publication"
+    },
+    {
+      "severity": "P3",
+      "regulation": "KSA NDMO 5-level classification taxonomy",
+      "description": "ADR-0251 data_class_extensions schema does not enforce mapping to NDMO Open/Public/Restricted/Confidential/Top-Secret levels",
+      "remediation": "Extend KSA-NDMO-2024 pack data_class_extensions with explicit NDMO taxonomy binding"
+    }
+  ],
+  "regulator_audit_readiness": {
+    "FTC_COPPA": "READY — ADR-0292 + ADR-0251 produce a regulator-evidence packet on demand; per-child audit-chain trail via minor_policy_decision_v1; verifiable-parental-consent records immutable + signed",
+    "UK_ICO_AADC": "READY — 15 AADC standards bound to default-restricted matrix; algorithm transparency + loud-default + private-by-default all surfaced",
+    "EU_DPAs_GDPR": "READY — Article 7 burden-of-proof satisfied via consent-ledger immutable signed records; Article 30 records-of-processing satisfied via audit-chain; Article 33 breach notification workflow per pack",
+    "EDPB_consent_guidelines": "READY — Guidelines 05/2020 + 03/2022 dark-patterns + 02/2024 children consent all addressed in ADR-0272 + ADR-0292",
+    "KR_PIPC": "READY — PASS-based age verification + KO-language consent + 22-2 separation enforced; PIPC dark-pattern guidance 2024 honored",
+    "KR_KCC_Youth_Protection": "READY — under-14 PASS + parental consent; algorithm transparency for under-18",
+    "JP_PPC_METI": "READY — JP carrier-bound verification; LINE/DOCOMO providers; METI Cloud Security Mark via jp-government cert",
+    "KSA_NDMO_SDAIA": "MOSTLY-READY — sovereign-cloud + ksa-government cert + UAE Pass/Absher providers; NDMO 5-level taxonomy mapping is a remediation item",
+    "BR_ANPD": "READY — LGPD pack + Idwall provider + Portuguese locale parity",
+    "AU_OAIC_eSafety": "READY — AU Privacy Act 2024 reforms + IRAP-PROTECTED + Yoti provider; eSafety Age Assurance Trial monitor",
+    "FedRAMP_PMO": "MOSTLY-READY — fedramp-moderate + fedramp-high cert; continuous-monitoring per NIST 800-137 cadence multiplexing is a remediation item",
+    "DoD_DISA": "READY — il4/il5/il6 cert levels; CMMC + STIG + DISA-managed key encryption + NSA Type 1 for IL6",
+    "PCI_SSC_QSA": "MOSTLY-READY — pci-certified + hipaa-pci-certified composite cell; QSA annual scope-confirmation cadence is a remediation item",
+    "HHS_OCR_HIPAA": "READY — hipaa-certified + BAA template + 60-day §164.404 breach notification + Security Rule safeguards",
+    "AICPA_SOC2": "READY — SOC2-T2-2024 pack as baseline; CPA firm co-signer surface in pack.signed_by.co_signers",
+    "CNIL_French_DPA": "READY — September 2020 cookie guidance + Google/Meta/Amazon fine patterns avoided; equal-prominence reject; no Accept-all default"
+  },
+  "recommendations": [
+    "MERGE the bundle. The 7 ADRs are structurally coherent and compose cleanly: ADR-0251 is the keystone pack primitive; ADR-0272/0273/0276/0292 are tight regime-specific overlays; ADR-0240/0241 are the operational substrate. Partial acceptance is correctly rejected by the bundle design.",
+    "SCHEDULE follow-up overlay ADRs for the P1 findings: (a) NIS2 three-stage breach cadence in pack schema, (b) DSA Article 24+28 cadence in regulator_evidence_cadence enum, (c) PRC jurisdiction scope decision.",
+    "AUTHOR the P2 packs as parallel work: pack/qc-law-25/, pack/in-dpdpa-2023/, pack/jp-appi-2022-cross-border/.",
+    "EXTEND ADR-0251 data_class_extensions to enforce NDMO 5-level + PCI CHD scope-narrowing + FDA 21 CFR Part 11 GAMP 5 validation taxonomies.",
+    "SCHEDULE the COPPA Safe Harbor enrollment decision as a post-bootstrap quarter ADR.",
+    "PRE-VERSION MINOR-USER-2024 to absorb the FTC COPPA Rule 2024 final amendments on publication; bind the schema-evolution gate.",
+    "ADD D-8.1 to ADR-0272 addressing EU APD Belgium 2022 TCF-strings-are-PII ruling before TCF v2.2 is ever activated.",
+    "BIND tenant-BYOK key-lifecycle annotation in ADR-0276 manifest.encryption schema so a 4-year-old bundle remains decryptable after BYOK key rotation.",
+    "ENSURE ADR-0144 EU AI Act tier binding explicitly covers Article 5(b) vulnerability-of-minors prohibition under under-13/13-17 age bands.",
+    "DRAFT a per-pack regulator-evidence-cadence multiplexing table so a single microservice serving HIPAA + FedRAMP + SOC 2 + GDPR emits evidence at the correct cadence for each regulator without duplication."
+  ],
+  "overall_signal_for_synthesizer": {
+    "verdict": "APPROVE-WITH-FINDINGS",
+    "merge_recommendation": "MERGE",
+    "blocking_issues": 0,
+    "p1_findings": 3,
+    "p2_findings": 4,
+    "p3_findings": 4,
+    "synthesizer_guidance": "F13-Compliance signals APPROVE for the bundle merge. The bundle correctly identifies regulation-as-bundle as the canonical primitive and binds 38+ regimes to the same pack lifecycle. Findings are addressable through follow-up overlay ADRs without restructuring the keystone primitive. No blocking issues. The synthesizer should weight F13 as positive evidence for merge; the regulator-audit-readiness matrix shows READY or MOSTLY-READY across all in-scope regulators; the 3 P1 findings (NIS2 cadence, DSA cadence, PRC scope) should be filed as immediate follow-up ADRs in the post-merge backlog but do not block the keystone bundle itself. The bundle's enforcement-status fields ('advisory-until-substrate-lands', 'blocker-on-keystone-merge', 'blocker-before-any-b2c-tenant-onboarding') correctly stage the rollout so regulator-facing risk is bounded during the bootstrap window."
+  }
+}

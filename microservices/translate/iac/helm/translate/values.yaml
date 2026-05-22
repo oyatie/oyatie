@@ -72,7 +72,7 @@ mtEngineRouter:
 # Substrate secrets via OpenBao SecretReference
 openbao:
   postgresUrl: "${openbao:secret/translate/postgres-url}"
-  redisUrl: "${openbao:secret/translate/redis-url}"
+  valkeyUrl: "${openbao:secret/translate/valkey-url}"
   meilisearchKey: "${openbao:secret/translate/meilisearch-master-key}"
   s3AccessKey: "${openbao:secret/translate/s3-access-key}"
   s3SecretKey: "${openbao:secret/translate/s3-secret-key}"

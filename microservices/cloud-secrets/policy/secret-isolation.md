@@ -129,9 +129,9 @@ Secrets are stored in pack-pinned OpenBao + HSM. Cross-pack replication forbidde
 
 Privileged admin operations (cluster unseal recovery, KEK rotation, namespace seal) require 2 ops-security approvers via OpenBao Sentinel policy `4_eye_approval`. JIT elevation expires in 1h. Audit-emit every break-glass approval + use.
 
-### TI-11 — BYOK acceptance
+### TI-11 — encryption-key BYOK acceptance (ADR-0251 §D-10)
 
-Tenant-supplied BYOK material MUST be wrapped under the per-pack KEK-of-KEKs before storage. BYOK upload requires OIDC + MFA + JIT token; signed receipt issued to tenant; `KekAttested` audit event recorded.
+Tenant-supplied encryption-key BYOK material (ADR-0251 §D-10) MUST be wrapped under the per-pack KEK-of-KEKs before storage. encryption-key BYOK upload requires OIDC + MFA + JIT token; signed receipt issued to tenant; `KekAttested` audit event recorded.
 
 ## Anti-Patterns (forbidden)
 

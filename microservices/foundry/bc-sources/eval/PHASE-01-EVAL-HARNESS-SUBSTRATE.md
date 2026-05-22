@@ -17,7 +17,7 @@ doc_status: published
 
 ## Intent
 
-Stand up the foundry-eval µservice end-to-end as a Layer-A + Layer-B substrate that gates capability publish, runs nightly eval, A/B-routes provider preference, replays past production traces with deterministic divergence assertions, and emits cutover-eligibility verdicts to `foundry-providers`. The phase delivers the eval-runner BC's full layer stack and adapter set plus the bootstrap of eval-set-registry, parity-analyzer, replay-engine, and golden-output-store. Other BCs receive scaffolding now and full layer-stacks in M02.
+Stand up the foundry-eval µservice end-to-end as a Layer-A + Layer-B substrate that gates capability publish, runs nightly eval, A/B-routes provider preference, replays past production traces with deterministic divergence assertions, and emits cutover-eligibility verdicts to `foundry-providers`. The phase delivers the eval-runner BC's full layer stack and adapter set plus the bootstrap of eval-set-registry, parity-analyzer, replay-engine, and baseline-output-store. Other BCs receive scaffolding now and full layer-stacks in M02.
 
 ## Scope
 
@@ -25,8 +25,8 @@ In-scope (M01-P01):
 
 - Eval-set authoring path: `microservices/foundry-eval/eval-sets/<capability>/v<n>.evalset.yaml` + Cosign signature.
 - Eval-runner full layer stack (kernel + domain + usecase + api + adapter + adapter-s3 + adapter-gpu + rest + worker + sdk + app).
-- Bootstrap of eval-set-registry, parity-analyzer, replay-engine, golden-output-store (kernel + domain + usecase + adapter + app each; full layer stack in M02).
-- Layer-A IaC: GPU runner pool Helm chart, Postgres Helm chart, ClickHouse Helm chart, golden-output-store (SeaweedFS + KMS) Helm chart.
+- Bootstrap of eval-set-registry, parity-analyzer, replay-engine, baseline-output-store (kernel + domain + usecase + adapter + app each; full layer stack in M02).
+- Layer-A IaC: GPU runner pool Helm chart, Postgres Helm chart, ClickHouse Helm chart, baseline-output-store (SeaweedFS + KMS) Helm chart.
 - Layer-B CI lanes: `foundry-eval-coverage`, `foundry-eval-adversarial-coverage`, `foundry-eval-linguistic-coverage`, `foundry-eval-nightly`, `foundry-eval-route-ab`, `foundry-eval-replay`.
 - 3 capabilities (eval-run, parity-compare, replay-execute) + 3 dashboards + 6 runbooks + 6 policies + 3 contracts.
 - DSR cascade integration: per-subject DEK shred surface tested end-to-end.
@@ -59,13 +59,13 @@ Per-class minima (kernel / domain / usecase / api / adapter / rest / worker / sd
 
 ```text
 IP-001  Layer-A GPU runner pool Helm chart
-IP-002  Layer-A Postgres + ClickHouse + golden-store Helm charts (bundle)
+IP-002  Layer-A Postgres + ClickHouse + baseline-store Helm charts (bundle)
 IP-003  eval-runner kernel
 IP-004  eval-runner domain
 IP-005  eval-runner usecase
 IP-006  eval-runner api
 IP-007  eval-runner adapter (filesystem eval-set reader; provider-route resolver)
-IP-008  eval-runner adapter-s3 (golden-output read; eval-run store)
+IP-008  eval-runner adapter-s3 (baseline-output read; eval-run store)
 IP-009  eval-runner adapter-gpu (Kubernetes Job dispatcher; CUDA shim)
 IP-010  eval-runner rest
 IP-011  eval-runner worker (nightly orchestrator; on-demand runs)

@@ -1,8 +1,8 @@
 ---
 doc_class: Runbook
-title: Document translation round-trip — corruption / fidelity-tier breach
+title: Document translation round-trip — corruption / fidelity-class breach
 microservice: translate
-severity: "Sev-2 (single-doc / fidelity-tier breach) / Sev-1 (systemic doc adapter failure)"
+severity: "Sev-2 (single-doc / fidelity-class breach) / Sev-1 (systemic doc adapter failure)"
 status: Accepted
 owner_team: axis-translate + ops-sre-reliability + ops-security
 date: 2026-05-18
@@ -23,7 +23,7 @@ Any of:
 - FM-40 (DOCX round-trip emits unreadable output: Word fails to open).
 - FM-41 (PPTX round-trip drops slide-master / placeholder map).
 - FM-42 (XLSX round-trip corrupts formula references).
-- FM-43 (PDF round-trip loses tables / form fields beyond fidelity-tier budget per ADR-TRANSLATE-0005).
+- FM-43 (PDF round-trip loses tables / form fields beyond fidelity-class budget per ADR-TRANSLATE-0005).
 - FM-44 (Pandoc / LibreOffice gVisor sandbox panic; document worker pod restarts).
 - Tenant escalation: > 5 corrupted-document reports in 24 h on the same adapter version.
 - Security alert: malicious DOCX/PDF exploits gVisor escape attempt detected.
@@ -35,12 +35,12 @@ Any of:
 | Single tenant single-format issue (e.g., DOCX only) | Sev-2 |
 | Multi-format same-pack systemic | Sev-1 |
 | gVisor escape attempt detected | Sev-1 (P0; ops-security) |
-| Fidelity-tier breach without corruption (recoverable post-edit) | Sev-3 |
+| Fidelity-class breach without corruption (recoverable post-edit) | Sev-3 |
 
 ## Symptoms
 
 - `oya_translate_doc_roundtrip_failure_total{format="docx"}` rate increase.
-- `oya_translate_doc_fidelity_tier_breach_total{tier="A"|"B"|"C"}` non-zero (per ADR-TRANSLATE-0005 tiers).
+- `oya_translate_doc_fidelity_class_breach_total{class="A"|"B"|"C"}` non-zero (per ADR-TRANSLATE-0005 classes).
 - `oya_translate_doc_pandoc_panic_total` non-zero.
 - `oya_translate_doc_libreoffice_panic_total` non-zero.
 - Sandbox audit: `runtime.io.kubernetes.cri.runtime-class=gvisor` pod restart cycles.
@@ -74,7 +74,7 @@ Any of:
 1. Identify previous adapter version: `helm get values translate -n translate | grep -E 'pandoc|libreoffice'`.
 2. Pin: `cargo run -p oya-dev-cli -- translate pin-adapter --backend <pandoc|libreoffice> --version <prev>`.
 3. Reapply Helm chart.
-4. Verify `tests/integration/doc_roundtrip_fidelity_tier_a.rs` re-runs green.
+4. Verify `tests/integration/doc_roundtrip_fidelity_class_a.rs` re-runs green.
 5. Emit `DocumentAdapterPinned` audit event.
 
 ### Path B — Format-specific halt + tenant comms
@@ -94,21 +94,21 @@ Any of:
 6. Tenant comms IF data class exfiltrated.
 7. Per `incident-response.md`: regulator notification within 72 h if user-data potentially exfiltrated (GDPR Art. 33).
 
-## Fidelity Tier Reference (ADR-TRANSLATE-0005)
+## Fidelity Class Reference (ADR-TRANSLATE-0005)
 
-| Tier | Format | Round-trip guarantee |
+| Class | Format | Round-trip guarantee |
 |---|---|---|
 | A — high-fidelity | DOCX, XLSX, PPTX, Markdown, HTML | 95 % structural fidelity; 100 % text fidelity |
 | B — medium-fidelity | PDF (text-extract path) | 80 % structural fidelity; layout may shift; 100 % text fidelity |
 | C — text-only | PDF (image-only with OCR), legacy DOC | Text extraction only; no layout preservation |
 
-Tier breach defined as: structural-fidelity falling below tier floor → `oya_translate_doc_fidelity_tier_breach_total` increments.
+Fidelity class breach defined as: structural-fidelity falling below class floor → `oya_translate_doc_fidelity_class_breach_total` increments.
 
 ## Verification Commands
 
 ```bash
-# Fidelity tier A regression
-cargo run -p oya-dev-cli -- translate verify-doc-fidelity --tier A --window 30m
+# Fidelity class A regression
+cargo run -p oya-dev-cli -- translate verify-doc-fidelity --fidelity-class A --window 30m
 
 # Sandbox panic zero
 cargo run -p oya-dev-cli -- translate verify-doc-sandbox-stable --window 1h
@@ -120,13 +120,13 @@ cargo run -p oya-dev-cli -- translate fixture-roundtrip-suite --pack <p>
 
 ## Rollback Path
 
-If Path A fails, fall back to text-only extraction (Tier C path) and surface "document translation in text-only mode" banner. Tenants can request format-preserving re-translate when adapter is recovered.
+If Path A fails, fall back to text-only extraction (Class C path) and surface "document translation in text-only mode" banner. Tenants can request format-preserving re-translate when adapter is recovered.
 
 ## Post-Incident
 
 - Postmortem within 5 business days.
 - If P0 sandbox escape: external ops-security review + ADR amendment to gVisor hardening.
-- If fidelity-tier breach repeated: tier-floor renegotiation with tenants; PRD update.
+- If fidelity-class breach repeated: class-floor renegotiation with tenants; PRD update.
 
 ## Pack-Specific Considerations
 

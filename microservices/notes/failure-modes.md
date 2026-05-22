@@ -123,7 +123,7 @@ FMEA pattern: enumerate fault by BC × layer × cause; describe symptom; mitigat
 | ID | Failure | Cause | Symptom | RPN | Mitigation | Runbook |
 |---|---|---|---|---|---|---|
 | F-AI-01 | AI call on E2E content (near-miss) | bug | refused by Cedar | 1×5×5 = 25 | Cedar `e2e-ai-refusal.cedar` + CI lane + runtime metric alarm | runbooks/ai-classifier-rollback-e2e-respect.md |
-| F-AI-02 | AI assist provider drift in output | model upgrade | quality regression | 3×2×3 = 18 | golden eval set + canary | runbooks/ai-classifier-rollback-e2e-respect.md |
+| F-AI-02 | AI assist provider drift in output | model upgrade | quality regression | 3×2×3 = 18 | reference eval set + canary | runbooks/ai-classifier-rollback-e2e-respect.md |
 | F-AI-03 | AI call timeout | foundry-runtime slow | UX delay | 3×2×3 = 18 | 8s timeout + degraded-mode banner | (auto) |
 
 ### e2e-key-management

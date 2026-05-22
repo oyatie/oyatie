@@ -193,3 +193,7 @@ Runbook `audit-chain-divergence-recovery.md` is the response procedure for any P
 - Hourly: rolling report → `evidence/consent-graph-bilateral-reconciliation-rolling-<unix>.json` (kept 90d).
 - Daily: full-day report → `evidence/consent-graph-bilateral-reconciliation-daily-<YYYY-MM-DD>.json`
   (retained 7y per audit-chain default retention).
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust/TrustArc/Cookiebot can prove consent records, while Snowflake/Databricks/AWS logs prove platform operations. This IP supplies the Oyatie-specific integrity layer: nightly and rolling reconciliation of bilateral audit-chain cross-pointers, divergence taxonomy, suspension behavior, and long-retention evidence reports.

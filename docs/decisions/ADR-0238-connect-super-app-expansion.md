@@ -98,20 +98,19 @@ Connect-specific decomposition decision body that completes the triple.
 
 ## Decision
 
-The legacy Connect super-app is **dissolved** into exactly 8 first-class flat
-µservices, each owning one user-facing concern, each shipping under
-`microservices/<ms>/` per ADR-0131:
+The legacy Connect super-app is **dissolved** into first-class flat
+µservices and community-hosted posting modes, each owning one user-facing
+concern per ADR-0131:
 
 | µservice | Concern | Folder | Crate prefix (BNF v4.1) |
 |---|---|---|---|
 | `mail` | Email (SMTP/IMAP/JMAP, mailbox, search, retention, legal-hold, eDiscovery) | `microservices/mail/` | `oya-mail-*` |
 | `messenger` | Real-time messaging (channels, DMs, threads, MLS E2E, huddles, presence) | `microservices/messenger/` | `oya-messenger-*` |
 | `calendar` | Scheduling (events, invitations, recurring, CalDAV, time-zones, rooms) | `microservices/calendar/` | `oya-calendar-*` |
-| `community` | Forum-class post store, thread trees, voting, moderation, KB articles | `microservices/community/` | `oya-community-*` |
+| `community` | Forum-class post store, thread trees, voting, moderation, KB articles, Teamblind-style anonymous workplace discussion, Handshake-style jobs/recruitment, and LinkedIn jobs/profile/recruiter subset absorbed from retired network | `microservices/community/` | `oya-community-*` |
 | `social` | Personal-context feed, interactions, follow graph | `microservices/social/` | `oya-social-*` |
 | `shorts` | Short-form video (ingest, transcode, feed, CDN) | `microservices/shorts/` | `oya-shorts-*` |
-| `network` | Professional graph (LinkedIn-class), connection edges, endorsements | `microservices/network/` | `oya-network-*` |
-| `anonymous` | Zero-knowledge messaging, unlinkable interactions, anonymous reporting | `microservices/anonymous/` | `oya-anonymous-*` |
+| `community` (anonymity-mode) | Anonymity posting-mode capability tier within community: persona-anchored (TeamBlind-class), pseudonymous (Reddit-class), fully-anonymous (whistleblower/press-source/bug-bounty per ADR-0300) | `microservices/community/` (see `community/policy/anonymity-mode-*.cedar`) | `oya-community-*` |
 
 ### Structural commitments per µservice
 
@@ -303,8 +302,9 @@ deprecation notices, and the eventual code-removal sweep.
 # All 8 µservice folders exist (5 net-new + 3 already present)
 test -d microservices/mail && test -d microservices/messenger && test -d microservices/calendar && \
 test -d microservices/community && test -d microservices/social && \
-test -d microservices/shorts && test -d microservices/network && \
-test -d microservices/anonymous
+test -d microservices/shorts && test -f microservices/network/RETIRED.md && test -d microservices/community
+# Note: microservices/anonymous/ was deleted 2026-05-21; anonymity is a
+# posting-mode capability tier within microservices/community/.
 
 # Each µservice has its OpenSLO file (ADR-0139 invariant)
 for ms in mail messenger calendar community social shorts network anonymous; do

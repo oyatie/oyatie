@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity vs industry-leading agent-safety products. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims` gate (per ADR-0123 HG-FGUARD) and tells gtm what to say + NOT say in tenant conversations. Re-validated bi-annually.
+Quantitative + qualitative parity vs industry-leading agent-safety products. Drives the `oya-governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-FGUARD) and tells gtm what to say + NOT say in tenant conversations. Re-validated bi-annually.
 
 ## Competitor Set
 
@@ -114,7 +114,7 @@ Verify-at-deploy: vendor SLAs change; reconfirm against vendor public docs.
 
 ## Quantitative Recall + Precision Targets
 
-Per-category recall + precision on oyatie golden-fixture set (in `tests/jailbreak/golden_fixtures.rs` + `tests/content-safety/golden_fixtures.rs`):
+Per-category recall + precision on oyatie baseline-fixture set (in `tests/jailbreak/baseline_fixtures.rs` + `tests/content-safety/baseline_fixtures.rs`):
 
 | Category | Target recall | Target precision | Notes |
 |---|---|---|---|
@@ -126,11 +126,11 @@ Per-category recall + precision on oyatie golden-fixture set (in `tests/jailbrea
 | Sexual | ≥ 0.95 | ≥ 0.90 | |
 | Violence | ≥ 0.90 | ≥ 0.85 | |
 | Minors | ≥ 0.99 | ≥ 0.95 | safety-critical; pack-eu CSAM duties |
-| Secret-leak | ≥ 0.95 | ≥ 0.90 | shared library with oya-foundry-fitness-evidence-secret-scan |
+| Secret-leak | ≥ 0.95 | ≥ 0.90 | shared library with oya-governance-evidence-secret-scan |
 | AI-slop pattern (catalogue) | ≥ 0.85 | ≥ 0.80 | oyatie unique; new category |
 | Hallucinated-tool-args | ≥ 0.85 | ≥ 0.80 | post-output |
 
-Recall + precision validated on golden-fixture set at every classifier-model rollout via shadow→enforce LEAN lane.
+Recall + precision validated on baseline-fixture set at every classifier-model rollout via shadow→enforce LEAN lane.
 
 ## Parity Gaps (oyatie ahead)
 
@@ -157,7 +157,7 @@ Per ADR-0123 `/specs/hyperscaler-gates.json` registers HG-FGUARD with these conf
 |---|---|
 | Pre-invocation classify p99 ≤ 50ms | load-test |
 | Post-output validate p99 ≤ 100ms | load-test |
-| Recall targets per category met | golden-fixture validation |
+| Recall targets per category met | baseline-fixture validation |
 | Cedar default-deny enforced | LEAN lane |
 | Multi-detector ensemble in place | architecture review |
 | Audit-chain seal on every decision | integration test |

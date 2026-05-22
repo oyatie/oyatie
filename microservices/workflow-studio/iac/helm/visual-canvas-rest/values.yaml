@@ -63,14 +63,14 @@ networkPolicy:
       ports: [8080]
     - to: studio-postgres-primary.workflow-studio.svc.cluster.local
       ports: [5432]
-    - to: studio-redis-primary.workflow-studio.svc.cluster.local
+    - to: studio-valkey-primary.workflow-studio.svc.cluster.local
       ports: [6379]
 
 # Secret references (OpenBao)
 secrets:
   spiffeIdentityPath: "secret/workflow-studio/visual-canvas-rest/spiffe"
   postgresConnectionPath: "secret/workflow-studio/visual-canvas-rest/postgres"
-  redisAuthPath: "secret/workflow-studio/visual-canvas-rest/redis"
+  valkeyAuthPath: "secret/workflow-studio/visual-canvas-rest/valkey"
   ed25519SigningKeyPath: "secret/workflow-studio/audit-chain/signing-key"
 
 # Prometheus monitoring

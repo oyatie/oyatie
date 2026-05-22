@@ -141,3 +141,8 @@ just kernel) via `oya-shared-sensitive-category-classifier`.
 - microservices/consent-graph/IP-011 §5 (aggregate impl)
 - microservices/consent-graph/threat-model.md §5.2 (k-anon bypass) + §5.4 (DP exhaustion)
 - ADR-SVC-CG-003 (three modes)
+
+
+## Counterpart Evidence
+
+This already-substantive IP is preserved. Counterpart anchor for Wave 15 verification: Palantir Foundry Ontology / Palantir AIP, AWS Cedar, Neo4j, AWS Neptune, Apache TinkerPop, Stardog, and Salesforce object model. See `microservices/ontology/competitor-parity-matrix.md` for the service-specific parity rows; the implementation PR must update that row when this IP materially changes parity.

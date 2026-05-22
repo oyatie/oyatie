@@ -18,17 +18,17 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_acme".into(),
             legal_name: "Acme Manufacturing Korea".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
 
     let cell = foundation
-        .bind_cell(&tenant.id, "home-region-a", "cell-control-a")
+        .bind_cell(&tenant.id, "region-home-a", "cell-control-a")
         .expect("first cell binding succeeds");
-    assert_eq!(cell.region, "home-region");
+    assert_eq!(cell.region, "region-home");
 
     let user = foundation
         .upsert_identity(IdentityRegistration {
@@ -61,7 +61,7 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
             required_tier: AutonomyTier::T3ExecuteWithApproval,
             touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::PiiIdentifying,
-                DataClass::FinancialCredit,
+                DataClass::FinancialRegulatedCredit,
             ])
             .unwrap(),
             evidence_topic: "oya.foundry.capability.invoked".into(),
@@ -112,17 +112,17 @@ fn foundation_rejects_token_ttl_over_one_hour_and_cell_rebind() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_beta".into(),
             legal_name: "Beta Logistics".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T1ViewOnly,
         })
         .expect("tenant can be onboarded");
 
     foundation
-        .bind_cell(&tenant.id, "home-region-a", "cell-control-a")
+        .bind_cell(&tenant.id, "region-home-a", "cell-control-a")
         .expect("first bind succeeds");
-    let rebind = foundation.bind_cell(&tenant.id, "home-region-b", "cell-control-b");
+    let rebind = foundation.bind_cell(&tenant.id, "region-home-b", "cell-control-b");
     assert_eq!(rebind, Err(FoundationError::CellBindingImmutable));
 
     foundation

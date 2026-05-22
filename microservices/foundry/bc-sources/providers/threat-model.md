@@ -164,11 +164,11 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 **Mitigations.**
 1. **Burn-rate-driven router demote.** Provider-health-monitor publishes `oya_foundry_providers_provider_health{vendor="in-house"}` rolling SLIs; router auto-demotes in-house when burn-rate exceeds threshold (default: 14.4× over 1h).
 2. **Canary cohort weighting.** In-house adapter is initially routed only for `(tenant.canary_cohort=true) AND (capability_fit_score ≥ floor)`; ramp 1 % → 10 % → 50 % → 100 % per `iac/helm/provider-router/values.yaml`.
-3. **Mandatory parity tests** (golden set) per ADR-0026 §"rollout gates"; in-house adapter cannot be activated for a tenant unless its golden-set verdict-correctness ≥ 0.95 of incumbent.
+3. **Mandatory parity tests** (baseline set) per ADR-0026 §"rollout gates"; in-house adapter cannot be activated for a tenant unless its baseline-set verdict-correctness ≥ 0.95 of incumbent.
 4. **Tenant opt-out flag** per-tenant Cedar fragment; tenant operator can pin "no in-house" at any time.
 5. **Runbook `in-house-model-rollback`.** One-command revert to last-green provider for the tenant.
 
-**Residual risk.** Subtle quality regression below SLI sensitivity; mitigated by eval-set per capability + per-quarter golden-set refresh.
+**Residual risk.** Subtle quality regression below SLI sensitivity; mitigated by eval-set per capability + per-quarter baseline-set refresh.
 
 ### T-05: Adapter-substitution attack (Elevation of Privilege + Tampering; OWASP LLM05 supply-chain)
 
@@ -243,7 +243,7 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 |---|---|---|---|---|
 | RAR-FP-01 | Subscription-channel breakage on vendor UI change | accept + monitor + adapter-version-pin | axis-foundry | quarterly |
 | RAR-FP-02 | Vendor-side breach exposes credentials | accept + rapid rotation runbook | ops-security | continuous |
-| RAR-FP-03 | In-house model has subtle quality regression below SLI | accept + golden-set + tenant opt-out | axis-foundry | per-release |
+| RAR-FP-03 | In-house model has subtle quality regression below SLI | accept + baseline-set + tenant opt-out | axis-foundry | per-release |
 | RAR-FP-04 | Adapter dep-graph supply-chain compromise | accept + sigstore + 2-person rule | ops-security | quarterly |
 
 ## Verification
@@ -251,7 +251,7 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 - `cargo run -p oya-dev-cli -- gate validate credential-isolation --microservice foundry-providers` exits 0.
 - `cargo run -p oya-dev-cli -- gate validate residency-conformance --microservice foundry-providers` exits 0.
 - Per-quarter red-team exercise on T-01 + T-03 + T-05; postmortem in `evidence/red-team/`.
-- Per-release adapter parity tests including golden-set verdict-correctness against incumbent providers.
+- Per-release adapter parity tests including baseline-set verdict-correctness against incumbent providers.
 
 ## References
 

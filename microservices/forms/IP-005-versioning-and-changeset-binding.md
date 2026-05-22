@@ -55,6 +55,35 @@ pub fn publish_form(
 - ADR-0110 ChangeSet state machine.
 - ADR-FORMS-0001.
 - `feedback_no_silent_regression.md`.
+- PRD FR-04 and AC-05.
+- `microservices/forms/manifest.json` service registration.
+- `microservices/forms/catalog/oya-forms-version-domain.yaml`.
+- `microservices/forms/contracts/asyncapi/forms.asyncapi.yaml` form-published event.
+- `microservices/forms/runbooks/response-store-corruption.md` for version mismatch rollback.
+- `microservices/forms/decisions/ADR-FORMS-0001-form-definition-schema.md`.
+
+## Foundation A-G Substance
+
+- A. Product scope: every published form is immutable for response interpretation and export replay.
+- B. Domain model: `FormDraft`, `FormVersion`, `SchemaHash`, `VersionLifecycle`, and `ChangeSetBinding` are first-class.
+- C. Contracts: `FormPublished` includes version, schema hash, pack, and audit-chain seal in REST, AsyncAPI, and proto paths.
+- D. Policy: breaking publish requires ADR reference, sunset window, Cedar preview acknowledgement, and pack-specific compliance check.
+- E. Operations: revert restores the prior published version pointer without rewriting historical responses.
+- F. Observability: emit publish latency, revert count, version lookup misses, and schema-hash mismatch alerts.
+- G. Promotion: version-isolation tests, catalog entry, manifest binding, and runbook link must all resolve.
+
+## Counterpart Benchmark
+
+- Counterpart: Notion Forms/Databases schema evolution, Airtable Forms field changes, and GitHub issue form YAML revisions.
+- Defensible parity claim: Oyatie must preserve historical response readability after a field rename, removal, or type change.
+- Differentiator: ChangeSet binding makes form publish/revert auditable rather than a UI-only save operation.
+- Grep counterpart names: Notion Forms/Databases; GitHub issue forms; Airtable Forms.
+
+## Remediation Notes
+
+- Added artifact-backed lifecycle criteria tied to manifest, catalog, contracts, and runbooks.
+- Added A-G substance to make versioning defensible as a foundation capability instead of a small helper.
+- Added counterpart names for mechanical parity review.
 
 ## Next IP
 

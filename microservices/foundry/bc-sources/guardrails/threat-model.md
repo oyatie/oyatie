@@ -46,7 +46,7 @@ All components introduced by ADR-0131 (Foundry split) for the foundry-guardrails
 |---|---|
 | ONNX-runtime classifier-model-serving (Helm chart) | `oya-foundry-guardrails-prompt-classifier-*` (10 crates) |
 | Cedar v4 engine (in-process + sidecar) | `oya-foundry-guardrails-output-validator-*` (9 crates) |
-| Postgres HA (rule store + Cedar fragment registry + mutation log) | `oya-foundry-guardrails-autonomy-tier-gate-*` (9 crates) |
+| Postgres HA (rule store + Cedar fragment registry + mutation log) | `oya-foundry-guardrails-autonomy-ceiling-gate-*` (9 crates) |
 | Cosign (classifier-model artifact signing) | `oya-foundry-guardrails-content-safety-rule-engine-*` (9 crates) |
 | OpenBao (secret bindings, Cosign keys, LLM-judge provider tokens) | `oya-foundry-guardrails-jailbreak-detector-*` (10 crates) |
 | Object storage (Cosign-signed classifier artifacts; per-pack S3) | `oya-foundry-guardrails-ai-slop-detector-*` (9 crates) |
@@ -226,7 +226,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Cedar fragments under CODEOWNERS scoped to axis-foundry-guardrails + ops-security.
   - `oya gate validate cedar-default-deny-enforced` LEAN lane refuses bundles missing the base `forbid` rule.
   - `oya gate validate cedar-fragment-coverage` validates the bundle's per-action coverage matrix.
-  - Cedar v4 schema-validation at PR time; runtime hot-reload verifies the new bundle against a golden test set before promote.
+  - Cedar v4 schema-validation at PR time; runtime hot-reload verifies the new bundle against a baseline test set before promote.
 - Owner: axis-foundry-guardrails + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC8.1; ISO 27001 A.5.31, A.5.32, A.8.32, A.8.33; EU AI Act Art. 13 (transparency); ADR-0140
@@ -258,7 +258,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Multi-detector ensemble (heuristic + classifier + LLM-judge) — no single point of failure.
   - Canonicalisation pre-pass strips whitespace + zero-width + homoglyph + base64 obfuscation before classifier inference.
-  - Continuous red-team: golden-fixture catalogue of known jailbreaks rerun on every PR; new patterns folded in monthly.
+  - Continuous red-team: baseline-fixture catalogue of known jailbreaks rerun on every PR; new patterns folded in monthly.
   - LLM-as-judge fallback invoked when ensemble disagreement; expensive but bounds residual risk.
   - Per-tenant jailbreak-attempt-rate SLO; spike triggers per-tenant review.
 - Owner: axis-foundry-guardrails
@@ -361,7 +361,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M (LLMs occasionally regurgitate training-data secrets) / Impact: H / Risk: **H**
 - Mitigations:
   - Output-validator includes a secret-leak detector (regex + entropy + known-secret-pattern matchers); strong-match → block + Sev-1 incident.
-  - Secret-pattern library shared with `oya-foundry-fitness-evidence-secret-scan` lane.
+  - Secret-pattern library shared with `oya-governance-evidence-secret-scan` lane.
   - If the secret matches an oyatie-known secret (OpenBao audit-emit), trigger rotation pipeline.
 - Owner: ops-security + axis-foundry-guardrails
 - Frameworks: OWASP LLM06 (Sensitive Information Disclosure)
@@ -428,7 +428,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
   - `tier_claim` is computed server-side from (principal SPIFFE, tenant.configured_tier, capability.min_required, pack.cap, subject.class_cap); NEVER read from request body.
-  - Cedar policy on the gate refuses any request where the computed ceiling < the requested tier.
+  - Cedar policy on the gate refuses any request where the computed ceiling < the requested autonomy level.
   - 100% test coverage on effective-ceiling computation (per ADR-0022 §"Effective-ceiling resolution").
 - Owner: axis-foundry-guardrails + ops-security
 - Frameworks: ADR-0022; EU AI Act Art. 14 (human-oversight)
@@ -481,7 +481,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 
 | Mitigation | Type | Owner | Verification |
 |---|---|---|---|
-| Multi-detector ensemble (heuristic + classifier + LLM-judge) | Preventive | axis-foundry-guardrails | jailbreak golden-fixture lane |
+| Multi-detector ensemble (heuristic + classifier + LLM-judge) | Preventive | axis-foundry-guardrails | jailbreak baseline-fixture lane |
 | Cedar v4 + default-deny + per-tenant overlays | Preventive | axis-foundry-guardrails + ops-security | `oya gate validate cedar-default-deny-enforced` |
 | Cosign-signed classifier-model artifacts | Preventive (tampering) | ops-security + axis-foundry-guardrails | pod-start verification + LEAN |
 | Per-tenant rate limits | Preventive (DoS) | axis-foundry-guardrails | observability metrics |

@@ -9,8 +9,8 @@ entry_gate: |
   /specs/microservices/ontology.json + /specs/knowledge-graph-schema.json + /specs/per-microservice-flat-layout.json published;
   cargo workspace ready to accept the ~92 new crates under microservices/ontology/src/crates/.
 exit_gate: |
-  All 15 IPs merged; oya-foundry-fitness-ontology-tenancy-isolation, oya-foundry-fitness-ontology-tier-enforcement,
-  oya-foundry-fitness-cedar-coverage, oya-foundry-fitness-audit-chain-emission, oya-foundry-fitness-ontology-dynamic-freshness
+  All 15 IPs merged; oya-governance-ontology-tenancy-isolation, oya-governance-ontology-tier-enforcement,
+  oya-governance-cedar-coverage, oya-governance-audit-chain-emission, oya-governance-ontology-dynamic-freshness
   CI lanes present in .github/branch-protection.yaml required_status_checks on dev and staging;
   release/ontology/{staging,production} pattern protection rules live;
   cargo nextest run --workspace exits 0;
@@ -222,11 +222,11 @@ branches:
       # existing checks (unchanged)
       ...
       # ADDED by this phase (IP-006 + IP-007 + IP-010 + IP-011 + IP-015):
-      - oya-foundry-fitness-ontology-tenancy-isolation
-      - oya-foundry-fitness-ontology-tier-enforcement
-      - oya-foundry-fitness-cedar-coverage
-      - oya-foundry-fitness-audit-chain-emission
-      - oya-foundry-fitness-ontology-dynamic-freshness
+      - oya-governance-ontology-tenancy-isolation
+      - oya-governance-ontology-tier-enforcement
+      - oya-governance-cedar-coverage
+      - oya-governance-audit-chain-emission
+      - oya-governance-ontology-dynamic-freshness
 
   staging:
     required_status_checks:
@@ -240,9 +240,9 @@ branches:
     require_signed_commits: true
     required_status_checks:
       - oya-vcs-promotion-readiness
-      - oya-foundry-fitness-ontology-tenancy-isolation
-      - oya-foundry-fitness-cedar-coverage
-      - oya-foundry-fitness-audit-chain-emission
+      - oya-governance-ontology-tenancy-isolation
+      - oya-governance-cedar-coverage
+      - oya-governance-audit-chain-emission
 
   ? release/ontology/production
   :
@@ -252,10 +252,10 @@ branches:
     require_signed_commits: true
     required_status_checks:
       - oya-vcs-promotion-readiness
-      - oya-foundry-fitness-ontology-tenancy-isolation
-      - oya-foundry-fitness-cedar-coverage
-      - oya-foundry-fitness-audit-chain-emission
-      - oya-foundry-fitness-ontology-dynamic-freshness
+      - oya-governance-ontology-tenancy-isolation
+      - oya-governance-cedar-coverage
+      - oya-governance-audit-chain-emission
+      - oya-governance-ontology-dynamic-freshness
 ```
 
 ## Oya VCS Symbol Locks

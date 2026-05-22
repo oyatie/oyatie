@@ -9,7 +9,7 @@ tier: external-facing
 milestone_first_ship: M03-sheets-preview
 bominal_source: []
 net_new: true
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0135
 sibling_products:
@@ -40,7 +40,7 @@ This µservice is **shared substrate AND hero product** simultaneously: the cell
 - **Tenant Outcome 2 — Sheet-open p95 ≤ 400ms cold (10k cells) / 150ms warm; cell-edit-render p99 ≤ 50ms.** Editor opens fast even on cold-cache; per-cell render budget hit at 60fps for live editing. Competitive with Google Sheets + Microsoft Excel Web.
 - **Tenant Outcome 3 — Recalc 100k-cell sheet p95 ≤ 1s; 1M-cell workbook p95 ≤ 10s.** Formula engine parallel-safe; dependency graph incremental; tenant can build financial models that exceed Excel-Web's responsiveness threshold.
 - **Tenant Outcome 4 — Collaborative editing without silent loss.** Two business users editing same workbook simultaneously: CRDT merge applies non-conflicting edits; conflicting edits surface explicit conflict UI; no last-writer-wins. Cursor sync p99 ≤ 150ms aligned with workflow-studio collab budget.
-- **Tenant Outcome 5 — XLSX round-trip fidelity (best-effort tier per ADR-SHEETS-0007).** Tenant imports a Microsoft Excel workbook, edits in Sheets, exports back to XLSX; per the named-limit list (no VBA, image fidelity downgrade tolerance), the round-trip preserves formulas, formatting, charts, pivot tables, data validation, named ranges, and comments.
+- **Tenant Outcome 5 — XLSX round-trip fidelity (best-effort fidelity per ADR-SHEETS-0007).** Tenant imports a Microsoft Excel workbook, edits in Sheets, exports back to XLSX; per the named-limit list (no VBA, image fidelity downgrade tolerance), the round-trip preserves formulas, formatting, charts, pivot tables, data validation, named ranges, and comments.
 - **Tenant Outcome 6 — Per-pack data-class markers + per-range ACL.** Healthcare tenants in pack-us-healthcare see PHI markers on patient-id columns; financial tenants see SECRET markers on PII columns; per-range ACL (named-ACL granularity per ADR-SHEETS-0006) allows column-level read/edit permission.
 - **Tenant Outcome 7 — AI-formulas + smart-fill (T1 advisory; T2 EU-AI-Act-bounded).** Tenant prose ("calculate average revenue per region for Q3") drafts a candidate formula; smart-fill infers column patterns from 3 cells. Bridges to foundry-runtime; T1 advisory (human accepts); T2 auto-apply gated by Cedar + ChangeSet review.
 - **Tenant Outcome 8 — Connected-sheets (external-source queries).** Tenant runs SQL-class queries against external databases (Postgres / BigQuery-equivalent / Snowflake-equivalent) via foundry-runtime; results materialize as cell ranges with refresh policy. Competitive with Google Sheets Connected Sheets.
@@ -129,7 +129,8 @@ This µservice is **shared substrate AND hero product** simultaneously: the cell
 - WebSocket gateway availability: 99.9% monthly (collab + recalc-progress streams).
 - XLSX export pipeline availability: 99.5% monthly (acceptable degradation; manual CSV fallback).
 - AI-formula availability: 99.5% monthly (acceptable degradation; Sheets works without AI-formula).
-- RTO ≤ 30s for editor-rest; RPO ≤ 1s for cell-edit state.
+- RTO ≤ 1800s for editor-rest per manifest `dr.rto_p99_seconds=1800`; hot editor failover may recover faster when cell capacity is healthy.
+- RPO ≤ 120s for cell-edit state per manifest `dr.rpo_p99_seconds=120`.
 - Self-observability: Sheets emits its own SLO via observability µservice; burn-rate alarms feed Grafana OnCall.
 
 ### Data residency
@@ -137,9 +138,39 @@ This µservice is **shared substrate AND hero product** simultaneously: the cell
 - Workbook metadata, cell storage, edit buffer, collab CRDT state, AI-formula prompts, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Valkey + Arrow/Parquet large-sheet storage + S3 snapshots are per-pack region-pinned.
 - CDN static assets are global (no PII; spec schema + design-system primitives + WASM bundles); per-pack CDN edge keys segregate tenant-rendered content where applicable.
 
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=1800` and `rpo_p99_seconds=120`. EU-AI-ACT-2024-HIGH-RISK (1800s/300s), HIPAA-2024 (3600s/300s), SOC2-T2 (14400s/900s), DORA continuity expectations, and ISO27001-2022 (14400s/3600s) leave the effective sheets bound at 1800s RTO and 120s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, and `valkey`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; global static WASM stays PII-free and workbook content stays pack-pinned.
+- WHY: spreadsheet edits can drive financial, healthcare, and AI-assisted decisions, so tenants need recoverable cell state and visible conflict handling after a cell fault.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.18 vCPU, 512Mi RAM, 40Gi storage, 3 Valkey connections, 3 Postgres connections, and 6 outbound HTTP connections per tenant.
+- Scaling dimension: `per_query`; formula recalculation, large-sheet reads, chart queries, and export paths dominate resource use.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because sheets is a high-throughput application/query surface rather than tenant-customer code execution.
+- Autoscaling boundaries: visual-grid REST min 4 / max 50, WS gateway and recalc workers follow `capacity-model.md` replica formulas, and recalc/export queues back-pressure before tenant workloads can exhaust shared cell capacity.
+- WHY: sheets load is driven by active workbooks, cell count, and recalc fan-out, not just document count, so scaling is tied to session, formula, and import/export queues.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every audit-chain row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` for cell edits, share ACL changes, formula-engine upgrades, session events, AI-formula calls, imports/exports, and connected-sheets refresh.
+- Provider routing affected by carbon: no for EU-AI-Act Annex III/high-risk, HIPAA, formula-correctness, license-gate, or realtime collab paths; yes for scheduled recalc, connected-sheets refresh, XLSX import/export, and AI advisory queues when tenant policy allows.
+- Per-tenant transparency surface: FinOps portal shows workbook sessions, hot/cold cell storage, recalc CPU, XLSX worker time, AI-formula calls, connected refreshes, and CDN/WASM egress by tenant/capability/provider/cell/compliance_pack.
+- WHY: sheets mixes low-latency collaborative state with compute-heavy recalc and AI, so CSRD, SB-253, and SEC climate reporting need attribution that does not alter regulated calculation behavior.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for workbook, sheet, formula, recalc, import/export, sharing, embed, and event contracts.
+- SDK semver model: major.minor.patch for browser-WASM editor SDKs, automation SDKs, and cross-product embed SDKs.
+- Support window: last N=3 public API versions for at least 180 days, with formula-engine and XLSX schema compatibility called out in deprecation notices.
+- Per-tenant pinning supported: yes, especially for regulated workbook validation and formula-engine certification windows.
+- Internal-mesh exemption: yes; direct gRPC to drive, docs, slides, workflow, foundry, and cell remains exempt under ADR-0145 when internal-only.
+
 ## Bounded Contexts
 
-Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), Sheets uses: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-redis`, `adapter-arrow`, `adapter-parquet`, `adapter-s3`, `adapter-loro`, `adapter-calamine`, `adapter-rust-xlsxwriter`, `adapter-clamav`, `adapter-opswat`, `adapter-cdn`, `adapter-leptos-wasm`, `rest`, `worker`, `sdk`, `app`. Browser-WASM artifacts compiled from the `app` layer per ADR-0065.
+Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), Sheets uses: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-valkey`, `adapter-arrow`, `adapter-parquet`, `adapter-s3`, `adapter-loro`, `adapter-calamine`, `adapter-rust-xlsxwriter`, `adapter-clamav`, `adapter-opswat`, `adapter-cdn`, `adapter-leptos-wasm`, `rest`, `worker`, `sdk`, `app`. Browser-WASM artifacts compiled from the `app` layer per ADR-0065.
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
@@ -150,7 +181,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `pivot-tables` | `oya-sheets-pivot-tables-{kernel,domain,usecase,api,adapter}` | Pivot config + aggregation evaluator | `Pivot`, `PivotAxis`, `PivotAggregator` |
 | `charts` | `oya-sheets-charts-{kernel,domain,usecase,api,adapter,adapter-leptos-wasm,sdk}` | Bar/line/pie/scatter/area/combo/sparkline; custom Leptos canvas renderer | `Chart`, `ChartSeries`, `ChartAxis`, `RenderedChart` |
 | `data-validation` | `oya-sheets-data-validation-{kernel,domain,usecase,api,adapter}` | Dropdown/range/custom-formula validation | `ValidationRule`, `ValidationError` |
-| `collab-crdt` | `oya-sheets-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-redis,adapter-loro,worker,sdk}` | Loro 1.x CRDT merge engine for cell ops; conflict surfacer; WebSocket gateway | `CrdtState`, `MergeOp`, `Conflict`, `EditorSession` |
+| `collab-crdt` | `oya-sheets-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-valkey,adapter-loro,worker,sdk}` | Loro 1.x CRDT merge engine for cell ops; conflict surfacer; WebSocket gateway | `CrdtState`, `MergeOp`, `Conflict`, `EditorSession` |
 | `import-export` | `oya-sheets-import-export-{kernel,domain,usecase,api,adapter,adapter-calamine,adapter-rust-xlsxwriter,adapter-clamav,adapter-opswat,worker,sdk}` | XLSX/ODS/CSV/TSV/JSON-Sheet import/export; sandboxed; AV-scanned | `ImportContext`, `ExportContext`, `ExportFidelityTier` |
 | `large-sheet-storage` | `oya-sheets-large-sheet-storage-{kernel,domain,usecase,api,adapter,adapter-arrow,adapter-parquet,adapter-s3}` | Hybrid postgres+Arrow-Parquet substrate for >100k cells; S3 snapshot | `ColumnarBlock`, `SheetSnapshot`, `HotColdBoundary` |
 | `sharing-acl` | `oya-sheets-sharing-acl-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | View/comment/edit + per-range named-ACL | `Share`, `RangeAcl`, `AclDecision` |
@@ -238,7 +269,7 @@ JUSTIFICATION:
   - api: typed contracts.
   - adapter: protocol-neutral impls.
   - adapter-loro: Loro 1.x adapter; backend-qualified per ADR-0105 Amendment 3.
-  - adapter-redis: ephemeral CRDT state cache.
+  - adapter-valkey: ephemeral CRDT state cache.
   - worker: WebSocket gateway long-lived process.
   - sdk: client library.
 - exemptions claimed: app — collab-crdt rolls into cell-grid-app composition root.
@@ -292,7 +323,7 @@ Naming justifications for the remaining BCs (formatting / pivot-tables / charts 
 
 Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0106):
 
-| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-redis | adapter-arrow | adapter-parquet | adapter-s3 | adapter-loro | adapter-calamine | adapter-rust-xlsxwriter | adapter-clamav | adapter-opswat | adapter-leptos-wasm | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-valkey | adapter-arrow | adapter-parquet | adapter-s3 | adapter-loro | adapter-calamine | adapter-rust-xlsxwriter | adapter-clamav | adapter-opswat | adapter-leptos-wasm | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `cell-grid` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | — | ✓ | ✓ | — | ✓ | ✓ |
 | `formula-engine` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — | — | — | ✓ | — |
@@ -327,7 +358,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `DepGraphBuilder` | `oya-sheets-recalc-engine-kernel` | `-domain` (pure) | `INTERNAL_ONLY` |
 | `RecalcScheduler` | `oya-sheets-recalc-engine-kernel` | `-worker` | `INTERNAL_ONLY` |
 | `CrdtMergeEngine` | `oya-sheets-collab-crdt-kernel` | `-adapter-loro` (Loro 1.x) | `INTERNAL_ONLY` |
-| `EditorSessionStore` | `oya-sheets-collab-crdt-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `EditorSessionStore` | `oya-sheets-collab-crdt-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `WebSocketGatewayDispatcher` | `oya-sheets-collab-crdt-kernel` | `-worker` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `XlsxImporter` | `oya-sheets-import-export-kernel` | `-adapter-calamine` (calamine 0.26) | `BEHAVIORAL_TENANT_PRODUCT` + `PII_QUASI_IDENTIFIER` |
 | `XlsxExporter` | `oya-sheets-import-export-kernel` | `-adapter-rust-xlsxwriter` (rust_xlsxwriter 0.79) | `BEHAVIORAL_TENANT_PRODUCT` |
@@ -455,7 +486,7 @@ Sheets is a product µservice; cross-product flows route through the engine's ev
 Key parity gaps to close (ordered by priority for M03 preview milestone):
 
 1. **Function-library coverage ≥ 400 functions** — Excel ships ~500 functions; Google Sheets ~470; oyatie M03 target ≥ 400 across math/logical/lookup/statistical/financial/text/date/array categories. Per ADR-SHEETS-0002.
-2. **XLSX best-effort fidelity** — OnlyOffice and LibreOffice claim strict OOXML round-trip; oyatie ships best-effort tier per ADR-SHEETS-0007 with named limit list (no VBA, image fidelity downgrade tolerance). Strict-round-trip scheduled-for-distinct-tracked-work to subsequent-to-M03-completion phase.
+2. **XLSX best-effort fidelity** — OnlyOffice and LibreOffice claim strict OOXML round-trip; oyatie ships best-effort fidelity per ADR-SHEETS-0007 with named limit list (no VBA, image fidelity downgrade tolerance). Strict-round-trip scheduled-for-distinct-tracked-work to subsequent-to-M03-completion phase.
 3. **Recalc performance** — 1M-cell recalc p95 ≤ 10s (oyatie target); Google Sheets caps at 10M cells per workbook; Excel-Web caps at 1M cells. oyatie matches Excel-Web.
 4. **Real-time collab** — Google Sheets + Microsoft Excel Web + Quip have real-time collab; oyatie matches with Loro CRDT (no silent loss invariant; competitors use OT-class with last-writer-wins fallback).
 5. **Per-range ACL granularity** — Google Sheets has protected ranges; oyatie matches via named-ACL per ADR-SHEETS-0006.
@@ -491,7 +522,7 @@ Error budget:
 **State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale:
 - Workbook metadata, cell storage (small), per-seat license attribution, sharing/ACL, comments, version-history pointers: `postgres` (Citus-distributed by tenant_id).
 - Large-sheet cell storage (>100k cells): hybrid `postgres+arrow-parquet` per ADR-SHEETS-0003; hot OLTP rows in Postgres; cold analytical blocks in Arrow/Parquet on S3.
-- Ephemeral collab CRDT state, recalc-progress streams: `redis` (per-cell cluster; reconstructable from Postgres on cold-start).
+- Ephemeral collab CRDT state, recalc-progress streams: `valkey` (per-cell cluster; reconstructable from Postgres on cold-start).
 - Workbook snapshots + version-history binaries: `s3` (object storage; per-pack bucket).
 - Static assets (WASM bundles + design-system primitives): `cdn` (global edge cache; per-pack key partitioning).
 
@@ -533,7 +564,7 @@ Sharding:
 | AC-ID | Criterion | Verification method |
 |---|---|---|
 | AC-01 | Cell value entry + SUM formula → recalc → display correct sum on a 100×100 grid | `cargo nextest run -p oya-sheets-formula-engine-domain --test test_sum_basic` |
-| AC-02 | Load XLSX (100-workbook golden corpus) → render → export → byte-compatible (best-effort tier) per ADR-SHEETS-0007 | `cargo nextest run -p oya-sheets-import-export-domain --test test_xlsx_best_effort_roundtrip` |
+| AC-02 | Load XLSX (100-workbook reference corpus) → render → export → byte-compatible (best-effort fidelity) per ADR-SHEETS-0007 | `cargo nextest run -p oya-sheets-import-export-domain --test test_xlsx_best_effort_roundtrip` |
 | AC-03 | Editor open with pending changes; network disconnect; local buffer persists; resume without loss on reconnect | `tests/e2e/offline-buffer-resume.rs` |
 | AC-04 | Workbook with PII column; share with per-range ACL hiding PII column; recipient sees workbook without PII range | `cargo nextest run -p oya-sheets-sharing-acl-domain --test test_per_range_acl_hides_pii` |
 | AC-05 | AI-formula prose → candidate formula via API; valid: opens in editor; invalid: precise per-line error | `tests/e2e/ai-formula-validation.rs` |
@@ -568,7 +599,7 @@ Sharding:
 | 4 | Recalc engine architecture (single-thread vs parallel-task-graph)? | council-architecture + axis-sheets | **Closed** by ADR-SHEETS-0004 — dep-graph + topo + parallel-task-graph |
 | 5 | AI-formula scope bounds (T0/T1/T2)? | council-architecture + council-legal-compliance | **Closed** by ADR-SHEETS-0005 — T0+T1 intra; T2 gated |
 | 6 | Per-range ACL granularity (per-cell vs per-range vs whole-sheet)? | council-architecture + council-design-system | **Closed** by ADR-SHEETS-0006 — per-range named-ACL |
-| 7 | XLSX export fidelity tier (best-effort vs strict-round-trip)? | council-architecture + axis-sheets | **Closed** by ADR-SHEETS-0007 — best-effort tier with named limit list |
+| 7 | XLSX export fidelity tier (best-effort vs strict-round-trip)? | council-architecture + axis-sheets | **Closed** by ADR-SHEETS-0007 — best-effort fidelity with named limit list |
 
 ## Related ADRs
 
@@ -595,3 +626,23 @@ Sharding:
 | ADR-SHEETS-0006 | Per-range ACL granularity | local |
 | ADR-SHEETS-0007 | XLSX export fidelity policy | local |
 | oyatie override | Workflow + Ontology = ecosystem adapter | `feedback_workflow_objectgraph_adapter_layer.md` |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `sheets` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `sheets` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_query` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

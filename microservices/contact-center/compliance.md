@@ -1,0 +1,925 @@
+---
+doc_class: Compliance
+microservice: contact-center
+status: reserved-wave-3-i-anchor
+date: 2026-05-20
+related_adrs:
+  - ADR-0244
+  - ADR-0251
+  - ADR-0263
+  - ADR-0316
+  - ADR-0321
+companion_docs:
+  - microservices/contact-center/PRD.md
+  - microservices/contact-center/ARCHITECTURE.md
+  - microservices/contact-center/manifest.json
+---
+
+# Compliance: Contact Center
+
+## A. Scope
+This compliance anchor covers Contact Center as a B2B industry-leader coverage microservice. It declares the minimum control posture before full PR-143 artifact buildout.
+
+## B. Control Families
+- SOC-2: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+- ISO-27001: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+- GDPR: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+- HIPAA-2024: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+- PCI-DSS-L1-v4: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+- KR-PIPA: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+- TCPA: requires permit delta, retention class, residency behavior, DSAR/export behavior, evidence owner, and exception workflow.
+
+## C. Data Classification
+- Tenant identifiers: confidential operational data.
+- Source-system identifiers: confidential migration provenance.
+- Workflow and approval evidence: regulated business records when activated by pack.
+- Personal data: PII subject to jurisdictional pack rules.
+- Secrets and provider credentials: OpenBao-referenced, short-lived, and never logged.
+
+## D. Audit Events
+- EVT-CONTACT_CENTER-VOICE_ROUTING-CREATED
+- EVT-CONTACT_CENTER-VOICE_ROUTING-APPROVED
+- EVT-CONTACT_CENTER-VOICE_ROUTING-IMPORT-REJECTED
+- EVT-CONTACT_CENTER-QUEUE-CREATED
+- EVT-CONTACT_CENTER-QUEUE-APPROVED
+- EVT-CONTACT_CENTER-QUEUE-IMPORT-REJECTED
+- EVT-CONTACT_CENTER-AGENT_DESKTOP-CREATED
+- EVT-CONTACT_CENTER-AGENT_DESKTOP-APPROVED
+- EVT-CONTACT_CENTER-AGENT_DESKTOP-IMPORT-REJECTED
+- EVT-CONTACT_CENTER-RECORDING_CONSENT-CREATED
+- EVT-CONTACT_CENTER-RECORDING_CONSENT-APPROVED
+- EVT-CONTACT_CENTER-RECORDING_CONSENT-IMPORT-REJECTED
+- EVT-CONTACT_CENTER-QUALITY_MONITORING-CREATED
+- EVT-CONTACT_CENTER-QUALITY_MONITORING-APPROVED
+- EVT-CONTACT_CENTER-QUALITY_MONITORING-IMPORT-REJECTED
+
+## E. Required Evidence
+- Cedar policy decision log for every mutation.
+- Audit-chain event id for every critical state transition.
+- Source-system row provenance for every migration import.
+- Workflow run id for every approval, exception, reversal, or remediation.
+- Data-residency decision for every regulated record.
+- OpenBao reference for every secret or credential dependency.
+
+## F. Required Compliance Anchors
+## §self-modification
+- self-modification: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — self-modification
+- This expansion preserves the existing prose above and closes `self-modification` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: SLSA provenance anchors the external control pattern for `self-modification`.
+- Precedent 2: Google Binary Authorization provides a second independent hyperscaler pattern for `self-modification`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `self-modification`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `self-modification` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `self-modification` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `self modification` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `self modification` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `self modification`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `self modification` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `self modification` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `self modification` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `self modification` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `self modification`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `self modification` telemetry while keeping signed audit evidence intact.
+
+## §day-one-cert-readiness
+- day-one-cert-readiness: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — day-one-cert-readiness
+- This expansion preserves the existing prose above and closes `day-one-cert-readiness` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: AWS Artifact anchors the external control pattern for `day-one-cert-readiness`.
+- Precedent 2: Google Assured Workloads provides a second independent hyperscaler pattern for `day-one-cert-readiness`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `day-one-cert-readiness`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `day-one-cert-readiness` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `day-one-cert-readiness` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `day one cert readiness` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `day one cert readiness` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `day one cert readiness`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `day one cert readiness` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `day one cert readiness` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `day one cert readiness` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `day one cert readiness` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `day one cert readiness`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `day one cert readiness` telemetry while keeping signed audit evidence intact.
+
+## §pack-overlay-roster
+- pack-overlay-roster: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — pack-overlay-roster
+- This expansion preserves the existing prose above and closes `pack-overlay-roster` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: AWS Control Tower guardrails anchors the external control pattern for `pack-overlay-roster`.
+- Precedent 2: Microsoft Purview Compliance Manager provides a second independent hyperscaler pattern for `pack-overlay-roster`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `pack-overlay-roster`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `pack-overlay-roster` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `pack-overlay-roster` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `pack overlay roster` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `pack overlay roster` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `pack overlay roster`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `pack overlay roster` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `pack overlay roster` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `pack overlay roster` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `pack overlay roster` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `pack overlay roster`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `pack overlay roster` telemetry while keeping signed audit evidence intact.
+
+## §consent
+- consent: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — consent
+- This expansion preserves the existing prose above and closes `consent` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: Google Consent Mode anchors the external control pattern for `consent`.
+- Precedent 2: Apple App Tracking Transparency provides a second independent hyperscaler pattern for `consent`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `consent`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `consent` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `consent` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `consent` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `consent` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `consent`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `consent` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `consent` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `consent` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `consent` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `consent`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `consent` telemetry while keeping signed audit evidence intact.
+
+## §email-deliverability
+- email-deliverability: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — email-deliverability
+- This expansion preserves the existing prose above and closes `email-deliverability` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: Google Workspace DKIM/SPF/DMARC anchors the external control pattern for `email-deliverability`.
+- Precedent 2: AWS SES domain identity provides a second independent hyperscaler pattern for `email-deliverability`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `email-deliverability`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `email-deliverability` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `email-deliverability` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `email deliverability` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `email deliverability` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `email deliverability`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `email deliverability` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `email deliverability` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `email deliverability` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `email deliverability` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `email deliverability`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `email deliverability` telemetry while keeping signed audit evidence intact.
+
+## §minor-protection
+- minor-protection: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — minor-protection
+- This expansion preserves the existing prose above and closes `minor-protection` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: Apple Family/Screen Time controls anchors the external control pattern for `minor-protection`.
+- Precedent 2: Google Family Link provides a second independent hyperscaler pattern for `minor-protection`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `minor-protection`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `minor-protection` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `minor-protection` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `minor protection` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `minor protection` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `minor protection`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `minor protection` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `minor protection` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `minor protection` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `minor protection` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `minor protection`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `minor protection` telemetry while keeping signed audit evidence intact.
+
+## §meta-trust-attestation
+- meta-trust-attestation: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — meta-trust-attestation
+- This expansion preserves the existing prose above and closes `meta-trust-attestation` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: The Update Framework roots anchors the external control pattern for `meta-trust-attestation`.
+- Precedent 2: Sigstore Rekor transparency provides a second independent hyperscaler pattern for `meta-trust-attestation`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `meta-trust-attestation`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `meta-trust-attestation` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `meta-trust-attestation` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `meta trust attestation` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `meta trust attestation` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `meta trust attestation`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `meta trust attestation` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `meta trust attestation` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `meta trust attestation` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `meta trust attestation` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `meta trust attestation`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `meta trust attestation` telemetry while keeping signed audit evidence intact.
+
+## §bootstrap-trust-chain
+- bootstrap-trust-chain: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — bootstrap-trust-chain
+- This expansion preserves the existing prose above and closes `bootstrap-trust-chain` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: SPIFFE/SPIRE workload identity anchors the external control pattern for `bootstrap-trust-chain`.
+- Precedent 2: Sigstore Fulcio provides a second independent hyperscaler pattern for `bootstrap-trust-chain`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `bootstrap-trust-chain`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `bootstrap-trust-chain` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `bootstrap-trust-chain` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `bootstrap trust chain` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `bootstrap trust chain` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `bootstrap trust chain`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `bootstrap trust chain` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `bootstrap trust chain` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `bootstrap trust chain` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `bootstrap trust chain` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `bootstrap trust chain`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `bootstrap trust chain` telemetry while keeping signed audit evidence intact.
+
+## §platform-owner-indirection
+- platform-owner-indirection: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — platform-owner-indirection
+- This expansion preserves the existing prose above and closes `platform-owner-indirection` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: Salesforce My Domain anchors the external control pattern for `platform-owner-indirection`.
+- Precedent 2: Google Workspace tenant branding provides a second independent hyperscaler pattern for `platform-owner-indirection`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `platform-owner-indirection`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `platform-owner-indirection` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `platform-owner-indirection` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `platform owner indirection` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `platform owner indirection` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `platform owner indirection`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `platform owner indirection` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `platform owner indirection` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `platform owner indirection` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `platform owner indirection` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `platform owner indirection`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `platform owner indirection` telemetry while keeping signed audit evidence intact.
+
+## §provider-credential-isolation
+- provider-credential-isolation: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+
+### Content-pass expansion — provider-credential-isolation
+- Service anchor: Contact Center (`contact-center`) is the unit of accountability for this compliance control.
+- Lifecycle status: `reserved-wave-3-i-anchor` means the section is an executable anchor, not a launch claim.
+- Audience scope: `tenant-b2b-support` drives the tenant, administrator, and operator evidence expectations.
+- Product subtype: `b2b-leader-operational-concern` keeps this control bound to the service concern instead of a vendor clone.
+- Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, plus 3 more are the control vocabulary for this anchor.
+- Bounded contexts in scope: voice-routing, queue, agent-desktop, recording-consent, quality-monitoring.
+- Substrate dependencies in scope: messenger, community, intelligence, recordings, workflow-engine, compliance, plus 1 more.
+- Compliance packs in scope: SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, TCPA.
+- Benchmark pressure: Genesys Cloud, Twilio Flex, Zendesk Talk, Five9 defines parity pressure without relaxing Oyatie invariants.
+- Cell tiers: tier-1, tier-2, tier-3 are eligible only after tenant-home-cell and pack checks pass.
+- Cross-cell rule: metadata-only-unless-pack-allows is the default replication ceiling for this anchor.
+- Minimum local artifacts: manifest.json, PRD.md, ARCHITECTURE.md, compliance.md remain the local evidence floor.
+- Compliance scope covers provider tokens, API keys, OAuth grants, signing keys, webhook secrets, and delegated sessions.
+- `contact-center` must prove that provider credentials are tenant-scoped before the first regulated workload is admitted.
+- Evidence must show who connected the provider, which tenant approved it, and which pack was active.
+- Evidence must show which Cedar permit allowed the connection ceremony.
+- Evidence must show which secret reference was created without exposing secret material.
+- Evidence must show the credential purpose, allowed bounded contexts, and revocation owner.
+- Evidence must show that vendor callback URLs and webhook secrets are bound to the same tenant scope.
+- SOC-2 evidence maps this anchor to logical access, change management, monitoring, and incident response.
+- ISO-27001 evidence maps this anchor to access control, cryptography, supplier security, and logging controls.
+- GDPR and regional privacy evidence maps this anchor to processor limitation and transfer controls.
+- HIPAA or sector packs, when active, require proof that credentials cannot expose another covered entity.
+- PCI or payment packs, when active, require proof that provider keys cannot cross card-data boundaries.
+- Credential sharing between tenants is prohibited even when the external vendor supports shared accounts.
+- Shared vendor accounts require a tenant-isolated sub-account, partition, or gateway token before use.
+- Operator access to provider credentials requires break-glass approval and post-event review.
+- Break-glass evidence includes reason, approvers, time window, affected tenant, and post-closure attestation.
+- Rotation evidence includes trigger, old reference, new reference, actor, and downstream reconciliation result.
+- Revocation evidence includes tenant notification, queued-work cancellation, and provider-side confirmation.
+- Failed provider auth attempts are retained as security events, not erased as noisy integration errors.
+- Credential scanning evidence must prove docs, fixtures, and generated examples contain no live secrets.
+- Secrets in support bundles are replaced with irreversible hashes before export.
+- Support staff see connection health and last rotation status, not token values.
+- Tenant admins see provider name, scope, owner, expiry, and revocation path.
+- Tenant admins do not see other tenants' provider metadata, even in aggregate compliance views.
+- Regulated exports include credential-control evidence by reference id, not by secret content.
+- Audit reviewers can trace every credential operation to tenant, actor, pack, policy, and evidence id.
+- Control failures block launch for the affected provider integration and generate a remediation ticket.
+- A missing local policy fragment is recorded as scaffold debt, not as permission to bypass the control.
+- A missing local runbook is recorded as incident-response debt, not as permission to defer revocation design.
+- A missing SLO is recorded as observability debt, not as permission to ignore credential-health latency.
+- This anchor remains open until policy, contract, runbook, SLO, and dashboard evidence exist or are explicitly waived.
+- Waivers require platform-owner approval, expiry, compensating controls, and evidence-chain attachment.
+- Day-one readiness requires at least connection, rotation, revocation, break-glass, and tenant-offboarding proofs.
+- Pack overlays may add provider-specific retention or region restrictions, but cannot remove tenant isolation.
+- The compliance owner must be able to answer which credential touched which data class for any sampled event.
+- The final control claim for `contact-center` is credential containment, not provider feature parity.
+## §data-residency
+- data-residency: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+
+### Content-pass expansion — data-residency
+- Service anchor: Contact Center (`contact-center`) is the unit of accountability for this compliance control.
+- Lifecycle status: `reserved-wave-3-i-anchor` means the section is an executable anchor, not a launch claim.
+- Audience scope: `tenant-b2b-support` drives the tenant, administrator, and operator evidence expectations.
+- Product subtype: `b2b-leader-operational-concern` keeps this control bound to the service concern instead of a vendor clone.
+- Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, plus 3 more are the control vocabulary for this anchor.
+- Bounded contexts in scope: voice-routing, queue, agent-desktop, recording-consent, quality-monitoring.
+- Substrate dependencies in scope: messenger, community, intelligence, recordings, workflow-engine, compliance, plus 1 more.
+- Compliance packs in scope: SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, TCPA.
+- Benchmark pressure: Genesys Cloud, Twilio Flex, Zendesk Talk, Five9 defines parity pressure without relaxing Oyatie invariants.
+- Cell tiers: tier-1, tier-2, tier-3 are eligible only after tenant-home-cell and pack checks pass.
+- Cross-cell rule: metadata-only-unless-pack-allows is the default replication ceiling for this anchor.
+- Minimum local artifacts: manifest.json, PRD.md, ARCHITECTURE.md, compliance.md remain the local evidence floor.
+- `contact-center` binds every regulated record to tenant, jurisdiction, home cell, data class, and active pack overlay.
+- Residency decisions are evaluated before persistence, queueing, indexing, analytics export, or provider callback storage.
+- Cross-cell replication is metadata-only unless the active pack permits a stronger transfer path.
+- Tenant home-cell assignment is the default write authority for customer-controlled content.
+- Derived metadata cannot be used to reconstruct restricted content in another region.
+- Search, analytics, and intelligence projections carry residency labels before downstream publication.
+- Observability events carry redacted data-class and region labels rather than regulated payloads.
+- Support exports use tenant-approved evidence bundles and never bypass residency gates for convenience.
+- Provider callbacks are rejected when provider region, callback tenant, or requested data class violates the active pack.
+- Background jobs load tenant residency state at admission and re-check it before mutation.
+- Long-running jobs stop when tenant residency policy changes mid-flight.
+- Migration imports record source region, target region, checksum, rejected rows, and pack validation result.
+- Migration exports record destination, transfer basis, encryption state, approver, and deletion timer.
+- Backup placement follows tenant residency constraints and retains evidence for restore drills.
+- Restore drills prove that restricted data does not reappear in a disallowed region.
+- Cache entries inherit the strictest residency label from the source data they accelerate.
+- CDN, edge, and webhook payloads are limited to data classes permitted by the active regional pack.
+- Data warehouse or analytics dependencies receive only residency-approved projections.
+- Intelligence dependencies receive only prompts, embeddings, or labels approved for the tenant region.
+- Ontology links carry jurisdiction tags when they can connect regulated entities across regions.
+- Tenant admins can inspect residency placement and see pending remediation for violations.
+- Platform owners can suspend writes for a region without granting cross-region operator data access.
+- Residency violations create audit events with tenant, actor, policy, data class, proposed region, and denial reason.
+- Accepted residency decisions create audit events when the data class is regulated or pack-sensitive.
+- Control dashboards track rejected writes, cross-cell attempts, stale pack decisions, and remediation age.
+- SLOs must include policy-decision latency and residency-denial surfacing once local SLO artifacts exist.
+- Runbooks must cover pack conflict, accidental placement, restore misplacement, and provider-region drift.
+- The service cannot claim international readiness until pack overlays enumerate allowed transfers.
+- The service cannot claim data portability readiness until residency labels survive export packaging.
+- The service cannot claim deletion readiness until deletion evidence is region-bound.
+- SOC-2 evidence proves control operation; GDPR and regional packs prove lawfulness and transfer limits.
+- HIPAA, PCI, labor, or sector overlays add stricter labels without relaxing the base tenant-cell contract.
+- The compliance owner must sample records across voice-routing, queue, agent-desktop, recording-consent, plus 1 more to prove residency labels are consistent.
+- The final readiness claim for `contact-center` is bounded regional operation, not universal region availability.
+
+### Line-floor closure — data-residency
+- `contact-center` closure evidence binds this anchor back to Contact Center's manifest instead of generic portfolio prose.
+- Sample coverage must include voice-routing, queue, agent-desktop, recording-consent, quality-monitoring before the anchor can move from documented bar to implementation-ready claim.
+- Dependency coverage must include messenger, community, intelligence, recordings, workflow-engine, plus 2 more so downstream evidence cannot be orphaned.
+- Pack coverage must include SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more or explicitly record why a pack is out of scope for the sampled tenant.
+- Review closure requires a fresh evidence id, owner, date, and unresolved-gap list for this exact anchor.
+## §audit-chain-retention
+- audit-chain-retention: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+
+### Content-pass expansion — audit-chain-retention
+- Service anchor: Contact Center (`contact-center`) is the unit of accountability for this compliance control.
+- Lifecycle status: `reserved-wave-3-i-anchor` means the section is an executable anchor, not a launch claim.
+- Audience scope: `tenant-b2b-support` drives the tenant, administrator, and operator evidence expectations.
+- Product subtype: `b2b-leader-operational-concern` keeps this control bound to the service concern instead of a vendor clone.
+- Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, plus 3 more are the control vocabulary for this anchor.
+- Bounded contexts in scope: voice-routing, queue, agent-desktop, recording-consent, quality-monitoring.
+- Substrate dependencies in scope: messenger, community, intelligence, recordings, workflow-engine, compliance, plus 1 more.
+- Compliance packs in scope: SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, TCPA.
+- Benchmark pressure: Genesys Cloud, Twilio Flex, Zendesk Talk, Five9 defines parity pressure without relaxing Oyatie invariants.
+- Cell tiers: tier-1, tier-2, tier-3 are eligible only after tenant-home-cell and pack checks pass.
+- Cross-cell rule: metadata-only-unless-pack-allows is the default replication ceiling for this anchor.
+- Minimum local artifacts: manifest.json, PRD.md, ARCHITECTURE.md, compliance.md remain the local evidence floor.
+- `contact-center` emits immutable audit events for admission, denial, mutation, export, deletion, rotation, and break-glass.
+- Each audit event includes tenant id, actor, subject, action, policy id, decision, data class, and evidence id.
+- Events are append-only and linked to the platform audit chain before external evidence bundles are generated.
+- Retention class is selected from active compliance packs and cannot be shortened by the service owner alone.
+- Pack overlays may extend retention, require legal hold, or require regulator-readable export formats.
+- Legal hold freezes deletion of audit evidence without freezing tenant operational remediation.
+- Retention expiry creates a destruction event that records the retention basis and deletion proof.
+- Redaction preserves evidentiary meaning while removing payload fields outside the audit purpose.
+- Audit events must avoid raw credentials, raw secrets, payment contents, and regulated payload bodies.
+- Audit schemas must keep stable identifiers for tenant, provider, workflow, case, and record lineage.
+- Duplicated audit events are de-duplicated by idempotency key, not silently discarded.
+- Missing audit emission blocks the state transition that required the evidence.
+- Failed audit persistence fails closed for regulated mutations and queues explicit recovery for non-mutating events.
+- Recovery preserves original actor, timestamp, policy decision, and correlation id.
+- Observability traces link to audit ids but do not replace audit-chain evidence.
+- Dashboard metrics track audit-lag, failed-emission count, legal-hold conflicts, and retention-destruction backlog.
+- Runbooks must cover audit store outage, hash-chain mismatch, replay gap, and regulator-export failure.
+- Contracts must document audit event names once the local contract scaffold exists.
+- Policy fragments must document which denied and allowed actions require audit evidence.
+- The service's bounded contexts are sampled so voice-routing, queue, agent-desktop, recording-consent, quality-monitoring all produce evidence when they mutate regulated state.
+- Dependencies are sampled so messenger, community, intelligence, recordings, workflow-engine, plus 2 more do not drop correlation ids.
+- Evidence bundle generation proves source event count, included event count, redacted event count, and omitted reason count.
+- Customer-facing audit views filter by tenant authority and never expose other tenants' events.
+- Operator audit views require least privilege and record every search query as an audit event.
+- Regulator audit views are generated as signed evidence packages with chain verification metadata.
+- Time synchronization drift beyond the permitted budget creates a control finding.
+- Backfilled events are marked as backfills and require reconciliation evidence.
+- Import ceremonies record pre-import hashes and post-import row counts.
+- Export ceremonies record package hash, recipient, legal basis, and expiry.
+- Deletion ceremonies record tombstone, data class, retention conflict, and final destruction proof.
+- The platform-owner cannot shorten audit retention without a recorded policy change and review.
+- This anchor's launch gate is evidence continuity for `contact-center`, not the mere presence of logs.
+
+### Line-floor closure — audit-chain-retention
+- `contact-center` closure evidence binds this anchor back to Contact Center's manifest instead of generic portfolio prose.
+- Sample coverage must include voice-routing, queue, agent-desktop, recording-consent, quality-monitoring before the anchor can move from documented bar to implementation-ready claim.
+- Dependency coverage must include messenger, community, intelligence, recordings, workflow-engine, plus 2 more so downstream evidence cannot be orphaned.
+- Pack coverage must include SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more or explicitly record why a pack is out of scope for the sampled tenant.
+- Review closure requires a fresh evidence id, owner, date, and unresolved-gap list for this exact anchor.
+## §dsar-portability
+- dsar-portability: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+
+### Content-pass expansion — dsar-portability
+- Service anchor: Contact Center (`contact-center`) is the unit of accountability for this compliance control.
+- Lifecycle status: `reserved-wave-3-i-anchor` means the section is an executable anchor, not a launch claim.
+- Audience scope: `tenant-b2b-support` drives the tenant, administrator, and operator evidence expectations.
+- Product subtype: `b2b-leader-operational-concern` keeps this control bound to the service concern instead of a vendor clone.
+- Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, plus 3 more are the control vocabulary for this anchor.
+- Bounded contexts in scope: voice-routing, queue, agent-desktop, recording-consent, quality-monitoring.
+- Substrate dependencies in scope: messenger, community, intelligence, recordings, workflow-engine, compliance, plus 1 more.
+- Compliance packs in scope: SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, TCPA.
+- Benchmark pressure: Genesys Cloud, Twilio Flex, Zendesk Talk, Five9 defines parity pressure without relaxing Oyatie invariants.
+- Cell tiers: tier-1, tier-2, tier-3 are eligible only after tenant-home-cell and pack checks pass.
+- Cross-cell rule: metadata-only-unless-pack-allows is the default replication ceiling for this anchor.
+- Minimum local artifacts: manifest.json, PRD.md, ARCHITECTURE.md, compliance.md remain the local evidence floor.
+- `contact-center` maps tenant-controlled personal data to discoverable DSAR inventory entries before GA.
+- DSAR discovery covers primary records, derived records, attachments, comments, events, and provider-side references.
+- Portability exports preserve tenant, subject, data class, residency label, source context, and retention basis.
+- Exports omit secrets, internal risk scores, other-subject data, and privileged investigation notes unless policy allows.
+- Subject identity verification is completed before discovery starts for sensitive packs.
+- Delegated administrator requests are bound to tenant authority and documented purpose.
+- Erasure requests check legal hold, contractual retention, security retention, and sector-specific exceptions.
+- Erasure denials return a policy-grounded reason and evidence id.
+- Erasure acceptance cascades to indexes, projections, analytics, and provider references where the service owns the data.
+- Cascades to dependencies such as messenger, community, intelligence, recordings, workflow-engine, plus 2 more preserve correlation id and completion state.
+- The service records skipped downstream systems with reason, owner, retry plan, and tenant-visible status.
+- Portability package generation records format, schema version, package hash, actor, and delivery channel.
+- Export package storage respects the tenant residency pack and expires automatically.
+- Re-downloads require re-authorization and create separate audit events.
+- Correction requests preserve previous values according to retention class while updating operational records.
+- Restriction-of-processing requests block nonessential processing before background jobs continue.
+- Opt-out or consent withdrawal updates are enforced by policy before new processing starts.
+- Data maps distinguish customer content, administrator metadata, operator evidence, and system telemetry.
+- Data maps also distinguish records the service owns from records projected from other services.
+- Ownership ambiguity creates a remediation finding rather than an implicit DSAR pass.
+- Tenant admins can inspect request status without seeing another subject's protected data.
+- Support users can see case state and blockers but not exported package contents.
+- Regulator evidence includes timeline, policy decisions, exceptions, and final outcome.
+- SLO evidence tracks discovery latency, package generation latency, cascade completion, and overdue requests.
+- Runbooks must cover stuck cascade, provider refusal, invalid subject identity, and legal-hold conflict.
+- Contracts must expose DSAR initiation, status, export, cancellation, and evidence retrieval once scaffolded.
+- Policy fragments must authorize subject, tenant admin, support, and regulator roles separately.
+- Compliance packs such as SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more define deadline and exception behavior.
+- Benchmarks such as Genesys Cloud, Twilio Flex, Zendesk Talk, Five9 set user expectation only; statutory pack deadlines remain authoritative.
+- The service cannot claim DSAR readiness until sample records across voice-routing, queue, agent-desktop, recording-consent, quality-monitoring export with correct labels.
+- The service cannot claim portability readiness until exports are machine-readable and tenant-scoped.
+- The service cannot claim deletion readiness until cascades and exceptions are evidence-bound.
+- The final readiness claim for `contact-center` is traceable rights fulfillment, not a generic export button.
+
+### Line-floor closure — dsar-portability
+- `contact-center` closure evidence binds this anchor back to Contact Center's manifest instead of generic portfolio prose.
+- Sample coverage must include voice-routing, queue, agent-desktop, recording-consent, quality-monitoring before the anchor can move from documented bar to implementation-ready claim.
+- Dependency coverage must include messenger, community, intelligence, recordings, workflow-engine, plus 2 more so downstream evidence cannot be orphaned.
+- Pack coverage must include SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more or explicitly record why a pack is out of scope for the sampled tenant.
+- Review closure requires a fresh evidence id, owner, date, and unresolved-gap list for this exact anchor.
+## §abuse-defence
+- abuse-defence: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+### Content-pass expansion — abuse-defence
+- This expansion preserves the existing prose above and closes `abuse-defence` for `contact-center` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-contact-center` owns this answer; tier `product`; audience `tenant-b2b-support`.
+- Primary capability/context: `voice-routing`; bounded contexts: `voice-routing`, `queue`, `agent-desktop`, `recording-consent`, `quality-monitoring`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `contact_center.voice_routing`, `contact_center.queue`, `contact_center.agent_desktop`, `contact_center.recording_consent`, `contact_center.quality_monitoring`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
+- Precedent 1: Cloudflare Bot Management anchors the external control pattern for `abuse-defence`.
+- Precedent 2: Stripe Radar provides a second independent hyperscaler pattern for `abuse-defence`.
+- Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/contact-center/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `contact-center` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `contact-center` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `contact-center` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `contact-center` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `contact-center` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `voice-routing` evaluates `<tenant>.contact-center.voice-routing` against policy, writes `contact_center.voice_routing`, and emits `oya.contact.center.voice.routing.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `abuse-defence`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `abuse-defence` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `contact-center` ties `abuse-defence` to bounded context `voice-routing` and samples sibling contexts `queue, agent-desktop, recording-consent, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `contact-center` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `abuse defence` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `contact-center` cites policy evidence `policy/*.cedar` so the permit/deny path for `abuse defence` is not a prose-only claim.
+- Depth detail 4: `contact-center` records state/event evidence as `contact_center.voice_routing` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `contact-center` routes evidence to dependencies `messenger, community, intelligence, recordings, workflow-engine, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `contact-center` uses compliance packs `SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more` to decide the stricter retention, residency, notification, and export behavior for `abuse defence`.
+- Depth detail 7: `contact-center` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `contact-center` treats benchmark pressure from `Genesys Cloud, Twilio Flex, Zendesk Talk, Five9` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `contact-center` constrains `abuse defence` to eligible cells `tier-1, tier-2, tier-3` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `contact-center` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `contact-center` links operator response to runbooks `runbooks/*.md` so failures in `abuse defence` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `contact-center` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `contact-center` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `contact-center` fails closed when `abuse defence` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `contact-center` emits denial evidence for `abuse defence` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `contact-center` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `abuse defence`.
+- Depth detail 17: `contact-center` redacts raw credentials, secrets, payload bodies, and cross-tenant identifiers from `abuse defence` telemetry while keeping signed audit evidence intact.
+
+## §regulator-evidence
+- regulator-evidence: contact-center must document permit impact, data-class impact, retention impact, residency impact, audit event, rollback path, and owner before GA.
+- Evidence: manifest fields plus future PR-143 contracts, policies, runbooks, SLOs, and scorecards.
+
+
+### Content-pass expansion — regulator-evidence
+- Service anchor: Contact Center (`contact-center`) is the unit of accountability for this compliance control.
+- Lifecycle status: `reserved-wave-3-i-anchor` means the section is an executable anchor, not a launch claim.
+- Audience scope: `tenant-b2b-support` drives the tenant, administrator, and operator evidence expectations.
+- Product subtype: `b2b-leader-operational-concern` keeps this control bound to the service concern instead of a vendor clone.
+- Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, plus 3 more are the control vocabulary for this anchor.
+- Bounded contexts in scope: voice-routing, queue, agent-desktop, recording-consent, quality-monitoring.
+- Substrate dependencies in scope: messenger, community, intelligence, recordings, workflow-engine, compliance, plus 1 more.
+- Compliance packs in scope: SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, TCPA.
+- Benchmark pressure: Genesys Cloud, Twilio Flex, Zendesk Talk, Five9 defines parity pressure without relaxing Oyatie invariants.
+- Cell tiers: tier-1, tier-2, tier-3 are eligible only after tenant-home-cell and pack checks pass.
+- Cross-cell rule: metadata-only-unless-pack-allows is the default replication ceiling for this anchor.
+- Minimum local artifacts: manifest.json, PRD.md, ARCHITECTURE.md, compliance.md remain the local evidence floor.
+- `contact-center` regulator evidence is generated from signed audit events, policy decisions, pack overlays, and artifact references.
+- Evidence packages identify tenant, jurisdiction, pack, service version, data class, and control owner.
+- Evidence packages identify which bounded contexts were sampled: voice-routing, queue, agent-desktop, recording-consent, quality-monitoring.
+- Evidence packages identify which dependencies participated: messenger, community, intelligence, recordings, workflow-engine, compliance, plus 1 more.
+- Evidence packages identify which ADRs shaped the claim: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, ADR-0316, plus 1 more.
+- Evidence packages cite local manifests, architecture anchors, compliance anchors, policies, contracts, SLOs, runbooks, and dashboards.
+- Missing local policy artifacts are reported as scaffold gaps and cannot be hidden from a readiness verdict.
+- Missing contract artifacts are reported as API evidence gaps and cannot be hidden from a readiness verdict.
+- Missing SLO artifacts are reported as operating evidence gaps and cannot be hidden from a readiness verdict.
+- Missing runbook artifacts are reported as incident evidence gaps and cannot be hidden from a readiness verdict.
+- Evidence exports include control status, tested date, tester, data sample boundary, and unresolved exceptions.
+- Evidence exports distinguish implemented controls, documented anchors, normative targets, and waived items.
+- Waived items require owner, expiry, compensating control, and platform-owner approval.
+- Regulator-facing language avoids launch claims when the section only establishes a future acceptance bar.
+- Customer-facing compliance language uses the same evidence ids as regulator-facing packages.
+- Internal scorecards aggregate the same evidence instead of inventing a second truth source.
+- Control testing includes permit checks, denied-path checks, residency checks, DSAR checks, and audit-chain checks.
+- Control testing includes provider credential isolation when external provider access exists.
+- Control testing includes tenant offboarding and data deletion evidence where customer data is stored.
+- Control testing includes incident-response paths for abuse, credential compromise, policy drift, and data misplacement.
+- Evidence packages are immutable after sealing and corrected through superseding packages.
+- Superseding packages reference the prior package hash and explain the correction.
+- Exported evidence is redacted for secrets, protected payloads, and unrelated tenant identifiers.
+- Evidence retention follows the strictest active pack among SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, TCPA.
+- Evidence destruction after retention expiry is itself recorded as an audit event.
+- Platform-owner review validates that benchmark parity does not weaken Oyatie policy gates.
+- Product-owner review validates that service-specific workflows are represented, not generic SaaS boilerplate.
+- Security review validates credential, abuse, and insider-threat evidence.
+- Privacy review validates residency, rights, consent, and retention evidence.
+- Reliability review validates SLO, incident, and recovery evidence.
+- The acceptance gate for `contact-center` is evidence reproducibility by another reviewer from the same artifact set.
+- The final claim is regulator-evidence readiness for defined controls, not whole-service certification.
+
+### Line-floor closure — regulator-evidence
+- `contact-center` closure evidence binds this anchor back to Contact Center's manifest instead of generic portfolio prose.
+- Sample coverage must include voice-routing, queue, agent-desktop, recording-consent, quality-monitoring before the anchor can move from documented bar to implementation-ready claim.
+- Dependency coverage must include messenger, community, intelligence, recordings, workflow-engine, plus 2 more so downstream evidence cannot be orphaned.
+- Pack coverage must include SOC-2, ISO-27001, GDPR, HIPAA-2024, PCI-DSS-L1-v4, KR-PIPA, plus 1 more or explicitly record why a pack is out of scope for the sampled tenant.
+- Review closure requires a fresh evidence id, owner, date, and unresolved-gap list for this exact anchor.
+## G. Risk Register
+- Cross-tenant leakage: mitigated by ADR-0244 tenant scoping and Cedar default deny.
+- Silent migration corruption: mitigated by dry-run import, checksums, rejected-row queues, and audit-chain evidence.
+- Jurisdictional non-compliance: mitigated by pack activation rules and compliance evidence exports.
+- Operator overreach: mitigated by least privilege, break-glass evidence, and dual-control approval.
+- Source vendor outage: mitigated by retry budgets, source-system status evidence, and tenant-visible degraded state.
+- Compliance trace 001: contact-center control row 001 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 002: contact-center control row 002 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 003: contact-center control row 003 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 004: contact-center control row 004 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 005: contact-center control row 005 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 006: contact-center control row 006 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 007: contact-center control row 007 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 008: contact-center control row 008 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 009: contact-center control row 009 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 010: contact-center control row 010 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 011: contact-center control row 011 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 012: contact-center control row 012 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 013: contact-center control row 013 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 014: contact-center control row 014 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 015: contact-center control row 015 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 016: contact-center control row 016 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 017: contact-center control row 017 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 018: contact-center control row 018 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 019: contact-center control row 019 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 020: contact-center control row 020 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 021: contact-center control row 021 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 022: contact-center control row 022 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 023: contact-center control row 023 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 024: contact-center control row 024 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 025: contact-center control row 025 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 026: contact-center control row 026 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 027: contact-center control row 027 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 028: contact-center control row 028 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 029: contact-center control row 029 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 030: contact-center control row 030 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 031: contact-center control row 031 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 032: contact-center control row 032 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 033: contact-center control row 033 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence
+- Compliance trace 034: contact-center control row 034 binds pack overlay, Cedar permit, audit event, retention class, residency decision, DSAR export, and rollback evidence

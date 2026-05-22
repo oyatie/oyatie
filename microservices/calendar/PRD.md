@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M02-product-tier-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/calendar.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-calendar
@@ -92,6 +92,37 @@ Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retent
 
 - Tenant data pinned to the tenant's region per ADR-0117 + ADR-0140; cross-region replication forbidden by default; SCC-gated when activated.
 
+### DR posture (per ADR-0343)
+
+- Manifest target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300`, `multi_region_active_active=true`, `replication_shape=active-active-multi-az-cross-region-warm`. The older 15-minute/60-second objective remains a stretch SLO, not the ADR-0343 manifest contract.
+- Applicable pack floors from `specs/compliance-pack-floors.json`: HIPAA-2024 `3600s/300s` with multi-region required; KR-PIPA-2023 default `14400s/900s`; SOC2-T2 `14400s/900s`; ISO27001-2022 `14400s/3600s`; KR-CSAP-v3.1 `3600s/900s` with multi-region required. The effective maximum pack floor is ISO27001 `14400s/3600s`; calendar keeps the stricter scheduling target.
+- `failover_runbook=runbooks/dr-failover.md`, resolved at `microservices/calendar/runbooks/dr-failover.md`; backup substrates are `postgres_wal_g`, `valkey`, `object_storage_versioned`, and `audit_chain_merkle_seal`.
+- `multi_region_active_active=true` only inside activated pack-pinned region pairs; default data-residency still forbids unconstrained cross-region replication.
+- Why: calendar failover is tenant-visible as missed meetings, healthcare appointments, interviews, and room conflicts; a restored but stale schedule would create operational and compliance harm.
+
+### Capacity model (per ADR-0340)
+
+- Per-tenant baseline: `0.08 vCPU`, `192 MiB RAM`, `3 GiB storage`, `connections_per_tenant={valkey:3, postgres:3, outbound_http:4}`.
+- Scaling dimension: `per_request` for availability, free/busy, recurrence, room booking, RSVP fanout, CalDAV/ICS sync, and tzdb refresh.
+- Cell placement class: `Tier-3` with manifest `pod_runtime_tier=2`; calendar scales with schedule queries and event mutations rather than tenant seat count alone.
+- Autoscaling boundaries: min `3` api/availability replicas per tenant-cell, max `48` before event-store shard split; recurrence and import workers are separately capped to prevent large .ics imports from starving free/busy checks.
+- Why: calendar workloads combine latency-sensitive free/busy queries with bursty imports and invitation storms; the model preserves live scheduling while bounding batch work.
+
+### Sustainability + cost attribution (per ADR-0344)
+
+- Every event write, free/busy query, recurrence expansion, room-booking decision, invitation, CalDAV call, and .ics import/export audit row emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with tenant, product, capability, provider, cell, and compliance-pack dimensions.
+- Provider routing is carbon-aware for large .ics import/export jobs, tzdb refresh, recurrence materialization backfill, and room-utilization analytics; it is not carbon-routed for live free/busy, invitation acceptance, HIPAA emergency scheduling, or legal-hold operations.
+- Tenant cost transparency surface: calendar admin shows scheduling volume, free/busy query load, room/resource utilization cost, import/export job cost, and CalDAV bridge cost; finops-portal handles tenant and compliance-pack rollups.
+- Why: scheduling appears lightweight but can produce heavy recurrence and availability compute, so CSRD, SB-253, and SEC climate-disclosure reporting needs the cost/emission trail tied to calendar capabilities.
+
+### API versioning posture (per ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet using `Oyatie-Version` header, `/v/YYYY-MM-DD/` REST/CalDAV extension prefix, and proto3 field `string oyatie_version = 8001` for public events/contracts.
+- SDK semver model: calendar SDKs publish `major.minor.patch`; RFC 5545/4791 compatibility is preserved while oyatie-specific behavior is governed by date carrier.
+- Support window: last `N=3` public versions for at least `180` days after deprecation.
+- Per-tenant pinning: yes for regulated tenants, CalDAV bridge migrations, scheduling partners, and embedded resource-booking clients.
+- Internal-mesh exemption: yes; ADR-0145 direct gRPC over HTTP/3 remains tag-compatible and exempt from public carrier routing.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates). Six primary BCs.
@@ -100,7 +131,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `event-store` | `oya-calendar-event-store-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Event persistence; attendee state; legal hold; tenant-DEK encryption | `CalendarEvent`, `Attendee`, `RetentionPolicyRef`, `LegalHoldRef` |
 | `recurrence-engine` | `oya-calendar-recurrence-engine-{kernel,domain,usecase,api,adapter,app}` | RFC 5545 RRULE / EXDATE / RDATE expansion; bounded materialisation | `RecurrenceRule`, `OccurrenceWindow`, `ExpandedOccurrence` |
-| `availability-resolver` | `oya-calendar-availability-resolver-{kernel,domain,usecase,api,adapter,adapter-redis,rest,worker,app}` | Free/busy projection; cross-tenant resolver; cache | `FreeBusyProjection`, `AvailabilityWindow`, `CrossTenantInviteGrant` |
+| `availability-resolver` | `oya-calendar-availability-resolver-{kernel,domain,usecase,api,adapter,adapter-valkey,rest,worker,app}` | Free/busy projection; cross-tenant resolver; cache | `FreeBusyProjection`, `AvailabilityWindow`, `CrossTenantInviteGrant` |
 | `room-booking` | `oya-calendar-room-booking-{kernel,domain,usecase,api,adapter,rest,app}` | Resource graph; conflict resolution; recurring booking | `Resource`, `Booking`, `ConflictDecision` |
 | `invitation-flow` | `oya-calendar-invitation-flow-{kernel,domain,usecase,api,adapter,worker,app}` | RFC 5545 ITIP / RFC 5546 reply flow; external delivery via mail µservice | `Invitation`, `RsvpState`, `CounterProposal` |
 | `ics-import-export` | `oya-calendar-ics-import-export-{kernel,domain,usecase,api,adapter,adapter-icalendar,adapter-caldav,rest,app}` | RFC 5545 .ics parse/emit; RFC 4791 CalDAV adapter | `IcsDocument`, `CalDavCollection`, `ImportJob`, `ExportJob` |
@@ -137,7 +168,7 @@ JUSTIFICATION:
 
 Layer mapping table per BC (13-layer enum from ADR-0105; `usecase` per ADR-0106):
 
-| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-redis | adapter-icalendar | adapter-caldav | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-valkey | adapter-icalendar | adapter-caldav | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `event-store` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | ✓ | ✓ | ✓ | ✓ |
 | `recurrence-engine` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | ✓ |
@@ -154,7 +185,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 |---|---|---|---|
 | `EventRepository` | `oya-calendar-event-store-kernel` | `-adapter-postgres` | `PERSONAL_EVENT_CONTENT` + `PROFESSIONAL_EVENT_CONTENT` (per-context envelope encryption) |
 | `RecurrenceExpander` | `oya-calendar-recurrence-engine-kernel` | `-adapter` (rrule-rs based) | `INTERNAL_ONLY` |
-| `FreeBusyProjector` | `oya-calendar-availability-resolver-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` (free/busy projection only) |
+| `FreeBusyProjector` | `oya-calendar-availability-resolver-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` (free/busy projection only) |
 | `CrossTenantInviteResolver` | `oya-calendar-availability-resolver-kernel` | `-adapter` | `SENSITIVE_PIPA_ART23` (tenant identifier mapping) |
 | `ResourceRepository` | `oya-calendar-room-booking-kernel` | `-adapter-postgres` (subsumed under event-store -adapter-postgres crate) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `InvitationDispatcher` | `oya-calendar-invitation-flow-kernel` | `-adapter` (delegates to `mail` µservice via Workflow) | `PII_IDENTIFYING` (attendee email) |
@@ -324,3 +355,23 @@ Sharding: events partitioned by `(tenant_id, starts_at_year_month)`; resources p
 | ADR-0140 | Cedar policy enforcement | policy substrate |
 | Bominal ADR-0208 | Connect dual-context unified-channel hub | inherited 1:1 |
 | Bominal ADR-0215 | Connect retention + legal-hold dual-context | inherited 1:1 |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `calendar` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `calendar` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 2 module pin(s) across 1 context(s).
+- Scaling input: `per_request` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

@@ -78,10 +78,6 @@ pub enum GlossaryVocabularyError {
 }
 
 const FORBIDDEN_TOKENS: &[&str] = &[
-    "M0",
-    "M1",
-    "M2",
-    "M3",
     "MVP",
     "milestone-zero",
     "milestone-one",
@@ -145,9 +141,10 @@ where
     for document in documents {
         documents_checked += 1;
         let prose = markdown_prose(&document.contents);
-        if !document.forensic_allowed
-            && let Some(token) = first_forbidden_token(&prose)
-        {
+        if document.forensic_allowed {
+            continue;
+        }
+        if let Some(token) = first_forbidden_token(&prose) {
             return Err(GlossaryVocabularyError::ForbiddenToken {
                 path: document.path,
                 token,
@@ -321,9 +318,6 @@ where
 
 fn first_forbidden_token(prose: &str) -> Option<String> {
     for line in prose.lines() {
-        if contains_lowercase_implementation_prefix(line) {
-            return Some("oyatie-*".into());
-        }
         for token in FORBIDDEN_TOKENS {
             if contains_forbidden_word(line, token) {
                 return Some((*token).into());
@@ -331,26 +325,6 @@ fn first_forbidden_token(prose: &str) -> Option<String> {
         }
     }
     None
-}
-
-fn contains_lowercase_implementation_prefix(line: &str) -> bool {
-    let lower = line.to_ascii_lowercase();
-    let mut search_start = 0;
-    while let Some(offset) = lower[search_start..].find("oyatie-") {
-        let start = search_start + offset;
-        let end = start + "oyatie-".len();
-        let previous = line[..start].chars().next_back();
-        let next = line[end..].chars().next();
-        let original = &line[start..end - 1];
-        if original == "oyatie"
-            && !is_word_or_dash(previous)
-            && next.is_some_and(|character| character.is_ascii_alphanumeric())
-        {
-            return true;
-        }
-        search_start = end;
-    }
-    false
 }
 
 fn contains_forbidden_word(line: &str, token: &str) -> bool {
@@ -377,8 +351,10 @@ fn contains_forbidden_word(line: &str, token: &str) -> bool {
 }
 
 fn casing_warning_variants(prose: &str) -> Vec<String> {
+    // Preserve hyphens so brand-qualified compounds (e.g., "oyatie-owned") stay
+    // as a single token and do not duplicate brand-residue gate warnings.
     let words = prose
-        .split(|character: char| !character.is_ascii_alphanumeric())
+        .split(|character: char| !character.is_ascii_alphanumeric() && character != '-')
         .filter(|word| !word.is_empty())
         .collect::<Vec<_>>();
     let mut variants = Vec::new();
@@ -608,6 +584,48 @@ mod tests {
                 [doc(
                     "docs/AGENTS.md",
                     "Canonical doctrine: [doctrine](../specs/oyatie-doctrine.json).",
+                    false,
+                )],
+                ["ADR"],
+            ),
+            Ok(GlossaryVocabularyReport {
+                documents_checked: 1,
+                casing_warnings: 0,
+                uncited_acronym_warnings: 0,
+                warnings: vec![],
+                warning_sources: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn allows_brand_qualified_prose_without_duplicating_brand_residue_gate() {
+        assert_eq!(
+            validate_glossary_vocabulary_hygiene(
+                [doc(
+                    "docs/decisions/ADR.md",
+                    "The ADR discusses an oyatie-owned deployment pattern.",
+                    false,
+                )],
+                ["ADR"],
+            ),
+            Ok(GlossaryVocabularyReport {
+                documents_checked: 1,
+                casing_warnings: 0,
+                uncited_acronym_warnings: 0,
+                warnings: vec![],
+                warning_sources: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn allows_bare_m_series_tokens_that_are_not_milestone_terms() {
+        assert_eq!(
+            validate_glossary_vocabulary_hygiene(
+                [doc(
+                    "docs/user-stories/persona.md",
+                    "The persona uses a 14-inch M3 MacBook Pro.",
                     false,
                 )],
                 ["ADR"],

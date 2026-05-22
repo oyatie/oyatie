@@ -1,0 +1,39 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: emr-chart-open-latency
+  displayName: EMR chart-open latency
+  microservice: emr
+  bc: patient
+spec:
+  description: |
+    Time from chart-open request received at /fhir/Patient/{id} (with composed-summary
+    materialization) to response body fully transmitted. Captures the clinician's
+    rounding-tempo experience per PRD §B persona 1 (Sarah, hospitalist).
+  service: emr
+  indicator:
+    metadata:
+      name: chart-open-latency-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: histogram_quantile(0.99, sum by(le, tenant, cell) (rate(emr_chart_open_duration_seconds_bucket[1m]))) <= 0.8
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum by(tenant, cell) (rate(emr_chart_open_duration_seconds_count[1m]))
+  objectives:
+    - displayName: 99.9% of chart-opens within 800ms p99
+      target: 0.999
+      timeWindow:
+        - duration: 28d
+          isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - emr-chart-open-burn-rate-fast
+    - emr-chart-open-burn-rate-slow

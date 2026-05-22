@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-security
@@ -29,10 +29,10 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 
 ## Tenant Value
 
-- **Tenant Outcome 1 — Zero raw-secret exposure.** Tenants' OAuth client secrets, signing keys, encryption keys, BYOK material live in tenant-namespaced OpenBao paths; no µservice ever holds a raw value at rest in code, config, or telemetry.
+- **Tenant Outcome 1 — Zero raw-secret exposure.** Tenants' OAuth client secrets, signing keys, encryption keys, encryption-BYOK material live in tenant-namespaced OpenBao paths; no µservice ever holds a raw value at rest in code, config, or telemetry.
 - **Tenant Outcome 2 — Auditable secret access.** Every secret read, rotation, revocation, and access attempt is sealed in the `audit-chain` µservice within ≤1s; tenants receive `secret_access_audit_export` per pack legal cadence.
 - **Tenant Outcome 3 — Per-pack residency for secrets.** Each pack runs its own OpenBao instance + HSM partition; cross-pack secret replication is forbidden, satisfying KR PIPA Art. 28, GDPR Art. 44, HIPAA §164.312(a)(2)(iv), DPDPA §10.
-- **Tenant Outcome 4 — BYOK + HSM signing.** Tenants in regulated packs can bring their own KEK or pin DEKs to a hardware HSM partition (OCI Cloud-HSM or Thales Luna); `cloud-secrets` orchestrates rotation, attestation, and emergency-revoke.
+- **Tenant Outcome 4 — encryption-BYOK + HSM signing.** Tenants in regulated packs can bring their own KEK or pin DEKs to a hardware HSM partition (OCI Cloud-HSM or Thales Luna); `cloud-secrets` orchestrates rotation, attestation, and emergency-revoke.
 - **Internal Outcome 5 — SecretReference uniformity.** Every internal µservice consumes secrets via the SDK; no µservice ever sees a raw secret in code paths; the LEAN-A11 `oya-check-raw-secret-emission` lane refuses any commit that emits a credential-shaped string.
 
 ## Functional Requirements
@@ -85,6 +85,37 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 - Availability target for `secret-rotation` and `audit-emission`: 99.95 % monthly.
 - RTO: ≤2 min (hot-path resolution). RPO: ≤1s (audit emission backlog acceptable; rotation schedule re-derivable from KV state).
 - Self-observability: OpenSLO manifest at `microservices/cloud-secrets/slos/{secret-resolution,rotation-completeness,audit-emission-completeness}.openslo.yaml` (authored under the `observability` µservice gate per ADR-0139).
+
+### DR posture (ADR-0343)
+
+- Target: RTO ≤120s for hot-path secret resolution and RPO ≤1s for secret access/rotation audit emission, matching manifest `dr.rto_p99_seconds=120` and `dr.rpo_p99_seconds=1`.
+- Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is the stricter cloud-secrets posture: RTO 120s, RPO 1s, multi-region required.
+- Failover runbook: `microservices/cloud-secrets/runbooks/secret-substrate-failover.md`, matching manifest `dr.failover_runbook`; operational recovery fans into `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, and `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`.
+- Multi-region active-active: yes for tenant namespace control, audit bridge backlog, and read-side SecretReference resolution; pack-pinned HSM material never leaves its owning partition.
+- WHY: tenant workloads can continue resolving secrets during regional degradation without exposing raw secret material or losing the audit trail for secret reads and rotations.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.16 vCPU, 512 MiB RAM, 4 GiB OpenBao metadata/log storage per namespace, 4 Valkey connections, 3 Postgres connections, and 6 outbound OpenBao/HSM/audit-chain slots, matching manifest `capacity_model`.
+- Scaling dimension: `per_request`, because the dominant load driver is secret resolution, rotation, revocation, and audit emission volume.
+- Cell placement class: Tier-1 substrate, matching manifest `capacity_model.cell_placement_class`; runtime placement maps to pod runtime Tier 1 because manifest `pod_runtime_tier=1`.
+- Autoscaling boundary: minimum 2 resolver replicas, 1 namespace controller, 1 rotation worker, and 1 audit bridge per pack/cell; maximum 16 resolvers, 8 rotation workers, and 8 audit bridges per tenant namespace before namespace sharding is required.
+- WHY: the model serves latency-sensitive secret reads while leaving enough worker headroom for emergency revoke and cascade rotation bursts.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every `SecretCreated`, `SecretAccessed`, `SecretRotated`, `SecretRevoked`, `NamespaceProvisioned`, and `KekAttested` audit row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, and `carbon_intensity_source`.
+- Provider-routing affected by carbon: no for realtime secret resolution, emergency revoke, HSM signing, HIPAA emergency, or PCI realtime-fraud contexts; yes for off-peak attestation export and non-urgent rotation-report jobs.
+- Per-tenant cost surface: the tenant FinOps dashboard exposes cloud-secrets cost/carbon by tenant, product, capability, provider, cell, and compliance_pack; the security admin surface links those aggregates to namespace and rotation cadence.
+- WHY: regulated tenants need transparent secret-management cost and carbon evidence, but the resolver path cannot be delayed for carbon optimization.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: SecretReference admin, namespace, revocation, and auditor-access APIs use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and `oyatie_version` proto3 field.
+- SDK semver model: SecretReference SDKs ship as major.minor.patch while preserving compatibility with date-versioned wire contracts.
+- Support window: last 3 public API versions for at least 180 days.
+- Per-tenant pinning: yes for public admin/revocation APIs and tenant SDK configuration.
+- Internal-mesh exemption: yes; direct in-mesh gRPC resolution remains exempt so existing service-to-service SecretReference flows keep ADR-0145 behavior.
 
 ### Data residency
 
@@ -328,7 +359,7 @@ Sharding:
 | 2 | Cache TTL ceiling — 60s default vs per-secret-class override | axis-cloud-secrets | resolved in IP-003 |
 | 3 | Revocation push transport — OpenBao server-sent-events vs WebSocket vs pub/sub | axis-cloud-secrets | resolved in IP-004 |
 | 4 | KEK rotation cadence — 365d default vs per-pack regulatory ceiling | council-privacy + ops-security | per-pack overlay, see policy/data-residency.md |
-| 5 | BYOK material acceptance — accept tenant-supplied KEK wrapped under our KEK-of-KEKs, or only HSM-generated? | council-architecture | ADR successor-IP |
+| 5 | encryption-BYOK material acceptance — accept tenant-supplied KEK wrapped under our KEK-of-KEKs, or only HSM-generated? | council-architecture | ADR successor-IP |
 
 ## Related ADRs
 
@@ -353,11 +384,31 @@ Per ADR-0164 (2026-05-18), the cloud-secrets µservice ships a per-pack air-gap 
 Highlights:
 - **No external KMS dependency** — all KMS code paths replaced by OpenBao Transit secrets-engine. Cloud KMS adapter ABSENT from air-gap pack image builds.
 - **HSM-backed OpenBao seal** — OpenBao auto-unseal uses in-cell HSM partition (PKCS#11). Quorum recovery (Shamir 5-of-9 default; per-pack overlay).
-- **BYOK + sovereign-tenant key custody** — sovereign tenant may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under cell KEK-of-KEKs. BYOK material is HSM-stored; never exported.
+- **key-custody-BYOK + sovereign-tenant key custody** — sovereign tenant may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under cell KEK-of-KEKs. encryption-BYOK material is HSM-stored; never exported.
 - **In-cell HSM partition** — per-pack: Thales Luna (KSA / EU-sovereign), financial-grade HSM (KR FSC), FIPS 140-3 L4 (US-Gov).
 
-CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) BYOK paths use HSM-wrapped material only.
+CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) encryption-BYOK paths use HSM-wrapped material only.
 
 ## ADR-0158 Update — Single-Region Disposition
 
 Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_region`. Secret material does not cross region. Cross-region replication is forbidden by construction; failover is intra-region only via OpenBao Raft + Patroni HA. See `multi-region.md` for the full disposition statement.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `cloud-secrets` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `cloud-secrets` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 6 module pin(s) across 4 context(s).
+- Scaling input: `per_request` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

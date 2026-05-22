@@ -17,7 +17,7 @@ Each ADR closes one Open Question (or derived gap) surfaced in `microservices/ma
 | ID | Title | Status | Date | Closes |
 |---|---|---|---|---|
 | [ADR-MAIL-0001](./ADR-MAIL-0001-personal-mail-key-recovery.md) | Personal-pillar mail E2E key recovery — user-held-only default + opt-in Shamir 3-of-5 trustee escrow | Accepted | 2026-05-17 | PRD Open Question 4 (personal-pillar key escrow opt-in for M03) |
-| [ADR-MAIL-0002](./ADR-MAIL-0002-backend-tenant-tier-policy.md) | Mail-server backend per tenant tier — Postfix+Dovecot for enterprise; Stalwart for starter/pro; both behind oya-mail-* port traits | Accepted | 2026-05-17 | PRD Open Question 4 (gap-fill — Stalwart vs Postfix+Dovecot backend selection) |
+| [ADR-MAIL-0002](./ADR-MAIL-0002-backend-tenant-class-workload-policy.md) | Mail-server backend per tenant_class and workload profile — Postfix+Dovecot for high-volume paid workloads; Stalwart for demo_trial and standard paid workloads; both behind oya-mail-* port traits | Accepted | 2026-05-17 | PRD Open Question 4 (gap-fill — Stalwart vs Postfix+Dovecot backend selection) |
 | [ADR-MAIL-0003](./ADR-MAIL-0003-sdk-launch-order.md) | SDK launch order — native JMAP for Swift, JMAP-jam wrapper for TypeScript, IMAP4rev2 as fallback after JMAP feature-parity | Accepted | 2026-05-17 | PRD Open Question 1 (JMAP vs IMAP priority) + Open Question 5 (SDK ship sequence) |
 | [ADR-MAIL-0004](./ADR-MAIL-0004-spam-classifier-eu-ai-act-scope.md) | Spam + phishing + DLP classifier EU AI Act scope — Annex III-exempt by default; tenant-opt-in conformity assessment when scoped to employment / HR mail | Accepted | 2026-05-17 | Derived gap from `capabilities/T1-assist.yaml` `T1-mail-smart-classifier.eu_ai_act_classification` |
 

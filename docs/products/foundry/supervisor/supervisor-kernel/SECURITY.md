@@ -165,7 +165,6 @@ All renderer implementations enforce:
 9. atomic rename(2)
 ```
 
-**Test:** `tests/render_atomicity.rs` (v5 grit unit 5.27)
 
 ### Backup Recovery
 

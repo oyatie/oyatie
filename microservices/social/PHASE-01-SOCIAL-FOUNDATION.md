@@ -68,7 +68,7 @@ Plus cross-cutting:
 | [`IP-004-follow-graph-bc.md`](IP-004-follow-graph-bc.md) | `follow-graph` BC end-to-end | pending | axis-social | IP-003 |
 | [`IP-005-post-composition-bc.md`](IP-005-post-composition-bc.md) | `post-composition` BC end-to-end + media transcode adapters | pending | axis-social | IP-003 |
 | [`IP-006-feed-timeline-bc.md`](IP-006-feed-timeline-bc.md) | `feed-timeline` BC with fanout-on-write + fanout-on-read + Valkey hot-cache | pending | axis-social | IP-004 + IP-005 |
-| [`IP-007-reactions-bc.md`](IP-007-reactions-bc.md) | `reactions` BC; conflict-free counter; Redis-buffered + Postgres flush | pending | axis-social | IP-005 |
+| [`IP-007-reactions-bc.md`](IP-007-reactions-bc.md) | `reactions` BC; conflict-free counter; Valkey-buffered + Postgres flush | pending | axis-social | IP-005 |
 | [`IP-008-mentions-and-hashtags-bc.md`](IP-008-mentions-and-hashtags-bc.md) | `mentions` + `hashtags` BCs together; Ontology client + topic emission | pending | axis-social | IP-005 |
 | [`IP-009-trending-topics-bc.md`](IP-009-trending-topics-bc.md) | `trending-topics` BC with windowed compute | pending | axis-social | IP-008 |
 | [`IP-010-notifications-bc.md`](IP-010-notifications-bc.md) | `notifications` BC; real-time WebSocket + digest worker; cross-µservice messenger bridge | pending | axis-social + axis-messenger | IP-006 |
@@ -106,7 +106,7 @@ Required CI lanes green on every commit + on phase-exit:
 - `oya gate validate port-location --microservice social`
 - `oya gate validate bnf-v4-1 --microservice social`
 - `oya gate validate cedar-policy-spec --microservice social`
-- `oya gate validate version-pinning-conformance` (LTS pins for Postgres/Redis/Meilisearch/ClamAV/OPSWAT/ImageMagick/ffmpeg)
+- `oya gate validate version-pinning-conformance` (LTS pins for Postgres/Valkey/Meilisearch/ClamAV/OPSWAT/ImageMagick/ffmpeg)
 - `oya gate validate compliance-evidence-recency --microservice social`
 
 ## Phase Exit Bundle

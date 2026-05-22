@@ -3,7 +3,7 @@
 // Per ADR-0140 (retired per ADR-0145) + policy/guardrail-enforcement.md.
 //
 // All Cedar fragments under microservices/foundry/policy/*.cedar MUST
-// validate against this schema; the oya-foundry-fitness-cedar-fragment-coverage
+// validate against this schema; the oya-governance-cedar-fragment-coverage
 // CI lane refuses unschema'd fragments.
 
 namespace OyaFoundryGuardrails {

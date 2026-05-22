@@ -17,7 +17,7 @@ use oya_cloud_resource_domain::FunctionRuntime;
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;
 
-const FUNCTION_ID: &str = "oya:cloud:home-region:ten_alpha:function:image-resize";
+const FUNCTION_ID: &str = "oya:cloud:region-home:ten_alpha:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 fn boundary_for(
@@ -57,18 +57,18 @@ fn function_create() -> FunctionDeploymentCreate {
     FunctionDeploymentCreate {
         resource_id: FUNCTION_ID.to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region: "home-region".to_string(),
-        az: "home-region-a".to_string(),
-        cell_id: "cell-home-region-a-001".to_string(),
+        region: "region-home".to_string(),
+        az: "region-home-a".to_string(),
+        cell_id: "cell-region-home-a-001".to_string(),
         runtime: FunctionRuntime::Wasm,
         name: "image-resize".to_string(),
-        bundle: format!("function://harbor.home-region.oya/ten_alpha/image-resize@sha256:{DIGEST}"),
+        bundle: format!("function://harbor.region-home.oya/ten_alpha/image-resize@sha256:{DIGEST}"),
         cold_start_budget_ms: 750,
         timeout_ms: 30_000,
         memory_mb: 512,
         max_concurrency: 250,
         allowed_data_classes: vec![DataClass::Public, DataClass::PiiIdentifying],
-        residency: ResidencyClass::StrictHome,
+        residency: ResidencyClass::StrictHomeRegion,
         state: FunctionDeploymentState::Deploying,
         data_class: DataClass::Public,
         created_at_epoch_seconds: 1_700_100_020,
@@ -95,7 +95,7 @@ fn body(invocation_id: &str, payload_data_class: &str) -> CloudComputeFunctionsI
         invocation_id: invocation_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
         function_id: FUNCTION_ID.to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         payload_data_class: payload_data_class.to_string(),
         requested_at_epoch_seconds: 1_700_100_030,
     }
@@ -159,7 +159,7 @@ fn functions_invoke_api_records_invocation_once_and_replays_same_idempotent_resu
     assert_eq!(first.data.invocation_id, "fninv_001");
     assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.function_id, FUNCTION_ID);
-    assert_eq!(first.data.region, "home-region");
+    assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.payload_data_class, "PII_IDENTIFYING");
     assert_eq!(first.data.cold_start_budget_ms, 750);
     assert_eq!(first.data.accepted_at_epoch_seconds, 1_700_100_030);
@@ -200,7 +200,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
         "idem-functions-drift-001",
         "fninv_drift",
     );
-    request.body.function_id = "oya:cloud:home-region:ten_alpha:function:other".to_string();
+    request.body.function_id = "oya:cloud:region-home:ten_alpha:function:other".to_string();
 
     let error = invoke_cloud_compute_function_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body function drift is rejected");
@@ -209,7 +209,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeFunctionsApiError::FunctionIdMismatch {
             path_function_id: FUNCTION_ID.to_string(),
-            body_function_id: "oya:cloud:home-region:ten_alpha:function:other".to_string(),
+            body_function_id: "oya:cloud:region-home:ten_alpha:function:other".to_string(),
         }
     );
     assert_eq!(error.invoke_status_code(), 400);

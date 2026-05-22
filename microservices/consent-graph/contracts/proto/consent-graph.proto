@@ -119,12 +119,10 @@ enum DenyReason {
   STALE_REVOCATION_CHECK = 12;
 }
 
-enum CapabilityTier {
-  CAPABILITY_TIER_UNSPECIFIED = 0;
-  T0 = 1;
-  T1 = 2;
-  T2 = 3;
-  T3 = 4;
+enum TenantClass {
+  TENANT_CLASS_UNSPECIFIED = 0;
+  DEMO_TRIAL = 1;
+  PAID = 2;
 }
 
 enum PartnerState {
@@ -264,7 +262,7 @@ message EnforcementContext {
   string purpose_of_use = 1;
   google.protobuf.Timestamp request_time = 2;
   string request_region = 3;
-  CapabilityTier grantee_capability_tier = 4;
+  TenantClass tenant_class = 4;
   uint64 prior_revocation_check_ms_ago = 5;
   string trace_id = 6;
 }

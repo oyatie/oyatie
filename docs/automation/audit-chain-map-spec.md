@@ -10,7 +10,7 @@ purpose: |
   crates. Source: per-crate `[package.metadata.oyatie.events]` blocks +
   `contracts/eventschema/*.yaml` + the doc-catalog event taxonomy.
   Lift to `docs/visualization/audit-chain.md` (D2 + Mermaid).
-planned_enforcement_ref: oya-foundry-fitness-audit-chain-map
+planned_enforcement_ref: oya-governance-audit-chain-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-foundry-evidence-kernel
@@ -99,7 +99,7 @@ For each `EVT-*` topic, a per-topic mdbook page `docs/site/src/visualization/aud
 - Retention + data-class + regulatory-scope.
 - A worked example payload from `contracts/eventschema/<topic>.example.yaml`.
 
-## 5. Validation gates (`oya-foundry-fitness-audit-chain-map`)
+## 5. Validation gates (`oya-governance-audit-chain-map`)
 
 1. **Topic schema presence.** Every emitted topic has a schema at `contracts/eventschema/<topic>.yaml` (BLOCKER).
 2. **Emitter ↔ schema parity.** The emitter crate's serialization signature matches the schema (BLOCKER; cross-fed from `schema-doc-pipeline.md`).

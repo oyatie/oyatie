@@ -14,4 +14,4 @@ traceability:
 allowed_dependency_edges: [kernel, domain, usecase, api, adapter, adapter-redis, adapter-postgres, sdk]
 data_classes_owned: [AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2

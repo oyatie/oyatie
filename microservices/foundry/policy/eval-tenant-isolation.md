@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing invariants that enforce per-tenant isolation across foundry-eval's eval-runs, parity reports, replay traces, golden outputs, and per-subject DEKs. Compromise of any one invariant escalates to Sev-1.
+Define the load-bearing invariants that enforce per-tenant isolation across foundry-eval's eval-runs, parity reports, replay traces, baseline outputs, and per-subject DEKs. Compromise of any one invariant escalates to Sev-1.
 
 ## Invariants
 
@@ -39,7 +39,7 @@ Every per-subject DEK is wrapped by exactly one per-tenant KEK; KEKs are KMS-res
 
 ### TI-03 — S3 object key prefixes scope tenant data
 
-Every golden-output object key is prefixed `goldens/<tenant_hash>/<capability_id>/<case_id>` (and similarly for replay-traces `replay/<tenant_hash>/<capability_id>/<day>/<sample_id>`). S3 IAM policies restrict per-SA access to prefixes matching the SA's bound tenant.
+Every baseline-output object key is prefixed `baselines/<tenant_hash>/<capability_id>/<case_id>` (and similarly for replay-traces `replay/<tenant_hash>/<capability_id>/<day>/<sample_id>`). S3 IAM policies restrict per-SA access to prefixes matching the SA's bound tenant.
 
 **Enforcement**: IAM policy review + LEAN check `oya-check-s3-prefix-tenant-conformance`.
 

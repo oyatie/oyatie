@@ -135,7 +135,7 @@ Cause: massive concurrent export demand or per-tenant export storm.
 ## Drills
 
 - Bi-annual: gVisor escape simulation against CVE corpus.
-- Quarterly: pandoc upgrade dry-run in staging with 100-doc golden corpus.
+- Quarterly: pandoc upgrade dry-run in staging with 100-doc reference corpus.
 
 ## References
 

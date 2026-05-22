@@ -995,7 +995,7 @@ fn validate_nonzero_time(value: u64) -> Result<(), CloudMarketplaceError> {
 }
 
 fn validate_marketplace_currency(value: &CurrencyCode) -> Result<(), CloudMarketplaceError> {
-    if value.value.len() == 3 && value.value.bytes().all(|byte| byte.is_ascii_uppercase()) {
+    if matches!(value.value.as_str(), "OYC" | "USD") {
         Ok(())
     } else {
         Err(CloudMarketplaceError::InvalidCurrency)
@@ -1114,8 +1114,8 @@ mod tests {
         SellerApplicationCreate {
             id: "isv_observability_plus".to_string(),
             legal_name: "Observability Plus Inc".to_string(),
-            home_region: "alpha-region".to_string(),
-            kyb_evidence_ref: "kyb/alpha-region/observability-plus".to_string(),
+            home_region: "region-alpha1".to_string(),
+            kyb_evidence_ref: "kyb/region-alpha1/observability-plus".to_string(),
             support_ref: "support/observability-plus".to_string(),
             data_class: DataClass::InternalOnly,
             created_at_epoch_seconds: 1_700_000_000,
@@ -1139,7 +1139,7 @@ mod tests {
             title: "Observability Agent".to_string(),
             summary: "Cloud-native telemetry collector for tenant workloads".to_string(),
             categories: vec!["observability".to_string(), "sre".to_string()],
-            supported_regions: vec!["alpha-region".to_string(), "beta-region".to_string()],
+            supported_regions: vec!["region-alpha1".to_string(), "region-beta1".to_string()],
             provisioning_hook: "cap.cloud.marketplace.provision-observability-agent".to_string(),
             support_ref: "support/observability-plus".to_string(),
             billing_model: BillingModel::UsageMetered,
@@ -1147,7 +1147,7 @@ mod tests {
                 seller_bps: 8_500,
                 platform_bps: 1_500,
                 payout_cadence: PayoutCadence::Monthly,
-                settlement_currency: "TOK".to_string(),
+                settlement_currency: "OYC".to_string(),
             },
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_200,
@@ -1170,7 +1170,7 @@ mod tests {
             tenant_id: "ten_alpha".to_string(),
             billing_account_id: "ba_alpha_cloud".to_string(),
             legal_terms_ref: "legal/private-offer/observability-agent/ten-alpha".to_string(),
-            fixed_price: Money::new("TOK", 50_000_000).expect("valid money"),
+            fixed_price: Money::new("OYC", 50_000_000).expect("valid money"),
             discount_bps: 1_500,
             starts_at_epoch_seconds: 1_700_000_400,
             expires_at_epoch_seconds: 1_700_086_800,
@@ -1183,7 +1183,7 @@ mod tests {
             id: "cme_observability_agent_tenant_alpha".to_string(),
             listing_id: "cml_observability_agent".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region: "alpha-region".to_string(),
+            region: "region-alpha1".to_string(),
             billing_account_id: "ba_alpha_cloud".to_string(),
             accepted_private_offer_id: offer_id.map(str::to_string),
             requested_at_epoch_seconds: 1_700_000_500,
@@ -1276,7 +1276,7 @@ mod tests {
                     seller_bps: 9_800,
                     platform_bps: 200,
                     payout_cadence: PayoutCadence::Monthly,
-                    settlement_currency: "TOK".to_string(),
+                    settlement_currency: "OYC".to_string(),
                 },
                 ..listing_draft()
             })
@@ -1300,7 +1300,7 @@ mod tests {
             .create_private_offer(private_offer())
             .expect("private offer is valid");
         assert_eq!(offer.state.value, PrivateOfferState::Offered);
-        assert_eq!(offer.fixed_price.value.currency.value, "TOK");
+        assert_eq!(offer.fixed_price.value.currency.value, "OYC");
 
         let discount_error = catalog
             .create_private_offer(PrivateOfferCreate {
@@ -1314,15 +1314,10 @@ mod tests {
         let currency_error = catalog
             .create_private_offer(PrivateOfferCreate {
                 id: "cpo_bad_currency".to_string(),
-                fixed_price: Money {
-                    currency: CurrencyCode {
-                        value: "tok".to_string(),
-                    },
-                    minor_units: 10_000,
-                },
+                fixed_price: Money::new("ABC", 10_000).expect("valid fixture currency"),
                 ..private_offer()
             })
-            .expect_err("currency code invariant is enforced at marketplace boundary");
+            .expect_err("cloud marketplace settlement opens with OYC and USD");
         assert_eq!(currency_error, CloudMarketplaceError::InvalidCurrency);
 
         let time_error = catalog
@@ -1351,13 +1346,13 @@ mod tests {
             .activate_entitlement(entitlement(Some("cpo_observability_agent_tenant_alpha")))
             .expect("entitlement is valid");
         assert_eq!(active.state.value, EntitlementState::Active);
-        assert_eq!(active.region.value.value, "alpha-region");
+        assert_eq!(active.region.value.value, "region-alpha1");
         assert!(active.accepted_private_offer_id.value.is_some());
 
         let region_error = catalog
             .activate_entitlement(EntitlementCreate {
                 id: "cme_wrong_region".to_string(),
-                region: "gamma-region".to_string(),
+                region: "region-gamma1".to_string(),
                 accepted_private_offer_id: None,
                 ..entitlement(None)
             })

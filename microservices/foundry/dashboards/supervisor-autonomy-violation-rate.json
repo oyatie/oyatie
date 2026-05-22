@@ -105,7 +105,7 @@
         }
       },
       "targets": [
-        {"expr": "sum(increase(oya_supervisor_autonomy_tier_escalation_attempt_total{pack=\"$pack\"}[24h]))", "refId": "A"}
+        {"expr": "sum(increase(oya_supervisor_autonomy_level_escalation_attempt_total{pack=\"$pack\"}[24h]))", "refId": "A"}
       ]
     },
     {

@@ -1,81 +1,86 @@
 ---
-doc_class: ImplementationPlan
-template_id: TPL-IMPL
-milestone: M01-foundation
-phase: P01-ci-fitness-consolidation
-impl_plan_id: IP-001-scaffold-umbrella-bcs
-status: pending
-execution_unit: ChangeSet
-changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-foundry
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
+doc_class: Implementation-Plan
+ip_id: IP-001-scaffold-umbrella-bcs
+status: planned
+owner: axis-governance
+wave_scrub: Wave 15-IP-substance 2026-05-21
+microservice: governance
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# Scaffold governance umbrella bounded contexts
 
-# IP-001: Scaffold governance umbrella BCs (4 BCs × 9 layers = 36 crates)
+## A. Problem
 
-## Intent
+The previous slice for `IP-001-scaffold-umbrella-bcs` was too close to a design-anchor shell: it named the intended control but did not bind the work to governance's actual contracts, policy files, SLOs, and runbooks. This IP closes the `four governance bounded contexts` gap for the governance µservice, not for a generic operations or governance product. The implementation must be reviewable as a single Oya VCS changeset and must not claim runtime maturity until the named artifacts exist and validate.
 
-Create the 36 new umbrella crates that compose the governance µservice's four bounded contexts (`lane-runtime`, `policy-engine`, `evidence-emitter`, `aggregation-indexer`), one per ADR-0105 13-layer enum (using 9 layers per BC: kernel, domain, usecase, api, adapter, rest, worker, sdk, app). Workspace registration; catalog rows.
+The service-local grounding is `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto`. The authorization grounding is `policy/auditor-scope.cedar`, `policy/ci-scope.cedar`, `policy/tenant-scope.cedar`, and `policy/cedar-canonical-imports.cedar`. The work must preserve ADR-0243 default-deny Cedar semantics, ADR-0244 tenant-scoped evidence, ADR-0263 audit event emission, and ADR-0131 flat µservice ownership.
 
-## ChangeSet boundary
+## B. Approach
 
-36 new Rust crates under `microservices/governance/src/crates/`. Workspace `[workspace.members]` updated. 36 catalog rows at `microservices/governance/catalog/`. No downstream code dependencies in this IP; only structural scaffold. Subsequent IPs (IP-004, IP-006, IP-008, IP-010) fill in kernel + domain types per BC.
+Implement the slice as a bounded, contract-first change. Start from the existing capability and catalog surfaces, add or amend only the smallest kernel/usecase/adapter/rest/worker pieces needed for this IP, then wire the dashboard, SLO, and runbook evidence named below. Every mutating path must require an idempotency key, authenticated principal, Cedar decision id, audit event id, and rollback/evidence reference. Read paths must distinguish observed state from operator decisions.
 
-## Concrete File Targets
+Technical target set: manifest.json bounded_contexts, catalog/oya-governance-*-*.yaml, PRD.md bounded context table. If one of these paths is absent when implementation starts, create that exact missing artifact or record an explicit IaC/catalog gap in this IP's evidence; do not cite fake Terraform, fake Cedar entity types, or unavailable endpoints.
 
-For each BC ∈ {lane-runtime, policy-engine, evidence-emitter, aggregation-indexer}:
-- 9 crates created under `microservices/governance/src/crates/oya-governance-<BC>-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}/`
-- Each crate: `Cargo.toml` + `src/lib.rs` (module declarations only) + minimal types.
+## C. Deliverables
 
-Plus:
-- `Cargo.toml` (workspace) — add 36 paths to `[workspace.members]`.
-- `microservices/governance/catalog/oya-governance-<BC>-<LAYER>.yaml` × 36.
+- Contract updates in the relevant OpenAPI, AsyncAPI, or Proto file named by the service manifest.
+- Domain/kernel value object for `four governance bounded contexts` with tenant, principal, cell, HLC timestamp, Cedar decision, audit event, and idempotency fields.
+- Usecase orchestration that fails closed when Cedar, OpenBao, audit-chain, or required source projections are unavailable.
+- Adapter/rest/worker wiring only where this IP needs runtime I/O; no unrelated refactor across sibling bounded contexts.
+- Dashboard, SLO, and runbook linkage using the concrete artifact set: manifest.json bounded_contexts, catalog/oya-governance-*-*.yaml, PRD.md bounded context table.
+- Catalog/capability row update when the IP exposes or changes an operator/governance capability.
 
-## Crate naming
+## D. Implementation Steps
 
-```
-NAME: oya-governance-<bc>-<layer>
-JUSTIFICATION:
-- microservice = governance (microservices/governance/)
-- bc-tokens ∈ {lane-runtime, policy-engine, evidence-emitter, aggregation-indexer} (per PRD §"Bounded Contexts")
-- layer ∈ {kernel, domain, usecase, api, adapter, rest, worker, sdk, app} (ADR-0105 13-value enum; using 9 of them)
-- exemptions claimed: none
-```
+1. Read `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto` and confirm the bounded context that owns `four governance bounded contexts`; update the manifest or catalog only if that owner is missing.
+2. Add the kernel/domain type with explicit tenant scope, principal scope, HLC time, decision ids, and audit seal refs; keep provider credentials as OpenBao references rather than raw secrets.
+3. Add usecase logic that evaluates Cedar before storage/provider access and returns structured refusal evidence on deny, stale pack, missing tenant, or audit-chain backpressure.
+4. Update the selected REST/gRPC/event contract so external callers and workers share the same envelope and error shape.
+5. Wire dashboard/SLO/runbook evidence from manifest.json bounded_contexts, catalog/oya-governance-*-*.yaml, PRD.md bounded context table; dashboard panels must point to real metric/event names and runbook links must resolve.
+6. Add tests for allow, deny, stale policy/pack, duplicate idempotency key, audit emission failure, and rollback/evidence replay.
+7. Run the service-local validation commands named in acceptance, then attach the command output and changed-file list to the changeset evidence.
 
-## Acceptance Gates
+## E. Acceptance
 
-```bash
-cargo check --workspace --all-features
-cargo build --workspace --all-features
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice governance
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice governance
-cargo run -p oya-dev-cli -- gate validate naming-bnf-v41 --microservice governance
-```
+- The IP cites real service artifacts and no placeholder paths.
+- Contract validation parses the touched OpenAPI/AsyncAPI/Proto surface.
+- Cedar tests prove at least one permit and one forbid path for the concrete action in this IP.
+- Audit evidence includes an ADR-0263 event class, Ed25519/Merkle seal reference where applicable, and a replay or rollback reference.
+- SLO/dashboard/runbook references resolve from the repo tree.
+- `oya vcs verify --agent <id> --changeset <id>` passes before done/promote.
 
-## Test Plan
+## F. Evidence
 
-Per PHASE-01 §"Per-IP Test Coverage Threshold". M01-A tier crates: 80% line coverage minimum. Scaffold-only IPs (IP-001) carry placeholder smoke tests.
+- Service docs: `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto`.
+- Policy docs: `policy/auditor-scope.cedar`, `policy/ci-scope.cedar`, `policy/tenant-scope.cedar`, and `policy/cedar-canonical-imports.cedar`.
+- Operational evidence: manifest.json bounded_contexts, catalog/oya-governance-*-*.yaml, PRD.md bounded context table.
+- Doctrine: ADR-0324 anti-template-stamping, ADR-0328 D-20 Big-8 elevation, ADR-0131 flat µservice layout, ADR-0263 audit events, ADR-0243 Cedar deny-wins.
 
-| Test | Verifies |
-|---|---|
-| `test_module_declarations_compile` | every crate's lib.rs compiles |
-| `test_workspace_members_resolved` | `cargo metadata` lists all 36 members |
-| `test_catalog_row_per_crate` | catalog/ has 36 rows |
+## G. Counterparts
 
-## Halt Conditions
+| Counterpart | Relevant pressure | Oyatie closure in this IP |
+|---|---|---|
+| GitHub Advanced Security and SonarQube separate rule execution from evidence reporting; Oyatie codifies lane-runtime, policy-engine, evidence-emitter, and aggregation-indexer as explicit bounded contexts. | Mature external control surface to compare against. | GitHub Advanced Security and SonarQube separate rule execution from evidence reporting; Oyatie codifies lane-runtime, policy-engine, evidence-emitter, and aggregation-indexer as explicit bounded contexts. |
+| GitHub | Required verification regex and PR/evidence control-plane precedent. | This IP remains changeset-driven, reviewable, and tied to branch/admission evidence rather than prose-only approval. |
 
-- Workspace member path collision — refactor naming.
-- BNF v4.1 naming violation — refer to `feedback_naming_justification.md`.
+## H. Service-Specific Drilldown
+1. Create four bounded-context families exactly as declared in `manifest.json`: lane-runtime, policy-engine, evidence-emitter, aggregation-indexer.
+2. Each crate gets a catalog row so aggregation-index generation can discover it without central hand edits.
+3. Keep kernel/domain crates free of adapter, filesystem, network, or GitHub Actions dependencies.
+4. Use GitHub Advanced Security and SonarQube as counterpart examples for separated scanning/evidence concerns.
+5. Acceptance includes cargo metadata membership, catalog row count, layer-correctness, and naming-bnf-v41 validation.
+6. This IP does not migrate historical check crates; it only creates the structural homes consumed by following IPs.
 
-## Next IP
+## I. Review Notes
 
-[`IP-002-migrate-tier-a-check-crates-batch-1.md`](IP-002-migrate-tier-a-check-crates-batch-1.md)
+This section is intentionally specific to this IP; do not copy it to sibling IPs. Reviewers should reject the changeset if the implementation evidence cannot trace each drilldown row to a real file, test, command, dashboard, SLO, runbook, or policy decision.
 
-## References
+## J. Verification Hooks
 
-- ADR-0056 BNF v4.1; ADR-0105 13-layer enum; ADR-0106 application → usecase rename.
-- ADR-0131 §"per-microservice flat layout".
-- ADR-0132 §"no-suite forward-policy".
-- `microservices/governance/PRD.md` §"Bounded Contexts".
+- Hook 4.1: changed-file evidence must include this IP path and the concrete service artifacts named above.
+- Hook 4.2: contract parsing must run after any OpenAPI, AsyncAPI, or Proto edit for this slice.
+- Hook 4.3: Cedar permit and forbid cases must cite the real policy file and action name used by this slice.
+- Hook 4.4: audit evidence must include event class, seal reference, actor, tenant/cell scope, and idempotency key.
+- Hook 4.5: rollback evidence must name the runbook or explain why the slice is read-only.
+- Hook 4.6: counterpart closure must be reviewed against the named GitHub/Stripe/Snowflake/etc. row, not inferred from line count.
+- Hook 4.7: promotion is blocked if any cited dashboard, SLO, catalog, capability, or runbook path is absent.

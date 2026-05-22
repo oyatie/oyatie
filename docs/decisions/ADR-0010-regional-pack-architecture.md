@@ -109,7 +109,7 @@ Each pack declares the residency classes it supports. A tenant's `Tenant.residen
 ### Pack lifecycle
 
 - **Authoring**: pack lives at `regional-packs/<pack-id>/` with its own `pack.yaml`, seam impls under `crates/oya-pack-<pack-id>-{regulatory,tax,idp,payment,address,...}-*`, and per-pack regulator-watch lane.
-- **Validation**: `oya-foundry-fitness-pack` validates that the pack supplies an impl for every required seam; missing seam = pack rejected.
+- **Validation**: `oya-governance-pack` validates that the pack supplies an impl for every required seam; missing seam = pack rejected.
 - **Signing**: each pack release is Cosign-signed (per ADR-0013 supply-chain bar) and published to the pack registry.
 - **Versioning**: per-pack semver; tenant binding pins pack version; pack upgrade is a controlled migration with audit emission.
 - **Regulator-change watch**: per-pack lane subscribes to regulator-publication feeds; updates auto-open a pack-revision PR.
@@ -140,7 +140,7 @@ Each pack declares the residency classes it supports. A tenant's `Tenant.residen
 
 - On-call: per-pack regulator-watch lane monitored daily; `EVT-REGULATORY-CHANGE-DETECTED` opens a pack-revision PR.
 - Runbooks: `runbooks/pack-onboarding.md`, `runbooks/pack-version-upgrade.md`, `runbooks/cross-pack-tenant-residency.md`, `runbooks/regulator-publication-feed-health.md`.
-- CI: `oya-foundry-fitness-pack` (seam coverage), `oya-foundry-fitness-pack-residency` (no cross-pack residency conflict at onboarding).
+- CI: `oya-governance-pack` (seam coverage), `oya-governance-pack-residency` (no cross-pack residency conflict at onboarding).
 - Per-pack scorecard: regulator-coverage %, seam-coverage %, evidence-emission %, regulator-watch lane health.
 
 ---

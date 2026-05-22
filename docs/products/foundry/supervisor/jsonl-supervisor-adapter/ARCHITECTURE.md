@@ -87,4 +87,3 @@ This guarantees that `append().await` returning means the record is durable.
 
 - **POSIX atomicity:** IEEE 1003.1-2017 (open, rename, fsync)
 - **v4 Plan § B.3:** JSONL adapter spec
-- **Crash injection tests:** v4 §B.12 grit units 4.51, 4.57

@@ -57,7 +57,7 @@ Tier framework inherited from `feedback_quality_performance_scalability_bar.md` 
 
 ## Decision
 
-Adopt the following capability-tier scope bounds for the forms AI-form-build:
+Adopt the following tenant-class scope bounds for the forms AI-form-build:
 
 ### T0 — Suggest (always-on by default; per-tenant opt-out)
 
@@ -86,7 +86,7 @@ Adopt the following capability-tier scope bounds for the forms AI-form-build:
   - **T2-cross**: AI-form-build draft of fragments that include cross-µservice destinations (form-on-submit → email via mail; form-on-submit → trigger workflow in workflow-engine; file-upload → drive; etc.). **This is the gated case.**
 - **T2-cross gate**:
   1. Tenant explicitly enables `forms.t2.auto.cross-microservice.<destination>` per destination µservice. Enablement is per-(tenant, destination-µservice) pair, not blanket.
-  2. Cedar policy permits the cross-call. Cedar entities: `(tenant, source-microservice=forms, destination-microservice, capability-tier=T2, ai-build-origin=true)`. Default-deny per ADR-0140.
+  2. Cedar policy permits the cross-call. Cedar entities: `(tenant, source-microservice=forms, destination-microservice, tenant-class=T2, ai-build-origin=true)`. Default-deny per ADR-0140.
   3. Candidate spec routed through ChangeSet state machine (ADR-0110) as proposed-state ChangeSet requiring human-author + reviewer-agent approval before the foreign µservice's binding is committed. T2-cross NEVER auto-saves a cross-µservice fragment.
   4. **2-person rule**: LLM is first author; a human OR another agent acting under a different signing key is the required reviewer. Same agent signing both author + reviewer roles fails the gate.
   5. Destination µservice's own SDK contracts apply (workflow-engine SDK, mail SDK, drive SDK, etc.); AI output is bounded by what those SDKs already permit external callers to do.

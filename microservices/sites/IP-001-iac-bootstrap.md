@@ -19,7 +19,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 Author Helm + Kustomize manifests for the sites µservice substrate.
 Postgres 16 LTS for site/page/cms-collection event store (RLS per-tenant
-per ADR-0117); Valkey 8.1 (Redis wire-compat) for the page-render + CMS-collection
+per ADR-0117); Valkey 8.1 (RESP3 wire-compatible) for the page-render + CMS-collection
 cache; Meilisearch 0.10.0 LTS for per-tenant site search;
 cert-manager 1.16 LTS for ACME cert reconciliation (per ADR-SITES-0004);
 libvips 8.16 worker pods for image pipeline (per ADR-SITES-0007);
@@ -93,7 +93,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - ADR-0117 (data residency); ADR-0131 (per-µservice flat layout); ADR-0133.
 - ADR-SITES-0001 (Loro CRDT); ADR-SITES-0004 (ACME); ADR-SITES-0007 (image pipeline).
 - Postgres CloudNativePG operator — `cloudnative-pg.io`.
-- Valkey cluster mode — `redis.io/docs/management/scaling/`.
+- Valkey cluster mode — `valkey.io/topics/cluster-tutorial/`.
 - Meilisearch — `meilisearch.com/docs`.
 - cert-manager — `cert-manager.io/docs`.
 - libvips — `libvips.github.io/libvips`.

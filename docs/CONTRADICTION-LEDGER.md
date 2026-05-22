@@ -137,3 +137,8 @@ When a future contradiction is detected by:
 - `docs/PRIVACY-PROGRAM.md §2.5` open questions
 
 *Footer regenerated whenever this doc is edited.*
+
+
+---
+
+> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

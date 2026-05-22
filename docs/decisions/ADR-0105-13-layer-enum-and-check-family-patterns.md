@@ -78,9 +78,9 @@ Constraints:
 - **264 workspace.members** are now classified as: 245 canonical-suffix + 21 `api` (newly canonical) + 36 check-family (newly canonical) + 13 backend-suffix (newly canonical) + 41 - (21 + 36 + 13) = -29 ← (math fix: most non-compliant rows were already in canonical-suffix; the 41 non-compliant from the audit had 21 in the `api` group; the residual 20 are real cases needing per-crate rename, not pattern-formalization).
 - **Updated non-compliant count post-amendment:** 18 crates (audit non-compliant 41 minus 21 `api` adoptions, minus 2 already-removed `tooling-agent-read` exception). The remaining 18 are:
   - 3 × `*-runtime` (per ADR-0056 §"Concrete migration" lines 283-289; scheduled rename to `*-app`)
-  - 7 × tools/`oya-foundry-fitness-<feature>` (decide: tools/-implicit-app convention, or add `-app` suffix per crate)
-  - 8 × one-off drift (vcs-*-{controller,mergequeue,ratchet,gate,adapters}, saas-plugin-marketplace, adapter-substitution-test, oya-foundry-fitness-purpose-audit)
-- **`oya-foundry-fitness-predictable-naming-kernel` lane** must be updated to enforce the 13-value enum + adopted patterns. Until then, the lane is too strict (it would flag legitimate `*-api` and `oya-check-*` crates).
+  - 7 × tools/`oya-governance-<feature>` (decide: tools/-implicit-app convention, or add `-app` suffix per crate)
+  - 8 × one-off drift (vcs-*-{controller,mergequeue,ratchet,gate,adapters}, saas-plugin-marketplace, adapter-substitution-test, oya-governance-purpose-audit)
+- **`oya-governance-predictable-naming-kernel` lane** must be updated to enforce the 13-value enum + adopted patterns. Until then, the lane is too strict (it would flag legitimate `*-api` and `oya-check-*` crates).
 - **`specs/crate-naming-audit.json`** is updated in this same commit to mark the 21 `api`, 36 check-family, and 13 backend-suffix crates as compliant.
 
 ## Drivers
@@ -103,7 +103,7 @@ Constraints:
 ## Follow-ups
 
 1. Update `specs/crate-naming-audit.json` to reflect the 13-value enum + adopted patterns. **Done in this commit.**
-2. Update `oya-foundry-fitness-predictable-naming-kernel` to recognize the 13-value enum + adopted patterns. Tracked separately.
+2. Update `oya-governance-predictable-naming-kernel` to recognize the 13-value enum + adopted patterns. Tracked separately.
 3. Per-crate rename for the 18 remaining non-compliant entries (3 runtime + 7 fitness-tool + 8 one-offs). Each is its own C1-shaped atomic commit.
 4. Update `Cargo.toml [workspace.metadata.oya]` comment block (line 266) which references the "Layer enum (12 canonical values)" — bump to 13.
 
@@ -129,7 +129,7 @@ The fourth "Alternatives Considered" entry below (the original "Tools/-implicit-
 
 ### Crate-naming kernel update
 
-`oya-foundry-fitness-predictable-naming-kernel` is updated in the same commit series to:
+`oya-governance-predictable-naming-kernel` is updated in the same commit series to:
 - REMOVE the tools/-implicit-app shortcut (no `declared_role = None` pass for tools/ crates).
 - ADD a `DOCTRINAL_CARVE_OUTS` allowlist limited to `oya-tooling-agent-read` (citation: ADR-0053 + CLAUDE.md sanctioned primitives).
 - Require canonical suffix for every other `tools/` crate.
@@ -150,7 +150,7 @@ These pre-date the 13-value canonical enum defined in this ADR and amended by AD
 |---|---|---|
 | `application` | `usecase` (ADR-0106 rename) | 22 catalog records still use `application` as of 2026-05-15 |
 | `runtime` | `app` (ADR-0105 §"Concrete migration" / ADR-0056) | 6 catalog records still use `runtime` |
-| `test` | (no canonical value; `cfg(test)` is the canonical exemption per `oya-foundry-fitness-predictable-naming-kernel`) | 4 catalog records still use `test` |
+| `test` | (no canonical value; `cfg(test)` is the canonical exemption per `oya-governance-predictable-naming-kernel`) | 4 catalog records still use `test` |
 | `kernel`, `domain`, `app`, `adapter`, `rest`, `infrastructure`, `worker`, `api` | Same | Already canonical |
 | Missing from legacy: `cli`, `grpc`, `graphql`, `sdk`, `usecase` | — | No catalog records use these yet (zero edges to validate); adding requires the catalog migration below |
 

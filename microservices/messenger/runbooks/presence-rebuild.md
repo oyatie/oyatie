@@ -30,7 +30,7 @@ doc_status: published
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Verify Valkey cluster health: `redis-cli --cluster check redis-primary.messenger.svc:6379` | ≤ 2 min |
+| 1 | Verify Valkey cluster health: `valkey-cli --cluster check valkey-primary.messenger.svc:6379` | ≤ 2 min |
 | 2 | If shard down: failover replica to primary; promote replica | ≤ 5 min |
 | 3 | Flush stale presence keys for affected shard: `KEYS pattern → DEL` (rebuilds from active sessions) | ≤ 5 min |
 | 4 | Trigger gateway re-emission: each gateway pod walks its active connection table and re-emits presence | ≤ 5 min |

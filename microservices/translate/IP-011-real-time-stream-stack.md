@@ -79,3 +79,13 @@ Per-session state in Valkey: `(session_id, prior_chunks, last_stable_sentence_id
 ## Next IP
 
 [`IP-012-engine-adapter-foundry-runtime.md`](IP-012-engine-adapter-foundry-runtime.md)
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/translate/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `valkey`, `postgres_wal_g`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/translate/IP-011-real-time-stream-stack.md:19` - Real-time translation of audio-derived caption text from `meet` (Whisper STT output) into target language with sentence-piece chunking + correction-replay per ADR-TRAN...; `microservices/translate/IP-011-real-time-stream-stack.md:70` - | `tests/load/caption_stream_p99_under_400ms.rs` | AC-08 |.

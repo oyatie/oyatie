@@ -1,0 +1,22 @@
+schema_version: "2.0"
+name: warehouse-inbound-delivery-command
+microservice: warehouse
+bounded_context: inbound-delivery
+autonomy_tier: T1
+risk_class: regulated-erp
+audit_event_class: EVT-WAREHOUSE-INBOUND_DELIVERY-COMMAND
+policy_fragments:
+  - microservices/warehouse/policy/inbound-delivery-authorization.cedar
+benchmarks:
+  - "SAP EWM Extended Warehouse Management"
+  - "Oracle Fusion Warehouse Management"
+  - "Workday inventory-operations counterpart"
+  - "NetSuite WMS"
+  - "Microsoft Dynamics 365 Warehouse Management"
+inputs:
+  required: [tenant_id, principal_id, idempotency_key, compliance_packs]
+transport:
+  rest: OpenAPI 3.2.0
+  events: AsyncAPI 3.1.0
+  grpc: proto3
+settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

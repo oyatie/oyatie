@@ -50,7 +50,7 @@ workload cluster:
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (task + project + dependency-edge store) | `oya-tasks-task-store-*` (10 crates) |
-| Valkey 8.1 (Redis wire-compat) (view-cache + presence) | `oya-tasks-project-list-*` (8 crates) |
+| Valkey 8.1 (RESP wire-compatible) (view-cache + presence) | `oya-tasks-project-list-*` (8 crates) |
 | Meilisearch 0.10.0 LTS (cross-project search) | `oya-tasks-view-engine-*` (8 crates) |
 | Loro 1.x CRDT (collab description editing only) | `oya-tasks-dependency-graph-*` (7 crates) |
 | `rrule-rs` 0.13.x (recurrence; shared pin with calendar) | `oya-tasks-recurrence-*` (7 crates) |

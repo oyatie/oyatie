@@ -86,7 +86,7 @@ A DPIA + FRIA combined document is mandatory pre-deployment. This document is th
 | `SECRET` | Provider API keys; ClickHouse pwd; Cosign signing keys; per-subject DEKs; per-tenant KEKs | not personal data; ISO 27001 A.5.17 controls | varies |
 
 **Geographical scope:** Per pack:
-- pack-kr: KR (ap-seoul-1) — KR tenant data + eval-set goldens stay in KR.
+- pack-kr: KR (ap-seoul-1) — KR tenant data + eval-set baselines stay in KR.
 - pack-eu: EU (eu-frankfurt-1) — EU tenant data stays in EU.
 - pack-us / pack-us-healthcare: US (us-ashburn-1) — US data stays in US; HIPAA pack pinned to BAA-eligible region.
 - pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa: each pinned to primary region.
@@ -144,7 +144,7 @@ Cross-referenced with `threat-model.md` STRIDE / LINDDUN catalog. Format: ID; De
 | R-01 | PII leakage into replay traces via source-µservice trace emission gap (T-I-02) | H | H | **H** | OTel redactor at source + secondary redactor at replay-ingress + per-subject DEK + DSR shred | M |
 | R-02 | Cross-tenant query leak via ClickHouse misconfiguration (T-I-01) | M | H | **H** | ClickHouse RBAC + tenant_id partition + DP-noise on cross-tenant aggregates + LEAN check | L |
 | R-03 | Eval-set tampering → false publish-gate pass (T-T-01) | L | H | **M** | Cosign + Rekor inclusion-proof + signed commits | L |
-| R-04 | Golden-output tampering at S3 (T-T-02) | L | H | **M** | SSE-KMS + Object Lock + per-object Cosign + monthly block validator | L |
+| R-04 | Baseline-output tampering at S3 (T-T-02) | L | H | **M** | SSE-KMS + Object Lock + per-object Cosign + monthly block validator | L |
 | R-05 | Insider deletes eval-run history to hide regression (T-E-05) | L | H | **M** | Sealed partition + 2-person rule + JIT + audit-chain + 30d soft-delete window | L |
 | R-06 | GPU sandbox escape (T-E-01) | L | H | **M** | gVisor / Kata + seccomp + AppArmor + NetworkPolicy + CIS Benchmark | L |
 | R-07 | Capability owner forges Cosign signature (T-S-01) | L | H | **M** | Hardware-token binding + Rekor inclusion-proof + per-capability CODEOWNERS | L |
@@ -186,7 +186,7 @@ Per threat-model.md "Residual Risk Acceptance" table. Residual M risks (R-01, R-
 
 ### Decisions
 
-1. **Live PHI never enters eval-sets.** Eval-set golden inputs and case prompts use synthetic-PHI fixtures only. Policy `policy/synthetic-phi-only.md` is BLOCKER on `microservices/foundry-eval/eval-sets/**`.
+1. **Live PHI never enters eval-sets.** Eval-set baseline inputs and case prompts use synthetic-PHI fixtures only. Policy `policy/synthetic-phi-only.md` is BLOCKER on `microservices/foundry-eval/eval-sets/**`.
 2. **Replay traces accept "post-redactor" data only.** Source-µservice OTel SDK redactor is the first line; replay-engine ingress runs a secondary redactor + dead-letters unannotated traces. Per-subject DEK envelope is the third line (DSR shred surface).
 3. **EU AI Act §15 evidence on every emission.** Every EvalRun, ParityVerdict, ReplayDivergence, and InHouseCutoverEligible event carries the §15 (accuracy + robustness) + §17 (logging) evidence-schema fields by construction. Schema regression test BLOCKER.
 4. **Cosign-with-Rekor-inclusion-proof BLOCKER on eval-set load.** Detached signature alone insufficient; Rekor public-log inclusion required.

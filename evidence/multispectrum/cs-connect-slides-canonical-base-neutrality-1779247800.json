@@ -1,0 +1,160 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-connect-slides-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779247800,
+  "timestamp_iso": "2026-05-20T03:30:00Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-connect-slides-domain/src/lib.rs",
+    "evidence/multispectrum/cs-connect-slides-canonical-base-neutrality-1779247800.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize connect slides canonical-base jurisdiction fixtures\" crates/oya-connect-slides-domain/src/lib.rs::canonical_base_neutral_slides",
+      "status": "accepted"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Attach multispectrum evidence for connect slides canonical-base neutrality ChangeSet\" evidence/multispectrum/cs-connect-slides-canonical-base-neutrality-1779247800.json::MultispectrumEvidence",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for oya-connect-slides-domain: replace Slides collab runtime and deck region fixtures with neutral canonical values while preserving deck, slide graph, template, export, drive path, collab runtime binding, and data-class boundaries.",
+  "baseline_diff": {
+    "before": "canonical-base-neutrality --repo-root . --root crates/oya-connect-slides-domain/src/lib.rs failed with 1 files checked, 2 jurisdiction leaks in Slides runtime/deck region fixtures.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-connect-slides-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 378 jurisdiction leaks in other files; first remaining file crates/oya-connect-tasks-domain/src/lib.rs.",
+    "delta": "2 fewer jurisdiction leaks; no production behavior changes, scanner carve-outs, or gate-policy weakening. Full-gate residual count fell from 380 after the Sites slice to 378 after this slice."
+  },
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-connect-slides-domain --all-features",
+      "status": "passed",
+      "evidence": "7 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-connect-slides-domain --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-connect-slides-domain --all-features -- -D warnings",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-connect-slides-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "rg -n \"FinancialKrCredit|kr-|ten_kr|ten_us|us-|eu-|jp-|StrictKr|KrWithUs|KR|jp-tokyo|kr-seoul|us-east-1|cell-us|cell-kr|oya-pack-kr|US\" crates/oya-connect-slides-domain/src/lib.rs || true",
+      "status": "passed",
+      "evidence": "no matching jurisdiction-specific tokens remain in the claimed file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-connect-slides-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root .",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 378 jurisdiction leaks outside claimed scope; first remaining file crates/oya-connect-tasks-domain/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The patch is two cfg(test) fixture literal changes; production Slides constructors and validators are untouched."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Slides examples no longer encode a launch-region identifier, keeping FD-001 generic deck and collab runtime evidence portable across deployment geographies."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "targeted canonical-base-neutrality gate reported 2 Slides leaks before this rewrite",
+      "findings": [
+        "The unchanged targeted gate passes and the unchanged full gate still reports unrelated leaks, proving no false-green gate weakening."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 2,
+      "findings": [
+        "The canonical region-alpha1 fixture makes deck/runtime placement intent explicit without implying a real jurisdiction."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Domain tests, rustfmt, clippy with warnings denied, targeted neutrality, planning-closure, master-plan-completion, token scan, diff whitespace, and full-gate delta were verified."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Loosen canonical-base-neutrality scanner for Slides tests",
+        "Leave Slides examples launch-region specific",
+        "Replace Slides region fixtures with canonical neutral values"
+      ],
+      "selected_rationale": "Neutral fixtures remove launch-market coupling without weakening slide graph, template, export, drive path, collab runtime, or data-class coverage.",
+      "rejected_reasons": [
+        "Scanner carve-outs would hide future fixture leaks.",
+        "Keeping launch-region examples would keep generic FD-001 evidence red."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "slide_deck_drive_path_collab_runtime_template_export_graph_and_data_class_boundary",
+      "findings": [
+        "No tenant, drive path, deck, slide graph, transition, template, export, collab runtime, cell, or data-class invariant was relaxed; all Slides tests still pass."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Preserves the Slides domain boundary and avoids adapter/runtime changes."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Existing behavior assertions remain covered across deck validation, collab runtime binding, drive path validation, slide graph ordinals/transitions, template versioning, export support, legacy data-class conversion, and staging markers."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures before/after targeted leak count, full-gate delta, tests, format/lint, token scan, command results, and Oya VCS claim/verify/done/promote path."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-connect-slides-domain/src/lib.rs",
+    "evidence/multispectrum/cs-connect-slides-canonical-base-neutrality-1779247800.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 378 jurisdiction leaks outside this claimed scope; next safe slice should start with crates/oya-connect-tasks-domain/src/lib.rs.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

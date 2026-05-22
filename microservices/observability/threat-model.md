@@ -388,7 +388,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: OpenBao-managed secrets emitted accidentally
 - Likelihood: M (engineers log error context including config dumps) / Impact: H (cascades to broad compromise) / Risk: **H**
 - Mitigations:
-  - Secret-scanner CI lane (`oya-foundry-fitness-evidence-secret-scan` — already exists) scans every commit + log emission for known secret patterns.
+  - Secret-scanner CI lane (`oya-governance-evidence-secret-scan` — already exists) scans every commit + log emission for known secret patterns.
   - OTel SDK redactor strips known-secret patterns at emission time.
   - OpenBao SecretReference materialisation never logs the raw secret; wraps in a `Secret<T>` type with intentionally-stripped `Debug` impl.
   - Rotation policy: 30d for API keys; 90d for signing keys (rotate-out before leaked secret expires).

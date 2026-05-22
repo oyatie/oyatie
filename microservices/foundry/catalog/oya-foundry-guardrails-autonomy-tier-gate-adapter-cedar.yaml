@@ -1,5 +1,5 @@
 # Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
-name: oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar
+name: oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar
 role: adapter
 context: foundry-guardrails
 plane: control
@@ -14,5 +14,5 @@ traceability:
 allowed_dependency_edges: [kernel, domain, usecase]
 data_classes_owned: [INTERNAL_ONLY, AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 backend: cedar  # per ADR-0105 *-adapter-<backend>; Cedar v4 canonical per ADR-0140

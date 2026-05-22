@@ -2,7 +2,7 @@
 //!
 //! Pure I/O-free model for usage records, billable line items, tax
 //! treatment, and the admission rule that line items cannot be
-//! finalized without their declared tax jurisdiction.
+//! finalized without their declared tax profile reference.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -41,10 +41,10 @@ pub struct UsageRecord {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LineItem {
-    pub line_id: String,                  // data_class: INTERNAL_ONLY
-    pub usage: UsageRecord,               // data_class: INTERNAL_ONLY
-    pub unit_price_micros: u64,           // data_class: INTERNAL_ONLY
-    pub tax_jurisdiction: Option<String>, // data_class: INTERNAL_ONLY
+    pub line_id: String,                 // data_class: INTERNAL_ONLY
+    pub usage: UsageRecord,              // data_class: INTERNAL_ONLY
+    pub unit_price_micros: u64,          // data_class: INTERNAL_ONLY
+    pub tax_profile_ref: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl LineItem {
@@ -58,7 +58,7 @@ pub enum BillingError {
     EmptyRecordId,
     EmptyTenantId,
     ZeroQuantity,
-    NoTaxJurisdiction { line_id: String },
+    NoTaxProfileRef { line_id: String },
 }
 
 impl BillingError {
@@ -67,8 +67,8 @@ impl BillingError {
             Self::EmptyRecordId => "usage record id is empty".to_owned(),
             Self::EmptyTenantId => "tenant id is empty".to_owned(),
             Self::ZeroQuantity => "usage quantity is zero".to_owned(),
-            Self::NoTaxJurisdiction { line_id } => {
-                format!("line {line_id} cannot finalize without tax jurisdiction")
+            Self::NoTaxProfileRef { line_id } => {
+                format!("line {line_id} cannot finalize without tax profile reference")
             }
         }
     }
@@ -89,8 +89,8 @@ pub fn validate_usage(record: &UsageRecord) -> Result<(), BillingError> {
 
 pub fn finalize_line(line: &LineItem) -> Result<u128, BillingError> {
     validate_usage(&line.usage)?;
-    if line.tax_jurisdiction.is_none() {
-        return Err(BillingError::NoTaxJurisdiction {
+    if line.tax_profile_ref.is_none() {
+        return Err(BillingError::NoTaxProfileRef {
             line_id: line.line_id.clone(),
         });
     }
@@ -111,45 +111,45 @@ mod tests {
         }
     }
 
-    fn line(id: &str, unit: UsageUnit, qty: u64, price: u64, jur: Option<&str>) -> LineItem {
+    fn line(id: &str, unit: UsageUnit, qty: u64, price: u64, profile: Option<&str>) -> LineItem {
         LineItem {
             line_id: id.into(),
             usage: usage(id, unit, qty),
             unit_price_micros: price,
-            tax_jurisdiction: jur.map(String::from),
+            tax_profile_ref: profile.map(String::from),
         }
     }
 
     #[test]
     fn subtotal_multiplies_quantity_and_price() {
-        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("neutral"));
+        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("profile-alpha"));
         assert_eq!(l.subtotal_micros(), 500);
     }
 
     #[test]
     fn finalize_valid_line_returns_subtotal() {
-        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("neutral"));
+        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("profile-alpha"));
         assert_eq!(finalize_line(&l).unwrap(), 500);
     }
 
     #[test]
-    fn finalize_without_jurisdiction_errors() {
+    fn finalize_without_tax_profile_errors() {
         let l = line("L1", UsageUnit::Cpu, 5, 100, None);
         assert!(matches!(
             finalize_line(&l),
-            Err(BillingError::NoTaxJurisdiction { .. })
+            Err(BillingError::NoTaxProfileRef { .. })
         ));
     }
 
     #[test]
     fn zero_quantity_errors() {
-        let l = line("L1", UsageUnit::Cpu, 0, 100, Some("neutral"));
+        let l = line("L1", UsageUnit::Cpu, 0, 100, Some("profile-alpha"));
         assert!(matches!(finalize_line(&l), Err(BillingError::ZeroQuantity)));
     }
 
     #[test]
     fn empty_record_id_errors() {
-        let l = line("", UsageUnit::Cpu, 5, 100, Some("neutral"));
+        let l = line("", UsageUnit::Cpu, 5, 100, Some("profile-alpha"));
         assert!(matches!(
             finalize_line(&l),
             Err(BillingError::EmptyRecordId)
@@ -158,7 +158,7 @@ mod tests {
 
     #[test]
     fn empty_tenant_id_errors() {
-        let mut l = line("L1", UsageUnit::Cpu, 5, 100, Some("neutral"));
+        let mut l = line("L1", UsageUnit::Cpu, 5, 100, Some("profile-alpha"));
         l.usage.tenant_id = String::new();
         assert!(matches!(
             finalize_line(&l),

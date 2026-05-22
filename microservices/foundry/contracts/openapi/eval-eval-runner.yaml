@@ -19,7 +19,7 @@ servers:
         default: kr
         enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
 security:
-  - oidc: [foundry-eval:read]
+  - oidc: ['foundry-eval:read']
 paths:
   /capabilities/{capability_id}/publish-gate:
     get:
@@ -80,7 +80,7 @@ paths:
       operationId: triggerEvalRun
       tags: [eval-runs]
       security:
-        - oidc: [foundry-eval:trigger]
+        - oidc: ['foundry-eval:trigger']
       parameters:
         - in: path
           name: capability_id

@@ -1,43 +1,65 @@
-# IP-GITOPS-007 — K8s namespace bootstrap (Tier B)
+# IP-GITOPS-007 — Kubernetes namespace and AppProject bootstrap
 
 > ADR anchor: ADR-0202.
-> Owner: `oya-cloud-iac`.
-> Estimate: 3 days.
+> Owner: `axis-cloud-iac + axis-cloud-k8s`.
+> Scope: `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap`.
 
 ## Goal
 
-Bootstrap per-µservice namespaces via the
-`k8s-namespace-bootstrap` OpenTofu module, including RBAC +
-NetworkPolicy seed so Tier A (ArgoCD) can land app manifests
-safely.
+Define the cloud-iac namespace/bootstrap contract around the existing
+`k8s-namespace-bootstrap` OpenTofu module. The module is the service-local
+authority for namespace, ServiceAccount, RBAC seed, NetworkPolicy seed, and
+ArgoCD `AppProject` output references.
 
-## Tasks
+## Real service paths
 
-### 1. Module surface
+| Path | Contract |
+|---|---|
+| `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu` | module variables and outputs |
+| `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/README.md` | operator contract |
+| `microservices/cloud-iac/iac/kustomize/base/kustomization.yaml` | cloud-iac base rendered after bootstrap |
+| `microservices/cloud-iac/iac/kustomize/overlays/pack-kr/kustomization.yaml` | first pack overlay |
+| `microservices/cloud-iac/policy/ci-scope.cedar` | applier/rollback scope guards |
+| `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml` | apply state and rollback surfaces |
 
-- `k8s-namespace-bootstrap` module declares:
-  - Namespace creation.
-  - Default-deny NetworkPolicy (defense-in-depth).
-  - ServiceAccount for the µservice.
-  - RBAC bindings.
-  - ArgoCD project (Tier-B owned per ADR-0202).
+## Implementation contract
 
-### 2. Composition
+1. Module inputs remain `cluster_id`, `namespace`, `owner_team`,
+   `argocd_project_name`, and `tags`.
+2. Module outputs remain `namespace_name`, `service_account_name`, and
+   `argocd_project_name`; consumers must not scrape provider internals.
+3. Default-deny networking and RBAC are seeded before the Kustomize overlay is
+   applied.
+4. The cloud-iac applier cannot mutate resources outside the declared
+   microservice apply scope enforced by `ci-scope.cedar`.
 
-- Outputs (namespace name, SA name, project name) feed Tier-A
-  ArgoCD manifests.
+## Counterpart refs
 
-### 3. Tests
-
-- Module applies clean against a kind cluster.
-- Default-deny network policy validated.
+- `microservices/cloud-iac/cross-microservice-handoffs.md` outbound
+  `cloud-k8s` rows define apply and rollback calls after bootstrap.
+- `microservices/cloud-iac/cross-microservice-handoffs.md` inbound
+  `cloud-k8s` row defines apply-state reads from this service.
 
 ## Acceptance criteria
 
-- Every new µservice gets its namespace + RBAC + ArgoCD
-  project via OpenTofu before any Tier-A manifest applies.
+- `k8s-namespace-bootstrap/main.tofu` exposes the three named outputs.
+- The pack overlay renders after namespace bootstrap without claiming ownership
+  of another microservice's namespace.
+- Cloud-k8s handoffs remain explicit REST calls, not implicit module side
+  effects.
 
-## References
+## Validation commands
 
-- ADR-0202.
-- `docs/standards/gitops-iac-cluster-tier-boundaries.md`.
+```bash
+rg "output \\\"namespace_name\\\"|output \\\"service_account_name\\\"|output \\\"argocd_project_name\\\"" microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu
+rg "cloud-k8s|apply-state" microservices/cloud-iac/cross-microservice-handoffs.md
+rg "apply_scope|cross-µservice apply" microservices/cloud-iac/policy/ci-scope.cedar
+```
+
+## API Versioning (per ADR-0342)
+
+- Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
+- Initial declared_version: `microservices/cloud-iac/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
+- Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
+- Surface evidence: `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/IP-GITOPS-007-namespace-bootstrap-tier-b.md`.

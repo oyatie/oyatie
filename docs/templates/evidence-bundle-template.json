@@ -10,7 +10,7 @@
     "status": "Accepted",
     "date": "2026-05-12",
     "purpose": "Schema-valid evidence bundle for capability invocations, runbook executions, IP merges, and audit-chain replay.",
-    "enforcing_fitness_lane": "oya-foundry-fitness-audit-emission",
+    "enforcing_fitness_lane": "oya-governance-audit-emission",
     "owner_team": "ops-compliance + axis-foundry",
     "adrs_cited": [
       "ADR-0052",

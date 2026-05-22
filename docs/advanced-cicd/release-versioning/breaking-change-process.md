@@ -11,7 +11,7 @@ purpose: |
   template, 180-day sunset entry in SUNSET-LEDGER, dual reviewer-agent gate
   (change-class-reviewer + api-stability-reviewer), and major-version bump on
   next release cut. Calibrated between AWS (12 months) and Stripe (never-break).
-planned_enforcement_ref: oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-api-version-stability
+planned_enforcement_ref: oya-governance-deprecation-notice, oya-governance-api-version-stability
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -61,7 +61,7 @@ migration_guide: docs/release/migrate-foundry-v1-to-v2.md
 ```
 
 Missing or inconsistent frontmatter → CI fails via
-`oya-foundry-fitness-deprecation-notice` (BLOCKER).
+`oya-governance-deprecation-notice` (BLOCKER).
 
 ## 4. ADR template (`/templates/ADR-BREAKING-CHANGE.md`)
 

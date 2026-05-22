@@ -20,7 +20,7 @@ related_artifacts:
   - microservices/foundry/contracts/proto/guardrails.proto
   - microservices/foundry/policy/guardrail-enforcement.md
 
-autonomy_tier: T2
+autonomy_level: T2
 # T2 = sensitive read + write to audit-chain ledger; per ADR-0022.
 
 inputs:
@@ -39,7 +39,7 @@ inputs:
     type: integer
     minimum: 0
     required: false
-  - name: autonomy_tier_claim
+  - name: autonomy_level_claim
     type: enum
     values: [T0, T1, T2, T3, T4]
     required: true
@@ -66,7 +66,7 @@ outputs:
       - content_safety_hate
       - content_safety_weapons
       - content_safety_illegal
-      - autonomy_tier_exceeded
+      - autonomy_level_exceeded
       - policy_deny
       - llm_judge_budget_exceeded
       - ai_slop
@@ -123,9 +123,9 @@ cedar_policy_fragments:
   - microservices/foundry/policy/auditor-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/classify-prompt-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/classify-prompt-baseline.jsonl
   pass_threshold: 0.95   # recall on jailbreak fixtures + precision on legitimate
-  eval_metric: composite-recall-precision-against-golden-fixtures
+  eval_metric: composite-recall-precision-against-baseline-fixtures
   cadence: per-release + per-classifier-model-rollout
   reference: MITRE ATLAS + OWASP LLM Top 10 (2025) attack catalogues
 

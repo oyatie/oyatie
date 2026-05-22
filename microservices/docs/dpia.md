@@ -90,7 +90,7 @@ DPIA mandatory pre-deployment.
 | Import (DOCX / Markdown) | Migration / portability | Art. 6(1)(b) |
 | Cross-µservice embed (workflow-studio / sheets / slides) | Composition | Art. 6(1)(b) |
 | AI writing-assist (T1) | User-invoked | Art. 6(1)(a) explicit consent at invocation |
-| Auto-summary / auto-translate (T2) | Tenant-policy-bound | Art. 6(1)(f) + tenant-tier admission + per-user opt-in |
+| Auto-summary / auto-translate (T2) | Tenant-policy-bound | Art. 6(1)(f) + tenant-class admission + per-user opt-in |
 | Audit-chain emission | Records of processing (Art. 30) | Art. 6(1)(c) |
 | Legal-hold preservation | Legal obligation | Art. 6(1)(c) |
 | Marketing / unrelated commercial use | NOT a purpose | N/A |

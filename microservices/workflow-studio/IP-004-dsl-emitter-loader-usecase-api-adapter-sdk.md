@@ -111,3 +111,13 @@ cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice workflow-studio
 - ADR-0105 layer enum.
 - ADR-0106 application → usecase rename.
 - PRD §"Bounded Contexts" + §"Clean Architecture Compliance".
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

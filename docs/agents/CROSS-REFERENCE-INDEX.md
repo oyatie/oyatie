@@ -28,34 +28,34 @@ doc_status: published
 
 | Path | Doc-class | Purpose | Owner (RACI) | Lifecycle (DOC-CATALOG) | Enforced-by lane | Last-verified | Cross-refs (cited by) |
 |---|---|---|---|---|---|---|---|
-| `docs/CONSTITUTION.md` | Constitution | Mission, decision rights, prohibitions, amendments | Founder + council-architecture | Tier 0; amend-only-by-Founder | `oya-foundry-fitness-authority-cohesion` | 2026-05-12 | AGENTS, README, MASTERPLAN, every ADR |
+| `docs/CONSTITUTION.md` | Constitution | Mission, decision rights, prohibitions, amendments | Founder + council-architecture | Tier 0; amend-only-by-Founder | `oya-governance-authority-cohesion` | 2026-05-12 | AGENTS, README, MASTERPLAN, every ADR |
 | `docs/AGENTS.md` | Operating-Contract | Pre-flight + during-change + done-definition (D1–D18) | council-architecture | Tier 1; amend-by-PR | `traceability-validator`, `guard-pr-merge-review.mjs` | 2026-05-12 | CONSTITUTION, README, every agent-kickoff file |
-| `docs/README.md` | Redirect | Bootstrap routing | axis-foundry | Tier 1; thin (≤25 lines) | `oya-foundry-fitness-redirect-thinness` | 2026-05-12 | CONSTITUTION |
-| `docs/DESIGN.md` | Design | Architecture, planes, cross-axis contracts | council-architecture | Tier 1 | `oya-foundry-fitness-cohesion` | 2026-05-12 | AGENTS, MASTERPLAN, every architectural ADR |
-| `docs/SPEC.md` | Specification | Surface enumeration (capabilities, APIs, events, indexes, ad slots) | council-architecture | Tier 1 | `oya-foundry-fitness-spec-surface` | 2026-05-12 | DESIGN, PRD |
-| `docs/PRD.md` | PRD | North star, axes, scope, success metrics, decision log | Founder + council-architecture | Tier 1 | `oya-foundry-fitness-prd-coverage` | 2026-05-12 | MASTERPLAN, ROADMAP |
-| `docs/ROADMAP.md` | Roadmap | Wave sequence + per-wave gate criteria | council-architecture | Tier 1 | `oya-foundry-fitness-roadmap-gate` | 2026-05-12 | MASTERPLAN milestone gates |
-| `docs/DOC-CATALOG.md` | Catalog | Per-doc lifecycle + update protocol | council-architecture | Tier 1 | `oya-foundry-fitness-doc-catalog` | 2026-05-12 | every authoritative doc |
-| `docs/DOC-UPDATE-PROTOCOL.md` | Protocol | Update-trigger taxonomy + automation hooks | council-architecture | Tier 1 | `oya-foundry-fitness-doc-freshness` | 2026-05-12 | DOC-CATALOG |
-| `docs/ADR-INDEX.md` | ADR Index | Index of all ADRs (Accepted/Superseded) | crew-adr-promotion | Tier 1 | `oya-foundry-fitness-adr-shape`, `-adr-citation` | 2026-05-12 | DESIGN, every PR `## Traceability` |
-| `docs/CHANGELOG.md` | Ledger | Per-PR canonical-doc-touch row | axis-foundry (auto) | Tier 1 (append-only) | `oya-foundry-fitness-changelog-row` | 2026-05-12 | every PR D18 |
-| `docs/MISTAKES-LEDGER.md` | Ledger | Failure-mode catalog + mechanical preventions | council-architecture | Tier 1 (append-only) | `oya-foundry-fitness-mistakes-ledger-cite` | 2026-05-12 | PR `## Traceability` |
-| `docs/GLOSSARY.md` | Glossary | Canonical vocabulary | council-architecture | Tier 1 | `oya-foundry-fitness-glossary` | 2026-05-12 | every doc using domain terms |
-| `docs/RACI-OWNERSHIP.md` | RACI | Per-domain RACI rows | council-architecture | Tier 1 | `oya-foundry-fitness-raci-coverage` | 2026-05-12 | AGENTS, MASTERPLAN |
-| `docs/RISK-REGISTER.md` | Register | Top risks RM-NN with owner + status | council-architecture | Tier 1 | `oya-foundry-fitness-risk-coverage` | 2026-05-12 | MASTERPLAN §9 |
-| `docs/PRIVACY-PROGRAM.md` / `docs/SECURITY-PROGRAM.md` / `docs/COMPLIANCE-MATRIX.md` | Programs | Cross-cutting compliance | council-privacy / ops-security / ops-compliance | Tier 1 | `oya-foundry-fitness-privacy-coverage`, `-security-coverage` | 2026-05-12 | AGENTS pre-flight |
-| `docs/RELEASE-MANAGEMENT.md` / `docs/INCIDENT-MANAGEMENT.md` | Programs | Release + incident process | ops-sre-reliability | Tier 1 | `oya-foundry-fitness-release-readiness` | 2026-05-12 | AGENTS, runbooks |
-| `docs/RUNBOOKS-INDEX.md` | Index | Runbook discovery | ops-sre-reliability | Tier 1 | `oya-foundry-fitness-runbook-index-resolves` | 2026-05-12 | every runbook |
-| `docs/SLO-CATALOG.md` | Catalog | Service-level objectives | ops-sre-reliability | Tier 1 | `oya-foundry-fitness-error-budget-gate` | 2026-05-12 | RELEASE-MGMT |
-| `docs/STANDARDS-AND-TEMPLATES.md` | Index | Standards + templates index (post-lift) | council-architecture | Tier 1 | `oya-foundry-fitness-standards-index` | 2026-05-12 | AGENTS, docs/standards/INDEX.md |
-| `docs/decisions/ADR-*.md` | ADR | Architectural decisions | per-ADR-owner | Tier 2 | `oya-foundry-fitness-adr-shape` | per-ADR | DESIGN, IPs, MASTERPLAN |
+| `docs/README.md` | Redirect | Bootstrap routing | axis-foundry | Tier 1; thin (≤25 lines) | `oya-governance-redirect-thinness` | 2026-05-12 | CONSTITUTION |
+| `docs/DESIGN.md` | Design | Architecture, planes, cross-axis contracts | council-architecture | Tier 1 | `oya-governance-cohesion` | 2026-05-12 | AGENTS, MASTERPLAN, every architectural ADR |
+| `docs/SPEC.md` | Specification | Surface enumeration (capabilities, APIs, events, indexes, ad slots) | council-architecture | Tier 1 | `oya-governance-spec-surface` | 2026-05-12 | DESIGN, PRD |
+| `docs/PRD.md` | PRD | North star, axes, scope, success metrics, decision log | Founder + council-architecture | Tier 1 | `oya-governance-prd-coverage` | 2026-05-12 | MASTERPLAN, ROADMAP |
+| `docs/ROADMAP.md` | Roadmap | Wave sequence + per-wave gate criteria | council-architecture | Tier 1 | `oya-governance-roadmap-gate` | 2026-05-12 | MASTERPLAN milestone gates |
+| `docs/DOC-CATALOG.md` | Catalog | Per-doc lifecycle + update protocol | council-architecture | Tier 1 | `oya-governance-doc-catalog` | 2026-05-12 | every authoritative doc |
+| `docs/DOC-UPDATE-PROTOCOL.md` | Protocol | Update-trigger taxonomy + automation hooks | council-architecture | Tier 1 | `oya-governance-doc-freshness` | 2026-05-12 | DOC-CATALOG |
+| `docs/ADR-INDEX.md` | ADR Index | Index of all ADRs (Accepted/Superseded) | crew-adr-promotion | Tier 1 | `oya-governance-adr-shape`, `-adr-citation` | 2026-05-12 | DESIGN, every PR `## Traceability` |
+| `docs/CHANGELOG.md` | Ledger | Per-PR canonical-doc-touch row | axis-foundry (auto) | Tier 1 (append-only) | `oya-governance-changelog-row` | 2026-05-12 | every PR D18 |
+| `docs/MISTAKES-LEDGER.md` | Ledger | Failure-mode catalog + mechanical preventions | council-architecture | Tier 1 (append-only) | `oya-governance-mistakes-ledger-cite` | 2026-05-12 | PR `## Traceability` |
+| `docs/GLOSSARY.md` | Glossary | Canonical vocabulary | council-architecture | Tier 1 | `oya-governance-glossary` | 2026-05-12 | every doc using domain terms |
+| `docs/RACI-OWNERSHIP.md` | RACI | Per-domain RACI rows | council-architecture | Tier 1 | `oya-governance-raci-coverage` | 2026-05-12 | AGENTS, MASTERPLAN |
+| `docs/RISK-REGISTER.md` | Register | Top risks RM-NN with owner + status | council-architecture | Tier 1 | `oya-governance-risk-coverage` | 2026-05-12 | MASTERPLAN §9 |
+| `docs/PRIVACY-PROGRAM.md` / `docs/SECURITY-PROGRAM.md` / `docs/COMPLIANCE-MATRIX.md` | Programs | Cross-cutting compliance | council-privacy / ops-security / ops-compliance | Tier 1 | `oya-governance-privacy-coverage`, `-security-coverage` | 2026-05-12 | AGENTS pre-flight |
+| `docs/RELEASE-MANAGEMENT.md` / `docs/INCIDENT-MANAGEMENT.md` | Programs | Release + incident process | ops-sre-reliability | Tier 1 | `oya-governance-release-readiness` | 2026-05-12 | AGENTS, runbooks |
+| `docs/RUNBOOKS-INDEX.md` | Index | Runbook discovery | ops-sre-reliability | Tier 1 | `oya-governance-runbook-index-resolves` | 2026-05-12 | every runbook |
+| `docs/SLO-CATALOG.md` | Catalog | Service-level objectives | ops-sre-reliability | Tier 1 | `oya-governance-error-budget-gate` | 2026-05-12 | RELEASE-MGMT |
+| `docs/STANDARDS-AND-TEMPLATES.md` | Index | Standards + templates index (post-lift) | council-architecture | Tier 1 | `oya-governance-standards-index` | 2026-05-12 | AGENTS, docs/standards/INDEX.md |
+| `docs/decisions/ADR-*.md` | ADR | Architectural decisions | per-ADR-owner | Tier 2 | `oya-governance-adr-shape` | per-ADR | DESIGN, IPs, MASTERPLAN |
 | `docs/standards/*.md` (lifted) | Standard | Cross-cutting norm | per-standard-owner | Tier 2 | the lane named in each standard's frontmatter | 2026-05-12 | AGENTS, IPs |
-| `docs/templates/*.md\|yaml\|json` (lifted) | Template | Canonical doc/record shape | axis-foundry + per-template-owner | Tier 2 | `oya-foundry-fitness-<class>-shape` | 2026-05-12 | every PR |
+| `docs/templates/*.md\|yaml\|json` (lifted) | Template | Canonical doc/record shape | axis-foundry + per-template-owner | Tier 2 | `oya-governance-<class>-shape` | 2026-05-12 | every PR |
 | `docs/checklists/*.md` (lifted) | Checklist | Per-class verification | axis-foundry + per-checklist-owner | Tier 2 | `guard-pr-merge-review.mjs` + per-lane | 2026-05-12 | every PR |
-| `docs/products/<axis>/` | Per-axis PRD | Per-axis product spec | per-axis lead | Tier 2 | `oya-foundry-fitness-prd-coverage` | per-axis | PRD, DESIGN |
-| `docs/teams/` | Team charter | Per-team norms | per-team lead | Tier 2 | `oya-foundry-fitness-team-charter` | per-team | RACI |
-| `docs/regional-packs/` | Regional pack | Per-region adaptations | regional-packs lead | Tier 2 | `oya-foundry-fitness-regional-pack` | per-region | ADR-0010 |
-| `docs/runbooks/` | Runbook | Per-service operations | ops-sre-reliability + axis lead | Tier 2 | `oya-foundry-fitness-runbook-index-resolves` | per-runbook | RUNBOOKS-INDEX |
+| `docs/products/<axis>/` | Per-axis PRD | Per-axis product spec | per-axis lead | Tier 2 | `oya-governance-prd-coverage` | per-axis | PRD, DESIGN |
+| `docs/teams/` | Team charter | Per-team norms | per-team lead | Tier 2 | `oya-governance-team-charter` | per-team | RACI |
+| `docs/regional-packs/` | Regional pack | Per-region adaptations | regional-packs lead | Tier 2 | `oya-governance-regional-pack` | per-region | ADR-0010 |
+| `docs/runbooks/` | Runbook | Per-service operations | ops-sre-reliability + axis lead | Tier 2 | `oya-governance-runbook-index-resolves` | per-runbook | RUNBOOKS-INDEX |
 
 ## Working drafts (.omc/) — not authoritative until lifted
 
@@ -77,9 +77,7 @@ doc_status: published
 | [`AGENT-ENTRY-POINT.md`](AGENT-ENTRY-POINT.md) | Single page a fresh agent reads first | 2 |
 | [`AGENT-DECISION-TREE.md`](AGENT-DECISION-TREE.md) | Per-decision flowchart | 3 |
 | [`AGENT-TOOL-PROTOCOL.md`](AGENT-TOOL-PROTOCOL.md) | Tool-by-tool calling convention | 4 |
-| [`AGENT-COMPLETION-PROTOCOL.md`](AGENT-COMPLETION-PROTOCOL.md) | C1–C11 mile to `grit done` | 5 |
 | [`AGENT-FAILURE-RECOVERY.md`](AGENT-FAILURE-RECOVERY.md) | R1–R7 recoveries | 6 |
-| [`AGENT-ICM-TOPIC-CONVENTIONS.md`](AGENT-ICM-TOPIC-CONVENTIONS.md) | Canonical icm topics | 7 |
 | [`CROSS-REFERENCE-INDEX.md`](CROSS-REFERENCE-INDEX.md) | This file | 8 |
 | [`AGENT-CHEAT-SHEET.md`](AGENT-CHEAT-SHEET.md) | Printable 1-pager | 9 |
 | [`HUMAN-OPERATOR-GUIDE.md`](HUMAN-OPERATOR-GUIDE.md) | For humans when matrix matches | 10 |

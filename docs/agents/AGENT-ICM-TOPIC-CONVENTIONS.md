@@ -6,9 +6,6 @@ authority_tier: 2
 length_cap: 80
 date: 2026-05-12
 purpose: |
-  Canonical icm topic names + importance/keyword conventions. Extends and supersedes the
-  ICM section in repo-root `CLAUDE.md`. Every `icm store` MUST use one of these topics;
-  unknown topics fail `icm health`.
 canonical_authority: docs/CONSTITUTION.md
 foundation: ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim)
 related:
@@ -18,9 +15,7 @@ related:
 doc_status: published
 ---
 
-# ICM Topic Conventions
 
-> Canonical topics only. Unknown topics break `icm health` and lane `oya-foundry-fitness-icm-topic-hygiene`. Importance ladder: `critical` > `high` > `medium` > `low`. Foundation: ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim).
 
 ## Canonical topics
 
@@ -48,8 +43,6 @@ Always include: (a) the area/crate/module (e.g. `oya-platform-tenant-kernel`, `f
 
 ## What NOT to store
 
-Trivial details, info already in CLAUDE.md, ephemeral state (build logs, `git status`), secrets, PII, full file contents, raw stack traces (summarize), copies of other ICM rows. Lane: `oya-foundry-fitness-icm-payload-hygiene`.
 
 ## Authority
 
-This file extends [`/Users/jasonlee/oyatie/CLAUDE.md`](../../CLAUDE.md) §"Persistent memory (ICM) — MANDATORY". On conflict, this file wins (it is closer to canonical lift target).

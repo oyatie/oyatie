@@ -141,7 +141,7 @@ cedar_policy_fragments:
   - microservices/sheets/policy/auditor-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/sheets/capabilities/eval/t2-auto-golden.jsonl
+  reference_inputs_path: microservices/sheets/capabilities/eval/t2-auto-reference.jsonl
   pass_threshold: 0.999
   eval_metric: |
     Composite invariants (must hold over 1000-case corpus):

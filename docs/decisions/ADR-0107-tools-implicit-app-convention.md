@@ -40,13 +40,13 @@ User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and othe
 
 | Crate | Resolution | Rationale |
 |---|---|---|
-| `tools/oya-foundry-fitness-portfolio-citation` | RENAME → `*-app` | Binary tool; canonical `-app` suffix per layer enum. |
-| `tools/oya-foundry-fitness-predictable-naming` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-foundry-fitness-archive-orphan` | RETIRED by ADR-0118 | One-time IP-008 lane removed after M01-P18 replaced the grit-era cutover substrate. |
-| `tools/oya-foundry-fitness-banned-primitives` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-foundry-fitness-adr-shape` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-foundry-fitness-authoritative-tracked` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-foundry-fitness-purpose-audit` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-governance-portfolio-citation` | RENAME → `*-app` | Binary tool; canonical `-app` suffix per layer enum. |
+| `tools/oya-governance-predictable-naming` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-governance-archive-orphan` | RETIRED by ADR-0118 | One-time IP-008 lane removed after M01-P18 replaced the grit-era cutover substrate. |
+| `tools/oya-governance-banned-primitives` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-governance-adr-shape` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-governance-authoritative-tracked` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-governance-purpose-audit` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-adapter-substitution-test` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-tooling-agent-read` | KEEP (doctrinal lock, not naming exception) | CLAUDE.md sanctioned primitive; name fixed at agent-operating-contract layer. Recorded as a doctrinal bounded-extension under ADR-0053, NOT a layer-enum exception. |
 
@@ -82,13 +82,13 @@ Originally `Accepted` on 2026-05-15. Superseded the same day by user directive p
 The 2026-05-15 crate-naming audit (`specs/crate-naming-audit.json`) flagged 9 crates in `tools/` that lacked an explicit layer suffix:
 
 ```
-tools/oya-foundry-fitness-portfolio-citation
-tools/oya-foundry-fitness-predictable-naming
-tools/oya-foundry-fitness-archive-orphan  # retired by ADR-0118
-tools/oya-foundry-fitness-banned-primitives
-tools/oya-foundry-fitness-adr-shape
-tools/oya-foundry-fitness-authoritative-tracked
-tools/oya-foundry-fitness-purpose-audit
+tools/oya-governance-portfolio-citation
+tools/oya-governance-predictable-naming
+tools/oya-governance-archive-orphan  # retired by ADR-0118
+tools/oya-governance-banned-primitives
+tools/oya-governance-adr-shape
+tools/oya-governance-authoritative-tracked
+tools/oya-governance-purpose-audit
 tools/oya-adapter-substitution-test
 tools/oya-tooling-agent-read
 ```
@@ -125,13 +125,13 @@ All 9 become compliant in-place without renaming:
 
 | Crate | Layer (implicit) | Compliance |
 |---|---|---|
-| `tools/oya-foundry-fitness-portfolio-citation` | app | ✓ |
-| `tools/oya-foundry-fitness-predictable-naming` | app | ✓ |
-| `tools/oya-foundry-fitness-archive-orphan` | retired | ADR-0118 |
-| `tools/oya-foundry-fitness-banned-primitives` | app | ✓ |
-| `tools/oya-foundry-fitness-adr-shape` | app | ✓ |
-| `tools/oya-foundry-fitness-authoritative-tracked` | app | ✓ |
-| `tools/oya-foundry-fitness-purpose-audit` | app | ✓ |
+| `tools/oya-governance-portfolio-citation` | app | ✓ |
+| `tools/oya-governance-predictable-naming` | app | ✓ |
+| `tools/oya-governance-archive-orphan` | retired | ADR-0118 |
+| `tools/oya-governance-banned-primitives` | app | ✓ |
+| `tools/oya-governance-adr-shape` | app | ✓ |
+| `tools/oya-governance-authoritative-tracked` | app | ✓ |
+| `tools/oya-governance-purpose-audit` | app | ✓ |
 | `tools/oya-adapter-substitution-test` | app | ✓ |
 | `tools/oya-tooling-agent-read` | app | ✓ |
 
@@ -139,7 +139,7 @@ The audit's residual non-compliant count drops from 18 to 9 (the remaining 9 are
 
 ## Consequences
 
-- **`oya-foundry-fitness-predictable-naming-kernel`** must be updated to recognize the tools/-implicit-app convention. Until then, the lane would flag these 9 crates as non-compliant.
+- **`oya-governance-predictable-naming-kernel`** must be updated to recognize the tools/-implicit-app convention. Until then, the lane would flag these 9 crates as non-compliant.
 - **`specs/crate-naming-audit.json`** is amended in this commit to mark the 9 tools/ crates as compliant via ADR-0107.
 - **Cargo.toml `[workspace.metadata.oya]`** comment block updated to document the convention alongside the check-family and backend-suffix patterns from ADR-0105.
 - **`oya-tooling-agent-read` no longer requires the "naming-exceptions" doctrinal bounded-extension** I added in ADR-0105 (it's now compliant via the standard convention).
@@ -154,11 +154,11 @@ The audit's residual non-compliant count drops from 18 to 9 (the remaining 9 are
 
 1. **Per-crate rename to `*-app`.** Rejected: 9 atomic renames (workspace.members + importers + scripts that invoke by name), redundant tautology, breaks `oya-tooling-agent-read` doctrinal name.
 2. **Allow tools/ crates to use ANY layer suffix.** Rejected: too permissive; defeats the BNF discipline.
-3. **Restrict tools/ to binaries-only (no lib surface).** Rejected: the existing `oya-foundry-fitness-purpose-audit` has a lib surface (it's both a lib + a bin); same for `oya-tooling-agent-read`. Production crates under `tools/` legitimately expose both surfaces for testing.
+3. **Restrict tools/ to binaries-only (no lib surface).** Rejected: the existing `oya-governance-purpose-audit` has a lib surface (it's both a lib + a bin); same for `oya-tooling-agent-read`. Production crates under `tools/` legitimately expose both surfaces for testing.
 
 ## Follow-ups
 
-1. Update `oya-foundry-fitness-predictable-naming-kernel` (Phase E successor-IP) to:
+1. Update `oya-governance-predictable-naming-kernel` (Phase E successor-IP) to:
    - Recognize the 13-value enum (per ADR-0105).
    - Recognize tools/-implicit-app convention (per this ADR-0107).
    - Recognize `oya-check-<feature>` self-layering (per ADR-0105).

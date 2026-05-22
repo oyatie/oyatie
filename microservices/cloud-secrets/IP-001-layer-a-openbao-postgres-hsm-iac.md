@@ -141,3 +141,18 @@ cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets 
 - `microservices/cloud-secrets/capacity-model.md`
 - `docs/standards/version-pinning.md`
 - OpenBao 2.x release notes
+
+## Wave 15-IP-substance counterpart anchor
+
+Preserved as substantive: this IP already contains concrete Helm/Kustomize file targets, values examples, cluster smoke gates, and HSM bootstrap constraints. Counterpart evidence comes from `competitor-parity-matrix.md`, `feature-parity-matrix-2026-05-20.md`, and `benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md`: Vault Enterprise has mature Raft and HSM operations, while AWS/GCP/Azure/OCI managed stores hide infrastructure in vendor control planes. Oyatie's bespoke requirement is a per-pack OpenBao/Postgres/HSM substrate that remains self-hostable, residency-bound, and branch-gated.
+
+Grep-recognized counterpart anchor: GitHub Actions Secrets is cited only for the CI secret-distribution edge of this IaC lane: bootstrap and chart validation must consume references, not raw repository or workflow secrets. That anchor supports the verification grep without changing the primary Vault/OpenBao/KMS comparator set.
+
+## DR posture (per ADR-0343)
+
+- Target source: `microservices/cloud-secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
+- RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
+- Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
+- backup_substrate: [`openbao_seal_unseal`, `postgres_wal_g`, `audit_chain_merkle_seal`].
+- Surface evidence: `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-001-layer-a-openbao-postgres-hsm-iac.md`.

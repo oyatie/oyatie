@@ -22,7 +22,7 @@ doc_status: published
 | S3 hot storage (avg 50 PB) | $115,000/mo |
 | S3 cold storage (avg 500 PB, after 90d age-down per pack) | $200,000/mo |
 | Postgres 16 (managed; 50 TB) | $25,000 |
-| Valkey 8.1 (Redis wire-compat) (256 GB) | $5,000 |
+| Valkey 8.1 (RESP3 wire-compatible) (256 GB) | $5,000 |
 | Meilisearch 0.10.0 (5 TB) | $10,000 |
 | CDN CloudFront egress (assume avg 100 Gbps sustained) | $250,000 |
 | Pandoc 3.x (transcript-to-PDF/DOCX; CPU only) | $1,000 |

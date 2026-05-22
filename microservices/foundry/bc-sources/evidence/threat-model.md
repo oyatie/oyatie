@@ -73,7 +73,7 @@ This threat model covers the foundry-evidence **frontend** µservice only: per-i
 | T-I-05 | Side-channel via evidence-query response timing | Adversary infers existence of invocations via timing | L | L | Query layer adds constant-time padding for tenant-not-found vs tenant-empty (per `policy/tenant-scope.cedar` §TS-09) | L |
 | T-I-06 | Regulator-export bundle leak via misdirected delivery | Bundle written to wrong S3 bucket | L | C | Receiving-bucket bound to receiving-tenant SCC + DPA-recorded export plan; 2-person rule validates target bucket; audit-emitted | L |
 | T-I-07 | Evidence-blob URL exposure | Pre-signed URL leaked from operator screen | L | H | Pre-signed URLs short-lived (≤ 5 min) + IP-bound where supported + audit-emitted on issuance | L |
-| T-I-08 | Inadvertent disclosure of foundry-supervisor autonomy-tier rationale | Pack exposes T3 escalation reasoning that is itself sensitive | L | M | Autonomy-tier rationale is a separate `data_class=INTERNAL_ONLY` payload field; gated by `policy/tenant-scope.cedar` §TS-04 (TenantOperator never reads INTERNAL_ONLY without entitlement) | L |
+| T-I-08 | Inadvertent disclosure of foundry-supervisor autonomy-ceiling rationale | Pack exposes T3 escalation reasoning that is itself sensitive | L | M | Autonomy-tier rationale is a separate `data_class=INTERNAL_ONLY` payload field; gated by `policy/tenant-scope.cedar` §TS-04 (TenantOperator never reads INTERNAL_ONLY without entitlement) | L |
 
 ### Denial of Service (D)
 

@@ -16,7 +16,7 @@ depends_on: [IP-002]
 
 ## Intent
 
-Author `oya-sheets-cell-grid-adapter-postgres`: workbook metadata + cell hot-tier rows + per-(workbook, sheet) materialized-view caches for frequently-accessed ranges. Citus partition + RLS enforced.
+Author `oya-sheets-cell-grid-adapter-postgres`: workbook metadata + cell hot-schema rows + per-(workbook, sheet) materialized-view caches for frequently-accessed ranges. Citus partition + RLS enforced.
 
 ## ChangeSet boundary
 

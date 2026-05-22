@@ -15,7 +15,7 @@ doc_status: published
    - cargo-deny licenses / `oya gate validate architecture-boundaries`
    - oya catalog validate / oya gate validate (claim-ceiling, foundation-bypass, plane-class)
    - Trivy / Cosign / SBOM
-   - oya-foundry-fitness-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius}
+   - oya-governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius}
 2. ☐ PR has 5 mandatory H2s: `## Issue / Summary / Verification / Traceability / Evidence`
 3. ☐ `## Verification` lists every check from CI + outcome (no hand-wave)
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
@@ -27,7 +27,7 @@ doc_status: published
    - data-class-impact → council-privacy
    - regulatory-impact → ops-compliance
    - security-class → ops-security
-8. ☐ Glossary alignment per `oya-foundry-fitness-glossary` — no new domain term without GLOSSARY entry
+8. ☐ Glossary alignment per `oya-governance-glossary` — no new domain term without GLOSSARY entry
 9. ☐ ADR cited where applicable (only new pack ADR-0001..0051, plus future pack ADRs after their files exist; legacy ADR-#### forbidden in active text)
 10. ☐ Brand check — canonical `Oyatie` usage preserved; deprecated aliases and tautological rebrand statements rejected (per ADR-0017 / MFL-0011)
 11. ☐ Capability eval-set passes (if Foundry capability change)

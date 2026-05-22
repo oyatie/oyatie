@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-forms + council-product
 deciders: council-product, council-architecture, axis-forms, ops-security, council-privacy, council-legal-compliance, council-design-system
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/forms.json]
 competitor_benchmark:
   - Google Forms (Google Workspace)
@@ -100,7 +100,9 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 | AC-27 | DSR: submitter request → form identification → erasure within pack-SLA. | `oya-governance-dsr-cascade-conformance` |
 | AC-28 | Cedar default-deny: 50-case adversarial corpus; every non-permit attempt returns deny + audit row. | `oya-governance-cedar-default-deny-conformance` |
 
-## 4. Performance Requirements
+## 4. Non-Functional Requirements
+
+### Performance Requirements
 
 | Metric | Budget (GA) | Notes |
 |---|---|---|
@@ -114,17 +116,47 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 | AI-form-build (p95) | ≤ 8s | T2 invocation including PII redactor + LLM + schema validate |
 | File upload scan (100MB file, p95) | ≤ 5s | ClamAV streaming |
 
-## 5. Horizontal Scalability
+### Horizontal Scalability
 
 - Form-rest: stateless; HPA 4–80 replicas per region; per-tenant rate-limit at L7.
 - Response-collector-rest: stateless; HPA 4–80 replicas per region; sticky to Citus shard via tenant_id.
 - Response-store (Postgres + Citus 12.x): tenant_id shard key; 32 shards baseline; replication-factor 2.
-- Response-cache (Valkey 8.1 (Redis wire-compat)): per-cell HA; ephemeral; regenerable.
+- Response-cache (Valkey 8.1 (RESP3 wire-compatible)): per-cell HA; ephemeral; regenerable.
 - Form-builder-wasm: served via CDN; tenant-agnostic; cached at edge.
 - Bulk-distribute-worker: async; back-pressured queue (Kafka); ≤ 1k recipients/sec per pack.
 - Export-worker: async; streaming to object storage; 100k-response export ≤ 5s.
 
-## 6. Protocols
+### DR posture (ADR-0343)
+
+- RTO/RPO target: manifest-declared RTO p99 900s and RPO p99 60s for response-store and published form definitions, staying stricter than the HIPAA-2024 floor of RTO 3600s/RPO 300s, SOC2-T2 floor of 14400s/900s, and KR-PIPA floor of 14400s/900s. Effective floor driver: HIPAA-2024 for PHI intake.
+- Failover reference: manifest `failover_runbook` is `runbooks/dr-failover.md`; supporting corruption drills remain `runbooks/response-store-corruption.md` and export backlog recovery remains `runbooks/export-pipeline-failure.md`.
+- Multi-region active-active posture: true per manifest; replication shape is `active-active-multi-az-cross-region-warm` across `postgres_wal_g`, versioned object storage, Valkey, and audit-chain Merkle seals.
+- Tenant-visible behavior: submitted forms either commit once with an audit-chain seal or fail closed, so patient intake, e-signature, and paid form-submission workflows do not silently lose responses during a regional event.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: manifest-declared 0.08 vCPU, 256 MiB RAM, 5 GB storage, two Postgres connections, two Valkey connections, and five outbound HTTP connections reserved before burst credits.
+- Scaling dimension: `per_request` for render/submit, `per_form_response` for storage, and `per_export_job` for CSV/XLSX/PDF/DOCX workloads.
+- Cell placement class: Tier-3 per manifest because Forms is a tenant-facing Workspace app with request/submission scaling, while PHI/PII controls are enforced by pack admission and audit-chain seals.
+- Autoscaling boundaries: form-rest and response-collector HPA 4-80 replicas per region; ClamAV 4-20; export, bulk-distribute, webhook, and AI-form-build workers 2-20, with per-tenant L7 rate limits and Citus tenant_id shard placement.
+- Tenant load profile: supports 50k form-render RPS, 5k sustained submissions, 20k peak submissions, and 100k-response exports without letting one survey tenant starve healthcare intake tenants.
+
+### Sustainability and cost attribution (ADR-0344)
+
+- Per-call emission claim: every `FormResponseSubmitted`, export, webhook, bulk-distribute, and AI-form-build audit row carries `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with tenant, capability, provider, cell, and compliance_pack axes.
+- Carbon-aware provider routing: yes for AI-form-build, exports, and bulk distribution when the pack and latency budget allow; no for HIPAA emergency intake, payment field tokenization, and submit/PHI paths that must stay in the pinned region.
+- Tenant transparency surface: finops-portal exposes per-form submission, export, webhook, and AI-build line items, with pack and region attribution for customer chargeback.
+- Regulatory driver: the same audit-side dimensions satisfy CSRD ESRS E1, SB-253, and SEC climate disclosure rollups without reconstructing emissions after the fact.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet across the version header, URL prefix, and proto3 field for REST, embed widget, webhook, and form-definition contracts.
+- SDK semver model: generated SDKs use `major.minor.patch`; breaking form-definition and response API changes require a major SDK bump and a new public date version.
+- Support window: last 3 public API versions are supported for at least 180 days.
+- Per-tenant pinning: yes for embedded forms, webhooks, and pre-filled-link submitters so a tenant can complete long-running campaigns on the version they published.
+- Internal-mesh exemption: yes; direct gRPC within the Forms mesh remains exempt under ADR-0145 while public carriers stay date-versioned.
+
+### Protocols
 
 - **OpenAPI 3.2.0** — main REST surface for form + response APIs.
 - **OAuth 2.1 + OIDC** — authenticated forms; submitter identity claim.
@@ -137,12 +169,12 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 - **gRPC + Protocol Buffers** — internal SDK between Forms components.
 - **WebDAV (PROPFIND/PUT)** — file-upload bridge to drive.
 
-## 7. Layer-A Substrate
+### Layer-A Substrate
 
 | Component | Pin | Purpose |
 |---|---|---|
 | Postgres 16 LTS + Citus 12.x | 16.3 / Citus 12.1 | Form-definition + response-store; tenant_id shard key; RLS + column-level envelope encryption |
-| Valkey 8.1 (Redis wire-compat) | 7.2.5 | Rate-limit + session + WAF cache |
+| Valkey 8.1 (RESP3 wire-compatible) | 7.2.5 | Rate-limit + session + WAF cache |
 | Meilisearch 0.10.0 | 0.10.0 | Response search (full-text + facet) |
 | Leptos 0.7.x | 0.7.3 | Form-builder + form-renderer WASM |
 | ClamAV 1.3 LTS | 1.3.1 | Upload scan (free path) |
@@ -232,3 +264,23 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 - SOC 2 Type 2 Trust Services Criteria (AICPA).
 - OWASP ASVS v4.
 - CIS Kubernetes Benchmark.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `forms` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `forms` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_request` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

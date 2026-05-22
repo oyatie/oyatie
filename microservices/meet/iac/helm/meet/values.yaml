@@ -61,7 +61,7 @@ liveStreamEgressWorker:
 
 openbao:
   postgresUrl: "${openbao:secret/meet/postgres-url}"
-  redisUrl: "${openbao:secret/meet/redis-url}"
+  valkeyUrl: "${openbao:secret/meet/valkey-url}"
   livekitApiKey: "${openbao:secret/meet/livekit-api-key}"
   livekitApiSecret: "${openbao:secret/meet/livekit-api-secret}"
   coturnSharedSecret: "${openbao:secret/meet/coturn-shared-secret}"

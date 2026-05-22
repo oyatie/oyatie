@@ -47,7 +47,7 @@ Arts. 9-15 require:
 - Art. 11: Technical documentation (model card).
 - Art. 13: Transparency to users (Art. 50 transparency-label).
 - Art. 14: Human oversight (manual reviewer in appeal workflow).
-- Art. 15: Accuracy + robustness + cybersecurity (golden-set eval + adversarial robustness eval).
+- Art. 15: Accuracy + robustness + cybersecurity (reference-set eval + adversarial robustness eval).
 - Art. 50: Transparency obligation (user-facing label "AI-assessed").
 - Art. 52: Codes of conduct (voluntary alignment).
 - Art. 73: Serious incident reporting to market surveillance authority.
@@ -95,7 +95,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
    - All appeals go through human reviewer (no auto-resolve); SLA 7 days per EU DSA Art. 20.
    - Per `runbooks/content-moderation-rollback.md`, mass false-positive events trigger Sev-1 + rollback path.
 7. **Art. 15 accuracy + robustness + cybersecurity:**
-   - Per-release golden-set eval: macro-F1 ≥ 0.92 across 8 verdict labels; false-positive rate < 2 % at production threshold.
+   - Per-release reference-set eval: macro-F1 ≥ 0.92 across 8 verdict labels; false-positive rate < 2 % at production threshold.
    - Per-release adversarial robustness eval against synthetic prompt-injection + protected-group benchmark.
    - foundry-runtime classifier deployment signed; verdicts signed by foundry-runtime + sealed via audit-chain Ed25519.
 8. **EU DSA Art. 17 Statement of Reasons:**
@@ -110,7 +110,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
     - pack-kr: KR PIPA Art. 29-2 individual right to opt-out of automated decision.
     - Minor accounts (per `age-verification` BC): chronological-only feed default + classifier verdicts visible to parental account.
 11. **Alignment with sibling µservices:**
-    - This ADR pairs with `ADR-MSGR-0003` (messenger search/classifier bounds) and planned `ADR-MAIL-0004` (mail spam-classifier bounds). All three share the foundry-runtime evidence pipeline + golden-set eval + audit-chain seal pattern. Cross-citation maintained.
+    - This ADR pairs with `ADR-MSGR-0003` (messenger search/classifier bounds) and planned `ADR-MAIL-0004` (mail spam-classifier bounds). All three share the foundry-runtime evidence pipeline + reference-set eval + audit-chain seal pattern. Cross-citation maintained.
 
 ## Alternatives Considered
 
@@ -163,7 +163,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 
 ### Negative
 
-- Per-release evidence pipeline complexity is non-trivial (model card + golden-set eval + bias audit + adversarial robustness eval); operational cost.
+- Per-release evidence pipeline complexity is non-trivial (model card + reference-set eval + bias audit + adversarial robustness eval); operational cost.
 - Art. 73 serious-incident reporting requires ops-compliance + council-privacy + ops-legal coordination; not all team members are aware of 15-day window.
 - pack-us-healthcare PHI default-OFF means HIPAA-Covered Entity tenants get less spam protection unless they opt-in with BAA.
 - Heuristic ranking (P01 default per ADR-SOC-0001) still triggers EU AI Act Art. 50 transparency; minor UI/UX overhead.
@@ -175,7 +175,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 - CI lane `oya-governance-eu-ai-act-conformance` registered in IP-015; verifies:
   - Statement-of-Reasons emission per verdict.
   - eu_ai_act_label populated.
-  - Golden-set eval passes for staged release.
+  - reference-set eval passes for staged release.
   - Bias-audit disparity ratio ≥ 0.8.
 - Runbook `runbooks/content-moderation-rollback.md` (Slice A) authored for drift / mass false-positive recovery.
 - Per-tenant transparency log export (`oya_social_dsa_transparency_report_freshness_days` metric) for EU DSA Art. 24 quarterly publication.
@@ -190,7 +190,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 - **UK Online Safety Act 2023**: illegal-content duty + safety-by-design report; Ofcom notification per significance.
 - **AU Online Safety Act 2021**: BOSE + eSafety Commissioner.
 - **HIPAA 45 CFR §164.502(b) + §164.514**: minimum-necessary + safe-harbor compliance for pack-us-healthcare.
-- **NIST AI RMF**: risk management framework alignment; bias-audit + golden-set eval map to NIST AI RMF Map + Measure + Manage functions.
+- **NIST AI RMF**: risk management framework alignment; bias-audit + reference-set eval map to NIST AI RMF Map + Measure + Manage functions.
 - **ISO/IEC 23894 (AI risk management)**: voluntary alignment per Art. 52 codes-of-conduct.
 
 ## References

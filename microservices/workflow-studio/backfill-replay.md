@@ -78,7 +78,7 @@ Replay re-emits / re-renders a definition version with the current emitter / loa
 
 ### Verification
 
-- Integration test: replay 100 golden specs through current emitter; expect 100% byte-equal.
+- Integration test: replay 100 reference specs through current emitter; expect 100% byte-equal.
 - Migration test: replay v1 spec through v2 adapter; expect lossless conversion.
 
 ## Cost Model

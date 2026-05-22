@@ -94,7 +94,7 @@ Cause: many simultaneous export jobs hit gVisor sandbox capacity; queue saturate
 
 ## Recovery Path E — Embedded VBA / Apps-Script-equivalent in upload
 
-Cause: XLSX upload contains VBA macros; per ADR-SHEETS-0007 named-limit list, VBA is structurally stripped on import. If on EXPORT a tenant attempts to round-trip a workbook that originally contained VBA, the VBA is NOT re-emitted (best-effort tier excludes VBA).
+Cause: XLSX upload contains VBA macros; per ADR-SHEETS-0007 named-limit list, VBA is structurally stripped on import. If on EXPORT a tenant attempts to round-trip a workbook that originally contained VBA, the VBA is NOT re-emitted (best-effort fidelity excludes VBA).
 
 | Step | Action |
 |---|---|
@@ -121,7 +121,7 @@ After recovery:
 
 - Postmortem within 5 business days.
 - If gVisor sandbox crashed: STRICT ops-security postmortem; root-cause within 24h.
-- If rust_xlsxwriter regression: update XLSX golden corpus per ADR-SHEETS-0007.
+- If rust_xlsxwriter regression: update XLSX reference corpus per ADR-SHEETS-0007.
 - Update `failure-modes.md` if new pattern surfaced.
 
 ## References

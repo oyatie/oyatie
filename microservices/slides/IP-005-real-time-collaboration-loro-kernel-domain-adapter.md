@@ -14,7 +14,7 @@ depends_on: [IP-002]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: real-time-collaboration with Loro CRDT — kernel + domain + adapter + adapter-redis + adapter-loro
+# IP-005: real-time-collaboration with Loro CRDT — kernel + domain + adapter + adapter-valkey + adapter-loro
 
 ## Intent
 
@@ -23,7 +23,7 @@ Author the Loro 1.x CRDT integration per ADR-SLIDES-0001. AC-06 "never silent lo
 ## ChangeSet boundary
 
 7 crates:
-- `oya-slides-real-time-collaboration-{kernel,domain,usecase,api,adapter,adapter-redis,adapter-loro}`
+- `oya-slides-real-time-collaboration-{kernel,domain,usecase,api,adapter,adapter-valkey,adapter-loro}`
 
 ## Concrete File Targets
 
@@ -32,7 +32,7 @@ Author the Loro 1.x CRDT integration per ADR-SLIDES-0001. AC-06 "never silent lo
 | `src/crates/oya-slides-real-time-collaboration-kernel/{src/entities.rs,src/ports.rs}` | create |
 | `src/crates/oya-slides-real-time-collaboration-domain/{src/merge.rs,tests/no_silent_overwrite.rs}` | create |
 | `src/crates/oya-slides-real-time-collaboration-adapter-loro/{src/loro_impl.rs,tests/integration.rs}` | create |
-| `src/crates/oya-slides-real-time-collaboration-adapter-redis/{src/redis_impl.rs,tests/redis_integration.rs}` | create |
+| `src/crates/oya-slides-real-time-collaboration-adapter-valkey/{src/valkey_impl.rs,tests/valkey_integration.rs}` | create |
 
 ## Code Shape
 
@@ -85,7 +85,7 @@ proptest! {
 ```bash
 cargo nextest run -p oya-slides-real-time-collaboration-domain --test no_silent_overwrite
 cargo nextest run -p oya-slides-real-time-collaboration-adapter-loro --test integration
-cargo nextest run -p oya-slides-real-time-collaboration-adapter-redis --test redis_integration -- --include-ignored
+cargo nextest run -p oya-slides-real-time-collaboration-adapter-valkey --test valkey_integration -- --include-ignored
 oya gate validate no-silent-loss --microservice slides
 ```
 

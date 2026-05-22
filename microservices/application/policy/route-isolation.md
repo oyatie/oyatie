@@ -158,7 +158,7 @@ principal.jit_token.reason.matches("ops:.*")`.
 | `oya-application-cedar-policy-compiles` | All policies in `policy/*.cedar` schema-validate |
 | `oya-application-cedar-default-deny` | Schema asserts default `forbid` rule present |
 | `oya-application-route-pii-path-block` | Path patterns refuse `@` and human-name shapes |
-| `oya-application-cedar-eval-budget` | Benchmark asserts p99 ≤10 ms over golden corpus |
+| `oya-application-cedar-eval-budget` | Benchmark asserts p99 ≤10 ms over canonical corpus |
 | `oya-application-route-audit-emission` | Every route resolution emits audit record |
 
 ## Anti-patterns

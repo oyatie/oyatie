@@ -90,7 +90,7 @@ spec:
           for: 30m
           labels:
             severity: critical
-            policy: eu-ai-act-annex-iii-section-4
+            policy: eu-ai-act-risk_anchor-iii-section-4
             microservice: tasks
           annotations:
             summary: "tasks T2 auto-assign fairness deviation > 20% (Annex III §4 employment-context)"

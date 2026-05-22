@@ -7,72 +7,76 @@ impl_plan_id: IP-011-content-moderation-bc
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-social + axis-foundry-runtime + council-privacy
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location, oya-governance-eu-ai-act-conformance]
+owner: axis-social + trust-safety
+acceptance_lanes: [cargo-nextest, moderation-policy-test, appeal-evidence-test]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-011: Content-moderation bounded context
 
-# IP-011: content-moderation BC (kernel → domain → usecase → adapter-clamav + adapter-opswat + worker + sdk)
+## A. Problem
+Social must moderate abuse, malware, CSAM-adjacent routing, appeals, and DSA/AI Act evidence without turning classifiers into unreviewable platform magic.
 
-## Intent
+## B. Approach
+Implement the cataloged content-moderation kernel and ClamAV/OPSWAT adapters plus planned domain/usecase/worker/sdk layers. Verdicts carry classifier version, policy basis, appeal state, audit correlation, and transparency-log fields.
 
-Author the `content-moderation` BC: AI-classifier verdicts via foundry-runtime
-T2 capability; manual reviewer queue + appeal workflow per EU DSA Art. 20;
-abuse-report ingestion per EU DSA Art. 16; Statement of Reasons emission per
-EU DSA Art. 17; EU AI Act Art. 50 transparency-label on every verdict.
-
-**This BC is high-risk per EU AI Act 2024/1689 Annex III §1(a). All Arts.
-9-15 + 50 obligations operative.** See ADR-SOC-0003.
-
-## ChangeSet boundary
-
-`content-moderation` BC end-to-end.
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `src/crates/oya-social-content-moderation-kernel/src/{ports,entities,errors}.rs` | create |
-| `src/crates/oya-social-content-moderation-domain/src/{moderation_verdict,abuse_report,appeal,classifier_version,statement_of_reasons,eu_ai_act_label}.rs` | create |
-| `src/crates/oya-social-content-moderation-usecase/src/{classify,emit_verdict,file_report,open_appeal,resolve_appeal}.rs` | create |
-| `src/crates/oya-social-content-moderation-adapter-postgres/src/repository.rs` | create |
-| `src/crates/oya-social-content-moderation-adapter-clamav/src/scanner.rs` | create |
-| `src/crates/oya-social-content-moderation-adapter-opswat/src/scanner.rs` | create |
-| `src/crates/oya-social-content-moderation-adapter/src/foundry_runtime_client.rs` | create |
-| `src/crates/oya-social-content-moderation-worker/src/{classifier_loop,reviewer_queue,appeal_resolver}.rs` | create |
-| `tests/content_moderation_e2e.rs` | create |
+| `catalog/oya-social-content-moderation-{kernel,adapter-clamav,adapter-opswat}.yaml` | Existing anchors. |
+| `src/crates/oya-social-content-moderation-{kernel,domain,usecase,api,adapter-clamav,adapter-opswat,worker,sdk}/` | Planned family named by PRD/IP/catalog. |
+| `policy/content-policy.cedar` and `policy/abuse-defence.cedar` | Moderation and abuse controls. |
+| `slos/moderation-classifier-latency.openslo.yaml` and `slos/content-policy-enforcement-correctness.openslo.yaml` | Promotion SLOs. |
 
-## Acceptance Gates
+## D. Ordered implementation steps
+1. Define moderation verdict, abuse report, appeal, classifier version, and transparency-event types.
+2. Add malware scanner adapter ports for ClamAV and OPSWAT.
+3. Implement synchronous pre-publish and async escalation paths.
+4. Add appeal workflow state transitions and audit evidence.
+5. Test policy denials, quarantine, classifier timeout, rollback, and appeal reversal.
+6. Wire DSA transparency worker inputs.
+7. Connect dashboards and runbooks for rollback and CSAM/report queues.
 
-```bash
-cargo nextest run -p oya-social-content-moderation-kernel
-cargo nextest run -p oya-social-content-moderation-domain
-cargo run -p oya-dev-cli -- gate validate eu-ai-act-conformance --microservice social
-```
+## E. Acceptance
+- `cargo nextest run -p oya-social-content-moderation-kernel` passes.
+- ClamAV and OPSWAT adapter tests pass.
+- `slos/moderation-classifier-latency.openslo.yaml` and `slos/content-policy-enforcement-correctness.openslo.yaml` resolve.
+- `cargo run -p oya-dev-cli -- gate validate content-policy --microservice social` passes.
+- `runbooks/content-moderation-rollback.md` remains current.
 
-## Test Plan
+## F. Evidence
+- PRD FR-14, FR-15, audit/compliance sections: `PRD.md`.
+- Policies: `policy/content-policy.cedar`, `policy/abuse-defence.cedar`.
+- Decisions: `decisions/ADR-SOC-0003-content-moderation-classifier-bounds.md`.
+- Runbooks: `runbooks/content-moderation-rollback.md`, `runbooks/csam-detect-and-ncmec-report.md`.
 
-- AC-09 E2E: moderation classifier verdict → audit-chain seal within 2s + appeal-workflow opens.
-- Statement of Reasons emitted with every verdict (EU DSA Art. 17 schema).
-- EU AI Act Art. 50 transparency label populated on every verdict.
-- Appeal resolution within 7-day SLA.
-- pack-us-healthcare: auto-moderation DISABLED on PHI accounts by default.
-- Classifier rollback drill per `runbooks/content-moderation-rollback.md`.
-- Media scan: ClamAV + OPSWAT positive on synthetic infected file → quarantine.
+## G. Counterpart comparison
+X, Meta/Instagram/Threads, TikTok, Snapchat, Reddit, Mastodon, and Bluesky all face moderation pressure. Oyatie's differentiator is not looser moderation; it is policy-bound moderation with appeals, audit-chain evidence, DSA transparency, and explicit classifier rollback.
 
-## Halt Conditions
+## H. Foundation delivery expansion
+- Deliverable detail: moderation verdicts include policy basis, classifier version, confidence, action, appeal state, and audit correlation.
+- Deliverable detail: malware adapters expose ClamAV and OPSWAT results through normalized scan records.
+- Deliverable detail: pre-publish path supports synchronous refusal and asynchronous escalation.
+- Deliverable detail: appeal workflow records submitter, reviewer class, previous verdict, new verdict, and reason.
+- Deliverable detail: DSA transparency worker consumes moderation and appeal events.
+- Deliverable detail: rollback path can freeze or revert a classifier version.
+- Deliverable detail: dashboards report classifier latency, policy enforcement correctness, appeals, CSAM, and backlog counts.
+- Deliverable detail: Slack workspace/community moderation is counterpart pressure for channel-scale policy enforcement.
 
-- EU AI Act golden-set eval regression (macro-F1 < 0.92) — block release.
-- Classifier drift (FM-16) → runbook activates.
+## I. Acceptance expansion
+- Acceptance detail: policy denial tests must cover text, media, link, spam, abuse, and CSAM categories.
+- Acceptance detail: scanner timeout tests must fail closed where policy requires quarantine.
+- Acceptance detail: appeal tests must preserve original and reversed decisions for transparency.
+- Acceptance detail: classifier rollback tests must restore previous behavior and emit audit evidence.
+- Acceptance detail: DSA event validation must include statement-of-reasons fields.
+- Acceptance detail: SLO resolution must include moderation latency and correctness.
+- Acceptance detail: runbooks must include rollback, backlog drain, and report export.
+- Acceptance detail: Slack, Reddit, X, and TikTok comparisons must map to moderation controls and appeal evidence.
 
-## Next IP
-
-[`IP-012-search-and-cedar-filter.md`](IP-012-search-and-cedar-filter.md)
-
-## References
-
-- ADR-SOC-0003 (content-moderation-classifier-bounds).
-- EU AI Act 2024/1689; EU DSA 2065/2022.
-- `microservices/social/runbooks/content-moderation-rollback.md`.
-- `microservices/social/runbooks/abuse-report-backlog-drain.md`.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for moderation kernel and scanner adapters.
+- Evidence detail: capture content-policy gate output.
+- Evidence detail: capture SLO resolution for moderation classifier and enforcement correctness.
+- Evidence detail: cite `ADR-SOC-0003-content-moderation-classifier-bounds.md`.
+- Evidence detail: cite `runbooks/content-moderation-rollback.md`.
+- Evidence detail: cite `runbooks/csam-detect-and-ncmec-report.md` if present.
+- Evidence detail: cite Slack as the approved counterpart for community/channel moderation comparison.

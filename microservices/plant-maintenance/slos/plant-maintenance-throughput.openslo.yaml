@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: plant-maintenance-throughput
+  labels:
+    service: plant-maintenance
+    sap_code: "PM"
+spec:
+  description: "Plant Maintenance plant-maintenance-throughput objective; benchmarks SAP PM Plant Maintenance | Oracle Fusion Maintenance | Workday Extend asset-maintenance workflow counterpart | NetSuite Fixed Assets and Field Service counterpart | Microsoft Dynamics 365 Asset Management"
+  service: plant-maintenance
+  indicator:
+    metadata:
+      name: plant-maintenance-throughput-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_plant_maintenance_accepted_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_plant_maintenance_received_total[5m]))"
+  objectives:
+    - displayName: plant-maintenance-throughput
+      target: 0.995

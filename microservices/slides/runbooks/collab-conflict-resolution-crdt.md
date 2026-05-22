@@ -40,7 +40,7 @@ TENANT_ID=<tenant_id>
 
 # Check WS gateway pod lease (single-writer invariant)
 oya vcs --pod-shell collab-crdt-worker
-> redis-cli --no-auth-warning -h <redis-host> GET "slides:lease:deck:${DECK_ID}"
+> valkey-cli --no-auth-warning -h <valkey-host> GET "slides:lease:deck:${DECK_ID}"
 # Expect: single pod ID; if multiple OR null, split-brain
 
 # Reconcile from Postgres snapshot

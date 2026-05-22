@@ -14,7 +14,7 @@ doc_status: published
 a record with a forbidden data_class crossed an axis boundary it should not have crossed
 
 ## Detection
-- Source signal: `oya-foundry-fitness-data-class` runtime guard; per-class compile-time annotation diff; auction-side schema rejection log
+- Source signal: `oya-governance-data-class` runtime guard; per-class compile-time annotation diff; auction-side schema rejection log
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 2 ladder
 
 ## First-response checklist

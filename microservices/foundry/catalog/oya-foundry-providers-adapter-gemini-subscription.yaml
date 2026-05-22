@@ -16,7 +16,7 @@ traceability:
 allowed_dependency_edges: [oya-foundry-providers-router-kernel, oya-foundry-providers-adapter-openbao]
 data_classes_owned: [PII_IDENTIFYING, PII_QUASI_IDENTIFIER, AUTH_CREDENTIAL, BEHAVIORAL_AI_USAGE, AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 external_substrate_consumed: [gemini.google.com-subscription-channel]
 two_person_publish_required: true
 transport_fragility: HIGH

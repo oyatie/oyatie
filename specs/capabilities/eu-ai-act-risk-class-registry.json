@@ -1,31 +1,35 @@
 {
-  "$schema": "https://oyatie.dev/schemas/eu-ai-act-risk-class-registry.json",
-  "registry_version": "1.0",
-  "canonical_authority": "ADR-0064 + ADR-0140 (retired per ADR-0145) EU AI Act compliance",
-  "regulation": "EU AI Act 2024/1689",
+  "$schema": "https://oyatie.dev/schemas/risk-class-registry.json",
+  "registry_version": "1.1",
+  "canonical_authority": "ADR-0064 + ADR-0140 + ADR-0145 canonical risk-class contract",
+  "regulation": "externalized-to-regional-packs",
   "consumer_pattern": "microservices/<ms>/capabilities/{T0,T1,T2}.yaml references entries by archetype",
-  "_doc": "Per-µservice capability YAMLs reference a registry entry to derive their EU AI Act risk class + Annex III mapping. Canonical mapping by capability archetype.",
+  "_doc": "Per-µservice capability YAMLs reference a registry entry to derive canonical risk class, review duties, and high-risk auto-decision anchors. Regional packs map these anchors to jurisdiction-specific obligations outside the canonical base.",
   "archetypes": {
     "suggest-readonly-recommendation": {
       "tier_archetype": "T0",
       "risk_class": "minimal-risk-ai-system",
-      "annex_iii_section": "n/a",
-      "arts_applicable": ["Art. 50 transparency to users"],
+      "risk_anchor_section": "n/a",
+      "arts_applicable": [
+        "User transparency for AI-generated output"
+      ],
       "regulator_obligations": [
         "User notification that output is AI-generated"
       ],
       "human_oversight_required": "user-reads-and-decides",
-      "example_capabilities": ["t0-suggest"]
+      "example_capabilities": [
+        "t0-suggest"
+      ]
     },
     "assist-advisory-draft": {
       "tier_archetype": "T1",
       "risk_class": "limited-risk-ai-system",
-      "annex_iii_section": "Annex III §10 (advisory drafting)",
+      "risk_anchor_section": "advisory-drafting",
       "arts_applicable": [
-        "Art. 9 risk management",
-        "Art. 13 transparency",
-        "Art. 14 human oversight",
-        "Art. 50 transparency to users"
+        "Risk management",
+        "User transparency",
+        "Human oversight",
+        "AI-generated output disclosure"
       ],
       "regulator_obligations": [
         "Risk management system",
@@ -33,18 +37,19 @@
         "Human oversight (explicit accept; never auto-save)"
       ],
       "human_oversight_required": "explicit-accept-by-human",
-      "example_capabilities": ["t1-assist"]
+      "example_capabilities": [
+        "t1-assist"
+      ]
     },
     "auto-deterministic-action": {
       "tier_archetype": "T2",
       "risk_class": "limited-risk-ai-system",
-      "annex_iii_section": "Annex III §10 (work-management)",
+      "risk_anchor_section": "work-management-auto-action",
       "arts_applicable": [
-        "Art. 9 risk management",
-        "Art. 13 transparency",
-        "Art. 14 human oversight",
-        "Art. 50 transparency",
-        "Art. 60 post-market monitoring"
+        "Risk management",
+        "User transparency",
+        "Human oversight",
+        "Post-market monitoring"
       ],
       "regulator_obligations": [
         "Risk management system",
@@ -53,22 +58,24 @@
         "Post-market monitoring + adverse event log"
       ],
       "human_oversight_required": "human-supervises-can-pause-or-rollback",
-      "example_capabilities": ["t2-auto"]
+      "example_capabilities": [
+        "t2-auto"
+      ]
     },
     "auto-employment-decisioning": {
       "tier_archetype": "T2",
       "risk_class": "high-risk-ai-system",
-      "annex_iii_section": "Annex III §4 (employment)",
+      "risk_anchor_section": "employment-context-auto-decision",
       "arts_applicable": [
-        "Art. 6 high-risk classification",
-        "Art. 9 risk management",
-        "Art. 10 data governance",
-        "Art. 13 transparency",
-        "Art. 14 human oversight",
-        "Art. 15 accuracy, robustness, cybersecurity",
-        "Art. 16-29 obligations of providers + deployers",
-        "Art. 43 conformity assessment",
-        "Art. 60 post-market monitoring"
+        "High-risk classification",
+        "Risk management",
+        "Data governance",
+        "Transparency",
+        "Human oversight",
+        "Accuracy, robustness, cybersecurity",
+        "Provider and deployer obligations",
+        "Conformity assessment",
+        "Post-market monitoring"
       ],
       "regulator_obligations": [
         "Conformity assessment",
@@ -77,20 +84,22 @@
         "Data governance + training data quality",
         "Transparency + human oversight",
         "Post-market monitoring",
-        "Notified body registration"
+        "Pack-specific authority registration when required"
       ],
       "human_oversight_required": "two-person-rule-with-deterministic-override",
-      "example_capabilities": ["t2-auto-hiring-decision (NOT in scope)"]
+      "example_capabilities": [
+        "t2-auto-hiring-decision (NOT in canonical-base scope)"
+      ]
     },
     "auto-critical-infrastructure": {
       "tier_archetype": "T2",
       "risk_class": "high-risk-ai-system",
-      "annex_iii_section": "Annex III §2 (critical infrastructure)",
+      "risk_anchor_section": "critical-infrastructure-auto-decision",
       "arts_applicable": [
-        "Art. 6 high-risk classification",
-        "Art. 14 human oversight",
-        "Art. 15 accuracy + robustness",
-        "Art. 60 post-market monitoring"
+        "High-risk classification",
+        "Human oversight",
+        "Accuracy and robustness",
+        "Post-market monitoring"
       ],
       "regulator_obligations": [
         "Conformity assessment",
@@ -98,15 +107,19 @@
         "Critical-infrastructure incident reporting"
       ],
       "human_oversight_required": "deterministic-fail-safe-rollback",
-      "example_capabilities": ["t2-auto-grid-scheduling (NOT in scope)"]
+      "example_capabilities": [
+        "t2-auto-grid-scheduling (NOT in canonical-base scope)"
+      ]
     },
     "prohibited-manipulation": {
       "tier_archetype": "(prohibited)",
       "risk_class": "prohibited",
-      "annex_iii_section": "Art. 5 (prohibited practices)",
-      "arts_applicable": ["Art. 5 prohibited AI practices"],
+      "risk_anchor_section": "prohibited-practices",
+      "arts_applicable": [
+        "Prohibited AI practices"
+      ],
       "regulator_obligations": [
-        "MUST NOT be deployed in EU"
+        "MUST NOT be deployed in any active regulatory pack"
       ],
       "human_oversight_required": "(N/A — prohibited)",
       "example_capabilities": []

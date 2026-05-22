@@ -28,7 +28,7 @@ ONE of:
 2. **`oya_sheets_recalc_p99_seconds > 5` for ≥ 5 min** (budget breach).
 3. **`oya_sheets_collab_op_published_total{workbook=<id>}` rate > 100/sec** for ≥ 5 min (op storm).
 4. **`oya_sheets_postgres_connection_pool_saturation > 0.9` for ≥ 5 min**.
-5. **`oya_sheets_redis_memory_used_bytes / oya_sheets_redis_memory_max_bytes > 0.85`**.
+5. **`oya_sheets_valkey_memory_used_bytes / oya_sheets_valkey_memory_max_bytes > 0.85`**.
 6. **`oya_sheets_recalc_engine_pod_cpu_pct > 70` AND HPA at max replicas**.
 7. **`oya_sheets_recalc_cycle_detected_total > 0`** — formula dep-graph cycle (refused but tenant-notified).
 

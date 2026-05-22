@@ -1,0 +1,76 @@
+[package]
+name = "oya-itsm-service-management-service"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+publish = false
+description = "ITSM µservice umbrella: composes 5 bounded-context crates (on-call-schedule, escalation-policy, incident-room, status-update, postmortem) plus the legacy service-management aggregate."
+authors = ["Oyatie Council Architecture"]
+repository = "https://github.com/oyatie/oyatie"
+keywords = ["oyatie", "itsm", "microservice"]
+categories = ["development-tools"]
+
+[package.metadata.oya]
+microservice = "itsm"
+bounded_contexts = [
+    "on-call-schedule",
+    "escalation-policy",
+    "incident-room",
+    "status-update",
+    "postmortem",
+]
+architecture_layers = "ADR-0105-13-layer-enum-with-ADR-0106-usecase"
+flat_layout_authority = "ADR-0131"
+no_suite_authority = "ADR-0132"
+contracts = ["openapi-v1", "grpc-v1", "asyncapi-v1"]
+scaffold_wave = "Wave-15A-ITSM-Remediation"
+scaffold_date = "2026-05-21"
+scaffold_agent = "wave-15a-itsm-remediation"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "oya-itsm-service"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+oya-itsm-on-call-schedule = { path = "crates/on-call-schedule" }
+oya-itsm-escalation-policy = { path = "crates/escalation-policy" }
+oya-itsm-incident-room = { path = "crates/incident-room" }
+oya-itsm-status-update = { path = "crates/status-update" }
+oya-itsm-postmortem = { path = "crates/postmortem" }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
+
+[workspace]
+resolver = "3"
+members = [
+    "crates/on-call-schedule",
+    "crates/escalation-policy",
+    "crates/incident-room",
+    "crates/status-update",
+    "crates/postmortem",
+]
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros"] }
+tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

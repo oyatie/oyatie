@@ -4,7 +4,7 @@
   "scanned_files": 113,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -26,11 +26,11 @@
           "hits": [
             {
               "line": 122,
-              "excerpt": "- Response-cache (Valkey 8.1 (Redis wire-compat)): per-cell HA; ephemeral; regenerable."
+              "excerpt": "- Response-cache (Valkey 8.1 (RESP3 wire-compatible)): per-cell HA; ephemeral; regenerable."
             },
             {
               "line": 145,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) | 7.2.5 | Rate-limit + session + WAF cache |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) | 7.2.5 | Rate-limit + session + WAF cache |"
             }
           ],
           "hits_total": 2
@@ -40,7 +40,7 @@
           "hits": [
             {
               "line": 35,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (Sentinel HA) | 3 (1 primary + 2 replica) | 2 / 8Gi req; 4 / 16Gi limit | rate-limit + session |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (Sentinel HA) | 3 (1 primary + 2 replica) | 2 / 8Gi req; 4 / 16Gi limit | rate-limit + session |"
             },
             {
               "line": 79,
@@ -70,11 +70,11 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/forms/IP-007-redis-adapter.md",
+          "file": "microservices/forms/IP-007-valkey-adapter.md",
           "hits": [
             {
               "line": 14,
-              "excerpt": "# IP-007: Valkey adapter (Redis wire-compat) (rate-limit + session)"
+              "excerpt": "# IP-007: Valkey adapter (RESP3 wire-compatible) (rate-limit + session)"
             },
             {
               "line": 38,
@@ -96,13 +96,13 @@
             },
             {
               "line": 71,
-              "excerpt": "| IP-007 | Valkey adapter (Redis wire-compat) (rate-limit + session) | adapter |"
+              "excerpt": "| IP-007 | Valkey adapter (RESP3 wire-compatible) (rate-limit + session) | adapter |"
             }
           ],
           "hits_total": 3
         },
         {
-          "file": "microservices/forms/IP-001-layer-a-postgres-redis-meilisearch-clamav-waf-cdn-captcha-iac.md",
+          "file": "microservices/forms/IP-001-layer-a-postgres-valkey-meilisearch-clamav-waf-cdn-captcha-iac.md",
           "hits": [
             {
               "line": 16,
@@ -168,21 +168,21 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/forms/catalog/oya-forms-redis-adapter.yaml",
+          "file": "microservices/forms/catalog/oya-forms-valkey-adapter.yaml",
           "hits": [
             {
               "line": 8,
-              "excerpt": "Valkey adapter (Redis wire-compat). Token-bucket rate-limit (per-IP / per-form / per-tenant). Submitter"
+              "excerpt": "Valkey adapter (RESP3 wire-compatible). Token-bucket rate-limit (per-IP / per-form / per-tenant). Submitter"
             }
           ],
           "hits_total": 1
         },
         {
-          "file": "microservices/forms/iac/helm/response-cache-redis/Chart.yaml",
+          "file": "microservices/forms/iac/helm/response-cache-valkey/Chart.yaml",
           "hits": [
             {
               "line": 5,
-              "excerpt": "Forms Valkey 8.1 (Redis wire-compat) \u2014 Sentinel HA. Rate-limit, session, captcha-token cache."
+              "excerpt": "Forms Valkey 8.1 (RESP3 wire-compatible) \u2014 Sentinel HA. Rate-limit, session, captcha-token cache."
             }
           ],
           "hits_total": 1
@@ -196,7 +196,7 @@
             },
             {
               "line": 161,
-              "excerpt": "\"title\": \"IP-007: Valkey adapter (Redis wire-compat) (rate-limit + session)\","
+              "excerpt": "\"title\": \"IP-007: Valkey adapter (RESP3 wire-compatible) (rate-limit + session)\","
             }
           ],
           "hits_total": 2
@@ -269,7 +269,7 @@
       "lines": 59
     },
     {
-      "file": "microservices/forms/IP-007-redis-adapter.md",
+      "file": "microservices/forms/IP-007-valkey-adapter.md",
       "lines": 42
     },
     {

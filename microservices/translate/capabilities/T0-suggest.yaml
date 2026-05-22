@@ -92,7 +92,7 @@ pack_overrides:
     reason: HIPAA 45 CFR §164.502(b) minimum-necessary; PHI translations require in-house only
     forbidden_engines: [google-translate, deepl, openai-non-baa]
   pack-eu:
-    eu_ai_act_classification: minimal_risk
+    risk_classification: minimal_risk
     transparency_obligation: must-label-as-AI-suggested per EU AI Act Art. 50; render visible disclosure in client
   pack-kr:
     kr_pipa_art28_consent: tenant-admin-opt-in required for cross-border engine; in-house default
@@ -115,7 +115,7 @@ cedar_policy_fragments:
   - microservices/translate/policy/translate-tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/translate/capabilities/eval/t0-suggest-golden.jsonl
+  reference_inputs_path: microservices/translate/capabilities/eval/t0-suggest-reference.jsonl
   pass_threshold: 0.90
   eval_metric: |
     suggestion-relevance vs human-rater baseline (Likert 1-5);

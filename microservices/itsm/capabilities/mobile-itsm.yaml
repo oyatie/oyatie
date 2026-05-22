@@ -1,0 +1,48 @@
+apiVersion: oyatie.dev/v2
+kind: CapabilityRecord
+metadata:
+  name: itsm-mobile-itsm
+  service: itsm
+spec:
+  businessCapability: service-management
+  capability: mobile-itsm
+  counterparts:
+    - "ServiceNow Now Mobile + Now Mobile Agent"
+    - "Jira Service Management Mobile"
+    - "Freshservice Mobile"
+  bindingAdrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0246, ADR-0253, ADR-0263, ADR-0328]
+  surface:
+    platforms:
+      - ios_swift_native
+      - android_kotlin_native
+    audiences:
+      - agent_responder
+      - requester_employee
+    flows:
+      - receive_page_push
+      - acknowledge_page
+      - resolve_ticket_from_phone
+      - access_offline_cached_runbooks
+      - submit_request_from_kiosk_mode
+  tenantScope:
+    requiredFields: [tenant_id, principal_id, device_id, audience_type, purpose, data_class]
+    audienceType: AGENT_RESPONDER | REQUESTER
+    dataClass: incident_ticket | service_request
+  cedarGate: microservices/itsm/policy/mobile-itsm-authorization.cedar
+  transport: HTTP/3 default + per-tenant device attestation
+  packOverlays:
+    - SOC-2
+    - ISO-27001
+    - GDPR
+    - HIPAA
+  tenantClassSupport:
+    demo_trial: true
+    paid: true
+  packs:
+    demo_trial_caps:
+      mobile_api_calls_per_month: 5000
+    paid_metering:
+      per_seat: agent_seats_with_mobile_enabled_max_in_period
+  frontendAllowlist:
+    ios: Swift
+    android: Kotlin

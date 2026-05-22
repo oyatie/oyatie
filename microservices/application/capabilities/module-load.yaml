@@ -83,7 +83,7 @@ cedar_policy_fragments:
   - microservices/application/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/application/capabilities/eval/module-load-golden.jsonl
+  canonical_inputs_path: microservices/application/capabilities/eval/module-load-canonical.jsonl
   pass_threshold: 0.999
   eval_metric: load-or-reject-correctness-against-signed-and-tampered-manifests
   cadence: per-release

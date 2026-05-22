@@ -429,7 +429,7 @@ mod tests {
         RecordingArchiveEntryCreate {
             archive_id: "archive-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "region-alpha-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             session_id: "session-1".into(),
             recording: recording(RecordingStatus::Completed),

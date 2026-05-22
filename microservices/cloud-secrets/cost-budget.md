@@ -58,7 +58,7 @@ Note: Costs scale roughly linearly with active tenants once tenants exceed the p
 | `trial` (≤ 90d) | $0.50 | shared OpenBao namespace overhead |
 | `production-small` | $2.00 | per-tenant namespace + estimated 10k secrets + 100k resolves/month |
 | `production-medium` | $8.00 | 100k secrets + 1M resolves + cascade-rotation overhead |
-| `production-large` | $35.00 | 1M secrets + 10M resolves + BYOK HSM ops |
+| `production-large` | $35.00 | 1M secrets + 10M resolves + encryption-key BYOK HSM ops (ADR-0251 §D-10) |
 | `production-regulated` (KR-FSS / HIPAA / KSA NCA) | $120.00 | dedicated HSM partition + extended retention + KEK ceremony amortisation |
 
 Per-tenant cost includes per-pack overhead amortisation; unit cost falls as tenants per pack grow.

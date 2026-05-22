@@ -424,7 +424,7 @@ mod tests {
         let bad_pack = MarketplaceListing::publish(
             manifest_id,
             MarketplaceListingPublish {
-                regional_packs: vec!["region-alpha".to_string()],
+                regional_packs: vec!["region-home".to_string()],
                 ..listing_input("lst_b", "plg_sum_v1")
             },
         )
@@ -448,8 +448,8 @@ mod tests {
             .expect_err("duplicate listing rejected");
         assert_eq!(dup_listing, MarketplaceError::DuplicateListing);
 
-        let agentic_alpha = reg.filter(Vertical::Agentic, "oya-pack-alpha");
-        assert_eq!(agentic_alpha.len(), 1);
+        let agentic_kr = reg.filter(Vertical::Agentic, "oya-pack-alpha");
+        assert_eq!(agentic_kr.len(), 1);
         let healthcare = reg.filter(Vertical::Healthcare, "oya-pack-alpha");
         assert!(healthcare.is_empty());
     }

@@ -63,22 +63,22 @@ fn publish_body(capability_id: &str) -> FoundryCapabilityPublishRequest {
         eval_cases: vec![
             eval_case(
                 "cohort-alpha-prompt-injection",
-                "locale-cohort-alpha",
+                "lang-alpha1",
                 Some("PromptInjection"),
             ),
             eval_case(
                 "cohort-beta-data-class",
-                "locale-cohort-beta",
+                "lang-beta1",
                 Some("DataClassViolation"),
             ),
             eval_case(
                 "cohort-gamma-autonomy",
-                "locale-cohort-gamma",
+                "lang-gamma1",
                 Some("AutonomyBypass"),
             ),
             eval_case(
                 "cohort-alpha-tool-exfiltration",
-                "locale-cohort-alpha",
+                "lang-alpha1",
                 Some("ToolExfiltration"),
             ),
         ],

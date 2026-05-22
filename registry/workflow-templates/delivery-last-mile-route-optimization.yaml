@@ -1,0 +1,458 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.delivery-last-mile-route-optimization.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0185-workflow-studio-client-stack
+title: Delivery last-mile route optimization
+description: >-
+  Builds last-mile delivery routes by ingesting orders, geocoding stops,
+  clustering stops by service window, checking driver and vehicle capacity,
+  optimizing routes, dispatching drivers, monitoring live exceptions, and
+  capturing proof of delivery.
+tags:
+  - delivery
+  - logistics
+  - route-optimization
+  - last-mile
+  - dispatch
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: silver
+    reason: "Delivery teams need route planning, dispatch, and proof-of-delivery tracking."
+  - tier: gold
+    reason: "Adds stop clustering, capacity-aware routing, and live reoptimization."
+ontology_refs:
+  object: LastMileDispatchWave
+  actions:
+    - DeliveryOrdersImported
+    - DeliveryStopsClustered
+    - DriverCapacityChecked
+    - RoutesOptimized
+    - DriversDispatched
+    - ProofOfDeliveryCaptured
+tenant_context:
+  required_fields:
+    - tenant_id
+    - depot_id
+    - dispatch_window_id
+    - dispatcher_principal_id
+principal_context:
+  system_principal: workflow-engine.last-mile-routing
+  human_approval_roles:
+    - dispatcher
+    - driver_manager
+    - customer_support_owner
+data_classes:
+  - DELIVERY_ORDER
+  - CUSTOMER_ADDRESS
+  - DRIVER_LOCATION
+  - VEHICLE_CAPACITY
+  - PROOF_OF_DELIVERY
+residency_pack_overlays:
+  - pack: gdpr
+    behavior: "Limit address and recipient data to assigned driver route views."
+  - pack: fleet-safety
+    behavior: "Respect driver hours and vehicle load constraints before dispatch."
+observability:
+  metrics:
+    - delivery_route_optimization_latency_seconds
+    - delivery_route_missed_window_total
+    - delivery_route_reoptimization_total
+  traces:
+    - workflow.template.delivery_last_mile_route_optimization
+  logs:
+    - workflow_delivery_route_audit_projection
+cost_allocation:
+  unit: dispatch_wave
+  dimensions:
+    - tenant_id
+    - depot_id
+    - carrier_id
+idempotency:
+  key_shape: "tenant_id:depot_id:dispatch_window_id:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: dispatch_routes
+  on_cancel: cancel_unassigned_dispatch_wave
+  audit_event_class: LastMileRoutingCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_delivery_demo
+  depot_id:
+    type: string
+    default: depot_brooklyn_01
+  dispatch_window_id:
+    type: string
+    default: dispatch_2026_06_04_am
+  dispatcher_principal_id:
+    type: string
+    default: principal_dispatcher_001
+  order_batch_id:
+    type: string
+    default: batch_2026_7781
+  vehicle_profile:
+    type: string
+    default: mixed_van_bike
+  max_route_duration_minutes:
+    type: integer
+    default: 480
+outputs:
+  dispatch_wave_id:
+    type: string
+  terminal_state:
+    type: string
+  route_count:
+    type: integer
+  proof_of_delivery_count:
+    type: integer
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: import_delivery_orders
+    type: start
+    config:
+      trigger: delivery.order_batch.ready.v1
+      validates:
+        - tenant_id
+        - depot_id
+        - dispatch_window_id
+        - order_batch_id
+    cedar_permits_required:
+      - 'Action::"StartLastMileRoutingWorkflow"'
+    audit_event_class: DeliveryOrdersImported
+    slo_target: "PT15M after order cutoff"
+    failure_modes:
+      - code: ORDER_BATCH_EMPTY
+        behavior: "Close dispatch wave as no-op and notify dispatcher."
+    on_success:
+      - edge_to_geocode_stops
+    on_failure:
+      - edge_to_exception_end
+  - id: geocode_stops
+    type: action
+    config:
+      service: geocoding
+      contract: delivery-stop-geocode.v1
+      method: POST
+      url: "https://geo.internal/v1/delivery-stops/geocode"
+      body:
+        order_batch_id: "${inputs.order_batch_id}"
+        address_precision: rooftop_or_routeable
+        depot_id: "${inputs.depot_id}"
+    cedar_permits_required:
+      - 'Action::"GeocodeDeliveryStops"'
+    audit_event_class: DeliveryStopsGeocoded
+    slo_target: "PT20M"
+    failure_modes:
+      - code: ADDRESS_GEOCODE_FAILED
+        behavior: "Route failed stops to support review and keep valid stops."
+    on_success:
+      - edge_to_cluster_stops
+    on_failure:
+      - edge_to_exception_end
+  - id: cluster_stops
+    type: action
+    config:
+      service: route-planning
+      contract: stop-clustering.v1
+      method: POST
+      url: "https://routing.internal/v1/stop-clusters"
+      clustering_strategy: service_window_then_geohash
+      body:
+        geocoded_stop_set_id: "${nodes.geocode_stops.output.stop_set_id}"
+        max_cluster_drive_minutes: 90
+        service_window_weight: high
+    cedar_permits_required:
+      - 'Action::"ClusterDeliveryStops"'
+    audit_event_class: DeliveryStopsClustered
+    slo_target: "PT15M"
+    failure_modes:
+      - code: CLUSTER_IMBALANCE
+        behavior: "Re-run clustering with relaxed geohash size and flag dispatcher."
+    on_success:
+      - edge_to_check_driver_capacity
+    on_failure:
+      - edge_to_exception_end
+  - id: check_driver_capacity
+    type: action
+    config:
+      service: fleet-capacity
+      contract: driver-vehicle-capacity.v1
+      method: POST
+      url: "https://fleet.internal/v1/capacity/checks"
+      constraints:
+        - vehicle_volume
+        - vehicle_weight
+        - driver_hours
+        - cold_chain_required
+      body:
+        depot_id: "${inputs.depot_id}"
+        dispatch_window_id: "${inputs.dispatch_window_id}"
+        cluster_set_id: "${nodes.cluster_stops.output.cluster_set_id}"
+    cedar_permits_required:
+      - 'Action::"CheckDriverCapacity"'
+    audit_event_class: DeliveryDriverCapacityChecked
+    slo_target: "PT10M"
+    failure_modes:
+      - code: CAPACITY_SHORTFALL
+        behavior: "Create supplemental carrier task and re-balance clusters."
+    on_success:
+      - edge_to_optimize_routes
+    on_failure:
+      - edge_to_capacity_review
+  - id: capacity_review
+    type: human_task
+    config:
+      assignee_role: driver_manager
+      task_contract: delivery-capacity-exception.v1
+      allowed_resolutions:
+        - add_driver
+        - split_route
+        - defer_low_priority_stops
+        - book_supplemental_carrier
+    cedar_permits_required:
+      - 'Action::"ResolveDeliveryCapacityException"'
+    audit_event_class: DeliveryCapacityExceptionResolved
+    slo_target: "PT1H"
+    failure_modes:
+      - code: CAPACITY_UNRESOLVED
+        behavior: "Hold dispatch and notify depot operations lead."
+    on_success:
+      - edge_to_optimize_routes
+    on_failure:
+      - edge_to_exception_end
+  - id: optimize_routes
+    type: action
+    config:
+      service: route-planning
+      contract: capacity-aware-route-optimization.v1
+      method: POST
+      url: "https://routing.internal/v1/routes/optimize"
+      objectives:
+        - minimize_late_stops
+        - minimize_drive_time
+        - balance_driver_load
+      body:
+        cluster_set_id: "${nodes.cluster_stops.output.cluster_set_id}"
+        capacity_snapshot_id: "${nodes.check_driver_capacity.output.capacity_snapshot_id}"
+        max_route_duration_minutes: "${inputs.max_route_duration_minutes}"
+    cedar_permits_required:
+      - 'Action::"OptimizeLastMileRoutes"'
+    audit_event_class: DeliveryRoutesOptimized
+    slo_target: "PT30M"
+    failure_modes:
+      - code: OPTIMIZER_INFEASIBLE
+        behavior: "Escalate infeasible constraints to dispatcher for manual override."
+    on_success:
+      - edge_to_dispatch_routes
+    on_failure:
+      - edge_to_capacity_review
+  - id: dispatch_routes
+    type: action
+    config:
+      service: driver-dispatch
+      contract: route-dispatch.v1
+      method: POST
+      url: "https://dispatch.internal/v1/routes/dispatch"
+      body:
+        dispatch_window_id: "${inputs.dispatch_window_id}"
+        optimized_route_set_id: "${nodes.optimize_routes.output.route_set_id}"
+        driver_notification_channel: mobile_app
+    cedar_permits_required:
+      - 'Action::"DispatchLastMileRoutes"'
+    audit_event_class: DeliveryRoutesDispatched
+    slo_target: "PT15M before route start"
+    failure_modes:
+      - code: DRIVER_APP_DELIVERY_FAILED
+        behavior: "Send fallback SMS and notify dispatcher."
+    on_success:
+      - edge_to_monitor_route_progress
+    on_failure:
+      - edge_to_exception_end
+  - id: monitor_route_progress
+    type: loop
+    config:
+      poll_contract: route-progress.v1
+      poll_interval: PT10M
+      max_elapsed: PT10H
+      exception_signals:
+        - late_stop_risk
+        - failed_delivery_attempt
+        - driver_capacity_issue
+    cedar_permits_required:
+      - 'Action::"MonitorDeliveryRoutes"'
+    audit_event_class: DeliveryRouteProgressMonitored
+    slo_target: "PT10M monitoring cadence"
+    failure_modes:
+      - code: LATE_STOP_RISK
+        behavior: "Trigger route reoptimization and customer notification."
+    on_success:
+      - edge_to_capture_proof_of_delivery
+    on_failure:
+      - edge_to_reoptimize_exception
+  - id: reoptimize_exception
+    type: action
+    config:
+      service: route-planning
+      contract: live-route-reoptimization.v1
+      method: POST
+      url: "https://routing.internal/v1/routes/reoptimize"
+      body:
+        route_set_id: "${nodes.optimize_routes.output.route_set_id}"
+        progress_snapshot_id: "${nodes.monitor_route_progress.output.progress_snapshot_id}"
+        notify_customers: true
+    cedar_permits_required:
+      - 'Action::"ReoptimizeLastMileRouteException"'
+    audit_event_class: DeliveryRouteExceptionReoptimized
+    slo_target: "PT20M after exception signal"
+    failure_modes:
+      - code: REOPTIMIZATION_FAILED
+        behavior: "Escalate affected stops to dispatcher manual recovery."
+    on_success:
+      - edge_to_monitor_route_progress_after_reoptimize
+    on_failure:
+      - edge_to_exception_end
+  - id: capture_proof_of_delivery
+    type: action
+    config:
+      service: delivery-events
+      contract: proof-of-delivery-closeout.v1
+      method: POST
+      url: "https://delivery-events.internal/v1/proof-of-delivery/closeout"
+      body:
+        dispatch_window_id: "${inputs.dispatch_window_id}"
+        route_set_id: "${nodes.optimize_routes.output.route_set_id}"
+        require_photo_or_signature: true
+    cedar_permits_required:
+      - 'Action::"CaptureProofOfDelivery"'
+    audit_event_class: DeliveryProofOfDeliveryCaptured
+    slo_target: "PT1H after route completion"
+    failure_modes:
+      - code: POD_MISSING
+        behavior: "Open customer-support review for missing delivery evidence."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: close_workflow
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - dispatch_wave_closed
+        - route_metrics_posted
+        - proof_of_delivery_committed
+    cedar_permits_required:
+      - 'Action::"CloseLastMileRoutingWorkflow"'
+    audit_event_class: DeliveryRouteWorkflowClosed
+    slo_target: "PT2H after final POD"
+    failure_modes:
+      - code: ROUTE_METRIC_POST_FAILED
+        behavior: "Keep workflow close-pending and retry telemetry projection."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordLastMileRoutingException"'
+    audit_event_class: DeliveryRouteExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for routing replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_geocode_stops
+    from: import_delivery_orders
+    to: geocode_stops
+    name: orders_imported
+  - id: edge_to_cluster_stops
+    from: geocode_stops
+    to: cluster_stops
+    name: stops_geocoded
+  - id: edge_to_check_driver_capacity
+    from: cluster_stops
+    to: check_driver_capacity
+    name: stops_clustered
+  - id: edge_to_capacity_review
+    from: check_driver_capacity
+    to: capacity_review
+    name: capacity_exception
+  - id: edge_to_optimize_routes
+    from: check_driver_capacity
+    to: optimize_routes
+    name: capacity_available
+  - id: edge_to_optimize_routes_after_review
+    from: capacity_review
+    to: optimize_routes
+    name: capacity_resolved
+  - id: edge_to_dispatch_routes
+    from: optimize_routes
+    to: dispatch_routes
+    name: routes_optimized
+  - id: edge_to_monitor_route_progress
+    from: dispatch_routes
+    to: monitor_route_progress
+    name: routes_dispatched
+  - id: edge_to_reoptimize_exception
+    from: monitor_route_progress
+    to: reoptimize_exception
+    name: route_exception
+  - id: edge_to_monitor_route_progress_after_reoptimize
+    from: reoptimize_exception
+    to: monitor_route_progress
+    name: routes_reoptimized
+  - id: edge_to_capture_proof_of_delivery
+    from: monitor_route_progress
+    to: capture_proof_of_delivery
+    name: routes_completed
+  - id: edge_to_close_workflow
+    from: capture_proof_of_delivery
+    to: close_workflow
+    name: proof_of_delivery_committed
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and keep dispatch wave unchanged."
+  - code: ROUTE_INFEASIBLE
+    behavior: "Require dispatcher override before any driver assignment."
+  - code: CUSTOMER_ADDRESS_PRIVACY_VIOLATION
+    behavior: "Block route export and notify privacy owner."
+worked_example:
+  sample_input:
+    tenant_id: tenant_delivery_demo
+    depot_id: depot_brooklyn_01
+    dispatch_window_id: dispatch_2026_06_04_am
+    dispatcher_principal_id: principal_dispatcher_001
+    order_batch_id: batch_2026_7781
+    vehicle_profile: mixed_van_bike
+    max_route_duration_minutes: 480
+  sample_expected_output:
+    dispatch_wave_id: dispatchwave_2026_0604_am
+    terminal_state: completed
+    route_count: 18
+    proof_of_delivery_count: 642
+    audit_chain_refs:
+      - audit://workflow/delivery-route/orders/01
+      - audit://workflow/delivery-route/optimized/06
+      - audit://workflow/delivery-route/pod/10

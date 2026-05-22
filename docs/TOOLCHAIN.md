@@ -320,7 +320,7 @@ Allowed licenses: Apache-2.0, MIT, BSD-2/3-Clause, MPL-2.0, ISC, Unlicense, CC0.
 Forbidden: AGPL (any), GPL (any), SSPL, BUSL (after 2024), Commons Clause.
 Requires-review: anything else; council must approve.
 
-CI lane `oya-foundry-fitness-license` runs `cargo deny` + per-language equivalents and hard-fails on a forbidden license.
+CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents and hard-fails on a forbidden license.
 
 ---
 

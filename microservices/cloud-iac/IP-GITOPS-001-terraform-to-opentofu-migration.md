@@ -1,83 +1,71 @@
-# IP-GITOPS-001 — OpenTofu → OpenTofu migration
+# IP-GITOPS-001 — Cloud-IaC OpenTofu module source migration
 
 > ADR anchor: ADR-0202, ADR-0173.
-> Owner: `oya-cloud-iac`.
-> Estimate: 8 days.
+> Owner: `axis-cloud-iac`.
+> Scope: `microservices/cloud-iac` only.
 
 ## Goal
 
-Migrate every existing `.tf` file under `microservices/*/iac/`
-to OpenTofu (`tofu`) within the 90-day window declared in
-ADR-0202.
+Make cloud-iac's IaC execution surface OpenTofu-native without claiming a
+repo-wide migration owned by other microservices. The concrete source of truth is
+the service-local module registry under `microservices/cloud-iac/tofu/modules/`
+and the OpenTofu runner chart under `microservices/cloud-iac/iac/helm/opentofu/`.
 
-## Why this IP
+## Real service paths
 
-ADR-0173 forbids BSL-licensed OpenTofu from being the
-canonical IaC engine. ADR-0202 picks OpenTofu (Linux
-Foundation, MPL-2.0). Without this migration the substrate is
-in violation.
+| Path | Contract this IP protects |
+|---|---|
+| `microservices/cloud-iac/tofu/modules/cloud-account/main.tofu` | account bootstrap variables and `account_id`/`account_alias` outputs |
+| `microservices/cloud-iac/tofu/modules/vpc/main.tofu` | network module surface consumed before namespace bootstrap |
+| `microservices/cloud-iac/tofu/modules/dns/main.tofu` | DNS module surface for pack/environment endpoints |
+| `microservices/cloud-iac/tofu/modules/kms/main.tofu` | KMS key material references for state and backup encryption |
+| `microservices/cloud-iac/tofu/modules/secrets-bootstrap/main.tofu` | OpenBao seed outputs consumed by secret projection |
+| `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu` | `namespace_name`, `service_account_name`, and `argocd_project_name` outputs |
+| `microservices/cloud-iac/iac/helm/opentofu/Chart.yaml` | runner deployment package |
+| `microservices/cloud-iac/iac/helm/opentofu/values.yaml` | runner image/version/resource contract |
 
-## Pre-conditions
+## Implementation contract
 
-- ADR-0202 ratified.
-- OpenTofu CLI available in CI.
-- `oya-check-iac-tier-discipline` lands (this batch).
+1. Keep all cloud-iac module entrypoints in `.tofu` files. Do not introduce new
+   `.tf` module roots in this service.
+2. Preserve each module README beside its `main.tofu`; the README is the
+   operator-facing contract for inputs, outputs, and apply order.
+3. When provider resources are wired, provider source declarations live in the
+   existing module file for that domain, not in a new ad hoc composition path.
+4. The OpenTofu runner chart is the only service-local execution primitive for
+   module validation and plan/apply jobs.
 
-## Tasks
+## Counterpart refs
 
-### 1. Inventory
-
-- `find microservices/ -name "*.tf"` enumerates affected
-  files.
-
-### 2. Syntax compatibility
-
-- OpenTofu and OpenTofu .tf syntax are intentionally
-  compatible during the migration window. The migration is
-  primarily about flipping the engine, not rewriting code.
-
-### 3. Provider re-source
-
-- `source = "hashicorp/aws"` → `source = "opentofu/aws"` or
-  upstream-equivalent.
-- Update the OpenTofu provider registry references.
-
-### 4. State migration
-
-- Existing OpenTofu state (`.tfstate` files in remote
-  backend) is consumed by OpenTofu unchanged for the
-  duration of the window.
-- After T+60d, run `tofu state pull` + `tofu state push` on
-  every workspace to confirm OpenTofu owns the state.
-
-### 5. CI flip
-
-- T+30d: all new IaC PRs run via `tofu plan` / `tofu apply`.
-- T+60d: all execution goes through `tofu`.
-- T+90d: `oya-check-iac-tier-discipline` flips
-  `migration_window_elapsed = true`; residual OpenTofu usage
-  becomes a BLOCKER violation.
-
-### 6. Tests
-
-- Each migrated module runs `tofu plan` clean (zero drift)
-  against the existing state.
-- CI lane asserts no `terraform` CLI invocations.
-
-## Failure modes
-
-- Provider source mismatch: surface at PR time; engineer
-  updates the source.
-- State corruption: roll back to last known-good state +
-  re-apply.
+- `microservices/cloud-iac/cross-microservice-handoffs.md` outbound rows for
+  `cloud-secrets` secret references and `cloud-k8s` apply/rollback calls define
+  the non-local dependencies this IP must not inline.
+- `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml` operations
+  `planPreview`, `triggerApply`, and `getApplyState` are the REST surfaces that
+  expose OpenTofu plan/apply state to counterpart services.
 
 ## Acceptance criteria
 
-- 100% of `.tf` files under `microservices/` migrate.
-- Zero `terraform` CLI invocations in CI past T+60d.
-- `oya-check-iac-tier-discipline` clean.
+- `find microservices/cloud-iac -name "*.tf"` returns no service-local module
+  roots.
+- `tofu validate` is run for each existing directory under
+  `microservices/cloud-iac/tofu/modules/`.
+- `helm lint microservices/cloud-iac/iac/helm/opentofu` passes before any
+  runner image/version change is promoted.
+- No task in this IP edits another microservice's IaC tree.
 
-## References
+## Validation commands
 
-- ADR-0202, ADR-0173.
-- `docs/standards/gitops-iac-cluster-tier-boundaries.md`.
+```bash
+find microservices/cloud-iac -name "*.tf" -print
+find microservices/cloud-iac/tofu/modules -maxdepth 2 -name main.tofu -print
+helm lint microservices/cloud-iac/iac/helm/opentofu
+```
+
+## API Versioning (per ADR-0342)
+
+- Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
+- Initial declared_version: `microservices/cloud-iac/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
+- Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
+- Surface evidence: `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/IP-GITOPS-001-terraform-to-opentofu-migration.md`.

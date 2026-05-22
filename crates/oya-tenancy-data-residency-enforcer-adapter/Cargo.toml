@@ -1,0 +1,15 @@
+[package]
+name = "oya-tenancy-data-residency-enforcer-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_tenancy_data_residency_enforcer_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

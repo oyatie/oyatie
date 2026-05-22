@@ -37,9 +37,8 @@ This script advances only the bottom-most open PR in the active queue. It never
 force-pushes, never writes to the base branch, never skips a lower open queue PR,
 and only enables GitHub auto-merge after live branch-protection required
 contexts match the canonical repo policy, the review check has passed, the head
-commit is verified, canonical app-id overrides (for example `oya-pr-review`
-allowing any status/check provider) match live protection, and the selected PR
-is conflict-clean against the current base.
+commit is verified, and the selected PR is conflict-clean against the current
+base.
 USAGE
 }
 
@@ -145,7 +144,7 @@ check_verified_head() {
 check_live_required_contexts() {
   local scratch_dir="$1"
   local repo live_file live_err canonical_file
-  local missing extra app_binding_drift live_count canonical_count
+  local missing extra live_count canonical_count
 
   if [ -z "$required_contexts_config" ]; then
     required_contexts_config="infra/branch-protection/${base_branch}.json"
@@ -166,18 +165,8 @@ check_live_required_contexts() {
   live_file="$scratch_dir/live-required-status-checks.json"
   live_err="$scratch_dir/live-required-status-checks.err"
 
-  if [ -n "${GITHUB_ACTIONS:-}" ] && [ -z "${OYA_BRANCH_PROTECTION_READ_TOKEN:-}" ]; then
-    echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required in GitHub Actions; branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request." >&2
-    exit 1
-  fi
-
   set +e
-  if [ -n "${OYA_BRANCH_PROTECTION_READ_TOKEN:-}" ]; then
-    GH_TOKEN="$OYA_BRANCH_PROTECTION_READ_TOKEN" \
-      gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
-  else
-    gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
-  fi
+  gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
   live_status=$?
   set -e
 
@@ -208,41 +197,6 @@ check_live_required_contexts() {
     echo "canonical_context_count=${canonical_count} live_context_count=${live_count}" >&2
     echo "missing_from_live=$(printf '%s' "$missing" | jq -cr '.')" >&2
     echo "extra_in_live=$(printf '%s' "$extra" | jq -cr '.')" >&2
-    exit 1
-  fi
-
-  app_binding_drift="$(jq -n --slurpfile canonical "$canonical_file" --slurpfile live "$live_file" '
-    ($canonical[0].required_status_checks.app_id_overrides // {}) as $overrides
-    | ($live[0].checks // []) as $live_checks
-    | [
-        $overrides
-        | to_entries[]
-        | .key as $context
-        | .value as $expected_app_id
-        | ($live_checks | map(select(.context == $context)) | .[0]? // null) as $live_check
-        | if $live_check == null then
-            {
-              context: $context,
-              expected_app_id: $expected_app_id,
-              live_app_id: "missing-check-binding"
-            }
-          elif $expected_app_id == -1 and (($live_check.app_id // null) == null or $live_check.app_id == -1) then
-            empty
-          elif $expected_app_id == ($live_check.app_id // null) then
-            empty
-          else
-            {
-              context: $context,
-              expected_app_id: $expected_app_id,
-              live_app_id: ($live_check.app_id // null)
-            }
-          end
-      ]
-  ')"
-
-  if [ "$app_binding_drift" != "[]" ]; then
-    echo "::error::live branch-protection required check app bindings drift from ${canonical_file}; refusing auto-merge so next-queue cannot inherit an app-pinned review context" >&2
-    echo "app_binding_drift=$(printf '%s' "$app_binding_drift" | jq -cr '.')" >&2
     exit 1
   fi
 

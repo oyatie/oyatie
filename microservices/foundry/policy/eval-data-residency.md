@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define where foundry-eval data lives, how cross-border transfer is governed, and how pack-pinning is enforced at runtime. Every eval-set, golden-output, replay-trace, parity-report, and per-subject DEK inherits the pack's residency rules.
+Define where foundry-eval data lives, how cross-border transfer is governed, and how pack-pinning is enforced at runtime. Every eval-set, baseline-output, replay-trace, parity-report, and per-subject DEK inherits the pack's residency rules.
 
 ## Per-Pack Residency Matrix
 
@@ -47,7 +47,7 @@ Source µservices emit OTel signal with `oya-pack-id` resource attribute; Alloy 
 
 ### S3 bucket residency
 
-Per-pack golden-output + replay-trace buckets are region-locked at the cloud-provider level; bucket policy refuses cross-region replication unless `replication-target-allowed` tag is present (set only via tenant-executed SCC import).
+Per-pack baseline-output + replay-trace buckets are region-locked at the cloud-provider level; bucket policy refuses cross-region replication unless `replication-target-allowed` tag is present (set only via tenant-executed SCC import).
 
 ### KMS keyring residency
 

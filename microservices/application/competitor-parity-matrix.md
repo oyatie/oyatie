@@ -20,7 +20,7 @@ doc_status: published
 ## Purpose
 
 Quantitative + qualitative parity comparison vs industry-leading
-application shells. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims`
+application shells. Drives the `oya-governance-hyperscaler-maturity-claims`
 gate (per ADR-0123 HG-APP) and tells gtm-customer-success what to claim
 and what NOT to claim. Re-validated bi-annually.
 

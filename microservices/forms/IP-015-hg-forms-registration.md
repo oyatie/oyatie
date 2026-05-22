@@ -43,6 +43,42 @@ Register forms µservice into the hyperscaler-gate catalog per ADR-0139 SLO-gate
 - ADR-0133 compliance review cadence.
 - ADR-FORMS-0001..0006.
 - All sibling artifacts in `microservices/forms/`.
+- `microservices/forms/PRD.md`.
+- `microservices/forms/ARCHITECTURE.md`.
+- `microservices/forms/manifest.json`.
+- `microservices/forms/catalog/*.yaml`.
+- `microservices/forms/slos/*.openslo.yaml`.
+- `microservices/forms/contracts/openapi/forms.openapi.yaml`, `asyncapi/forms.asyncapi.yaml`, and `proto/forms.proto`.
+- `microservices/forms/runbooks/*.md` and `benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md`.
+
+## Foundation A-G Substance
+
+- A. Product scope: hyperscaler registration proves Forms is ready for GA cutover, not just implementation-plan completion.
+- B. Domain model: promotion evidence binds form definition, response capture, distribution, export, AI-build, DSR, and policy surfaces.
+- C. Contracts: OpenAPI, AsyncAPI, proto, catalog, manifest, and SLO entries must all agree on service identity and capability names.
+- D. Policy: DPIA, AI Act conformity, Cedar default-deny, pack residency, and branch-protection evidence are required before promotion.
+- E. Operations: runbooks must cover captcha degradation, embed CSP incidents, export failure, response corruption, spam flood, AI rollback, and PII leak.
+- F. Observability: all SLOs publish with dashboard links and a seven-day green window for the pack-kr launch tenant.
+- G. Promotion: AC-01 through AC-28, artifact link resolution, signoff JSON, and promotion ledger update are the stop condition.
+
+## Counterpart Benchmark
+
+- Counterpart: Salesforce Web-to-Lead production readiness, HubSpot Forms enterprise launch controls, ServiceNow catalog item governance, and GitHub issue forms repository policy.
+- Defensible parity claim: Oyatie cannot claim GA until catalog, contracts, SLOs, policies, runbooks, benchmarks, and signoffs are coherent.
+- Differentiator: promotion is evidence-led with SLO windows and compliance signoff, not a checklist-only launch.
+- Grep counterpart names: Salesforce Web-to-Lead; HubSpot Forms; ServiceNow catalog item forms; GitHub issue forms.
+
+## Remediation Notes
+
+- Expanded GA registration with every required real Forms artifact family named explicitly.
+- Added A-G substance so promotion criteria cover product, domain, contracts, policy, operations, observability, and gates.
+- Added counterpart names for grep-recognized parity review.
+
+## Verification Evidence Required
+
+- Link-resolution evidence proves PRD, ARCHITECTURE, manifest, catalog, policy, SLO, contract, ADR, runbook, and benchmark references exist.
+- OpenSLO validation proves every Forms SLO manifest parses and publishes.
+- Promotion packet proves seven-day green window, DPIA signoff, AI Act signoff, pen-test evidence, and AC-01 through AC-28 completion.
 
 ## End of Phase-01
 

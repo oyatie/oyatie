@@ -128,9 +128,15 @@ Per PHASE-01 app class: composition-root smoke + 1 startup-and-shutdown smoke + 
 
 ## Next IP
 
-[`IP-012-autonomy-tier-gate.md`](IP-012-autonomy-tier-gate.md)
+[`IP-012-autonomy-ceiling-gate.md`](IP-012-autonomy-ceiling-gate.md)
 
 ## References
 
 - `PRD.md` BC layer mapping.
 - All upstream IP-003 through IP-010.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

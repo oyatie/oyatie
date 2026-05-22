@@ -53,7 +53,7 @@ M01-P07 promotion-controller acceptance lifts the waiver
 
 ## Consequences
 
-- **Banned-primitives lane** (`oya-foundry-fitness-banned-primitives-kernel`) checks for direct `git`/`gh` invocations in fenced agent-instruction blocks.
+- **Banned-primitives lane** (`oya-governance-banned-primitives-kernel`) checks for direct `git`/`gh` invocations in fenced agent-instruction blocks.
 - **Scaffold-claim fallback** (ADR-0054) is the documented ICM path when grit FK errors block a claim.
 - Any reintroduction of a banned primitive requires a new ADR superseding the relevant row above.
 

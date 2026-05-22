@@ -218,7 +218,7 @@ owner_team: axis-foundry
 
     let tool_case = if include_all_adversarial {
         r#"  - case_id: adv-tool
-    locale: locale-cohort-alpha
+    locale: lang-alpha1
     input_ref: eval://tool
     expected_ref: eval://tool/expected
     adversarial_kind: ToolExfiltration
@@ -237,29 +237,29 @@ min_p95_score_percent: 80
 signed: true
 cases:
   - case_id: case-alpha
-    locale: locale-cohort-alpha
+    locale: lang-alpha1
     input_ref: eval://cohort-alpha
     expected_ref: eval://cohort-alpha/expected
   - case_id: case-beta
-    locale: locale-cohort-beta
+    locale: lang-beta1
     input_ref: eval://cohort-beta
     expected_ref: eval://cohort-beta/expected
   - case_id: case-gamma
-    locale: locale-cohort-gamma
+    locale: lang-gamma1
     input_ref: eval://cohort-gamma
     expected_ref: eval://cohort-gamma/expected
   - case_id: adv-prompt
-    locale: locale-cohort-alpha
+    locale: lang-alpha1
     input_ref: eval://prompt
     expected_ref: eval://prompt/expected
     adversarial_kind: PromptInjection
   - case_id: adv-class
-    locale: locale-cohort-alpha
+    locale: lang-alpha1
     input_ref: eval://class
     expected_ref: eval://class/expected
     adversarial_kind: DataClassViolation
   - case_id: adv-autonomy
-    locale: locale-cohort-alpha
+    locale: lang-alpha1
     input_ref: eval://autonomy
     expected_ref: eval://autonomy/expected
     adversarial_kind: AutonomyBypass

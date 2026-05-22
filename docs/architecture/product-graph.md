@@ -143,7 +143,6 @@ flowchart TB
 
     subgraph Foundry["Foundry (internal-only engine)"]
       direction LR
-      F1[grit + icm + oya-tooling-agent-read]
       F2["LEAN check binaries:<br/>oya-check-architecture (9 sub-cmds)<br/>oya-check-statelessness<br/>oya-check-shardability<br/>oya-check-perf-budget<br/>oya-check-benchmark<br/>oya-check-documentation (LEAN-A5)<br/>+ Proof Ladder + 9 planes + Wave integration"]
     end
 
@@ -656,7 +655,6 @@ cargo test -p oya-check-documentation                                  # 2/2 pas
 grep -c "^name = \"oya-" Cargo.toml                                    # workspace member count
 rg -nP '^- \{ microservice:' docs/localization-packs/kr/pack.yaml | wc -l  # 27 KR pack µservices
 rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0064-canonical-base-and-localization-packs.md | head -5
-icm recall -t context-oyatie -q "ralplan masterplan consensus" --limit 3
 ```
 
 ---

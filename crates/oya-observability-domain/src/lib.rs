@@ -160,7 +160,7 @@ pub const fn log_exposure_for_classification(
             | DataClass::PiiSensitive
             | DataClass::PiiQuasiIdentifier
             | DataClass::Financial
-            | DataClass::FinancialCredit
+            | DataClass::FinancialRegulatedCredit
             | DataClass::BehavioralTenantProduct
             | DataClass::BehavioralAds
             | DataClass::DeclaredPreference
@@ -348,16 +348,19 @@ mod tests {
     #[test]
     fn noop_invocation_trace_observer_accepts_app_trace_calls() {
         let observer = NoopCapabilityInvocationTraceObserver;
-        let span = observer.start_capability_invocation(&CapabilityInvocationTraceContext {
+        let context = CapabilityInvocationTraceContext {
             service_name: "oya-foundation-app".to_string(),
             tenant_id: "ten_noop".to_string(),
-            tenant_region: "region-alpha".to_string(),
+            tenant_region: "region-alpha1".to_string(),
             cell_id: Some("cell-noop".to_string()),
             capability_id: "cap.noop".to_string(),
             data_classes_touched: "INTERNAL_ONLY".to_string(),
             operation_name: CAPABILITY_INVOCATION_OPERATION_NAME.to_string(),
             provider_name: FOUNDRY_PROVIDER_NAME.to_string(),
-        });
+        };
+        assert_eq!(context.tenant_region, "region-alpha1");
+
+        let span = observer.start_capability_invocation(&context);
 
         span.record_autonomy_tier("T2");
         span.emit_result(InvocationTraceResult {
@@ -375,7 +378,7 @@ mod tests {
         assert_eq!(
             legacy_data_classes_label(&[
                 DataClass::PiiQuasiIdentifier,
-                DataClass::FinancialCredit,
+                DataClass::FinancialRegulatedCredit,
                 DataClass::SensitivePipaArticle23,
             ]),
             "PII_QUASI_IDENTIFIER,FINANCIAL_REGULATED_CREDIT,SENSITIVE_PIPA_ART23"

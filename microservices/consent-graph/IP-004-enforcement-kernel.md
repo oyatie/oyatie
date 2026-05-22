@@ -51,7 +51,7 @@ pub struct EnforcementContext {
     pub purpose_of_use: PurposeOfUse,
     pub request_time: Timestamp,
     pub request_region: Region,
-    pub grantee_capability_tier: CapabilityTier,   // T0/T1/T2/T3
+    pub tenant_class: TenantClass,         // demo_trial/paid from principal claim
     pub prior_revocation_check_ms_ago: u64,        // 0 if just-checked; bound by 200ms
     pub trace_id: TraceId,
 }
@@ -192,3 +192,7 @@ kernel (excluding evaluator + cache I/O): ≤100ns per call.
 - **R**: Indeterminate decisions leak (e.g., Cedar evaluator panics).
   **M**: `enforcement-usecase` wraps eval in `catch_unwind` and converts panics to `Indeterminate`;
   unit-tested via injected panicking evaluator.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust/TrustArc expose policy and preference enforcement through platform workflows, Cookiebot gates tags/categories, and Snowflake/Databricks rely on RBAC/table controls. This kernel's Cedar evaluation port is the Oyatie-specific boundary: every cross-tenant hop returns Allow/Deny/Indeterminate under cache invalidation rules instead of treating consent as a detached record.

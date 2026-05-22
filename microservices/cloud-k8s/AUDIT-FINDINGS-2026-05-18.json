@@ -88,7 +88,7 @@
       ],
       "match_count": 3
     },
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -96,7 +96,7 @@
           "hits": [
             {
               "line": 13,
-              "excerpt": "#   oya-redis-hot  \u2014 Valkey block storage, NVMe-class"
+              "excerpt": "#   oya-valkey-hot \u2014 Valkey block storage, NVMe-class"
             }
           ],
           "hits_total": 1
@@ -112,7 +112,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-redis-hot.yaml",
+          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml",
           "hits": [
             {
               "line": 2,

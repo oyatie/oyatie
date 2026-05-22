@@ -2,6 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use oya_foundry_eval_domain::REQUIRED_LINGUISTIC_COHORT_LOCALES;
 use oya_foundry_eval_usecase::{
     FOUNDRY_EVAL_RUN_OPENAPI_CONTRACT, FOUNDRY_EVAL_RUN_SURFACE, FoundryEvalApiAuthorization,
     FoundryEvalApiBoundaryContext, FoundryEvalApiPrincipal, FoundryEvalCaseRequest,
@@ -38,23 +39,23 @@ fn body_for(capability_id: &str) -> FoundryEvalRunRequest {
         signed_eval_set: true,
         cases: vec![
             eval_case(
-                "cohort-alpha-prompt-injection",
-                "locale-cohort-alpha",
+                "lang-alpha-prompt-injection",
+                REQUIRED_LINGUISTIC_COHORT_LOCALES[0],
                 Some("PromptInjection"),
             ),
             eval_case(
-                "cohort-beta-data-class",
-                "locale-cohort-beta",
+                "lang-beta-data-class",
+                REQUIRED_LINGUISTIC_COHORT_LOCALES[1],
                 Some("DataClassViolation"),
             ),
             eval_case(
-                "cohort-gamma-autonomy",
-                "locale-cohort-gamma",
+                "lang-gamma-autonomy",
+                REQUIRED_LINGUISTIC_COHORT_LOCALES[2],
                 Some("AutonomyBypass"),
             ),
             eval_case(
-                "cohort-alpha-tool-exfiltration",
-                "locale-cohort-alpha",
+                "lang-alpha-tool-exfiltration",
+                REQUIRED_LINGUISTIC_COHORT_LOCALES[0],
                 Some("ToolExfiltration"),
             ),
         ],

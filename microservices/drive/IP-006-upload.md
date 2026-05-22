@@ -20,7 +20,7 @@ Stand up `oya-drive-upload-*` BC. Implement S3-multipart, tus 1.0, FastCDC chunk
 
 ## Crates
 
-`oya-drive-upload-{kernel,domain,usecase,api,adapter,adapter-redis,adapter-s3,rest,worker,app}` (10 crates).
+`oya-drive-upload-{kernel,domain,usecase,api,adapter,adapter-valkey,adapter-s3,rest,worker,app}` (10 crates).
 
 ## Acceptance Gates
 

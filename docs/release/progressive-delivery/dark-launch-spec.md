@@ -9,7 +9,7 @@ purpose: |
   Write-side dark-launch (shadow traffic + diff-compare) for high-risk surfaces.
   Diff kernel: oya-foundry-shadow-diff-kernel. Aligned with Foundry RAG gate pattern.
 planned_enforcement_ref:
-  - oya-foundry-fitness-shadow-diff
+  - oya-governance-shadow-diff
 related_adrs: [ADR-0040, ADR-0011, ADR-0024, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -17,7 +17,6 @@ doc_status: published
 
 # Dark-Launch Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. What dark-launch means here
 
@@ -79,7 +78,7 @@ Write-side dark-launch runs the new write path in one of two safe modes:
 1. **Sandbox transaction** — write occurs inside a transaction that always rolls back. Side effects (events, external calls) are captured to a shadow log, not emitted.
 2. **Shadow store** — write occurs against a parallel storage instance pre-seeded from baseline. Inspected, then discarded after diff.
 
-External side-effects (emails, payment calls, webhooks) are MUST-be stubbed in the shadow path. Lane `oya-foundry-fitness-shadow-diff` refuses a dark-launch manifest that lacks the stub-list.
+External side-effects (emails, payment calls, webhooks) are MUST-be stubbed in the shadow path. Lane `oya-governance-shadow-diff` refuses a dark-launch manifest that lacks the stub-list.
 
 ## 7. Promotion path
 
@@ -104,10 +103,9 @@ Dark-launch sits **before** canary, not in place of it. Both are required for hi
 
 ## 9. Compliance gates
 
-- `oya-foundry-fitness-shadow-diff` (NEW; HIGH for high-risk surfaces).
-- `oya-foundry-fitness-canary-required` (NEW; BLOCKER — dark-launch supplements, never replaces canary).
+- `oya-governance-shadow-diff` (NEW; HIGH for high-risk surfaces).
+- `oya-governance-canary-required` (NEW; BLOCKER — dark-launch supplements, never replaces canary).
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — dark-launch diff verdicts stored via `icm store -t shadow-diff-verdicts`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — dark-launch on `staging` feeds the shadow-diff evidence required before `prod-promoter` fires.

@@ -4,13 +4,13 @@
     "doc_class": "GrafanaDashboard",
     "microservice": "tasks",
     "owner_team": "axis-tasks + council-privacy + foundry-runtime",
-    "audience": "axis-tasks + council-privacy + EU AI Act notified body + EEOC bias auditor",
+    "audience": "axis-tasks + council-privacy + regional AI-risk notified body + EEOC bias auditor",
     "tenant_scoped": true,
     "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID",
-    "purpose": "Automation + AI capability quality + EU AI Act Annex III §4 fairness monitoring per ADR-TASKS-0006"
+    "purpose": "Automation + AI capability quality + employment-context high-risk auto-decision fairness monitoring per ADR-TASKS-0006"
   },
   "uid": "tasks-automation-ai-quality",
-  "title": "tasks: automation + AI quality (T0/T1/T2 + EU AI Act + EEOC fairness)",
+  "title": "tasks: automation + AI quality (T0/T1/T2 + regional AI-risk + EEOC fairness)",
   "tags": ["tasks", "ai", "automation", "eu-ai-act", "eeoc", "fairness"],
   "schemaVersion": 39,
   "version": 1,
@@ -76,7 +76,7 @@
     {"id": 7, "type": "timeseries", "title": "Cedar refusal counts (T2 in employment-context REFUSED per pack)",
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (pack, context_kind) (rate(oya_tasks_cedar_refusal_total{capability=~\"t2.*\",refusal_reason=~\"eu_ai_act|employment_context|fairness_audit_pending\"}[5m]))", "legendFormat": "refused {{pack}} {{context_kind}}", "refId": "A"}
+        {"expr": "sum by (pack, context_kind) (rate(oya_tasks_cedar_refusal_total{capability=~\"t2.*\",refusal_reason=~\"high_risk_auto_decision|employment_context|fairness_audit_pending\"}[5m]))", "legendFormat": "refused {{pack}} {{context_kind}}", "refId": "A"}
       ]},
 
     {"id": 8, "type": "timeseries", "title": "AI invocation latency p99 (selected capability)",
@@ -96,7 +96,7 @@
       "targets": [{"expr": "sum(increase(oya_tasks_ai_classifier_rollback_total{pack=\"$pack\"}[7d]))", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 1, "color": "red"}]}}}},
 
-    {"id": 11, "type": "stat", "title": "EU AI Act Art. 73 incident notifications (last 7d)",
+    {"id": 11, "type": "stat", "title": "regional AI-risk Art. 73 incident notifications (last 7d)",
       "gridPos": {"x": 12, "y": 28, "w": 12, "h": 4},
       "targets": [{"expr": "sum(increase(oya_tasks_eu_ai_act_art_73_notification_total{pack=\"pack-eu\"}[7d]))", "refId": "A"}]}
   ],

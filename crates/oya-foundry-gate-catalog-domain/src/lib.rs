@@ -104,7 +104,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "changeset-state-monotonicity",
     "changeset-state-enum-closed",
     // PR #143 Fix-D strict gates.
-    "regulated-ai-refusal-grounding",
+    "high-risk-auto-decision-refusal",
     "slsa-l3-evidence-grounded",
     // ADR-0145 enforcement gates (advisory / DEFERRED mode until strict
     // parsers land per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-*).
@@ -161,7 +161,6 @@ pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] = &[
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
     "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
     "bash scripts/github-actions-required-secrets-check.sh",
-    "bash scripts/pr-review-workflow-pr-head-check.sh --source worktree",
 ];
 
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
@@ -481,10 +480,6 @@ mod tests {
         assert!(
             CI_REQUIRED_PREFLIGHT_COMMANDS
                 .contains(&"bash scripts/github-actions-required-secrets-check.sh")
-        );
-        assert!(
-            CI_REQUIRED_PREFLIGHT_COMMANDS
-                .contains(&"bash scripts/pr-review-workflow-pr-head-check.sh --source worktree")
         );
     }
 

@@ -12,7 +12,7 @@
     "tenant_scoped": true,
     "datasource": "Mimir (per-pack)"
   },
-  "uid": "fr-autonomy-tier-mix",
+  "uid": "fr-autonomy-ceiling-mix",
   "title": "Foundry Runtime — Autonomy tier mix + violation surface",
   "tags": ["foundry-runtime", "autonomy", "security"],
   "schemaVersion": 39,
@@ -39,7 +39,7 @@
       "title": "Autonomy tier mix (7d) — $tenant",
       "gridPos": {"x": 0, "y": 0, "w": 8, "h": 8},
       "targets": [
-        {"expr": "sum by (autonomy_tier_used) (oya_foundry_runtime_invocations_total{tenant_id=~\"$tenant\"})", "legendFormat": "T{{autonomy_tier_used}}", "refId": "A"}
+        {"expr": "sum by (autonomy_level_used) (oya_foundry_runtime_invocations_total{tenant_id=~\"$tenant\"})", "legendFormat": "T{{autonomy_level_used}}", "refId": "A"}
       ]
     },
     {
@@ -82,10 +82,10 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "EU AI Act high-risk capability invocations (24h)",
+      "title": "regional AI-risk high-risk capability invocations (24h)",
       "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
       "targets": [
-        {"expr": "sum(increase(oya_foundry_runtime_invocations_total{tenant_id=~\"$tenant\",eu_ai_act_class=\"high_risk_annex_iii\"}[24h]))", "refId": "A"}
+        {"expr": "sum(increase(oya_foundry_runtime_invocations_total{tenant_id=~\"$tenant\",risk_class=\"high_risk_auto_decision\"}[24h]))", "refId": "A"}
       ]
     },
     {
@@ -112,7 +112,7 @@
       "title": "Tier mix over time",
       "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (autonomy_tier_used) (rate(oya_foundry_runtime_invocations_total{tenant_id=~\"$tenant\"}[5m]))", "legendFormat": "T{{autonomy_tier_used}}", "refId": "A"}
+        {"expr": "sum by (autonomy_level_used) (rate(oya_foundry_runtime_invocations_total{tenant_id=~\"$tenant\"}[5m]))", "legendFormat": "T{{autonomy_level_used}}", "refId": "A"}
       ]
     },
     {

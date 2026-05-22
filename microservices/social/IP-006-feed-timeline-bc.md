@@ -8,97 +8,75 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-social
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-shardability, oya-governance-port-location]
+acceptance_lanes: [cargo-nextest, feed-cache-test, feed-render-slo]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-006: Feed-timeline bounded context
 
-# IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + rest + sdk + app)
+## A. Problem
+A social product without reliable feed materialization cannot match X, Instagram, TikTok, Threads, Bluesky, or Mastodon expectations.
 
-## Intent
+## B. Approach
+Implement the cataloged feed-timeline kernel and Valkey adapter plus planned domain/usecase/worker/rest/sdk/app layers. Provide chronological and governed ranked modes while preserving content policy, minor protection, and tenant/context isolation.
 
-Author the full `feed-timeline` BC: chronological + heuristic-algorithmic feed
-materialisation with fanout-on-write for hot-tier accounts (>10k followers) and
-fanout-on-read for cold-tier. Valkey hot-cache for per-user feed slices; Postgres
-authoritative store. EU AI Act Art. 27 ranking-explanation API.
-
-ML-driven ranking is P03 (depends on foundry-runtime); P01 ships chronological
-+ heuristic (recency × engagement × follow-proximity).
-
-## ChangeSet boundary
-
-`feed-timeline` BC end-to-end.
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `src/crates/oya-social-feed-timeline-kernel/src/{ports,entities,errors}.rs` | create |
-| `src/crates/oya-social-feed-timeline-domain/src/{feed_entry,ranking_signal,fanout_plan,rank_snapshot,ranking_heuristic}.rs` | create |
-| `src/crates/oya-social-feed-timeline-usecase/src/{render,fanout_on_write,fanout_on_read}.rs` | create |
-| `src/crates/oya-social-feed-timeline-adapter-postgres/src/repository.rs` | create |
-| `src/crates/oya-social-feed-timeline-adapter-redis/src/cache.rs` | create |
-| `src/crates/oya-social-feed-timeline-worker/src/{fanout_writer,cache_rebuilder}.rs` | create |
-| `src/crates/oya-social-feed-timeline-rest/src/handlers.rs` | create |
-| `tests/feed_timeline_e2e.rs` | create |
+| `catalog/oya-social-feed-timeline-kernel.yaml` and `catalog/oya-social-feed-timeline-adapter-valkey.yaml` | Existing anchors. |
+| `src/crates/oya-social-feed-timeline-{kernel,domain,usecase,adapter-postgres,adapter-valkey,worker,rest,sdk,app}/` | Planned family named by PRD/IP. |
+| `decisions/ADR-SOC-0001-feed-ranking-algorithm.md` | Ranking decision source. |
+| `slos/feed-render-latency.openslo.yaml` | Feed latency SLO. |
 
-## Code Shape
+## D. Ordered implementation steps
+1. Define `FeedEntry`, `RankingSignal`, `FanoutPlan`, and `RankSnapshot`.
+2. Implement chronological feed first, with ranked mode behind capability/policy controls.
+3. Add Valkey cache adapter and rebuild worker.
+4. Apply Cedar visibility, block/mute, content policy, and minor-protection filters before render.
+5. Add tests for hot/cold fanout, cache miss, deleted/tombstoned posts, and blocked authors.
+6. Add latency tests for top-50 feed rendering.
+7. Wire feed cache rebuild runbook and dashboard evidence.
 
-```rust
-// kernel/src/ports.rs
-#[async_trait]
-pub trait FeedCache: Send + Sync {
-    async fn get_slice(&self, tenant_id: &TenantId, user_ref: &UserRef, cursor: Cursor, limit: usize)
-        -> Result<FeedSlice, FeedError>;
-    async fn write_entry(&self, tenant_id: &TenantId, user_ref: &UserRef, entry: FeedEntry)
-        -> Result<(), FeedError>;
-    async fn invalidate(&self, tenant_id: &TenantId, user_ref: &UserRef) -> Result<(), FeedError>;
-}
+## E. Acceptance
+- `cargo nextest run -p oya-social-feed-timeline-kernel` passes.
+- `cargo nextest run -p oya-social-feed-timeline-adapter-valkey` passes.
+- `slos/feed-render-latency.openslo.yaml` resolves.
+- `cargo run -p oya-dev-cli -- gate validate content-policy --microservice social` passes.
+- `runbooks/feed-cache-rebuild.md` covers rebuild and degradation behavior.
 
-// domain/src/ranking_heuristic.rs
-pub fn rank_score(post: &Post, recency_minutes: u64, engagement_signal: f64, follow_proximity: f64) -> f64 {
-    let recency_decay = 1.0 / (1.0 + (recency_minutes as f64 / 360.0));
-    let weighted = 0.5 * recency_decay + 0.3 * engagement_signal + 0.2 * follow_proximity;
-    weighted.clamp(0.0, 1.0)
-}
-```
+## F. Evidence
+- PRD FR-07 and performance table: `PRD.md`.
+- Decision: `decisions/ADR-SOC-0001-feed-ranking-algorithm.md`.
+- Policy: `policy/content-policy.cedar`, `policy/minor-protection.cedar`.
+- Dashboard: `dashboards/feed-experience.json`.
 
-## Fanout Strategy
+## G. Counterpart comparison
+X and Threads set broadcast feed expectations; Bluesky and Mastodon set user-control and federation expectations; TikTok and Instagram set visual discovery pressure. Oyatie's foundation feed should be explainable, policy-filtered, and SLO-gated rather than an engagement-only For-You clone.
 
-| Account follower tier | Strategy | Latency |
-|---|---|---|
-| < 1k followers (cold) | fanout-on-read | feed-render queries Postgres at fetch time |
-| 1k–10k (warm) | hybrid | hot-followers fanout-on-write; cold-followers fanout-on-read |
-| > 10k (hot/celebrity) | fanout-on-write | precomputed feed slice in Valkey per follower |
+## H. Foundation delivery expansion
+- Deliverable detail: feed entries carry source post, author, relation state, visibility, ranking reason, and policy filter result.
+- Deliverable detail: chronological mode ships first and ranked mode remains policy-controlled.
+- Deliverable detail: cache keys include tenant, context, viewer, feed mode, policy version, and pagination window.
+- Deliverable detail: fanout workers handle post publish, delete, moderation, block/mute, and follow graph changes.
+- Deliverable detail: tombstone handling removes deleted or moderated posts without corrupting pagination.
+- Deliverable detail: ranking snapshots record inputs safe enough for audit review.
+- Deliverable detail: dashboard metrics include render latency, cache hit, suppression, and rebuild counts.
+- Deliverable detail: Slack channel timelines are comparison pressure for ordered, moderated activity feeds.
 
-## Acceptance Gates
+## I. Acceptance expansion
+- Acceptance detail: chronological tests must preserve event order and pagination stability.
+- Acceptance detail: ranked mode tests must expose ranking reason and policy control.
+- Acceptance detail: block/mute tests must remove hidden authors before render.
+- Acceptance detail: minor-protection tests must suppress unsafe recommendations.
+- Acceptance detail: cache rebuild tests must recover from corrupted or stale Valkey entries.
+- Acceptance detail: feed SLO resolution must include top-50 render latency.
+- Acceptance detail: runbook coverage must include rebuild and degraded cache behavior.
+- Acceptance detail: Slack, X, Threads, TikTok, and Bluesky comparisons must be tied to feed behavior and policy evidence.
 
-```bash
-cargo nextest run -p oya-social-feed-timeline-kernel
-cargo nextest run -p oya-social-feed-timeline-domain
-cargo nextest run -p oya-social-feed-timeline-adapter-redis
-cargo run -p oya-dev-cli -- gate validate shardability --microservice social
-```
-
-## Test Plan
-
-- Heuristic ranking unit tests (recency decay, weighted score bounds).
-- Fanout-on-write E2E: 10k follower account → precomputed Valkey slices verified.
-- Fanout-on-read E2E: cold account → on-demand Postgres query under p95 ≤ 200ms.
-- Feed-cache invalidation on post-delete + tombstone propagation.
-- EU AI Act Art. 27 ranking_explanation API exposes contributing signals.
-
-## Halt Conditions
-
-- Feed slice exceeds memory per Valkey shard — re-shard.
-- Fanout-on-write queue depth > 100k per cell — escalate; auto-degrade to fanout-on-read.
-
-## Next IP
-
-[`IP-007-reactions-bc.md`](IP-007-reactions-bc.md)
-
-## References
-
-- ADR-SOC-0001 (feed-ranking-algorithm).
-- `microservices/social/runbooks/feed-cache-rebuild.md`.
-- EU AI Act Arts. 13, 27 + EU DSA Art. 27 (recommender transparency).
+## J. Evidence expansion
+- Evidence detail: capture nextest output for feed kernel and Valkey adapter.
+- Evidence detail: capture content-policy gate output.
+- Evidence detail: capture SLO resolution for feed render latency.
+- Evidence detail: cite `ADR-SOC-0001-feed-ranking-algorithm.md`.
+- Evidence detail: cite `dashboards/feed-experience.json`.
+- Evidence detail: cite `policy/minor-protection.cedar` and `policy/content-policy.cedar`.
+- Evidence detail: cite Slack as activity-feed/channel timeline pressure for predictable ordering and moderation.

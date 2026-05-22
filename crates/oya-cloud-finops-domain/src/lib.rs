@@ -14,7 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use oya_cloud_billing_domain::{CurrencyCode, Money, RateCardRef};
 use oya_cloud_region_domain::RegionCode;
 use oya_cloud_resource_domain::{CloudResourceError, ResourceId};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 use oya_metering_domain::{AxisId, MeterEvent, MeterEventId, MeterUnitKind};
 
 const FINOPS_SCHEMA_VERSION: u32 = 1;
@@ -1066,7 +1066,7 @@ fn validate_tenant_id(value: &str) -> Result<(), CloudFinopsError> {
 fn validate_financial_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudFinopsError> {
     let data_class =
         PrivacyDataClass::new(data_class).map_err(|_| CloudFinopsError::InvalidDataClass)?;
-    if matches!(data_class.data_class(), DataClass::Financial) {
+    if DataClassMatcher::RegulatedFinancial.matches(data_class.data_class()) {
         Ok(data_class)
     } else {
         Err(CloudFinopsError::InvalidDataClass)
@@ -1114,8 +1114,8 @@ mod tests {
     use super::*;
 
     const TENANT: &str = "ten_alpha";
-    const REGION: &str = "alpha-region";
-    const RESOURCE: &str = "oya:cloud:alpha-region:ten_alpha:instance:vm-a";
+    const REGION: &str = "region-alpha1";
+    const RESOURCE: &str = "oya:cloud:region-alpha1:ten_alpha:instance:vm-a";
     const RATE_CARD: &str = "rate/standard";
 
     fn period() -> FinopsPeriod {
@@ -1127,7 +1127,7 @@ mod tests {
     }
 
     fn money_units(minor_units: u64) -> Money {
-        Money::new("TOK", minor_units).expect("money")
+        Money::new("XTS", minor_units).expect("money")
     }
 
     fn meter_event(id: &str, axis: AxisId, quantity: u64, ts: u64) -> MeterEvent {
@@ -1151,7 +1151,7 @@ mod tests {
             region: REGION.to_string(),
             axis,
             unit_kind,
-            currency: "TOK".to_string(),
+            currency: "XTS".to_string(),
             rate,
             effective_period: FinopsPeriod::new(1, 3_000).expect("rate period"),
             data_class: DataClass::Financial,
@@ -1334,7 +1334,7 @@ mod tests {
         assert_eq!(
             ledger
                 .record_allocation(CostAllocationCreate {
-                    resource_id: "oya:cloud:alpha-region:ten_other:instance:vm-a".to_string(),
+                    resource_id: "oya:cloud:region-alpha1:ten_other:instance:vm-a".to_string(),
                     ..allocation(
                         "fca_bad_tenant",
                         meter_event("mtr_bad_tenant", AxisId::Cloud, 1_000_000, 1_500),

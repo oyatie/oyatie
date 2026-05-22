@@ -50,7 +50,7 @@ ONE of:
 
 ## Unpinning
 
-When the vendor change has been absorbed by a new adapter version (response-shape conformance + golden-set parity verified):
+When the vendor change has been absorbed by a new adapter version (response-shape conformance + baseline-set parity verified):
 
 | Step | Action |
 |---|---|

@@ -1,0 +1,259 @@
+{
+  "schema": "multispectrum-review-facet-verdict.v2.4.0",
+  "review_event": "keystone-bundle-2026-05-20",
+  "facet_id": "A3",
+  "facet_name": "Own-Policy-Adherence: Structure",
+  "facet_lens": "ADR-0131 per-microservice flat layout + ADR-0132 no-suite policy + Milestone>Phase>Impl-plan 3-level hierarchy",
+  "reviewer_persona": "A3-Structure-Adherence",
+  "reviewer_model": "claude-opus-4-7",
+  "review_round": 1,
+  "review_date": "2026-05-20",
+  "corpus_reviewed": [
+    "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+    "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md",
+    "docs/decisions/ADR-0245-substrate-vs-product-layering.md",
+    "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
+    "docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md",
+    "docs/decisions/ADR-0254-deployment-model-spectrum.md"
+  ],
+  "verdict": "REQUEST_CHANGES",
+  "verdict_confidence": "high",
+  "headline_finding": "Bundle is materially compliant with ADR-0131 flat layout (every new microservice lands under microservices/<ms>/ as a single-concern unit with the canonical artifact suite). However, ADR-0132's no-suite forward-policy is breached at the doctrine level by ADR-0249 marketplace ('eight substrate microservices + four category bounded contexts' is exactly the bundle/suite shape ADR-0132 forbids unless dissolved into flat microservices, which it is not). ADR-0245 introduces a structural classification (substrate / product / service-cell / reserved) that amends ADR-0131 and ADR-0132 — the amendment is declared in frontmatter but the structural consequences (a reserved tier that ships skeleton-without-iac-without-src) extend ADR-0131's canonical folder shape and require explicit ADR-0131 amendment language that is currently implicit. Milestone>Phase>Impl-plan 3-level hierarchy is not exercised by any ADR in the bundle (none cite IPs/phases under their owning µservices); this is acceptable for keystone-doctrine ADRs but the migration IPs implied by §D-3 (47 new crates for policy-engine, 8 marketplace substrates, deployment-control-plane) MUST land as per-µservice IP-NNN files per ADR-0131 §'What moves'.",
+  "summary": {
+    "flat_layout_adherence": "PASS_WITH_NOTES",
+    "no_suite_policy_adherence": "FAIL_FOR_ADR_0249",
+    "single_concern_adherence": "PASS_FOR_ADR_0246_AND_ADR_0254; CONDITIONAL_FOR_ADR_0249",
+    "milestone_hierarchy_compliance": "NOT_EXERCISED_BY_KEYSTONE_DOCTRINE; MIGRATION_IPS_PENDING",
+    "amendment_declaration_completeness": "PARTIAL"
+  },
+  "flat_layout_violations": [
+    {
+      "severity": "INFO",
+      "adr": "ADR-0245",
+      "location": "§D-3.A foundry row",
+      "finding": "ADR-0245 marks `microservices/foundry/` with the reserved subtype `substrate-meta` and notes the µservice 'is being decomposed per ADR-0247 self-modification doctrine'. ADR-0131 §D-3 table (Foundry under IP-M01-MIGR-009) treats Foundry as a single µservice; ADR-0245 keeps it but defers final shape. No layout violation today, but the dissolution path is unspecified — if Foundry decomposes into N microservices, each MUST land flat under microservices/<ms>/ per ADR-0131. Flag for follow-on ADR.",
+      "remediation": "Add follow-on ADR scheduling Foundry decomposition with one IP-MIGR per resulting µservice; or accept the substrate-meta tier as a permanent classification with no decomposition."
+    },
+    {
+      "severity": "MINOR",
+      "adr": "ADR-0245",
+      "location": "§D-6 reserved µservice rules item 6",
+      "finding": "ADR-0245 reserved tier mandates 'NO microservices/<ms>/iac/' and 'NO microservices/<ms>/src/'. This is a structural departure from ADR-0131's canonical folder shape (which mandates src/ as 'MANDATORY; canonical code root for path-based ownership'). ADR-0245 frontmatter declares `amends: ADR-0131-per-microservice-flat-layout.md (extends layout-only authority with a tier-classification field)`, but the amendment scope says 'tier-classification field' not 'reserved-tier may omit src/ and iac/'. The structural amendment is real but undeclared in the amends scope.",
+      "remediation": "Expand ADR-0245 frontmatter `amends` clause for ADR-0131 to explicitly cite the reserved-tier folder-shape exemption (no src/, no iac/). Or alternatively, require reserved µservices to ship an empty `src/.gitkeep` + `iac/.gitkeep` to maintain the canonical shape and rely on the manifest `tier: reserved` field + Cedar admission gate to prevent deployment."
+    },
+    {
+      "severity": "MINOR",
+      "adr": "ADR-0246",
+      "location": "§D-1 layout description + §D-3 crate redistribution",
+      "finding": "ADR-0246 §D-1 declares: 'Per ADR-0131, the µservice's code lives under crates/oya-policy-engine-* at the workspace root (the flat layout puts crates at the workspace root and the per-µservice directory holds configuration, contracts, IaC, migrations, SLOs, tests, runbooks, fragments).' This is INCORRECT per ADR-0131. ADR-0131 §'Canonical folder shape' mandates `microservices/<ms>/src/crates/oya-<ms>-<bc>-<layer>/` — crates live INSIDE the microservice folder under src/crates/, NOT at the workspace root. The §D-3 crate-redistribution table shows new crate names (`oya-policy-engine-evaluator-kernel`, etc.) but the location is described as 'workspace root', which directly contradicts ADR-0131 IP-M01-MIGR-001..014's path mapping (crates/oya-<ms>-* → microservices/<ms>/src/crates/oya-<ms>-*).",
+      "remediation": "Fix ADR-0246 §D-1 prose to read: 'Per ADR-0131, the µservice's code lives under microservices/policy-engine/src/crates/oya-policy-engine-* per the per-microservice canonical code root.' This is purely textual; the intended structure matches ADR-0131 — only the description is wrong. BLOCKER for merge."
+    },
+    {
+      "severity": "INFO",
+      "adr": "ADR-0254",
+      "location": "§D-4 deployment-control-plane internal layout",
+      "finding": "The internal layout diagram shows `microservices/deployment-control-plane/{Cargo.toml, src/lib.rs, src/cell_registry.rs, ...}`. This is a flat src/ layout (not src/crates/<crate>/src/lib.rs per ADR-0131 Rust convention). ADR-0131 §'Canonical folder shape' permits language-agnostic interior under src/: 'Rust µservices use src/crates/<crate>/ (matching BNF v4.1 layer split)'. A single-crate Rust µservice cannot legitimately use src/lib.rs directly under microservices/<ms>/src/ — every Rust µservice in oyatie owns at minimum one crate per layer (kernel/domain/usecase/api/adapter per ADR-0105 13-layer enum). The layout shown collapses all layers into one crate, which violates ADR-0105 clean-architecture separation as well as ADR-0131 §src/crates/ convention.",
+      "remediation": "Rewrite ADR-0254 §D-4 layout to use the canonical `microservices/deployment-control-plane/src/crates/oya-deployment-control-plane-<bc>-<layer>/` shape, with one crate per (BC × layer) per ADR-0056 BNF v4.1 + ADR-0105. Provide the explicit crate table (similar to ADR-0246 §D-3) before merge."
+    },
+    {
+      "severity": "INFO",
+      "adr": "ADR-0249",
+      "location": "§D-1.1 catalog Postgres DDL location + §D-1.2..§D-1.8 subsequent substrates",
+      "finding": "ADR-0249 references migration paths like `microservices/catalog/migrations/0001_listings.sql`. ADR-0131 canonical folder shape does NOT include `migrations/` as a top-level per-µservice directory. The shape lists: PRD.md, PHASE-NN, IP-NNN, README, CODEOWNERS, decisions/, contracts/, specs/, catalog/, runbooks/, threat-model.md, slos/, dpia.md, iac/, src/, tests/, evidence/. Postgres migrations conventionally live under iac/ or under a crate's adapter layer. ADR-0246 §D-1 also uses a top-level `migrations/` directory. The de facto pattern is consistent across ADR-0246 and ADR-0249, but ADR-0131 does not authorize it.",
+      "remediation": "Either (a) amend ADR-0131 to add `migrations/<NNNN>_<slug>.sql` as a canonical per-µservice directory for stateful services, citing this as a sibling-ADR amendment from ADR-0246/0249; or (b) relocate the SQL to `iac/sql/<NNNN>_*.sql` or `src/crates/oya-<ms>-<bc>-adapter/migrations/` to fit ADR-0131 as-written."
+    }
+  ],
+  "suite_violations": [
+    {
+      "severity": "BLOCKER",
+      "adr": "ADR-0249",
+      "location": "§D-1 'Eight marketplace substrate microservices' + §D-2 'Four category bounded contexts'",
+      "finding": "ADR-0249 introduces a 'multi-category marketplace doctrine' that ships eight substrate µservices (catalog, inventory, orders, fulfillment, reviews, discovery, pricing, trust-safety) PLUS four category-specific bounded contexts (physical-goods, c2c, services, subscriptions). The brand 'Marketplace' covers all of these. ADR-0132 §Decision states: 'Creating a new microservices/<bundle>/ folder that contains more than one user-facing concern (e.g., microservices/connect/, microservices/workspace/, microservices/healthcare/, microservices/fintech/) is prohibited.' ADR-0249 does NOT create `microservices/marketplace/` as a bundle (the existing `microservices/marketplace/` is a service-cell-tier µservice per ADR-0245 §D-3.C), so it superficially avoids the literal banned-folder pattern. HOWEVER, the doctrine itself describes a SUITE: 'oyatie Marketplace as a unified multi-category commerce surface combining Amazon retail, Facebook Marketplace, Apple App Store, Upwork-class services, and Substack-class subscriptions under one brand.' ADR-0132 §Decision item 3 explicitly prohibits this: 'Authoring a new PRD or phase-spec that declares its scope as X Suite or X Platform or X Bundle covering more than one concern.' The marketplace doctrine spans 12 concerns (8 substrates + 4 category BCs). This IS the suite/bundle pattern wearing different clothes.",
+      "analysis": "The eight substrates pass single-concern ADR-0132 individually (catalog is one concern, inventory another, etc.). The four category BCs are inside which µservice? The ADR is ambiguous — they appear to be bounded contexts that overlay all eight substrates, not standalone µservices. If they live as BCs WITHIN the eight substrate µservices (per ADR-0249's exact text: 'plus four category-specific bounded contexts (physical-goods, c2c, services, subscriptions)'), then they are not violating-µservices; but they ARE describing the bundle pattern at the doctrine level. The 'unified multi-category commerce surface ... under one brand' framing is precisely what ADR-0132 §Rejected alternative 2 retired: 'Retire suite as a brand-layer concept too — rejected. Marketing/GTM may still use Workspace or Connect as a brand name; this ADR governs architecture, not brand.' So ADR-0249 is on solid ground if 'Marketplace' is purely a brand wrapper for 8 independently-deployable single-concern substrates + 4 cross-cutting categorization BCs. The risk: the 'category-specific bounded contexts' are unbounded — what happens when adding 'health-marketplace' as a 5th category? Does it become a 9th substrate (acceptable) or a 5th category BC fanning into all 8 substrates (acceptable if BC only) or its own marketplace µservice (suite violation)?",
+      "remediation": "Three required clarifications in ADR-0249 before merge: (1) Explicitly state that 'Marketplace' is a brand-layer concept per ADR-0132 §Rejected alternative 2, NOT an architectural µservice. (2) For each of the four category BCs, declare which substrate µservice owns it (e.g., 'physical-goods BC lives inside microservices/catalog/ + microservices/fulfillment/' or 'physical-goods is a category-tag attribute, not a BC owned by any single µservice'). (3) Add an explicit no-future-marketplace-bundle clause: 'New marketplace categories MUST land as either (a) new tag values in existing substrates, or (b) new flat single-concern µservices; never as a marketplace-<category>/ folder.'"
+    },
+    {
+      "severity": "MINOR",
+      "adr": "ADR-0245",
+      "location": "§D-3.E summary counts",
+      "finding": "ADR-0245 lists 54 microservices across 4 tiers (19 substrate + 27 product + 1 service-cell + 7 reserved). The existing `microservices/` directory contains 44 entries. The 10-µservice delta arrives via this keystone bundle (deployment-control-plane via ADR-0254; 8 marketplace substrates via ADR-0249; consent + breach-notification + tax-engine + payments + deidentification + identity-verification + encryption-substrate reserved via ADR-0245). This is acceptable flat-catalog growth (matching ADR-0249's no-bundle requirement that categories become substrates, not bundles), but cross-reference: ADR-0249 declares 8 substrates as 'NEW first-class microservices under microservices/ per ADR-0131 flat layout.' ADR-0245 §D-3.A lists only one of these eight (marketplace-data substrate-marketplace-data is implied but not row-listed in ADR-0245's §D-3 table). The keystone bundle's tier classification table (ADR-0245 §D-3) is incomplete relative to the µservices the bundle creates (ADR-0249's 8 substrates).",
+      "remediation": "Add 8 rows to ADR-0245 §D-3.A (substrate-tier µservices) for catalog, inventory, orders, fulfillment, reviews, discovery, pricing, trust-safety — each with `substrate-marketplace-<concern>` tier_subtype. Update summary counts: 27 substrate + 27 product + 1 service-cell + 7 reserved = 62 µservices."
+    }
+  ],
+  "single_concern_adherence_analysis": [
+    {
+      "adr": "ADR-0246 (policy-engine)",
+      "concern": "Cedar policy evaluation + fragment registry + signing chain + hot-reload + coverage audit + tenant overlay + pack overlay + bootstrap genesis",
+      "is_single_concern": true,
+      "justification": "All 8 BCs in §D-2 are aspects of one concern: Cedar policy evaluation lifecycle. fragment-registry (storage), evaluator (eval), signing-chain (provenance), hot-reload (control plane), coverage-audit (drift detection), pack-overlay + tenant-overlay (composition), bootstrap-genesis (init). This is comparable to the audit-chain µservice which owns emission + Merkle sealing + retention + export — all one concern. PASS."
+    },
+    {
+      "adr": "ADR-0254 (deployment-control-plane)",
+      "concern": "Cell + bundle + canary + license + compliance-evidence + substrate-provisioning + air-gap-bundle + byoc-iam + on-prem-sync",
+      "is_single_concern": true,
+      "justification": "All 9 capability areas in §D-4 are aspects of one concern: deployment lifecycle orchestration. Palantir Apollo equivalence is named in the ADR ('Palantir Apollo's functional equivalent for oyatie'). Apollo at Palantir is one product, not a suite. PASS."
+    },
+    {
+      "adr": "ADR-0249 (marketplace) — each substrate",
+      "concern_per_substrate": {
+        "catalog": "single-concern: typed listings",
+        "inventory": "single-concern: stock state",
+        "orders": "single-concern: order lifecycle",
+        "fulfillment": "single-concern: delivery substrate",
+        "reviews": "single-concern: per-listing feedback",
+        "discovery": "single-concern: search + ranking",
+        "pricing": "single-concern: pricing rules",
+        "trust-safety": "single-concern: fraud + policy enforcement"
+      },
+      "is_single_concern": true,
+      "justification_per_substrate": "PASS individually for all 8. The 8-substrate split is rational decomposition; e.g., catalog is the universal Listing type; orders is the saga lifecycle; fulfillment is delivery; etc. Compare to AWS where each maps to a recognizable service (Catalog ~ AWS Marketplace catalog; Inventory ~ FBA inventory; Orders ~ Amazon Order Management; etc.). PASS."
+    },
+    {
+      "adr": "ADR-0245 reserved µservices",
+      "concern_per_reserved": {
+        "payments": "single-concern: financial settlement",
+        "identity-verification": "single-concern: KYC/IDV",
+        "tax-engine": "single-concern: per-jurisdiction tax",
+        "deidentification": "single-concern: de-id primitives",
+        "breach-notification": "single-concern: breach workflows",
+        "encryption-substrate": "single-concern: FIPS 140-3 primitives",
+        "consent": "single-concern: certified consent recording"
+      },
+      "is_single_concern": true,
+      "justification": "All 7 reserved µservices are single-concern. Note that consent and consent-graph are deliberately split (consent-graph = substrate-tier graph storage; consent = reserved-tier per-jurisdiction certified consent recording). This is the correct application of ADR-0132 single-concern rule when one concern needs certification and another does not. PASS."
+    }
+  ],
+  "milestone_hierarchy_compliance": {
+    "level": "NOT_EXERCISED_AT_KEYSTONE",
+    "is_violation": false,
+    "rationale": "Keystone doctrine ADRs (ADR-0245 through ADR-0255) are doctrine-level decisions, not implementation work-units. The Milestone>Phase>Impl-plan hierarchy applies to /specs/masterplan.json work-units (M01 foundation, M02 product layer, etc.) and to .omc/plans (deprecated per ADR-0116; superseded by per-µservice PHASE-NN-*.md + IP-NNN-*.md per ADR-0131). The keystone bundle is a *doctrine* bundle; its implementation will land as per-µservice IPs.",
+    "pending_implementation_ips_count": "Estimated 60-80 IPs across the keystone bundle: ADR-0246 implementation = 8 IPs (one per BC); ADR-0249 = 8 IPs (one per substrate) + 4 IPs (one per category BC); ADR-0254 = 5 IPs (one per deployment model + 1 for deployment-control-plane); ADR-0245 = 7 IPs (one per reserved-µservice skeleton authoring) + 1 IP for tier-field migration sweep; plus N IPs for each other keystone (0242, 0243, 0244, 0247, 0248, 0250, 0251, 0252, 0253, 0255).",
+    "recommendation": "Each keystone ADR should declare a §'Implementation IP series' section listing the per-µservice IPs that implement it, with each IP citing its owning µservice path (microservices/<ms>/IP-NNN-<slug>.md per ADR-0131). ADR-0246 §D-3 'IP-001 .. IP-008' already does this informally ('The IP series scaffolds these incrementally across IP-001 .. IP-008 (one IP per BC)'); other keystones should follow this pattern explicitly. This becomes a hard structural requirement once the keystone bundle moves from `Proposed` to `Accepted`."
+  },
+  "doctrine_amendment_completeness": [
+    {
+      "amending_adr": "ADR-0245",
+      "amended_adr": "ADR-0131",
+      "frontmatter_declares": "extends layout-only authority with a tier-classification field",
+      "actual_extensions": [
+        "Adds `tier: substrate|product|service-cell|reserved` to manifest.json",
+        "Adds `tier_subtype:` enum to manifest.json",
+        "Reserved-tier exempts microservices/<ms>/iac/ and microservices/<ms>/src/ (structural exemption to canonical folder shape)",
+        "Adds `planned_contracts/` directory (parallel to contracts/) for reserved µservices"
+      ],
+      "scope_match": "PARTIAL",
+      "remediation": "Expand `amends` field on ADR-0245 to include reserved-tier folder-shape exemption + planned_contracts/ directory."
+    },
+    {
+      "amending_adr": "ADR-0245",
+      "amended_adr": "ADR-0132",
+      "frontmatter_declares": "adds tier classification to the flat-microservice forward-policy",
+      "actual_extensions": [
+        "Adds service-cell tier (one new µservice tier ADR-0132 did not contemplate)",
+        "Adds reserved tier (one new µservice tier ADR-0132 did not contemplate)",
+        "Service-cell as 'peer to products' is a structural intermediate category between substrate and product"
+      ],
+      "scope_match": "ADEQUATE",
+      "rationale": "Service-cell and reserved are tier classifications, not bundles/suites. They sit orthogonal to ADR-0132's anti-bundle doctrine. The amendment scope statement is technically correct."
+    },
+    {
+      "amending_adr": "ADR-0249",
+      "amended_adr": "ADR-0213",
+      "frontmatter_declares": "marketplace name reservation activated; plugin-app-store refactor onto shared marketplace substrates",
+      "actual_extensions": "Adequate; ADR-0249 §Context explicitly cites ADR-0213's reservation activation.",
+      "scope_match": "ADEQUATE",
+      "rationale": "But see suite_violations[0] above — ADR-0249 should ALSO amend ADR-0132 explicitly to declare that the multi-substrate marketplace doctrine is compliant with no-suite policy (eight independent single-concern substrates + brand-layer 'Marketplace' surface). Currently ADR-0249 frontmatter lists ADR-0132 in `related:` but does not declare an `amends:` relationship, leaving the suite-policy interaction implicit."
+    },
+    {
+      "amending_adr": "ADR-0254",
+      "amended_adr": "ADR-0131",
+      "frontmatter_declares": "none (only related: list)",
+      "actual_extensions": [
+        "Creates new microservices/deployment-control-plane/ — implicitly adopts ADR-0131 layout but has incorrect internal layout (flat src/ instead of src/crates/<crate>/)"
+      ],
+      "scope_match": "INSUFFICIENT",
+      "remediation": "ADR-0254 §D-4 must use ADR-0131 canonical src/crates/<crate>/ layout. No frontmatter amendment needed; only the internal layout diagram needs fixing."
+    }
+  ],
+  "top_findings": [
+    {
+      "rank": 1,
+      "severity": "BLOCKER",
+      "summary": "ADR-0246 §D-1 incorrectly describes crate location as 'workspace root' — directly contradicts ADR-0131's `microservices/<ms>/src/crates/` mandate. Must be fixed before merge.",
+      "fix_complexity": "trivial (one paragraph rewrite)"
+    },
+    {
+      "rank": 2,
+      "severity": "BLOCKER",
+      "summary": "ADR-0249 multi-category marketplace doctrine reads as a suite at the brand-layer; needs explicit ADR-0132 amendment clause clarifying that 'Marketplace' is brand-only and the 8 substrates are flat single-concern µservices.",
+      "fix_complexity": "moderate (add §'Relation to ADR-0132' section + amend frontmatter)"
+    },
+    {
+      "rank": 3,
+      "severity": "BLOCKER",
+      "summary": "ADR-0254 §D-4 deployment-control-plane internal layout shows non-canonical flat src/lib.rs structure; must adopt ADR-0131 src/crates/<crate>/ pattern with one crate per (BC × layer) per ADR-0105.",
+      "fix_complexity": "moderate (rewrite §D-4 with explicit crate table à la ADR-0246 §D-3)"
+    },
+    {
+      "rank": 4,
+      "severity": "MINOR",
+      "summary": "ADR-0245 reserved-tier folder-shape exemption (no src/, no iac/) is a real extension to ADR-0131 not declared in `amends:` scope; expand amendment declaration.",
+      "fix_complexity": "trivial"
+    },
+    {
+      "rank": 5,
+      "severity": "MINOR",
+      "summary": "ADR-0245 §D-3.E summary counts omit the 8 new marketplace substrates from ADR-0249 (catalog/inventory/orders/fulfillment/reviews/discovery/pricing/trust-safety). Bundle is internally inconsistent on µservice count.",
+      "fix_complexity": "trivial (add 8 rows + update summary)"
+    },
+    {
+      "rank": 6,
+      "severity": "INFO",
+      "summary": "Top-level migrations/ directory used by ADR-0246 + ADR-0249 is not in ADR-0131's canonical folder shape. Either amend ADR-0131 to add migrations/ or relocate SQL under iac/sql/ or under crate adapters.",
+      "fix_complexity": "moderate (cross-cutting; affects multiple ADRs)"
+    },
+    {
+      "rank": 7,
+      "severity": "INFO",
+      "summary": "ADR-0245 Foundry 'substrate-meta' tier is a hold-pattern. Decomposition path is unspecified. If Foundry decomposes into N µservices, each must land flat per ADR-0131 — schedule follow-on ADR.",
+      "fix_complexity": "deferrable"
+    },
+    {
+      "rank": 8,
+      "severity": "INFO",
+      "summary": "Milestone>Phase>Impl-plan hierarchy is not exercised by keystone-doctrine ADRs (which is correct). However, the ~60-80 implementation IPs implied by the bundle should each land as microservices/<ms>/IP-NNN-*.md per ADR-0131. Each keystone ADR would benefit from an §'Implementation IP series' section listing the IP IDs (ADR-0246 §D-3 does this; others do not).",
+      "fix_complexity": "moderate (one §IP-series section per keystone)"
+    }
+  ],
+  "passes_called_out": [
+    "ADR-0246 promotes cedar-fragment-coverage from a BC inside ontology to a peer substrate µservice — this is the textbook correct response to ADR-0245 substrate-tier classification when SLO/DR/cell-topology requirements exceed what BC-level isolation can deliver. The promotion is single-concern compliant (all 8 BCs are aspects of Cedar lifecycle), follows ADR-0131 folder shape (modulo §D-1 textual error), and properly amends ADR-0150 + ADR-0183 + ontology PRD.",
+    "ADR-0254 deployment-control-plane is a clean single-concern µservice modelled on Palantir Apollo (one product, not a suite). Its responsibilities (cell registry, artifact bundles, canary, license, compliance evidence) are all aspects of deployment-orchestration lifecycle.",
+    "ADR-0249 individual substrates (catalog, inventory, orders, fulfillment, reviews, discovery, pricing, trust-safety) each pass single-concern decomposition independently. The decomposition matches AWS/Amazon/Stripe-Connect canonical commerce primitives.",
+    "ADR-0245 reserved tier is a sound structural innovation. Building skeleton-without-deploy for certification-gated capabilities (payments, IDV, tax, de-id, breach-notification, encryption, certified-consent) is the correct application of ADR-0250 build-ahead-of-certification doctrine.",
+    "ADR-0245 service-cell tier matches AWS-internal 'service cells', Salesforce 'peer services', and Stripe Connect/Atlas pattern — a legitimate third tier distinct from substrate and product.",
+    "All new µservices (deployment-control-plane, 8 marketplace substrates, 7 reserved) follow microservices/<ms>/ flat path; no nested microservices/<bundle>/<sub-ms>/ patterns appear anywhere in the bundle."
+  ],
+  "decision_rationale": "REQUEST_CHANGES is the correct verdict because (a) three BLOCKER items (ADR-0246 §D-1 crate-location wording, ADR-0249 suite-doctrine ambiguity vs ADR-0132, ADR-0254 §D-4 non-canonical internal layout) are textual fixes that must land before merge to prevent doctrine drift; (b) two MINOR items (ADR-0245 amendment scope, ADR-0245 §D-3.E count inconsistency) are quick fixes that materially clarify the bundle's structural contract; (c) the underlying structural decisions are SOUND — the bundle correctly applies ADR-0131 flat layout + ADR-0132 no-suite to the new µservices, correctly introduces the substrate/product/service-cell/reserved tier classification, and correctly decomposes Cedar policy engine + marketplace + deployment control plane into single-concern microservices. After the BLOCKER fixes land, A3-Structure-Adherence verdict moves to APPROVE.",
+  "approve_conditions": [
+    "ADR-0246 §D-1 rewrites the crate-location paragraph to match ADR-0131 src/crates/ shape",
+    "ADR-0249 adds explicit §'Relation to ADR-0132' clarifying brand-vs-architecture distinction + adds `amends: ADR-0132` to frontmatter",
+    "ADR-0254 §D-4 rewrites deployment-control-plane internal layout to use ADR-0131 src/crates/<crate>/ shape with explicit per-(BC×layer) crate table",
+    "ADR-0245 expands `amends: ADR-0131` scope to explicitly include reserved-tier folder-shape exemption (no src/, no iac/) + planned_contracts/ directory",
+    "ADR-0245 §D-3.E updates summary counts to include the 8 marketplace substrates introduced by ADR-0249"
+  ],
+  "out_of_scope_for_a3_but_flagged": [
+    "ADR-0254 §D-4 layout error overlaps with A4-Architecture-Adherence facet (ADR-0105 13-layer enum compliance); recommend cross-coordination with A4 reviewer",
+    "ADR-0246 BC count (8 BCs in one µservice) is high — F1-Linus or F4-Ergonomic should opine on whether the BC fan-out hides a suite at a different level",
+    "ADR-0249 four category-BCs that 'overlay all eight substrates' may violate ADR-0145 inter-µservice communication discipline if the BCs require cross-µservice transactional consistency; recommend F1/F4 + A4 review",
+    "Foundry 'substrate-meta' deferred dissolution (ADR-0245 §D-3.A row) is a structural debt; F10-Reversibility should opine on the dissolution-or-pin decision"
+  ],
+  "evidence_files_examined": [
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0131-per-microservice-flat-layout.md (full)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md (full)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0245-substrate-vs-product-layering.md (lines 1-1006 + tier table + service-cell defs)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0246-policy-engine-substrate-promotion.md (lines 1-960 + crate redistribution + DDL)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md (lines 1-1018 + 8-substrate DDL)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0254-deployment-model-spectrum.md (lines 1-990 + 5-model spectrum + bundle format)",
+    "/Users/jasonlee/oyatie/microservices/ (directory listing — 44 existing µservices)"
+  ]
+}

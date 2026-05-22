@@ -278,8 +278,8 @@ decision in the standard. Two viable policies survive review:
   these MUST be renamed; the count is low enough for manual treatment.
 - **Policy B — Fitness-feature umbrella.** Collapse the foundry-fitness
   kernel family under a single `fitness` feature with a capability tail
-  per check (`oya-foundry-fitness-kernel` library +
-  `oya-foundry-fitness-{constitution-cite|runbook-freshness|...}-kernel`
+  per check (`oya-governance-kernel` library +
+  `oya-governance-{constitution-cite|runbook-freshness|...}-kernel`
   capability crates, or a single multi-bin lane runner). This destroys
   the 28-row NEW-COMPOUND tail at the cost of a one-time large refactor.
   See the rename plan for the cost-benefit.
@@ -298,7 +298,7 @@ gets executed:
 > **Q.** Should the foundry-fitness kernel family stay as discrete
 > `oya-foundry-<noun>-kernel` crates (28 of them, admitted to the compound
 > registry by a single ADR) — or be collapsed under a `fitness` feature
-> umbrella (`oya-foundry-fitness-<noun>-kernel`) with no compound feature?
+> umbrella (`oya-governance-<noun>-kernel`) with no compound feature?
 > The grammar accepts either; the cost is registry-extension vs. one-time
 > mass-rename + import-rewrite.
 

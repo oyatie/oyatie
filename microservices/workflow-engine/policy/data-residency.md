@@ -30,17 +30,17 @@ Every tenant is assigned a primary pack at onboarding. Workflow specs, run state
 
 | Pack | Primary region(s) | Cluster footprint | Activated? |
 |---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | kr-engine-pg-1, kr-engine-redis-1, kr-engine-ch-1 | YES (M02b launch tenant) |
-| pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-engine-{pg,redis,ch}-{1,2} | Conditional (activated on first EU tenant SCC) |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-engine-{pg,redis,ch}-{1,2} | Conditional |
-| pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-engine-{pg,redis,ch}-1; isolated from pack-us | Conditional (post-BAA) |
-| pack-jp | OCI ap-tokyo-1 | jp-engine-{pg,redis,ch}-1 | Conditional |
-| pack-sg | OCI ap-singapore-1 | sg-engine-{pg,redis,ch}-1 | Conditional |
-| pack-au | OCI ap-sydney-1 + ap-melbourne-1 | au-engine-{pg,redis,ch}-{1,2} | Conditional |
-| pack-in | OCI ap-hyderabad-1 + ap-mumbai-1 | in-engine-{pg,redis,ch}-{1,2} | Conditional (DPDPA) |
-| pack-br | OCI sa-saopaulo-1 + sa-vinhedo-1 | br-engine-{pg,redis,ch}-{1,2} | Conditional (LGPD) |
-| pack-ae | OCI me-abudhabi-1 + me-dubai-1 | ae-engine-{pg,redis,ch}-{1,2} | Conditional |
-| pack-ksa | OCI me-jeddah-1 + me-riyadh-1 | ksa-engine-{pg,redis,ch}-{1,2} | Conditional (KSA NCA) |
+| pack-kr | OCI ap-seoul-1 | kr-engine-pg-1, kr-engine-valkey-1, kr-engine-ch-1 | YES (M02b launch tenant) |
+| pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-engine-{pg,valkey,ch}-{1,2} | Conditional (activated on first EU tenant SCC) |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-engine-{pg,valkey,ch}-{1,2} | Conditional |
+| pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-engine-{pg,valkey,ch}-1; isolated from pack-us | Conditional (post-BAA) |
+| pack-jp | OCI ap-tokyo-1 | jp-engine-{pg,valkey,ch}-1 | Conditional |
+| pack-sg | OCI ap-singapore-1 | sg-engine-{pg,valkey,ch}-1 | Conditional |
+| pack-au | OCI ap-sydney-1 + ap-melbourne-1 | au-engine-{pg,valkey,ch}-{1,2} | Conditional |
+| pack-in | OCI ap-hyderabad-1 + ap-mumbai-1 | in-engine-{pg,valkey,ch}-{1,2} | Conditional (DPDPA) |
+| pack-br | OCI sa-saopaulo-1 + sa-vinhedo-1 | br-engine-{pg,valkey,ch}-{1,2} | Conditional (LGPD) |
+| pack-ae | OCI me-abudhabi-1 + me-dubai-1 | ae-engine-{pg,valkey,ch}-{1,2} | Conditional |
+| pack-ksa | OCI me-jeddah-1 + me-riyadh-1 | ksa-engine-{pg,valkey,ch}-{1,2} | Conditional (KSA NCA) |
 
 ### Pack-assignment routing
 

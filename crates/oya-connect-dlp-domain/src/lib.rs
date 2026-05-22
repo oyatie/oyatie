@@ -11,7 +11,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 
 const DLP_POLICY_SCHEMA_VERSION: u32 = 1;
 const DLP_SCAN_SCHEMA_VERSION: u32 = 1;
@@ -364,10 +364,11 @@ fn validate_high_risk_action(
     matched_data_class: PrivacyDataClass,
     action: DlpAction,
 ) -> Result<(), DlpError> {
+    let data_class = matched_data_class.data_class();
     let high_risk = matches!(
-        matched_data_class.data_class(),
-        DataClass::Phi | DataClass::Pci | DataClass::Financial | DataClass::SensitivePipaArticle23
-    );
+        data_class,
+        DataClass::Phi | DataClass::Pci | DataClass::SensitivePipaArticle23
+    ) || DataClassMatcher::RegulatedFinancial.matches(data_class);
     if high_risk && action != DlpAction::AdminReviewHold {
         Err(DlpError::HighRiskRuleMustHold)
     } else {
@@ -505,7 +506,7 @@ mod tests {
         DlpPolicy::new(DlpPolicyCreate {
             policy_id: "dlp-policy-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "region-alpha-1".into(),
+            region: "region-alpha1".into(),
             admin_review_queue_id: "admin-review-queue".into(),
             rules: vec![
                 rule("phi", DataClass::Phi, DlpAction::AdminReviewHold, 10),
@@ -522,7 +523,7 @@ mod tests {
             DlpScanRequestCreate {
                 scan_id: "scan-1".into(),
                 tenant_id: "tenant-1".into(),
-                region: "region-alpha-1".into(),
+                region: "region-alpha1".into(),
                 surface: DlpSurface::MailOutbound,
                 actor_ref: "user:sender@example.com".into(),
                 content_ref: "mail:message-1".into(),
@@ -552,6 +553,23 @@ mod tests {
     }
 
     #[test]
+    fn regulated_financial_rules_require_admin_review_hold() {
+        assert_eq!(
+            DlpRule::new(DlpRuleCreate {
+                rule_id: "financial".into(),
+                name: "Financial".into(),
+                surface: DlpSurface::DriveUpload,
+                detector_ref: "regional-pack:financial".into(),
+                matched_data_class: privacy_class(DataClass::Financial),
+                action: DlpAction::Quarantine,
+                severity: DlpSeverity::Critical,
+                priority: 2,
+            }),
+            Err(DlpError::HighRiskRuleMustHold)
+        );
+    }
+
+    #[test]
     fn policy_rejects_duplicate_rule_identity_and_priority() {
         assert_eq!(policy().schema_version.value, 1);
 
@@ -559,7 +577,7 @@ mod tests {
             DlpPolicy::new(DlpPolicyCreate {
                 policy_id: "dlp-policy-2".into(),
                 tenant_id: "tenant-1".into(),
-                region: "region-alpha-1".into(),
+                region: "region-alpha1".into(),
                 admin_review_queue_id: "admin-review-queue".into(),
                 rules: vec![
                     rule("pii-a", DataClass::PiiIdentifying, DlpAction::Redact, 20),
@@ -636,7 +654,7 @@ mod tests {
                 DlpScanRequestCreate {
                     scan_id: "scan-2".into(),
                     tenant_id: "tenant-2".into(),
-                    region: "region-alpha-1".into(),
+                    region: "region-alpha1".into(),
                     surface: DlpSurface::MailOutbound,
                     actor_ref: "user:sender@example.com".into(),
                     content_ref: "mail:message-1".into(),

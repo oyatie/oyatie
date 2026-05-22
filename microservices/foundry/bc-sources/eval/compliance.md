@@ -63,7 +63,7 @@ Map each compliance-framework control to the foundry-eval artifact + mechanism t
 | A.8.5 (secure authentication) | OIDC + mTLS + Cosign | OIDC + Cosign |
 | A.8.7 (protection against malware) | gVisor / Kata sandbox + image scanning | `iac/helm/gpu-runner-pool/` |
 | A.8.11 (data masking) | OTel redactor + Secret<T> shim | secondary redactor on replay-engine ingress |
-| A.8.12 (data leakage prevention) | secret-scanner + DEK envelope | `oya-foundry-fitness-evidence-secret-scan` |
+| A.8.12 (data leakage prevention) | secret-scanner + DEK envelope | `oya-governance-evidence-secret-scan` |
 | A.8.15 (logging) | EU AI Act §17 + audit-chain | foundry-evidence; §17 evidence emission |
 | A.8.16 (monitoring activities) | Mimir + Grafana + Alertmanager | `dashboards/*` |
 | A.8.20 (network security) | Kubernetes NetworkPolicy + Istio mesh | `iac/helm/` |
@@ -125,7 +125,7 @@ Map each compliance-framework control to the foundry-eval artifact + mechanism t
 | LLM05: Supply Chain | Cosign + Rekor + cargo-deny | T-S-01; T-T-01 |
 | LLM06: Sensitive Information Disclosure | per-subject DEK + DP-noise + Cedar | T-I-01; T-I-02; T-I-03 |
 | LLM07: Insecure Plugin Design | foundry-runtime sandbox (cross-cuts to foundry-runtime) | upstream µservice |
-| LLM08: Excessive Agency | autonomy-tier T2 enforced | `capabilities/*.yaml` autonomy_tier field |
+| LLM08: Excessive Agency | autonomy-ceiling T2 enforced | `capabilities/*.yaml` autonomy_level field |
 | LLM09: Overreliance | reverse-cutover automated + parity verdicts published | T-S-03 mitigation |
 | LLM10: Model Theft | sandbox + per-case ephemeral pod + provider contract | threat-model T-E-01 |
 

@@ -119,3 +119,12 @@ cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice c
 - ADR-0117; ADR-0131.
 - `microservices/cloud-iac/policy/data-residency.md`.
 - `microservices/cloud-iac/multi-region.md`.
+
+## DR posture (per ADR-0343)
+
+- Target source: `microservices/cloud-iac/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Applicable compliance pack floor: `HIPAA-2024` from `specs/compliance-pack-floors.json` with drill cadence `quarterly`.
+- RTO/RPO target: RTO p99 <= `3600` seconds; RPO p99 <= `300` seconds.
+- Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `true`, so this declaration is equal to or stronger than the floor.
+- backup_substrate: [`object_storage_versioned`, `seaweedfs_replicated`, `postgres_wal_g`].
+- Surface evidence: `microservices/cloud-iac/runbooks/restore-drill-quarterly.md`, `microservices/cloud-iac/runbooks/seaweedfs-volume-failover.md`, `microservices/cloud-iac/manifest.json`, `microservices/cloud-iac/IP-014-per-pack-iac-overlays.md`.

@@ -499,7 +499,7 @@ mod tests {
         CollabRuntime::new(CollabRuntimeCreate {
             document_id: "sheet-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "region-alpha-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             surface: CollabSurface::Sheets,
             data_class: None,
@@ -569,7 +569,7 @@ mod tests {
             title: "Forecast".into(),
             drive_path: "/finance/forecast.oyasheet".into(),
             tenant_id: "tenant-1".into(),
-            region: "region-alpha-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             data_class: None,
             collab_runtime: runtime(),

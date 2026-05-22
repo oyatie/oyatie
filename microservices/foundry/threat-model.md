@@ -51,7 +51,7 @@ The foundry µservice has the following trust boundaries:
 |---|---|---|---|
 | T1 | In-transit modification of capability descriptor (supervisor → runtime) | supervisor, runtime | mTLS + descriptor signing (Ed25519); runtime refuses unsigned |
 | T2 | Tamper with evidence pack between recording and audit-chain | evidence | Ed25519 + Merkle per Bominal ADR-0028; audit-chain bridge verifies before seal |
-| T3 | Tamper with eval golden-output store | eval | Golden outputs content-addressed (SHA256); replays verify hash |
+| T3 | Tamper with eval baseline-output store | eval | Baseline outputs content-addressed (SHA256); replays verify hash |
 | T4 | Tamper with guardrail ruleset to bypass enforcement | guardrails | Ruleset version signed; runtime refuses unsigned/older |
 
 ### Repudiation
@@ -103,7 +103,7 @@ Per Bominal ADR-0028 + ADR-0117 + `feedback_quality_performance_scalability_bar.
 | Invocation result | BEHAVIORAL_TENANT_PRODUCT | runtime + evidence (sealed) | mTLS; audit-chain |
 | Provider credential | RESTRICTED_PROVIDER_SECRET | providers (OpenBao) | OpenBao only; never elsewhere |
 | Guardrail decision log | AUDIT | guardrails + evidence | audit-chain |
-| Eval golden output | INTERNAL_ONLY | eval | content-addressed; signed |
+| Eval baseline output | INTERNAL_ONLY | eval | content-addressed; signed |
 | Evidence pack | AUDIT | evidence | Ed25519+Merkle |
 | Supervision event | AUDIT | supervisor + evidence | audit-chain |
 | Regulator export | REGULATOR_SCOPE | evidence | Cedar-scoped + signed |
@@ -118,12 +118,12 @@ Each BC's full per-BC threat model is preserved at:
 - `bc-sources/supervisor/threat-model.md` — fleet-lifecycle + kill-switch
   + autonomy-policy + supervision-bus threats (492 lines).
 - `bc-sources/eval/threat-model.md` — eval-runner + parity-analyzer +
-  replay-engine + golden-store threats (684 lines).
+  replay-engine + baseline-store threats (684 lines).
 - `bc-sources/evidence/threat-model.md` — capability-invocation-recorder +
   evidence-pack-builder + regulator-export + audit-chain-bridge threats
   (144 lines).
 - `bc-sources/guardrails/threat-model.md` — prompt-classifier +
-  output-validator + autonomy-tier-gate + content-safety + jailbreak-detector
+  output-validator + autonomy-ceiling-gate + content-safety + jailbreak-detector
   + AI-slop-detector threats (588 lines).
 - `bc-sources/providers/threat-model.md` — router + 8 adapters (Anthropic
   API/Sub + OpenAI API/Sub + Gemini API/Sub + in-house + OpenBao) threats

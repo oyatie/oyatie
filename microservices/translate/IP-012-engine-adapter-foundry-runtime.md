@@ -97,3 +97,12 @@ impl TranslateInvoker for FoundryRuntimeAdapter {
 ## Next IP
 
 [`IP-013-engine-adapters-external.md`](IP-013-engine-adapters-external.md)
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/translate/IP-012-engine-adapter-foundry-runtime.md:19` - `oya-translate-adapter-foundry-runtime` invokes in-house MT, QE, and LangDetect capabilities served on the `foundry-runtime` µservice. Drives the in-house margin per A....

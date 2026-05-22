@@ -7,9 +7,8 @@ purpose: |
   Canonical skeleton for adding a new µservice to the oyatie workspace.
   Covers naming justification (BNF v4.1), Cargo workspace entries, layer
   skeleton, BC list, [package.metadata.oya] schema, test scaffolding, and
-  grit symbol space. An executor filling this template can scaffold a new
   µservice without escalation.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/prd-template.md
@@ -281,13 +280,11 @@ tests/load/
 
 ---
 
-## Grit Claim Symbols
 
 Register the µservice's symbol space before scaffolding files
 (per `feedback_grit_claim_work_done.md`):
 
 ```bash
-grit claim \
   --agent <agent-id> \
   --intent "scaffold oya-<µservice>-* crates" \
   --ttl 3600 \
@@ -297,7 +294,6 @@ grit claim \
   crates/oya-<µservice>-<bc>-app/src/main.rs::main
 ```
 
-Fallback: ICM topic `scaffold-locks-oyatie` per ADR-0054 §"scaffold-claim pattern".
 
 ---
 

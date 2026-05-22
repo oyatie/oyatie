@@ -1,0 +1,260 @@
+schema_version: "2026-05-20.observability-dashboard.v1"
+doc_class: ObservabilityDashboard
+dashboard_id: tenant-isolation-health
+owner: axis-tenancy
+related_oyatie_adrs:
+  - ADR-0263
+  - ADR-0130
+  - ADR-0139
+  - ADR-0242
+  - ADR-0244
+  - ADR-0313
+title: "Tenant Isolation Health"
+description: "Tenant isolation dashboard for cross-tenant access attempts, quota utilization, onboarding lag, scope-resolution latency, Cedar isolation denies, and noisy-neighbor budget pressure. The expected count for cross-tenant access attempts is zero; any nonzero value is promotion-holding evidence."
+refresh: 30s
+time_from: now-24h
+time_to: now
+timezone: utc
+folder: oyatie-tenancy
+schema_tags:
+  - tenancy
+  - tenant-isolation
+  - quota
+  - onboarding
+  - adr-0244
+datasource_defaults:
+  metrics: Mimir
+  logs: Loki
+  analytics: ClickHouse
+variables:
+  - name: environment
+    label: Environment
+    type: custom
+    default: dev
+    values:
+      - dev
+      - staging
+      - production
+  - name: tenant_id
+    label: Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:tenancy:isolation:access_attempts_total:counter{environment=\"$environment\"}, tenant_id)"
+    multi: true
+    include_all: true
+  - name: target_tenant_id
+    label: Target Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:tenancy:isolation:access_attempts_total:counter{environment=\"$environment\"}, target_tenant_id)"
+    multi: true
+    include_all: true
+  - name: microservice
+    label: Microservice
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:tenancy:isolation:access_attempts_total:counter{environment=\"$environment\"}, source_microservice)"
+    multi: true
+    include_all: true
+  - name: quota_name
+    label: Quota
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:tenancy:quota:usage:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\"}, quota_name)"
+    multi: true
+    include_all: true
+  - name: cell_id
+    label: Cell
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:tenancy:quota:usage:gauge{environment=\"$environment\"}, cell_id)"
+    multi: true
+    include_all: true
+  - name: window
+    label: Query Window
+    type: custom
+    default: 5m
+    values:
+      - 1m
+      - 5m
+      - 30m
+      - 1h
+annotations:
+  - name: onboarding_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"TenantOnboardingStarted|TenantOnboardingCompleted|TenantOnboardingFailed\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | line_format \"{{.tenant_id}} {{.phase}} {{.audit_id}}\""
+    tags:
+      - onboarding
+      - tenant
+  - name: deployment_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=\"DeploymentCompleted\",environment=\"$environment\",microservice=~\"tenancy|policy-engine|identity\"} | json | line_format \"{{.microservice}} {{.version}} {{.changeset_id}}\""
+    tags:
+      - deploy
+      - isolation
+  - name: incident_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"TenantIsolationBreachSuspected|CrossTenantAccessDenied|QuotaExhaustionIncident\",environment=\"$environment\"} | json | line_format \"{{.severity}} {{.incident_id}} {{.tenant_id}}\""
+    tags:
+      - incident
+      - tenant-isolation
+panels:
+  - title: "Cross-tenant access attempts (must be zero)"
+    type: gauge
+    datasource: Mimir
+    unit: attempts
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, target_tenant_id, source_microservice, action, cell_id) (increase(oya:tenancy:isolation:access_attempts_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",target_tenant_id=~\"$target_tenant_id\",source_microservice=~\"$microservice\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: cross_tenant_access_attempts
+          target_value: "0"
+  - title: "Cross-tenant deny events by source"
+    type: graph
+    datasource: Mimir
+    unit: denies/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, target_tenant_id, source_microservice, deny_reason) (rate(oya:tenancy:isolation:denied_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",target_tenant_id=~\"$target_tenant_id\",source_microservice=~\"$microservice\"}[$window]))"
+        labels:
+          signal: isolation_denies
+          posture: fail_closed
+  - title: "Tenant quota utilization"
+    type: gauge
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * max by (tenant_id, quota_name, source_microservice, cell_id) (oya:tenancy:quota:usage:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\",source_microservice=~\"$microservice\",cell_id=~\"$cell_id\"}) / clamp_min(max by (tenant_id, quota_name, source_microservice, cell_id) (oya:tenancy:quota:limit:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\",source_microservice=~\"$microservice\",cell_id=~\"$cell_id\"}), 1)"
+        labels:
+          signal: quota_utilization
+          warning_percent: "80"
+  - title: "Quota saturation forecast"
+    type: graph
+    datasource: Mimir
+    unit: hours
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "(max by (tenant_id, quota_name, source_microservice) (oya:tenancy:quota:limit:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\"}) - max by (tenant_id, quota_name, source_microservice) (oya:tenancy:quota:usage:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\"})) / clamp_min(deriv(max by (tenant_id, quota_name, source_microservice) (oya:tenancy:quota:usage:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\"})[6h:5m]) * 3600, 0.001)"
+        labels:
+          signal: quota_hours_to_exhaustion
+          forecast_window: 6h
+  - title: "Tenant onboarding lag"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (tenant_id, onboarding_phase, cell_id) (time() - oya:tenancy:onboarding:phase_started_at:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: tenant_onboarding_lag
+          target_max_seconds: "1800"
+  - title: "Onboarding phase duration p95"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, onboarding_phase, cell_id) (rate(oya:tenancy:onboarding:phase_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: onboarding_duration_p95
+          bucket_label: le
+  - title: "Sub-scope resolution latency p99"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.99, sum by (le, source_microservice, cell_id) (rate(oya:tenancy:scope:resolution_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\",source_microservice=~\"$microservice\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: sub_scope_resolution_p99
+          bucket_label: le
+  - title: "Tenant grant drift"
+    type: graph
+    datasource: Mimir
+    unit: drift/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, grant_type, drift_reason) (rate(oya:tenancy:grant:drift_detected_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\"}[$window]))"
+        labels:
+          signal: grant_drift
+          adr_anchor: ADR-0313
+  - title: "Isolation policy default-deny reasons"
+    type: table
+    datasource: Loki
+    targets:
+      - ref_id: A
+        query_type: LogQL
+        expr: "{event_class=~\"CrossTenantAccessDenied|TenantBoundaryDefaultDeny\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | source_microservice=~\"$microservice\" | line_format \"{{.ts}} {{.tenant_id}} -> {{.target_tenant_id}} {{.source_microservice}} {{.action}} {{.deny_reason}} {{.audit_id}}\""
+        labels:
+          signal: isolation_deny_log
+          requires_field: audit_id
+  - title: "Tenant isolation SQL evidence"
+    type: table
+    datasource: ClickHouse
+    targets:
+      - ref_id: A
+        query_type: SQL
+        expr: "SELECT tenant_id, target_tenant_id, source_microservice, action, count() AS attempts, max(audit_id) AS latest_audit_id, max(ts) AS latest_ts FROM oya_tenant_isolation_events WHERE environment = '$environment' AND ts >= now() - INTERVAL 24 HOUR GROUP BY tenant_id, target_tenant_id, source_microservice, action ORDER BY attempts DESC LIMIT 200"
+        labels:
+          signal: isolation_evidence
+          expectation: zero_cross_tenant_attempts
+  - title: "Per-tenant resource pressure by cell"
+    type: heatmap
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * max by (tenant_id, quota_name, cell_id) (oya:tenancy:quota:usage:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\",cell_id=~\"$cell_id\"}) / clamp_min(max by (tenant_id, quota_name, cell_id) (oya:tenancy:quota:limit:gauge{environment=\"$environment\",tenant_id=~\"$tenant_id\",quota_name=~\"$quota_name\",cell_id=~\"$cell_id\"}), 1)"
+        labels:
+          signal: tenant_resource_pressure
+          heatmap_axis: tenant_id
+  - title: "Noisy-neighbor throttles"
+    type: graph
+    datasource: Mimir
+    unit: throttles/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, source_microservice, quota_name, throttle_reason) (rate(oya:tenancy:quota:throttle_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",source_microservice=~\"$microservice\",quota_name=~\"$quota_name\"}[$window]))"
+        labels:
+          signal: quota_throttle_rate
+          tenant_protection: noisy_neighbor
+alerts:
+  - alert_id: cross_tenant_access_nonzero
+    title: "Cross-tenant access attempt count is nonzero"
+    datasource: Mimir
+    severity: critical
+    condition: "sum(increase(oya:tenancy:isolation:access_attempts_total:counter{environment=\"$environment\"}[5m])) > 0"
+    for: 1m
+    labels:
+      gate: oya-vcs-promotion-readiness
+      verdict_on_fire: rejected
+  - alert_id: tenant_quota_utilization_high
+    title: "Tenant quota utilization above 90 percent"
+    datasource: Mimir
+    severity: ticket
+    condition: "100 * max(oya:tenancy:quota:usage:gauge{environment=\"$environment\"}) / clamp_min(max(oya:tenancy:quota:limit:gauge{environment=\"$environment\"}), 1) > 90"
+    for: 15m
+    labels:
+      remediation: quota-review
+  - alert_id: tenant_onboarding_stalled
+    title: "Tenant onboarding phase stalled"
+    datasource: Mimir
+    severity: page
+    condition: "max(time() - oya:tenancy:onboarding:phase_started_at:gauge{environment=\"$environment\"}) > 1800"
+    for: 10m
+    labels:
+      runbook: tenant-onboarding-recovery

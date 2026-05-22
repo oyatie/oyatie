@@ -89,7 +89,7 @@ pack_overrides:
     requires: signed BAA + explicit per-account opt-in
     reason: HIPAA 45 CFR §164.502(b) — minimum necessary
   pack-eu:
-    eu_ai_act_classification: limited_risk
+    risk_classification: limited_risk
     transparency_obligation: must-label-as-AI-generated; must store evidence_topic record per Art. 13
   pack-kr:
     kr_pipa_art28_consent: tenant-admin-opt-in required
@@ -108,7 +108,7 @@ cedar_policy_fragments:
   - microservices/social/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/social/capabilities/eval/t1-assist-golden.jsonl
+  reference_inputs_path: microservices/social/capabilities/eval/t1-assist-reference.jsonl
   pass_threshold: 0.92
   eval_metric: |
     caption faithfulness (Likert vs human rater);

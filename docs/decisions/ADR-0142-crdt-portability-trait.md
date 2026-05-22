@@ -111,7 +111,7 @@ Two crates:
 These crates:
 
 - Compile on every CI run (a new fitness lane
-  `oya-foundry-fitness-crdt-portability` asserts both adapters
+  `oya-governance-crdt-portability` asserts both adapters
   `cargo check`).
 - Run their adapter unit tests in CI (round-trip apply/export must
   satisfy the same trait contract as Loro).

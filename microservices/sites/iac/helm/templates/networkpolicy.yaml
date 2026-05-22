@@ -63,7 +63,7 @@ spec:
       ports: [{port: 5432, protocol: TCP}]
     # Valkey
     - to:
-        - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-redis}}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-valkey}}
       ports: [{port: 6379, protocol: TCP}]
     # Meilisearch
     - to:

@@ -46,8 +46,8 @@ forbid (
   resource is Resource
 )
 when {
-  context has "grantee_capability_tier" &&
-  context.grantee_capability_tier > "{{max_capability_tier}}"
+  context has "tenant_class" &&
+  context.tenant_class > "{{max_tenant_class}}"
 };
 
 // 5. Stale revocation check — fail-closed if freshness budget breached

@@ -38,7 +38,7 @@ dovecot:
   managesieve: { enabled: true, port: 4190 }     # RFC 5804
 
 stalwart:
-  enabled: false                           # default off; toggle per-tenant tier
+  enabled: false                           # default off; toggle per tenant_class + workload profile
   replicas: 2
   ports: [25, 465, 587, 143, 993, 4190]   # unified backend
 
@@ -54,7 +54,7 @@ postgres:
 rspamd:
   enabled: true
   replicas: 4
-  redis: { enabled: true, replicas: 3 }
+  valkey: { enabled: true, replicas: 3 }
 
 tantivy:
   enabled: true

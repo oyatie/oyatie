@@ -6,7 +6,7 @@ metadata:
 spec:
   microservice: consent-graph
   tier: T3
-  eu_ai_act_risk_class: high
+  risk_class: high
   rationale: |
     Cross-tenant data-sharing creation has legal-grade implications: it constitutes processing under
     GDPR Art. 28 (joint controllers/processors), HIPAA Business Associate relationships, KR PIPA
@@ -32,7 +32,7 @@ spec:
   hyperscaler_invariants:
     - INV-CIRCUIT-BREAKER-BULKHEAD
     - INV-SLO-ERROR-BUDGET
-    - INV-FOUR-GOLDEN-SIGNALS
+    - INV-FOUR-CANONICAL-SIGNALS
   pack_overlays_supported:
     - kr
     - eu

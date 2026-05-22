@@ -16,4 +16,4 @@ allowed_dependency_edges:
   - oya-foundry-eval-eval-runner-api
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, SECRET, AUDIT]
 operational_classes_owned: [SECRET]
-autonomy_tier_required: T2
+autonomy_level_required: T2

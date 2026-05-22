@@ -6,13 +6,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use oya_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
 
-/// Canonical eval coverage cohorts are jurisdiction-neutral.
-/// Localization packs may map these stable cohort slots to concrete locale sets.
-pub const REQUIRED_LINGUISTIC_COHORTS: [&str; 3] = [
-    "locale-cohort-alpha",
-    "locale-cohort-beta",
-    "locale-cohort-gamma",
-];
+pub const REQUIRED_LINGUISTIC_COHORT_LOCALES: [&str; 3] =
+    ["lang-alpha1", "lang-beta1", "lang-gamma1"];
+pub const REQUIRED_LINGUISTIC_COHORTS_MESSAGE: &str =
+    "Eval set must include lang-alpha1, lang-beta1, and lang-gamma1 linguistic cohorts";
+pub const REQUIRED_LINGUISTIC_COHORTS_DETAIL: &str =
+    "missing lang-alpha1, lang-beta1, or lang-gamma1 locale cohort";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum EvalMetric {
@@ -304,7 +303,7 @@ fn validate_linguistic_coverage(cases: &[EvalCase]) -> Result<(), EvalError> {
         .iter()
         .map(|case| case.locale.value.as_str())
         .collect::<BTreeSet<_>>();
-    if REQUIRED_LINGUISTIC_COHORTS
+    if REQUIRED_LINGUISTIC_COHORT_LOCALES
         .iter()
         .all(|cohort| actual.contains(cohort))
     {

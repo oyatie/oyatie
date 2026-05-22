@@ -9,7 +9,7 @@ resource "oci_core_instance" "stage0" {
 
   compartment_id      = oci_identity_compartment.nonprod.id
   availability_domain = var.stage0_availability_domain
-  display_name        = "oyatie-stage0-a1"
+  display_name        = var.stage0_display_name
   shape               = var.stage0_shape
 
   // shape_config only applies to .Flex shapes. E2.1.Micro is a fixed shape
@@ -28,9 +28,9 @@ resource "oci_core_instance" "stage0" {
   }
 
   create_vnic_details {
-    subnet_id        = oci_core_subnet.nonprod_public.id
-    assign_public_ip = true
-    hostname_label   = "oyatie-stage0"
+    subnet_id        = var.stage0_use_private_subnet ? oci_core_subnet.nonprod_private.id : oci_core_subnet.nonprod_public.id
+    assign_public_ip = var.stage0_use_private_subnet ? false : true
+    hostname_label   = var.stage0_hostname_label
   }
 
   metadata = {
@@ -43,4 +43,12 @@ resource "oci_core_instance" "stage0" {
   // Shape and tag drift are OpenTofu-owned. If capacity requires a temporary
   // paid shape, encode that desired state in tfvars and converge via
   // `make apply`; do not preserve manual console/CLI drift here.
+
+  lifecycle {
+    // Metadata (user_data, ssh_authorized_keys) on a running instance is
+    // intentionally NOT reconciled — changing it forces destroy+recreate of
+    // the A1, risking loss of the contested A1.Flex host slot. Update via
+    // a deliberate stop + relaunch when the user_data needs to change.
+    ignore_changes = [metadata]
+  }
 }

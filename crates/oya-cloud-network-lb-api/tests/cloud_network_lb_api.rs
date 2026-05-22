@@ -19,9 +19,9 @@ use oya_cloud_network_lb_api::{
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;
 
-const VPC_ID: &str = "oya:cloud:home-region:ten_alpha:vpc:prod";
-const SUBNET_ID: &str = "oya:cloud:home-region:ten_alpha:subnet:prod-a";
-const LB_ID: &str = "oya:cloud:home-region:ten_alpha:lb-v7:frontdoor";
+const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
+const SUBNET_ID: &str = "oya:cloud:region-home:ten_alpha:subnet:prod-a";
+const LB_ID: &str = "oya:cloud:region-home:ten_alpha:lb-v7:frontdoor";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkLbApiBoundaryContext {
     CloudNetworkLbApiBoundaryContext {
@@ -55,12 +55,12 @@ fn lb_body(resource_id: &str) -> CloudNetworkLbCreateRequest {
         resource_id: resource_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
         vpc_id: VPC_ID.to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         kind: "l7_grpc".to_string(),
         listeners: vec![CloudNetworkLbListenerCreateRequest {
             port: 443,
             target_group_id: "tg_api".to_string(),
-            tls_certificate: Some("cert/home-region/ten_alpha/frontdoor".to_string()),
+            tls_certificate: Some("cert/region-home/ten_alpha/frontdoor".to_string()),
         }],
         target_groups: vec![CloudNetworkLbTargetGroupCreateRequest {
             id: "tg_api".to_string(),
@@ -70,7 +70,7 @@ fn lb_body(resource_id: &str) -> CloudNetworkLbCreateRequest {
             health_check_path: Some("/healthz".to_string()),
         }],
         mtls: Some(CloudNetworkLbMtlsConfigCreateRequest {
-            ca_bundle_ref: "cert/home-region/ten_alpha/mesh-ca".to_string(),
+            ca_bundle_ref: "cert/region-home/ten_alpha/mesh-ca".to_string(),
             client_policy: "require_verified_client_cert".to_string(),
         }),
         waf_policy: Some("waf_cloud_frontdoor".to_string()),
@@ -94,7 +94,7 @@ fn seed_vpc(catalog: &mut CloudNetworkCatalog) {
         .create_vpc(VpcCreate {
             resource_id: VPC_ID.to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region: "home-region".to_string(),
+            region: "region-home".to_string(),
             cidr_v4: "10.42.0.0/16".to_string(),
             cidr_v6: "2001:db8:42::/56".to_string(),
             flow_logs_enabled: true,
@@ -117,7 +117,7 @@ fn seed_vpc(catalog: &mut CloudNetworkCatalog) {
                     description: "tenant https ingress".to_string(),
                 }],
             }],
-            residency: ResidencyClass::StrictHome,
+            residency: ResidencyClass::StrictHomeRegion,
             state: VpcState::Creating,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_000,
@@ -131,8 +131,8 @@ fn seed_subnet(catalog: &mut CloudNetworkCatalog) {
             resource_id: SUBNET_ID.to_string(),
             tenant_id: "ten_alpha".to_string(),
             vpc_id: VPC_ID.to_string(),
-            region: "home-region".to_string(),
-            az: "home-region-a".to_string(),
+            region: "region-home".to_string(),
+            az: "region-home-a".to_string(),
             cidr_v4: "10.42.1.0/24".to_string(),
             cidr_v6: "2001:db8:42:1::/64".to_string(),
             public_ip_on_launch: false,
@@ -183,7 +183,7 @@ fn lb_create_api_creates_l7_grpc_once_and_replays_same_idempotent_result() {
     assert_eq!(first.data.resource_id, LB_ID);
     assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.vpc_id, VPC_ID);
-    assert_eq!(first.data.region, "home-region");
+    assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.kind, "l7_grpc");
     assert_eq!(first.data.listener_count, 1);
     assert_eq!(first.data.target_group_count, 1);
@@ -203,7 +203,7 @@ fn lb_create_api_rejects_path_body_lb_drift_before_catalog_mutation() {
     seed_network(&mut catalog);
     let mut ledger = CloudNetworkLbCreateIdempotencyLedger::default();
     let mut request = create_request("req-network-lb-drift", "idem-network-lb-drift");
-    request.body.resource_id = "oya:cloud:home-region:ten_alpha:lb-v7:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:lb-v7:other".to_string();
 
     let error = create_cloud_network_load_balancer_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body LB drift is rejected");
@@ -212,7 +212,7 @@ fn lb_create_api_rejects_path_body_lb_drift_before_catalog_mutation() {
         error,
         CloudNetworkLbApiError::LoadBalancerIdMismatch {
             path_load_balancer_id: LB_ID.to_string(),
-            body_resource_id: "oya:cloud:home-region:ten_alpha:lb-v7:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:lb-v7:other".to_string(),
         }
     );
     assert_eq!(error.lb_create_status_code(), 400);
@@ -403,7 +403,7 @@ fn lb_create_api_rejects_invalid_kind_policy_and_data_class() {
 
     let mut invalid_policy = create_request("req-network-lb-policy", "idem-network-lb-policy");
     invalid_policy.body.mtls = Some(CloudNetworkLbMtlsConfigCreateRequest {
-        ca_bundle_ref: "cert/home-region/ten_alpha/mesh-ca".to_string(),
+        ca_bundle_ref: "cert/region-home/ten_alpha/mesh-ca".to_string(),
         client_policy: "trust_any_client".to_string(),
     });
     let policy_error =

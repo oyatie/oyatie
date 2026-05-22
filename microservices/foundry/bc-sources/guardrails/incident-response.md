@@ -130,7 +130,7 @@ Two-channel corroboration: every Sev-1/Sev-2 fires Mimir metric AND OnCall page;
 | 2 | Capture: prompt hash; provider output hash; affected tenant; affected capability; classifier model versions; ensemble verdict; cedar bundle SHA | ≤ 5 min |
 | 3 | Freeze offending capability for affected tenant; OPTIONAL: freeze for all tenants if ensemble pattern suggests widespread risk | ≤ 5 min |
 | 4 | Auto-allocate incident ID; auto-generate post-mortem template per `runbooks/jailbreak-escalation.md` | ≤ 2 min |
-| 5 | Pin failing prompt to red-team fixture catalogue (`tests/jailbreak/golden_fixtures.rs`); will be re-tested on every classifier rollout | ≤ 1h |
+| 5 | Pin failing prompt to red-team fixture catalogue (`tests/jailbreak/baseline_fixtures.rs`); will be re-tested on every classifier rollout | ≤ 1h |
 | 6 | Determine tenant-impact + data-subject impact (was unsafe content delivered to an end-user?) — engage PrivacyLead | per investigation |
 | 7 | If data-subject impact confirmed: begin breach-notification chain (per-pack timelines above) | per regulatory |
 | 8 | Classifier retraining: data-team retrains affected models on the new fixture + adjacent perturbations; shadow→enforce rollout | days-to-weeks |

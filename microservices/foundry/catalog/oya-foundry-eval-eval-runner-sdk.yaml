@@ -17,4 +17,4 @@ allowed_dependency_edges:
   - oya-foundry-eval-eval-runner-api
 data_classes_owned: []
 operational_classes_owned: []
-autonomy_tier_required: T1
+autonomy_level_required: T1

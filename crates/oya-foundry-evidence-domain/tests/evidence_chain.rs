@@ -99,8 +99,8 @@ fn evidence_chain_preserves_non_public_data_class_regressions() {
     let cases = [
         (vec![DataClass::PiiIdentifying], DataClass::PiiIdentifying),
         (
-            vec![DataClass::FinancialCredit, DataClass::InternalOnly],
-            DataClass::FinancialCredit,
+            vec![DataClass::FinancialRegulatedCredit, DataClass::InternalOnly],
+            DataClass::FinancialRegulatedCredit,
         ),
         (vec![DataClass::Public, DataClass::Phi], DataClass::Phi),
     ];

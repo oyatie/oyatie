@@ -12,8 +12,8 @@ purpose: |
   Staging: post-merge CI re-run; ≥ N consecutive green is gate 2 of staging → prod.
   Prod: canary + SLO super-set. Provider-agnostic via adapter pattern.
 planned_enforcement_ref:
-  - oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev
-  - oya-foundry-fitness-promotion-gate-staging-to-prod
+  - oya-governance-promotion-gate-local-dev-to-origin-dev
+  - oya-governance-promotion-gate-staging-to-prod
 related_adrs: [ADR-0039, ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -38,31 +38,28 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 
 | Lane | Severity | Scope | Source |
 |---|---|---|---|
-| `oya-foundry-fitness-cohesion` | BLOCKER | every PR / commit | [ADR-0001](../../../docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md) |
-| `oya-foundry-fitness-supply-chain` | BLOCKER | every PR / commit | [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) |
-| `oya-foundry-fitness-api-semver` | BLOCKER | every PR touching `contracts/` | [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md) |
-| `oya-foundry-fitness-pr-shape` | BLOCKER (PR-level) | every PR | repo PR template |
-| `oya-foundry-fitness-pr-review-verdict-present` | BLOCKER (local-dev → origin/dev) | every PR | this composer; NEW |
-| `oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev` | BLOCKER (gate-class) | local-dev → origin/dev | this composer; NEW |
-| `oya-foundry-fitness-image-discipline` | BLOCKER | every PR touching `Dockerfile`/`Containerfile` | [Directive 5](../../plans/MASTERPLAN.md) |
-| `oya-foundry-fitness-canary-regression-sla` | HIGH | staging | this composer; NEW |
-| `oya-foundry-fitness-pr-comment-resolution` | BLOCKER (staging → prod) | staging-landed change sets | this composer; NEW |
-| `oya-foundry-fitness-promotion-gate-staging-to-prod` | BLOCKER (gate-class) | staging → prod | this composer; NEW |
-| `oya-foundry-fitness-canary-required` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/progressive-delivery-strategy.md` |
-| `oya-foundry-fitness-rollback-evidence` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md` |
-| `oya-foundry-fitness-slo-coverage` | HIGH | every service | [ADR-0042](../../../docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
+| `oya-governance-cohesion` | BLOCKER | every PR / commit | [ADR-0001](../../../docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md) |
+| `oya-governance-supply-chain` | BLOCKER | every PR / commit | [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) |
+| `oya-governance-api-semver` | BLOCKER | every PR touching `contracts/` | [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md) |
+| `oya-governance-pr-shape` | BLOCKER (PR-level) | every PR | repo PR template |
+| `oya-governance-pr-review-verdict-present` | BLOCKER (local-dev → origin/dev) | every PR | this composer; NEW |
+| `oya-governance-promotion-gate-local-dev-to-origin-dev` | BLOCKER (gate-class) | local-dev → origin/dev | this composer; NEW |
+| `oya-governance-image-discipline` | BLOCKER | every PR touching `Dockerfile`/`Containerfile` | [Directive 5](../../plans/MASTERPLAN.md) |
+| `oya-governance-canary-regression-sla` | HIGH | staging | this composer; NEW |
+| `oya-governance-pr-comment-resolution` | BLOCKER (staging → prod) | staging-landed change sets | this composer; NEW |
+| `oya-governance-promotion-gate-staging-to-prod` | BLOCKER (gate-class) | staging → prod | this composer; NEW |
+| `oya-governance-canary-required` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/progressive-delivery-strategy.md` |
+| `oya-governance-rollback-evidence` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md` |
+| `oya-governance-slo-coverage` | HIGH | every service | [ADR-0042](../../../docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
 
-## 3. Layer 0 — worktree (`.grit/worktrees/<agent-id>/`)
 
 **CI policy:** none. Private workspace. Agents may run lanes locally via sanctioned tooling for personal confidence; results are not promoted to a shared store.
 
 ## 4. Layer 1 — agent local dev clone
 
-**CI policy:** none at the layer boundary. The agent's local-dev clone is just a local copy of `origin/dev`; `grit done` is the atomic merge primitive. Agents may sync local-dev to/from `origin/dev` (fetch + rebase + merge) at any time without ceremony.
 
 ## 5. Layer 1 → Layer 2 — local-dev → origin/dev (the 3-gate)
 
-**Lanes that run:** all BLOCKER + HIGH lanes from §2 on the PR HEAD (the local-dev tip targeting `origin/dev`). The PR opens automatically when the agent declares `grit done` (or via `dev-promoter` orchestration).
 
 **Gate semantics:** **gate 3** of the 3-gate verification requires **every BLOCKER lane GREEN** on the PR HEAD. Combined with gate 1 (PR shape) and gate 2 (reviewer-agent `APPROVE`), the auto-merge fires.
 
@@ -74,9 +71,9 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 
 **CI policy:** all BLOCKER + HIGH lanes re-run on the post-merge `origin/dev` HEAD commit (the squash-merge commit). Re-run is a sanity check (the squashed shape differs from the PR HEAD shape).
 
-**Gate semantics on `origin/dev` → `staging` promotion:** **none.** `staging-promoter` does not consult CI. The re-run on `origin/dev` HEAD is observational — outcomes recorded; red lanes here indicate a `dev-promoter` orchestration bug (squash produced something different from the PR HEAD) which is a `oya-foundry-fitness-cohesion`-class incident.
+**Gate semantics on `origin/dev` → `staging` promotion:** **none.** `staging-promoter` does not consult CI. The re-run on `origin/dev` HEAD is observational — outcomes recorded; red lanes here indicate a `dev-promoter` orchestration bug (squash produced something different from the PR HEAD) which is a `oya-governance-cohesion`-class incident.
 
-**Mutator constraint.** Only `dev-promoter` agent may merge to `origin/dev` (via `gh pr merge --squash`). Planned advisory lane: `oya-foundry-fitness-no-direct-origin-dev-commit` (planned blocker).
+**Mutator constraint.** Only `dev-promoter` agent may merge to `origin/dev` (via `gh pr merge --squash`). Planned advisory lane: `oya-governance-no-direct-origin-dev-commit` (planned blocker).
 
 ## 7. Layer 3 — `staging`
 
@@ -84,7 +81,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 
 **Gate semantics on `staging` → `prod` promotion:** **gate 2** of the 5-gate verification requires **every BLOCKER lane GREEN on `staging` HEAD for ≥ N=3 consecutive runs**. Green-flap (transient red between green runs) resets the counter. The 3-run threshold is the smallest number that statistically distinguishes signal from flake (per Google SRE Workbook empirical guidance).
 
-**Red-lane handling on staging.** If a lane goes red on `staging` HEAD (despite being green at dev entry), this signals integration-level breakage (e.g., a flake, an environmental dependency, or a regression that the PR-time runner didn't catch). The `staging-fixer` agent picks up via `EVT-CI-RED-<job>` and fixes through the standard PR flow (worktree → local dev → origin/dev → staging). **Cannot commit directly to staging** — planned advisory lane: `oya-foundry-fitness-no-direct-staging-commit` (planned blocker).
+**Red-lane handling on staging.** If a lane goes red on `staging` HEAD (despite being green at dev entry), this signals integration-level breakage (e.g., a flake, an environmental dependency, or a regression that the PR-time runner didn't catch). The `staging-fixer` agent picks up via `EVT-CI-RED-<job>` and fixes through the standard PR flow (worktree → local dev → origin/dev → staging). **Cannot commit directly to staging** — planned advisory lane: `oya-governance-no-direct-staging-commit` (planned blocker).
 
 **Mutator constraint.** Only `staging-promoter` agent. Cosign-signed commits.
 
@@ -92,12 +89,11 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 
 **Lanes that run:** all BLOCKER + HIGH lanes on every prod-HEAD commit, **plus** the prod-only super-set:
 
-- `oya-foundry-fitness-canary-required`
-- `oya-foundry-fitness-rollback-evidence`
-- `oya-foundry-fitness-cohort-honor`
-- `oya-foundry-fitness-slo-burn-rate-fast` (zero open alerts; freshness ≤ 5 min)
+- `oya-governance-canary-required`
+- `oya-governance-rollback-evidence`
+- `oya-governance-cohort-honor`
+- `oya-governance-slo-burn-rate-fast` (zero open alerts; freshness ≤ 5 min)
 
-**Promotion gate semantics:** the **5 staging → prod gates** all green. Per-gate evidence stored as signed icm records. `prod-promoter` evaluates and fires automatically (except Directive-12 carve-out classes).
 
 **Mutator constraint.** Only `prod-promoter` agent. Cosign-signed + SLSA L2+ provenance mandatory.
 

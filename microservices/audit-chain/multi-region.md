@@ -191,24 +191,24 @@ Per-pack BCDR specifics at `regional-packs/<pack>/audit-chain-multi-region-overl
 
 ## ADR-0158 Multi-Region Disposition Statement
 
-**Disposition: `active_active` per cell.**
+**Disposition: `active_active` per cell for emission/query/verification; single sealing authority per `(pack, cell, tenant_partition)`.**
 
-Per ADR-0158 (per-µservice multi-region disposition), audit-chain is declared `active_active`. Append-only Merkle log naturally merges; per-tenant subtree (per ADR-0162 per-tenant audit-log slicing) replicates intra-region for DR and globally for the fleet-wide root anchor. Sovereign-pinned tenants (per ADR-0162 + ADR-0164) get dedicated shards confined to their region.
+Per ADR-0158 (per-µservice multi-region disposition), audit-chain is active-active at the stateless edge. Local ADR-AUD-001 refines the sealing rule: authoritative roots are per cell and per tenant partition, and no fleet-wide root is authoritative for writes, disputes, or recovery. Sovereign-pinned tenants (per ADR-0162 + ADR-0164) get dedicated shards confined to their region.
 
 | Property | Value |
 |---|---|
-| Disposition | `active_active` |
+| Disposition | `active_active` edge; per-shard sealing leader |
 | RPO (intra-region) | ≤ 1 second (synchronous replication of hot leaves) |
 | RTO (intra-region) | ≤ 60 seconds (failover) |
 | Sovereign-pin behavior | dedicated shard in-region only; no cross-region replication beyond DR |
-| Convergence model | append-only Merkle merge (no CRDT required; appends commute) |
+| Convergence model | append-only cell-local authority transfer; regional/fleet roots are witnesses only |
 | Cross-region transaction policy | forbidden (data plane is strictly regional) |
 
 Sovereign packs (`pack-ksa`, `pack-uae`, `pack-eu-sovereign`, `pack-us-gov`, `pack-kr-fsc`, `pack-kr-public`) override: per-tenant dedicated shard per ADR-0162; in-region key custody per ADR-0043 + ADR-0164.
 
 ## ADR-0162 Per-Tenant Audit-Chain Slicing Statement
 
-Per ADR-0162, audit-chain seals partition by `tenant_id`. Per-pack shared shards use leaf-level partition; sovereign-tenant packs use dedicated shards.
+Per ADR-0162 and local ADR-AUD-001, audit-chain seals partition by `tenant_id` within the owning cell. Per-pack shared shards use leaf-level partition; sovereign-tenant packs use dedicated shards.
 
 **Sharding scheme:**
 - **Shared shard per pack** — multi-tenant packs (pack-us-shared, pack-global, etc.) — per-pack Merkle tree with tenant_id leaf partition; per-tenant subtree retrieval O(log n).
@@ -216,15 +216,15 @@ Per ADR-0162, audit-chain seals partition by `tenant_id`. Per-pack shared shards
 
 **Sealing cadence:**
 - Hot leaf append ≤ 100 ms p99.
-- Hourly subtree root recomputed + Ed25519-signed.
-- Daily per-pack root anchored to `oya-s3-cold` (per ADR-0161).
-- Daily fleet-wide root published to trust portal (ADR-0038) for non-sovereign tenants; in-region only for sovereign-pinned.
+- Full cell-local period root completed and Ed25519-signed ≤ 1 s p99.
+- Regional summary root published every minute as a witness artifact.
+- Daily fleet witness published to trust portal for transparency only; it is never an authority for sovereign-pinned chain state.
 
 **Per-tenant retrieval API:**
-- `GET /v1/audit-chain/tenant/{tenant_id}/seals?since=...&until=...&event_class=...&proof=true`
-- Cedar-gated: `principal.tenant_id == path.tenant_id`.
-- Cursor pagination; 1000 seals per page.
-- Optional Merkle inclusion proof per seal.
+- Current REST projection is `contracts/openapi/audit-chain.yaml`: `POST /query`, `GET /events/{event_id}/proof`, `POST /verify`, `GET /roots/{pack}/{period_id}`, and `GET /keys/{pack}/{epoch_id}`.
+- Cedar-gated through `X-Scope-OrgID`, tenant-bound principals, and `policy/tenant-scope.cedar`.
+- Cursor pagination; 1000 records per page by query policy.
+- Optional Merkle inclusion proof per event.
 - DSR-cascade-safe: seal contains hashes + metadata only; PII fields zeroed per ADR-0008.
 
 CI lane `oya gate validate audit-chain-per-tenant-slicing` enforces (a) Cedar-gated retrieval, (b) sovereign packs declare dedicated shards, (c) subtree leaves contain only that tenant's events.

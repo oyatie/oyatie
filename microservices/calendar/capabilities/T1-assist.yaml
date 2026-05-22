@@ -51,7 +51,7 @@ capabilities:
     latency_budget_p99_ms: 2000 (target completion within 2s for typical 5-attendee scheduling)
     audit_event: CalendarSmartScheduledOnBehalf (Ed25519-sealed; payload — event hash + reversibility window expiry)
     fallback_on_model_failure: fall back to T0 suggestion mode (suggest only; do not act)
-    eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-scheduling overlay; per-pack ADR closes the EU AI Act conformity assessment for HR overlay — defers to a future ADR-CAL-XXXX)
+    risk_classification: limited-risk (Annex III §3 may apply for HR-scheduling overlay; per-pack ADR closes the EU AI Act conformity assessment for HR overlay — defers to a future ADR-CAL-XXXX)
     user_label: "AI is scheduling on your behalf — cancel within 30s" (Art. 50 + Art. 14)
 
   - id: T1-cal-auto-decline-conflicts
@@ -82,7 +82,7 @@ capabilities:
     latency_budget_p99_ms: 500
     audit_event: CalendarInvitationAutoDeclined (Ed25519-sealed; payload — invitation id hash + reason template id + reversibility window expiry)
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk (deterministic logic; no LLM inference)
+    risk_classification: minimal-risk (deterministic logic; no LLM inference)
     user_label: "Auto-declined due to conflict — undo within 30s"
 
   - id: T1-cal-auto-rebook-cancelled
@@ -114,7 +114,7 @@ capabilities:
     latency_budget_p99_ms: 1500
     audit_event: CalendarAutoRebookSuggested (Ed25519-sealed; payload — event id hash + 3 candidate slot hashes)
     fallback_on_model_failure: fall back to T0 (suggest only)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggested rebook — pick to confirm"
 
 verification:
@@ -122,7 +122,7 @@ verification:
   - All T1 actions emit an audit-chain event (Ed25519-sealed) on action-initiated AND on action-cancelled-within-window AND on action-stood (window-expired).
   - All T1 actions are labelled per EU AI Act Art. 50 + offer the Art. 14 human-oversight cancel-within-window control.
   - All T1 actions respect dual-context isolation: Personal-context actions NEVER touch Professional-context data; Professional-context actions NEVER touch Personal-context data.
-  - All T1 actions are tenant-tier-gated: Cedar policy `cedar/t1-tenant-tier-gate.cedar` admits T1 only for tenant tiers ≥ pro.
+  - All T1 actions are tenant-tenant_class-gated: Cedar policy `cedar/t1-tenant-tier-gate.cedar` admits T1 only for tenant tiers ≥ pro.
   - HR-scheduling overlay (T1-cal-smart-scheduling when used for hiring / performance review / employment-decision adjacent contexts) is DEFERRED to a future ADR-CAL-XXXX for the EU AI Act Annex III §3 conformity assessment; until that ADR ships, the HR overlay is REFUSED at the Cedar layer for pack-eu tenants.
 
 references:

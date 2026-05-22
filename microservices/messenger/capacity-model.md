@@ -78,12 +78,12 @@ Per-cell envelope: Postgres primary handles ≤ 50k msg/sec at HA-RF=3; beyond t
 ```
 presence_ops_per_sec     = C_active_conn / 30 (1 heartbeat per 30s)
 read_receipt_ops_per_sec = M_msg_per_sec × R_recipients × 0.3 (30 % seen rate within hot window)
-total_redis_ops_per_sec  = presence + read_receipt
-redis_memory_bytes       = C_active_conn × 400 (per-user keyset)
-redis_shard_count        = ceil(total_redis_ops_per_sec / 100_000)
+total_valkey_ops_per_sec  = presence + read_receipt
+valkey_memory_bytes       = C_active_conn × 400 (per-user keyset)
+valkey_shard_count        = ceil(total_valkey_ops_per_sec / 100_000)
 ```
 
-| Tier | total_redis_ops_per_sec | Shards | Memory |
+| Tier | total_valkey_ops_per_sec | Shards | Memory |
 |---|---|---|---|
 | XS | ~ 9k | 1 (3 nodes HA) | ~ 40 MB |
 | S | ~ 50k | 1 | ~ 200 MB |
@@ -175,4 +175,4 @@ mention_workers        = ceil(mention_events_per_sec / 2000) (each handles 2k me
 - `microservices/observability/capacity-model.md` (shape reference).
 - Postgres tuning: PostgreSQL 16 ops docs.
 - Tantivy ops: `github.com/quickwit-oss/tantivy/wiki/Operations`.
-- Valkey Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `valkey.io/docs/management/scaling/`.

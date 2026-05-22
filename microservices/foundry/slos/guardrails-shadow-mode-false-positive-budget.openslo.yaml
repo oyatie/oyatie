@@ -16,7 +16,7 @@ spec:
   service: foundry-guardrails
   description: |
     Guardrails shadow-mode false-positive budget SLO. A shadow-mode
-    decision is "good" when it does NOT flag a known-good (gold-labeled)
+    decision is "good" when it does NOT flag a known-good (baseline-labeled)
     invocation as a violation. FP rate < 1% before promoting shadow rule
     to enforced. Per ADR-0085 shadow-mode-before-enforce + ratchet policy.
   indicator:
@@ -39,7 +39,7 @@ spec:
                 sum(rate(oya_foundry_guardrails_shadow_decision_total[5m]))
   objectives:
     - target: 0.99
-      displayName: "≥ 99% correctness on gold set (< 1% FP rate) over 30d"
+      displayName: "≥ 99% correctness on baseline set (< 1% FP rate) over 30d"
   timeWindow:
     - duration: 30d
       isRolling: true

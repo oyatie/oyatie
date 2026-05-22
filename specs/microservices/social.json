@@ -259,7 +259,7 @@
     "no_cross_suggest": true,
     "follow_graph_isolation": "personal follow graph and professional follow graph are separate Ontology sub-graphs; no shared node references",
     "notification_isolation": "social notification topics are pillar-prefixed; personal social notifications never route to work notification channels",
-    "enforcement_lane": "oya-foundry-fitness-connect-pillar"
+    "enforcement_lane": "oya-governance-connect-pillar"
   },
   "ecosystem_integration": {
     "workflow": {
@@ -376,28 +376,28 @@
     {
       "anti_pattern": "cross_context_feed_join",
       "why": "leaks personal social graph to employer; forbidden by ADR-0208",
-      "detection_lane": "oya-foundry-fitness-connect-pillar",
+      "detection_lane": "oya-governance-connect-pillar",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "biometric_persistence_from_ar",
       "why": "GDPR Art.9 special category data; face geometry is in-session only",
-      "detection_lane": "oya-foundry-fitness-connect-ar-privacy",
+      "detection_lane": "oya-governance-connect-ar-privacy",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "ad_signal_cross_context_targeting",
       "why": "personal ad profile must never inform professional ad auction and vice versa",
-      "detection_lane": "oya-foundry-fitness-connect-ads-isolation",
+      "detection_lane": "oya-governance-connect-ads-isolation",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
       "why": "Foundry relevance model must be auditable and explainable per context",
-      "detection_lane": "oya-foundry-fitness-foundry-model-auditability",
+      "detection_lane": "oya-governance-foundry-model-auditability",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
@@ -673,7 +673,7 @@
         "GA": 120
       },
       "verification_ref": "cargo bench -p oya-connect-social-bench -- feed_load_p95",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "name": "story_ttl_purge_s",
@@ -823,17 +823,17 @@
     {
       "id": "BP-SOCIAL-01",
       "rule": "personal and professional feeds never blend",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-social-pillar"
+      "planned_enforcement_ref": "oya-governance-connect-social-pillar"
     },
     {
       "id": "BP-SOCIAL-02",
       "rule": "AR effects do not persist biometric data",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-ar-privacy"
+      "planned_enforcement_ref": "oya-governance-connect-ar-privacy"
     },
     {
       "id": "BP-SOCIAL-03",
       "rule": "professional cross-posting requires Workflow consent token",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-social-workflow-consent"
+      "planned_enforcement_ref": "oya-governance-connect-social-workflow-consent"
     }
   ],
   "patterns": [
@@ -867,22 +867,22 @@
     {
       "anti_pattern": "cross_context_feed_join",
       "why_forbidden": "leaks personal social graph to employer; forbidden by ADR-0208",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-governance-connect-pillar"
     },
     {
       "anti_pattern": "biometric_persistence_from_ar",
       "why_forbidden": "GDPR Art.9 special category data; face geometry is in-session only",
-      "detection_lane": "oya-foundry-fitness-connect-ar-privacy"
+      "detection_lane": "oya-governance-connect-ar-privacy"
     },
     {
       "anti_pattern": "ad_signal_cross_context_targeting",
       "why_forbidden": "personal ad profile must never inform professional ad auction and vice versa",
-      "detection_lane": "oya-foundry-fitness-connect-ads-isolation"
+      "detection_lane": "oya-governance-connect-ads-isolation"
     },
     {
       "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
       "why_forbidden": "Foundry relevance model must be auditable and explainable per context",
-      "detection_lane": "oya-foundry-fitness-foundry-model-auditability"
+      "detection_lane": "oya-governance-foundry-model-auditability"
     }
   ],
   "goals": {

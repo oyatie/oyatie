@@ -35,7 +35,7 @@ dependencies:
   - name: cloudnative-pg
     version: "16.4.0"          # Postgres 16 LTS
     repository: oci://registry.oyatie.dev/charts
-  - name: redis-cluster
+  - name: valkey-cluster
     version: "7.4.0"           # LTS
     repository: oci://registry.oyatie.dev/charts
   # Search + extract

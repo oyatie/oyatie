@@ -2,13 +2,13 @@
 # tools/hooks/stale-tool-suggester.sh
 #
 # Trigger:  Claude Code PreToolUse(Bash)
-# Purpose:  When a Bash command references retired tools (grit, rtk, icm, vox)
-#           or plain git, suggest the oya git cutover target and current
+# Purpose:  When a Bash command references plain git, suggest the oya git
+#           cutover target and current
 #           policy-ratchet surface.
 # Behavior: Reads $TOOL_INPUT (JSON with "command" field) from environment or stdin.
-#           Greps for retired tool names. If found, prints a suggestion to stderr
-#           with the canonical replacement. Agent decides whether to rewrite.
-# Non-blocking guarantee: exits 0 always, even when stale tools are detected.
+#           Prints a suggestion to stderr with the canonical replacement.
+#           Agent decides whether to rewrite.
+# Non-blocking guarantee: exits 0 always, even when stale commands are detected.
 
 set -uo pipefail
 
@@ -38,23 +38,6 @@ if [ -z "$COMMAND_TEXT" ]; then
 fi
 
 GIT_COMMAND_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)git([[:space:]]|$)'
-
-# Check for retired tool references
-RETIRED_FOUND=""
-for tool in grit rtk icm vox; do
-    if echo "$COMMAND_TEXT" | grep -qw "$tool" 2>/dev/null; then
-        RETIRED_FOUND="$RETIRED_FOUND $tool"
-    fi
-done
-
-if [ -n "$RETIRED_FOUND" ]; then
-    echo "ℹ [stale-tool-suggester] Retired tool(s) detected:${RETIRED_FOUND}" >&2
-    echo "ℹ  These are retired per ADR-0116. Canonical replacement:" >&2
-    echo "ℹ    oya git <git-subcommand> for git operations (drop-in pass-through + local ledger)" >&2
-    echo "ℹ    oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote> for the current policy ratchet compatibility surface" >&2
-    echo "ℹ  See tools/hooks/_canonical-primitives.md for the full primitives reference." >&2
-    echo "ℹ  Continuing as requested — agent decides whether to rewrite." >&2
-fi
 
 if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$GIT_COMMAND_PATTERN" 2>/dev/null; then
     echo "ℹ [stale-tool-suggester] Plain git invocation detected." >&2

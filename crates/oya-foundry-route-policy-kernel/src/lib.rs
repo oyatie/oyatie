@@ -11,8 +11,8 @@ pub use oya_foundry_account_domain::{
     check_silent_switch,
 };
 
-pub const DEFAULT_PRIVACY_BOUNDARY: &str = "tenant-default";
-pub const DEFAULT_RESIDENCY_REGION: &str = "region-default";
+const DEFAULT_PRIVACY_BOUNDARY: &str = "tenant-default";
+const DEFAULT_RESIDENCY_REGION: &str = "tenant-home-region";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RouteConstraints {
@@ -206,10 +206,10 @@ mod tests {
     }
 
     #[test]
-    fn explanation_reason_mentions_residency_and_privacy() {
+    fn explanation_reason_mentions_residency_and_privacy_defaults() {
         let accs = vec![active("a1", ProviderFamily::Claude)];
         let exp = RoutePolicy::explain_route(&accs, &constraints()).unwrap();
-        assert!(exp.reason.contains("residency=region-default"));
+        assert!(exp.reason.contains("residency=tenant-home-region"));
         assert!(exp.reason.contains("privacy=tenant-default"));
     }
 

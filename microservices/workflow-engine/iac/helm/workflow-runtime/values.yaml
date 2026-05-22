@@ -82,12 +82,12 @@ config:
     passwordSecret:
       name: openbao-postgres
       key: password
-  redis:
-    sentinelService: redis-sentinel.workflow-engine.svc.cluster.local
+  valkey:
+    sentinelService: valkey-sentinel.workflow-engine.svc.cluster.local
     sentinelPort: 26379
     masterName: workflow-engine
     passwordSecret:
-      name: openbao-redis
+      name: openbao-valkey
       key: password
   clickhouse:
     host: clickhouse.workflow-engine.svc.cluster.local
@@ -115,6 +115,6 @@ networkPolicy:
     allowFromObservability: true   # for Alloy metric scrape
   egress:
     allowToPostgres: true
-    allowToRedis: true
+    allowToValkey: true
     allowToClickhouse: true
     allowToOpenbao: true

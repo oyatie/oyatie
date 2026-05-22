@@ -69,12 +69,12 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md`](IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md) | Helm + Kustomize charts for Postgres+Citus, Valkey (Sentinel HA), ClickHouse, workflow-runtime deployment under `microservices/workflow-engine/iac/helm/` | pending | axis-workflow | — |
+| [`IP-001-layer-a-postgres-citus-valkey-clickhouse-iac.md`](IP-001-layer-a-postgres-citus-valkey-clickhouse-iac.md) | Helm + Kustomize charts for Postgres+Citus, Valkey (Sentinel HA), ClickHouse, workflow-runtime deployment under `microservices/workflow-engine/iac/helm/` | pending | axis-workflow | — |
 | [`IP-002-spec-store-kernel-domain.md`](IP-002-spec-store-kernel-domain.md) | `oya-workflow-engine-spec-store-{kernel,domain}` crates: WorkflowSpec, SpecVersion, SpecSignature entities + pure compile/validate domain | pending | axis-workflow | — |
 | [`IP-003-state-machine-kernel-domain.md`](IP-003-state-machine-kernel-domain.md) | `oya-workflow-engine-state-machine-{kernel,domain,usecase,api,adapter,adapter-postgres}` — pure transition evaluation + checkpoint persistence | pending | axis-workflow | IP-002 |
 | [`IP-004-execution-engine-kernel-domain.md`](IP-004-execution-engine-kernel-domain.md) | `oya-workflow-engine-execution-engine-{kernel,domain}` crates: WorkflowRun, StepExecution, RetryAttempt, SlaTimer entities; pure retry-backoff + SLA-timer arithmetic | pending | axis-workflow | IP-003 |
-| [`IP-005-execution-engine-usecase-durable-execution.md`](IP-005-execution-engine-usecase-durable-execution.md) | `oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-redis}` — durable-execution authoritative store + ephemeral lease state; the engineering heart of this phase | pending | axis-workflow | IP-004 |
-| [`IP-006-event-bus-kernel-domain-adapter.md`](IP-006-event-bus-kernel-domain-adapter.md) | `oya-workflow-engine-event-bus-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis}` — typed event publish/subscribe with outbox + replay-from-offset | pending | axis-workflow | IP-005 |
+| [`IP-005-execution-engine-usecase-durable-execution.md`](IP-005-execution-engine-usecase-durable-execution.md) | `oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-valkey}` — durable-execution authoritative store + ephemeral lease state; the engineering heart of this phase | pending | axis-workflow | IP-004 |
+| [`IP-006-event-bus-kernel-domain-adapter.md`](IP-006-event-bus-kernel-domain-adapter.md) | `oya-workflow-engine-event-bus-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey}` — typed event publish/subscribe with outbox + replay-from-offset | pending | axis-workflow | IP-005 |
 | [`IP-007-event-bus-rest-worker-sdk-app.md`](IP-007-event-bus-rest-worker-sdk-app.md) | `oya-workflow-engine-event-bus-{rest,worker,sdk,app}` — outbox relay worker; SDK consumed by every µservice; REST entry | pending | axis-workflow | IP-006 |
 | [`IP-008-spec-store-usecase-api-adapter-rest-sdk-app.md`](IP-008-spec-store-usecase-api-adapter-rest-sdk-app.md) | spec-store remaining layers: usecase + api + adapter + adapter-postgres + rest + sdk + app | pending | axis-workflow | IP-002, IP-005 |
 | [`IP-009-execution-engine-rest-worker-sdk-app.md`](IP-009-execution-engine-rest-worker-sdk-app.md) | execution-engine remaining layers: rest + worker + sdk + app; the engine binary composition root | pending | axis-workflow | IP-005, IP-007 |
@@ -156,7 +156,7 @@ Layer assignments and dependency direction (one representative BC; same shape fo
 | `oya-workflow-engine-execution-engine-api` | `api` | `kernel` | other layers |
 | `oya-workflow-engine-execution-engine-adapter` | `adapter` | `usecase`, `domain`, `kernel` | `rest`, `worker`, `app` directly |
 | `oya-workflow-engine-execution-engine-adapter-postgres` | `adapter-postgres` | `adapter`, `usecase`, `domain`, `kernel` | `rest`, `worker`, `app` directly |
-| `oya-workflow-engine-execution-engine-adapter-redis` | `adapter-redis` | `adapter`, `usecase`, `domain`, `kernel` | `rest`, `worker`, `app` directly |
+| `oya-workflow-engine-execution-engine-adapter-valkey` | `adapter-valkey` | `adapter`, `usecase`, `domain`, `kernel` | `rest`, `worker`, `app` directly |
 | `oya-workflow-engine-execution-engine-rest` | `rest` | `usecase`, `api`, `domain`, `kernel` | `adapter*` directly (uses ports) |
 | `oya-workflow-engine-execution-engine-worker` | `worker` | `usecase`, `api`, `domain`, `kernel` | `adapter*` directly (uses ports) |
 | `oya-workflow-engine-execution-engine-sdk` | `sdk` | `api`, `kernel` | adapter/rest/worker/app |

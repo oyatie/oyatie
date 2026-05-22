@@ -32,7 +32,7 @@ phase.
 |---|---|---|
 | runtime | Agent runtime + capability execution substrate | `bc-sources/runtime/PHASE-01-AGENT-RUNTIME-AND-CAPABILITY-EXECUTION.md` |
 | supervisor | Control plane landing (fleet + autonomy + capability deploy + kill-switch + event bus) | `bc-sources/supervisor/PHASE-01-CONTROL-PLANE-LANDING.md` |
-| eval | Eval harness substrate (runner + parity + replay + golden store) | `bc-sources/eval/PHASE-01-EVAL-HARNESS-SUBSTRATE.md` |
+| eval | Eval harness substrate (runner + parity + replay + baseline store) | `bc-sources/eval/PHASE-01-EVAL-HARNESS-SUBSTRATE.md` |
 | evidence | Foundry evidence frontend (invocation recorder + pack builder + regulator export + audit-chain bridge) | `bc-sources/evidence/PHASE-01-FOUNDRY-EVIDENCE-FRONTEND.md` |
 | guardrails | Guardrails safety + policy enforcement (classifier + validator + autonomy gate + rule engine + jailbreak + AI-slop) | `bc-sources/guardrails/PHASE-01-GUARDRAILS-SAFETY-AND-POLICY-ENFORCEMENT.md` |
 | providers | Provider adapter substrate (router + 8 adapters incl. OpenBao credential) | `bc-sources/providers/PHASE-01-PROVIDER-ADAPTER-SUBSTRATE.md` |

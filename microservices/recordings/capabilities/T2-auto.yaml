@@ -78,7 +78,7 @@ pack_overrides:
     refused_default: true
     refusal_reason: "SEC 17a-4 + FINRA 4511 — recorded communications cannot be auto-published outside the audit-chained archive"
   pack-eu:
-    eu_ai_act_classification:
+    risk_classification:
       default: limited_risk (transparency obligation)
       employment_context: high_risk (Annex III §4(a))
       law_enforcement_context: high_risk (Annex III §6)
@@ -104,11 +104,11 @@ cedar_policy_fragments:
   - microservices/recordings/policy/cedar/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/recordings/capabilities/eval/t2-auto-golden.jsonl
+  baseline_inputs_path: microservices/recordings/capabilities/eval/t2-auto-baseline.jsonl
   pass_threshold:
     translation_bleu:  0.35
     publish_event_idempotency: 1.0
-  eval_metric: BLEU on golden translation set; idempotency rate for publish-event fanout
+  eval_metric: BLEU on baseline translation set; idempotency rate for publish-event fanout
   cadence: per-release
   reference: WMT benchmark for translation; chaos-engineering for idempotency
 

@@ -86,7 +86,7 @@ Verify the projected per-pack capacity ceilings BEFORE pack-eu becomes the produ
 |---|---|
 | Per-scenario k6 JSON output | `evidence/identity/loadtest/k6-<scenario>-<date>.json` |
 | Prometheus snapshot | `evidence/identity/loadtest/prom-snapshot-<date>.tar.gz` |
-| Grafana dashboard PNG (golden signals) | `evidence/identity/loadtest/grafana-<date>.png` |
+| Grafana dashboard PNG (core signals) | `evidence/identity/loadtest/grafana-<date>.png` |
 | Postgres consistency check log | `evidence/identity/loadtest/pg-consistency-<date>.log` |
 | Audit-completeness post-run | `evidence/identity/loadtest/audit-completeness-<date>.json` |
 | **GO/NO-GO REPORT** | `evidence/identity/loadtest/go-no-go-<date>.json` |
@@ -115,3 +115,19 @@ Verify the projected per-pack capacity ceilings BEFORE pack-eu becomes the produ
 - ADR-0187 §"In-house roadmap" trigger criterion (d)
 - capacity-model.md §"Scale validation status"
 - ADR-0130 SLO-gated promotion
+
+## Counterpart references - 016-zitadel-scale-validation-load-test
+
+- Counterpart class: identity substrate.
+- Palantir Foundry and GitHub Enterprise are the counterpart baseline for governed multi-tenant identity surfaces; this IP ties the slice to Oyatie identity contracts, Cedar, and audit-chain evidence rather than leaving the behavior as generic application authentication.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+
+## DR posture (per ADR-0343)
+
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/identity/IP-016-zitadel-scale-validation-load-test.md` matched `SLO, multi-region, p99`.
+- Numeric target: `rto_p99_seconds=30`, `rpo_p99_seconds=0` from manifest.json#rpo_rto.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), PCI-DSS-L1-v4(86400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/identity/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `valkey_cluster`, `openbao_seal_unseal`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/identity/slos/oidc-token-issue-latency.openslo.yaml`, `microservices/identity/slos/oidc-token-verify-latency.openslo.yaml`, `microservices/identity/slos/webauthn-authenticate-latency.openslo.yaml`, `microservices/identity/slos/scim-availability.openslo.yaml`, `microservices/identity/policy/cedar-acr-predicates.cedar`.

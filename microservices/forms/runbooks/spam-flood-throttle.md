@@ -29,7 +29,7 @@ ONE of:
 3. **`oya_forms_postgres_connection_pool_saturation > 0.9` ≥ 5 min.**
 4. **`oya_forms_submission_pii_field_set_rate{form_id=<h>}` < 5%** for ≥ 5 min during high submit rate (suggests submitter omitting required PII fields = bot).
 5. **`oya_forms_submission_429_total` rate > 100/min cluster-wide.**
-6. **`oya_forms_redis_memory_used_bytes / oya_forms_redis_memory_max_bytes > 0.85`.**
+6. **`oya_forms_valkey_memory_used_bytes / oya_forms_valkey_memory_max_bytes > 0.85`.**
 7. **`oya_forms_workflow_trigger_queue_depth > 50k` ≥ 10 min** (downstream queue overflow).
 
 ## Severity

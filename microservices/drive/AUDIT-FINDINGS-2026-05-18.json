@@ -4,7 +4,7 @@
   "scanned_files": 106,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -90,7 +90,7 @@
           "hits": [
             {
               "line": 50,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (upload-session + delta-sync cache) | `oya-drive-sync-*` (10 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (upload-session + delta-sync cache) | `oya-drive-sync-*` (10 crates) |"
             },
             {
               "line": 100,
@@ -166,13 +166,13 @@
           "hits": [
             {
               "line": 18,
-              "excerpt": "Owns the multipart resumable upload session state (Redis-backed) + chunk staging"
+              "excerpt": "Owns the multipart resumable upload session state (Valkey-backed) + chunk staging"
             }
           ],
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/catalog/oya-drive-upload-adapter-redis.yaml",
+          "file": "microservices/drive/catalog/oya-drive-upload-adapter-valkey.yaml",
           "hits": [
             {
               "line": 21,

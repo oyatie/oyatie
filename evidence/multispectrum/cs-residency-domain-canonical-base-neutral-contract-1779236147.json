@@ -1,0 +1,239 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-residency-domain-canonical-base-neutral-contract",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779236147,
+  "timestamp_iso": "2026-05-20T00:15:47Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-residency-domain/src/lib.rs::canonical_base_neutral_residency_contract",
+    "crates/oya-residency-domain/src/lib.rs::canonical_base_neutral_region_jurisdiction_model",
+    "crates::residency_class_neutral_label_callsite_migration",
+    "crates::residency_region_neutral_fixture_migration",
+    "evidence/multispectrum/cs-residency-domain-canonical-base-neutral-contract-1779236147.json::MultispectrumEvidence"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize residency-domain canonical-base contract and labels\",\"scopes\":[\"crates/oya-residency-domain/src/lib.rs::canonical_base_neutral_residency_contract\",\"crates/oya-residency-domain/src/lib.rs::canonical_base_neutral_region_jurisdiction_model\",\"crates/oya-residency-domain/src/lib.rs::canonical_base_neutral_residency_tests\",\"evidence/multispectrum/cs-residency-domain-canonical-base-neutral-contract-1779236147.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "status": "accepted"
+    },
+    {
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Migrate residency-class call sites to neutral canonical labels\",\"scopes\":[\"crates::residency_class_neutral_label_callsite_migration\",\"crates::residency_region_neutral_fixture_migration\",\"evidence/multispectrum/cs-residency-domain-canonical-base-neutral-contract-1779236147.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality contract migration for residency: replace jurisdiction-named residency classes, region jurisdictions, labels, inference prefixes, and affected call-site fixtures with pack-neutral home/federated/recovery terminology while preserving tenant isolation, residency validation, and API compile compatibility.",
+  "baseline_diff": {
+    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-residency-domain/src/lib.rs failed with 1 file checked and 79 jurisdiction leaks across region jurisdiction variants, residency class labels, transfer validation, and tests.",
+    "before_full": "full canonical-base-neutrality failed before this slice with 196 files checked and 275 jurisdiction leaks; first remaining file crates/oya-residency-domain/src/lib.rs.",
+    "red_test": "new canonical_residency_labels_are_pack_neutral test failed before implementation: 7 passed, 1 failed; left Some(\"strict_kr\"), right Some(\"strict_home_region\").",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-residency-domain/src/lib.rs passed: 1 file checked, 0 jurisdiction leaks.",
+    "after_touched_canonical_targets": "targeted canonical-base-neutrality passed for touched canonical call-site files: oya-saas-plugin-marketplace-kernel/src/lib.rs, oya-tenancy-domain/src/lib.rs, and oya-tenancy-kernel/src/lib.rs.",
+    "after_full": "full canonical-base-neutrality still fails with 196 files checked and 119 jurisdiction leaks outside this completed scope; first remaining file crates/oya-saas-plugin-marketplace-kernel/src/auction.rs.",
+    "delta": "156 fewer full-gate jurisdiction leaks, from 275 before this slice to 119 after this slice; no scanner carve-outs, no allowlist changes, and no generated/config bypass."
+  },
+  "verification": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-residency-cbn-planning-start.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-residency-cbn-full-before.txt",
+      "status": "blocked-preexisting-before-fix",
+      "evidence": "full gate failed with 196 files checked, 275 jurisdiction leaks; first remaining file crates/oya-residency-domain/src/lib.rs"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-residency-domain/src/lib.rs 2>&1 | tee /tmp/cs-residency-cbn-targeted-before.txt",
+      "status": "failed-before-fix",
+      "evidence": "1 file checked, 79 jurisdiction leaks in residency-domain canonical contract and fixtures"
+    },
+    {
+      "command": "cargo test -q -p oya-residency-domain --all-features 2>&1 | tee /tmp/cs-residency-cbn-domain-baseline-test.txt",
+      "status": "passed-baseline-before-fix",
+      "evidence": "baseline residency-domain tests passed before behavior-preserving migration: 7 passed"
+    },
+    {
+      "command": "cargo test -q -p oya-residency-domain --all-features 2>&1 | tee /tmp/cs-residency-cbn-red-test.txt",
+      "status": "failed-before-fix",
+      "evidence": "red test failed before implementation: 7 passed, 1 failed; strict_kr label was still emitted"
+    },
+    {
+      "command": "cargo test -q -p oya-residency-domain -p oya-tenancy-domain -p oya-tenancy-kernel -p oya-saas-plugin-marketplace-kernel --all-features 2>&1 | tee /tmp/cs-residency-cbn-core-tests.txt",
+      "status": "passed",
+      "evidence": "core impacted canonical tests passed: residency 8, tenancy-domain 29, tenancy-kernel 10, marketplace-kernel 36"
+    },
+    {
+      "command": "cargo test -q --no-run $(cat /tmp/cs-residency-cbn-callsite-packages.txt | sed \"s/^/-p /\") --all-features 2>&1 | tee /tmp/cs-residency-cbn-callsite-no-run.txt",
+      "status": "passed",
+      "evidence": "workspace call-site package tests compiled with no output/errors for 30 workspace packages"
+    },
+    {
+      "command": "cargo test -q -p oya-cloud-kms-api -p oya-tenancy-api -p oya-regional-pack-api -p oya-cloud-region-api --all-features 2>&1 | tee /tmp/cs-residency-cbn-selected-api-tests.txt",
+      "status": "passed",
+      "evidence": "selected downstream API tests passed: cloud-kms 10, cloud-region 11, tenancy-api 6, regional-pack-api 6 plus zero-test libs"
+    },
+    {
+      "command": "cargo test -q --manifest-path crates/oya-workspace-drive-api/Cargo.toml --no-run --all-features; ... | tee /tmp/cs-residency-cbn-nonworkspace-no-run.txt",
+      "status": "blocked-preexisting-workspace-config",
+      "evidence": "non-workspace workspace-drive/forms/meet manifests cannot be tested directly because they inherit the root workspace but are not members; rustfmt was run directly on their touched test files"
+    },
+    {
+      "command": "rustfmt --edition 2024 --check crates/oya-workspace-drive-api/tests/workspace_drive_api.rs crates/oya-workspace-forms-api/tests/workspace_forms_api.rs crates/oya-workspace-meet-api/tests/workspace_meet_api.rs 2>&1 | tee /tmp/cs-residency-cbn-nonworkspace-rustfmt.txt",
+      "status": "passed",
+      "evidence": "direct rustfmt check passed for touched non-workspace test files"
+    },
+    {
+      "command": "cargo fmt -q --all --check 2>&1 | tee /tmp/cs-residency-cbn-fmt.txt",
+      "status": "passed",
+      "evidence": "workspace rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-residency-domain -p oya-tenancy-domain -p oya-tenancy-kernel -p oya-saas-plugin-marketplace-kernel -p oya-cloud-kms-api -p oya-tenancy-api -p oya-regional-pack-api -p oya-cloud-region-api --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-residency-cbn-selected-clippy.txt",
+      "status": "passed",
+      "evidence": "selected impacted package clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-residency-domain/src/lib.rs 2>&1 | tee /tmp/cs-residency-cbn-targeted-after.txt",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root <touched canonical file> 2>&1 | tee /tmp/cs-residency-cbn-touched-canonical-targets.txt",
+      "status": "passed",
+      "evidence": "targeted CBN passed for marketplace-kernel/src/lib.rs, tenancy-domain/src/lib.rs, and tenancy-kernel/src/lib.rs"
+    },
+    {
+      "command": "rg -n 'Kr|Us|Eu|Jp|kr-|eu-|us-|jp-|strict_kr|kr_with_us_failover|US|KR|EU|JP' crates/oya-residency-domain/src/lib.rs || true 2>&1 | tee /tmp/cs-residency-cbn-token-scan.txt",
+      "status": "passed",
+      "evidence": "no old jurisdiction contract tokens matched in residency-domain source"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-residency-cbn-planning.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json 2>&1 | tee /tmp/cs-residency-cbn-master.txt",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-residency-cbn-full-after.txt",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 196 files checked, 119 jurisdiction leaks outside completed scope; first remaining file crates/oya-saas-plugin-marketplace-kernel/src/auction.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Renamed the existing contract and fixtures to neutral vocabulary instead of adding adapters, dependencies, scanner exceptions, or compatibility shims that would preserve jurisdiction leakage.",
+        "Kept validation logic simple: strict-home requires home regions, home-with-recovery allows recovery regions with consent, per-pack remains data-driven."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Canonical base now models residency by neutral topology roles (home, federated, recovery, expansion) so jurisdiction-specific packs can bind real countries externally.",
+        "Downstream call-site fixtures were migrated to keep compile compatibility with the neutral contract rather than hiding old labels."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "neutral label test failed until residency labels changed from strict_kr to strict_home_region and home_with_recovery_failover",
+      "findings": [
+        "Full CBN remains red and is explicitly reported; no production/FD-001 completion claim is made."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 3,
+      "findings": [
+        "ResidencyClass labels and RegionJurisdiction names now describe topology semantics directly, making pack binding responsibilities clearer."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Red/green tests, impacted package tests, workspace call-site no-run compile, fmt, clippy, targeted/full CBN, planning closure, and master-plan gates were run fresh."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Jurisdiction-specific country binding moved out of the canonical residency contract vocabulary; per-pack residency remains the extension seam."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Core residency, tenancy, marketplace, selected API tests, and call-site package compilation prove the neutral contract remains usable across current consumers."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence records claim acceptance, before/after gate counts, red/green proof, downstream compile/test status, nonworkspace verification blocker, and Oya VCS lifecycle anchors."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-application-app/tests/data_use_boundary.rs",
+    "crates/oya-application-app/tests/foundation_backbone.rs",
+    "crates/oya-application-app/tests/foundation_flow.rs",
+    "crates/oya-application-app/tests/foundry_autonomy_decision.rs",
+    "crates/oya-application-app/tests/foundry_mcp_gateway.rs",
+    "crates/oya-application-app/tests/observability_tracing.rs",
+    "crates/oya-application-app/tests/policy_authorization.rs",
+    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+    "crates/oya-cloud-cell-app/src/lib.rs",
+    "crates/oya-cloud-cell-app/tests/cloud_cell_bind_api.rs",
+    "crates/oya-cloud-compute-functions-api/tests/cloud_compute_functions_api.rs",
+    "crates/oya-cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs",
+    "crates/oya-cloud-compute-vm-api/tests/cloud_compute_vm_api.rs",
+    "crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs",
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    "crates/oya-cloud-kms-api/tests/cloud_kms_api.rs",
+    "crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs",
+    "crates/oya-cloud-network-lb-api/tests/cloud_network_lb_api.rs",
+    "crates/oya-cloud-network-vpc-api/tests/cloud_network_vpc_api.rs",
+    "crates/oya-cloud-observability-api/tests/cloud_observability_audit_api.rs",
+    "crates/oya-cloud-region-api/src/lib.rs",
+    "crates/oya-cloud-region-api/tests/cloud_region_api.rs",
+    "crates/oya-cloud-storage-block-api/tests/cloud_storage_block_api.rs",
+    "crates/oya-cloud-storage-object-api/tests/cloud_storage_object_api.rs",
+    "crates/oya-dev-cli/src/commands/demo.rs",
+    "crates/oya-dev-cli/src/cross_tenant_access_gates.rs",
+    "crates/oya-dsr-usecase/tests/dsr_cascade_execute_api.rs",
+    "crates/oya-foundry-adapter-domain/tests/provider_route.rs",
+    "crates/oya-foundry-mcp-gateway-domain/tests/mcp_gateway.rs",
+    "crates/oya-foundry-run-domain/tests/run_ledger.rs",
+    "crates/oya-foundry-run-file-adapter/tests/file_run_ledger.rs",
+    "crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs",
+    "crates/oya-regional-pack-api/src/lib.rs",
+    "crates/oya-regional-pack-api/tests/regulatory_pack_bind_api.rs",
+    "crates/oya-regional-pack-domain/src/lib.rs",
+    "crates/oya-residency-domain/src/lib.rs",
+    "crates/oya-saas-plugin-marketplace-kernel/src/lib.rs",
+    "crates/oya-tenancy-api/src/lib.rs",
+    "crates/oya-tenancy-api/tests/tenant_create_api.rs",
+    "crates/oya-tenancy-domain/src/lib.rs",
+    "crates/oya-tenancy-kernel/src/lib.rs",
+    "crates/oya-workspace-chat-api/tests/workspace_chat_api.rs",
+    "crates/oya-workspace-drive-api/tests/workspace_drive_api.rs",
+    "crates/oya-workspace-forms-api/tests/workspace_forms_api.rs",
+    "crates/oya-workspace-meet-api/tests/workspace_meet_api.rs",
+    "evidence/multispectrum/cs-residency-domain-canonical-base-neutral-contract-1779236147.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 119 jurisdiction leaks outside this ChangeSet; next serialized blocker is crates/oya-saas-plugin-marketplace-kernel/src/auction.rs.",
+    "Three touched workspace-* API test files are not root workspace members and direct cargo --manifest-path no-run is blocked by pre-existing workspace membership configuration; direct rustfmt was verified.",
+    "The public residency labels changed to neutral canonical labels; jurisdiction-specific legacy aliases should be supplied by localization-pack adapters if still required externally.",
+    "The working tree contains extensive pre-existing uncommitted FD-001 changes outside this ChangeSet and was not cleaned or reverted."
+  ]
+}

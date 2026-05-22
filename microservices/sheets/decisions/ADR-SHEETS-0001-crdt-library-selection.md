@@ -86,7 +86,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the sheets CRDT library, **align
 4. Conflict surfacing uses Loro's built-in version-vector + frontier API; the `Conflict` entity in the kernel wraps Loro `Frontiers` into a UI-renderable shape.
 5. CRDT-to-canonical-cell-graph projection deterministically orders Loro nodes by their stable IDs at the cell-grid-domain boundary.
 6. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`).
-7. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-workbook golden corpus before merge.
+7. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-workbook reference corpus before merge.
 8. The sheets-crdt-no-silent-loss CI lane runs Loro's example test suite + sheets's own AC-06 property test (10 concurrent editors, randomized cell-edit interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 9. **Cross-µservice port-trait sharing**: where compatible, the `CrdtMergeEngine` port trait shape is identical across workflow-studio, docs, and sheets, so an engineer working in any of the three µservices sees the same kernel-level abstraction.
 
@@ -118,7 +118,7 @@ Academic-provenance CRDT; Apache-2 licensed.
   - WASM bundle size larger than Loro by ~2-3x.
   - History-preservation-first design retains every op in the document forever unless explicitly compacted; multiplies storage for long-lived workbook drafts (problem at scale; pack-us-healthcare workbooks may exist for years).
   - Performance for high-frequency cell-edit interleaving is documented O(n log n) in op count.
-- **Rejected reason**: bundle size + cross-µservice misalignment + history-preservation cost vs ephemeral-Redis state model.
+- **Rejected reason**: bundle size + cross-µservice misalignment + history-preservation cost vs ephemeral-Valkey state model.
 
 ### Alternative C — Bespoke Rust CRDT tailored to spreadsheet cell-graph
 
@@ -187,7 +187,7 @@ Pre-CRDT industry standard (Google Docs, Etherpad historically).
 - Loro added to `cargo deny` allowlist with explicit version pin.
 - Loro author/maintainer set monitored via GitHub Security Advisories + RustSec advisory database — same monitoring set as workflow-studio + docs.
 - Major-version Loro upgrade is gated on:
-  (a) 100-workbook golden corpus drill green.
+  (a) 100-workbook reference corpus drill green.
   (b) AC-06 property test suite green.
   (c) WASM bundle size delta ≤ +50 KB gzip.
   (d) **Coordinated upgrade across {workflow-studio, docs, sheets}** within the same calendar week.

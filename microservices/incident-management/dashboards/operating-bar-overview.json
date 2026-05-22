@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 39,
+  "title": "Incident Management operating-bar-overview",
+  "tags": [
+    "incident-management",
+    "adr-0321",
+    "operating-bar"
+  ],
+  "timezone": "utc",
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "tenant_id",
+        "type": "query",
+        "query": "label_values(tenant_id)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "page-dispatch operating-bar-overview",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_incident_management_page_dispatch_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "escalation-evaluate operating-bar-overview",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_incident_management_escalation_evaluate_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "incident-room-open operating-bar-overview",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_incident_management_incident_room_open_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "stakeholder-update operating-bar-overview",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_incident_management_stakeholder_update_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "postmortem-seal operating-bar-overview",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_incident_management_postmortem_seal_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "statuspage-sync operating-bar-overview",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_incident_management_statuspage_sync_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    }
+  ]
+}

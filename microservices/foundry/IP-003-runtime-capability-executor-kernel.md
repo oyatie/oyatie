@@ -29,7 +29,7 @@ One new Rust crate at `microservices/foundry/src/crates/oya-foundry-runtime-capa
 |---|---|
 | `src/crates/oya-foundry-runtime-capability-executor-kernel/Cargo.toml` | create |
 | `.../src/lib.rs` | create (module declarations + pub use surface) |
-| `.../src/entities.rs` | create (Capability, Invocation, InvocationStep, InvocationResult, AutonomyTier) |
+| `.../src/entities.rs` | create (Capability, Invocation, InvocationStep, InvocationResult, AutonomyLevel) |
 | `.../src/ports.rs` | create (CapabilityResolver, ProviderInvoker, GuardrailChecker, EvidenceEmitter, AutonomyGate) |
 | `.../src/errors.rs` | create |
 | `Cargo.toml` (workspace) | update |
@@ -55,7 +55,7 @@ pub mod errors;
 pub mod ports;
 
 pub use entities::{
-    AutonomyTier, Capability, EuAiActClass, Invocation, InvocationStep,
+    AutonomyLevel, Capability, EuAiActClass, Invocation, InvocationStep,
     InvocationResult, Sha,
 };
 pub use errors::{KernelError, ProviderError, GuardrailError, AutonomyError};
@@ -79,7 +79,7 @@ pub struct Capability {
     #[data_class(SENSITIVE_PIPA_ART23)]
     pub tenant_id: String,
     #[data_class(INTERNAL_ONLY)]
-    pub declared_tier: AutonomyTier,
+    pub declared_autonomy_level: AutonomyLevel,
     #[data_class(INTERNAL_ONLY)]
     pub version: String,
     #[data_class(INTERNAL_ONLY)]
@@ -89,7 +89,7 @@ pub struct Capability {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
-pub enum AutonomyTier { T0 = 0, T1 = 1, T2 = 2, T3 = 3, T4 = 4 }
+pub enum AutonomyLevel { T0 = 0, T1 = 1, T2 = 2, T3 = 3, T4 = 4 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Invocation {
@@ -102,7 +102,7 @@ pub struct Invocation {
     #[data_class(BEHAVIORAL_TENANT_PRODUCT)]
     pub session_id: Option<String>,
     #[data_class(AUDIT)]
-    pub autonomy_tier_used: AutonomyTier,
+    pub autonomy_level_used: AutonomyLevel,
     #[data_class(AUDIT)]
     pub started_at: chrono::DateTime<chrono::Utc>,
 }
@@ -138,12 +138,12 @@ pub trait EvidenceEmitter: Send + Sync + Sealed {
 
 #[async_trait]
 pub trait AutonomyGate: Send + Sync + Sealed {
-    async fn check(&self, tenant_id: &str, requested: AutonomyTier) -> Result<AutonomyDecision, AutonomyError>;
+    async fn check(&self, tenant_id: &str, requested: AutonomyLevel) -> Result<AutonomyDecision, AutonomyError>;
 }
 
 pub enum GuardrailDirection { PreFlight, PostFlight }
 pub enum GuardrailVerdict { Permit, Block { reason: String } }
-pub enum AutonomyDecision { Permit { ceiling: AutonomyTier }, Refuse { ceiling: AutonomyTier } }
+pub enum AutonomyDecision { Permit { ceiling: AutonomyLevel }, Refuse { ceiling: AutonomyLevel } }
 ```
 
 ## Acceptance Gates
@@ -168,7 +168,7 @@ Per PHASE-01 kernel class: 1 test per public type + 1 per port trait + 1 sealed-
 | Test | Verifies |
 |---|---|
 | `test_capability_construction` | entity invariants |
-| `test_autonomy_tier_ordering` | T0 < T1 < T2 < T3 < T4 |
+| `test_autonomy_level_ordering` | T0 < T1 < T2 < T3 < T4 |
 | `test_invocation_serde` | serde roundtrip |
 | `test_port_traits_sealed` | external crates cannot impl sealed traits |
 | `test_data_class_annotations_present` | every public field has `#[data_class(..)]` |
@@ -188,3 +188,9 @@ Per PHASE-01 kernel class: 1 test per public type + 1 per port trait + 1 sealed-
 - ADR-0022 (autonomy tiers); ADR-0056 (BNF v4.1); ADR-0105 (13-layer); ADR-0131.
 - PRD §"Bounded Contexts" port-trait table.
 - Bominal ADR-0028 (data-class taxonomy).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

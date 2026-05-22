@@ -14,7 +14,23 @@ bominal_source:
   - ADR-0117  # cloud-native infrastructure (OCI A1 -> OKE stages)
   - ADR-0009  # cell architecture
   - ADR-0028  # audit chain (Merkle + Ed25519)
-related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
+related_adrs:
+  - ADR-0056
+  - ADR-0105
+  - ADR-0110
+  - ADR-0117
+  - ADR-0123
+  - ADR-0139
+  - ADR-0131
+  - "ADR-0140 (retired per ADR-0145)"
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-tenancy
@@ -60,7 +76,7 @@ Tenancy is internal substrate; the "tenant" here is every other µservice + ever
 | FR-05 | platform operator (with DPO sign-off) | to delete a tenant (trigger compliant cross-µservice erasure cascade) | GDPR Art. 17 / KR PIPA Art. 36 / DPDPA §12 / LGPD Art. 18 right-to-erasure satisfied | `dsr-cascade` | Must |
 | FR-06 | Workflow consumer in any µservice | to receive `TenantActivated`, `TenantSuspended`, `TenantResumed`, `TenantDeletionRequested`, `TenantDeletionCompleted` events | µservice can hot-reload its tenant-cache + execute its DSR handler | `tenant-lifecycle` + `dsr-cascade` | Must |
 | FR-07 | cell orchestrator | to query the (tenant → cell, tenant → Citus shard) assignment for routing | load balancer + database router send requests to the correct cell + shard | `cell-assignment` | Must |
-| FR-08 | tenant operator | to read own tenant's lifecycle status, jurisdiction, plan tier, and cell assignment | self-serve tenant administration | `tenant-lifecycle` | Must |
+| FR-08 | tenant operator | to read own tenant's lifecycle status, jurisdiction, tenant_class, and cell assignment | self-serve tenant administration | `tenant-lifecycle` | Must |
 | FR-09 | regulator / auditor | to read a tenant's DSR cascade history + proof-of-erasure | external evidence of GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18 compliance | `dsr-cascade` | Must |
 | FR-10 | aggregation index | to project the canonical `Tenant` ontology object from this µservice's source-of-truth | downstream consumers (observability, ontology, workflow) read a single tenant representation | `tenant-lifecycle` | Must |
 | FR-11 | tenancy adapter | to issue + rotate the JWT signing key (per pack, per environment) with key-fingerprint advertised via Workflow | every µservice's JWT validator picks up the new fingerprint on rotation | `isolation-policy` | Must |
@@ -103,7 +119,7 @@ Tenancy is internal substrate; the "tenant" here is every other µservice + ever
 
 ### Availability + SLO
 
-- Availability target: **99.99 % monthly** for the validation hot path (a `tenancy` failure = every product fails for the affected tenant; highest tier in the catalog).
+- Availability target: **99.99 % monthly** for the validation hot path (a `tenancy` failure = every product fails for the affected tenant; tenant_class-uniform catalog).
 - Availability target for tenant lifecycle write path: 99.95 % monthly.
 - Read path (cell-assignment lookups, validation): RTO ≤ 10 s; RPO ≤ 1 s.
 - Write path (lifecycle mutations): RTO ≤ 60 s; RPO ≤ 30 s.
@@ -113,13 +129,56 @@ Tenancy is internal substrate; the "tenant" here is every other µservice + ever
 
 - Every tenant carries an immutable `jurisdiction_code` per ADR-0117. Tenant metadata, RLS policies, and audit-chain seals live in the pack's region-pinned Postgres + Citus cluster. Cell-assignment table replicated within-pack only; cross-pack replication forbidden by default (exception: tenant-executed SCCs per `microservices/tenancy/legal/transfer-register.md`).
 
+### DR posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0343 |
+| Target | RTO 300 s and RPO 30 s, matching `manifest.json#dr`. |
+| Compliance-pack floor | EU-AI-ACT high-risk floor RTO 1800 s / RPO 300 s, HIPAA floor RTO 3600 s / RPO 300 s, SOC2-T2 floor RTO 14400 s / RPO 900 s; tenancy's manifest target is stricter at 300 s / 30 s. |
+| Failover runbook | `runbooks/dr-pair-promotion-drill.md`; `runbooks/rls-drift-recovery.md` covers the isolation-policy recovery branch. |
+| Multi-region active-active | Yes, matching `manifest.json#dr.multi_region_active_active=true`; lifecycle writes remain same-jurisdiction home/DR paired so tenant creation, deletion, and DSR receipts never cross residency boundaries. |
+| WHY | The tenant context is the routing and isolation primitive for every microservice, so failover must keep tenant validation live and keep DSR/lifecycle writes ordered. |
+
+### Capacity model
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0340, with pod runtime tier declared by ADR-0338. |
+| Per-tenant baseline | `manifest.json#capacity_model`: 0.14 vCPU, 192 MiB RAM, 3 GB storage, and connections `{valkey: 3, postgres: 3, outbound_http: 4}` per tenant. `capacity-model.md` also sets default max validate RPS at 1000 per tenant, tenant metadata at 5 KB, RLS policy index at 1 KB, validate-cache entry at 256 B, and cell-cache entry at 128 B. |
+| Scaling dimension | `per_request` for validation and JWT issuance; `per_capability` for lifecycle, DSR cascade, quota, and DR-pairing workflows. |
+| Cell placement class | Tier-2 per `manifest.json#capacity_model.cell_placement_class`; runtime tier is ADR-0338 Tier-1 because `manifest.json#pod_runtime_tier=1` and tenancy owns tenant data-plane isolation, RLS material, and jurisdiction pins. |
+| Autoscaling boundaries | XS floor: Postgres primary plus 2 sync replicas, Citus coordinator plus 4 workers, Valkey validate replicas 3, Valkey cell replicas 2. L tier cap: 80 Citus workers, 24 validate-cache replicas, 8 cell-cache replicas before shard topology review. |
+| WHY | The model serves high-frequency tenant validation while keeping rare but sensitive lifecycle, DSR, quota, and DR actions isolated and auditable. |
+
+### Sustainability + cost attribution
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0344 |
+| Per-call emission claim | Every lifecycle, RLS, quota, DSR, and DR-pairing audit row must emit `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` with the existing audit-chain fields. |
+| Carbon-aware routing | No for tenant admission, tenant validation, DR promotion, and DSR deadline paths. Yes for quota recomputation, DSR receipt aggregation, and non-urgent policy rebuilds when residency and due-date constraints allow. |
+| Tenant transparency surface | Tenant admins see quota and lifecycle cost drivers in the tenant admin billing/usage view; the FinOps portal rolls tenancy substrate cost by tenant, pack, cell, and capability even though this manifest emits no direct paid billing component. |
+| WHY | CSRD, SB-253, and SEC climate-disclosure posture require tenant isolation cost to be explainable without making emergency tenant admission depend on low-carbon placement. |
+
+### API versioning posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0342 |
+| Public API version model | Date carrier triplet: `Oyatie-Version: YYYY-MM-DD`, `/v/YYYY-MM-DD/...` for public REST, and proto3 `oyatie_version`. |
+| SDK semver model | Tenancy SDKs use `major.minor.patch`; API behavior is pinned by date carrier. |
+| Support window | Last N=3 public versions supported for >=180 days. |
+| Per-tenant pinning | Yes for lifecycle, quota, and tenant-read APIs so regulated tenants can coordinate rollout with DPO/operator approvals. |
+| Internal-mesh exemption | Yes. ADR-0145 direct gRPC remains exempt from public URL date prefixes. |
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`usecase` for new crates), layers used by this µservice are: `kernel`, `domain`, `usecase`, `api` (protocol-neutral typed contracts), `adapter`, `adapter-postgres` (backend-qualified per ADR-0105 Amendment 3), `adapter-citus` (backend-qualified for multi-tenant sharding), `rest`, `worker`, `sdk`, `app`.
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `tenant-lifecycle` | `oya-tenancy-tenant-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Tenant CRUD; activation (schema migration + RLS install); suspension; resumption; deletion (workflow trigger); status read; jurisdiction pin | `Tenant`, `TenantId`, `TenantStatus`, `JurisdictionCode`, `PlanTier` |
+| `tenant-lifecycle` | `oya-tenancy-tenant-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Tenant CRUD; activation (schema migration + RLS install); suspension; resumption; deletion (workflow trigger); status read; jurisdiction pin | `Tenant`, `TenantId`, `TenantStatus`, `JurisdictionCode`, `TenantClass` |
 | `isolation-policy` | `oya-tenancy-isolation-policy-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` | RLS policy generation + install; JWT issuance + verification; key-fingerprint distribution; SET LOCAL helper; tenant-bound-table registry | `RlsPolicy`, `JwtClaim`, `SigningKeyFingerprint`, `TenantBoundTable` |
 | `cell-assignment` | `oya-tenancy-cell-assignment-{kernel,domain,usecase,api,adapter,adapter-citus,worker,app}` | Citus shard-key derivation; cell health monitoring; least-loaded cell selection; rebalance orchestration; cross-cell routing table | `CellId`, `ShardKey`, `CellAssignment`, `CellHealth`, `RebalanceTask` |
 | `dsr-cascade` | `oya-tenancy-dsr-cascade-{kernel,domain,usecase,api,adapter,rest,worker,app}` | DSR request ingestion; cross-µservice erasure-event fan-out; per-µservice receipt aggregation; proof-of-erasure certificate generation | `DsrRequest`, `ErasureReceipt`, `ProofOfErasure`, `DsrCascadeStatus` |
@@ -137,10 +196,10 @@ JUSTIFICATION:
   isolation-policy + cell-assignment + dsr-cascade exist, justifying explicit BC token).
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
   - kernel: port-trait + sealed-trait + entity types (Tenant, TenantId,
-    TenantStatus, JurisdictionCode, PlanTier). Zero I/O. data_class annotated
+    TenantStatus, JurisdictionCode, TenantClass). Zero I/O. data_class annotated
     per Bominal ADR-0028 + oya-check-data-class lane.
   - domain: lifecycle state-machine (Created -> Activated -> Suspended/Resumed
-    -> DeletionRequested -> DeletionCompleted), invariants, plan-tier rules.
+    -> DeletionRequested -> DeletionCompleted), invariants, tenant_class rules.
   - usecase (per ADR-0106; replaces legacy 'application'): orchestrators reading
     requests, applying domain logic, writing via ports.
   - api: protocol-neutral typed I/O contracts (request/response + error variants).
@@ -311,7 +370,7 @@ CI lanes that must green:
 
 | Object Type | Link Type | Written by BC | Audit trail |
 |---|---|---|---|
-| `Tenant{tenant_id, status, jurisdiction_code, plan_tier, created_at, cell_id}` | `assigned_to → Cell` | `tenant-lifecycle` | Ed25519 |
+| `Tenant{tenant_id, status, jurisdiction_code, tenant_class, created_at, cell_id}` | `assigned_to → Cell` | `tenant-lifecycle` | Ed25519 |
 | `TenantStatus{tenant_id, status, transitioned_at, actor}` | `has_status → Tenant` | `tenant-lifecycle` | Ed25519 |
 | `RlsPolicy{table, predicate, force_rls, installed_at}` | `protects → TenantBoundTable` | `isolation-policy` | Ed25519 |
 | `CellAssignment{tenant_id, cell_id, shard_key, assigned_at}` | `routes → Tenant` | `cell-assignment` | Ed25519 |
@@ -438,7 +497,7 @@ Sharding:
 | 3 | DSR cascade timeout per-µservice: hard 30d cap (GDPR ceiling) or per-pack tightening (LGPD 15d)? | council-privacy | resolved in IP-009 |
 | 4 | Tenant deletion: hard-delete vs soft-delete with grace window for accidental-deletion recovery? Default: soft 30d + hard | council-privacy + ops-security | resolved in IP-009 |
 | 5 | JWT signing key per-pack vs per-environment-per-pack; rotation cascade overhead | ops-security | resolved in IP-008 |
-| 6 | Patroni cluster topology: 3-node (1 primary + 2 sync replicas) vs 5-node (1 primary + 2 sync + 2 async)? Latter for hyperscaler-tier packs | ops-sre-reliability | resolved in IP-002 |
+| 6 | Patroni cluster topology: 3-node (1 primary + 2 sync replicas) vs 5-node (1 primary + 2 sync + 2 async)? Latter for hyperscaler-grade paid tenant_class pack overlays | ops-sre-reliability | resolved in IP-002 |
 
 ## Related ADRs
 
@@ -509,3 +568,23 @@ See `/specs/tenant-environment-tiers-canonical.json` for the canonical declarati
 Per ADR-0158 (2026-05-18), the tenancy µservice is declared `active_active` and IS the global control plane. The tenant-registry (tenant_id → home_region + allowed_regions + residency_class + pack_id) is replicated globally via Patroni cross-region async (~5s lag). The api-gateway tier (ADR-0157) reads from the local replica to make routing decisions.
 
 See `multi-region.md` for the full disposition statement and `/specs/multi-region-disposition-canonical.json` for the canonical pack matrix.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `tenancy` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `tenancy` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 4 module pin(s) across 4 context(s).
+- Scaling input: `per_request` with cell placement `Tier-2` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

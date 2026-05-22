@@ -14,9 +14,9 @@ purpose: |
   Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and
   every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
-  conventions) and binds the `oya-foundry-fitness-naming-convention` lane.
+  conventions) and binds the `oya-governance-naming-convention` lane.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-naming-convention
+planned_enforcement_ref: oya-governance-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/doc-style.md
@@ -42,7 +42,7 @@ This standard operates within the [`decision-principles.json`](../../specs/decis
 frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
 Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
-The lane [`oya-foundry-fitness-naming-convention`](../../.omc/fitness-lanes/naming-convention.md)
+The lane [`oya-governance-naming-convention`](../../.omc/fitness-lanes/naming-convention.md)
 mechanically enforces it. Severity = **BLOCKER**.
 
 This standard ports the convergent hyperscaler practice for crate naming:
@@ -112,7 +112,6 @@ optional BC tokens. `oya-check-*` crates are exempt from this grammar.
 **BC optionality rule**: BC slot is OPTIONAL. Omit when the µservice has a single
 concept at the layer (e.g., `oya-medical-domain`, `oya-tenancy-kernel`). Include
 when the µservice has multiple BC-level splits at the same layer (e.g.,
-`oya-foundry-grit-cli`, `oya-workflow-state-machine-domain`).
 
 Constraints (the lane `oya-check-architecture-cli` verifies all of them):
 
@@ -155,7 +154,6 @@ The full registry lives in `[workspace.metadata.oya.microservices]` in the root
 | Microservice | Definition | Layer examples |
 |---|---|---|
 | `cloud` | Cloud-provider plane: compute, storage, network, IAM, KMS, billing, region, observability. | `oya-cloud-compute-vm-rest`, `oya-cloud-iam-kernel` |
-| `foundry` | Internal engineering engine: fitness lanes, capability registry, evidence/eval, governance, grit, icm, Proof Ladder, 9 planes, Wave framework. | `oya-foundry-evidence-kernel`, `oya-foundry-grit-cli` |
 | `ontology` | Palantir-Ontology-equivalent information adapter: typed entities + links + actions + functions, audit-chain, RLS, jurisdiction overlays. Replaces retired `object-graph`. | `oya-ontology-entity-kernel`, `oya-ontology-agent-gateway-rest` |
 | `workflow` | Cross-µservice action/orchestration adapter: state machines, DAGs, approvals, SLA timers, escalations, handoffs. | `oya-workflow-state-machine-domain`, `oya-workflow-approvals-application` |
 | `application` | B2B unified shell: tenants sign in; enable µservices à-la-carte. | `oya-application-product-enablement-rest` |

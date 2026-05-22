@@ -43,7 +43,7 @@ capabilities:
     latency_budget_p99_ms: 200
     audit_event: DriveFolderSuggestionShown
     fallback_on_model_failure: silent skip — falls back to heuristic
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — click to accept"
 
   - id: T0-drive-suggest-tags
@@ -68,7 +68,7 @@ capabilities:
     latency_budget_p99_ms: 300
     audit_event: DriveTagSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI-suggested tags — pick those you want to keep"
 
   - id: T0-drive-suggest-cleanup
@@ -95,7 +95,7 @@ capabilities:
     latency_budget_p99_ms: 500
     audit_event: DriveCleanupSuggestionShown
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk (deterministic)
+    risk_classification: minimal-risk (deterministic)
     user_label: "Cleanup candidates — review before acting"
 
 verification:

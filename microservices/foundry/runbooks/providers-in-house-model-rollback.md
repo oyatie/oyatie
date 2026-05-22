@@ -47,8 +47,8 @@ ONE of:
 | 5 | If prior version cold or unavailable: route entirely to alternate vendor for the duration (per `runbooks/provider-outage-failover.md`) | ≤ 5 min |
 | 6 | Verify quality score recovers: `oya_foundry_providers_provider_quality_score` returns above threshold within 10 min | ≤ 10 min |
 | 7 | Notify tenant operators of the in-house demote per `incident-response.md` template | ≤ 30 min |
-| 8 | Postmortem within 5 business days; identify why the regression slipped golden-set parity tests (per ADR-0026 rollout gates) | – |
-| 9 | Fix the regression in a separate PR; re-run golden-set + canary cohort + ramp per ADR-0026 phase rollout protocol | per priority |
+| 8 | Postmortem within 5 business days; identify why the regression slipped baseline-set parity tests (per ADR-0026 rollout gates) | – |
+| 9 | Fix the regression in a separate PR; re-run baseline-set + canary cohort + ramp per ADR-0026 phase rollout protocol | per priority |
 
 ## Rollback (of the rollback)
 
@@ -59,13 +59,13 @@ If reverting to the prior in-house version itself regresses (rare but possible):
 ## Verification
 
 - `oya_foundry_providers_provider_quality_score` ≥ 0.95 of incumbent sustained 15 min.
-- Tenant workload resumes at expected quality (verified via tenant operator + golden-set re-run).
+- Tenant workload resumes at expected quality (verified via tenant operator + baseline-set re-run).
 - `evidence/postmortems/<year>/<incident-id>.md` published.
 - `evidence/runbook-drills/in-house-rollback/<unix_ts>.json` recorded for the drill (quarterly).
 
 ## Post-incident updates
 
-- Golden-set is augmented with the regression-pattern that slipped through.
+- Baseline-set is augmented with the regression-pattern that slipped through.
 - Canary cohort weighting is adjusted if observed regression escaped at too high a traffic share.
 - ADR-0026 rollout-gate criteria are tightened if needed.
 

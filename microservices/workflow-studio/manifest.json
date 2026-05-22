@@ -8,7 +8,7 @@
       "name": "workflow-studio",
       "description": "Bounded context 'workflow-studio' within workflow-studio (data plane)",
       "crates": [
-        "oya-workflow-studio-collab-crdt-adapter-redis",
+        "oya-workflow-studio-collab-crdt-adapter-valkey",
         "oya-workflow-studio-collab-crdt-domain",
         "oya-workflow-studio-collab-crdt-worker",
         "oya-workflow-studio-dsl-emitter-domain",
@@ -49,19 +49,19 @@
       "tier": "T0",
       "name": "t0-suggest",
       "file": "microservices/workflow-studio/capabilities/T0-suggest.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "t1-assist",
       "file": "microservices/workflow-studio/capabilities/T1-assist.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "t2-auto",
       "file": "microservices/workflow-studio/capabilities/T2-auto.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -104,10 +104,10 @@
   ],
   "ips": [
     {
-      "id": "IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac",
+      "id": "IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac",
       "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Valkey + WebSocket gateway",
       "acceptance_status": "ga",
-      "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md"
+      "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md"
     },
     {
       "id": "IP-002-visual-canvas-kernel-domain",
@@ -129,7 +129,7 @@
     },
     {
       "id": "IP-005-collab-crdt-kernel-domain-adapter",
-      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-redis",
+      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-valkey",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-005-collab-crdt-kernel-domain-adapter.md"
     },
@@ -288,7 +288,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -322,5 +322,188 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": true,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "workflow-studio is a BNF v4.1 kebab-case microservice slug; generated names follow oya-workflow-studio-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+    "per_seat",
+    "per_usage"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "hipaa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "kr-isms-p",
+    "NIS2",
+    "DORA",
+    "lgpd",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-workflow-studio",
+  "data_classification": "PII_IDENTIFYING, this field, INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "hipaa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "kr-isms-p",
+    "NIS2",
+    "DORA",
+    "lgpd",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "foundry",
+    "tenancy",
+    "application",
+    "observability",
+    "workflow-engine",
+    "ontology",
+    "docs",
+    "cell",
+    "identity",
+    "audit-chain",
+    "network",
+    "intelligence",
+    "governance",
+    "detection",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.18,
+    "baseline_ram_per_tenant": 384,
+    "storage_per_tenant": 4,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 3,
+      "outbound_http": 8
+    },
+    "scaling_dimension": "per_user",
+    "cell_placement_class": "Tier-3",
+    "notes": "Editor sessions, CRDT collaboration, DSL validation, and optional assist calls scale with active tenant users rather than workflow runtime load."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 2100,
+    "rpo_p99_seconds": 5,
+    "multi_region_active_active": false,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "valkey",
+      "object_storage_versioned"
+    ],
+    "failover_runbook": "runbooks/run-history-replay-corruption.md",
+    "replication_shape": "active-passive-cross-region-continuous"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Workflow Studio is a first-party editor and contract emitter; execution is delegated to Workflow Engine, so ADR-0338 keeps the editor surface at Tier 2.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/workflow-studio/PRD.md",
+    "microservices/workflow-studio/ARCHITECTURE.md",
+    "microservices/workflow-studio/IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md",
+    "microservices/workflow-studio/contracts/openapi/workflow-studio.yaml"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2025-11-21",
+      "2026-02-21",
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/workflow-studio/contracts/openapi/workflow-studio.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/workflow-studio/contracts/proto/workflow-studio.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "kafka",
+    "cedar",
+    "openbao",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "dns",
+      "version_pin": "v1"
+    }
+  ],
+  "doc_class": "Machine-Readable-Spec"
 }

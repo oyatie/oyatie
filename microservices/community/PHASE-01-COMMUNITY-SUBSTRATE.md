@@ -38,7 +38,7 @@ Out of scope:
 3. **IP-003 post-store usecase + api** — `PostAuthored`, `PostEdited`, `PostDeleted` commands + queries; spec'd contract surface.
 4. **IP-004 post-store adapter-postgres + rest + worker + sdk + app** — full crate set landed.
 5. **IP-005 thread-tree (materialised path)** — kernel + domain + usecase + adapter-postgres; benchmark 10⁴-node tree at p99 ≤ 350 ms.
-6. **IP-006 voting-engine** — Redis-buffered counter; per-tenant tally; idempotent vote cast.
+6. **IP-006 voting-engine** — Valkey-buffered counter; per-tenant tally; idempotent vote cast.
 7. **IP-007 moderation-queue** — flag triage; moderator verdict; audit-chain seal per action.
 8. **IP-008 kb-article-store + S3 attachment adapter** — resumable multipart upload; ClamAV inline scan.
 9. **IP-009 search-index (Elasticsearch)** — per-tenant index; reindex pipeline; tag taxonomy.

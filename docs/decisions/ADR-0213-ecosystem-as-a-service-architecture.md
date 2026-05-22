@@ -311,9 +311,9 @@ This is the WeChat / Apple posture: the platform owner runs the platform; third-
 
 ## Out-of-scope (explicit non-decisions for this ADR)
 
-- **Specific developer revenue-share percentages.** Deferred to the founder + axis-finops council commercial-terms CR; ADR-0213 fixes only the architecture, not the commercial terms.
-- **Specific vetting SLA targets.** Owned by council-security in the vetting runbook; current ADR commits only to a ≤ 5-business-day Phase-1 target.
-- **AI plugin subcategory taxonomy.** Owned by axis-ai-features after the AI capability registry hardens.
+- **Specific developer revenue-share percentages.** Deferred to founder + axis-finops council in a follow-up CR; ADR-0213 fixes only the architecture, not the commercial terms.
+- **Specific vetting SLA targets.** Deferred to council-security in a follow-up runbook; current ADR commits only to a ≤ 5-business-day Phase-1 target.
+- **AI plugin subcategory taxonomy.** Owned by axis-ai-features after the AI capability registry hardens; tracked as a post-registry taxonomy decision.
 - **Tenant-developer accounts (tenant operator who also publishes plugins).** Both µservices anticipate this persona but the dual-role onboarding flow is scoped to a follow-up CR after Phase 3 GA.
 - **The `marketplace` µservice (B2C commerce, concern #2 in §Disambiguation).** Out of scope; future ADR.
 - **`community` µservice major expansion (LinkedIn + Handshake + TeamBlind + Reddit, concern #3 in §Disambiguation).** Out of scope; future ADR.

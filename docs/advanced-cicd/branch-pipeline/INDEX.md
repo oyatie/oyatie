@@ -45,7 +45,6 @@ All files lift to `oyatie/docs/release/branch-pipeline/` on approval. ADR draft 
 
 ## 4. The three new agent roles
 
-`dev-promoter`, `staging-promoter`, `prod-promoter` — plus the rescoped `staging-fixer`. All distroless; all Cosign-keyless-signed; all icm-topic-emitting per role spec §2-5.
 
 ## 5. The six core new fitness lanes
 

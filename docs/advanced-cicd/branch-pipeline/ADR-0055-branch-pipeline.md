@@ -29,7 +29,6 @@ ADR-0041 pinned trunk-based development on `main` with short-lived feature branc
 
 Three forces require revisiting:
 
-1. **Agent-driven landing flow.** Per [`ralplan-oyatie-sst-consolidation.md`](../../plans/ralplan-oyatie-sst-consolidation.md), every change arrives via `grit done --agent <id>`, not a human pushing a feature branch. The reviewer-agent verdict is the load-bearing quality artefact, not "did a human read it." Trunk-based pretends agents and humans are interchangeable mutators; they are not.
 
 2. **Per-change-class reviewer roster.** `docs/AGENTS.md` defines 12 reviewer agents (rust / typescript / python / database / security / privacy / tdd / silent-failure / doc / capability / perf / doc-style). Their verdicts have to bind to a specific transition; trunk-based has only one transition (merge to main) and forces all verdicts to converge there.
 
@@ -43,8 +42,6 @@ We need a model where the **reviewer-agent verdict gates entry to the shared wor
 
 We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and **no human button at any transition**:
 
-- **Layer 0 (worktree).** Per-agent worktree at `.grit/worktrees/<agent-id>/`. Private workspace; no gate inbound.
-- **Layer 1 (agent local-dev clone).** The agent's local copy of `origin/dev`. `grit done --agent <id>` is the atomic merge primitive; equivalent to sync-with-remote-dev. Autonomous; no gate inbound.
 - **Layer 2 (`origin/dev`).** Shared remote dev branch. Inbound gate: **3-gate verification** (PR shape + reviewer-agent `APPROVE` per change-class dispatch + CI green). Promoted by `dev-promoter` agent via PR auto-merge.
 - **Layer 3 (`staging`).** Canary-deployment branch. Inbound gate: **none** (autonomous; CI was already cleared at dev entry). Promoted by `staging-promoter` agent via fast-forward; event-driven on every `origin/dev` commit OR ≤ 5 min batch.
 - **Layer 4 (`prod`).** Verified production branch. Inbound gate: **5-gate verification** (comments-resolved + CI-green ≥ N consecutive runs + canary-100% ≥ M hours + zero open `slo-burn-rate-fast` alerts + optional reviewer re-affirm per change class). Promoted by `prod-promoter` agent via fast-forward.
@@ -55,15 +52,14 @@ We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and 
 - `staging` ← `staging-promoter` (Cosign identity `oya-foundry-staging-promoter`).
 - `prod` ← `prod-promoter` (Cosign identity `oya-foundry-prod-promoter`).
 
-Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-foundry-fitness-no-direct-origin-dev-commit`, `oya-foundry-fitness-no-direct-staging-commit`, `oya-foundry-fitness-no-direct-prod-commit`.
+Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-governance-no-direct-origin-dev-commit`, `oya-governance-no-direct-staging-commit`, `oya-governance-no-direct-prod-commit`.
 
-**Reviewer-agent dispatch.** Per-PR, by file-glob change class (per `docs/AGENTS.md`). Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE` for the aggregate verdict to clear gate 2 at local-dev → origin/dev. Verdict recorded via `icm store -t pr-review-verdicts` per [Directive 12](../../plans/MASTERPLAN.md).
 
 **Exception path (Directive 12 carve-out).** Compliance-pack updates and KMS root rotation classes flagged `requires_human_signoff: true` require a Cosign-signed approval commit from `@council-architecture` before `prod-promoter` fires. No other class requires a human button.
 
 **Linear history.** Squash-merge into `origin/dev`; fast-forward into `staging` and `prod`. No merge commits. Bisect always works.
 
-**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-foundry-fitness-capability-stage-binding` verifies stage matches source branch.
+**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-governance-capability-stage-binding` verifies stage matches source branch.
 
 ---
 
@@ -129,7 +125,6 @@ Each gate sits where its input data is available; no gate is invoked before its 
 ### Positive
 
 - **Agent-friendly velocity.** Worktree → local-dev is autonomous; origin/dev → staging is autonomous; agents spend ceremony only at the shared-world boundary.
-- **Reviewer-agent verdict is first-class.** The verdict has an explicit gate and an explicit storage location (`icm topic pr-review-verdicts`).
 - **Canary observation is first-class.** The 5-gate makes canary completion a load-bearing artefact, not an afterthought.
 - **Three small promoter agents.** Each role is independently testable, restartable, observable. Failure of one doesn't cascade.
 - **Linear history preserved.** Bisect works on every branch.

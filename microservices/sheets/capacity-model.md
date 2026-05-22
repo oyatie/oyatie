@@ -86,8 +86,8 @@ arrow_parquet_storage          = N_tenants × cells_cold_per_tenant × 100B / 0.
 
 s3_snapshot_storage            = N_tenants × Workbook_per_tenant × version_snapshot_per_row × N_versions
 
-redis_state_per_session        ≈ 80KB (CRDT state + cursor + presence + recalc-progress)
-redis_total                    = total_active_sessions × redis_state_per_session × 2 (HA replication)
+valkey_state_per_session        ≈ 80KB (CRDT state + cursor + presence + recalc-progress)
+valkey_total                    = total_active_sessions × valkey_state_per_session × 2 (HA replication)
 ```
 
 ### CDN
@@ -107,7 +107,7 @@ total_cdn_egress_per_day       = (total_sessions_per_day × cdn_egress_per_sessi
 postgres_coordinator_replicas       = 2  (HA primary + standby; always)
 postgres_worker_replicas            = ceil(total_active_sessions / 50_000) × 1.2 buffer
 postgres_read_replica_replicas      = postgres_worker_replicas × 1
-redis_sentinel_replicas             = 3  (quorum)
+valkey_sentinel_replicas             = 3  (quorum)
 
 cell_grid_rest_replicas             = max(2, ceil(qps_rest / 500)) × 1.2
 collab_crdt_worker_replicas         = max(3, ceil(total_ws_connections / 30_000)) × 1.5
@@ -166,10 +166,10 @@ cold_to_hot_promotion          = first-edit on cold tier triggers materialize ba
 ## Valkey Sizing
 
 ```
-total_redis_keys               = total_active_sessions × 6 (CRDT state + cursor + presence + lease + recalc-progress + edit-buffer-tip)
+total_valkey_keys               = total_active_sessions × 6 (CRDT state + cursor + presence + lease + recalc-progress + edit-buffer-tip)
                               + total_active_subscriptions
-redis_memory                   = total_redis_keys × 80KB + 1GB Sentinel overhead
-redis_replicas                 = 3 (quorum)
+valkey_memory                   = total_valkey_keys × 80KB + 1GB Sentinel overhead
+valkey_replicas                 = 3 (quorum)
 ```
 
 ## WebSocket Gateway Sizing
@@ -243,13 +243,13 @@ arrow_parquet_storage      ≈ ~0 (XS tier: most workbooks fit in 100k-cell hot 
 
 s3_snapshot_storage        ≈ 20 × 100 × 50KB × 10 versions ≈ 1 GB
 
-redis_memory               ≈ 100 × 80KB × 2 + 1 GB ≈ 1.02 GB
+valkey_memory               ≈ 100 × 80KB × 2 + 1 GB ≈ 1.02 GB
 
 Replica counts:
   postgres_coordinator     = 2
   postgres_worker          = max(ceil(100 / 50_000), 4) → 4 (HA minimum)
   postgres_read_replica    = 4
-  redis_sentinel           = 3
+  valkey_sentinel           = 3
   cell_grid_rest           = 2 (HA min)
   collab_crdt_worker       = max(3, ceil(120 / 30_000)) = 3
   recalc_engine_worker     = max(2, ceil(17 / 50)) = 2
@@ -277,7 +277,7 @@ Total Sheets storage (XS, M03 launch):
 ## References
 
 - Postgres + Citus docs — `docs.citusdata.com/`.
-- Valkey Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `valkey.io/topics/sentinel`.
 - axum WebSocket — `docs.rs/axum/latest/axum/extract/ws/`.
 - Apache Arrow 18.x — `arrow.apache.org/docs/`.
 - Apache Parquet 18.x — `parquet.apache.org/`.

@@ -6,7 +6,7 @@ metadata:
 spec:
   microservice: consent-graph
   tier: T2
-  eu_ai_act_risk_class: limited
+  risk_class: limited
   rationale: |
     Subscribing to a projection topic activates the data flow. Cedar policy + Pulsar ACL gate access;
     T2 = transactional audit + per-tenant rate limit + read-only.

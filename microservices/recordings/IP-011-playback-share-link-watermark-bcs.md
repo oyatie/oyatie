@@ -20,8 +20,8 @@ share-link with password + view-count cap + expiry + DRM-stub.
 
 ## Concrete crates
 
-- `oya-recordings-playback-{kernel,domain,usecase,api,adapter-cdn-cloudfront-stub-or-self,adapter-redis,rest,sdk,app}`
-- `oya-recordings-share-link-{kernel,domain,usecase,api,adapter-postgres,adapter-redis,rest,worker,sdk,app}`
+- `oya-recordings-playback-{kernel,domain,usecase,api,adapter-cdn-cloudfront-stub-or-self,adapter-valkey,rest,sdk,app}`
+- `oya-recordings-share-link-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,rest,worker,sdk,app}`
 - `oya-recordings-watermarking-{kernel,domain,usecase,adapter-ffmpeg,worker,app}`
 - `oya-recordings-drm-stub-{kernel,domain,usecase,adapter,app}`
 - `oya-recordings-accessibility-captions-{kernel,domain,usecase,api,adapter-postgres,rest,sdk,app}`
@@ -55,8 +55,8 @@ acceptance_status: ga
 
 ## Build Sequence
 
-1. Playback kernel + adapter (CDN/Redis) + REST handler.
-2. Share-link kernel + adapter-postgres + adapter-redis + REST.
+1. Playback kernel + adapter (CDN/Valkey) + REST handler.
+2. Share-link kernel + adapter-postgres + adapter-valkey + REST.
 3. Watermarking kernel + adapter-ffmpeg + worker.
 4. DRM-stub kernel + adapter (interface only).
 5. Accessibility-captions kernel + adapter-postgres + REST.

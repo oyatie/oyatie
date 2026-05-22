@@ -20,9 +20,9 @@ helmCharts:
     valuesFile: ../../helm/response-store-postgres/values.yaml
     releaseName: response-store-postgres
     namespace: forms
-  - name: oya-forms-response-cache-redis
-    valuesFile: ../../helm/response-cache-redis/values.yaml
-    releaseName: response-cache-redis
+  - name: oya-forms-response-cache-valkey
+    valuesFile: ../../helm/response-cache-valkey/values.yaml
+    releaseName: response-cache-valkey
     namespace: forms
   - name: oya-forms-response-search-meilisearch
     valuesFile: ../../helm/response-search-meilisearch/values.yaml

@@ -29,7 +29,7 @@ doc_status: published
 ## Probable causes
 
 1. Tenant operator initiated bulk-edit without second-confirmation pre-check.
-2. Per-tenant rate-limit baseline too low for tenant's tier.
+2. Per-tenant rate-limit baseline too low for the tenant_class and paid billing-component capacity policy.
 3. Worker pool insufficiently scaled.
 
 ## Triage (within 30 min)
@@ -94,7 +94,7 @@ Escalate to ops-sre-reliability; consider scaling worker pool baseline.
 ## Post-incident review
 
 - Should default second-confirmation threshold be lowered from 10k to 5k?
-- Should per-tenant rate-limit baseline scale with tenant tier?
+- Should per-tenant rate-limit baseline scale with tenant_class usage caps and paid billing components?
 - Was Hyrum surface for atomicity (1000-task batch) clear to tenant operator?
 
 ## Drills

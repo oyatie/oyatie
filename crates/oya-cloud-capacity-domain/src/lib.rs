@@ -987,7 +987,7 @@ fn validate_financial_window(
 }
 
 fn validate_money(value: &Money) -> Result<(), CloudCapacityError> {
-    if value.minor_units == 0 {
+    if value.minor_units == 0 || !matches!(value.currency.value.as_str(), "OYC" | "USD") {
         Err(CloudCapacityError::InvalidMoney)
     } else {
         Ok(())
@@ -1100,12 +1100,12 @@ mod tests {
 
     fn sku_create() -> CapacitySkuCreate {
         CapacitySkuCreate {
-            id: "csku_gp_alpha_region_a".to_string(),
-            region: "alpha-region".to_string(),
-            cell_id: "cell-alpha-region-a-001".to_string(),
+            id: "csku_gp_region_alpha_a".to_string(),
+            region: "region-alpha".to_string(),
+            cell_id: "cell-region-alpha-a-001".to_string(),
             flavor: InstanceFlavor::GeneralPurpose,
             unit: units(4, 16),
-            hourly_price: Money::new("TOK", 120_000).expect("money"),
+            hourly_price: Money::new("OYC", 120_000).expect("money"),
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_000,
         }
@@ -1124,7 +1124,7 @@ mod tests {
         CapacityReservationCreate {
             id: "cres_ten_alpha_gp".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            sku_id: "csku_gp_alpha_region_a".to_string(),
+            sku_id: "csku_gp_region_alpha_a".to_string(),
             units: units(100, 400),
             term_months: CapacityTermMonths::Twelve,
             start_epoch_seconds: 1_700_000_100,
@@ -1137,9 +1137,9 @@ mod tests {
         CommittedUseCreate {
             id: "cuc_ten_alpha_12m".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region: "alpha-region".to_string(),
+            region: "region-alpha".to_string(),
             term_months: CapacityTermMonths::Twelve,
-            spend_commitment: Money::new("TOK", 100_000_000).expect("money"),
+            spend_commitment: Money::new("OYC", 100_000_000).expect("money"),
             discount_bps: 2_000,
             start_epoch_seconds: 1_700_000_100,
             end_epoch_seconds: 1_732_000_100,
@@ -1149,10 +1149,10 @@ mod tests {
 
     fn spot_pool_create() -> SpotPoolCreate {
         SpotPoolCreate {
-            id: "spot_gp_alpha_region_a".to_string(),
-            sku_id: "csku_gp_alpha_region_a".to_string(),
+            id: "spot_gp_region_alpha_a".to_string(),
+            sku_id: "csku_gp_region_alpha_a".to_string(),
             available_units: units(200, 800),
-            current_price: Money::new("TOK", 30_000).expect("money"),
+            current_price: Money::new("OYC", 30_000).expect("money"),
             interruption_notice_seconds: 120,
             data_class: DataClass::Public,
         }
@@ -1168,8 +1168,8 @@ mod tests {
     fn registers_capacity_sku_with_region_cell_and_public_shape() {
         let mut catalog = CloudCapacityCatalog::default();
         let sku = catalog.register_sku(sku_create()).expect("sku is valid");
-        assert_eq!(sku.id.value.value, "csku_gp_alpha_region_a");
-        assert_eq!(sku.cell_id.value.value, "cell-alpha-region-a-001");
+        assert_eq!(sku.id.value.value, "csku_gp_region_alpha_a");
+        assert_eq!(sku.cell_id.value.value, "cell-region-alpha-a-001");
         assert_eq!(sku.data_class.value.data_class(), DataClass::Public);
         assert_eq!(catalog.skus().count(), 1);
     }
@@ -1223,7 +1223,7 @@ mod tests {
             .purchase_commitment(commitment_create())
             .expect("commitment");
         assert_eq!(commitment.state.value, CommitmentState::Active);
-        assert_eq!(commitment.spend_commitment.value.currency.value, "TOK");
+        assert_eq!(commitment.spend_commitment.value.currency.value, "OYC");
 
         let term_error = catalog
             .purchase_commitment(CommittedUseCreate {
@@ -1255,9 +1255,9 @@ mod tests {
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_ten_alpha_gp".to_string(),
                 tenant_id: "ten_alpha".to_string(),
-                spot_pool_id: "spot_gp_alpha_region_a".to_string(),
+                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
                 units: units(20, 80),
-                max_price: Money::new("TOK", 35_000).expect("money"),
+                max_price: Money::new("OYC", 35_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_300,
                 data_class: DataClass::Financial,
             })
@@ -1286,9 +1286,9 @@ mod tests {
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_low_price".to_string(),
                 tenant_id: "ten_alpha".to_string(),
-                spot_pool_id: "spot_gp_alpha_region_a".to_string(),
+                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
                 units: units(20, 80),
-                max_price: Money::new("TOK", 20_000).expect("money"),
+                max_price: Money::new("OYC", 20_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_301,
                 data_class: DataClass::Financial,
             })
@@ -1299,9 +1299,9 @@ mod tests {
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_too_large".to_string(),
                 tenant_id: "ten_alpha".to_string(),
-                spot_pool_id: "spot_gp_alpha_region_a".to_string(),
+                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
                 units: units(300, 1_200),
-                max_price: Money::new("TOK", 35_000).expect("money"),
+                max_price: Money::new("OYC", 35_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_302,
                 data_class: DataClass::Financial,
             })
@@ -1315,9 +1315,9 @@ mod tests {
         let plan = catalog
             .propose_rebalance(RebalancePlanCreate {
                 id: "crb_alpha_small_move".to_string(),
-                region: "alpha-region".to_string(),
-                source_cell_id: "cell-alpha-region-a-001".to_string(),
-                target_cell_id: "cell-alpha-region-b-001".to_string(),
+                region: "region-alpha".to_string(),
+                source_cell_id: "cell-region-alpha-a-001".to_string(),
+                target_cell_id: "cell-region-alpha-b-001".to_string(),
                 moved_units: units(50, 200),
                 source_total: units(1_000, 4_000),
                 approval_ref: Some("approval/cloud-capacity/alpha-small-move".to_string()),
@@ -1335,9 +1335,9 @@ mod tests {
                 approval_ref: None,
                 ..RebalancePlanCreate {
                     id: "crb_base".to_string(),
-                    region: "alpha-region".to_string(),
-                    source_cell_id: "cell-alpha-region-a-001".to_string(),
-                    target_cell_id: "cell-alpha-region-b-001".to_string(),
+                    region: "region-alpha".to_string(),
+                    source_cell_id: "cell-region-alpha-a-001".to_string(),
+                    target_cell_id: "cell-region-alpha-b-001".to_string(),
                     moved_units: units(50, 200),
                     source_total: units(1_000, 4_000),
                     approval_ref: None,
@@ -1351,9 +1351,9 @@ mod tests {
         let memory_move_error = catalog
             .propose_rebalance(RebalancePlanCreate {
                 id: "crb_alpha_memory_big_move".to_string(),
-                region: "alpha-region".to_string(),
-                source_cell_id: "cell-alpha-region-a-001".to_string(),
-                target_cell_id: "cell-alpha-region-b-001".to_string(),
+                region: "region-alpha".to_string(),
+                source_cell_id: "cell-region-alpha-a-001".to_string(),
+                target_cell_id: "cell-region-alpha-b-001".to_string(),
                 moved_units: units(10, 800),
                 source_total: units(1_000, 4_000),
                 approval_ref: None,

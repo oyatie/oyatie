@@ -278,7 +278,7 @@
     "preview": "search + ads-analytics + Foundry model substrate (long-horizon)",
     "GA": "post W-Cloud-Stable + W-Search-Stable + W-Ads-Stable"
   },
-  "validation_lane": "oya-foundry-fitness-spec-coverage + design-contracts-mirror",
+  "validation_lane": "oya-governance-spec-coverage + design-contracts-mirror",
   "per_axis_surfaces": [
     {
       "id": "tenant.create",

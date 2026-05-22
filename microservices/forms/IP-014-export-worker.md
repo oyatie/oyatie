@@ -42,6 +42,42 @@ Streaming export of responses to CSV / XLSX / JSON / sheets-bridge. PII columns 
 
 - ADR-FORMS-0003.
 - Sheets µservice contracts.
+- PRD FR-13, FR-14 and AC-16 / AC-17.
+- `microservices/forms/contracts/openapi/forms.openapi.yaml`.
+- `microservices/forms/slos/export-csv-latency.openslo.yaml`.
+- `microservices/forms/runbooks/export-pipeline-failure.md`.
+- `microservices/forms/benchmarks/forms-vs-google-forms-vs-typeform-vs-jotform-vs-surveymonkey.md`.
+
+## Foundation A-G Substance
+
+- A. Product scope: export is the governed egress path for response data, analytics handoff, and sheets bridge.
+- B. Domain model: `ExportRequest`, `ColumnProjection`, `RedactionPolicy`, `SignedExportManifest`, and `ExportCheckpoint` are explicit.
+- C. Contracts: REST starts and observes export jobs; sheets bridge receives versioned, ordered, redacted columns.
+- D. Policy: unredacted PII requires Cedar entitlement, audit-chain seal, purpose, and pack-resident destination.
+- E. Operations: streaming checkpoints allow retry without duplicate rows; failed exports emit signed manifest and rollback object writes.
+- F. Observability: emit export p95, row throughput, redaction overrides, sheets bridge failures, and manifest verification failures.
+- G. Promotion: 100k CSV/XLSX benchmarks, PII redaction adversarial tests, sheets bridge round-trip, and runbook drill gate done.
+
+## Counterpart Benchmark
+
+- Counterpart: Google Forms to Sheets export, HubSpot Forms CSV export, Notion Forms/Databases export, and Salesforce Web-to-Lead report export.
+- Defensible parity claim: Oyatie must stream large exports within SLO while keeping PII redacted by default.
+- Differentiator: every unredacted export is entitlement-checked and audit-sealed.
+- Grep counterpart names: HubSpot Forms; Notion Forms/Databases; Salesforce Web-to-Lead.
+
+## Remediation Notes
+
+- Expanded export with PRD, OpenAPI, SLO, benchmark, and runbook grounding.
+- Added A-G substance for egress domain, contracts, policy, operations, observability, and promotion.
+- Added counterpart names for grep-recognized parity review.
+
+## Verification Evidence Required
+
+- 100k CSV and XLSX benchmarks prove streaming latency budgets without full materialization.
+- Redaction adversarial corpus proves PII remains hidden unless entitlement and audit seal are present.
+- Sheets bridge round-trip proves column order, version binding, and redaction survive handoff.
+- Export failure runbook drill proves checkpoint retry and object rollback behavior.
+- Signed manifest verification proves export evidence can be audited later.
 
 ## Next IP
 

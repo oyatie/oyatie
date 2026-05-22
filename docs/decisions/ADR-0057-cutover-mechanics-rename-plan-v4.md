@@ -119,16 +119,16 @@ Runs in `--report-only` mode during Shard 1 merge; flipped to BLOCKER in a succe
 | Dropped | Replacement |
 |---|---|
 | `expedite_override_token` | grit claim's exclusive-lock authority (existing) |
-| `oya-foundry-fitness-freeze-window-kernel` lane | grit claim's symbol-lock for the 48 h window |
+| `oya-governance-freeze-window-kernel` lane | grit claim's symbol-lock for the 48 h window |
 | `lane-config-oyatie` ICM topic | not needed; grit claim replaces it |
-| `oya-foundry-fitness-fitness-*` crate family | flat `oya-check-*` namespace (4 LEAN crates) |
+| `oya-governance-fitness-*` crate family | flat `oya-check-*` namespace (4 LEAN crates) |
 | "fitness" terminology | "check" (matches team vocabulary) |
 
 ---
 
 ## Decision Drivers
 
-1. **grit already enforces freeze windows.** The `oya-foundry-fitness-freeze-window-kernel` primitive was a parallel implementation of grit's existing claim system.
+1. **grit already enforces freeze windows.** The `oya-governance-freeze-window-kernel` primitive was a parallel implementation of grit's existing claim system.
 2. **`fitness` jargon.** Every fitness crate was a check, audit probe, or supply-chain gate. The `oya-check-*` namespace names them honestly.
 3. **Single lockfile event.** Hybrid C's atomic Shard 1 produces exactly one Cargo.lock churn event vs. 6 under Option B (sequential context-shards).
 

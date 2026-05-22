@@ -18,11 +18,11 @@ purpose: |
   ("No new struct fields in kernel crates without `data_class`") and §Do Item 8
   (audit-chain emission on every cross-axis flow).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-data-class
+planned_enforcement_ref: oya-governance-data-class
 enforcement_status:
-  oya-foundry-fitness-data-class: F-PENDING-DATA-CLASS (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-foundry-fitness-dsr-cascade: F-PENDING-DSR-CASCADE (crate missing)
-  oya-foundry-fitness-audit-emission: existing
+  oya-governance-data-class: F-PENDING-DATA-CLASS (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-governance-dsr-cascade: F-PENDING-DSR-CASCADE (crate missing)
+  oya-governance-audit-emission: existing
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/PRIVACY-PROGRAM.md
@@ -62,7 +62,7 @@ standard supplies the per-field rules.
 | `secret` | tokens, API keys, encryption keys | NEVER cross-pillar; vault-only | NEVER logged |
 | `regulated-jurisdiction` | KR-residency, EU-residency, US-state-residency markers | governs which pillars are allowed | YES (the marker only) |
 
-Lane: `oya-foundry-fitness-data-class` checks every new kernel struct
+Lane: `oya-governance-data-class` checks every new kernel struct
 field declaration for an annotation.
 
 ## 2. Annotation shape
@@ -108,8 +108,8 @@ Ads + Analytics) are pillars. Flows are governed by:
 | any → Cloud (storage/runtime) | ✓ | ✓ | ✓ | ✓ (encrypted-at-rest) | ✓ + KMS | ✓ + dedicated KMS + jurisdiction | ✓ + KMS | ✓ (vault-only) |
 
 "DENY" means: no plumbing, no opt-in, no flag. A flow that violates a row
-fails the `oya-foundry-fitness-cohesion` lane and the
-`oya-foundry-fitness-data-class` lane at the field-level.
+fails the `oya-governance-cohesion` lane and the
+`oya-governance-data-class` lane at the field-level.
 
 Mathematical rule: the class of a derived value is the **lexicographic
 maximum** of its inputs (e.g., `name + diagnosis = phi`).
@@ -134,7 +134,7 @@ event) with:
 | `jurisdiction` | when `regulated-jurisdiction` |
 | `redacted_payload_hash` | YES (proves emission without storing the body) |
 
-Lane: `oya-foundry-fitness-audit-emission` validates the emission point
+Lane: `oya-governance-audit-emission` validates the emission point
 exists for every `data_class`-gated transition.
 
 ## 5. DSR cascade integration
@@ -157,7 +157,7 @@ Mechanics:
    touched.
 5. Proof-of-erasure is hash-chained and signed.
 
-Lane: `oya-foundry-fitness-dsr-cascade` validates that every `pii`/`phi`/
+Lane: `oya-governance-dsr-cascade` validates that every `pii`/`phi`/
 `financial` field has a registered `DsrCapable` adapter.
 
 ## 6. Schema migration discipline
@@ -173,7 +173,7 @@ Adding a new field to a kernel struct:
    mapping.
 4. Provide DSR cascade adapter coverage (§5) before the field reaches
    production.
-5. Run `oya-foundry-fitness-schema-migration` (per AGENTS.md D14).
+5. Run `oya-governance-schema-migration` (per AGENTS.md D14).
 
 ## 7. Field-naming conventions
 

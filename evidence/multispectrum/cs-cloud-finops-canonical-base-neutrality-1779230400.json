@@ -1,0 +1,168 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-cloud-finops-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779230400,
+  "timestamp_iso": "2026-05-19T22:40:00Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-cloud-finops-domain/src/lib.rs",
+    "evidence/multispectrum/cs-cloud-finops-canonical-base-neutrality-1779230400.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize cloud finops financial classification and fixtures for canonical-base semantics\" crates/oya-cloud-finops-domain/src/lib.rs::canonical_base_neutral_finops",
+      "status": "accepted"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Attach multispectrum evidence for cloud finops canonical-base neutrality ChangeSet\" evidence/multispectrum/cs-cloud-finops-canonical-base-neutrality-1779230400.json::MultispectrumEvidence",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for oya-cloud-finops-domain: replace jurisdiction-specific financial class usage with neutral financial classification, neutralize FinOps region/resource/rate/report fixtures, and remove residual source annotations/currency fixture text that encoded a specific jurisdiction while preserving cost allocation, budget, anomaly, margin, and invalid-class behavior.",
+  "baseline_diff": {
+    "before": "canonical-base-neutrality --repo-root . --root crates/oya-cloud-finops-domain/src/lib.rs failed with 1 files checked, 14 jurisdiction leaks.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-cloud-finops-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 727 jurisdiction leaks in other files.",
+    "delta": "14 fewer scanner-detected jurisdiction leaks plus source-comment/currency fixture neutralization; no gate-policy weakening or scanner carve-out."
+  },
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-cloud-finops-domain --all-features (pre-edit)",
+      "status": "passed",
+      "evidence": "6 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -q -p oya-cloud-finops-domain --all-features",
+      "status": "passed",
+      "evidence": "6 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -q -p oya-check-data-class --all-features",
+      "status": "passed",
+      "evidence": "4 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-cloud-finops-domain --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-cloud-finops-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-cloud-finops-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "rg -n \"FinancialKrCredit|kr-seoul|ten_kr|ten_us|us-|eu-|KRW|KR|jp-|kr_\" crates/oya-cloud-finops-domain/src/lib.rs || true",
+      "status": "passed",
+      "evidence": "no matching jurisdiction-specific tokens remain in the claimed file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root .",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 727 jurisdiction leaks outside claimed scope; first remaining file crates/oya-cloud-iam-domain/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "One financial-class normalization plus fixture string cleanup; no new abstractions, dependencies, manifests, or gate exceptions."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "FinOps classification now models generic financial data and neutral test currency/region resources, matching enterprise generic and SMB generic FD-001 scope."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "targeted canonical-base-neutrality gate reported 14 finops leaks before this rewrite",
+      "findings": [
+        "The unchanged gate policy now passes on the claimed file and the full gate still reports unrelated leaks, proving no false-green gate weakening."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 6,
+      "findings": [
+        "Fixtures now use region-alpha, neutral rate-card names, neutral report IDs, and XTS test currency, preventing copy-forward jurisdiction leakage."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Pre/post finops tests, data-class checker tests, rustfmt, targeted neutrality, planning-closure, master-plan-completion, diff whitespace, residual token scan, and full-gate delta were verified."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Keep accepting the jurisdiction-specific financial class in generic FinOps",
+        "Neutralize only cfg(test) fixtures",
+        "Loosen canonical-base-neutrality scanner for financial class names",
+        "Use neutral Financial classification and neutral fixtures/comments together"
+      ],
+      "selected_rationale": "A combined production+fixture cleanup removes the base/pack coupling instead of hiding it in comments, helper defaults, or tests.",
+      "rejected_reasons": [
+        "Keeping the jurisdiction-specific class would preserve a product-surface coupling in generic FinOps.",
+        "Fixture-only cleanup would still leave production helpers emitting the coupled class.",
+        "Scanner carve-outs would create a false-green path for canonical-base leaks."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration_and_deployment",
+      "findings": [
+        "No credentials, network IO, authorization path, tenant isolation, persistence, or deployment path changed. Invalid public data-class rejection remains covered."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Preserves cloud FinOps domain boundaries and keeps financial classification in the data-boundary vocabulary without coupling this generic domain to one regional pack."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Existing behavior assertions remain covered: per-tenant costs, budget hard limits, margin target alerts, non-integral rates, tenant/resource mismatch, duplicate meter events, missing rates, invalid axes, and invalid data class rejection."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures before/after targeted leak count, full-gate delta, pre/post tests, data-class checker test, command results, and Oya VCS claim/verify/done/promote path."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-cloud-finops-domain/src/lib.rs",
+    "evidence/multispectrum/cs-cloud-finops-canonical-base-neutrality-1779230400.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 727 jurisdiction leaks outside this claimed scope; next safe slice should start with crates/oya-cloud-iam-domain/src/lib.rs.",
+    "Data-boundary kernel still contains compatibility financial labels and should be addressed under its own claimed policy/taxonomy ChangeSet.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

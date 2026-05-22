@@ -44,7 +44,7 @@ capabilities:
     latency_budget_p99_seconds: 14400  # nightly job; 4h max per tenant
     audit_event: DriveAutoOrganizeApplied (Ed25519-sealed; payload — file id hashes + before/after folder ids + reversibility-window expiry)
     fallback_on_model_failure: skip; no moves applied
-    eu_ai_act_classification: |
+    risk_classification: |
       limited-risk for general business filing; **high-risk if applied in HR
       context (performance reviews, hiring docs, employment decisions)** per
       EU AI Act Annex III §3. Therefore: HR-document overlay REFUSED at Cedar
@@ -79,7 +79,7 @@ capabilities:
     latency_budget_p99_seconds: 14400
     audit_event: DriveAutoArchiveApplied (Ed25519-sealed; payload — file id hashes + new tier)
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk (deterministic)
+    risk_classification: minimal-risk (deterministic)
     user_label: "Auto-archived — undo within 30 days; first-byte latency increased"
 
   - id: T2-drive-auto-deduplicate
@@ -108,14 +108,14 @@ capabilities:
     latency_budget_p99_seconds: 14400
     audit_event: DriveAutoDedupApplied (Ed25519-sealed; payload — file id hashes + retained authoritative content-address)
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk (deterministic)
+    risk_classification: minimal-risk (deterministic)
     user_label: "Auto-deduplicated — undo within 90 days"
 
 verification:
   - All T2 actions emit a Cedar-evaluable principal/action/resource triple BEFORE acting.
   - All T2 actions emit an audit-chain event (Ed25519-sealed) on action-applied AND on action-cancelled-within-window AND on action-stood (window-expired).
   - All T2 actions are labelled per EU AI Act Art. 50 in the tenant digest.
-  - All T2 actions are tenant-tier-gated: Cedar policy `cedar/t2-tenant-tier-gate.cedar` admits T2 only for tenant tiers ≥ enterprise.
+  - All T2 actions are tenant_class-gated: Cedar policy `cedar/t2-tenant-class-gate.cedar` admits T2 only for paid tenant_class with per_seat billing_component and active compliance_pack.
   - HR-document overlay (T2-drive-auto-organize on HR documents) REFUSED at Cedar layer pending EU AI Act Annex III §3 conformity-assessment ADR-DRIVE-XXXX.
   - All T2 actions respect WORM tier: files under WORM are skipped (not moved, not archived, not deduplicated) per ADR-DRIVE-0006.
   - All T2 actions respect legal hold: held files are skipped.

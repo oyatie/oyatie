@@ -94,7 +94,7 @@ Binding rules:
    enforced.
 
 3. **Fitness lane naming.** Each INV-* invariant names its planned
-   `oya-foundry-fitness-*` enforcement lane with `planned_enforced_by` and
+   `oya-governance-*` enforcement lane with `planned_enforced_by` and
    `planned_verification_command`. Planned lane names are not active required
    checks until their validators and CI contexts exist.
 
@@ -152,7 +152,7 @@ Total unique INV-* IDs: 35.
   fixture tests, pull-request workflow, and branch-protection row land together.
 - `docs/standards/hyperscaler-best-practices.md` header is updated to reflect
   research-context status and pointer to this spec.
-- New planned `oya-foundry-fitness-*` lanes named in the spec that do not yet
+- New planned `oya-governance-*` lanes named in the spec that do not yet
   exist remain backlog items, not active required checks.
 - The `specs/hyperscaler-gates.json` `canonical_sources` array is updated to
   include `specs/hyperscaler-architecture-invariants.json`.

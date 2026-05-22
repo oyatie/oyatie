@@ -120,10 +120,10 @@ Any cross-pillar flow that does not match this matrix is a CI failure on the pro
 
 ### 6. Six-layer structural enforcement
 
-1. **Schema annotation** — every `.proto`, SQL DDL, event schema carries `oyatie.data_class = "..."` per field; `oya-foundry-fitness-data-class` lints.
-2. **Lint-time check** — `oya-foundry-fitness-data-class` walks every cross-microservice call site and verifies the source class is allowed at the destination.
+1. **Schema annotation** — every `.proto`, SQL DDL, event schema carries `oyatie.data_class = "..."` per field; `oya-governance-data-class` lints.
+2. **Lint-time check** — `oya-governance-data-class` walks every cross-microservice call site and verifies the source class is allowed at the destination.
 3. **Source crate singleton** — only `oya-ads-gate` and `oya-analytics-router` may publish to ads/analytics topics; other crates are rejected at the eventing layer (ADR-0005).
-4. **Architecture fitness gate** — `oya-foundry-fitness-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
+4. **Architecture fitness gate** — `oya-governance-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
 5. **Audit-chain emission per decision** — every ad-targeting decision emits an evidence record (ADR-0003) with consenting tenant, user, classes used, audience, ad, and the rules that fired; missing emission = capability-invocation reject.
 6. **Runtime guard** — final guard at the auction boundary re-validates consent vs purpose; blocks if any class drifted.
 

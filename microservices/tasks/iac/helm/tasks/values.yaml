@@ -57,7 +57,7 @@ webhookFanoutWorker:
 # Substrate secrets via OpenBao SecretReference
 openbao:
   postgresUrl: "${openbao:secret/tasks/postgres-url}"
-  redisUrl: "${openbao:secret/tasks/redis-url}"
+  valkeyUrl: "${openbao:secret/tasks/valkey-url}"
   meilisearchKey: "${openbao:secret/tasks/meilisearch-master-key}"
   tenantDekRootKey: "${openbao:secret/tasks/tenant-dek-root-key}"
   ed25519AuditSigningKey: "${openbao:secret/tasks/ed25519-audit-signing-key}"

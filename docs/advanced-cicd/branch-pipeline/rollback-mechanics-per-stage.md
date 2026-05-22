@@ -7,12 +7,11 @@ status: Accepted
 date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
-  Per-stage rollback mechanics. local-dev: discard via grit cancel. origin/dev: revert
   via standard local-dev → origin/dev path. staging: revert via the standard path
   (cannot push directly to staging). prod: SLO-burn-rate-fast auto-rollback per
   ADR-0040 + hot-fix path with reduced gate set + Directive 12 human-orchestrator signature.
 planned_enforcement_ref:
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0043]
 doc_status: published
 ---
@@ -27,15 +26,12 @@ Rollback procedures per layer of the four-layer pipeline. Every rollback emits D
 
 ## 2. Layer 0 — worktree rollback
 
-**Mechanism.** `grit cancel --agent <id>` (or `grit discard`). Worktree state cleared; symbols released back to the claim pool.
 
-**Evidence.** Audit event `EVT-WORKTREE-DISCARDED` emitted via `icm store -t worktree-events -c '<id, reason>' -i low`. No D14 evidence required (private workspace).
 
 **Authority.** The originating agent only.
 
 ## 3. Layer 1 — agent local-dev clone rollback
 
-**Mechanism.** `git reset --hard origin/dev` (Directive 12 permitted with `icm store -t direct-tool-invocations -c 'rollback local-dev clone after grit cancel' -i high -k 'git,rollback'`). Or `grit cancel` if the agent had `grit done` to local-dev but not yet opened a PR.
 
 **Evidence.** `EVT-LOCAL-DEV-RESET` emitted. No D14 (still private).
 
@@ -43,7 +39,7 @@ Rollback procedures per layer of the four-layer pipeline. Every rollback emits D
 
 ## 4. Layer 2 — `origin/dev` rollback
 
-**Mechanism.** A revert is a new PR through the standard local-dev → origin/dev path. The agent (or `staging-fixer` Mode-B) authors a revert commit in their local-dev clone, opens a PR, the 3-gate fires (PR shape + reviewer-agent verdict on the revert + CI green), and on merge the revert lands on `origin/dev`. **Cannot bypass the PR flow** — direct push to `origin/dev` is forbidden by `oya-foundry-fitness-no-direct-origin-dev-commit` (BLOCKER).
+**Mechanism.** A revert is a new PR through the standard local-dev → origin/dev path. The agent (or `staging-fixer` Mode-B) authors a revert commit in their local-dev clone, opens a PR, the 3-gate fires (PR shape + reviewer-agent verdict on the revert + CI green), and on merge the revert lands on `origin/dev`. **Cannot bypass the PR flow** — direct push to `origin/dev` is forbidden by `oya-governance-no-direct-origin-dev-commit` (BLOCKER).
 
 **Evidence.** D14 artefact: `revert_record { reverted_sha, revert_sha, reviewer_verdict_id, reason, reverted_at }`. Signed per [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md).
 
@@ -51,13 +47,13 @@ Rollback procedures per layer of the four-layer pipeline. Every rollback emits D
 
 ## 5. Layer 3 — `staging` rollback
 
-**Mechanism.** A staging rollback is a revert authored at `origin/dev` (Layer 2 procedure) which auto-promotes to `staging` on the next `staging-promoter` cycle. **Direct revert on `staging` is forbidden** — `oya-foundry-fitness-no-direct-staging-commit` (BLOCKER). The reason: preserve linear-fast-forward history from `origin/dev` to `staging`; a direct staging revert creates a divergence that the next staging-promoter cycle cannot reconcile cleanly.
+**Mechanism.** A staging rollback is a revert authored at `origin/dev` (Layer 2 procedure) which auto-promotes to `staging` on the next `staging-promoter` cycle. **Direct revert on `staging` is forbidden** — `oya-governance-no-direct-staging-commit` (BLOCKER). The reason: preserve linear-fast-forward history from `origin/dev` to `staging`; a direct staging revert creates a divergence that the next staging-promoter cycle cannot reconcile cleanly.
 
 **Evidence.** D14 artefact (same shape as Layer 2 revert) plus `EVT-STAGING-PROMOTED` with the revert sha. Per-cell rollback if the regression affected a deployed cell (cell scope follows progressive-delivery rails).
 
 **Authority.** `staging-fixer` (typical), any agent (general); reviewer-agent verdict required on the revert PR.
 
-**Latency budget.** From regression detection (canary metric red OR `slo-burn-rate-fast` alert) to staging-stable: ≤ 4 hours (`oya-foundry-fitness-canary-regression-sla`, HIGH).
+**Latency budget.** From regression detection (canary metric red OR `slo-burn-rate-fast` alert) to staging-stable: ≤ 4 hours (`oya-governance-canary-regression-sla`, HIGH).
 
 ## 6. Layer 4 — `prod` rollback
 
@@ -99,16 +95,10 @@ Every rollback emits a signed D14 artefact via `oya-foundry-evidence-kernel`:
 
 | Rollback class | Artefact shape | Signed by | Stored in |
 |---|---|---|---|
-| worktree discard | `EVT-WORKTREE-DISCARDED` | agent identity | `icm: worktree-events` |
-| local-dev reset | `EVT-LOCAL-DEV-RESET` | agent identity | `icm: local-dev-events` |
-| origin/dev revert | `revert_record` | reviewer-agent + dev-promoter | `audit-chain` + `icm: dev-promotions` |
-| staging revert (via origin/dev) | same as above + `EVT-STAGING-PROMOTED` | reviewer + dev-promoter + staging-promoter | `audit-chain` + `icm: staging-promotions` |
-| prod SLO-auto-rollback | `auto_rollback_record` | rollout-controller identity | `audit-chain` + `icm: prod-rollbacks` |
-| prod hot-fix forward-fix | `hotfix_record` | full chain + human-signoff | `audit-chain` + `icm: prod-promotions` |
 | per-cell rollback | `per_cell_rollback` | rollout-controller | per-cell audit chain |
 | per-tenant rollback | `per_tenant_rollback` | rollout-controller + cohort kernel | per-tenant + audit chain |
 
-Every artefact verified by `oya-foundry-fitness-rollback-evidence` (BLOCKER per [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md)).
+Every artefact verified by `oya-governance-rollback-evidence` (BLOCKER per [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md)).
 
 ## 8. KMS root rotation (special case)
 

@@ -76,7 +76,7 @@ cedar_policy_fragments:
   - microservices/observability/policy/auditor-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/observability/capabilities/eval/eligibility-query-golden.jsonl
+  reference_inputs_path: microservices/observability/capabilities/eval/eligibility-query-reference.jsonl
   pass_threshold: 0.999
   eval_metric: read-correctness-against-mimir-truth
   cadence: per-release

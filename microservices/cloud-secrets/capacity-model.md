@@ -100,7 +100,7 @@ OpenBao Sentinel + quota policies bound per-tenant capacity:
 | Max secrets per tenant | 100 | 1,000 | 10,000 | 100,000 | 1,000,000 | 10,000,000 |
 | Resolve qps per tenant | 10 | 100 | 1,000 | 10,000 | 100,000 | 1,000,000 |
 | Rotations/day per tenant | 5 | 50 | 500 | 5,000 | 50,000 | 500,000 |
-| BYOK upload events/month | 0 | 0 | 5 | 20 | 100 | 1,000 |
+| encryption-key BYOK upload events/month (ADR-0251 §D-10) | 0 | 0 | 5 | 20 | 100 | 1,000 |
 | HSM partition | shared (sandbox HSM) | shared | shared | shared | shared | dedicated |
 
 Tenants approaching limits receive quota-warning events 7d ahead; exceeding triggers throttling + sales-engineering ticket for tier upgrade.

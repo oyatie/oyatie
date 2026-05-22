@@ -204,7 +204,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 2. **Q2.** Per-cell HSM vendor diversity — single vendor or multi-vendor? Default: single vendor per cell at GA; multi-vendor per region at Phase 2. → ADR-0028.
 3. **Q3.** Session-token TTL default — 15 min or 5 min? Default: 15 min; 5 min for `proxy`-tier autonomy actions per ADR-0007. → ADR-0007.
 4. **Q4.** Out-of-band emergency rotation — break-glass YubiHSM or per-cell tamper-evident binder? Default: YubiHSM per operator + tamper-evident binder for cell-recovery secret; both required (M-of-N). → owner: `foundry`.
-5. **Q5.** Per-tenant BYOK (Bring Your Own Key) at GA, or W+12? Default: W+12 (regulated tenants); GA preview only. → ADR-0034.
+5. **Q5.** Per-tenant encryption-BYOK (Bring Your Own Encryption Key) at GA, or W+12? Default: W+12 (regulated tenants); GA preview only. → ADR-0034.
 
 ---
 

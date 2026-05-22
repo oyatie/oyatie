@@ -1,0 +1,52 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: connect-dlq-overflow-prevention
+  microservice: connect
+  binding_adr: ADR-0139
+spec:
+  description: |
+    DLQ overflow prevention SLO: fraction of tenants whose DLQ depth remains
+    below the per-tenant retention cap (default 10,000 entries). DLQ saturation
+    causes loss of retry delivery guarantees. Precedent: AWS SQS DLQ best-practice
+    monitoring with CloudWatch alarms on ApproximateNumberOfMessagesNotVisible.
+  service: connect
+  indicator:
+    metadata:
+      name: connect-dlq-depth-headroom-sli
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: |
+                count(oya_connect_dlq_depth_per_tenant < 9000)
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: |
+                count(oya_connect_dlq_depth_per_tenant >= 0)
+  timeWindow:
+    - count: 30
+      isRolling: true
+      unit: Day
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: dlq-overflow-prevention-99.0
+      target: 0.99
+      op: gte
+  alertPolicies:
+    - kind: AlertPolicy
+      metadata:
+        name: connect-dlq-overflow-fast-burn
+      spec:
+        condition:
+          kind: BurnRateCondition
+          spec:
+            burnRateThreshold: 10
+            lookbackWindow: PT1H
+            alertAfter: PT10M
+        notification:
+          pagerDutyServiceId: "${openbao:secret/connect/pagerduty/dlq-overflow-svc-id}"

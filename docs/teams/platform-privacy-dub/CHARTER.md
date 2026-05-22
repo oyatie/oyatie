@@ -33,7 +33,7 @@ This team owns the Data Use Boundary ADR — the single hardest contract in Oyat
 - Proof-of-erasure: coordinate with `platform-audit-evidence` for chain record emission
 - Privacy Program doc authorship and quarterly maintenance
 - Privacy council secretariat (this team staffs the secretariat; council members are cross-functional)
-- Fitness function `oya-foundry-fitness-data-use-boundary` — CI hard-fail on cross-axis data flows without consent receipt
+- Fitness function `oya-governance-data-use-boundary` — CI hard-fail on cross-axis data flows without consent receipt
 
 ## Out-of-scope (anti-scope)
 - Audit chain infrastructure (→ `platform-audit-evidence`)
@@ -97,7 +97,7 @@ This team owns the Data Use Boundary ADR — the single hardest contract in Oyat
 | Risk | Severity | Mitigation |
 |---|---|---|
 | Data Use Boundary ADR stalls → blocks cloud/search/ads axes | High | Weekly progress check; founder escalation path defined |
-| PHI leaks into search index via unclassified OG property | Catastrophic | `oya-foundry-fitness-data-use-boundary` CI gate hard-fails |
+| PHI leaks into search index via unclassified OG property | Catastrophic | `oya-governance-data-use-boundary` CI gate hard-fails |
 | DSR cascade partial completion leaves residual data | Catastrophic | Cascade ack protocol requires all-axis acknowledgment; proof-of-erasure chain record |
 | Consent withdrawal not propagated to ads attribution within SLA | High | Automated cascade monitor; PagerDuty alert |
 

@@ -47,7 +47,7 @@ capabilities:
     latency_budget_p99_ms: 5000
     audit_event: DriveOcrCompleted (Ed25519-sealed; payload — file id hash + extract size + reversibility window expiry)
     fallback_on_model_failure: skip; file uploaded without OCR
-    eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-context documents; per-pack ADR closes the EU AI Act conformity assessment — defers to ADR-DRIVE-XXXX)
+    risk_classification: limited-risk (Annex III §3 may apply for HR-context documents; per-pack ADR closes the EU AI Act conformity assessment — defers to ADR-DRIVE-XXXX)
     user_label: "AI is OCR'ing this file — cancel within 60s"
 
   - id: T1-drive-auto-tag
@@ -76,7 +76,7 @@ capabilities:
     latency_budget_p99_ms: 2000
     audit_event: DriveAutoTagApplied
     fallback_on_model_failure: fall back to T0 (suggest only; do not act)
-    eu_ai_act_classification: limited-risk
+    risk_classification: limited-risk
     user_label: "AI applied tags — edit/remove within 120s"
 
   - id: T1-drive-smart-search
@@ -112,7 +112,7 @@ capabilities:
     latency_budget_p99_ms: 1500
     audit_event: DriveSmartSearchExecuted (Ed25519-sealed; payload — query hash + result count + reversibility window expiry)
     fallback_on_model_failure: fall back to classic search
-    eu_ai_act_classification: limited-risk
+    risk_classification: limited-risk
     user_label: "AI-powered search — switch to classic search"
 
 verification:
@@ -120,7 +120,7 @@ verification:
   - All T1 actions emit an audit-chain event (Ed25519-sealed) on action-initiated AND on action-cancelled-within-window AND on action-stood (window-expired).
   - All T1 actions are labelled per EU AI Act Art. 50 + offer the Art. 14 human-oversight cancel-within-window control.
   - All T1 actions respect dual-context isolation: Personal-context actions NEVER touch Professional-context data; Professional-context actions NEVER touch Personal-context data.
-  - All T1 actions are tenant-tier-gated: Cedar policy `cedar/t1-tenant-tier-gate.cedar` admits T1 only for tenant tiers ≥ pro.
+  - All T1 actions are tenant_class-gated: Cedar policy `cedar/t1-tenant-class-gate.cedar` admits T1 only for paid tenant_class with per_seat billing_component.
   - HR-document overlay (T1-drive-ocr / T1-drive-auto-tag when used on HR documents — performance reviews, hiring docs, employment-decision adjacent contexts) is DEFERRED to a future ADR-DRIVE-XXXX for the EU AI Act Annex III §3 conformity assessment; until that ADR ships, the HR overlay is REFUSED at the Cedar layer for pack-eu tenants.
 
 references:

@@ -1,0 +1,267 @@
+{
+  "review_id": "keystone-bundle-2026-05-20-F6-performance-r1",
+  "facet": "F6-Performance",
+  "review_round": "r1",
+  "date": "2026-05-20",
+  "reviewer_persona": "F6-Performance facet reviewer (multispectrum v2.4.0)",
+  "lens": "Are SLOs realistic? Do latency budgets compose correctly across substrate calls? Are p99<1ms Cedar evals achievable? Are cross-cell traffic budgets honest? Does the substrate DAG produce reasonable cascade SLOs?",
+  "corpus_reviewed": [
+    "docs/decisions/ADR-0243-cedar-as-universal-gate.md",
+    "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
+    "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+    "docs/decisions/ADR-0252-time-coordination-distributed-consistency.md",
+    "docs/decisions/ADR-0253-network-topology-edge-service-mesh.md",
+    "docs/decisions/ADR-0263-observability-emission-contract.md",
+    "docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md",
+    "microservices/messenger/PRD.md (§10.1 Performance)",
+    "microservices/mail/PRD.md (§10.1 Performance)",
+    "microservices/meet/PRD.md (§Performance, Availability + SLO)"
+  ],
+  "verdict": "REQUEST_CHANGES",
+  "verdict_summary": "Bundle is internally self-consistent and grounded in well-cited hyperscaler precedent (AWS Verified Permissions for Cedar <1ms p99, Brooker constant-work, MacCarthaigh shuffle sharding, Demirbas-Kulkarni HLC, Stripe idempotency, Spanner TrueTime). The DAG-derived SLO composition formula in ADR-0280 §D-6 is the strongest piece — it forces every claimed availability to be checked against the Markov product, and workflow-engine's worked example (0.99845 raw vs 99.99% authored) honestly exposes the gap and demands a justified resilience artifact. However, FIVE concrete performance gaps must be closed before the bundle can be claimed empirically defensible at the cited targets: (1) p99 <1ms Cedar evaluation is achievable per AWS data but the bundle does NOT account for the SDK gRPC hop + Valkey roundtrip in the budget; (2) hot-path adds at least one Cedar call per state-changing action with no honest aggregate budget showing how the Messenger 100ms p99 send target survives Cedar + audit-chain + HLC + signing-chain overhead; (3) edge Cedar evaluation per ADR-0253 §Consequences#2 admits +5-10ms p99 at edge but no consumer-facing budget table reconciles this with the ≤50ms first-byte target; (4) constant-work 30s Cedar bundle pull cadence per ADR-0248 §D-9 + ADR-0243 §D-10 5s hot-reload p99 is internally inconsistent (a published fragment under emergency conditions is bounded by 30s pull + 5s recompile = 35s not 5s); (5) observability cost is recursive per ADR-0263 §D-11 'Recursive cost' but no budget caps the per-call observability emission overhead vs the Cedar evaluation it observes — at 10k QPS per cell, exemplar + structured log + audit-chain emit overhead is unbounded.",
+  "slo_realism": {
+    "cedar_p99_hot_path_lt_1ms": {
+      "claim": "ADR-0243 §D-6 and ADR-0246 §D-6 declare 0.1ms p50 / 1ms p99 / 5ms p999 for hot-path Cedar eval (cache hit).",
+      "realistic": "PARTIALLY",
+      "evidence": "AWS Verified Permissions production data cited in ADR-0243 references supports <1ms in-process evaluator + warm cache. cedar-policy v4.2 evaluator in-process Rust achieves sub-millisecond on small fragment sets per published benchmarks. HOWEVER, the budget describes 'in-cell Valkey hot-cache + per-cell evaluator pod (DaemonSet for hot-path callers; sidecar-equivalent for batch callers).' If the caller is a separate Pod from the evaluator Pod, a Cilium-mediated gRPC hop alone consumes ~200-500µs p99 in steady state (per Cilium Ambient benchmarks 2024); add Valkey RTT (~200µs p99 same-node) and the in-process eval; the 1ms budget is tight but achievable ONLY when (a) evaluator is a DaemonSet co-located with caller node, (b) Valkey is local-pod sidecar, and (c) the policy bundle compiled-AST is hot in process memory.",
+      "gap": "Budget table in §D-6 does NOT decompose the 1ms into {sdk_serialize, grpc_hop, evaluator_dispatch, ast_eval, audit_enqueue, response_serialize}. Without that decomposition, the budget is aspirational rather than engineered.",
+      "recommendation": "Add a budget-decomposition table: e.g., serialize 50µs + gRPC hop 200µs + dispatch 50µs + AST eval 300µs + audit enqueue 100µs + response 50µs = 750µs p99 hot path → leaves 250µs headroom for variance. Cite Cilium Ambient sidecar latency benchmarks (Isovalent 2024 publication)."
+    },
+    "cedar_cold_path_p99_50ms": {
+      "claim": "Cold path (cache miss + compile) p99 50ms; p999 100ms.",
+      "realistic": "YES",
+      "evidence": "Postgres+Citus query ~10ms p99 + Cedar v4.2 AST compile for a typical 10-fragment bundle ~10-20ms (per cedar-policy crate benchmarks). 50ms is honest for cold path; 100ms p999 reserves headroom for tail Postgres latency.",
+      "gap": "No specification of cache miss rate target. If cache hit rate is 99.9%, weighted average p99 is fine; if cache miss rate exceeds 1%, the 1ms hot path budget becomes meaningless. Need a cache_hit_ratio SLO."
+    },
+    "cedar_hot_reload_p99_5s_vs_30s_pull": {
+      "claim_a": "ADR-0243 §D-10: fragment hot-reload propagates to all evaluator replicas in a cell within 5s p99.",
+      "claim_b": "ADR-0248 §D-9 (constant work): Tier 2 publishes Cedar fragment bundle snapshot every 30s; Tier 3 pulls.",
+      "realistic": "INCONSISTENT",
+      "evidence": "If Tier 3 cells pull on 30s cadence (constant-work, Brooker), then a new fragment published on Tier 2 takes up to 30s to be visible at Tier 3, plus 5s recompile = 35s worst-case. ADR-0243 §D-10 claims 5s p99 propagation across all replicas, which is only true within Tier 2's own evaluator pods or via push-based notification — NOT via the 30s pull model. The bundle has two contradictory propagation models for the same artifact.",
+      "gap": "Reconcile: either (a) hot path uses 5s push (Kafka pub-sub per ADR-0243 §D-10), and the 30s constant-work pull is the FALLBACK / catch-up path for static stability, OR (b) constant-work 30s pull is the only path and §D-10 5s claim must be downgraded to 35s p99 (30s pull + 5s in-cell propagate). The emergency-permit scenario in ADR-0243 Appendix B assumes 5s; if 35s is the real number, the incident response runbook needs updating.",
+      "recommendation": "Add an explicit reconciliation paragraph in either ADR-0243 §D-10 or ADR-0248 §D-9 that names the dual-path model: 'Push-based notification for emergency permits (5s p99) + periodic snapshot pull for static stability (30s cadence, 24h tolerance per ADR-0248 §D-8).'"
+    },
+    "cellular_static_stability_24h": {
+      "claim": "ADR-0248 §D-8: every Tier 3 cell tolerates 24 hours of Tier 2 isolation with no data-plane degradation.",
+      "realistic": "PARTIALLY",
+      "evidence": "AWS Builder's Library 'Static stability using Availability Zones' supports the pattern at 24h. SPIFFE certs rotated hourly with 25h validity is honest. Cedar fragment 30s pull + 24h validity is also honest. HOWEVER, the 24h static stability claim conflicts with idempotency-key TTL of 24h (ADR-0252 §D-4) — if the idempotency table is per-cell with no Tier 2 sync during isolation, then cross-cell idempotency on retries during a partition window is not guaranteed.",
+      "gap": "Idempotency keys are per (tenant_id, idempotency_key) with Citus distribution by tenant_id PER CELL. The schema in ADR-0252 §D-4 says 'per cell; Citus distributed by tenant_id'. During 24h Tier 2 isolation, if a tenant retries a write and the retry lands on a different cell (because home_cell unreachable, DR cell took over), the dr_cell's idempotency table does not have the key — duplicate writes are possible until cross-region replication catches up.",
+      "recommendation": "Either (a) declare idempotency-key cross-cell sync as synchronous (not async per ADR-0049 default), OR (b) accept duplicate-write risk during cell partition and document compensating saga steps (ADR-0222) as the mitigation. Pick one explicitly."
+    },
+    "messenger_p99_100ms_send": {
+      "claim": "Messenger PRD §10.1: 1:1 in-region message send p99 ≤100ms; group ≤50 p99 ≤150ms.",
+      "realistic": "TIGHT",
+      "evidence": "Per the 100ms budget, allowable subcomponents are: Cedar eval (1ms p99) + audit-chain seal (200ms p99 per Messenger §10.1 row 13!) + MLS encrypt (per MLS RFC 9420, ~5-20ms for sealed-sender + envelope) + Postgres write (~10ms p99 in cell) + Kafka enqueue (~5ms) + recipient WebSocket push (~10ms). Audit-chain seal alone at 200ms p99 EXCEEDS the 100ms send budget — the audit-chain seal MUST be async (post-response) to meet the send budget. The PRD does not state this explicitly.",
+      "gap": "Either (a) audit-chain seal is async (background) and message send returns before seal completes — which has correctness implications under failure (message acknowledged but never audited), OR (b) audit-chain seal is fast-enqueue (the 200ms is end-to-end seal, but enqueue is <5ms) and the seal completes asynchronously. The bundle must explicitly state which model.",
+      "recommendation": "Clarify in ADR-0263 §D-13 audit-chain emission row: the synchronous portion of audit emission MUST be ≤5ms p99 enqueue; full Merkle-seal completion is asynchronous and bounded at 200ms p99. State explicitly that the user-facing send response does not block on Merkle-seal completion."
+    },
+    "meet_glass_to_glass_p99_200ms_intra_region": {
+      "claim": "Meet PRD: media glass-to-glass intra-region p99 ≤ 200ms; inter-region p99 ≤ 350ms.",
+      "realistic": "YES",
+      "evidence": "LiveKit SFU intra-region published p99 is ~50-80ms glass-to-glass for opus + VP9; 200ms p99 is realistic with encoding + decoding + network + jitter buffer. Google Meet, Zoom, Teams published glass-to-glass medians cluster around 150-250ms. The budget aligns with industry data.",
+      "gap": "No mention of TURN relay tax. If a participant is behind symmetric NAT and falls back to TURN, the path is client → TURN → SFU → TURN → client, doubling network legs. The 200ms p99 budget likely fails for the TURN-required population. Need a separate p99 for TURN-fallback path."
+    },
+    "workflow_engine_slo_composition": {
+      "claim": "ADR-0280 §D-6 worked example: workflow-engine raw Markov composition is 0.99845 (99.845%); authored SLO 99.99%; the substrate floor.",
+      "realistic": "HONEST",
+      "evidence": "The bundle does the math out loud and exposes the gap. This is excellent rigor. The required justification artifact (cache module, failover playbook, BC decomposition) closes the gap or fails CI. This is the strongest piece of the bundle's F6 posture.",
+      "gap": "None. This is the model the rest of the bundle should match."
+    },
+    "edge_first_byte_p99_50ms": {
+      "claim": "ADR-0253 §Consequences#1: P99 first-byte budget ≤ 50ms universally; per-cell ingress ≤ 100ms P99.",
+      "realistic": "ACHIEVABLE_WITH_CAVEATS",
+      "evidence": "Cloudflare 300 POPs achieve ~10-30ms first-byte for static content within ~30ms of users. 50ms first byte requires (a) connection reuse (TCP cwnd grown, HTTP/2 or /3 stream open), (b) edge cache hit OR edge Cedar eval bypass. ADR-0253 admits the +5-10ms edge Cedar eval penalty; this consumes ~10-20% of the 50ms budget without the cell-side processing.",
+      "gap": "No published budget table reconciles edge Cedar eval + edge auth + edge WAF + per-edge rate limit + cell ingress + Cedar @ cell + handler. Without a worked decomposition (similar to ADR-0280 §D-6 for SLO), the 50ms claim is aspirational. At HTTP/3 0-RTT resumption on warm connections to nearest POP with edge cache hit, 50ms is easy; at HTTP/3 1-RTT + edge cache miss + edge Cedar eval + cell roundtrip, 50ms is challenging.",
+      "recommendation": "Add a decomposition table in ADR-0253 §D-2 or §D-3 enumerating the per-stage budget for {tls_handshake_or_resume, edge_waf, edge_rate_limit, edge_cedar_eval, edge_cache_lookup, cell_ingress_tls, cell_cedar_eval, cell_handler}. State which scenarios meet 50ms and which only meet 100ms or 200ms."
+    },
+    "audit_chain_emission_overhead": {
+      "claim": "ADR-0263 §D-13 (referenced) + ADR-0243 §D-7: every Cedar decision emits to audit chain.",
+      "realistic": "RISK_OF_AMPLIFICATION",
+      "evidence": "Every state-changing call triggers Cedar evaluation (per ADR-0243 §D-1, ~23 policy decision classes, conservatively averaging 3-5 Cedar calls per user request). Each Cedar eval emits one audit row. A 50k QPS Messenger cell (per Messenger PRD §10.1 row 17: 'Per-cell QPS: 50k') × ~5 Cedar calls per message = 250k audit-chain emissions per second per cell — JUST from Cedar. Plus the existing audit emissions for the user action itself (message send), this is ~300k events/sec/cell. Per ADR-0050 Kafka per-cell, Kafka can handle this, but the Merkle-seal pipeline downstream needs sizing.",
+      "gap": "No explicit budget for audit-chain emission throughput per cell. The Cedar-decision audit row is high-cardinality (principal × action × resource × determining_policies × applied_fragments[]). At 250k QPS audit emissions, Mimir cardinality budget (≤10,000 distinct tenants per µservice per cell per ADR-0263 §D-7) is irrelevant — this is event volume, not metric cardinality. Storage cost is unaddressed.",
+      "recommendation": "Add to ADR-0263 §D-13 a per-cell audit-chain emission rate budget (e.g., '≤500k events/sec/cell, with downsampling for Cedar evaluations on hot read paths if exceeded'). Add Cedar-eval audit-row sampling option (e.g., emit 100% Forbid + 1% Permit) to bound storage cost while preserving security forensic value."
+    },
+    "hlc_uncertainty_500ms": {
+      "claim": "ADR-0252 §D-1: HLC default uncertainty budget 500ms.",
+      "realistic": "GENEROUS",
+      "evidence": "chronyd-disciplined NTP typically achieves <10ms drift within a datacenter, <100ms cross-region. 500ms is conservative — gives generous headroom for clock skew without causing HLC logical counter to overflow. CockroachDB defaults to 500ms; matches industry practice.",
+      "gap": "No alert defined for when measured skew approaches the budget. ADR-0252 §D-1 mentions 'alert when exceeded' but no specific threshold or alerting rule is published in /specs."
+    }
+  },
+  "latency_budget_gaps": [
+    "ADR-0243 §D-6: 1ms p99 Cedar hot path lacks decomposition into {serialize, grpc_hop, dispatch, ast_eval, audit_enqueue, response}; need engineered budget not aspirational target.",
+    "Messenger PRD §10.1: 100ms p99 message send vs 200ms p99 audit-chain seal — must explicitly state that audit-chain seal is asynchronous post-response (currently ambiguous).",
+    "ADR-0253 §D-2 + §Consequences#1: 50ms p99 first byte target lacks per-stage decomposition (tls + edge_waf + edge_cedar + edge_cache + cell_ingress + cell_cedar + handler). Edge Cedar eval admits +5-10ms but never tied back to the 50ms budget envelope.",
+    "ADR-0243 §D-10 (5s hot-reload p99) vs ADR-0248 §D-9 (30s constant-work pull) — must reconcile: either dual-path (5s push for emergency + 30s pull for normal) or single-path (30s + 5s = 35s p99).",
+    "ADR-0248 §D-7: shuffle sharding S=8 across 100 cells — per-tenant fan-out for cross-cell read (e.g., DR pre-warming) is not budgeted. If a tenant's read can hit any of 8 cells and the SDK does scatter-gather to detect freshness, p99 latency = max of 8 cell calls = tail-amplification problem (Dean+Barroso 'The Tail at Scale' 2013). Strategy must be explicit: stick to home_cell unless explicit fallback.",
+    "ADR-0263 §D-12 exemplars + §D-8 tail-sampling overhead: every histogram emits exemplars; every 100% error trace + 100% p99 trace adds OTel collector load. No published budget for OTel agent overhead per call (target should be <1% CPU per pod, <2% allocation overhead).",
+    "Meet PRD §Performance: no separate budget for TURN-relay-required path; symmetric NAT population (~5-10% of users in some networks) will exceed the 200ms intra-region budget.",
+    "ADR-0252 §D-4 idempotency-key lookup: every state-changing action does Postgres UPSERT on (tenant_id, idempotency_key); at 50k QPS/cell that's 50k UPSERTs/sec/cell on a partition (Citus shard). Postgres ~10ms p99 UPSERT × 50k QPS = need 500 concurrent connections per cell. No connection-pool sizing budget published.",
+    "ADR-0246 §D-4 EvaluateBatch p99 5ms for ≤100 evaluations — implies amortized 50µs per eval in batch mode. Plausible but only if all 100 hit cache. Mixed cache hit/miss within a batch will degrade to cold-path p99 (50ms). Budget should specify batch composition assumption."
+  ],
+  "throughput_claims_to_validate": [
+    {
+      "claim": "ADR-0246 §D-5: HPA target 70% of max_qps per replica = ~5k QPS hot path per evaluator replica.",
+      "validation_needed": "Load test cedar-policy v4.2 evaluator in tokio async runtime on c6i.2xlarge equivalent (8 vCPU, 16 GB) with 1000-fragment bundle + 200-byte EvaluationRequest payload. Industry benchmarks suggest cedar-policy in-process can sustain ~10-20k evals/sec/core; 5k QPS per 2-vCPU pod (per §D-5) implies ~2.5k QPS/core which is conservative — likely achievable.",
+      "blocker_for_bundle": false
+    },
+    {
+      "claim": "ADR-0246 §D-5: cold path ~500 QPS per replica.",
+      "validation_needed": "Postgres Citus distributed query for fragment fetch + Cedar AST compile. 500 QPS × 50ms p99 cold = 25 in-flight calls per replica which is plausible.",
+      "blocker_for_bundle": false
+    },
+    {
+      "claim": "Messenger PRD §10.1: 50k messages/sec/cell sustained.",
+      "validation_needed": "Per-cell Kafka throughput is well-documented capable of 50k events/sec/partition with 16 partitions = 800k events/sec/topic. The constraint is Postgres write throughput + MLS fan-out. MLS fan-out for 10k-member group at 50k messages/sec = unrealistic (the group fan-out rate is what dominates, not single-cell raw QPS).",
+      "blocker_for_bundle": false
+    },
+    {
+      "claim": "ADR-0253 §D-2 edge Cedar eval +5-10ms p99.",
+      "validation_needed": "Pingora-hosted Cedar evaluator at edge POP calling cell-local PDP over gRPC: edge→cell round trip varies by geography (~10-100ms). Local edge Cedar eval (compiled bundle cached at edge) is achievable at ~1-2ms but requires bundle distribution to 300 POPs — not addressed in ADR-0253. The 5-10ms figure likely assumes cell-local PDP call from a same-region edge POP.",
+      "blocker_for_bundle": true
+    },
+    {
+      "claim": "ADR-0263: per-cell Prometheus + Mimir + Loki + Tempo throughput.",
+      "validation_needed": "Mimir benchmarks support millions of samples/sec/cell. Loki at ~1-10 GB/sec/cell. Tempo at 100k+ spans/sec/cell. All achievable but require explicit per-cell capacity sizing budget in iac/helm values.",
+      "blocker_for_bundle": false
+    },
+    {
+      "claim": "Cross-region Postgres streaming replication RPO 0 for active Cedar fragment set per ADR-0246 §D-5.",
+      "validation_needed": "Synchronous replication for fragment set across regions = blocking commit on remote ack. Cross-region latency ~50-200ms = commit latency penalty 50-200ms on fragment publication. The PublishFragment p99 200ms budget per ADR-0246 §D-4 absorbs this for same-continent pairs (us-east-1↔us-west-2 ~80ms) but fails for cross-continent (eu-west-1↔ap-seoul-1 ~250ms). Need to specify which region pairs are sync vs async.",
+      "blocker_for_bundle": true
+    },
+    {
+      "claim": "Tier-4 TrueTime uncertainty bound 7ms (default) / 1ms (both GPS+atomic pairs healthy).",
+      "validation_needed": "Spanner published TrueTime uncertainty is 7ms at the edge; commit-wait latency = uncertainty bound. Tier-4 financial cells will pay 7ms commit-wait per transaction. For KR-FSS order matching at high throughput (10k orders/sec), commit-wait queueing must be analyzed (parallel commits, batch commit-wait amortization). Not addressed in ADR-0252.",
+      "blocker_for_bundle": false
+    }
+  ],
+  "strengths": [
+    "ADR-0280 §D-6 SLO composition formula is rigorous, machine-checked, and exposes hidden assumptions. The workflow-engine worked example (raw 99.845% vs authored 99.99% with justified resilience) is the gold standard the rest of the bundle should match.",
+    "ADR-0252 HLC default + TrueTime opt-in is well-grounded in Demirbas-Kulkarni 2014 + Corbett et al. OSDI 2012. The two-tier model honestly reserves TrueTime for Tier-4 cells where external consistency is required.",
+    "ADR-0248 §D-7 shuffle sharding math is exact (C(100,8) = 186 billion; 5.4×10⁻¹² overlap probability) and matches MacCarthaigh 2014.",
+    "ADR-0263 cardinality budget (≤10,000 tenants per µservice per cell) is explicit and Mimir-bounded.",
+    "ADR-0243 cold-path budget (50ms p99) is honest and aligns with Postgres+Citus distributed query latency.",
+    "ADR-0252 §D-4 Stripe idempotency key pattern is correctly specified (40-char format, 160-bit entropy, per-tenant scope, request_signature_hash dedup).",
+    "ADR-0252 §D-7 Google smear for leap seconds is the right choice; correctly cites chronyd leapsectz=slew.",
+    "ADR-0248 §D-9 constant work pattern (Brooker 2020) is correctly applied to Tier-2→Tier-3 distribution.",
+    "ADR-0253 §Context 'Why edge is NOT in K8s' correctly identifies V8 isolate / Pingora as the right edge primitive and K8s Pods as the wrong one."
+  ],
+  "blocking_findings": [
+    {
+      "id": "F6-B1",
+      "severity": "BLOCKER",
+      "title": "Cedar hot-path 1ms p99 budget lacks engineered decomposition",
+      "location": "ADR-0243 §D-6, ADR-0246 §D-6",
+      "issue": "1ms p99 hot-path budget is stated as a target without decomposition into sub-components (sdk_serialize, grpc_hop, evaluator_dispatch, ast_eval, audit_enqueue, response_serialize). Without decomposition the budget is aspirational, not engineered, and cannot be enforced at SLO authoring time.",
+      "fix": "Add a decomposition table similar to ADR-0280 §D-6 Markov-composition: explicit per-stage budget allocation summing to <1ms with a 25% headroom buffer. Cite Cilium Ambient sidecar latency benchmarks (Isovalent 2024) for gRPC hop cost."
+    },
+    {
+      "id": "F6-B2",
+      "severity": "BLOCKER",
+      "title": "Hot-reload propagation has two contradictory models (5s push vs 30s constant-work pull)",
+      "location": "ADR-0243 §D-10 (5s p99 propagation) conflicts with ADR-0248 §D-9 (30s pull cadence)",
+      "issue": "Emergency-permit scenario in ADR-0243 Appendix B assumes 5s propagation; constant-work doctrine in ADR-0248 assumes 30s pull. Both cannot be true for the same Cedar fragment distribution path.",
+      "fix": "Reconcile in a single section: declare dual-path model — push-based notification for emergency permits (5s p99 via Kafka pub-sub) + periodic snapshot pull for static-stability fallback (30s cadence). State which path applies when. Update emergency runbook accordingly."
+    },
+    {
+      "id": "F6-B3",
+      "severity": "BLOCKER",
+      "title": "Edge Cedar evaluation +5-10ms not reconciled with 50ms first-byte budget",
+      "location": "ADR-0253 §Consequences#2 + §Consequences#1",
+      "issue": "Edge Cedar eval admits +5-10ms p99 penalty, consuming 10-20% of the 50ms first-byte budget without any decomposition showing the remaining components (TLS, WAF, rate limit, cache, cell roundtrip, handler) fit in the residual.",
+      "fix": "Add per-stage decomposition table for edge → first-byte path. Specify scenarios that meet 50ms (HTTP/3 0-RTT, warm conn, edge cache hit) vs scenarios that meet only 100ms or 200ms (cache miss, edge Cedar eval, cell roundtrip)."
+    }
+  ],
+  "non_blocking_findings": [
+    {
+      "id": "F6-N1",
+      "severity": "MAJOR",
+      "title": "Audit-chain emission rate not budgeted per cell",
+      "location": "ADR-0263 §D-13, ADR-0243 §D-7",
+      "issue": "Every Cedar decision emits an audit row. At 50k QPS messenger cell × ~5 Cedar calls/req = 250k Cedar audit emissions/sec/cell, plus user-action audit emissions. No explicit per-cell audit-chain throughput budget. Storage growth at this rate is unbudgeted.",
+      "fix": "Add per-cell audit-chain emission rate budget. Consider per-stream sampling for Cedar Permit audit rows (keep 100% Forbid, 1-10% Permit) to bound storage while preserving security forensic value."
+    },
+    {
+      "id": "F6-N2",
+      "severity": "MAJOR",
+      "title": "Cross-region Postgres synchronous replication latency for fragment set not budgeted by region pair",
+      "location": "ADR-0246 §D-5 (Fragment Registry RPO 0 with sync replication)",
+      "issue": "Synchronous cross-region replication of Cedar fragment set adds commit-latency = cross-region RTT. PublishFragment p99 200ms absorbs same-continent pair (us-east↔us-west ~80ms) but fails for cross-continent (eu-west↔ap-seoul ~250ms).",
+      "fix": "Specify per-pair sync vs async replication policy. Honestly admit p99 PublishFragment may exceed 200ms for cross-continent pairs; either tighten DR region-pairing to same-continent OR relax the 200ms budget for cross-continent."
+    },
+    {
+      "id": "F6-N3",
+      "severity": "MAJOR",
+      "title": "Messenger 100ms p99 send budget vs 200ms p99 audit-chain seal — async or sync?",
+      "location": "Messenger PRD §10.1 rows 1 and 13",
+      "issue": "If audit-chain seal is synchronous within send, the 100ms send budget is impossible (200ms seal > 100ms total budget). If async, message can be acknowledged before audited — possible audit gap under failure.",
+      "fix": "Explicitly state audit-chain seal model: synchronous enqueue (≤5ms p99) + asynchronous Merkle-seal completion (≤200ms p99). Send returns after enqueue, not after seal. Document the failure-mode implication (message ack'd but seal failed) and the compensating saga step."
+    },
+    {
+      "id": "F6-N4",
+      "severity": "MODERATE",
+      "title": "Shuffle sharding tail-amplification not addressed",
+      "location": "ADR-0248 §D-7",
+      "issue": "Per Dean+Barroso 'The Tail at Scale' (CACM 2013), scatter-gather across S=8 cells amplifies tail latency. If any cross-cell read fans out to multiple shuffle-shard cells, p99 latency = max of 8 cell calls.",
+      "fix": "State explicitly: home_cell is sticky for hot path; cross-shuffle-shard fan-out is reserved for read-replica cold path only; hedged requests with 95th-percentile timeout cancellation per Dean+Barroso."
+    },
+    {
+      "id": "F6-N5",
+      "severity": "MODERATE",
+      "title": "OTel + exemplars + tail-sampling overhead not budgeted",
+      "location": "ADR-0263 §D-8 + §D-12",
+      "issue": "100% error + 100% p99 + 100% new-endpoint + 100% audit-touching trace sampling combined with exemplar emission on every histogram is potentially expensive per call. No per-call observability emission overhead budget published.",
+      "fix": "Publish target: OTel collector overhead <1% CPU per pod, <2% memory allocation. Add to ADR-0263 §D-11 recursive-cost section."
+    },
+    {
+      "id": "F6-N6",
+      "severity": "MODERATE",
+      "title": "TURN-relay path not separately budgeted for Meet",
+      "location": "Meet PRD §Performance",
+      "issue": "200ms p99 intra-region glass-to-glass assumes direct DTLS-SRTP path. Symmetric NAT users (~5-10% of population) fall back to TURN relay, doubling network legs.",
+      "fix": "Add separate row: 'Media glass-to-glass (TURN-relay path)' with p99 budget ~300-400ms intra-region."
+    },
+    {
+      "id": "F6-N7",
+      "severity": "MODERATE",
+      "title": "Idempotency-key cross-cell consistency during partition not specified",
+      "location": "ADR-0252 §D-4 + ADR-0248 §D-8",
+      "issue": "Idempotency keys per-cell with Citus distribution. During 24h Tier 2 isolation (static stability), retries hitting dr_cell may not find the key — duplicate writes possible.",
+      "fix": "Either declare cross-cell idempotency-key sync as synchronous (not async), OR accept duplicate-write risk with compensating saga step (ADR-0222). Pick explicitly."
+    },
+    {
+      "id": "F6-N8",
+      "severity": "MINOR",
+      "title": "Cache hit ratio SLO not declared for Cedar",
+      "location": "ADR-0243 §D-6 + ADR-0246 §D-6",
+      "issue": "Hot-path budget assumes cache hit. No declared cache_hit_ratio SLO. If hit ratio < 99%, weighted p99 budget is breached.",
+      "fix": "Add SLO: cedar_evaluator_cache_hit_ratio >= 99.9% measured per cell, alert at 99% sustained."
+    },
+    {
+      "id": "F6-N9",
+      "severity": "MINOR",
+      "title": "HLC skew alert threshold not specified",
+      "location": "ADR-0252 §D-1",
+      "issue": "500ms uncertainty budget mentioned but no specific alert threshold (e.g., 'alert when measured skew exceeds 300ms p99 sustained').",
+      "fix": "Publish alert rule in /specs/hlc-uncertainty-budget.json: warn at 300ms p99, page at 500ms p99."
+    },
+    {
+      "id": "F6-N10",
+      "severity": "MINOR",
+      "title": "Idempotency-key Postgres UPSERT connection-pool sizing not budgeted",
+      "location": "ADR-0252 §D-4 schema",
+      "issue": "50k QPS messenger cell × idempotency UPSERT per state-changing call = 50k UPSERTs/sec/cell. At Postgres ~10ms p99 UPSERT, need ~500 concurrent connections per cell.",
+      "fix": "Specify per-cell Postgres connection-pool sizing for idempotency_keys table; consider pgBouncer / pgcat connection pooler."
+    }
+  ],
+  "top_findings_summary": [
+    "BLOCKER F6-B1: Decompose the Cedar 1ms p99 hot-path budget into engineered sub-components.",
+    "BLOCKER F6-B2: Reconcile 5s hot-reload propagation vs 30s constant-work pull cadence (declare dual-path or single-path).",
+    "BLOCKER F6-B3: Decompose the 50ms p99 edge first-byte budget per stage; show edge Cedar eval fits.",
+    "MAJOR F6-N1: Budget per-cell audit-chain emission rate; consider sampling for Cedar Permit rows.",
+    "MAJOR F6-N2: Cross-region fragment sync replication latency must be honest per region-pair.",
+    "MAJOR F6-N3: Messenger send vs audit-chain seal — explicitly async with documented failure-mode."
+  ],
+  "recommendation_to_synthesis": "REQUEST_CHANGES with the three BLOCKER findings (F6-B1, F6-B2, F6-B3). The bundle's SLO composition rigor (ADR-0280 §D-6) is excellent and should be the template for closing F6-B1 and F6-B3 — engineered budget decomposition with explicit per-stage allocation. F6-B2 is a one-paragraph reconciliation. None of the blockers are architectural — they are budget-honesty gaps that can be closed inside the bundle's existing structure. The bundle's hyperscaler-precedent grounding is strong; the F6 facet's concern is making the published budgets engineered rather than aspirational. Once the three blockers are addressed, F6 will approve."
+}

@@ -1,0 +1,35 @@
+# PQC hybrid cert config for notes
+# Authority: ADR-0253 row-12 PQC
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: notes-pqc-hybrid
+  namespace: notes
+spec:
+  secretName: notes-pqc-hybrid-tls
+  issuerRef:
+    name: oyatie-rooted-ca-pqc
+    kind: ClusterIssuer
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: hybrid
+    classical: ed25519
+    pqc: ml_dsa_65
+  dnsNames:
+    - notes.oyatie.example
+    - sync.notes.oyatie.example
+  usages:
+    - server auth
+    - client auth
+  tls_negotiation:
+    kem_hybrid:
+      preferred: X25519MLKEM768
+      fallback_classical: [X25519, P-256]
+    signature_hybrid:
+      preferred: ed25519+ml_dsa_65
+      fallback_classical: [ed25519, ecdsa_secp256r1_sha256]
+    ux_floor:
+      refuse_session_if_peer_lacks_pqc: false
+      refuse_session_if_peer_lacks_ech: false

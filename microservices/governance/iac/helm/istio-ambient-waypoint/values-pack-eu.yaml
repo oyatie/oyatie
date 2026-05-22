@@ -22,7 +22,7 @@ waypoint:
 authorizationPolicy:
   fragments:
     pack-eu:
-      - pack-eu-annex-iii-refusal
+      - pack-eu-risk_anchor-iii-refusal
       - pack-eu-gdpr-art-22-routing
       - pack-eu-dsa-transparency
 

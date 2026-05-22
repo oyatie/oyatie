@@ -22,7 +22,7 @@ related_artifacts:
   - microservices/foundry/policy/tenant-scope.cedar
   - microservices/foundry/policy/evidence-pack-integrity.md
 
-autonomy_tier: T2
+autonomy_level: T2
 # T2: writes durable state; emits chain event via audit-chain substrate.
 
 inputs:
@@ -100,7 +100,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/evidence-pack-integrity.md  # narrative companion
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/evidence-pack-build-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/evidence-pack-build-baseline.jsonl
   pass_threshold: 0.999
   eval_metric: pack-fidelity-against-reference-signals
   cadence: per-release

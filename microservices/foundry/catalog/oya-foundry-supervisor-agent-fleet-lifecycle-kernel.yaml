@@ -14,4 +14,4 @@ traceability:
 allowed_dependency_edges: []
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, AUDIT, SENSITIVE_PIPA_ART23]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T1
+autonomy_level_required: T1

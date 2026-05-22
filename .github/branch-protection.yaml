@@ -41,9 +41,7 @@ branches:
     # Canonical contract: each entry below is BOTH the workflow YAML
     # job-key AND the workflow's `name:` field. The
     # `oya-governance-protection-context-match` lane enforces
-    # this invariant. App-provider bindings that cannot be represented
-    # in this YAML mirror live in `infra/branch-protection/dev.json`
-    # (`oya-pr-review` explicitly allows any status/check provider).
+    # this invariant.
     required_status_checks:
       - cargo-fmt
       - cargo-check

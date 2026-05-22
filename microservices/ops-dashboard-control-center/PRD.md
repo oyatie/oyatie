@@ -3,6 +3,15 @@ doc_class: Product-Requirements
 owner: ops-sre-reliability
 status: accepted-design-anchor
 surface: ops-dashboard-control-center
+related_adrs:
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 ---
 # Ops Dashboard / Control Center PRD
 
@@ -44,6 +53,59 @@ Out of scope for this design anchor:
 - AC-06: KR localization runbook hooks exist as operational attachments while canonical base remains jurisdiction-neutral.
 - AC-07: design/spec maturity gate finds PRD, manifest, IPs, ADR refs, OpenAPI, AsyncAPI, Proto3, capabilities, Cedar policy, SLOs, runbooks, threat model, failure modes, residency, cost/FinOps, audit evidence emission, tenant isolation, operational boundaries, and implementation-ready acceptance criteria.
 
+## Non-functional requirements
+
+### DR posture per ADR-0343
+
+- Target: RTO 1800 seconds and RPO 300 seconds per `manifest.json#dr`; the hot operator `manifest.json#rpo_rto` surface tightens rollback and recovery actions to RTO 300 seconds and RPO 60 seconds.
+- Compliance floors: HIPAA-2024 requires 3600/300 with multi-region, SOC2-T2 requires 14400/900, ISO27001-2022 requires 14400/3600, and public-sector FedRAMP/IL5 overlays do not add numeric floors in `specs/compliance-pack-floors.json`. The manifest DR target is stricter than those listed floors, and the hot operator target is stricter still.
+- Failover runbook reference: `microservices/ops-dashboard-control-center/multi-region.md`, `runbooks/deployment-rollback.md`, `runbooks/incident-command.md`, `runbooks/admin-action-rollback.md`, and `runbooks/kr-localization-escalation.md`.
+- Multi-region active-active posture: enabled for incident command, rollback decisions, evidence-pack export requests, tenant-isolation posture reads, and recovery workflow commands.
+- Why: operators use this surface during outages, so the control center must stay available while the failing cell or deployment is the object being investigated.
+
+### Capacity model per ADR-0340
+
+- Per-tenant baseline: 0.18 vCPU, 384 MiB RAM, 2 GiB operator/evidence metadata storage, 6 Postgres connections, 6 Valkey connections, and 40 outbound HTTP sockets.
+- Scaling dimension: `per_request`, with separate burst budgets for health polling, evidence export, rollback approvals, and recovery workflow starts.
+- Cell placement class: Tier-1 for operator command and recovery surfaces; read-only fleet health panels can run Tier-2 replicas.
+- Autoscaling boundaries: minimum 2 active replicas per control cell, maximum 12 replicas per tenant slice, and evidence export workers capped at 4 per tenant to protect audit-chain throughput.
+- Why: steady operator traffic is small, but incidents create sharp read and command bursts across cluster health, tenant posture, rollout, rollback, and evidence views.
+
+### Sustainability and cost attribution per ADR-0344
+
+- Every audit-chain row emitted by incident declaration, severity change, deployment approval, rollback, cluster-health observation, tenant isolation posture view, policy review, evidence export, and recovery workflow carries `cost_usd_minor_units`, `co2_grams`, and `watt_hours`.
+- Carbon-aware provider routing: no for incident command, rollback, recovery workflow, and deployment approval commands; yes for evidence-pack export, cost-read panels, and background fleet report generation when SLO burn allows.
+- Tenant cost surface: FinOps Portal owns the billable transparency view, while this control center displays bounded operator cost signals from cloud-finops for incident and recovery decisions.
+- Why: CSRD, SB-253, and SEC climate-disclosure reporting require operator-plane cost visibility, but live rollback and recovery controls cannot be delayed by carbon-preferred placement.
+
+### API versioning posture per ADR-0342
+
+- Public API model: YYYY-MM-DD carrier triplet across `Oyatie-Version`, `/v/<YYYY-MM-DD>/ops-dashboard-control-center/...`, and proto3 `oyatie_version`.
+- SDK model: generated SRE, release-manager, and compliance-operator SDKs use semantic `major.minor.patch` versions.
+- Support window: the last 3 public API versions remain supported for at least 180 days.
+- Per-tenant pinning: yes, for tenant support tooling, regulated operator workstations, and external GRC integrations.
+- Internal mesh exemption: yes, preserving ADR-0145 direct gRPC for service-control, audit-chain, cloud-finops, policy, and recovery workflow calls.
+
 ## Exit claim boundary
 
 This PRD is a design/spec control surface. Runtime exit remains blocked until implementation crates, policy tests, deployment manifests, SLO windows, restore evidence, and signed evidence-pack verification land.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `ops-dashboard-control-center` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `ops-dashboard-control-center` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 5 module pin(s) across 3 context(s).
+- Scaling input: `per_request` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

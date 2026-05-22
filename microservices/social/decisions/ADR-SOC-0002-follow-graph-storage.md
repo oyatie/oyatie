@@ -72,7 +72,7 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
    - "Recommended follows" feature is scheduled-for-distinct-tracked-work to P03 (depends on `foundry-runtime` embedding + ML recommendations); when scheduled-for-distinct-tracked-work, the recommendation flow uses Postgres adjacency-list + foundry-runtime embedding, not graph-DB traversal.
 4. **Mass-follow rate-limit enforced at usecase + Postgres.**
    - Per-user follow-rate limit (100/hr default per PRD §"Per-Tenant Limits") enforced at the `oya-social-follow-graph-usecase` layer.
-   - Postgres-level: per-tenant aggregate quota tracked via Redis-buffered counter; usecase refuses over-cap.
+   - Postgres-level: per-tenant aggregate quota tracked via Valkey-buffered counter; usecase refuses over-cap.
    - Sybil-detector signal from foundry-guardrails (when active) further restricts coordinated mass-follow attacks (cf. threat-model T-T-03).
 
 ## Alternatives Considered
@@ -89,7 +89,7 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 - Cons: weaker audit-chain integration vs Postgres; less mature operational substrate at oyatie's other µservices; higher operational cost; P01 doesn't need deep traversals; transition risk high.
 - Rejected (for P01); kept open for M04-onward via the future-pluggable adapter.
 
-### C. Postgres + Redis-cached graph (hybrid; Valkey as full source-of-truth)
+### C. Postgres + Valkey-cached graph (hybrid; Valkey as full source-of-truth)
 
 - Pros: very fast in-memory traversals.
 - Cons: memory cost prohibitive at L-scale (80B edges); audit-chain consistency complicated; durability questions; Valkey is a cache not a graph database.

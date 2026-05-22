@@ -1,4 +1,35 @@
 ---
+doc_class: ProductRequirements
+product: foundry
+status: Draft
+date: 2026-05-20
+owner: council-product + axis-foundry
+related_oyatie_adrs:
+  - ADR-0003
+  - ADR-0007
+  - ADR-0021
+  - ADR-0022
+  - ADR-0024
+  - ADR-0025
+  - ADR-0035
+  - ADR-0040
+  - ADR-0043
+  - ADR-0050
+  - ADR-0220
+  - ADR-0251
+  - ADR-0255
+  - ADR-0263
+  - ADR-0316
+related_microservices:
+  - foundry
+  - workflow-engine
+  - workflow-studio
+  - ontology
+  - intelligence
+  - policy-engine
+  - audit-chain
+  - metering
+tenant_class: ["demo_trial", "paid"]
 doc_status: published
 ---
 # Oyatie — Product PRD: Foundry — AI Agent Runtime + Foundry engineering platform (UNIFIED)
@@ -161,9 +192,9 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-bypass-app` | app | Bypass-ledger maintenance + reporting |
 | `oya-foundry-lane-kernel` | kernel | CI lane primitive (control / data / analytics; per ADR-0017) |
 | `oya-foundry-lane-app` | app | Per-lane PR routing |
-| `oya-foundry-fitness-kernel` | kernel | Fitness function primitive |
-| `oya-foundry-fitness-app` | app | Per-axis fitness check execution |
-| `oya-foundry-fitness-{architecture,contracts,license,supply,migration,bench,product-prd,search-dub,ads-class,ads-source-singleton}` | app | Per-fitness-function check (one crate per check class) |
+| `oya-governance-kernel` | kernel | Fitness function primitive |
+| `oya-governance-app` | app | Per-axis fitness check execution |
+| `oya-governance-{architecture,contracts,license,supply,migration,bench,product-prd,search-dub,ads-class,ads-source-singleton}` | app | Per-fitness-function check (one crate per check class) |
 | `oya-foundry-scorecard-kernel` | kernel | Scorecard primitive (per ADR-0026 + ADR-0040 Proof Ladder) |
 | `oya-foundry-scorecard-app` | app | Per-axis per-quarter scorecard publishing |
 | `oya-foundry-supply-app` | app | Supply-chain attestation (Cosign + Trivy + SBOM per ADR-0039) |
@@ -547,7 +578,7 @@ pub struct CiLane {
 ```
 
 ```rust
-// oya-foundry-fitness-kernel
+// oya-governance-kernel
 pub struct FitnessFunction {
     pub id: FitnessId,                                    // architecture | contracts | license | supply | migration | bench | search-dub | ads-class | ads-source-singleton | product-prd
     pub axis: Option<AxisId>,                             // None = cross-cutting
@@ -697,7 +728,7 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 
 - **Versioning**: `schema_version: u32` per kernel entity; `Capability` carries semver per ADR-0040 evolution plane.
 - **Reversibility**: capability semver promotes via Argo Rollouts (ADR-0050); per-capability deprecation horizon ≥ 12 months (ADR-0040); CatalogRecord rejects orphan consumer drift.
-- **Dry-run gate**: Foundry engineering platform fitness function `oya-foundry-fitness-product-prd` validates every PRD update; `oya-foundry-fitness-flat-crates` validates every kernel-shape change; `oya-foundry-fitness-contracts` validates every cross-axis contract change.
+- **Dry-run gate**: Foundry engineering platform fitness function `oya-governance-product-prd` validates every PRD update; `oya-governance-flat-crates` validates every kernel-shape change; `oya-governance-contracts` validates every cross-axis contract change.
 - **Capability-deprecation-cascade**: deprecating a capability fires `foundry.capability_deprecated.v1`; consumers must remove invocations within deprecation horizon or accept fitness failure.
 - **Provider-adapter migration**: provider semver tracked separately; `oya-foundry-adapter-*` migrations are per-adapter and don't break the `ProviderAdapter` trait surface (which is a stability surface per ADR-0040).
 
@@ -713,7 +744,7 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 | Idempotency | `idempotency_key` mandatory on Run; outbox dedupes 24 h; per-capability idempotency-required flag enforced; subscription-session renewal is idempotent per session |
 | Batch dispatch | Provider-call batching where provider supports (Codex / Claude batch endpoints); per-provider max-batch-size; evidence emission batches every 100 ms or 32 records |
 | Backpressure | Provider rate-limit triggers per-tenant `429`+`Retry-After`; daemon sheds Run starts at 95% Run-queue depth; failover to alternate provider on circuit-break (per `Provider.failovers`) |
-| Hot-path benchmarks | Capability invocation `p99 ≤ 200 ms`, autonomy decision `p99 ≤ 5 ms`, evidence emission `p99 ≤ 10 ms`, provider-call latency tracked per provider per model — wired to `oya-foundry-fitness-bench` |
+| Hot-path benchmarks | Capability invocation `p99 ≤ 200 ms`, autonomy decision `p99 ≤ 5 ms`, evidence emission `p99 ≤ 10 ms`, provider-call latency tracked per provider per model — wired to `oya-governance-bench` |
 | Agent-driven optimization loops | Foundry self-improvement: `foundry.capability.profile` (≤ T1) — analyzes capability invocation patterns and proposes parameter tuning; `foundry.provider.cost-route` (≤ T2) — proposes provider routing changes from cost+latency observations; `foundry.evidence.completeness-check` (≤ T1) — verifies evidence emission completeness against capability schema; `builder.bypass.remediate` (≤ T2) — proposes PRs to remediate open foundation bypasses |
 | FinOps unit-economics | Per-tenant per-capability cost = (provider tokens × per-token-rate) + (per-step infra cost) + (evidence emission cost); per-call cost in metering kernel; surfaced in tenant FinOps console; target gross margin per provider ≥ 30% (subscription mode) ≥ 50% (API-key mode where Oyatie marks up) |
 | Build-cache and CI affected-graph | `oya-foundry-*` and `oya-tooling-cli-*` are paired Foundry surfaces; per-adapter changes are isolated; capability registry projection is incrementally rebuilt on `registry/catalog/` change; affected-graph analysis identifies downstream consumers of capability semver bump |
@@ -848,7 +879,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Multi-agent orchestration | Proprietary agent-network model | Supervisor + subagent architecture | Agents platform supports tool-using agent apps; cross-agent topology remains app-owned | LangGraph multi-agent support; human-in-loop | Single-agent per task; third-party agents via MCP | ADR-0021 OG-AG gateway plus ADR-0110/0111/0112/0113/0116 pipeline substrate; per-Run `on_behalf_of` consent inheritance; T5 governance-mode for multi-tenant multi-axis; `foundry.run_started.v1` fan-out |
 | Sandbox isolation | Palantir-managed infra; no Wasm | Lambda execution boundary | Code interpreter sandboxed by OpenAI | No native sandbox; user-managed | Copilot-managed execution; no user sandbox control | Wasmtime + Firecracker (ADR-0023); per-capability `SideEffectClass`; `CrossAxisWrite` forces cross-axis review |
 | Memory / state | Ontology persistent state; per-user | Managed memory per agent (cross-session retained) | Responses state + Conversations; Assistants Threads remain migration-only legacy context | LangGraph checkpointing; Redis backend | Thread history (28d); no explicit episodic/declarative split | `CrossSessionMemory` (ADR-0024): declarative / episodic / procedural; per-tenant per-principal retention; DSR cascade; Postgres + Redis hot tier |
-| Observability / replay | Palantir internal; no external export | CloudWatch metrics; no trace replay | Minimal; no per-step audit replay | LangSmith tracing + aggregate trend metrics | Audit logs (enterprise); billing dashboard | Per-step `Evidence` chain with Merkle linkage (ADR-0003, ADR-0110, ADR-0113); Ed25519-signed records; immutable S3 anchor; regulator export API; `oya-foundry-fitness-foundry-evidence-completeness` CI gate |
+| Observability / replay | Palantir internal; no external export | CloudWatch metrics; no trace replay | Minimal; no per-step audit replay | LangSmith tracing + aggregate trend metrics | Audit logs (enterprise); billing dashboard | Per-step `Evidence` chain with Merkle linkage (ADR-0003, ADR-0110, ADR-0113); Ed25519-signed records; immutable S3 anchor; regulator export API; `oya-governance-foundry-evidence-completeness` CI gate |
 | Eval harness | Manual + Palantir AIP evaluation | No native eval; third-party required | Evals product (API + CI integration) | LangSmith eval on offline/production datasets | No eval harness | `oya-foundry-eval-*` (ADR-0024); `foundry.eval.run` API boundary; cohort evidence; idempotency; nightly eval + A/B routing gate |
 | Provenance / audit chain | Internal audit log; not tenant-exported | CloudTrail; per-account | OpenAI platform logs; no customer Merkle chain | LangSmith traces; no cryptographic provenance | Enterprise audit logs | Merkle-chained `Evidence` per step; `oya-platform-audit-chain-kernel` cross-axis; 7y retention; regulator-portal per pack (ADR-0003, ADR-0042, ADR-0116) |
 | Secret handling | Palantir-managed vault | AWS Secrets Manager / IAM roles | OpenAI platform secrets (no tenant vault) | User-managed; no platform secret store | No platform secret store | OpenBao (ADR-0043); `SecretReference` newtype (sref:// only); per-`(tenant_id, capability_id, provider_kind)` path; rotation-window enforced; secret-redaction CI scan |
@@ -863,7 +894,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Gap in peers | Oyatie Foundry resolution |
 |---|---|
 | No peer provides cryptographically-provable per-step evidence chain exportable to tenants | Merkle-chained `Evidence` with Ed25519 signatures; `BulkExportEvidence` API; 7-year retention |
-| AWS Bedrock / OpenAI Responses / Agents have no formal tenant-exportable capability registry with semver lifecycle | `oya-foundry-registry-*` with ADR-0040 semver evolution; `oya-foundry-fitness-product-prd` CI gate |
+| AWS Bedrock / OpenAI Responses / Agents have no formal tenant-exportable capability registry with semver lifecycle | `oya-foundry-registry-*` with ADR-0040 semver evolution; `oya-governance-product-prd` CI gate |
 | LangChain has no platform-level secret store | OpenBao per-tenant per-capability with `SecretReference` newtype; never logged |
 | GitHub Copilot Workspace has no autonomy tier for graduated agent authority | T0..T5 `AutonomyTier` enforced at `AutonomyCeiling::permit`; Cedar policy per capability |
 | No peer has per-pack regional LLM provider abstraction with residency enforcement | `Provider.residency_compliant_for` × `Tenant.residency` routing; per-pack adapters for KR/JP/EU/IN/KSA |
@@ -890,7 +921,7 @@ The following patterns are adopted from industry-leading agentic platforms and a
 | **MCP (Model Context Protocol) for tool interoperability** | GitHub Copilot MCP integration; Anthropic MCP | `oya-foundry-mcp-adapter` (ADR-0001); tenant-controlled MCP-server enable; per-binding capability allow-list |
 | **FinOps unit-economics surfaced to tenants** | AWS Cost Explorer; Anthropic usage dashboard | Per-tenant per-capability cost in `UsageWindow`; `oya-platform-metering-kernel`; FinOps console; `foundry.provider_failover.v1` fed to FinOps stream |
 | **Progressive delivery with canary + rollback** | Argo Rollouts; AWS CodeDeploy | Argo Rollouts for capability + adapter promotion (ADR-0050); per-capability semver deprecation horizon ≥ 12 months (ADR-0040) |
-| **Observability with distributed tracing** | LangSmith tracing; AWS X-Ray; OpenTelemetry everywhere | OpenTelemetry (ADR-0042); per-step `latency_ms`; hot-path benchmarks wired to `oya-foundry-fitness-bench` |
+| **Observability with distributed tracing** | LangSmith tracing; AWS X-Ray; OpenTelemetry everywhere | OpenTelemetry (ADR-0042); per-step `latency_ms`; hot-path benchmarks wired to `oya-governance-bench` |
 
 ---
 
@@ -922,16 +953,16 @@ Stage split: Preview availability targets apply at the Foundry Preview Proof Lad
 
 | Bar | Commitment | Enforcement mechanism |
 |---|---|---|
-| **Evidence completeness: 100%** | Every regulated capability emits a Merkle-linked, Ed25519-signed `Evidence` record per step; 0 silent drops allowed | Planned advisory lane `oya-foundry-fitness-foundry-evidence-completeness`; `Evidence` emit failure blocks `Run` completion; SLO 99.99% evidence emission |
+| **Evidence completeness: 100%** | Every regulated capability emits a Merkle-linked, Ed25519-signed `Evidence` record per step; 0 silent drops allowed | Planned advisory lane `oya-governance-foundry-evidence-completeness`; `Evidence` emit failure blocks `Run` completion; SLO 99.99% evidence emission |
 | **Audit retention: 7 years** | `Run` / `Step` / `Evidence` / `PolicyDecision` retained for 7 years across Postgres + ClickHouse + S3-class cold store | ADR-0003 audit-chain retention; `schema_version` versioning on all entities; migration policy per §5.7; `BulkExportEvidence` regulator API |
 | **Autonomy ceiling: no bypass ever** | `AutonomyCeiling::permit` is the only execution path for any capability invocation; no internal-only exception | Cedar policy; `run_rejected.v1` emitted on every denial; chaos-test of bypass attempts run quarterly; hard constraint in §3.2 anti-scope |
 | **Residency enforcement: fail-fast** | A residency-strict tenant never has data routed to a non-compliant provider; preference is fail-fast over lossy degradation | `Provider.residency_compliant_for` × `Tenant.residency` routing check; per-pack adapter restriction; quarterly chaos test |
 | **Supply-chain: 100% attested** | Every release artifact carries Cosign signature + SBOM + Trivy scan; 0 unattested artifacts in production | `oya-foundry-supply-app` CI gate; `builder.supply_chain_attested.v1` per release; per-pack supply-chain overlay (KCMVP, GAIA-X, FedRAMP, NCA-NCS) |
 | **Horizontal scalability: stateless daemon** | Foundry daemon carries no per-request mutable state; `ProviderRoute` is transient per `Run`; all state in Postgres + Redis + Kafka | Per-tenant sharding on `(tenant_id, time)` for `Run` / `Step` / `Evidence`; Citus per-tenant; ClickHouse cold archive; no daemon-local state that would prevent horizontal scale-out |
-| **SLO 99.95% capability invocation (Preview)** | Control-plane SLO for capability invocation; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory benchmark lane `oya-foundry-fitness-bench`; Argo Rollouts per-capability canary; circuit-break + failover per provider |
-| **License gate: no AGPL/GPL in product code** | All third-party dependencies Apache-2 / MIT / BSD / MPL-2; AGPL / GPL denied at CI | License policy per ADR-0039 and planned advisory lane `oya-foundry-fitness-license`; per-dep license tier in §8 |
-| **Zero cross-axis contract violations on main** | Every cross-axis contract change reviewed; planned advisory lane `oya-foundry-fitness-contracts` records contract drift until active | Per-PR fitness gate; `FoundationBypass` mandatory on any skip; bypass count < 5 open at GA is a top-level success metric |
-| **Perf budget validated by CI once active** | Capability invocation p99 ≤ 200 ms at GA; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory lane `oya-foundry-fitness-bench` records benchmark regressions until active |
+| **SLO 99.95% capability invocation (Preview)** | Control-plane SLO for capability invocation; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory benchmark lane `oya-governance-bench`; Argo Rollouts per-capability canary; circuit-break + failover per provider |
+| **License gate: no AGPL/GPL in product code** | All third-party dependencies Apache-2 / MIT / BSD / MPL-2; AGPL / GPL denied at CI | License policy per ADR-0039 and planned advisory lane `oya-governance-license`; per-dep license tier in §8 |
+| **Zero cross-axis contract violations on main** | Every cross-axis contract change reviewed; planned advisory lane `oya-governance-contracts` records contract drift until active | Per-PR fitness gate; `FoundationBypass` mandatory on any skip; bypass count < 5 open at GA is a top-level success metric |
+| **Perf budget validated by CI once active** | Capability invocation p99 ≤ 200 ms at GA; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory lane `oya-governance-bench` records benchmark regressions until active |
 | **Regulator portal per pack** | Each regional pack exposes a `RegulatorPortal` for autonomy-decision evidence export; not a single global endpoint | Per-pack `RegulatorPortal` implementation required before per-pack GA; attested at Proof Ladder R5 |
 | **Model-vendor freedom: zero lock-in** | Adding a new provider requires only a new `ProviderAdapter` crate; the `ProviderAdapter` trait is a stability surface (ADR-0040); no business logic touches provider internals | Trait stability policy; `ProviderKind::Custom(CustomProviderRef)` escape hatch; per-pack adapter crate isolation |
 
@@ -999,14 +1030,1611 @@ When this PRD is created or updated, also update:
 
 ## Validation checks
 
-`oya-foundry-fitness-product-prd` runs:
+`oya-governance-product-prd` runs:
 - All required sections present
 - Every flat-crates target referenced exists in `Cargo.toml` or planned roadmap
 - Every entity field has a `data_class` annotation
 - Every external dep has a license-tier row
 - Every cross-axis contract is in DESIGN §10
-- **Foundry-specific**: planned advisory lane `oya-foundry-fitness-foundry-evidence-completeness` records gaps where a regulated capability lacks evidence emission contract
-- **Foundry-specific**: planned advisory lane `oya-foundry-fitness-foundry-autonomy-default` records gaps where a capability omits `min_autonomy_tier`
-- **Foundry-specific**: planned advisory lane `oya-foundry-fitness-foundry-provider-residency` records gaps where a provider adapter omits `residency_compliant_for` declarations for all in-roster packs
-- **Foundry engineering platform-specific (folded in)**: planned advisory lane `oya-foundry-fitness-catalog-validate` records crates without a CatalogRecord
-- **Foundry engineering platform-specific**: planned advisory lane `oya-foundry-fitness-foundation-bypass-window` records bypasses with `regression_window_days = 0` (forces explicit remediation horizon)
+- **Foundry-specific**: planned advisory lane `oya-governance-foundry-evidence-completeness` records gaps where a regulated capability lacks evidence emission contract
+- **Foundry-specific**: planned advisory lane `oya-governance-foundry-autonomy-default` records gaps where a capability omits `min_autonomy_tier`
+- **Foundry-specific**: planned advisory lane `oya-governance-foundry-provider-residency` records gaps where a provider adapter omits `residency_compliant_for` declarations for all in-roster packs
+- **Foundry engineering platform-specific (folded in)**: planned advisory lane `oya-governance-catalog-validate` records crates without a CatalogRecord
+- **Foundry engineering platform-specific**: planned advisory lane `oya-governance-foundation-bypass-window` records bypasses with `regression_window_days = 0` (forces explicit remediation horizon)
+
+---
+
+## Hero Surface Substance Bar Addendum - Foundry
+
+This addendum deepens Foundry as a hero product surface. It treats Foundry as one product spanning AI agent runtime, capability registry, autonomy ceiling, provider adapters, evidence, evals, RAG, memory, MCP, customer builder surfaces, and the internal Foundry engineering platform.
+
+## Vision
+
+Foundry exists so oyatie and its tenants can let agents do useful work without losing control of authorization, residency, evidence, cost, and rollback. The product is for internal engineers, customer builders, tenant operators, ISVs, auditors, regulators, and Foundry agents themselves. The timing matters because every other hero product depends on a reliable agent runtime: workflows need agent-authored templates, cloud needs safe mutators, ERP needs migration explainers, workplace needs policy explanations, and marketplace needs signed capability extensions.
+
+## Personas
+
+- Primary: Internal Oyatie engineer using Engineering Agent Console and repoctl.
+- Primary: Tenant builder authoring workflow and plugin capabilities.
+- Primary: Tenant operator approving or denying agent autonomy.
+- Primary: CISO Yuki Park reviewing provider residency and autonomy policy.
+- Primary: Diana Reyes reviewing evidence and regulator export.
+- Secondary: ISV publishing a marketplace capability.
+- Secondary: CFO Helena Brandt reviewing provider cost and run metering.
+- Secondary: Sam Okafor auditing agent actions.
+- Secondary: Marcus Chen sponsoring enterprise agent rollout.
+- Secondary: Foundry agent executing registered capabilities under policy.
+
+## Jobs-to-be-Done
+
+### JTBD-FDR-01 - Register a capability safely
+- Situation: a team publishes a new agent capability.
+- Acceptance: input schema, output schema, side-effect class, data class, autonomy tier, provider allowlist, eval set, and evidence contract are present.
+- Acceptance: missing field blocks publish.
+
+### JTBD-FDR-02 - Execute a capability with no bypass
+- Situation: a Foundry agent invokes a tenant-write capability.
+- Acceptance: capability registry lookup, Cedar permit, autonomy ceiling, provider route, budget check, evidence emit, and rollback path all run.
+- Acceptance: no internal-only bypass exists.
+
+### JTBD-FDR-03 - Route to a compliant provider
+- Situation: a KR tenant requests an AI-assisted workflow.
+- Acceptance: provider route respects regional pack, subscription/API auth mode, data class, and cost budget.
+- Acceptance: route denies providers that would move data outside residency.
+
+### JTBD-FDR-04 - Prove what the agent did
+- Situation: Sam audits an agent run.
+- Acceptance: run, step, tool call, input summary, output hash, policy decision, provider route, and evidence event are linked.
+- Acceptance: export redacts content while preserving control evidence.
+
+### JTBD-FDR-05 - Let a customer build on Foundry
+- Situation: tenant builder publishes a workflow capability.
+- Acceptance: builder SDK validates schema, eval set, Cedar scope, metering, and marketplace listing.
+- Acceptance: untested or unsigned capability cannot go public.
+
+### JTBD-FDR-06 - Recover from agent failure
+- Situation: a provider times out or tool call fails.
+- Acceptance: retry, fallback provider, compensation, cancellation, and evidence state are explicit.
+- Acceptance: duplicate side effects are prevented by idempotency keys.
+
+### JTBD-FDR-07 - Improve engineering throughput safely
+- Situation: internal engineer asks agents to modify a repo.
+- Acceptance: claim, branch/worktree scope, test spec, code review, and promotion evidence are enforced.
+- Acceptance: agent cannot promote broad dirty state without gate evidence.
+
+### JTBD-FDR-08 - Evaluate capability quality
+- Situation: a capability changes prompt, model, or tool routing.
+- Acceptance: eval suite runs golden cases, adversarial cases, regression cases, cost budget, and citation checks.
+- Acceptance: failing eval blocks publish or routes to lower tier.
+
+### JTBD-FDR-09 - Meter agent work
+- Situation: CFO Helena reviews run costs.
+- Acceptance: each run emits meter events for provider cost, token use, tool time, and compute.
+- Acceptance: anomalies open FinOps workflow.
+
+### JTBD-FDR-10 - Preserve memory without leaking data
+- Situation: a tenant agent recalls past context.
+- Acceptance: memory read checks tenant, data class, consent, expiry, and pack policy.
+- Acceptance: memory cannot be read across tenant boundaries.
+
+## User Stories
+
+### Story FDR-HS-001 - Capability Publish
+As tenant builder, I want to publish a capability so that agents can reuse governed work.
+Pass: schema, eval, autonomy, data-class, and evidence contracts validate.
+Pass: publish emits EVT-FDR-CAPABILITY-PUBLISHED.
+
+### Story FDR-HS-002 - Capability Version
+As capability owner, I want semantic versioning so that consumers are not broken.
+Pass: breaking changes require major version and migration note.
+Pass: deprecated capability has sunset date.
+
+### Story FDR-HS-003 - Autonomy Preview
+As tenant admin, I want to preview what an autonomy tier permits so that I can approve safely.
+Pass: preview lists actions, data classes, side effects, and approval gates.
+Pass: save emits policy decision event.
+
+### Story FDR-HS-004 - Run Invocation
+As tenant operator, I want a run to show status and evidence so that I can trust the agent.
+Pass: run shows current step, provider, cost, evidence, and cancellation.
+Pass: every step has audit state.
+
+### Story FDR-HS-005 - Provider Routing
+As CISO, I want provider routing by region and data class so that residency is preserved.
+Pass: provider route lists allowed and denied providers.
+Pass: denial explains pack rule without leaking hidden policy text.
+
+### Story FDR-HS-006 - Provider Failover
+As SRE, I want provider failover so that outage does not stop pure-read capabilities.
+Pass: failover respects residency, auth mode, and eval certification.
+Pass: tenant-write side effects are not replayed without idempotency.
+
+### Story FDR-HS-007 - Evidence Timeline
+As auditor Sam, I want a chronological run timeline so that agent behavior is reconstructable.
+Pass: timeline links policy, provider, tool call, output hash, and event ids.
+Pass: redacted content still preserves evidence completeness.
+
+### Story FDR-HS-008 - Eval Gate
+As capability owner, I want evals to block bad changes so that regressions do not ship.
+Pass: golden, adversarial, safety, cost, and citation cases run.
+Pass: failures block publish.
+
+### Story FDR-HS-009 - RAG Retrieval
+As agent, I want tenant-scoped retrieval so that answers cite allowed source documents.
+Pass: retrieval includes namespace, data class, consent, top_k, and citations.
+Pass: denied sources are not returned.
+
+### Story FDR-HS-010 - Memory Recall
+As tenant user, I want agent memory to recall useful context without crossing tenant boundaries.
+Pass: memory read checks tenant, purpose, expiry, and data class.
+Pass: expired memory is ignored.
+
+### Story FDR-HS-011 - MCP Tool Binding
+As external developer, I want MCP tool binding so that tools can be used through governed capability schema.
+Pass: MCP server declares tools, input schema, data class, and side effects.
+Pass: tool call is denied if not capability-bound.
+
+### Story FDR-HS-012 - Plugin Capability
+As ISV, I want to publish a capability plugin so that tenants can install my automation.
+Pass: plugin is signed, evaled, scoped, metered, and marketplace-listed.
+Pass: unsafe egress blocks listing.
+
+### Story FDR-HS-013 - Engineering Agent Console
+As internal engineer, I want a console showing agent claims and gates so that repo work is controlled.
+Pass: console shows branch, files, tests, reviewer, evidence, and promotion status.
+Pass: blocked gate cannot be marked green manually.
+
+### Story FDR-HS-014 - Repoctl Claim
+As agent, I want to claim a bounded scope so that concurrent work is safe.
+Pass: claim records files, intent, agent id, and changeset id.
+Pass: overlapping scope requires admission decision.
+
+### Story FDR-HS-015 - Promotion Gate
+As release owner, I want promote to require evidence so that broad dirty state does not ship.
+Pass: tests, review, VCS done, and bundle evidence are required.
+Pass: missing evidence blocks promote.
+
+### Story FDR-HS-016 - Scorecard Publish
+As architecture council, I want scorecards so that agent-created changes show quality and risk.
+Pass: scorecard includes gate results, coverage, risk, and exceptions.
+Pass: scorecard is immutable after publish.
+
+### Story FDR-HS-017 - Foundation Bypass Ledger
+As council reviewer, I want every bypass recorded so that shortcuts have remediation windows.
+Pass: bypass includes owner, reason, expiry, and compensating test.
+Pass: expired bypass blocks promotion.
+
+### Story FDR-HS-018 - Cost Metering
+As Helena, I want run cost by provider, capability, tenant, and product so that agent spend is governed.
+Pass: run emits provider, token, tool, compute, and retry costs.
+Pass: anomaly opens FinOps workflow.
+
+### Story FDR-HS-019 - Run Cancellation
+As tenant admin, I want to cancel a run so that unsafe or stale work stops.
+Pass: cancellation stops future steps, attempts compensation, and emits event.
+Pass: completed side effects remain evidenced.
+
+### Story FDR-HS-020 - Human Approval Hold
+As CISO, I want high-risk actions held for approval so that autonomy never exceeds policy.
+Pass: hold shows action, blast radius, evidence, and approver.
+Pass: timeout cancels or degrades per policy.
+
+### Story FDR-HS-021 - Builder SDK
+As developer, I want Rust and TypeScript SDKs so that capabilities can be built correctly.
+Pass: SDK validates schema and auth before publish.
+Pass: generated clients match OpenAPI.
+
+### Story FDR-HS-022 - Capability Marketplace
+As tenant admin, I want a marketplace of capabilities so that approved automations can be installed.
+Pass: listing shows scope, data classes, eval score, provider options, and cost.
+Pass: install emits policy and billing events.
+
+### Story FDR-HS-023 - Agent Runbook
+As SRE, I want runbooks for agent failure so that recovery is repeatable.
+Pass: every failure mode links to runbook and verification.
+Pass: no runbook blocks GA for regulated capability.
+
+### Story FDR-HS-024 - Audit Export
+As regulator, I want evidence export for selected runs so that compliance can be reviewed.
+Pass: export includes run ids, step ids, policy decisions, provider routes, and redactions.
+Pass: export hash verifies.
+
+## Surface Map
+
+### Surface FDR-SURF-01 - Foundry Console Home
+```
++ Runs + Capabilities + Providers + Evals + Cost + Incidents +
+| 42 active | 912 registered | 7 degraded | 3 failing | $182 today |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-02 - Capability Detail
+```
++ Schema + Autonomy + Data class + Provider + Eval + Evidence +
+| workflow.leave.explain.v2 | T2 | confidential | KR route | pass |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-03 - Run Timeline
+```
++ Step + Tool + Provider + Policy + Cost + Evidence +
+| 03 | retrieve | local-rag | allow DEC-22 | $0.003 | EVT-91 |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-04 - Autonomy Policy Editor
+```
++ Capability + Tier + Action + Resource + Approval + Preview +
+| cloud.capacity.rebalance | T1 | move | cell | human | deny |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-05 - Provider Router
+```
++ Tenant + Pack + Data class + Allowed + Denied + Reason +
+| t-kr | KR-CSAP | confidential | HyperCLOVA, local | OpenAI US | residency |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-06 - Eval Dashboard
+```
++ Capability + Golden + Adversarial + Cost + Citation + Gate +
+| erp.migration.map | 98% | 93% | green | 100% | pass |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-07 - Engineering Agent Console
+```
++ Claim + Files + Tests + Review + VCS + Promote +
+| cs-42 | docs/products | pass | pending | verified | blocked |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-08 - Capability Marketplace Listing
+```
++ Listing + Scope + Data + Provider + Eval + Meter + Install +
+| Vendor AP Match | invoices | confidential | tenant route | pass | $/run |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-09 - Evidence Export
+```
++ Run + Steps + Decisions + Provider + Redaction + Hash +
+| RUN-900 | 14 | 14 | local | KR policy | sha256:... |
++--------------------------------------------------------------+
+```
+
+### Surface FDR-SURF-10 - Cost Explorer
+```
++ Tenant + Capability + Provider + Tokens + Tool ms + Cost +
+| t-42 | cloud.cost.explain | local | 9k | 1800 | $0.18 |
++--------------------------------------------------------------+
+```
+
+## Data Model
+
+### Entity FDR-ENT-01 - Capability
+- Fields: capability_id, version, owner, input_schema, output_schema, side_effect_class, data_classes, min_autonomy_tier, eval_set_id.
+- Relationship: owns CapabilityVersion and EvidenceContract.
+- Invariant: publish requires schema, autonomy, eval, provider, meter, and evidence contract.
+
+### Entity FDR-ENT-02 - CapabilityVersion
+- Fields: version_id, semver, changelog, deprecated_at, sunset_at, migration_ref.
+- Relationship: belongs to Capability.
+- Invariant: breaking change requires major version.
+
+### Entity FDR-ENT-03 - Run
+- Fields: run_id, tenant_id, capability_id, actor_id, state, provider_route_id, cost_meter_id, started_at, completed_at.
+- Relationship: owns Step and EvidenceRecord.
+- Invariant: terminal run has terminal evidence state.
+
+### Entity FDR-ENT-04 - Step
+- Fields: step_id, run_id, sequence, tool_name, input_hash, output_hash, state, retry_count, idempotency_key.
+- Relationship: belongs to Run.
+- Invariant: side-effecting step requires idempotency key.
+
+### Entity FDR-ENT-05 - ProviderRoute
+- Fields: route_id, tenant_id, provider, auth_mode, region_pack, allowed_data_classes, fallback_order.
+- Relationship: selected by ProviderRouter.
+- Invariant: route cannot violate residency.
+
+### Entity FDR-ENT-06 - AutonomyPolicy
+- Fields: policy_id, tenant_id, capability_id, tier, allowed_actions, approval_rules, expiry.
+- Relationship: compiled into Cedar policy bundle.
+- Invariant: deny wins on conflict.
+
+### Entity FDR-ENT-07 - EvidenceRecord
+- Fields: evidence_id, run_id, step_id, event_id, policy_decision_id, redaction_state, hash.
+- Relationship: exported via EvidenceBundle.
+- Invariant: redaction cannot remove control fields.
+
+### Entity FDR-ENT-08 - EvalSet
+- Fields: eval_set_id, capability_id, golden_cases, adversarial_cases, safety_cases, cost_budget, citation_required.
+- Relationship: produces EvalRun.
+- Invariant: regulated capability requires adversarial cases.
+
+### Entity FDR-ENT-09 - EvalRun
+- Fields: eval_run_id, eval_set_id, capability_version, score, failures, cost, gate_state.
+- Relationship: gates CapabilityVersion.
+- Invariant: failing gate blocks publish.
+
+### Entity FDR-ENT-10 - RagQuery
+- Fields: query_id, tenant_id, namespace, data_class, top_k, consent_receipt, result_hash.
+- Relationship: reads SearchIndex and SourceCitation.
+- Invariant: denied source is not returned.
+
+### Entity FDR-ENT-11 - MemoryRecord
+- Fields: memory_id, tenant_id, subject, purpose, data_class, expires_at, consent_ref, vector_ref.
+- Relationship: read by MemoryRecall.
+- Invariant: expired record cannot be returned.
+
+### Entity FDR-ENT-12 - McpToolBinding
+- Fields: binding_id, server_id, tool_name, input_schema, side_effect_class, allowed_capabilities.
+- Relationship: consumed by Capability.
+- Invariant: unbound tool cannot execute.
+
+### Entity FDR-ENT-13 - ProviderCredential
+- Fields: credential_id, provider, auth_mode, secret_ref, residency_scope, rotation_state.
+- Relationship: selected by ProviderRoute.
+- Invariant: secret_ref only; raw credential never stored.
+
+### Entity FDR-ENT-14 - CapabilityMeter
+- Fields: meter_id, run_id, provider_cost, token_count, tool_ms, compute_ms, retry_count.
+- Relationship: aggregates into Billing and FinOps.
+- Invariant: run completion emits meter.
+
+### Entity FDR-ENT-15 - RepoClaim
+- Fields: claim_id, agent_id, scope, intent, files, changeset_id, state.
+- Relationship: gates EngineeringAgentRun.
+- Invariant: overlapping claim requires admission decision.
+
+### Entity FDR-ENT-16 - GateResult
+- Fields: gate_result_id, gate_id, target_ref, status, evidence_ref, blocker_count.
+- Relationship: used by PromotionBundle.
+- Invariant: blocker gate prevents promote.
+
+### Entity FDR-ENT-17 - Scorecard
+- Fields: scorecard_id, scope, period, quality_score, risk_score, exceptions, published_at.
+- Relationship: references GateResult.
+- Invariant: published scorecard is immutable.
+
+### Entity FDR-ENT-18 - BypassRecord
+- Fields: bypass_id, owner, reason, expiry, compensating_control, remediation_ref.
+- Relationship: referenced by GateResult.
+- Invariant: expired bypass blocks promotion.
+
+### Entity FDR-ENT-19 - MarketplaceCapabilityListing
+- Fields: listing_id, capability_id, publisher, scope, data_classes, eval_score, price_model, certification_state.
+- Relationship: installed by tenants.
+- Invariant: unsigned or failed eval listing cannot install.
+
+### Entity FDR-ENT-20 - EvidenceBundle
+- Fields: bundle_id, run_ids, event_ids, redaction_pack, requester, hash, export_state.
+- Relationship: exported to auditor/regulator.
+- Invariant: ready requires all required events present.
+
+## Cedar Policy Model
+
+- Principal foundry::Agent can invoke Capability only through registry and autonomy policy.
+- Principal foundry::TenantAdmin can configure AutonomyPolicy for own tenant.
+- Principal foundry::CapabilityOwner can publish version only after eval gate pass.
+- Principal foundry::ProviderAdmin can register ProviderCredential but cannot read raw secret.
+- Principal foundry::Auditor can read EvidenceBundle but not prompt content beyond redaction policy.
+- Principal foundry::EngineerAgent can mutate repo only with RepoClaim and gate state.
+- Principal foundry::MarketplacePublisher can publish listing only with signed artifact and eval pass.
+- Action foundry::invoke requires capability enabled, Cedar allow, autonomy tier allow, budget allow, provider route allow.
+- Action foundry::tool_call requires McpToolBinding and side-effect class approval.
+- Action foundry::publish_capability requires schema, eval, evidence, metering, and version policy.
+- Action foundry::route_provider requires region_pack compatibility.
+- Action foundry::read_memory requires tenant, purpose, data_class, consent, and expiry allow.
+- Action foundry::promote_repo_change requires gate results, review, verify, done, and bundle evidence.
+- Resource foundry::Capability includes data_classes, side_effect_class, min_autonomy_tier, and owner.
+- Resource foundry::Run includes tenant_id, actor_id, provider_route_id, cost_meter_id, and state.
+- Resource foundry::EvidenceBundle includes redaction_pack, run_ids, event_ids, and requester.
+
+## Workflow Engine Integration
+
+- Node FDR-WF-001 ResolveCapability reads Capability and CapabilityVersion.
+- Node FDR-WF-002 ResolveActor loads tenant, persona, roles, and pack.
+- Node FDR-WF-003 CheckAutonomy compiles Cedar decision and approval needs.
+- Node FDR-WF-004 SelectProvider computes provider route and fallback.
+- Node FDR-WF-005 ReserveBudget creates cost and token budget.
+- Node FDR-WF-006 RetrieveContext calls RAG or memory under policy.
+- Node FDR-WF-007 ExecuteStep invokes provider or tool.
+- Node FDR-WF-008 ValidateOutput checks schema, citations, and safety.
+- Node FDR-WF-009 EmitEvidence writes EvidenceRecord and ADR-0263 event.
+- Node FDR-WF-010 MeterUsage writes CapabilityMeter.
+- Node FDR-WF-011 ContinueOrStop advances next step, completes, or cancels.
+- Node FDR-WF-012 CompensateSideEffect reverses eligible side effects.
+- Node FDR-WF-013 ExportEvidence builds EvidenceBundle.
+- Node FDR-WF-014 PublishCapability validates schemas, evals, policy, and listing.
+- Node FDR-WF-015 RunEval executes golden and adversarial cases.
+- Node FDR-WF-016 EngineeringClaim creates RepoClaim.
+- Node FDR-WF-017 EngineeringVerify records GateResult.
+- Node FDR-WF-018 EngineeringPromote creates PromotionBundle.
+- Branch FDR-BR-001 provider denied by residency.
+- Branch FDR-BR-002 autonomy requires human approval.
+- Branch FDR-BR-003 eval failure blocks publish.
+- Branch FDR-BR-004 memory denied by consent or expiry.
+- Branch FDR-BR-005 side-effect retry uses idempotency key.
+
+## AI / Intelligence Integration
+
+- Foundry is the AI integration substrate for every product.
+- ADR-0220 layer: separates model interaction, tool use, and policy-bound side effects.
+- ADR-0255 layer 1: tenant-private retrieval stays inside tenant, data class, consent, and pack.
+- ADR-0255 layer 2: aggregate learning uses deidentified operational signals and eval outcomes.
+- Capability foundry.provider.route optimizes provider selection under policy and cost.
+- Capability foundry.eval.generate-cases proposes new evals from failures.
+- Capability foundry.evidence.summarize creates audit-safe run summary.
+- Capability foundry.cost.explain-run explains provider, token, tool, and retry cost.
+- Capability foundry.policy.explain-denial explains denial without leaking secrets.
+- Capability foundry.memory.prune suggests memory expiry cleanup.
+- Prohibited: Foundry intelligence cannot grant itself autonomy, approve destructive actions, bypass Cedar, reveal secrets, or mutate evidence.
+
+## Pack Overlays
+
+- KR-CSAP pack restricts providers, requires Korean region evidence, and forbids US-only provider routing for confidential data.
+- EU-DORA pack requires resilience, exit, provider-subprocessor evidence, and data minimization.
+- JP-ISMAP pack activates Japanese evidence language and APPI constraints.
+- US-FedRAMP pack activates government boundary, audit retention, and provider allowlist.
+- BR-LGPD pack activates data subject deletion and consent evidence.
+- Healthcare pack activates HIPAA redaction and patient-context restrictions.
+- Public-sector pack activates procurement, transparency, and regulator evidence.
+- Developer preview pack allows draft-only actions and no tenant-write.
+- Marketplace pack requires signed plugin, certification, and listing evidence.
+
+## SLO Targets
+
+- Capability registry lookup p99 <= 100 ms.
+- Autonomy decision p99 <= 20 ms after Cedar cache warm.
+- Provider route p99 <= 100 ms.
+- Run invoke receipt p99 <= 200 ms.
+- Evidence emit p99 <= 500 ms.
+- RAG retrieve p99 <= 250 ms for warmed tenant index.
+- Memory recall p99 <= 100 ms.
+- Eval run record p99 <= 500 ms.
+- Provider failover decision p95 <= 2 s.
+- Human approval hold render p95 <= 500 ms.
+- Engineering Agent Console p95 <= 1 s.
+- Cost meter emit p99 <= 500 ms.
+- Evidence export p95 <= 5 min for 100 runs.
+
+## Telemetry
+
+- EVT-FDR-CAPABILITY-PUBLISHED emits capability_id, version, owner, eval_state, and side_effect_class.
+- EVT-FDR-CAPABILITY-DEPRECATED emits capability_id, version, sunset_at, and migration_ref.
+- EVT-FDR-RUN-STARTED emits run_id, tenant_id, capability_id, actor_id, and route_id.
+- EVT-FDR-AUTONOMY-DECIDED emits run_id, capability_id, tier, decision, and approver_requirement.
+- EVT-FDR-PROVIDER-ROUTED emits run_id, provider, auth_mode, pack, and denial_reason_if_any.
+- EVT-FDR-STEP-STARTED emits step_id, run_id, tool_name, and idempotency_key.
+- EVT-FDR-STEP-COMPLETED emits step_id, output_hash, token_count, cost, and evidence_id.
+- EVT-FDR-STEP-FAILED emits step_id, error_class, retry_count, and recovery_action.
+- EVT-FDR-EVIDENCE-EMITTED emits evidence_id, run_id, step_id, event_id, and redaction_state.
+- EVT-FDR-EVAL-RUN-COMPLETED emits eval_run_id, score, failures, cost, and gate_state.
+- EVT-FDR-RAG-RETRIEVED emits query_id, namespace, result_count, and citation_count.
+- EVT-FDR-MEMORY-READ emits memory_id, tenant_id, purpose, and expiry_state.
+- EVT-FDR-MCP-TOOL-CALLED emits binding_id, tool_name, side_effect_class, and decision.
+- EVT-FDR-METER-EMITTED emits meter_id, run_id, provider_cost, token_count, and tool_ms.
+- EVT-FDR-RUN-CANCELLED emits run_id, cancelled_by, completed_steps, and compensation_state.
+- EVT-FDR-HUMAN-APPROVAL-REQUESTED emits approval_id, run_id, action, and blast_radius.
+- EVT-FDR-MARKETPLACE-LISTING-PUBLISHED emits listing_id, capability_id, publisher, and certification_state.
+- EVT-FDR-REPO-CLAIM-CREATED emits claim_id, agent_id, scope, intent, and changeset_id.
+- EVT-FDR-GATE-RESULT-RECORDED emits gate_result_id, gate_id, status, blocker_count, and evidence_ref.
+- EVT-FDR-PROMOTION-BLOCKED emits bundle_id, blocker_gate, evidence_gap, and owner.
+- EVT-FDR-EVIDENCE-BUNDLE-EXPORTED emits bundle_id, requester, run_count, event_count, and hash.
+
+## Migration Playbook Index
+
+- GitHub Copilot Workspace migration: prompt workspaces, code suggestions, repo state, and review gates.
+- Claude Code migration: local tool permissions, command allowlists, session state, and artifact capture.
+- Cursor agent migration: editor-integrated agent flows and codebase context.
+- OpenAI Assistants or Responses migration: tool schemas, threads, vector stores, and eval state.
+- Anthropic tool-use migration: tool schemas, provider credentials, and safety policy.
+- Google Gemini agent migration: provider routing and context source governance.
+- LangChain agent migration: tool graph, memory, tracing, and callback governance.
+- LangGraph migration: state machine, node, edge, checkpoint, and replay mapping.
+- CrewAI migration: agent roles, tasks, process, and output contracts.
+- Temporal workflow agent migration: durable execution, retries, and history mapping.
+- Zapier AI action migration: trigger, action, auth, and tenant scope mapping.
+- ServiceNow AI Agent migration: service workflow, approval, and audit evidence mapping.
+- Palantir AIP migration: ontology action, policy, and evidence mapping.
+
+## Capability Tier Deltas
+
+
+## Competitive Positioning
+
+- GitHub Copilot Workspace: Foundry wins on autonomy tiers, Cedar policy, cross-product capability registry, and evidence.
+- Claude Code: Foundry wins on tenant productization, provider routing, pack overlays, and marketplace capabilities.
+- Cursor: Foundry wins on governed runtime rather than editor-only assistance.
+- LangChain: Foundry wins on product control plane, evidence, billing, and policy gates.
+- LangGraph: Foundry wins by pairing graph execution with authorization, provider routing, and audit.
+- CrewAI: Foundry wins on enterprise policy, SLOs, and typed capabilities.
+- OpenAI Assistants/Responses: Foundry wins on multi-provider, tenant policy, pack overlays, and product surfaces.
+- Anthropic tool-use: Foundry wins on provider-agnostic routing and cross-product evidence.
+- Palantir AIP: Foundry wins by extending ontology action governance to cloud, workplace, ERP, and marketplace.
+- ServiceNow AI Agents: Foundry wins by making capability runtime universal across oyatie products, not ITSM-only.
+
+## Roadmap
+
+- Wave F1: capability registry, autonomy policy, provider routes, run/step/evidence, meter events.
+- Wave F2: RAG, memory, eval gate, provider failover, human approval holds.
+- Wave F3: Engineering Agent Console, repo claims, gate results, scorecards, promotion bundles.
+- Wave F4: marketplace capability publishing, SDKs, MCP tool binding, plugin certification.
+- Wave F5: sovereign provider packs, regulator export, external Foundry API GA.
+- Phase M04: internal oyatie engineering and product dogfood.
+- Phase M05: design partner tenant builders and controlled marketplace.
+- Phase M06: public Foundry-as-managed-service.
+
+## Cross-Product Dependencies
+
+- cloud exposes safe mutators and provider infrastructure for Foundry runs.
+- workflow-engine executes durable capability workflows and compensation.
+- workflow-studio lets tenant builders author visual capabilities.
+- ontology supplies action types and object references.
+- intelligence supplies retrieval, model routing, and two-layer learning contracts.
+- policy-engine compiles Cedar decisions for autonomy and tools.
+- audit-chain seals evidence records and exports.
+- metering and finops collect run costs and anomalies.
+- marketplace publishes capability listings and plugin certification.
+- identity supplies principals, passkeys, groups, and federation.
+- tenancy supplies tenant, pack, region, data class, and consent context.
+- observability supplies traces, metrics, logs, dashboards, and SLO burn.
+
+## Failure Modes + Recovery
+
+- Failure: capability schema missing. Recovery: block publish and return validation errors.
+- Failure: autonomy policy ambiguous. Recovery: deny by default and open policy review.
+- Failure: provider route violates residency. Recovery: deny route and list compliant alternatives.
+- Failure: provider outage. Recovery: fallback only to provider allowed by pack and eval.
+- Failure: side-effect step retries duplicate. Recovery: idempotency key collapses duplicate.
+- Failure: evidence emit fails. Recovery: halt regulated run and retry evidence path.
+- Failure: RAG returns unauthorized source. Recovery: discard result and open retrieval incident.
+- Failure: memory expired but selected. Recovery: deny read and prune record.
+- Failure: MCP tool over-scopes. Recovery: deny tool call and suspend binding candidate.
+- Failure: eval regression. Recovery: block publish and keep previous version active.
+- Failure: cost anomaly. Recovery: open FinOps workflow and throttle if budget policy requires.
+- Failure: marketplace listing unsigned. Recovery: block install and notify publisher.
+- Failure: repo claim overlap. Recovery: require admission decision and serialize conflicting paths.
+- Failure: broad dirty promotion. Recovery: block promote until scoped bundle evidence exists.
+- Failure: human approval timeout. Recovery: cancel or degrade per autonomy policy.
+- Failure: redaction removes control evidence. Recovery: fail export and require redaction policy fix.
+
+## Foundry Capability Acceptance Ledger
+
+### FDR-CAP-001 - Capability create
+- Owner: foundry-capability.
+- Pass: schema, autonomy, data class, provider, eval, and evidence fields exist.
+- Evidence: EVT-FDR-CAPABILITY-PUBLISHED.
+
+### FDR-CAP-002 - Capability version
+- Owner: foundry-capability.
+- Pass: SemVer and migration note exist.
+- Evidence: capability_version_id.
+
+### FDR-CAP-003 - Capability deprecate
+- Owner: foundry-capability.
+- Pass: sunset date and replacement are published.
+- Evidence: EVT-FDR-CAPABILITY-DEPRECATED.
+
+### FDR-CAP-004 - Capability disable
+- Owner: foundry-capability.
+- Pass: disabled capability rejects new runs.
+- Evidence: capability_disabled_event.
+
+### FDR-CAP-005 - Capability schema validate
+- Owner: foundry-capability.
+- Pass: input and output schemas validate.
+- Evidence: schema_validation_id.
+
+### FDR-CAP-006 - Capability side-effect classify
+- Owner: foundry-capability.
+- Pass: pure, tenant-read, tenant-write, cross-axis, or privileged call is declared.
+- Evidence: side_effect_class_id.
+
+### FDR-CAP-007 - Capability data class declare
+- Owner: foundry-capability.
+- Pass: data classes touched are complete.
+- Evidence: data_class_declaration_id.
+
+### FDR-CAP-008 - Capability owner assign
+- Owner: foundry-capability.
+- Pass: owner team and pager are present.
+- Evidence: ownership_record_id.
+
+### FDR-CAP-009 - Capability meter bind
+- Owner: foundry-metering.
+- Pass: meter unit and rate model exist.
+- Evidence: meter_binding_id.
+
+### FDR-CAP-010 - Capability evidence bind
+- Owner: foundry-evidence.
+- Pass: evidence contract lists required events.
+- Evidence: evidence_contract_id.
+
+### FDR-CAP-011 - Run start
+- Owner: foundry-run.
+- Pass: run records tenant, actor, capability, provider route.
+- Evidence: EVT-FDR-RUN-STARTED.
+
+### FDR-CAP-012 - Run complete
+- Owner: foundry-run.
+- Pass: terminal state has evidence and meter.
+- Evidence: run_completed_event.
+
+### FDR-CAP-013 - Run fail
+- Owner: foundry-run.
+- Pass: failure has error class and recovery action.
+- Evidence: run_failed_event.
+
+### FDR-CAP-014 - Run cancel
+- Owner: foundry-run.
+- Pass: future steps stop and compensation starts if needed.
+- Evidence: EVT-FDR-RUN-CANCELLED.
+
+### FDR-CAP-015 - Step start
+- Owner: foundry-step.
+- Pass: step has sequence and idempotency where needed.
+- Evidence: EVT-FDR-STEP-STARTED.
+
+### FDR-CAP-016 - Step complete
+- Owner: foundry-step.
+- Pass: output hash and evidence id are recorded.
+- Evidence: EVT-FDR-STEP-COMPLETED.
+
+### FDR-CAP-017 - Step retry
+- Owner: foundry-step.
+- Pass: retry respects idempotency and max retry.
+- Evidence: step_retry_event.
+
+### FDR-CAP-018 - Step timeout
+- Owner: foundry-step.
+- Pass: timeout routes to recovery branch.
+- Evidence: EVT-FDR-STEP-FAILED.
+
+### FDR-CAP-019 - Idempotency key
+- Owner: foundry-step.
+- Pass: side-effecting step has stable key.
+- Evidence: idempotency_record_id.
+
+### FDR-CAP-020 - Compensation
+- Owner: foundry-run.
+- Pass: reversible side effect has compensation handler.
+- Evidence: compensation_event_id.
+
+### FDR-CAP-021 - Autonomy policy create
+- Owner: foundry-policy.
+- Pass: policy declares tier, actions, resources, approvals.
+- Evidence: autonomy_policy_id.
+
+### FDR-CAP-022 - Autonomy decide
+- Owner: foundry-policy.
+- Pass: decision emits allow, deny, or hold.
+- Evidence: EVT-FDR-AUTONOMY-DECIDED.
+
+### FDR-CAP-023 - Autonomy deny
+- Owner: foundry-policy.
+- Pass: denial prevents execution.
+- Evidence: autonomy_denial_id.
+
+### FDR-CAP-024 - Autonomy hold
+- Owner: foundry-policy.
+- Pass: high-risk action waits for human approval.
+- Evidence: EVT-FDR-HUMAN-APPROVAL-REQUESTED.
+
+### FDR-CAP-025 - Human approve
+- Owner: foundry-policy.
+- Pass: approver scope and decision are recorded.
+- Evidence: human_approval_id.
+
+### FDR-CAP-026 - Human deny
+- Owner: foundry-policy.
+- Pass: denial stops run and emits reason.
+- Evidence: human_denial_id.
+
+### FDR-CAP-027 - Policy compile
+- Owner: foundry-policy.
+- Pass: Cedar bundle compiles with tests.
+- Evidence: policy_compile_id.
+
+### FDR-CAP-028 - Policy simulate
+- Owner: foundry-policy.
+- Pass: decision preview is available before save.
+- Evidence: policy_simulation_id.
+
+### FDR-CAP-029 - Provider credential register
+- Owner: foundry-provider.
+- Pass: credential is secret_ref only.
+- Evidence: provider_credential_id.
+
+### FDR-CAP-030 - Provider route select
+- Owner: foundry-provider.
+- Pass: route respects pack, data class, auth mode, budget.
+- Evidence: EVT-FDR-PROVIDER-ROUTED.
+
+### FDR-CAP-031 - Provider route deny
+- Owner: foundry-provider.
+- Pass: non-compliant route is denied.
+- Evidence: provider_route_denial_id.
+
+### FDR-CAP-032 - Provider fallback
+- Owner: foundry-provider.
+- Pass: fallback is certified and residency-compatible.
+- Evidence: provider_fallback_id.
+
+### FDR-CAP-033 - Provider health
+- Owner: foundry-provider.
+- Pass: health checks include latency, error, quota.
+- Evidence: provider_health_event.
+
+### FDR-CAP-034 - Provider cost
+- Owner: foundry-provider.
+- Pass: cost model is current and versioned.
+- Evidence: provider_cost_model_id.
+
+### FDR-CAP-035 - Provider subscription auth
+- Owner: foundry-provider.
+- Pass: subscription mode discloses data-flow posture.
+- Evidence: subscription_auth_record_id.
+
+### FDR-CAP-036 - Provider API auth
+- Owner: foundry-provider.
+- Pass: API key stored as secret_ref and rotated.
+- Evidence: api_auth_record_id.
+
+### FDR-CAP-037 - Regional provider KR
+- Owner: foundry-provider.
+- Pass: KR route supports local provider allowlist.
+- Evidence: kr_provider_route_id.
+
+### FDR-CAP-038 - Regional provider EU
+- Owner: foundry-provider.
+- Pass: EU route supports EU data boundary.
+- Evidence: eu_provider_route_id.
+
+### FDR-CAP-039 - Regional provider JP
+- Owner: foundry-provider.
+- Pass: JP route supports APPI and local evidence.
+- Evidence: jp_provider_route_id.
+
+### FDR-CAP-040 - Regional provider US
+- Owner: foundry-provider.
+- Pass: US route supports commercial and government profiles.
+- Evidence: us_provider_route_id.
+
+### FDR-CAP-041 - Evidence record create
+- Owner: foundry-evidence.
+- Pass: evidence links run, step, policy, event, and hash.
+- Evidence: EVT-FDR-EVIDENCE-EMITTED.
+
+### FDR-CAP-042 - Evidence redaction
+- Owner: foundry-evidence.
+- Pass: redaction preserves control fields.
+- Evidence: evidence_redaction_id.
+
+### FDR-CAP-043 - Evidence export
+- Owner: foundry-evidence.
+- Pass: export includes run ids, event ids, and hash.
+- Evidence: EVT-FDR-EVIDENCE-BUNDLE-EXPORTED.
+
+### FDR-CAP-044 - Evidence hash verify
+- Owner: foundry-evidence.
+- Pass: export hash verifies against audit-chain.
+- Evidence: evidence_hash_verify_id.
+
+### FDR-CAP-045 - Evidence completeness
+- Owner: foundry-evidence.
+- Pass: required evidence count equals emitted count.
+- Evidence: evidence_completeness_result.
+
+### FDR-CAP-046 - Evidence gap block
+- Owner: foundry-evidence.
+- Pass: regulated run cannot complete when evidence gap exists.
+- Evidence: evidence_gap_block_id.
+
+### FDR-CAP-047 - Eval set create
+- Owner: foundry-eval.
+- Pass: eval set includes golden and adversarial cases.
+- Evidence: eval_set_id.
+
+### FDR-CAP-048 - Eval run
+- Owner: foundry-eval.
+- Pass: eval records score, failures, cost, and gate.
+- Evidence: EVT-FDR-EVAL-RUN-COMPLETED.
+
+### FDR-CAP-049 - Eval regression
+- Owner: foundry-eval.
+- Pass: regression blocks publish.
+- Evidence: eval_regression_id.
+
+### FDR-CAP-050 - Eval citation check
+- Owner: foundry-eval.
+- Pass: required citations are present and valid.
+- Evidence: citation_check_id.
+
+### FDR-CAP-051 - Eval cost budget
+- Owner: foundry-eval.
+- Pass: run cost stays within configured budget.
+- Evidence: eval_cost_result.
+
+### FDR-CAP-052 - Eval safety case
+- Owner: foundry-eval.
+- Pass: safety cases pass for regulated capabilities.
+- Evidence: safety_eval_result.
+
+### FDR-CAP-053 - Eval adversarial case
+- Owner: foundry-eval.
+- Pass: prompt injection and tool misuse cases pass.
+- Evidence: adversarial_eval_result.
+
+### FDR-CAP-054 - Eval publish gate
+- Owner: foundry-eval.
+- Pass: failed eval prevents capability publish.
+- Evidence: eval_gate_result.
+
+### FDR-CAP-055 - RAG namespace create
+- Owner: foundry-rag.
+- Pass: namespace has tenant, data class, retention, and owner.
+- Evidence: rag_namespace_id.
+
+### FDR-CAP-056 - RAG retrieve
+- Owner: foundry-rag.
+- Pass: retrieval checks tenant, consent, data class, top_k.
+- Evidence: EVT-FDR-RAG-RETRIEVED.
+
+### FDR-CAP-057 - RAG citation
+- Owner: foundry-rag.
+- Pass: returned answer has cited source ids.
+- Evidence: citation_set_id.
+
+### FDR-CAP-058 - RAG source deny
+- Owner: foundry-rag.
+- Pass: unauthorized source is not returned.
+- Evidence: rag_source_denial_id.
+
+### FDR-CAP-059 - RAG index refresh
+- Owner: foundry-rag.
+- Pass: refresh records source version and checksum.
+- Evidence: rag_refresh_id.
+
+### FDR-CAP-060 - RAG deletion cascade
+- Owner: foundry-rag.
+- Pass: deleted source is removed from retrieval.
+- Evidence: rag_delete_cascade_id.
+
+### FDR-CAP-061 - Memory persist
+- Owner: foundry-memory.
+- Pass: memory has purpose, expiry, consent, and data class.
+- Evidence: memory_record_id.
+
+### FDR-CAP-062 - Memory recall
+- Owner: foundry-memory.
+- Pass: recall checks tenant and expiry.
+- Evidence: EVT-FDR-MEMORY-READ.
+
+### FDR-CAP-063 - Memory prune
+- Owner: foundry-memory.
+- Pass: expired memory is removed or ignored.
+- Evidence: memory_prune_id.
+
+### FDR-CAP-064 - Memory deny
+- Owner: foundry-memory.
+- Pass: cross-tenant or consent-missing recall is denied.
+- Evidence: memory_denial_id.
+
+### FDR-CAP-065 - Memory export
+- Owner: foundry-memory.
+- Pass: export redacts according to pack.
+- Evidence: memory_export_id.
+
+### FDR-CAP-066 - Memory DSR delete
+- Owner: foundry-memory.
+- Pass: eligible subject memory is deleted.
+- Evidence: memory_dsr_delete_id.
+
+### FDR-CAP-067 - MCP server register
+- Owner: foundry-mcp.
+- Pass: server declares tools, scopes, data classes.
+- Evidence: mcp_server_id.
+
+### FDR-CAP-068 - MCP tool bind
+- Owner: foundry-mcp.
+- Pass: tool is bound to allowed capability.
+- Evidence: mcp_tool_binding_id.
+
+### FDR-CAP-069 - MCP tool call
+- Owner: foundry-mcp.
+- Pass: tool call checks capability and Cedar.
+- Evidence: EVT-FDR-MCP-TOOL-CALLED.
+
+### FDR-CAP-070 - MCP over-scope deny
+- Owner: foundry-mcp.
+- Pass: undeclared action is denied.
+- Evidence: mcp_scope_denial_id.
+
+### FDR-CAP-071 - MCP schema validate
+- Owner: foundry-mcp.
+- Pass: tool input and output schemas validate.
+- Evidence: mcp_schema_validation_id.
+
+### FDR-CAP-072 - MCP server disable
+- Owner: foundry-mcp.
+- Pass: disabled server rejects future calls.
+- Evidence: mcp_server_disable_id.
+
+### FDR-CAP-073 - Meter emit
+- Owner: foundry-metering.
+- Pass: run emits provider, token, tool, compute cost.
+- Evidence: EVT-FDR-METER-EMITTED.
+
+### FDR-CAP-074 - Meter aggregate
+- Owner: foundry-metering.
+- Pass: costs aggregate by tenant, product, capability, provider.
+- Evidence: meter_aggregation_id.
+
+### FDR-CAP-075 - Meter anomaly
+- Owner: foundry-metering.
+- Pass: anomaly opens FinOps workflow.
+- Evidence: meter_anomaly_id.
+
+### FDR-CAP-076 - Budget reserve
+- Owner: foundry-metering.
+- Pass: budget reserve happens before provider invocation.
+- Evidence: budget_reserve_id.
+
+### FDR-CAP-077 - Budget release
+- Owner: foundry-metering.
+- Pass: unused budget releases after terminal state.
+- Evidence: budget_release_id.
+
+### FDR-CAP-078 - Rate card
+- Owner: foundry-metering.
+- Pass: rate card is versioned and effective-dated.
+- Evidence: foundry_rate_card_id.
+
+### FDR-CAP-079 - Marketplace listing create
+- Owner: foundry-marketplace.
+- Pass: listing is signed, scoped, evaled, and metered.
+- Evidence: EVT-FDR-MARKETPLACE-LISTING-PUBLISHED.
+
+### FDR-CAP-080 - Marketplace install
+- Owner: foundry-marketplace.
+- Pass: install creates tenant-scoped policy and meter.
+- Evidence: marketplace_install_id.
+
+### FDR-CAP-081 - Marketplace uninstall
+- Owner: foundry-marketplace.
+- Pass: uninstall disables capability and preserves audit.
+- Evidence: marketplace_uninstall_id.
+
+### FDR-CAP-082 - Marketplace suspend
+- Owner: foundry-marketplace.
+- Pass: suspended listing rejects new installs.
+- Evidence: marketplace_suspend_id.
+
+### FDR-CAP-083 - Plugin signature
+- Owner: foundry-marketplace.
+- Pass: plugin artifact signature verifies.
+- Evidence: plugin_signature_id.
+
+### FDR-CAP-084 - Plugin egress policy
+- Owner: foundry-marketplace.
+- Pass: network egress is declared and enforced.
+- Evidence: plugin_egress_policy_id.
+
+### FDR-CAP-085 - Builder SDK Rust
+- Owner: foundry-sdk.
+- Pass: Rust SDK validates capability schema before publish.
+- Evidence: rust_sdk_test_id.
+
+### FDR-CAP-086 - Builder SDK TypeScript
+- Owner: foundry-sdk.
+- Pass: TS SDK validates schema and auth flow.
+- Evidence: ts_sdk_test_id.
+
+### FDR-CAP-087 - OpenAPI publish
+- Owner: foundry-api.
+- Pass: OpenAPI validates and references tests.
+- Evidence: foundry_openapi_validation_id.
+
+### FDR-CAP-088 - gRPC publish
+- Owner: foundry-api.
+- Pass: proto contract validates and has version policy.
+- Evidence: foundry_proto_validation_id.
+
+### FDR-CAP-089 - Public API key
+- Owner: foundry-api.
+- Pass: key is scoped, expiring, and secret_ref-backed.
+- Evidence: public_api_key_id.
+
+### FDR-CAP-090 - Webhook deliver
+- Owner: foundry-api.
+- Pass: webhook has signing secret and retry policy.
+- Evidence: webhook_delivery_id.
+
+### FDR-CAP-091 - Engineering repo claim
+- Owner: foundry-engineering.
+- Pass: claim records agent, scope, intent, files.
+- Evidence: EVT-FDR-REPO-CLAIM-CREATED.
+
+### FDR-CAP-092 - Engineering overlap check
+- Owner: foundry-engineering.
+- Pass: overlapping claim requires admission.
+- Evidence: claim_overlap_result.
+
+### FDR-CAP-093 - Engineering verify
+- Owner: foundry-engineering.
+- Pass: verify records tests and evidence.
+- Evidence: EVT-FDR-GATE-RESULT-RECORDED.
+
+### FDR-CAP-094 - Engineering done
+- Owner: foundry-engineering.
+- Pass: done requires verify and completion evidence.
+- Evidence: changeset_done_id.
+
+### FDR-CAP-095 - Engineering promote
+- Owner: foundry-engineering.
+- Pass: promote requires bundle, review, and gates.
+- Evidence: promotion_bundle_id.
+
+### FDR-CAP-096 - Promotion block
+- Owner: foundry-engineering.
+- Pass: blocker gate prevents promotion.
+- Evidence: EVT-FDR-PROMOTION-BLOCKED.
+
+### FDR-CAP-097 - Scorecard create
+- Owner: foundry-scorecard.
+- Pass: scorecard records quality, risk, gates, exceptions.
+- Evidence: scorecard_id.
+
+### FDR-CAP-098 - Scorecard publish
+- Owner: foundry-scorecard.
+- Pass: published scorecard is immutable.
+- Evidence: scorecard_publish_event.
+
+### FDR-CAP-099 - Bypass record
+- Owner: foundry-bypass.
+- Pass: bypass has owner, expiry, reason, compensating control.
+- Evidence: bypass_record_id.
+
+### FDR-CAP-100 - Bypass expiry
+- Owner: foundry-bypass.
+- Pass: expired bypass blocks promotion.
+- Evidence: bypass_expiry_event.
+
+### FDR-CAP-101 - Catalog sync
+- Owner: foundry-catalog.
+- Pass: catalog record projects from registry.
+- Evidence: catalog_sync_id.
+
+### FDR-CAP-102 - Catalog missing block
+- Owner: foundry-catalog.
+- Pass: missing catalog record blocks gate.
+- Evidence: catalog_missing_gate_id.
+
+### FDR-CAP-103 - Lane classify
+- Owner: foundry-lane.
+- Pass: change is classified control, data, analytics, docs.
+- Evidence: lane_classification_id.
+
+### FDR-CAP-104 - Lane gate
+- Owner: foundry-lane.
+- Pass: lane-specific gates run.
+- Evidence: lane_gate_result_id.
+
+### FDR-CAP-105 - Branch protection apply
+- Owner: foundry-branch.
+- Pass: branch protection matches policy.
+- Evidence: branch_protection_apply_id.
+
+### FDR-CAP-106 - Signed commit check
+- Owner: foundry-supply.
+- Pass: commit signature verifies.
+- Evidence: signed_commit_result.
+
+### FDR-CAP-107 - SBOM attestation
+- Owner: foundry-supply.
+- Pass: artifact has SBOM and provenance.
+- Evidence: sbom_attestation_id.
+
+### FDR-CAP-108 - Vulnerability gate
+- Owner: foundry-supply.
+- Pass: critical vulnerability blocks release unless waiver.
+- Evidence: vulnerability_gate_id.
+
+### FDR-CAP-109 - License gate
+- Owner: foundry-supply.
+- Pass: forbidden license blocks dependency.
+- Evidence: license_gate_id.
+
+### FDR-CAP-110 - Fitness architecture
+- Owner: foundry-fitness.
+- Pass: architecture fitness checks pass.
+- Evidence: architecture_fitness_id.
+
+### FDR-CAP-111 - Fitness contract
+- Owner: foundry-fitness.
+- Pass: API contract fitness checks pass.
+- Evidence: contract_fitness_id.
+
+### FDR-CAP-112 - Fitness security
+- Owner: foundry-fitness.
+- Pass: security fitness checks pass.
+- Evidence: security_fitness_id.
+
+### FDR-CAP-113 - Fitness privacy
+- Owner: foundry-fitness.
+- Pass: privacy and DUB checks pass.
+- Evidence: privacy_fitness_id.
+
+### FDR-CAP-114 - Fitness performance
+- Owner: foundry-fitness.
+- Pass: performance budget checks pass.
+- Evidence: performance_fitness_id.
+
+### FDR-CAP-115 - Fitness docs
+- Owner: foundry-fitness.
+- Pass: documentation rigor checks pass.
+- Evidence: docs_fitness_id.
+
+### FDR-CAP-116 - Console run list
+- Owner: foundry-console.
+- Pass: active, failed, held, and completed runs are visible.
+- Evidence: console_run_list_id.
+
+### FDR-CAP-117 - Console run detail
+- Owner: foundry-console.
+- Pass: detail shows steps, provider, cost, evidence.
+- Evidence: console_run_detail_id.
+
+### FDR-CAP-118 - Console approval
+- Owner: foundry-console.
+- Pass: approval UI shows blast radius and policy.
+- Evidence: console_approval_event.
+
+### FDR-CAP-119 - Console cancel
+- Owner: foundry-console.
+- Pass: cancel action emits run cancellation.
+- Evidence: console_cancel_event.
+
+### FDR-CAP-120 - Console evidence export
+- Owner: foundry-console.
+- Pass: export starts only for authorized auditor.
+- Evidence: console_export_event.
+
+### FDR-CAP-121 - Tenant settings
+- Owner: foundry-console.
+- Pass: tenant settings show autonomy, providers, budget.
+- Evidence: tenant_settings_update_id.
+
+### FDR-CAP-122 - Provider settings
+- Owner: foundry-console.
+- Pass: provider settings hide raw credentials.
+- Evidence: provider_settings_update_id.
+
+### FDR-CAP-123 - Eval settings
+- Owner: foundry-console.
+- Pass: eval thresholds are versioned and audited.
+- Evidence: eval_settings_update_id.
+
+### FDR-CAP-124 - Marketplace settings
+- Owner: foundry-console.
+- Pass: listing install policy is tenant-scoped.
+- Evidence: marketplace_settings_update_id.
+
+### FDR-CAP-125 - Notification route
+- Owner: foundry-notify.
+- Pass: approval, failure, and incident notifications route to owners.
+- Evidence: notification_route_id.
+
+### FDR-CAP-126 - Incident create
+- Owner: foundry-ops.
+- Pass: incident links provider, runs, tenants, and impact.
+- Evidence: foundry_incident_id.
+
+### FDR-CAP-127 - Incident status
+- Owner: foundry-ops.
+- Pass: customer-safe status redacts sensitive details.
+- Evidence: incident_status_event.
+
+### FDR-CAP-128 - Provider outage
+- Owner: foundry-ops.
+- Pass: outage routes eligible traffic to compliant fallback.
+- Evidence: provider_outage_event.
+
+### FDR-CAP-129 - Run stuck detection
+- Owner: foundry-ops.
+- Pass: stuck run is detected and owner notified.
+- Evidence: stuck_run_event.
+
+### FDR-CAP-130 - Run replay
+- Owner: foundry-ops.
+- Pass: replay is read-only unless idempotency permits.
+- Evidence: run_replay_id.
+
+### FDR-CAP-131 - Disaster recovery
+- Owner: foundry-ops.
+- Pass: DR plan covers run, evidence, registry, and provider config.
+- Evidence: foundry_dr_test_id.
+
+### FDR-CAP-132 - Backup registry
+- Owner: foundry-ops.
+- Pass: registry backup has restore test.
+- Evidence: registry_backup_id.
+
+### FDR-CAP-133 - Restore registry
+- Owner: foundry-ops.
+- Pass: restore test validates capability versions.
+- Evidence: registry_restore_test_id.
+
+### FDR-CAP-134 - Backup evidence
+- Owner: foundry-ops.
+- Pass: evidence backup preserves hashes.
+- Evidence: evidence_backup_id.
+
+### FDR-CAP-135 - Restore evidence
+- Owner: foundry-ops.
+- Pass: restore verifies audit-chain consistency.
+- Evidence: evidence_restore_test_id.
+
+### FDR-CAP-136 - Secret rotation
+- Owner: foundry-security.
+- Pass: provider credential rotation updates secret_ref version.
+- Evidence: provider_secret_rotation_id.
+
+### FDR-CAP-137 - Secret access log
+- Owner: foundry-security.
+- Pass: secret access logs purpose and actor.
+- Evidence: provider_secret_access_event.
+
+### FDR-CAP-138 - Prompt injection defense
+- Owner: foundry-security.
+- Pass: adversarial eval catches unsafe tool instruction.
+- Evidence: prompt_injection_eval_id.
+
+### FDR-CAP-139 - Tool output redaction
+- Owner: foundry-security.
+- Pass: tool output redacts secrets before prompt reuse.
+- Evidence: tool_output_redaction_id.
+
+### FDR-CAP-140 - Data exfiltration deny
+- Owner: foundry-security.
+- Pass: unauthorized egress path is denied.
+- Evidence: data_exfiltration_denial_id.
+
+### FDR-CAP-141 - Tenant boundary test
+- Owner: foundry-security.
+- Pass: cross-tenant retrieval and memory tests fail closed.
+- Evidence: tenant_boundary_test_id.
+
+### FDR-CAP-142 - Provider data disclosure
+- Owner: foundry-security.
+- Pass: provider route shows data disclosure posture.
+- Evidence: provider_data_disclosure_id.
+
+### FDR-CAP-143 - Model output schema
+- Owner: foundry-runtime.
+- Pass: output validates against schema before side effect.
+- Evidence: output_schema_validation_id.
+
+### FDR-CAP-144 - Tool permission manifest
+- Owner: foundry-runtime.
+- Pass: tool permissions are explicit and versioned.
+- Evidence: tool_permission_manifest_id.
+
+### FDR-CAP-145 - Sandbox execute
+- Owner: foundry-runtime.
+- Pass: sandbox restricts filesystem, network, and secrets.
+- Evidence: sandbox_execution_id.
+
+### FDR-CAP-146 - Sandbox deny
+- Owner: foundry-runtime.
+- Pass: forbidden operation is denied and logged.
+- Evidence: sandbox_denial_id.
+
+### FDR-CAP-147 - File artifact capture
+- Owner: foundry-runtime.
+- Pass: generated artifacts have hash and retention.
+- Evidence: artifact_capture_id.
+
+### FDR-CAP-148 - Artifact publish
+- Owner: foundry-runtime.
+- Pass: publish requires owner, scope, and evidence.
+- Evidence: artifact_publish_id.
+
+### FDR-CAP-149 - Customer builder project
+- Owner: foundry-builder.
+- Pass: project has tenant, owner, capability draft set.
+- Evidence: builder_project_id.
+
+### FDR-CAP-150 - Builder draft capability
+- Owner: foundry-builder.
+- Pass: draft cannot run tenant-write actions.
+- Evidence: draft_capability_id.
+
+### FDR-CAP-151 - Builder test run
+- Owner: foundry-builder.
+- Pass: test run uses sandbox data unless approved.
+- Evidence: builder_test_run_id.
+
+### FDR-CAP-152 - Builder publish request
+- Owner: foundry-builder.
+- Pass: publish request includes eval and policy evidence.
+- Evidence: builder_publish_request_id.
+
+### FDR-CAP-153 - Builder review
+- Owner: foundry-builder.
+- Pass: human reviewer signs regulated capability.
+- Evidence: builder_review_id.
+
+### FDR-CAP-154 - Builder revoke
+- Owner: foundry-builder.
+- Pass: revoked capability stops future runs.
+- Evidence: builder_revoke_id.
+
+### FDR-CAP-155 - Workflow Studio handoff
+- Owner: foundry-builder.
+- Pass: capability can be used as workflow node.
+- Evidence: workflow_node_binding_id.
+
+### FDR-CAP-156 - Workflow Engine handoff
+- Owner: foundry-builder.
+- Pass: workflow run invokes capability via durable node.
+- Evidence: workflow_capability_run_id.
+
+### FDR-CAP-157 - Ontology action bind
+- Owner: foundry-builder.
+- Pass: ontology action maps to capability resource.
+- Evidence: ontology_action_binding_id.
+
+### FDR-CAP-158 - Cloud mutator bind
+- Owner: foundry-builder.
+- Pass: cloud capability declares blast radius and approval.
+- Evidence: cloud_mutator_binding_id.
+
+### FDR-CAP-159 - ERP migration bind
+- Owner: foundry-builder.
+- Pass: ERP mapping capability is non-mutating by default.
+- Evidence: erp_migration_binding_id.
+
+### FDR-CAP-160 - Workplace explain bind
+- Owner: foundry-builder.
+- Pass: workplace explanation capability cannot approve.
+- Evidence: workplace_explain_binding_id.
+
+### FDR-CAP-161 - Audit chain write
+- Owner: foundry-evidence.
+- Pass: event writes through canonical audit chain.
+- Evidence: audit_chain_write_id.
+
+### FDR-CAP-162 - Audit chain retry
+- Owner: foundry-evidence.
+- Pass: retry is idempotent and ordered.
+- Evidence: audit_chain_retry_id.
+
+### FDR-CAP-163 - Audit chain failure hold
+- Owner: foundry-evidence.
+- Pass: regulated run halts when evidence cannot emit.
+- Evidence: audit_chain_hold_id.
+
+### FDR-CAP-164 - Redaction policy version
+- Owner: foundry-evidence.
+- Pass: redaction policy is versioned and pack-scoped.
+- Evidence: redaction_policy_version_id.
+
+### FDR-CAP-165 - Regulator export
+- Owner: foundry-evidence.
+- Pass: regulator export is read-only and scoped.
+- Evidence: regulator_export_id.
+
+### FDR-CAP-166 - Consent receipt check
+- Owner: foundry-privacy.
+- Pass: retrieval and memory reads require valid consent where needed.
+- Evidence: consent_receipt_check_id.
+
+### FDR-CAP-167 - DSR delete
+- Owner: foundry-privacy.
+- Pass: eligible records are deleted or tombstoned.
+- Evidence: foundry_dsr_delete_id.
+
+### FDR-CAP-168 - DSR export
+- Owner: foundry-privacy.
+- Pass: subject export includes redacted run and memory records.
+- Evidence: foundry_dsr_export_id.
+
+### FDR-CAP-169 - Data retention
+- Owner: foundry-privacy.
+- Pass: retention policy applies to runs, evidence, memory, and artifacts.
+- Evidence: retention_policy_result.
+
+### FDR-CAP-170 - Legal hold
+- Owner: foundry-privacy.
+- Pass: legal hold blocks deletion and records owner.
+- Evidence: legal_hold_id.
+
+### FDR-CAP-171 - Cross-product handoff
+- Owner: foundry-runtime.
+- Pass: handoff declares target product, contract, and rollback.
+- Evidence: cross_product_handoff_id.
+
+### FDR-CAP-172 - Cross-axis write
+- Owner: foundry-runtime.
+- Pass: cross-axis write requires explicit review class.
+- Evidence: cross_axis_write_decision_id.
+
+### FDR-CAP-173 - Privileged external call
+- Owner: foundry-runtime.
+- Pass: external call declares endpoint, credential, and data class.
+- Evidence: privileged_call_id.
+
+### FDR-CAP-174 - Network egress deny
+- Owner: foundry-runtime.
+- Pass: undeclared egress is denied.
+- Evidence: network_egress_denial_id.
+
+### FDR-CAP-175 - Local tool allowlist
+- Owner: foundry-runtime.
+- Pass: tool call appears in allowlist.
+- Evidence: local_tool_allowlist_id.
+
+### FDR-CAP-176 - Local tool deny
+- Owner: foundry-runtime.
+- Pass: forbidden tool call is denied.
+- Evidence: local_tool_denial_id.
+
+### FDR-CAP-177 - Artifact retention
+- Owner: foundry-runtime.
+- Pass: artifacts retain by data class and policy.
+- Evidence: artifact_retention_id.
+
+### FDR-CAP-178 - Artifact purge
+- Owner: foundry-runtime.
+- Pass: purge respects legal hold and retention.
+- Evidence: artifact_purge_id.
+
+### FDR-CAP-179 - Prompt template version
+- Owner: foundry-runtime.
+- Pass: prompt template is versioned and eval-linked.
+- Evidence: prompt_template_version_id.
+
+### FDR-CAP-180 - Prompt template rollback
+- Owner: foundry-runtime.
+- Pass: rollback reactivates prior version and emits event.
+- Evidence: prompt_template_rollback_id.
+
+### FDR-CAP-181 - Model selection
+- Owner: foundry-provider.
+- Pass: model selection follows provider route and budget.
+- Evidence: model_selection_id.
+
+### FDR-CAP-182 - Model fallback
+- Owner: foundry-provider.
+- Pass: fallback model is certified for capability.
+- Evidence: model_fallback_id.
+
+### FDR-CAP-183 - Model deny
+- Owner: foundry-provider.
+- Pass: unsupported model is denied.
+- Evidence: model_denial_id.
+
+### FDR-CAP-184 - Token budget
+- Owner: foundry-runtime.
+- Pass: run cannot exceed token budget without approval.
+- Evidence: token_budget_event.
+
+### FDR-CAP-185 - Tool time budget
+- Owner: foundry-runtime.
+- Pass: tool time budget is enforced.
+- Evidence: tool_time_budget_event.
+
+### FDR-CAP-186 - Max step budget
+- Owner: foundry-runtime.
+- Pass: run stops at max steps.
+- Evidence: max_step_budget_event.
+
+### FDR-CAP-187 - Loop detection
+- Owner: foundry-runtime.
+- Pass: repeated action loop is detected and halted.
+- Evidence: loop_detection_event.
+
+### FDR-CAP-188 - Prompt compression
+- Owner: foundry-runtime.
+- Pass: compression preserves cited evidence and policy context.
+- Evidence: prompt_compression_id.
+
+### FDR-CAP-189 - Context boundary
+- Owner: foundry-runtime.
+- Pass: context contains only allowed data classes.
+- Evidence: context_boundary_check_id.
+
+### FDR-CAP-190 - Context eviction
+- Owner: foundry-runtime.
+- Pass: evicted context is summarized with data-class guard.
+- Evidence: context_eviction_id.
+
+### FDR-CAP-191 - Session resume
+- Owner: foundry-runtime.
+- Pass: resume reloads run, evidence, budget, and policy.
+- Evidence: session_resume_id.
+
+### FDR-CAP-192 - Session archive
+- Owner: foundry-runtime.
+- Pass: archive has hash, retention, and search metadata.
+- Evidence: session_archive_id.
+
+### FDR-CAP-193 - Operator handoff
+- Owner: foundry-ops.
+- Pass: handoff summarizes state, blockers, and evidence.
+- Evidence: operator_handoff_id.
+
+### FDR-CAP-194 - Blocker mark
+- Owner: foundry-ops.
+- Pass: blocker has condition, repeats, owner, and recovery attempts.
+- Evidence: blocker_record_id.
+
+### FDR-CAP-195 - Completion mark
+- Owner: foundry-ops.
+- Pass: completion requires no pending required work.
+- Evidence: completion_record_id.
+
+### FDR-CAP-196 - Quality review
+- Owner: foundry-review.
+- Pass: code/doc review findings are recorded.
+- Evidence: quality_review_id.
+
+### FDR-CAP-197 - Reviewer separation
+- Owner: foundry-review.
+- Pass: writer and reviewer roles are separate for cleanup/gates.
+- Evidence: reviewer_separation_id.
+
+### FDR-CAP-198 - Claim-safe parallelism
+- Owner: foundry-engineering.
+- Pass: parallel lanes have disjoint write scopes or admission.
+- Evidence: parallel_lane_plan_id.
+
+### FDR-CAP-199 - Serialized shared surface
+- Owner: foundry-engineering.
+- Pass: shared manifests and promotion lanes are serialized.
+- Evidence: serialized_surface_record_id.
+
+### FDR-CAP-200 - Final promotion summary
+- Owner: foundry-engineering.
+- Pass: summary names changed files, tests, evidence, and residual risk.
+- Evidence: promotion_summary_id.
+
+## AI substrate + Cellular automation
+
+This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
+
+- ADR-0346 binds Foundry acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 binds Foundry engineering-platform lane authoring to the `oya-governance-*` lane vocabulary after the `oya-foundry-fitness-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
+- ADR-0348 binds Foundry capability execution locality, tenant-scoped agent runs, and cross-product write placement to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 binds Foundry engineering-platform delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+
+## References
+
+- docs/standards/documentation-rigor.md
+- docs/personas/MASTER-ROSTER-2026-05-21.md
+- docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
+- docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
+- docs/decisions/ADR-0021-agentic-development-pipeline-hardening.md
+- docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md
+- docs/decisions/ADR-0024-cross-session-memory.md
+- docs/decisions/ADR-0025-foundry-as-engineering-platform.md
+- docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md
+- docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
+- docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- docs/decisions/ADR-0050-automation-first-pipeline.md
+- docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/decisions/ADR-0255-intelligence-two-layer-model.md
+- docs/decisions/ADR-0263-audit-event-registry.md
+- docs/decisions/ADR-0316-capability-tier-deltas.md
+- docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
+- docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md
+- docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
+- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
+- docs/products/foundry/PHASE-00-SPEC.md
+- specs/microservices/foundry.json
+- specs/microservices/workflow-engine.json
+- specs/microservices/intelligence.json

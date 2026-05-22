@@ -9,13 +9,13 @@ doc_status: published
 - purpose: Verify every standard cites the constitutional principle it derives from.
 - enforces: STANDARD/constitution-derivation; existing crate `oya-foundry-constitution-cite-kernel` (EXISTING).
 - kernel_crate: `oya-foundry-constitution-cite-kernel` (EXISTING) — `StandardCite { standard_id, principle_id }`, verdict `ConstitutionCiteFitnessReport { citations_checked }`.
-- runner_path: `tools/oya-foundry-fitness-constitution-cite`
+- runner_path: `tools/oya-governance-constitution-cite`
 - inputs: `docs/standards/**/*.md` front-matter `derives_from:`, constitution principle registry.
 - failure_modes:
   - standard with no `derives_from:`
   - principle id unresolved
   - principle id retracted
-- ci_invocation: `cargo run -p oya-foundry-fitness-constitution-cite`
+- ci_invocation: `cargo run -p oya-governance-constitution-cite`
 - runtime_budget: 350 ms
 - severity: HIGH
 - kernel_sketch:

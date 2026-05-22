@@ -8,7 +8,7 @@ sales_segment: workspace-product
 tier: external-facing
 milestone_first_ship: M03-workspace-preview
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/microservices/workspace.json]
 related_unbundle_adr: ADR-0135
 unbundle_sibling_set:
@@ -138,7 +138,8 @@ The load-bearing invariants are: **never silent loss** under concurrent edit (CR
 - WebSocket collab + broadcast-mode signaling availability: 99.9% monthly.
 - Present-mode core (offline-capable after deck-open): 99.99% (network-independent once hydrated).
 - LiveKit broadcast-bridge availability: inherited from messenger SLO (99.9%).
-- RTO ≤ 30s for editor-rest; RPO ≤ 1s for editor session state; ≤ 5s for deck-spec writes.
+- RTO ≤ 1800s for editor-rest per manifest `dr.rto_p99_seconds=1800`.
+- RPO ≤ 120s for editor session state and deck-spec writes per manifest `dr.rpo_p99_seconds=120`.
 
 ### Data residency
 
@@ -147,9 +148,39 @@ The load-bearing invariants are: **never silent loss** under concurrent edit (CR
 - Broadcast-mode signaling: LiveKit nodes pack-pinned via messenger µservice.
 - AI-generation: foundry-runtime handles cross-pack residency; slides inherits.
 
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=1800` and `rpo_p99_seconds=120`. HIPAA-2024 (3600s/300s), PCI-DSS-L1-v4 (86400s/3600s), SOC2-T2 (14400s/900s), ISO27001-2022 (14400s/3600s), and LGPD-aligned residency packs leave the effective slides bound at 1800s RTO and 120s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, and `valkey`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; present-mode remains offline-capable once the deck is hydrated.
+- WHY: presenters can survive regional control-plane failure without losing committed deck state or ending an already-hydrated presentation.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.15 vCPU, 512Mi RAM, 12Gi storage, 3 Valkey connections, 2 Postgres connections, and 6 outbound HTTP connections per tenant.
+- Scaling dimension: `per_user`; editing sessions, presenter/audience fan-out, deck rendering, and export workers scale with active users and broadcast participation.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because slides is a high-throughput authoring/broadcast application surface rather than tenant-customer code execution.
+- Autoscaling boundaries: editor REST min 4 / max 50, real-time collaboration min 3 / max 100, broadcast worker min 2 / max 50, and export worker min 4 / max 100 before tenant throttles engage.
+- WHY: slides has two different peaks--authoring bursts and live broadcast fan-out--so capacity must isolate editor/collab, broadcast, and export/AI pools.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every audit-chain row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` for saves, ACL changes, broadcast start/end, per-slide ACL, chart revocation, AI generation, import/export, render, and media transcode events.
+- Provider routing affected by carbon: no for live broadcast/presenter path, PCI/HIPAA contexts, ACL enforcement, or high-risk AI review; yes for PPTX/PDF/MP4 export, render backfill, theme/template processing, and AI design queues when tenant policy allows.
+- Per-tenant transparency surface: FinOps portal shows deck storage, editor sessions, broadcast viewer-minutes, export/render CPU, MP4 transcode time, AI generation calls, and LiveKit bridge cost by tenant/capability/provider/cell/compliance_pack.
+- WHY: live presentations cannot be delayed for greener routing, but exports, renders, and AI-design workloads are visible enough to support CSRD, SB-253, and SEC climate reporting.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for deck, slide, ACL, broadcast, import/export, AI-design, and embed-bridge contracts.
+- SDK semver model: major.minor.patch for browser-WASM editor SDKs, broadcast SDKs, import/export clients, and embed SDKs.
+- Support window: last N=3 public API versions for at least 180 days, including export and broadcast schemas used in customer validation.
+- Per-tenant pinning supported: yes, especially for presentation templates, regulated broadcast flows, and deck-export validation suites.
+- Internal-mesh exemption: yes; direct gRPC to drive, sheets, docs, forms, messenger, social, mail, and foundry remains exempt under ADR-0145 when internal-only.
+
 ## Bounded Contexts
 
-Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), slides uses: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-redis`, `adapter-s3`, `adapter-loro`, `adapter-pandoc`, `adapter-weasyprint`, `adapter-chromium-headless`, `adapter-ffmpeg`, `adapter-livekit`, `adapter-imagemagick`, `adapter-clamav`, `adapter-opswat`, `adapter-leptos-wasm`, `rest`, `worker`, `sdk`, `app`. Browser-WASM artifacts compile from the `app` layer per ADR-0065.
+Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), slides uses: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-valkey`, `adapter-s3`, `adapter-loro`, `adapter-pandoc`, `adapter-weasyprint`, `adapter-chromium-headless`, `adapter-ffmpeg`, `adapter-livekit`, `adapter-imagemagick`, `adapter-clamav`, `adapter-opswat`, `adapter-leptos-wasm`, `rest`, `worker`, `sdk`, `app`. Browser-WASM artifacts compile from the `app` layer per ADR-0065.
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
@@ -164,7 +195,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `chart` | `oya-slides-chart-{kernel,domain,usecase,api,adapter,sdk}` | Live-link chart bridge to sheets | `ChartLink`, `CellRange`, `RefreshPolicy` |
 | `table` | `oya-slides-table-{kernel,domain,usecase,api,adapter,adapter-leptos-wasm}` | Tables with merge + per-cell style | `Table`, `Cell`, `CellStyle` |
 | `equation` | `oya-slides-equation-{kernel,domain,usecase,api,adapter}` | KaTeX / MathJax equation typeset | `Equation`, `MathExpression` |
-| `real-time-collaboration` | `oya-slides-real-time-collaboration-{kernel,domain,usecase,api,adapter,adapter-redis,adapter-loro,worker,sdk}` | Loro-based CRDT collab; WebSocket dispatcher | `CrdtState`, `MergeOp`, `Conflict`, `EditorSession` |
+| `real-time-collaboration` | `oya-slides-real-time-collaboration-{kernel,domain,usecase,api,adapter,adapter-valkey,adapter-loro,worker,sdk}` | Loro-based CRDT collab; WebSocket dispatcher | `CrdtState`, `MergeOp`, `Conflict`, `EditorSession` |
 | `comments` | `oya-slides-comments-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Threaded comments + suggestion-mode | `Comment`, `Suggestion`, `Thread` |
 | `version-history` | `oya-slides-version-history-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,sdk}` | Versioning + restore | `Version`, `Diff`, `RestoreRequest` |
 | `animations` | `oya-slides-animations-{kernel,domain,usecase,api,adapter,adapter-leptos-wasm}` | Per-object animations + reduced-motion | `Animation`, `Timing`, `ReducedMotionFallback` |
@@ -221,7 +252,7 @@ JUSTIFICATION:
   library substrate is shared per ADR-SLIDES-0001).
 - layer = <layer>:
   - kernel + domain + usecase + api + adapter: standard layers.
-  - adapter-redis: ephemeral CRDT cache.
+  - adapter-valkey: ephemeral CRDT cache.
   - adapter-loro: backend-qualified per ADR-0105 Amd.3 — Loro library binding lives here, kept
     out of -domain to preserve the "kernel ports never leak Loro types" invariant from ADR-SLIDES-0001.
   - worker: WS gateway long-lived process.
@@ -248,7 +279,7 @@ JUSTIFICATION:
 
 Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0106; backend-qualified adapters per Amendment 3):
 
-| BC | kernel | domain | usecase | api | adapter | -postgres | -redis | -s3 | -loro | -pandoc | -weasyprint | -chromium-headless | -ffmpeg | -livekit | -imagemagick | -clamav | -opswat | -leptos-wasm | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | -postgres | -valkey | -s3 | -loro | -pandoc | -weasyprint | -chromium-headless | -ffmpeg | -livekit | -imagemagick | -clamav | -opswat | -leptos-wasm | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | presentation | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ | — | — | — | — | — | — | — | — | — | — | ✓ | — | ✓ | ✓ |
 | slide | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — | ✓ | — | — | ✓ | — |
@@ -394,7 +425,7 @@ CI lanes that must green:
 
 Key parity gaps to close (ordered by priority for M03 preview milestone):
 
-1. **PPTX round-trip fidelity (round-trippable subset)** — PowerPoint Web and ONLYOFFICE are gold-standard; oyatie target = 95% of round-trippable OOXML PresentationML subset preserved byte-for-byte on import → export → reimport.
+1. **PPTX round-trip fidelity (round-trippable subset)** — PowerPoint Web and ONLYOFFICE are reference standard; oyatie target = 95% of round-trippable OOXML PresentationML subset preserved byte-for-byte on import → export → reimport.
 2. **AI-content-generation under EU AI Act risk-class** — Gamma + Tome ship T2 generation broadly; oyatie differentiates with risk-class enforcement at generation request (ADR-SLIDES-0006).
 3. **Per-slide ACL granularity** — Google Slides offers deck-level ACL only; oyatie target = per-slide named-block ACL (ADR-SLIDES-0007) → unique differentiator.
 4. **Chart-live-link to sheets with revocation cascade** — Google Slides ↔ Sheets has live-link but inconsistent revocation; oyatie target = end-to-end audited revocation (ADR-SLIDES-0008).
@@ -417,7 +448,7 @@ Error budget:
 **State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale:
 - Editor session state, deck spec metadata, ACL: `postgres` (Citus-distributed by tenant_id).
 - Deck content snapshots + assets (images, video, audio): `s3`.
-- Ephemeral collab CRDT state, presenter-view session, broadcast-mode lease: `redis` (per-cell cluster; reconstructable from Postgres on cold-start).
+- Ephemeral collab CRDT state, presenter-view session, broadcast-mode lease: `valkey` (per-cell cluster; reconstructable from Postgres on cold-start).
 - Static assets (WASM bundles + theme gallery + template gallery): `cdn` (global edge cache; per-tenant key partitioning).
 - Live broadcast media: LiveKit SFU nodes (consumed via messenger µservice; NOT hosted in slides).
 
@@ -459,7 +490,7 @@ Sharding:
 | AC-ID | Criterion | Verification method |
 |---|---|---|
 | AC-01 | Drag-drop placeholder onto slide; save; emit canonical slide-spec.v1.json (semantically identical) | `cargo nextest run -p oya-slides-slide-domain --test test_authoring_roundtrip` |
-| AC-02 | Import PPTX (round-trippable subset) → emit → reimport byte-identical for 100 golden decks | `cargo nextest run -p oya-slides-import-export-domain --test test_pptx_roundtrip_subset` |
+| AC-02 | Import PPTX (round-trippable subset) → emit → reimport byte-identical for 100 reference decks | `cargo nextest run -p oya-slides-import-export-domain --test test_pptx_roundtrip_subset` |
 | AC-03 | Editor open with pending changes; network disconnect; local buffer persists; resume without loss on reconnect | `tests/e2e/offline-buffer-resume.rs` |
 | AC-04 | Per-pack jurisdiction switch; overlay-resolved view renders; base reachable | `cargo nextest run -p oya-slides-accessibility-domain --test test_per_pack_overlay` |
 | AC-05 | AI-content-generation T2 deck-from-prompt; valid: opens in editor; invalid: precise per-slide error | `tests/e2e/ai-content-validation.rs` |
@@ -516,3 +547,23 @@ Sharding:
 | ADR-SLIDES-0006 | AI-design + content-generation bounds | EU AI Act risk-class |
 | ADR-SLIDES-0007 | Per-slide ACL granularity | named-block-level Cedar |
 | ADR-SLIDES-0008 | Chart-live-link to sheets | eventual consistency + revocation cascade |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `slides` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `slides` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_user` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

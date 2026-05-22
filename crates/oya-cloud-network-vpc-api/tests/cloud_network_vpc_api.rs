@@ -13,7 +13,7 @@ use oya_cloud_network_vpc_api::{
     create_cloud_network_vpc_from_api,
 };
 
-const VPC_ID: &str = "oya:cloud:home-region:ten_alpha:vpc:prod";
+const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkVpcApiBoundaryContext {
     CloudNetworkVpcApiBoundaryContext {
@@ -46,7 +46,7 @@ fn create_body(resource_id: &str) -> CloudNetworkVpcCreateRequest {
     CloudNetworkVpcCreateRequest {
         resource_id: resource_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         cidr_v4: "10.42.0.0/16".to_string(),
         cidr_v6: "2001:db8:42::/56".to_string(),
         flow_logs_enabled: true,
@@ -76,7 +76,7 @@ fn create_body(resource_id: &str) -> CloudNetworkVpcCreateRequest {
                 description: "tenant https ingress".to_string(),
             }],
         }],
-        residency: "strict_home".to_string(),
+        residency: "strict_home_region".to_string(),
         data_class: "PUBLIC".to_string(),
         created_at_epoch_seconds: 1_700_000_000,
     }
@@ -124,13 +124,13 @@ fn vpc_create_api_creates_vpc_once_and_replays_same_idempotent_result() {
     assert_eq!(first.metadata.request_id, "req-network-vpc-create");
     assert_eq!(first.data.resource_id, VPC_ID);
     assert_eq!(first.data.tenant_id, "ten_alpha");
-    assert_eq!(first.data.region, "home-region");
+    assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.cidr_v4, "10.42.0.0/16");
     assert_eq!(first.data.cidr_v6, "2001:db8:42::/56");
     assert!(first.data.flow_logs_enabled);
     assert_eq!(first.data.route_count, 2);
     assert_eq!(first.data.security_group_count, 1);
-    assert_eq!(first.data.residency, "strict_home");
+    assert_eq!(first.data.residency, "strict_home_region");
     assert_eq!(first.data.data_class, "PUBLIC");
     assert_eq!(first.data.state, "creating");
     assert_eq!(first.data.schema_version, 1);
@@ -141,7 +141,7 @@ fn vpc_create_api_rejects_path_body_vpc_drift_before_catalog_mutation() {
     let mut catalog = CloudNetworkCatalog::default();
     let mut ledger = CloudNetworkVpcCreateIdempotencyLedger::default();
     let mut request = create_request("req-network-vpc-drift", "idem-network-vpc-drift");
-    request.body.resource_id = "oya:cloud:home-region:ten_alpha:vpc:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:vpc:other".to_string();
 
     let error = create_cloud_network_vpc_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body VPC drift is rejected");
@@ -150,7 +150,7 @@ fn vpc_create_api_rejects_path_body_vpc_drift_before_catalog_mutation() {
         error,
         CloudNetworkVpcApiError::VpcIdMismatch {
             path_vpc_id: VPC_ID.to_string(),
-            body_resource_id: "oya:cloud:home-region:ten_alpha:vpc:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:vpc:other".to_string(),
         }
     );
     assert_eq!(error.vpc_create_status_code(), 400);
@@ -278,7 +278,7 @@ fn vpc_create_api_maps_flow_log_and_residency_invariants() {
     residency_drift.body.region = "failover-region".to_string();
     let residency_error =
         create_cloud_network_vpc_from_api(&mut catalog, &mut ledger, residency_drift)
-            .expect_err("strict home residency cannot create a US VPC");
+            .expect_err("strict home-region residency cannot create a US VPC");
 
     assert_eq!(
         residency_error,

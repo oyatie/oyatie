@@ -28,7 +28,7 @@ Stand up the OpenBao operator, the SecretReference resolver SDK, per-tenant name
 | OCI Cloud-HSM + Thales Luna HSM integration | HSM hardware procurement (ops-finance owns) |
 | SecretReference resolver SDK (Rust + TS via napi-rs + Python via pyo3) | tenant-facing UI for secret rotation (separate Workflow Studio plug-in) |
 | Per-tenant namespace controller | tenant lifecycle (`tenancy` µservice owns; this µservice reacts) |
-| Key-rotation scheduler with cascade rotation | rotation of tenant-supplied BYOK (open question OQ-5) |
+| Key-rotation scheduler with cascade rotation | rotation of tenant-supplied encryption-key BYOK (ADR-0251 §D-10; open question OQ-5) |
 | Audit emitter bridging OpenBao audit log → `audit-chain` µservice | `audit-chain` µservice itself (separate µservice) |
 | LEAN-A11 raw-secret-emission lane (gitleaks + tartufo + oyatie custom) | retroactive scan of git history older than rotation horizon (separate ops task) |
 | pack-kr IaC overlay | other pack overlays (filed but not activated until first per-pack tenant signs DPA) |

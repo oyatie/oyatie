@@ -41,7 +41,7 @@ Creates `iac/` subtree only. No source code in this IP.
 | `iac/helm/translate-router/templates/pdb-*.yaml` | create |
 | `iac/helm/translate-router/templates/istio-virtualservice.yaml` | create — mTLS STRICT |
 | `iac/helm/postgres/values.yaml` | create — per-pack Postgres 16 HA |
-| `iac/helm/redis/values.yaml` | create — Valkey 8.1 (Redis wire-compat) sentinel HA |
+| `iac/helm/valkey/values.yaml` | create — Valkey 8.1 (RESP wire-compatible) sentinel HA |
 | `iac/helm/meilisearch/values.yaml` | create — Meilisearch 0.10.0 LTS |
 | `iac/kustomize/base/kustomization.yaml` | create — namespace `oya-translate`; commonLabels |
 | `iac/kustomize/overlays/pack-kr/kustomization.yaml` | create — namespace `oya-translate-kr`; engine whitelist patch (in-house + Anthropic + Google + DeepL conditional) |
@@ -144,3 +144,13 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 ## Next IP
 
 [`IP-002-translate-router-kernel.md`](IP-002-translate-router-kernel.md)
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/translate/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `1800s` RTO p99 and `300s` RPO p99.
+- Applicable compliance pack floor: `EU-AI-ACT-2024-HIGH-RISK` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=1800`, `rpo_p99_seconds=300`, `multi_region_required=true`, `drill_cadence_required=quarterly`).
+- Multi-region active-active posture: `true` (required by the selected floor and IP evidence).
+- backup_substrate: `valkey`, `postgres_wal_g`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/translate/IP-001-iac-and-pack-overlays.md:104` - - name: oya:translate:translation_request_p99_ms:rolling_5m; `microservices/translate/IP-001-iac-and-pack-overlays.md:106` - - name: oya:translate:tm_leverage_p99_ms:rolling_5m.

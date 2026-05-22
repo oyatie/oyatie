@@ -85,7 +85,7 @@ oyatie messenger adopts a **strict tier-split** for MLS key escrow:
 - Rejected: kills regulated-enterprise viability.
 
 ### C. Tier-split (this ADR's choice — Personal-DM no escrow; Professional-channel tenant-admin escrow)
-- Pros: honours both the Personal-pillar trust model AND the regulated-enterprise eDiscovery requirement; tier boundary maps cleanly to context boundary; Cedar policy + audit-chain make the boundary auditable.
+- Pros: honours both the Personal-pillar trust model AND the regulated-enterprise eDiscovery requirement; service class boundary maps cleanly to context boundary; Cedar policy + audit-chain make the boundary auditable.
 - Accepted.
 
 ### D. Per-conversation user-set escrow (each conversation creator picks escrow on/off)

@@ -1,0 +1,321 @@
+schema_version: "2026-05-20.observability-dashboard.v1"
+doc_class: ObservabilityDashboard
+dashboard_id: capability-tier-sla-conformance
+owner: axis-capability-registry
+related_oyatie_adrs:
+  - ADR-0316
+  - ADR-0263
+  - ADR-0130
+  - ADR-0139
+  - ADR-0244
+title: "Capability Tier SLA Conformance"
+description: "Bronze, Silver, Gold, and Platinum SLA conformance dashboard for ADR-0316. Tracks per-tier availability, API latency, support response, RPO/RTO, promotion-input coverage, burn rates, and tenant grant posture against the canonical tier definitions in registry/capability-tiers."
+refresh: 30s
+time_from: now-30d
+time_to: now
+timezone: utc
+folder: oyatie-capability-tiers
+schema_tags:
+  - capability-tier
+  - sla
+  - bronze
+  - silver
+  - gold
+  - platinum
+  - adr-0316
+datasource_defaults:
+  metrics: Mimir
+  logs: Loki
+  analytics: ClickHouse
+variables:
+  - name: environment
+    label: Environment
+    type: custom
+    default: production
+    values:
+      - dev
+      - staging
+      - production
+  - name: capability_tier_id
+    label: Capability Tier
+    type: custom
+    default: ".*"
+    values:
+      - bronze
+      - silver
+      - gold
+      - platinum
+      - ".*"
+  - name: tenant_id
+    label: Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"}, tenant_id)"
+    multi: true
+    include_all: true
+  - name: microservice
+    label: Microservice
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"}, microservice_id)"
+    multi: true
+    include_all: true
+  - name: jurisdiction_pack_id
+    label: Pack
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"}, jurisdiction_pack_id)"
+    multi: true
+    include_all: true
+  - name: window
+    label: SLO Window
+    type: custom
+    default: 30d
+    values:
+      - 1h
+      - 6h
+      - 3d
+      - 30d
+annotations:
+  - name: tier_activation_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"CapabilityTierGrantActivated|CapabilityTierGrantRevoked|CapabilityTierProjectionPublished\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | capability_tier_id=~\"$capability_tier_id\" | line_format \"{{.tenant_id}} {{.capability_tier_id}} {{.event_class}} {{.audit_id}}\""
+    tags:
+      - capability-tier
+      - grant
+  - name: deployment_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=\"DeploymentCompleted\",environment=\"$environment\",microservice=~\"capability-registry|observability|policy-engine|workflow-engine\"} | json | line_format \"{{.microservice}} {{.version}} {{.changeset_id}}\""
+    tags:
+      - deploy
+      - sla
+  - name: incident_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"CapabilityTierSlaBreach|CapabilityTierPromotionHeld|CapabilityTierRollbackStarted\",environment=\"$environment\"} | json | line_format \"{{.severity}} {{.tenant_id}} {{.capability_tier_id}} {{.incident_id}}\""
+    tags:
+      - incident
+      - sla-breach
+tier_targets:
+  - capability_tier_id: bronze
+    monthly_availability_pct: 99.9
+    api_p95_latency_ms: 350
+    api_p99_latency_ms: 900
+    support_response_minutes_p1: 240
+    rpo_minutes: 1440
+    rto_minutes: 480
+  - capability_tier_id: silver
+    monthly_availability_pct: 99.95
+    api_p95_latency_ms: 250
+    api_p99_latency_ms: 700
+    support_response_minutes_p1: 120
+    rpo_minutes: 240
+    rto_minutes: 120
+  - capability_tier_id: gold
+    monthly_availability_pct: 99.99
+    api_p95_latency_ms: 180
+    api_p99_latency_ms: 500
+    support_response_minutes_p1: 30
+    rpo_minutes: 240
+    rto_minutes: 60
+  - capability_tier_id: platinum
+    monthly_availability_pct: 99.99
+    pack_bound_availability_pct: 99.995
+    api_p95_latency_ms: 150
+    api_p99_latency_ms: 400
+    support_response_minutes_p1: 15
+    rpo_minutes: 60
+    rto_minutes: 30
+panels:
+  - title: "Availability conformance by capability tier"
+    type: gauge
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * min by (capability_tier_id, tenant_id, jurisdiction_pack_id) (oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\",jurisdiction_pack_id=~\"$jurisdiction_pack_id\"})"
+        labels:
+          signal: availability_actual
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id) (oya:capability-tier:sla:availability_target_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"}) * 100"
+        labels:
+          signal: availability_target
+  - title: "Availability target gap"
+    type: graph
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * (min by (capability_tier_id, tenant_id) (oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"}) - max by (capability_tier_id) (oya:capability-tier:sla:availability_target_ratio:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"}))"
+        labels:
+          signal: availability_target_gap
+          expectation: non_negative
+  - title: "API latency p95 versus tier target"
+    type: graph
+    datasource: Mimir
+    unit: milliseconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, capability_tier_id, tenant_id, microservice_id) (rate(oya:capability-tier:api:request_duration_seconds:bucket{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\",microservice_id=~\"$microservice\"}[5m]))) * 1000"
+        labels:
+          signal: api_latency_p95_actual
+          bucket_label: le
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id) (oya:capability-tier:sla:api_p95_latency_ms:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"})"
+        labels:
+          signal: api_latency_p95_target
+  - title: "API latency p99 versus tier target"
+    type: graph
+    datasource: Mimir
+    unit: milliseconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.99, sum by (le, capability_tier_id, tenant_id, microservice_id) (rate(oya:capability-tier:api:request_duration_seconds:bucket{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\",microservice_id=~\"$microservice\"}[5m]))) * 1000"
+        labels:
+          signal: api_latency_p99_actual
+          bucket_label: le
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id) (oya:capability-tier:sla:api_p99_latency_ms:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"})"
+        labels:
+          signal: api_latency_p99_target
+  - title: "Tier burn-rate status"
+    type: graph
+    datasource: Mimir
+    unit: burn_rate
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (capability_tier_id, tenant_id, sli) (oya:capability-tier:sla:burn_rate_fast_1h:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"})"
+        labels:
+          signal: tier_fast_burn
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id, tenant_id, sli) (oya:capability-tier:sla:burn_rate_slow_6h:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"})"
+        labels:
+          signal: tier_slow_burn
+  - title: "Support P1 response conformance"
+    type: graph
+    datasource: Mimir
+    unit: minutes
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, capability_tier_id, tenant_id) (rate(oya:capability-tier:support:p1_response_duration_seconds:bucket{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"}[30d]))) / 60"
+        labels:
+          signal: support_p1_response_actual
+          bucket_label: le
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id) (oya:capability-tier:sla:support_response_minutes_p1:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"})"
+        labels:
+          signal: support_p1_response_target
+  - title: "RPO conformance"
+    type: graph
+    datasource: Mimir
+    unit: minutes
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (capability_tier_id, tenant_id, backup_domain) (oya:capability-tier:backup:latest_recoverable_point_age_minutes:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"})"
+        labels:
+          signal: rpo_actual_minutes
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id) (oya:capability-tier:sla:rpo_minutes:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"})"
+        labels:
+          signal: rpo_target_minutes
+  - title: "RTO drill conformance"
+    type: graph
+    datasource: Mimir
+    unit: minutes
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, capability_tier_id, tenant_id, drill_type) (rate(oya:capability-tier:dr:recovery_duration_seconds:bucket{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"}[30d]))) / 60"
+        labels:
+          signal: rto_actual_minutes
+          bucket_label: le
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id) (oya:capability-tier:sla:rto_minutes:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"})"
+        labels:
+          signal: rto_target_minutes
+  - title: "Promotion input coverage"
+    type: table
+    datasource: Mimir
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (capability_tier_id, tenant_id, input_type, required_count) (oya:capability-tier:promotion_inputs:completed_count:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\"})"
+        labels:
+          signal: promotion_inputs_completed
+      - ref_id: B
+        query_type: PromQL
+        expr: "max by (capability_tier_id, input_type) (oya:capability-tier:promotion_inputs:required_count:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\"})"
+        labels:
+          signal: promotion_inputs_required
+  - title: "Capability tier grant health"
+    type: graph
+    datasource: Mimir
+    unit: grants
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (capability_tier_id, grant_state, jurisdiction_pack_id) (oya:capability-tier:grant:state:gauge{environment=\"$environment\",capability_tier_id=~\"$capability_tier_id\",tenant_id=~\"$tenant_id\",jurisdiction_pack_id=~\"$jurisdiction_pack_id\"})"
+        labels:
+          signal: grant_state_count
+  - title: "Capability tier SLA breach events"
+    type: table
+    datasource: Loki
+    targets:
+      - ref_id: A
+        query_type: LogQL
+        expr: "{event_class=~\"CapabilityTierSlaBreach|CapabilityTierPromotionHeld|CapabilityTierRollbackStarted\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | capability_tier_id=~\"$capability_tier_id\" | line_format \"{{.ts}} {{.tenant_id}} {{.capability_tier_id}} {{.sli}} {{.breach_reason}} {{.audit_id}}\""
+        labels:
+          signal: sla_breach_log
+          requires_field: audit_id
+  - title: "Tier SLA historical conformance"
+    type: table
+    datasource: ClickHouse
+    targets:
+      - ref_id: A
+        query_type: SQL
+        expr: "SELECT tenant_id, capability_tier_id, sli, min(actual_value - target_value) AS worst_gap, countIf(conformant = 0) AS breach_count, max(audit_id) AS latest_audit_id FROM oya_capability_tier_sla_samples WHERE environment = '$environment' AND sampled_at >= now() - INTERVAL 30 DAY GROUP BY tenant_id, capability_tier_id, sli ORDER BY breach_count DESC, worst_gap ASC LIMIT 200"
+        labels:
+          signal: tier_sla_history
+          storage: clickhouse
+alerts:
+  - alert_id: capability_tier_availability_breach
+    title: "Capability tier availability below target"
+    datasource: Mimir
+    severity: page
+    condition: "min(oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\"} - oya:capability-tier:sla:availability_target_ratio:gauge{environment=\"$environment\"}) < 0"
+    for: 10m
+    labels:
+      gate: oya-vcs-promotion-readiness
+      verdict_on_fire: held
+  - alert_id: capability_tier_latency_breach
+    title: "Capability tier p99 latency exceeds target"
+    datasource: Mimir
+    severity: ticket
+    condition: "histogram_quantile(0.99, sum by (le, capability_tier_id) (rate(oya:capability-tier:api:request_duration_seconds:bucket{environment=\"$environment\"}[5m]))) * 1000 > max by (capability_tier_id) (oya:capability-tier:sla:api_p99_latency_ms:gauge{environment=\"$environment\"})"
+    for: 15m
+    labels:
+      adr_anchor: ADR-0316
+  - alert_id: capability_tier_promotion_inputs_missing
+    title: "Capability tier promotion input coverage incomplete"
+    datasource: Mimir
+    severity: page
+    condition: "min by (capability_tier_id, input_type) (oya:capability-tier:promotion_inputs:completed_count:gauge{environment=\"$environment\"} - oya:capability-tier:promotion_inputs:required_count:gauge{environment=\"$environment\"}) < 0"
+    for: 5m
+    labels:
+      verdict_on_fire: held

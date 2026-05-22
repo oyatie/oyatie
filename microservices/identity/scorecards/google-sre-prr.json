@@ -16,7 +16,7 @@
     },
     "monitoring_complete": {
       "documented": true,
-      "evidence": "dashboards/identity-overview.json (4 golden signals); dashboards/passkey-funnel.json; dashboards/scim-provisioning-health.json"
+      "evidence": "dashboards/identity-overview.json (4 core signals); dashboards/passkey-funnel.json; dashboards/scim-provisioning-health.json"
     },
     "alerting_complete": {
       "documented": true,

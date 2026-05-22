@@ -1,0 +1,47 @@
+{
+  "title": "Warehouse health",
+  "tags": [
+    "erp",
+    "warehouse",
+    "inbound-delivery",
+    "EWM"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "benchmarks": [
+    "SAP EWM Extended Warehouse Management",
+    "Oracle Fusion Warehouse Management",
+    "Workday inventory-operations counterpart",
+    "NetSuite WMS",
+    "Microsoft Dynamics 365 Warehouse Management"
+  ],
+  "panels": [
+    {
+      "title": "inbound-delivery command rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_warehouse_inbound_delivery_commands_total[5m])) by (tenant_id)"
+        }
+      ]
+    },
+    {
+      "title": "inbound-delivery p99 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_warehouse_inbound_delivery_latency_seconds_bucket[5m])) by (le, tenant_id))"
+        }
+      ]
+    },
+    {
+      "title": "inbound-delivery audit events",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(audit_events_total{service=\"warehouse\",bounded_context=\"inbound-delivery\"}[5m]))"
+        }
+      ]
+    }
+  ]
+}

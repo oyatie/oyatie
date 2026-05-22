@@ -4,7 +4,7 @@
   "scanned_files": 99,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -108,7 +108,7 @@
           "hits": [
             {
               "line": 42,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |"
             },
             {
               "line": 93,
@@ -178,11 +178,11 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/docs/IP-007-collab-crdt-adapter-redis-worker.md",
+          "file": "microservices/docs/IP-007-collab-crdt-adapter-valkey-worker.md",
           "hits": [
             {
               "line": 19,
-              "excerpt": "Implement PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (Redis wire-compat) cluster mode + a long-running WebSocket gateway worker that fans out CRDT ops via consistent-hash on `document_id`."
+              "excerpt": "Implement PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (RESP3 wire-compatible) cluster mode + a long-running WebSocket gateway worker that fans out CRDT ops via consistent-hash on `document_id`."
             }
           ],
           "hits_total": 1
@@ -192,7 +192,7 @@
           "hits": [
             {
               "line": 44,
-              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n docs exec <redis-pod> -- redis-cli HGETALL \"lease:tenant:<tenant_hash>:doc:<doc_id>\"`."
+              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n docs exec <valkey-pod> -- valkey-cli HGETALL \"lease:tenant:<tenant_hash>:doc:<doc_id>\"`."
             },
             {
               "line": 75,
@@ -262,11 +262,11 @@
           "hits_total": 12
         },
         {
-          "file": "microservices/docs/catalog/oya-docs-collab-crdt-adapter-redis.yaml",
+          "file": "microservices/docs/catalog/oya-docs-collab-crdt-adapter-valkey.yaml",
           "hits": [
             {
               "line": 22,
-              "excerpt": "Implements PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (Redis wire-compat) cluster mode."
+              "excerpt": "Implements PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (RESP3 wire-compatible) cluster mode."
             }
           ],
           "hits_total": 1
@@ -413,7 +413,7 @@
       "lines": 46
     },
     {
-      "file": "microservices/docs/IP-007-collab-crdt-adapter-redis-worker.md",
+      "file": "microservices/docs/IP-007-collab-crdt-adapter-valkey-worker.md",
       "lines": 45
     }
   ],

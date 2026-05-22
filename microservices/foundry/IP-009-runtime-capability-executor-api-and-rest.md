@@ -73,7 +73,7 @@ pub async fn dispatch(
         &principal.tenant_id,
         &capability_id,
         req.input,
-        AutonomyTier::from_int(req.autonomy_tier_declared)?,
+        AutonomyLevel::from_int(req.autonomy_level_declared)?,
     ).await?;
     Ok((StatusCode::ACCEPTED, Json(DispatchResponse::from(invocation))))
 }
@@ -131,3 +131,9 @@ cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice fou
 - `contracts/openapi/foundry-runtime.yaml`.
 - `policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`.
 - ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

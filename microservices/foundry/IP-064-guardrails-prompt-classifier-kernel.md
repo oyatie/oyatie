@@ -88,7 +88,7 @@ pub enum BlockReason {
     Pii, Phi, JailbreakInjection, ContentSafetyToxicity,
     ContentSafetySelfHarm, ContentSafetySexual, ContentSafetyViolence,
     ContentSafetyMinors, ContentSafetyHate, ContentSafetyWeapons,
-    ContentSafetyIllegal, AutonomyTierExceeded, PolicyDeny,
+    ContentSafetyIllegal, AutonomyLevelExceeded, PolicyDeny,
     LlmJudgeBudgetExceeded, AiSlop,
 }
 ```
@@ -159,3 +159,9 @@ Per kernel class: 1 test per public type + 1 per port trait + 1 sealed-trait smo
 - ADR-0056 BNF v4.1; ADR-0105 13-layer; ADR-0106 usecase rename; ADR-0140 (retired per ADR-0145) Cedar.
 - PRD §"Bounded Contexts" port-trait table.
 - Bominal ADR-0028 (data-class taxonomy).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

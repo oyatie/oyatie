@@ -24,7 +24,7 @@ Participant BC tracks per-participant state with role discrimination (`Host`, `C
 | Path | Action |
 |---|---|
 | `src/crates/oya-meet-participant-{kernel,domain,usecase}/src/...` | create |
-| `src/crates/oya-meet-participant-adapter-redis/src/lobby_queue.rs` | create — Redis-backed lobby queue per instance |
+| `src/crates/oya-meet-participant-adapter-valkey/src/lobby_queue.rs` | create — Valkey-backed lobby queue per instance |
 | `src/crates/oya-meet-participant-adapter-postgres/src/log.rs` | create — append-only participant log |
 | `src/crates/oya-meet-participant-rest/src/handlers.rs` | create — REST handlers (lobby approve/deny, role-change, list) |
 | `src/crates/oya-meet-participant-worker/src/lobby_evictor.rs` | create — TTL-evict lobby members after host inactivity |
@@ -68,7 +68,7 @@ impl ApproveLobbyMember {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-meet-participant-adapter-redis
+cargo nextest run -p oya-meet-participant-adapter-valkey
 cargo nextest run -p oya-meet-participant-rest
 cargo nextest run --test lobby_gate_e2e
 cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice meet

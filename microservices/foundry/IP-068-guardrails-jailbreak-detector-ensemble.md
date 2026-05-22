@@ -34,7 +34,7 @@ Five crates as one ChangeSet — the ensemble is meaningless without all three l
 | `src/crates/oya-foundry-guardrails-jailbreak-detector-adapter-classifier-model/Cargo.toml` + `src/{lib.rs,classifier.rs,llm_judge.rs}` | create |
 | `Cargo.toml` (workspace) | update — 5 members |
 | `catalog/oya-foundry-guardrails-jailbreak-detector-{kernel,domain,usecase,adapter,adapter-classifier-model}.yaml` | create |
-| `tests/jailbreak/golden_fixtures.rs` | create (red-team catalogue; 10+ known-jailbreak fixtures + 10+ legitimate-prompt fixtures) |
+| `tests/jailbreak/baseline_fixtures.rs` | create (red-team catalogue; 10+ known-jailbreak fixtures + 10+ legitimate-prompt fixtures) |
 
 ## Code Shape
 
@@ -94,7 +94,7 @@ cargo check -p oya-foundry-guardrails-jailbreak-detector-usecase --all-features
 cargo check -p oya-foundry-guardrails-jailbreak-detector-adapter --all-features
 cargo check -p oya-foundry-guardrails-jailbreak-detector-adapter-classifier-model --all-features
 cargo nextest run -p oya-foundry-guardrails-jailbreak-detector-domain --all-features
-cargo nextest run -p oya-foundry-guardrails-jailbreak-detector-usecase --all-features --test ensemble_golden_fixtures
+cargo nextest run -p oya-foundry-guardrails-jailbreak-detector-usecase --all-features --test ensemble_baseline_fixtures
 cargo nextest run -p oya-foundry-guardrails-jailbreak-detector-adapter-classifier-model --all-features --test classifier_integration
 ```
 
@@ -106,12 +106,12 @@ cargo nextest run -p oya-foundry-guardrails-jailbreak-detector-adapter-classifie
 | `test_ensemble_agreement_path` | agreement → fast path; no LLM-judge invoked |
 | `test_ensemble_disagreement_invokes_judge` | disagreement triggers fallback |
 | `test_budget_exhausted_fails_closed` | budget=0 → block + budget_exhausted reason |
-| `test_golden_fixtures` (10+ known jailbreaks + 10+ legitimate) | recall ≥ 0.95, precision ≥ 0.90 on golden fixtures |
+| `test_baseline_fixtures` (10+ known jailbreaks + 10+ legitimate) | recall ≥ 0.95, precision ≥ 0.90 on baseline fixtures |
 | `integration_classifier_round_trip` | real ONNX-runtime against placeholder model |
 
 ## Halt Conditions
 
-- Recall on golden fixtures < 0.90 — escalate; do not promote-to-enforce.
+- Recall on baseline fixtures < 0.90 — escalate; do not promote-to-enforce.
 - LLM-judge bypass attempted — refactor; budget enforcement mandatory.
 
 ## Next IP
@@ -125,3 +125,9 @@ cargo nextest run -p oya-foundry-guardrails-jailbreak-detector-adapter-classifie
 - `docs/quality/ai-slop-defense/ai-slop-failure-mode-catalogue.md`.
 - OWASP LLM Top 10 (2025) LLM01 Prompt Injection.
 - MITRE ATLAS AML.T0043.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

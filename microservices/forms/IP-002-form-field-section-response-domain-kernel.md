@@ -90,3 +90,25 @@ cargo run -p oya-dev-cli -- gate validate form-schema-conformance --microservice
 - ADR-0131 per-microservice flat layout.
 - RFC 8785 JCS.
 - JSON Schema draft 2020-12.
+
+## Counterpart Benchmark
+
+- Counterpart: Notion Forms/Databases typed properties, GitHub issue forms YAML, HubSpot Forms field model, and Salesforce Web-to-Lead field mapping.
+- Defensible parity claim: the domain kernel must represent fields, sections, pages, responses, data classes, and canonical schema hashes without adapter leakage.
+- Differentiator: Oyatie makes canonical byte equality and schema-hash determinism acceptance gates for every form definition.
+- Grep counterpart names: Notion Forms/Databases; GitHub issue forms; HubSpot Forms; Salesforce Web-to-Lead.
+
+## Foundation A-G Substance
+
+- A. Product scope: the kernel defines the portable form and response language consumed by builder, renderer, collector, export, and workflow trigger paths.
+- B. Domain model: `FormSpecV1`, `Field`, `Section`, `Page`, `Response`, `Submission`, and `FormVersion` remain pure and I/O-free.
+- C. Contracts: canonical bytes, schema hashes, JSON Schema, OpenAPI, and proto must name the same fields and data classes.
+- D. Policy: every field declares data class, consent posture, i18n label, and purpose before any publish path can proceed.
+- E. Operations: malformed schema, missing data class, missing locale label, or non-deterministic hash blocks publish before adapters run.
+- F. Observability: domain gates emit canonicalization failures, schema-hash mismatches, data-class omissions, and locale coverage failures.
+- G. Promotion: property tests, 1000-case byte equality, coverage thresholds, and schema conformance are required before branching or validation IPs.
+
+## Remediation Notes
+
+- Added grep-recognized counterpart names for foundation IP parity verification.
+- Preserved the existing pure-domain kernel scope and test plan.

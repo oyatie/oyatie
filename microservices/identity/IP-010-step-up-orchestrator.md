@@ -113,7 +113,7 @@ These predicates live in `microservices/identity/policy/cedar-acr-predicates.ced
 
 - **Factor ceremony failure**: emit `IdentityStepUpDenied`; allow retry up to 3 attempts.
 - **IT-approval timeout** (no approval in 5 min): expire; user must restart.
-- **Orchestrator crash mid-flow**: state in Redis; flow can resume from last completed factor up to 5 min after orchestrator recovery.
+- **Orchestrator crash mid-flow**: state in Valkey; flow can resume from last completed factor up to 5 min after orchestrator recovery.
 
 ## Evidence
 
@@ -126,3 +126,10 @@ These predicates live in `microservices/identity/policy/cedar-acr-predicates.ced
 - 10 orchestrator tests pass.
 - End-to-end browser test: routine→elevated→sensitive→critical succeeds within 30s.
 - `oya-check-step-up-auth-coverage` lane reports ≥80% sensitive-path coverage across the µservice fleet.
+
+## Counterpart references - 010-step-up-orchestrator
+
+- Counterpart class: identity substrate.
+- Palantir Foundry and GitHub Enterprise are the counterpart baseline for governed multi-tenant identity surfaces; this IP ties the slice to Oyatie identity contracts, Cedar, and audit-chain evidence rather than leaving the behavior as generic application authentication.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+

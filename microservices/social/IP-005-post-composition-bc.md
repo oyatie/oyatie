@@ -8,109 +8,75 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-social
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location, oya-governance-statelessness, oya-governance-dual-context-isolation]
+acceptance_lanes: [cargo-nextest, media-pipeline-test, post-create-slo]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-005: Post-composition bounded context
 
-# IP-005: post-composition BC (kernel → domain → usecase → adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)
+## A. Problem
+The social product promise depends on safe post creation for text, media, replies, reposts, quotes, visibility, content warnings, alt text, and messenger handoff.
 
-## Intent
+## B. Approach
+Implement the cataloged post-composition kernel and adapters for Postgres, S3, ImageMagick, and ffmpeg with planned domain/usecase/rest/worker/sdk/app layers. Keep binary media processing behind adapters and enforce content policy before publish.
 
-Author the full `post-composition` BC: post + repost + quote-post + comment
-CRUD with edit-window + tombstone; media upload (S3 multipart) + ImageMagick
-image transcode + ffmpeg video HLS transcode; link-preview emission; visibility
-scope enforcement; content-warning marking; cross-link emission to messenger
-deep-link bridge.
-
-Lands `PersonalPost` and `ProfessionalPost` as distinct entity types per
-`policy/dual-context-isolation.md` DCI-01 + DCI-02 invariants.
-
-## ChangeSet boundary
-
-`post-composition` BC end-to-end across kernel + domain + usecase + api +
-adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest +
-worker + sdk + app crates.
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `src/crates/oya-social-post-composition-kernel/src/{ports,entities,errors}.rs` | create |
-| `src/crates/oya-social-post-composition-domain/src/{personal_post,professional_post,repost,quote_post,comment,visibility,content_warning,link_preview,edit_window,tombstone,content_hash}.rs` | create |
-| `src/crates/oya-social-post-composition-usecase/src/{publish,edit,delete,repost,quote_post,comment,upload_media}.rs` | create |
-| `src/crates/oya-social-post-composition-adapter-postgres/src/repository.rs` | create |
-| `src/crates/oya-social-post-composition-adapter-postgres/migrations/0001_init.sql` | create |
-| `src/crates/oya-social-post-composition-adapter-s3/src/blob_store.rs` | create |
-| `src/crates/oya-social-post-composition-adapter-imagemagick/src/transcoder.rs` | create |
-| `src/crates/oya-social-post-composition-adapter-ffmpeg/src/transcoder.rs` | create |
-| `src/crates/oya-social-post-composition-rest/src/handlers.rs` | create |
-| `src/crates/oya-social-post-composition-worker/src/{media_transcode,link_preview,messenger_bridge}.rs` | create |
-| `src/crates/oya-social-post-composition-app/src/main.rs` | create |
-| `tests/post_composition_e2e.rs` | create |
+| `catalog/oya-social-post-composition-*.yaml` | Existing kernel/adapters anchors. |
+| `src/crates/oya-social-post-composition-{kernel,domain,usecase,api,adapter-postgres,adapter-s3,adapter-imagemagick,adapter-ffmpeg,rest,worker,sdk,app}/` | Planned family named by PRD/IP/catalog. |
+| `decisions/ADR-SOC-0006-media-transcode-and-storage.md` | Media pipeline decision source. |
+| `slos/post-create-latency.openslo.yaml` | Post create SLO. |
 
-## Code Shape
+## D. Ordered implementation steps
+1. Define post, repost, quote, reply, media, visibility, content-warning, and alt-text types.
+2. Implement visibility and context rules before persistence.
+3. Add Postgres and S3 adapters with tenant-scoped keys.
+4. Add ImageMagick/ffmpeg adapter ports for derivative and HLS jobs.
+5. Add pre-publish moderation and malware-scan hooks.
+6. Add tests for visibility, media limits, alt-text requirement, and messenger share payloads.
+7. Emit `PostPublished` and related events with idempotency keys.
 
-```rust
-// kernel/src/ports.rs
-#[async_trait]
-pub trait PostStore: Send + Sync {
-    async fn publish_personal(&self, post: PersonalPost) -> Result<PersonalPost, PostError>;
-    async fn publish_professional(&self, post: ProfessionalPost) -> Result<ProfessionalPost, PostError>;
-    async fn get(&self, tenant_id: &TenantId, post_id: &PostId) -> Result<Option<Post>, PostError>;
-    async fn edit(&self, tenant_id: &TenantId, post_id: &PostId, patch: PostPatch) -> Result<Post, PostError>;
-    async fn tombstone(&self, tenant_id: &TenantId, post_id: &PostId) -> Result<(), PostError>;
-}
+## E. Acceptance
+- `cargo nextest run -p oya-social-post-composition-kernel` passes.
+- Adapter tests pass for Postgres, S3, ImageMagick, and ffmpeg crates.
+- `slos/post-create-latency.openslo.yaml` resolves.
+- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice social` passes.
+- Media policy is compatible with `policy/content-policy.cedar`.
 
-#[async_trait]
-pub trait MediaBlobStore: Send + Sync {
-    async fn initiate_upload(&self, req: UploadInit) -> Result<UploadSession, MediaError>;
-    async fn finalize_upload(&self, session: UploadSession, etags: Vec<Etag>) -> Result<Media, MediaError>;
-    async fn fetch_signed_url(&self, media_id: &MediaId, ttl: Duration) -> Result<SignedUrl, MediaError>;
-}
+## F. Evidence
+- PRD FR-03 to FR-05, FR-17 to FR-20: `PRD.md`.
+- Decision: `decisions/ADR-SOC-0006-media-transcode-and-storage.md`.
+- Contracts: `contracts/openapi/social.yaml`, `contracts/asyncapi/social-events.yaml`.
+- Runbooks: `runbooks/content-moderation-rollback.md`, `runbooks/csam-detect-and-ncmec-report.md`.
 
-#[async_trait]
-pub trait ImageTranscoder: Send + Sync {
-    async fn transcode_image(&self, blob: BlobRef, variants: Vec<Variant>) -> Result<Vec<TranscodeOutput>, TranscodeError>;
-}
+## G. Counterpart comparison
+X, Threads, Bluesky, Mastodon, Instagram, TikTok, and Snapchat all pressure post creation. TikTok/Instagram/Snapchat add media and short-video expectations; Oyatie must support media attachments safely without pretending to be a full effects/lens platform in this foundation slice.
 
-#[async_trait]
-pub trait VideoTranscoder: Send + Sync {
-    async fn transcode_video_hls(&self, blob: BlobRef, profiles: HlsProfileSet) -> Result<Vec<TranscodeOutput>, TranscodeError>;
-}
-```
+## H. Foundation delivery expansion
+- Deliverable detail: post model includes text, reply, repost, quote, visibility, content warning, alt text, and media references.
+- Deliverable detail: media adapters own binary scanning, derivative generation, and HLS/transcode behavior.
+- Deliverable detail: pre-publish moderation runs before public visibility and feed fanout.
+- Deliverable detail: Postgres adapter stores metadata, S3 adapter stores object references, and media tools produce derivatives.
+- Deliverable detail: visibility rules apply to public, followers, tenant, direct, and restricted contexts.
+- Deliverable detail: publication emits `PostPublished`, `PostRejected`, and media-processing events.
+- Deliverable detail: deletion/tombstone behavior leaves audit evidence for moderation and DSA.
+- Deliverable detail: Slack threaded posts and channel announcements are community-posting comparison pressure.
 
-## Acceptance Gates
+## I. Acceptance expansion
+- Acceptance detail: visibility tests must prove hidden, follower-only, tenant-only, and deleted posts do not leak.
+- Acceptance detail: media limit tests must enforce size, count, MIME, duration, and derivative policy.
+- Acceptance detail: alt-text tests must enforce accessibility where policy requires it.
+- Acceptance detail: moderation hook tests must block unsafe content before publish.
+- Acceptance detail: adapter tests must prove object keys are tenant scoped.
+- Acceptance detail: AsyncAPI publication events must validate with idempotency keys.
+- Acceptance detail: SLO resolution must include post-create latency or document the target gap.
+- Acceptance detail: Slack, X, Instagram, TikTok, and Mastodon comparisons must map to posting and media constraints.
 
-```bash
-cargo nextest run -p oya-social-post-composition-kernel
-cargo nextest run -p oya-social-post-composition-domain
-cargo nextest run -p oya-social-post-composition-usecase
-cargo nextest run -p oya-social-post-composition-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate statelessness --microservice social
-cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice social
-```
-
-## Test Plan
-
-- content-hash: sha256 over (timestamp, body, visibility, author_ref, parent_post_id).
-- edit-window: ≥ 24h after post-time, edit rejected at domain layer.
-- tombstone: delete keeps audit row + content_hash; body wiped.
-- Media transcode E2E AC-04: upload, scan, transcode, finalize, revoke after TTL.
-- Cross-context UI test: `PostStore::publish_personal(ProfessionalPost)` must fail to compile.
-
-## Halt Conditions
-
-- ImageMagick / ffmpeg CVE in pin — upgrade LTS; block release until.
-- Cross-context coercion compiles — Sev-1; type-system regression.
-
-## Next IP
-
-[`IP-006-feed-timeline-bc.md`](IP-006-feed-timeline-bc.md)
-
-## References
-
-- ADR-SOC-0006 (media transcode + storage).
-- `microservices/social/policy/dual-context-isolation.md`.
-- HLS RFC 8216 (video streaming).
-- WebP / AVIF for image variants.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for post-composition kernel and adapters.
+- Evidence detail: capture content-policy gate output.
+- Evidence detail: capture AsyncAPI validation for post events.
+- Evidence detail: cite `ADR-SOC-0006-media-transcode-and-storage.md`.
+- Evidence detail: cite `policy/content-policy.cedar`.
+- Evidence detail: cite moderation rollback and CSAM runbooks for unsafe media paths.
+- Evidence detail: cite Slack as channel/thread posting pressure alongside X and Instagram.

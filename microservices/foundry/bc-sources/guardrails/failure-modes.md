@@ -45,7 +45,7 @@ Each carries: **FM-ID**, **Trigger**, **Detection**, **Tenant impact**, **Severi
 
 | Field | Value |
 |---|---|
-| Trigger | Promote-to-enforce attempt of a model whose shadow-vs-enforce delta on golden fixtures exceeds tolerance |
+| Trigger | Promote-to-enforce attempt of a model whose shadow-vs-enforce delta on baseline fixtures exceeds tolerance |
 | Detection | `foundry_guardrails_shadow_vs_enforce_delta{model="<m>"} > 0.05` (5% absolute decision change) |
 | Tenant impact | Caught pre-promote; zero tenant impact |
 | Severity | Sev-2 (operational gate; safe default applies) |
@@ -85,7 +85,7 @@ Each carries: **FM-ID**, **Trigger**, **Detection**, **Tenant impact**, **Severi
 | Field | Value |
 |---|---|
 | Trigger | Helm config change merged without lane gate; OR live-cluster mutation |
-| Detection | `oya-foundry-fitness-cedar-default-deny-enforced` lane fails OR continuous Helm-state-validator alarms |
+| Detection | `oya-governance-cedar-default-deny-enforced` lane fails OR continuous Helm-state-validator alarms |
 | Tenant impact | Potential cross-tenant entitlement leakage if not caught pre-deploy |
 | Severity | Sev-1 (security risk) |
 | Immediate mitigation | Auto-rollback to last green Cedar bundle via ArgoCD; isolate cluster; engage ops-security |
@@ -215,7 +215,7 @@ Each carries: **FM-ID**, **Trigger**, **Detection**, **Tenant impact**, **Severi
 | Field | Value |
 |---|---|
 | Trigger | Coding bug in foundry-runtime; or intentional bypass; CI lane caught pre-deploy normally |
-| Detection | `oya-foundry-fitness-runtime-guardrails-coupling` lane fails OR runtime audit shows foundry-runtime → foundry-providers calls without guardrails round-trip |
+| Detection | `oya-governance-runtime-guardrails-coupling` lane fails OR runtime audit shows foundry-runtime → foundry-providers calls without guardrails round-trip |
 | Tenant impact | Catastrophic: every invocation bypasses safety floor |
 | Severity | Sev-1 (always) |
 | Immediate mitigation | Roll back foundry-runtime to last-good deploy; engage axis-foundry + axis-foundry-guardrails ICs jointly |

@@ -9,7 +9,7 @@ tier: hero-product
 milestone_first_ship: M02-foundation
 net_new: true
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-meet
@@ -117,7 +117,7 @@ Reference: ITU-T G.107 (E-model MOS) for voice quality target ≥ 4.0 mean; ITU-
 
 - Availability target: 99.95 % monthly for room-create + participant-join.
 - Media plane: 99.9 % monthly (LiveKit SFU + coturn TURN).
-- RTO ≤ 15 min for meeting-room metadata + recording manifest.
+- RTO ≤ 60 min for meeting-room metadata + recording manifest per manifest `dr.rto_p99_seconds=3600`; live-room SLOs still fail over faster through SFU/TURN degradation paths.
 - RPO ≤ 5 min (cross-AZ Postgres replication + S3 versioning for recordings).
 
 ### Data residency
@@ -125,6 +125,36 @@ Reference: ITU-T G.107 (E-model MOS) for voice quality target ≥ 4.0 mean; ITU-
 - Per-tenant pack pinning per ADR-0117; recordings + transcripts + summaries follow tenant pack.
 - Cross-pack meeting attendance allowed (a pack-eu user can join a pack-us tenant's meeting) but media routes through inter-region SFU mesh with tenant-attestation; recording stays in host-tenant pack.
 - Guest tokens enforce cell isolation; anonymous guests join lobby but cannot pivot tenants.
+
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=3600` and `rpo_p99_seconds=300`. HIPAA-2024 (3600s/300s), SOC2-T2 (14400s/900s), KR-CSAP-v3.1 (3600s/900s), and ISO27001-2022 (14400s/3600s) leave the effective meet bound at 3600s RTO and 300s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, `valkey_cluster`, and `audit_chain_merkle_seal`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; live media still routes through SFU/TURN degradation runbooks for faster operational recovery.
+- WHY: this target lets a tenant survive a regional media/control-plane fault during a live customer meeting while keeping recording and transcript evidence recoverable under the D-2 manifest contract.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.28 vCPU, 768Mi RAM, 4Gi storage, 4 Valkey connections, 3 Postgres connections, and 8 outbound HTTP connections per tenant.
+- Scaling dimension: `per_user`; participant concurrency drives room create/join, participant/lobby, captions, SFU signaling, screen-share, and recording-start pressure.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because media pressure is high but the service remains a product application surface rather than tenant-customer code execution.
+- Autoscaling boundaries: room-control min 4 / max 100 replicas, LiveKit adapter min 6 / max 200, GPU transcription pool on reserved GPU nodes; per-tenant throttles cap webinar/broadcast bursts before shared SFU pools saturate.
+- WHY: meet's load profile is participant-spiky rather than CRUD-spiky, so capacity follows concurrent publishers/subscribers and caption sessions instead of account count alone.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every audit-chain row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` alongside the existing meeting, recording, transcription, eDiscovery, and disclosure seals.
+- Provider routing affected by carbon: no for live media, telehealth/emergency, recording consent, and regulated retention paths; yes only for asynchronous summary, batch transcription, and archive search jobs when the tenant pack and SLO leave slack.
+- Per-tenant transparency surface: FinOps portal exposes meeting-minutes, recording GB-months, live-caption GPU seconds, transcript-search index size, and broadcast egress by tenant/capability/provider/cell/compliance_pack.
+- WHY: meet combines high-emission real-time media with regulated evidence artifacts, so CSRD, SB-253, and SEC climate disclosures need tenant-attributed emissions without letting carbon routing violate HIPAA emergency or live meeting guarantees.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for `meet.meeting.v1`, recording handoff, webinar, and event contracts.
+- SDK semver model: major.minor.patch, with generated web/desktop/mobile SDKs mapping semver releases to the date-versioned public contracts.
+- Support window: last N=3 public API versions for at least 180 days; deprecation is audit-visible for tenant admins.
+- Per-tenant pinning supported: yes, so regulated tenants can freeze meeting/webinar contracts during validation windows.
+- Internal-mesh exemption: yes; direct gRPC between first-party services remains exempt under ADR-0145 when it does not expose a public contract.
 
 ## Bounded Contexts
 
@@ -134,7 +164,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `meeting-room` | `oya-meet-meeting-room-{kernel,domain,usecase,api,adapter-postgres,rest,sdk,app}` | Named room CRUD; URL + lobby + waiting-room policy; tenant-bound | `MeetingRoom`, `LobbyPolicy`, `WaitingRoomPolicy` |
 | `meeting-instance` | `oya-meet-meeting-instance-{kernel,domain,usecase,api,adapter-postgres,adapter-livekit,rest,worker,sdk,app}` | Per-occurrence session; calendar binding; lifecycle (created→active→ended) | `MeetingInstance`, `CalendarBinding`, `MeetingLifecycle` |
-| `participant` | `oya-meet-participant-{kernel,domain,usecase,api,adapter-postgres,adapter-redis,rest,worker,sdk,app}` | Per-participant state; role (host/co-host/presenter/attendee/guest); presence | `Participant`, `ParticipantRole`, `JoinTicket`, `LobbyMembership` |
+| `participant` | `oya-meet-participant-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,rest,worker,sdk,app}` | Per-participant state; role (host/co-host/presenter/attendee/guest); presence | `Participant`, `ParticipantRole`, `JoinTicket`, `LobbyMembership` |
 | `audio` | `oya-meet-audio-{kernel,domain,usecase,adapter-livekit,worker,sdk}` | Audio track lifecycle; mute/echo-cancel/noise-suppression via LiveKit | `AudioTrack`, `MuteState`, `NoiseSuppressionProfile` |
 | `video` | `oya-meet-video-{kernel,domain,usecase,adapter-livekit,worker,sdk}` | Video track lifecycle; virtual-background/blur/HD/4K/spotlight | `VideoTrack`, `Spotlight`, `BackgroundPolicy` |
 | `screen-share` | `oya-meet-screen-share-{kernel,domain,usecase,adapter-livekit,worker,sdk}` | Screen-share track; presenter-control; remote-control grants | `ScreenShareTrack`, `PresenterControlState`, `RemoteControlGrant` |
@@ -153,7 +183,7 @@ JUSTIFICATION:
 - bc-tokens = meeting-room: primary BC. ADR-0056 v4.1 BC-optionality honoured.
 - layer = <layer>: ADR-0105 13-value canonical enum; ADR-0106 usecase rename.
 - exemptions claimed: -adapter-livekit, -adapter-whisper, -adapter-ffmpeg, -adapter-srs,
-  -adapter-postgres, -adapter-redis, -adapter-s3, -adapter-meilisearch, -adapter-mls
+  -adapter-postgres, -adapter-valkey, -adapter-s3, -adapter-meilisearch, -adapter-mls
   are canonical *-adapter-<backend> per ADR-0105 Amendment 3.
 ```
 
@@ -166,7 +196,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `MeetingRoomRepository` | `oya-meet-meeting-room-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `AUDIT` |
 | `MeetingInstanceStore` | `oya-meet-meeting-instance-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT`, `AUDIT` |
 | `MeetingSfuClient` | `oya-meet-meeting-instance-kernel` | `-adapter-livekit` | `BEHAVIORAL_TENANT_PRODUCT`, `SECRET` (per-participant LiveKit tokens) |
-| `ParticipantRegistry` | `oya-meet-participant-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` (guest display name) |
+| `ParticipantRegistry` | `oya-meet-participant-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` (guest display name) |
 | `RecordingStore` | `oya-meet-recording-kernel` | `-adapter-s3` | `BEHAVIORAL_TENANT_PRODUCT`, sometimes `PII_IDENTIFYING` / `PHI` |
 | `RecordingMux` | `oya-meet-recording-kernel` | `-adapter-ffmpeg` (gVisor sandbox) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `TranscriptionEngine` | `oya-meet-transcription-kernel` | `-adapter-whisper` (Whisper-large; GPU pool) | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING`, `PHI` (pack-us-healthcare) |
@@ -355,3 +385,23 @@ Sharding:
 | ADR-MEET-0005 | Large-audience + webinar architecture | SFU mesh + MCU mix-down + WHIP/HLS |
 | ADR-MEET-0006 | AI feature bounds | EU AI Act classification |
 | ADR-MSGR-0001 | Huddles placement | substrate-sharing boundary (LiveKit + coturn) |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `meet` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `meet` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 2 module pin(s) across 1 context(s).
+- Scaling input: `per_user` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

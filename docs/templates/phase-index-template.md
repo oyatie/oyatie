@@ -4,15 +4,13 @@ template_id: TPL-PHASE
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical Phase INDEX shape (≤50 lines). One file per phase under `.omc/plans/milestones/M*/phases/P*/INDEX.md`. Anchors the IP list, names symbols touched, names parallelism, names agent-handoff icm event.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md
   - docs/templates/milestone-index-template.md
   - docs/templates/implementation-plan-template.md
 adrs_cited:
-  - ADR-0053  # sanctioned primitives (icm store in handoff)
   - ADR-0054  # scaffold-claim pattern (symbols touched)
 length_cap: 50
 doc_status: published
@@ -61,8 +59,6 @@ One sentence stating what this phase delivers in present tense.
 - `contracts/<surface>.<format>`
 - `docs/<canonical-doc>.md` (per `docs/DOC-CATALOG.md` trigger)
 
-## Agent-handoff (icm event at phase complete)
 
 ```
-icm store -t phase-handoff -c "P0N-<slug> complete at <git-sha>; IPs merged: <list>; next phase: P0N+1-<slug>; gate: <fitness lane>" -i high -k "M0N,P0N,handoff"
 ```

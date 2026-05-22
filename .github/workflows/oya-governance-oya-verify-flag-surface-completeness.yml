@@ -1,0 +1,43 @@
+name: oya-governance-oya-verify-flag-surface-completeness
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oya-governance-oya-verify-flag-surface-completeness-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  oya-governance-oya-verify-flag-surface-completeness:
+    name: oya-governance-oya-verify-flag-surface-completeness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report-only verify flag surface assertion
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          source="crates/oya-dev-cli/src/commands/verify.rs"
+          usage="crates/oya-dev-cli/src/lib.rs"
+          missing=0
+          require() {
+            local needle="$1"
+            if ! grep -Fq -- "$needle" "$source" || ! grep -Fq -- "$needle" "$usage"; then
+              echo "::warning::verify flag missing from source or usage: $needle"
+              missing=1
+            fi
+          }
+          require "--ci-required"
+          require "--include-deferred"
+          require "--skip-fmt"
+          require "--skip-check"
+          require "--skip-clippy"
+          require "--skip-nextest"
+          require "--skip-gate-run-all"
+          exit "$missing"

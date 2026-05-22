@@ -39,9 +39,9 @@ impl DataServiceKind {
 pub enum ResidencyClass {
     Global,
     RegionBound,
-    SovereignPrimary,
-    SovereignSecondary,
-    SovereignTertiary,
+    SovereignPack,
+    FederatedPack,
+    DedicatedPack,
 }
 
 impl ResidencyClass {
@@ -49,9 +49,9 @@ impl ResidencyClass {
         match self {
             Self::Global => "global",
             Self::RegionBound => "region-bound",
-            Self::SovereignPrimary => "sovereign-primary",
-            Self::SovereignSecondary => "sovereign-secondary",
-            Self::SovereignTertiary => "sovereign-tertiary",
+            Self::SovereignPack => "sovereign-pack",
+            Self::FederatedPack => "federated-pack",
+            Self::DedicatedPack => "dedicated-pack",
         }
     }
 }
@@ -198,12 +198,12 @@ mod tests {
             admit_plan(
                 &plan(
                     DataServiceKind::OltpRelational,
-                    ResidencyClass::SovereignPrimary,
+                    ResidencyClass::SovereignPack,
                     EncryptionRequirement::AtRest
                 ),
                 &adapter(
                     DataServiceKind::OltpRelational,
-                    vec![ResidencyClass::SovereignPrimary],
+                    vec![ResidencyClass::SovereignPack],
                     EncryptionRequirement::AtRestAndInTransit
                 ),
             )
@@ -236,12 +236,12 @@ mod tests {
             admit_plan(
                 &plan(
                     DataServiceKind::OltpRelational,
-                    ResidencyClass::SovereignPrimary,
+                    ResidencyClass::SovereignPack,
                     EncryptionRequirement::AtRest
                 ),
                 &adapter(
                     DataServiceKind::OltpRelational,
-                    vec![ResidencyClass::SovereignTertiary],
+                    vec![ResidencyClass::DedicatedPack],
                     EncryptionRequirement::AtRest
                 ),
             ),
@@ -332,9 +332,9 @@ mod tests {
         let names: HashSet<_> = [
             ResidencyClass::Global,
             ResidencyClass::RegionBound,
-            ResidencyClass::SovereignPrimary,
-            ResidencyClass::SovereignSecondary,
-            ResidencyClass::SovereignTertiary,
+            ResidencyClass::SovereignPack,
+            ResidencyClass::FederatedPack,
+            ResidencyClass::DedicatedPack,
         ]
         .iter()
         .map(|r| r.name())

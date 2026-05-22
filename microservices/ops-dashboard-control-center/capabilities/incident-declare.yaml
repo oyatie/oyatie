@@ -1,7 +1,7 @@
 schema_version: "1.0"
 name: incident-declare
-tier: T2
-eu_ai_act_risk_class: limited
+availability: "paid tenant_class always-on; demo_trial cap-bounded"
+risk_class: limited
 description: Declare an incident and emit a sealed incident event.
 authz:
   cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar

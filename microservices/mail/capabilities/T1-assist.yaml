@@ -37,7 +37,7 @@ capabilities:
       fallback: refuse with "manual compose required"
     latency_budget_p99_ms: 4000
     audit_event: MailComposeDraftGenerated
-    eu_ai_act_classification: limited-risk (Art. 50 transparency required)
+    risk_classification: limited-risk (Art. 50 transparency required)
     user_label: "AI-generated draft — review before sending"
     constraint_on_send:
       - draft is never sent without user clicking Send
@@ -64,7 +64,7 @@ capabilities:
       fallback: rule-based only
     latency_budget_p99_ms: 100
     audit_event: AbuseVerdictDecided
-    eu_ai_act_classification:
+    risk_classification:
       - default: limited-risk
       - high-risk-trigger: when classifier is applied to employment-context mail (Annex III §3 + 4 employment recruitment) — conformity assessment required before deployment per pack-eu overlay
     user_label: spam folder + "Not Spam" reversal; outbound quarantine notification
@@ -88,7 +88,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY (translation shown to viewer)
     latency_budget_p99_ms: 2000
     audit_event: MailTranslateRequested
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "Translated by AI; original preserved"
     pack_restrictions:
       pack-kr: KR-resident translation model; data stays in KR
@@ -112,7 +112,7 @@ capabilities:
     data_class_emitted: AUDIT (handoff event + payload digest)
     latency_budget_p99_ms: 1500
     audit_event: MailWorkflowHandoffCreated
-    eu_ai_act_classification: limited-risk
+    risk_classification: limited-risk
     user_label: "AI-extracted task — review fields before creating"
     explainability: per-field provenance (which paragraph/sentence the extracted value came from)
 
@@ -131,7 +131,7 @@ capabilities:
     data_class_emitted: per-action
     latency_budget_p99_ms: 2000
     audit_event: MailAttachmentActionCardOffered + MailAttachmentActionAccepted (per accept)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion based on attachment"
 
   - id: T1-mail-thread-prioritization
@@ -149,7 +149,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY (score shown to viewer)
     latency_budget_p99_ms: 500
     audit_event: MailThreadPriorityScored (sampled)
-    eu_ai_act_classification: limited-risk
+    risk_classification: limited-risk
     user_label: "AI-prioritized" badge on each scored thread
 
 constraints_all_capabilities:

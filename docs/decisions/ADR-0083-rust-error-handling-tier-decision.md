@@ -148,7 +148,7 @@ every `oya-*` Rust crate. Per-tier rules below are normative
 
 ## Lane enforcement
 
-- `oya-foundry-fitness-error-boundary` (declared in error-handling.md
+- `oya-governance-error-boundary` (declared in error-handling.md
   frontmatter) enforces this ADR on every PR.
 - `silent-failure-hunter` reviewer-agent signature required on
   error-handling changes per the per-change-class reviewer matrix in

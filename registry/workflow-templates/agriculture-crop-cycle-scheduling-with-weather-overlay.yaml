@@ -1,0 +1,483 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.agriculture-crop-cycle-scheduling-with-weather-overlay.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0185-workflow-studio-client-stack
+title: Agriculture crop cycle scheduling with weather overlay
+description: >-
+  Coordinates a crop cycle from field readiness through soil and weather signal
+  ingestion, planting schedule, irrigation planning, pest scouting, fertilizer
+  timing, harvest yield prediction, harvest scheduling, and post-harvest closeout.
+tags:
+  - agriculture
+  - crop-cycle
+  - weather-overlay
+  - irrigation
+  - yield-prediction
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: silver
+    reason: "Farm operations need crop schedule and irrigation coordination."
+  - tier: gold
+    reason: "Adds weather overlays, yield prediction, and scouting exception routing."
+ontology_refs:
+  object: CropCycleCase
+  actions:
+    - FieldReadinessRecorded
+    - WeatherOverlayApplied
+    - IrrigationScheduled
+    - PestScoutCompleted
+    - YieldPredicted
+    - HarvestScheduled
+tenant_context:
+  required_fields:
+    - tenant_id
+    - farm_id
+    - field_block_id
+    - crop_manager_principal_id
+principal_context:
+  system_principal: workflow-engine.crop-cycle-scheduling
+  human_approval_roles:
+    - crop_manager
+    - irrigation_manager
+    - agronomist
+    - harvest_coordinator
+data_classes:
+  - FIELD_BLOCK
+  - SOIL_SENSOR_READING
+  - WEATHER_FORECAST
+  - IRRIGATION_PLAN
+  - PEST_SCOUT_REPORT
+  - YIELD_PREDICTION
+residency_pack_overlays:
+  - pack: farm-data-governance
+    behavior: "Keep field telemetry and yield forecasts scoped to farm tenant."
+  - pack: water-rights
+    behavior: "Validate irrigation schedule against local allocation and restriction rules."
+observability:
+  metrics:
+    - agriculture_crop_cycle_step_latency_seconds
+    - agriculture_irrigation_schedule_adjustment_total
+    - agriculture_yield_prediction_variance_total
+  traces:
+    - workflow.template.agriculture_crop_cycle
+  logs:
+    - workflow_agriculture_crop_cycle_audit_projection
+cost_allocation:
+  unit: crop_cycle_step
+  dimensions:
+    - tenant_id
+    - farm_id
+    - crop_type
+idempotency:
+  key_shape: "tenant_id:farm_id:field_block_id:crop_cycle_id:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: schedule_planting
+  on_cancel: withdraw_crop_cycle_plan_and_notify_crop_manager
+  audit_event_class: CropCycleWorkflowCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_farm_demo
+  farm_id:
+    type: string
+    default: farm_valley_001
+  field_block_id:
+    type: string
+    default: block_north_12
+  crop_cycle_id:
+    type: string
+    default: cropcycle_2026_corn_n12
+  crop_type:
+    type: string
+    default: corn
+  planting_window_start:
+    type: date
+    default: "2026-04-20"
+  crop_manager_principal_id:
+    type: string
+    default: principal_crop_manager_001
+outputs:
+  crop_cycle_case_id:
+    type: string
+  terminal_state:
+    type: string
+  irrigation_plan_id:
+    type: string
+  predicted_yield_bushels_per_acre:
+    type: number
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: field_readiness_start
+    type: start
+    config:
+      trigger: agriculture.crop_cycle.ready.v1
+      validates:
+        - tenant_id
+        - farm_id
+        - field_block_id
+        - crop_cycle_id
+    cedar_permits_required:
+      - 'Action::"StartCropCycleSchedulingWorkflow"'
+    audit_event_class: CropCycleWorkflowStarted
+    slo_target: "P7D before planting window"
+    failure_modes:
+      - code: FIELD_BLOCK_NOT_READY
+        behavior: "Hold cycle and notify crop manager."
+    on_success:
+      - edge_to_ingest_soil_sensors
+    on_failure:
+      - edge_to_exception_end
+  - id: ingest_soil_sensors
+    type: action
+    config:
+      service: farm-iot
+      contract: soil-sensor-snapshot.v1
+      method: POST
+      url: "https://farm-iot.internal/v1/soil/snapshots"
+      sensor_inputs:
+        - moisture
+        - temperature
+        - nitrogen
+        - phosphorus
+        - potassium
+      body:
+        farm_id: "${inputs.farm_id}"
+        field_block_id: "${inputs.field_block_id}"
+        crop_cycle_id: "${inputs.crop_cycle_id}"
+    cedar_permits_required:
+      - 'Action::"IngestSoilSensorSnapshot"'
+    audit_event_class: CropCycleSoilSensorsIngested
+    slo_target: "PT2H"
+    failure_modes:
+      - code: SOIL_SENSOR_OFFLINE
+        behavior: "Use last valid reading and create field technician task."
+    on_success:
+      - edge_to_apply_weather_overlay
+    on_failure:
+      - edge_to_agronomist_review
+  - id: apply_weather_overlay
+    type: action
+    config:
+      service: weather-overlay
+      contract: farm-weather-overlay.v1
+      method: POST
+      url: "https://weather.internal/v1/farm-overlays"
+      weather_sources:
+        - noaa_forecast
+        - private_hyperlocal_radar
+        - frost_alerts
+        - precipitation_probability
+      body:
+        farm_id: "${inputs.farm_id}"
+        field_block_id: "${inputs.field_block_id}"
+        planting_window_start: "${inputs.planting_window_start}"
+    cedar_permits_required:
+      - 'Action::"ApplyCropWeatherOverlay"'
+    audit_event_class: CropCycleWeatherOverlayApplied
+    slo_target: "PT1H"
+    failure_modes:
+      - code: WEATHER_OVERLAY_STALE
+        behavior: "Require agronomist approval before planting schedule."
+    on_success:
+      - edge_to_schedule_planting
+    on_failure:
+      - edge_to_agronomist_review
+  - id: schedule_planting
+    type: action
+    config:
+      service: crop-planning
+      contract: planting-schedule.v1
+      method: POST
+      url: "https://crop-planning.internal/v1/planting/schedules"
+      scheduling_constraints:
+        - soil_temperature_minimum
+        - precipitation_window
+        - equipment_availability
+        - labor_capacity
+      body:
+        crop_cycle_id: "${inputs.crop_cycle_id}"
+        soil_snapshot_id: "${nodes.ingest_soil_sensors.output.soil_snapshot_id}"
+        weather_overlay_id: "${nodes.apply_weather_overlay.output.weather_overlay_id}"
+    cedar_permits_required:
+      - 'Action::"ScheduleCropPlanting"'
+    audit_event_class: CropPlantingScheduled
+    slo_target: "P3D before planting"
+    failure_modes:
+      - code: PLANTING_WINDOW_CONFLICT
+        behavior: "Route to crop manager for schedule override."
+    on_success:
+      - edge_to_schedule_irrigation
+    on_failure:
+      - edge_to_agronomist_review
+  - id: schedule_irrigation
+    type: action
+    config:
+      service: irrigation-control
+      contract: irrigation-schedule.v1
+      method: POST
+      url: "https://irrigation.internal/v1/schedules"
+      water_controls:
+        - soil_moisture_threshold
+        - evapotranspiration_forecast
+        - water_rights_allocation
+        - pump_capacity
+      body:
+        crop_cycle_id: "${inputs.crop_cycle_id}"
+        field_block_id: "${inputs.field_block_id}"
+        weather_overlay_id: "${nodes.apply_weather_overlay.output.weather_overlay_id}"
+    cedar_permits_required:
+      - 'Action::"ScheduleCropIrrigation"'
+    audit_event_class: CropIrrigationScheduled
+    slo_target: "PT6H after planting schedule"
+    failure_modes:
+      - code: WATER_ALLOCATION_EXCEEDED
+        behavior: "Require irrigation manager approval and adjust schedule."
+    on_success:
+      - edge_to_pest_scouting
+    on_failure:
+      - edge_to_agronomist_review
+  - id: pest_scouting
+    type: human_task
+    config:
+      assignee_role: agronomist
+      task_contract: pest-scout-report.v1
+      scouting_schedule:
+        - emergence
+        - vegetative
+        - reproductive
+      required_attestations:
+        - pest_pressure_recorded
+        - disease_pressure_recorded
+        - treatment_recommendation_recorded
+    cedar_permits_required:
+      - 'Action::"RecordCropPestScoutReport"'
+    audit_event_class: CropPestScoutCompleted
+    slo_target: "P14D cadence"
+    failure_modes:
+      - code: PEST_PRESSURE_HIGH
+        behavior: "Create treatment recommendation and notify crop manager."
+    on_success:
+      - edge_to_fertilizer_timing
+    on_failure:
+      - edge_to_agronomist_review
+  - id: fertilizer_timing
+    type: action
+    config:
+      service: agronomy-planning
+      contract: fertilizer-timing-plan.v1
+      method: POST
+      url: "https://agronomy.internal/v1/fertilizer/timing"
+      body:
+        crop_cycle_id: "${inputs.crop_cycle_id}"
+        soil_snapshot_id: "${nodes.ingest_soil_sensors.output.soil_snapshot_id}"
+        pest_scout_report_id: "${nodes.pest_scouting.output.scout_report_id}"
+        weather_overlay_id: "${nodes.apply_weather_overlay.output.weather_overlay_id}"
+    cedar_permits_required:
+      - 'Action::"ScheduleCropFertilizerTiming"'
+    audit_event_class: CropFertilizerTimingScheduled
+    slo_target: "P3D before application window"
+    failure_modes:
+      - code: FERTILIZER_RUNOFF_RISK
+        behavior: "Delay application and alert agronomist."
+    on_success:
+      - edge_to_predict_yield
+    on_failure:
+      - edge_to_agronomist_review
+  - id: predict_yield
+    type: action
+    config:
+      service: agriculture-ml
+      contract: crop-yield-prediction.v1
+      method: POST
+      url: "https://ag-ml.internal/v1/yield/predict"
+      model_version: crop-yield-2026-05
+      features:
+        - soil_snapshot
+        - weather_overlay
+        - irrigation_schedule
+        - pest_scout_report
+        - fertilizer_plan
+      body:
+        crop_cycle_id: "${inputs.crop_cycle_id}"
+        crop_type: "${inputs.crop_type}"
+        field_block_id: "${inputs.field_block_id}"
+    cedar_permits_required:
+      - 'Action::"PredictCropHarvestYield"'
+    audit_event_class: CropHarvestYieldPredicted
+    slo_target: "P14D before harvest window"
+    failure_modes:
+      - code: YIELD_MODEL_CONFIDENCE_LOW
+        behavior: "Require agronomist review before harvest labor commitment."
+    on_success:
+      - edge_to_schedule_harvest
+    on_failure:
+      - edge_to_agronomist_review
+  - id: schedule_harvest
+    type: action
+    config:
+      service: harvest-operations
+      contract: harvest-schedule.v1
+      method: POST
+      url: "https://harvest.internal/v1/schedules"
+      scheduling_constraints:
+        - predicted_yield
+        - combine_availability
+        - grain_moisture
+        - weather_harvest_window
+      body:
+        crop_cycle_id: "${inputs.crop_cycle_id}"
+        yield_prediction_id: "${nodes.predict_yield.output.yield_prediction_id}"
+        weather_overlay_id: "${nodes.apply_weather_overlay.output.weather_overlay_id}"
+    cedar_permits_required:
+      - 'Action::"ScheduleCropHarvest"'
+    audit_event_class: CropHarvestScheduled
+    slo_target: "P7D before harvest"
+    failure_modes:
+      - code: HARVEST_WINDOW_WEATHER_RISK
+        behavior: "Route to harvest coordinator for alternate equipment plan."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_agronomist_review
+  - id: agronomist_review
+    type: human_task
+    config:
+      assignee_role: agronomist
+      task_contract: crop-cycle-exception-review.v1
+      review_reasons:
+        - weather_overlay_stale
+        - sensor_offline
+        - water_allocation_exceeded
+        - pest_pressure_high
+        - yield_confidence_low
+    cedar_permits_required:
+      - 'Action::"ApproveCropCycleException"'
+    audit_event_class: CropCycleAgronomistReviewCompleted
+    slo_target: "P2D"
+    failure_modes:
+      - code: AGRONOMIST_REVIEW_OVERDUE
+        behavior: "Escalate to crop manager and pause downstream schedules."
+    on_success:
+      - edge_to_schedule_irrigation_after_review
+    on_failure:
+      - edge_to_exception_end
+  - id: close_workflow
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - crop_cycle_schedule_closed
+        - irrigation_plan_committed
+        - yield_prediction_committed
+    cedar_permits_required:
+      - 'Action::"CloseCropCycleSchedulingWorkflow"'
+    audit_event_class: CropCycleWorkflowClosed
+    slo_target: "PT4H after harvest schedule"
+    failure_modes:
+      - code: CROP_CYCLE_LEDGER_POST_FAILED
+        behavior: "Keep workflow close-pending and retry farm ledger projection."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordCropCycleSchedulingException"'
+    audit_event_class: CropCycleExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for crop cycle workflow replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_ingest_soil_sensors
+    from: field_readiness_start
+    to: ingest_soil_sensors
+    name: field_ready
+  - id: edge_to_apply_weather_overlay
+    from: ingest_soil_sensors
+    to: apply_weather_overlay
+    name: soil_snapshot_available
+  - id: edge_to_schedule_planting
+    from: apply_weather_overlay
+    to: schedule_planting
+    name: weather_overlay_available
+  - id: edge_to_schedule_irrigation
+    from: schedule_planting
+    to: schedule_irrigation
+    name: planting_scheduled
+  - id: edge_to_pest_scouting
+    from: schedule_irrigation
+    to: pest_scouting
+    name: irrigation_scheduled
+  - id: edge_to_fertilizer_timing
+    from: pest_scouting
+    to: fertilizer_timing
+    name: scouting_completed
+  - id: edge_to_predict_yield
+    from: fertilizer_timing
+    to: predict_yield
+    name: fertilizer_timing_scheduled
+  - id: edge_to_schedule_harvest
+    from: predict_yield
+    to: schedule_harvest
+    name: yield_predicted
+  - id: edge_to_close_workflow
+    from: schedule_harvest
+    to: close_workflow
+    name: harvest_scheduled
+  - id: edge_to_agronomist_review
+    from: "*"
+    to: agronomist_review
+    name: agronomist_review_required
+  - id: edge_to_schedule_irrigation_after_review
+    from: agronomist_review
+    to: schedule_irrigation
+    name: agronomist_exception_resolved
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and preserve crop-cycle plan state."
+  - code: WEATHER_RISK_OVERRIDE_REQUIRED
+    behavior: "Require agronomist approval before schedule changes affect field operations."
+  - code: WATER_RIGHTS_CONFLICT
+    behavior: "Block irrigation execution until allocation conflict is resolved."
+worked_example:
+  sample_input:
+    tenant_id: tenant_farm_demo
+    farm_id: farm_valley_001
+    field_block_id: block_north_12
+    crop_cycle_id: cropcycle_2026_corn_n12
+    crop_type: corn
+    planting_window_start: "2026-04-20"
+    crop_manager_principal_id: principal_crop_manager_001
+  sample_expected_output:
+    crop_cycle_case_id: cropcase_2026_corn_n12
+    terminal_state: completed
+    irrigation_plan_id: irrig_2026_n12_01
+    predicted_yield_bushels_per_acre: 184.5
+    audit_chain_refs:
+      - audit://workflow/agriculture-crop-cycle/field-ready/01
+      - audit://workflow/agriculture-crop-cycle/irrigation/05
+      - audit://workflow/agriculture-crop-cycle/yield/08

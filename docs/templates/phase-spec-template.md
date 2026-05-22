@@ -6,9 +6,7 @@ date: 2026-05-13
 purpose: |
   Canonical Phase Spec shape for every phase under
   .omc/plans/milestones/M0X-slug/phases/P0Y-slug/. Carries entry/exit gates,
-  in/out scope, implementation-plan list, acceptance commands, grit symbol space,
-  ICM rationale fields, and dependency citations.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/impl-plan-template.md
@@ -35,9 +33,6 @@ entry_gate: |
   Example: "M03/P00 complete; oya-tenancy-kernel ships; cargo check clean."
 exit_gate: |
   Exact condition that declares this phase complete.
-  Must reference at least one cargo/CI command and one grit primitive.
-  Example: "All impl-plan acceptance gates green; grit done called on all
-  phase symbols; ICM phase-handoff row emitted."
 depends_on:
   - milestone: M0X
     phase: P0Z-<slug>
@@ -182,10 +177,8 @@ crate in that BC's family can be scaffolded.
 
 ---
 
-## Grit Claim Symbols
 
 Symbol space for this phase. Claim ALL before beginning; release with
-`grit done --agent <id>` at IP completion (per `feedback_grit_claim_work_done.md`).
 
 ```
 # Format: file::Identifier
@@ -197,28 +190,22 @@ docs/standards/<file>.md::Section
 
 TTL recommendation: `--ttl 3600` (1 h) per IP; re-claim if exceeding.
 
-Fallback: if grit v0.3.0 has no active locks, use ICM topic
 `scaffold-locks-oyatie` as coordination ledger (per ADR-0054
 §"scaffold-claim pattern").
 
 ---
 
-## ICM Rationale Fields
 
-Emit these ICM rows at phase completion (mandatory per `CLAUDE.md`):
 
 ```bash
 # At phase start
-icm store \
   -t context-oyatie \
   -c "Phase P0Y-<slug> started; milestone M0X-<slug>; scope: <µservices>; entry gate met: <evidence>" \
   -i high \
   -k "M0X,P0Y,phase-start,<µservice>"
 
 # At phase complete
-icm store \
   -t context-oyatie \
-  -c "Phase P0Y-<slug> complete; IPs merged: <list>; grit symbols released: <list>; lanes green: <list>; next phase: P0Z-<slug>" \
   -i high \
   -k "M0X,P0Y,phase-complete,<µservice>"
 ```

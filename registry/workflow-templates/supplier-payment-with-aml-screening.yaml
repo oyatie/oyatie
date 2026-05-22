@@ -1,0 +1,840 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.supplier-payment-with-aml-screening.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0316-capability-tier-over-product-fragmentation
+title: Supplier payment with AML screening
+description: >-
+  Pays a supplier only after invoice intake, purchase-order and goods-receipt
+  three-way match, AML and sanctions screening, approval, rail selection,
+  payment execution, confirmation, and audit sealing.
+tags:
+  - supplier-payment
+  - aml
+  - sanctions
+  - three-way-match
+  - swift
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: platinum
+    reason: "Supplier payment requires financial controls, sanctions screening, and payment rail evidence."
+ontology_refs:
+  object: SupplierPaymentCase
+  actions:
+    - InvoiceReceived
+    - ThreeWayMatchCompleted
+    - AmlScreenCompleted
+    - PaymentApproved
+    - PaymentExecuted
+    - PaymentConfirmed
+tenant_context:
+  required_fields:
+    - tenant_id
+    - supplier_id
+    - invoice_id
+    - finance_owner_principal_id
+principal_context:
+  system_principal: workflow-engine.supplier-payment-aml
+  human_approval_roles:
+    - ap_clerk
+    - finance_owner
+    - aml_reviewer
+    - treasury_approver
+data_classes:
+  - SUPPLIER_PROFILE
+  - INVOICE_RECORD
+  - PURCHASE_ORDER
+  - GOODS_RECEIPT
+  - AML_SCREEN_RESULT
+  - PAYMENT_INSTRUCTION
+residency_pack_overlays:
+  - pack: aml
+    behavior: "Sanctions and PEP matches require reviewer disposition before payment execution."
+  - pack: pci
+    behavior: "No card PAN export; payment references are tokenized."
+  - pack: gdpr
+    behavior: "Supplier contact personal data stays inside configured region."
+observability:
+  metrics:
+    - supplier_payment_stage_latency_seconds
+    - supplier_payment_sanctions_hit_total
+    - supplier_payment_rail_failure_total
+  traces:
+    - workflow.template.supplier_payment_aml
+  logs:
+    - workflow_supplier_payment_aml_audit_projection
+cost_allocation:
+  unit: supplier_payment_step
+  dimensions:
+    - tenant_id
+    - supplier_id
+    - payment_rail
+idempotency:
+  key_shape: "tenant_id:supplier_id:invoice_id:payment_instruction_id:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: execute_payment
+  on_cancel: void_pending_payment_instruction_and_close_approval_tasks
+  audit_event_class: SupplierPaymentCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_match_screen_and_payment_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_demo
+  supplier_id:
+    type: string
+    default: supplier_001
+  invoice_id:
+    type: string
+    default: invoice_001
+  purchase_order_id:
+    type: string
+    default: po_001
+  goods_receipt_id:
+    type: string
+    default: gr_001
+  invoice_amount_minor:
+    type: integer
+    default: 125000
+  currency:
+    type: string
+    default: USD
+  finance_owner_principal_id:
+    type: string
+    default: principal_finance_001
+outputs:
+  payment_case_id:
+    type: string
+  terminal_state:
+    type: string
+  payment_instruction_id:
+    type: string
+  payment_confirmation_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: invoice_receive_start
+    type: start
+    config:
+      trigger: finance.supplier_invoice.received.v1
+      validates:
+        - tenant_id
+        - supplier_id
+        - invoice_id
+        - invoice_amount_minor
+    cedar_permits_required:
+      - 'Action::"StartSupplierPayment"'
+    audit_event_class: SupplierPaymentWorkflowStarted
+    slo_target: "PT4H after invoice receipt"
+    timeout:
+      duration: PT10M
+      on_timeout: invoice_start_retry
+    retry:
+      max_attempts: 2
+      backoff: PT2M
+      retryable_errors:
+        - INVOICE_EVENT_LAG
+    failure_modes:
+      - code: DUPLICATE_INVOICE
+        behavior: "Link duplicate and stop payment workflow."
+    on_success:
+      - edge_to_create_payment_case
+    on_failure:
+      - edge_to_payment_exception
+  - id: create_payment_case
+    type: action
+    config:
+      service: accounts-payable
+      contract: supplier-payment-case.v1
+      method: POST
+      url: "https://ap.internal/v1/supplier-payment-cases"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        invoice_id: "${inputs.invoice_id}"
+        invoice_amount_minor: "${inputs.invoice_amount_minor}"
+        currency: "${inputs.currency}"
+    cedar_permits_required:
+      - 'Action::"CreateSupplierPaymentCase"'
+    audit_event_class: SupplierPaymentCaseCreated
+    slo_target: "PT1D"
+    timeout:
+      duration: PT10M
+      on_timeout: payment_case_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - AP_CASE_WRITE_TIMEOUT
+    failure_modes:
+      - code: PAYMENT_CASE_EXISTS
+        behavior: "Continue idempotently with existing case."
+    on_success:
+      - edge_to_supplier_validation
+    on_failure:
+      - edge_to_payment_exception
+  - id: supplier_validation
+    type: action
+    config:
+      service: vendor-registry
+      contract: supplier-payment-readiness.v1
+      method: POST
+      url: "https://vendor-registry.internal/v1/suppliers/payment-readiness"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        currency: "${inputs.currency}"
+    cedar_permits_required:
+      - 'Action::"ValidateSupplierPaymentReadiness"'
+    audit_event_class: SupplierPaymentReadinessValidated
+    slo_target: "PT1D"
+    timeout:
+      duration: PT30M
+      on_timeout: supplier_validation_retry
+    retry:
+      max_attempts: 3
+      backoff: PT10M
+      retryable_errors:
+        - SUPPLIER_REGISTRY_TIMEOUT
+    failure_modes:
+      - code: SUPPLIER_BANK_DETAILS_MISSING
+        behavior: "Block payment and request supplier remediation."
+    on_success:
+      - edge_to_three_way_match_parallel
+    on_failure:
+      - edge_to_payment_exception
+  - id: three_way_match_parallel
+    type: parallel
+    config:
+      fan_out_limit: 3
+      join_semantics: all_success_required
+      branches:
+        - match_invoice_po
+        - match_invoice_goods_receipt
+        - duplicate_invoice_check
+    cedar_permits_required:
+      - 'Action::"RunSupplierPaymentThreeWayMatch"'
+    audit_event_class: SupplierPaymentThreeWayMatchStarted
+    slo_target: "P2D after invoice receipt"
+    timeout:
+      duration: P2D
+      on_timeout: match_manual_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: MATCH_BRANCH_FAILED
+        behavior: "Block payment approval and attach branch evidence."
+    on_success:
+      - edge_to_match_invoice_po
+      - edge_to_match_invoice_goods_receipt
+      - edge_to_duplicate_invoice_check
+    on_failure:
+      - edge_to_payment_exception
+  - id: match_invoice_po
+    type: action
+    config:
+      service: procurement
+      contract: invoice-purchase-order-match.v1
+      method: POST
+      url: "https://procurement.internal/v1/matches/invoice-po"
+      body:
+        invoice_id: "${inputs.invoice_id}"
+        purchase_order_id: "${inputs.purchase_order_id}"
+    cedar_permits_required:
+      - 'Action::"MatchInvoiceToPurchaseOrder"'
+    audit_event_class: SupplierInvoicePurchaseOrderMatched
+    slo_target: "PT8H"
+    timeout:
+      duration: PT2H
+      on_timeout: po_match_retry
+    retry:
+      max_attempts: 3
+      backoff: PT30M
+      retryable_errors:
+        - PROCUREMENT_MATCH_TIMEOUT
+    failure_modes:
+      - code: PO_AMOUNT_MISMATCH
+        behavior: "Route to AP clerk; no AML screen yet."
+    on_success:
+      - edge_to_match_join
+    on_failure:
+      - edge_to_payment_exception
+  - id: match_invoice_goods_receipt
+    type: action
+    config:
+      service: receiving
+      contract: invoice-goods-receipt-match.v1
+      method: POST
+      url: "https://receiving.internal/v1/matches/invoice-gr"
+      body:
+        invoice_id: "${inputs.invoice_id}"
+        goods_receipt_id: "${inputs.goods_receipt_id}"
+    cedar_permits_required:
+      - 'Action::"MatchInvoiceToGoodsReceipt"'
+    audit_event_class: SupplierInvoiceGoodsReceiptMatched
+    slo_target: "PT8H"
+    timeout:
+      duration: PT2H
+      on_timeout: goods_receipt_match_retry
+    retry:
+      max_attempts: 3
+      backoff: PT30M
+      retryable_errors:
+        - RECEIVING_MATCH_TIMEOUT
+    failure_modes:
+      - code: GOODS_NOT_RECEIVED
+        behavior: "Block payment until receiving resolves."
+    on_success:
+      - edge_to_match_join
+    on_failure:
+      - edge_to_payment_exception
+  - id: duplicate_invoice_check
+    type: action
+    config:
+      service: accounts-payable
+      contract: duplicate-invoice-check.v1
+      method: POST
+      url: "https://ap.internal/v1/invoices/duplicate-check"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        invoice_id: "${inputs.invoice_id}"
+        amount_minor: "${inputs.invoice_amount_minor}"
+    cedar_permits_required:
+      - 'Action::"CheckDuplicateSupplierInvoice"'
+    audit_event_class: SupplierInvoiceDuplicateChecked
+    slo_target: "PT8H"
+    timeout:
+      duration: PT1H
+      on_timeout: duplicate_check_retry
+    retry:
+      max_attempts: 3
+      backoff: PT20M
+      retryable_errors:
+        - DUPLICATE_CHECK_TIMEOUT
+    failure_modes:
+      - code: DUPLICATE_PAYMENT_RISK
+        behavior: "Block payment and open AP review."
+    on_success:
+      - edge_to_match_join
+    on_failure:
+      - edge_to_payment_exception
+  - id: match_join
+    type: decision
+    config:
+      expression: "${parallel.three_way_match_parallel.all_branches_succeeded}"
+      cases:
+        "true": aml_screen
+        "false": payment_exception_end
+    cedar_permits_required:
+      - 'Action::"EvaluateSupplierPaymentThreeWayMatch"'
+    audit_event_class: SupplierPaymentThreeWayMatchEvaluated
+    slo_target: "P2D after invoice"
+    timeout:
+      duration: PT4H
+      on_timeout: ap_clerk_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: THREE_WAY_MATCH_INCOMPLETE
+        behavior: "No AML or payment approval until matched."
+    on_success:
+      - edge_to_aml_screen
+    on_failure:
+      - edge_to_payment_exception
+  - id: aml_screen
+    type: action
+    config:
+      service: financial-crime
+      contract: supplier-aml-sanctions-screen.v1
+      method: POST
+      url: "https://financial-crime.internal/v1/supplier-screening"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        invoice_id: "${inputs.invoice_id}"
+        currency: "${inputs.currency}"
+        amount_minor: "${inputs.invoice_amount_minor}"
+        screen_types:
+          - sanctions
+          - pep
+          - adverse_media
+          - high_risk_corridor
+    cedar_permits_required:
+      - 'Action::"RunSupplierAmlSanctionsScreen"'
+    audit_event_class: SupplierAmlSanctionsScreenCompleted
+    slo_target: "PT4H after three-way match"
+    timeout:
+      duration: PT1H
+      on_timeout: aml_screen_retry
+    retry:
+      max_attempts: 3
+      backoff: PT20M
+      retryable_errors:
+        - AML_SCREEN_TIMEOUT
+    failure_modes:
+      - code: SANCTIONS_POSSIBLE_MATCH
+        behavior: "Block payment and require AML reviewer disposition."
+      - code: AML_PROVIDER_UNAVAILABLE
+        behavior: "Do not bypass screen; route to manual financial-crime queue."
+    on_success:
+      - edge_to_aml_decision
+    on_failure:
+      - edge_to_payment_exception
+  - id: aml_decision
+    type: decision
+    config:
+      expression: "${nodes.aml_screen.output.disposition}"
+      cases:
+        clear: approval_gate
+        false_positive_approved: approval_gate
+        review_required: aml_manual_review
+        blocked: payment_exception_end
+    cedar_permits_required:
+      - 'Action::"DecideSupplierAmlDisposition"'
+    audit_event_class: SupplierAmlDispositionDecided
+    slo_target: "PT2H after screen"
+    timeout:
+      duration: PT4H
+      on_timeout: aml_manual_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: AML_DISPOSITION_UNKNOWN
+        behavior: "Block payment until reviewer disposition."
+    on_success:
+      - edge_to_approval_gate
+      - edge_to_aml_manual_review
+    on_failure:
+      - edge_to_payment_exception
+  - id: aml_manual_review
+    type: action
+    config:
+      service: financial-crime
+      contract: supplier-aml-manual-review.v1
+      method: POST
+      url: "https://financial-crime.internal/v1/manual-reviews"
+      body:
+        screen_ref: "${nodes.aml_screen.output.screen_ref}"
+        reviewer_role: aml_reviewer
+        deadline: P2D
+    cedar_permits_required:
+      - 'Action::"ReviewSupplierAmlScreen"'
+    audit_event_class: SupplierAmlManualReviewCompleted
+    slo_target: "P2D"
+    timeout:
+      duration: P2D
+      on_timeout: aml_review_escalation
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: AML_REVIEW_REJECTED
+        behavior: "Close as blocked and preserve screen evidence."
+    on_success:
+      - edge_to_approval_gate
+    on_failure:
+      - edge_to_payment_exception
+  - id: approval_gate
+    type: action
+    config:
+      service: approvals
+      contract: supplier-payment-approval.v1
+      method: POST
+      url: "https://approvals.internal/v1/supplier-payments"
+      body:
+        payment_case_id: "${nodes.create_payment_case.output.case_id}"
+        amount_minor: "${inputs.invoice_amount_minor}"
+        approver_roles:
+          - finance_owner
+          - treasury_approver
+        quorum: 2
+        deadline: P2D
+    cedar_permits_required:
+      - 'Action::"ApproveSupplierPayment"'
+    audit_event_class: SupplierPaymentApproved
+    slo_target: "P2D after AML clear"
+    timeout:
+      duration: P2D
+      on_timeout: approval_timeout
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: PAYMENT_APPROVAL_REJECTED
+        behavior: "Close payment as rejected."
+    on_success:
+      - edge_to_select_payment_rail
+    on_failure:
+      - edge_to_payment_exception
+  - id: select_payment_rail
+    type: decision
+    config:
+      expression: "${nodes.supplier_validation.output.payment_rail}"
+      cases:
+        swift: create_swift_instruction
+        domestic_ach: create_domestic_instruction
+        sepa: create_domestic_instruction
+    cedar_permits_required:
+      - 'Action::"DecideSupplierPaymentRail"'
+    audit_event_class: SupplierPaymentRailDecided
+    slo_target: "PT4H after approval"
+    timeout:
+      duration: PT4H
+      on_timeout: treasury_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: PAYMENT_RAIL_UNSUPPORTED
+        behavior: "Route to treasury; no payment instruction created."
+    on_success:
+      - edge_to_create_swift_instruction
+      - edge_to_create_domestic_instruction
+    on_failure:
+      - edge_to_payment_exception
+  - id: create_swift_instruction
+    type: action
+    config:
+      service: treasury
+      contract: swift-payment-instruction.v1
+      method: POST
+      url: "https://treasury.internal/v1/payments/swift"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        invoice_id: "${inputs.invoice_id}"
+        amount_minor: "${inputs.invoice_amount_minor}"
+        currency: "${inputs.currency}"
+    cedar_permits_required:
+      - 'Action::"CreateSwiftSupplierPaymentInstruction"'
+    audit_event_class: SupplierSwiftPaymentInstructionCreated
+    slo_target: "PT1D after approval"
+    timeout:
+      duration: PT1H
+      on_timeout: swift_instruction_retry
+    retry:
+      max_attempts: 3
+      backoff: PT20M
+      retryable_errors:
+        - TREASURY_WRITE_TIMEOUT
+    failure_modes:
+      - code: SWIFT_BIC_INVALID
+        behavior: "Block execution and request supplier bank remediation."
+    on_success:
+      - edge_to_execute_payment
+    on_failure:
+      - edge_to_payment_exception
+  - id: create_domestic_instruction
+    type: action
+    config:
+      service: treasury
+      contract: domestic-payment-instruction.v1
+      method: POST
+      url: "https://treasury.internal/v1/payments/domestic"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        invoice_id: "${inputs.invoice_id}"
+        amount_minor: "${inputs.invoice_amount_minor}"
+        currency: "${inputs.currency}"
+    cedar_permits_required:
+      - 'Action::"CreateDomesticSupplierPaymentInstruction"'
+    audit_event_class: SupplierDomesticPaymentInstructionCreated
+    slo_target: "PT1D after approval"
+    timeout:
+      duration: PT1H
+      on_timeout: domestic_instruction_retry
+    retry:
+      max_attempts: 3
+      backoff: PT20M
+      retryable_errors:
+        - TREASURY_WRITE_TIMEOUT
+    failure_modes:
+      - code: DOMESTIC_ROUTING_INVALID
+        behavior: "Block execution and request supplier bank remediation."
+    on_success:
+      - edge_to_execute_payment
+    on_failure:
+      - edge_to_payment_exception
+  - id: execute_payment
+    type: action
+    config:
+      service: treasury
+      contract: supplier-payment-execute.v1
+      method: POST
+      url: "https://treasury.internal/v1/payments/execute"
+      body:
+        payment_instruction_id: "${nodes.create_swift_instruction.output.payment_instruction_id}"
+        approval_ref: "${nodes.approval_gate.output.approval_ref}"
+        aml_screen_ref: "${nodes.aml_screen.output.screen_ref}"
+    cedar_permits_required:
+      - 'Action::"ExecuteSupplierPayment"'
+    audit_event_class: SupplierPaymentExecuted
+    slo_target: "PT1D after instruction"
+    timeout:
+      duration: PT2H
+      on_timeout: payment_execute_retry
+    retry:
+      max_attempts: 2
+      backoff: PT30M
+      retryable_errors:
+        - PAYMENT_RAIL_TIMEOUT
+    failure_modes:
+      - code: PAYMENT_RAIL_REJECTED
+        behavior: "Create treasury exception; do not duplicate execution."
+    on_success:
+      - edge_to_payment_confirm_wait
+    on_failure:
+      - edge_to_payment_exception
+  - id: payment_confirm_wait
+    type: loop
+    config:
+      poll_contract: supplier-payment-confirmation-status.v1
+      poll_interval: PT6H
+      max_elapsed: P5D
+      terminal_statuses:
+        - confirmed
+        - rejected
+        - returned
+    cedar_permits_required:
+      - 'Action::"ReadSupplierPaymentConfirmation"'
+    audit_event_class: SupplierPaymentConfirmationPolled
+    slo_target: "P5D after execution"
+    timeout:
+      duration: P5D
+      on_timeout: payment_confirmation_timeout
+    retry:
+      max_attempts: 20
+      backoff: PT6H
+      retryable_errors:
+        - PAYMENT_CONFIRMATION_NOT_READY
+    failure_modes:
+      - code: PAYMENT_RETURNED
+        behavior: "Route to treasury and supplier remediation."
+    on_success:
+      - edge_to_payment_confirm_decision
+    on_failure:
+      - edge_to_payment_exception
+  - id: payment_confirm_decision
+    type: decision
+    config:
+      expression: "${nodes.payment_confirm_wait.output.status}"
+      cases:
+        confirmed: seal_payment_audit
+        rejected: payment_exception_end
+        returned: payment_exception_end
+    cedar_permits_required:
+      - 'Action::"DecideSupplierPaymentConfirmation"'
+    audit_event_class: SupplierPaymentConfirmationDecided
+    slo_target: "PT2H after terminal confirmation"
+    timeout:
+      duration: PT4H
+      on_timeout: treasury_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: PAYMENT_CONFIRMATION_UNKNOWN
+        behavior: "Keep payment case open."
+    on_success:
+      - edge_to_seal_payment_audit
+    on_failure:
+      - edge_to_payment_exception
+  - id: seal_payment_audit
+    type: action
+    config:
+      service: audit-chain
+      contract: supplier-payment-audit.v1
+      method: POST
+      url: "https://audit-chain.internal/v1/supplier-payments/completions"
+      body:
+        payment_case_id: "${nodes.create_payment_case.output.case_id}"
+        aml_screen_ref: "${nodes.aml_screen.output.screen_ref}"
+        confirmation_id: "${nodes.payment_confirm_wait.output.confirmation_id}"
+    cedar_permits_required:
+      - 'Action::"SealSupplierPaymentAudit"'
+    audit_event_class: SupplierPaymentAuditSealed
+    slo_target: "PT2H after confirmation"
+    timeout:
+      duration: PT15M
+      on_timeout: audit_seal_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: PAYMENT_AUDIT_SEAL_FAILED
+        behavior: "Do not mark payment complete."
+    on_success:
+      - edge_to_payment_completed
+    on_failure:
+      - edge_to_payment_exception
+  - id: payment_completed_end
+    type: end
+    config:
+      terminal_state: paid
+      output_contract: supplier-payment-result.v1
+    cedar_permits_required:
+      - 'Action::"CompleteSupplierPayment"'
+    audit_event_class: SupplierPaymentCompleted
+    slo_target: "P10D after invoice receipt"
+    timeout:
+      duration: PT5M
+      on_timeout: completion_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: COMPLETION_AUDIT_FAILED
+        behavior: "Keep supplier payment case open."
+    on_success: []
+    on_failure:
+      - edge_to_payment_exception
+  - id: payment_exception_end
+    type: end
+    config:
+      terminal_state: blocked_or_returned
+      output_contract: supplier-payment-exception.v1
+    cedar_permits_required:
+      - 'Action::"CloseSupplierPaymentException"'
+    audit_event_class: SupplierPaymentExceptionClosed
+    slo_target: "PT1D after blocker"
+    timeout:
+      duration: PT5M
+      on_timeout: exception_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: EXCEPTION_AUDIT_FAILED
+        behavior: "Keep AP and treasury tasks visible."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_create_payment_case
+    from: invoice_receive_start
+    to: create_payment_case
+    name: invoice_received
+  - id: edge_to_supplier_validation
+    from: create_payment_case
+    to: supplier_validation
+    name: case_created
+  - id: edge_to_three_way_match_parallel
+    from: supplier_validation
+    to: three_way_match_parallel
+    name: supplier_ready
+  - id: edge_to_match_invoice_po
+    from: three_way_match_parallel
+    to: match_invoice_po
+    name: po_match_branch
+  - id: edge_to_match_invoice_goods_receipt
+    from: three_way_match_parallel
+    to: match_invoice_goods_receipt
+    name: goods_receipt_branch
+  - id: edge_to_duplicate_invoice_check
+    from: three_way_match_parallel
+    to: duplicate_invoice_check
+    name: duplicate_check_branch
+  - id: edge_to_match_join
+    from: three_way_match_parallel
+    to: match_join
+    name: match_join
+  - id: edge_to_aml_screen
+    from: match_join
+    to: aml_screen
+    name: three_way_match_complete
+  - id: edge_to_aml_decision
+    from: aml_screen
+    to: aml_decision
+    name: aml_screen_complete
+  - id: edge_to_aml_manual_review
+    from: aml_decision
+    to: aml_manual_review
+    name: aml_review_required
+  - id: edge_to_approval_gate
+    from: aml_decision
+    to: approval_gate
+    name: aml_clear
+  - id: edge_to_select_payment_rail
+    from: approval_gate
+    to: select_payment_rail
+    name: payment_approved
+  - id: edge_to_create_swift_instruction
+    from: select_payment_rail
+    to: create_swift_instruction
+    name: swift_selected
+  - id: edge_to_create_domestic_instruction
+    from: select_payment_rail
+    to: create_domestic_instruction
+    name: domestic_selected
+  - id: edge_to_execute_payment
+    from: select_payment_rail
+    to: execute_payment
+    name: instruction_created
+  - id: edge_to_payment_confirm_wait
+    from: execute_payment
+    to: payment_confirm_wait
+    name: payment_executed
+  - id: edge_to_payment_confirm_decision
+    from: payment_confirm_wait
+    to: payment_confirm_decision
+    name: confirmation_terminal
+  - id: edge_to_seal_payment_audit
+    from: payment_confirm_decision
+    to: seal_payment_audit
+    name: payment_confirmed
+  - id: edge_to_payment_completed
+    from: seal_payment_audit
+    to: payment_completed_end
+    name: audit_sealed
+  - id: edge_to_payment_exception
+    from: invoice_receive_start
+    to: payment_exception_end
+    name: blocked_or_failed
+failure_modes:
+  - code: SANCTIONS_MATCH
+    behavior: "Block payment and require AML reviewer disposition."
+  - code: THREE_WAY_MATCH_FAILED
+    behavior: "Stop before AML and approval."
+  - code: PAYMENT_EXECUTION_DUPLICATE
+    behavior: "Return existing rail confirmation under idempotency key."
+worked_example:
+  sample_input:
+    tenant_id: tenant_acme
+    supplier_id: supplier_ocean_parts
+    invoice_id: inv_2026_5521
+    purchase_order_id: po_2026_1801
+    goods_receipt_id: gr_2026_1801
+    invoice_amount_minor: 125000
+    currency: USD
+    finance_owner_principal_id: principal_finance_18
+  sample_expected_output:
+    payment_case_id: spay_2026_5521
+    terminal_state: paid
+    payment_instruction_id: payinst_2026_5521
+    payment_confirmation_id: payconf_2026_5521
+    audit_chain_refs:
+      - audit://workflow/supplier-payment/three-way-match/01
+      - audit://workflow/supplier-payment/aml-clear/02
+      - audit://workflow/supplier-payment/confirmed/03

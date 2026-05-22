@@ -18,8 +18,8 @@ related_artifacts:
   - microservices/foundry/runbooks/kill-switch-engage.md
   - microservices/foundry/policy/tenant-scope.cedar
 
-autonomy_tier: T3
-# T3 = destructive operation (halts production agents); highest tier; explicit DPA entitlement required
+autonomy_level: T3
+# T3 = destructive operation (halts production agents); highest autonomy level; explicit DPA entitlement required
 
 inputs:
   - name: scope
@@ -84,7 +84,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/engage-kill-switch-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/engage-kill-switch-baseline.jsonl
   pass_threshold: 0.99
   eval_metric: latency-p99-≤-1s + correct-scope-fan-out + signature-count-verification
   cadence: per-release + quarterly chaos drill

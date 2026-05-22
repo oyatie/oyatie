@@ -21,11 +21,7 @@
       "oya-governance-protection-context-match",
       "oya-governance-dependency-seam",
       "oya-pr-review"
-    ],
-    "_app_id_overrides_rationale": "GitHub contexts can auto-pin to the last app that set a check. The agent review gate also posts an explicit commit status named `oya-pr-review`, so this context must allow any app/status provider (`app_id=-1`) instead of pinning to GitHub Actions check-run app IDs.",
-    "app_id_overrides": {
-      "oya-pr-review": -1
-    }
+    ]
   },
   "enforce_admins": true,
   "_required_pull_request_reviews_rationale": "GitHub human approving reviews are not the merge authority for `dev`; the required `oya-pr-review` status/check is. Keep this null so branch-protection re-application cannot recreate the hidden requiresApprovingReviews=true/count=0 blocker that stalls the next queue.",

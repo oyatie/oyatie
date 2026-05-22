@@ -6,17 +6,11 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every grit-done event has a matching icm-store and audit-chain emission triple.
 - enforces: CHECKLIST/agent-completion; ADR-0054.
-- adr_citations: ADR-0054 (scaffold-claim pattern — grit-done events must be paired with icm-store and audit emission to close the coordination loop)
-- kernel_crate: `oya-foundry-fitness-agent-completion-checklist-kernel` — `CompletionTriple { grit_done_id, icm_store_id, audit_event_id }`, verdict `AgentCompletionChecklistFitnessReport { triples_checked }`.
-- runner_path: `tools/oya-foundry-fitness-agent-completion-checklist`
-- inputs: grit log, icm log, audit-chain ledger.
+- kernel_crate: `oya-governance-agent-completion-checklist-kernel` — `CompletionTriple { grit_done_id, icm_store_id, audit_event_id }`, verdict `AgentCompletionChecklistFitnessReport { triples_checked }`.
+- runner_path: `tools/oya-governance-agent-completion-checklist`
 - failure_modes:
-  - grit-done with no icm-store
-  - icm-store with no audit row
-  - duplicate audit emission for same grit-done
-- ci_invocation: `cargo run -p oya-foundry-fitness-agent-completion-checklist`
+- ci_invocation: `cargo run -p oya-governance-agent-completion-checklist`
 - runtime_budget: 600 ms
 - severity: BLOCKER
 - kernel_sketch:
@@ -40,11 +34,9 @@ pub fn validate_agent_completion_checklist_fitness(
     use std::collections::BTreeMap;
     let mut audit_to_grit: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for t in triples {
-        let icm = t.icm_store_id.as_ref().ok_or_else(|| AgentCompletionChecklistFitnessError::MissingIcmStore {
             grit_done_id: t.grit_done_id.clone(),
         })?;
         let audit = t.audit_event_id.as_ref().ok_or_else(|| AgentCompletionChecklistFitnessError::MissingAuditEmission {
-            grit_done_id: t.grit_done_id.clone(), icm_store_id: icm.clone(),
         })?;
         audit_to_grit.entry(audit.clone()).or_default().push(t.grit_done_id.clone());
     }

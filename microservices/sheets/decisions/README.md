@@ -23,7 +23,7 @@ Service-scoped ADRs are numbered `ADR-SHEETS-####` (four-digit, sequential withi
 | [ADR-SHEETS-0004](ADR-SHEETS-0004-recalc-engine-architecture.md) | Recalc-engine architecture — dependency-graph + topological + parallel-task-graph (rayon-backed); 100k-cell ≤ 1s + 1M-cell ≤ 10s defensible | Accepted | Q4 (recalc-engine architecture) |
 | [ADR-SHEETS-0005](ADR-SHEETS-0005-ai-formula-and-smart-fill-bounds.md) | AI-formula + smart-fill capability tier bounds — T0/T1 intra-sheets by default; T2-cross gated by Cedar + ChangeSet review + 2-person rule | Accepted | Q5 (AI-formula scope) |
 | [ADR-SHEETS-0006](ADR-SHEETS-0006-per-range-acl-granularity.md) | Per-range ACL granularity — named-range ACL via Cedar policy fragments; column/range-level enforcement at every read/write path | Accepted | Q6 (per-range ACL granularity) |
-| [ADR-SHEETS-0007](ADR-SHEETS-0007-export-fidelity-policy.md) | XLSX export fidelity — best-effort tier at M03 with named-limit list (no VBA, no ActiveX, image downgrade); gVisor + ClamAV + OPSWAT sandboxed; strict-OOXML scheduled-for-distinct-tracked-work subsequent-to-M03-completion | Accepted | Q7 (XLSX export fidelity) |
+| [ADR-SHEETS-0007](ADR-SHEETS-0007-export-fidelity-policy.md) | XLSX export fidelity — best-effort fidelity at M03 with named-limit list (no VBA, no ActiveX, image downgrade); gVisor + ClamAV + OPSWAT sandboxed; strict-OOXML scheduled-for-distinct-tracked-work subsequent-to-M03-completion | Accepted | Q7 (XLSX export fidelity) |
 
 ## Cross-reference policy
 

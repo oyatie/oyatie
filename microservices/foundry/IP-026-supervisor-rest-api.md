@@ -97,3 +97,9 @@ Per route: happy + auth-fail (no OIDC) + tenant-mismatch + cedar-deny + insuffic
 - ADR-0140 (retired per ADR-0145) (Cedar).
 - `policy/tenant-scope.cedar` + `policy/auditor-scope.cedar` + `policy/public-read.cedar`.
 - axum — `docs.rs/axum`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

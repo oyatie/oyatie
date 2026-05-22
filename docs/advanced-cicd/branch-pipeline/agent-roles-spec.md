@@ -12,9 +12,9 @@ purpose: |
   (autonomous origin/dev → staging fast-forward), prod-promoter (5-gate staging → prod).
   Plus staging-fixer (canary/SLO-regression worker) and the reviewer-agent dispatch table.
 planned_enforcement_ref:
-  - oya-foundry-fitness-no-direct-origin-dev-commit
-  - oya-foundry-fitness-no-direct-staging-commit
-  - oya-foundry-fitness-no-direct-prod-commit
+  - oya-governance-no-direct-origin-dev-commit
+  - oya-governance-no-direct-staging-commit
+  - oya-governance-no-direct-prod-commit
 related_adrs: [ADR-0022, ADR-0039, ADR-0041]
 doc_status: published
 ---
@@ -34,16 +34,13 @@ Four new roles that operate the four-layer auto-promotion graph in [`branch-pipe
 **Action.** Orchestrates the **3-gate verification** (per [`branch-pipeline-architecture.md`](branch-pipeline-architecture.md) §4):
 
 1. PR shape — invokes `oya-tooling-agent-read` to fetch PR body; verifies five-H2 conformance.
-2. Reviewer-agent dispatch — by file-glob change class (per §5 of this file + `docs/AGENTS.md`), invokes each applicable reviewer agent via the agent-runtime Skill API; waits for `APPROVE` verdict (or `REQUEST_CHANGES`); records via `icm store -t pr-review-verdicts`.
 3. CI clearance — polls fitness-lane outcomes via `oya-foundry-ci-state-store`; requires every lane GREEN on the PR HEAD.
 
-When all three gates green simultaneously, invokes `gh pr merge --squash --auto` (under [Directive 12](../../plans/MASTERPLAN.md) with `icm store -t direct-tool-invocations -c '<rationale>' -i high -k 'gh,dev-promoter'`).
 
 **Authority.** May invoke reviewer agents via Skill; may invoke `oya-tooling-agent-read` for PR-shape inspection; may invoke `gh pr merge --squash`. Cannot modify code.
 
 **Concurrency.** Per-PR single-flight (one promotion evaluation per PR at a time). Multiple PRs evaluated in parallel.
 
-**ICM topic.** `dev-promotions`. Payload:
 
 ```json
 {
@@ -51,7 +48,6 @@ When all three gates green simultaneously, invokes `gh pr merge --squash --auto`
   "from_sha": "<origin/dev parent>",
   "to_sha": "<merged origin/dev sha>",
   "reviewer_agents": ["rust-reviewer", "tdd-guide", ...],
-  "verdict_ids": ["<icm record id>", "..."],
   "ci_lane_results": {"lane": "result", "...": "..."},
   "promoted_at": "<rfc3339>"
 }
@@ -71,11 +67,9 @@ When all three gates green simultaneously, invokes `gh pr merge --squash --auto`
 
 **Authority.** Read-only on code; write-access to `staging` ref only.
 
-**Sanctioned tools.** `grit` + `icm` + `oya-tooling-agent-read`. Direct `git push --signed origin dev:staging` permitted under Directive 12 with logged rationale.
 
 **Concurrency.** Single-flight per `staging` branch.
 
-**ICM topic.** `staging-promotions`. Payload: `{from_sha, to_sha, commit_count, promoted_at, trigger}`.
 
 **Audit event.** `EVT-STAGING-PROMOTED`.
 
@@ -85,15 +79,12 @@ When all three gates green simultaneously, invokes `gh pr merge --squash --auto`
 
 **Trigger.** Three streams: (a) `slo-burn-rate-fast` alert; (b) `EVT-CANARY-REGRESSION` audit event from progressive-delivery rails; (c) `EVT-PROD-PROMOTION-BLOCKED` (staging → prod gate red, including unresolved review comments).
 
-**Action.** Claims symbols associated with the regression (per failing canary metric or per unresolved-comment thread) via `grit claim --agent --intent`. Diagnoses root cause. Authors a fix in the agent worktree. `grit done` to local dev. Opens a PR through the **standard local-dev → origin/dev → staging path**. **Cannot bypass.** SLA: **4 hours** from regression event to staging-stable; tracked by `oya-foundry-fitness-canary-regression-sla` (HIGH).
 
 **Authority.** May claim symbols, modify file contents, add tests, revert specific origin/dev commits via the standard PR path. **Cannot** commit directly to `staging` or `prod` or `origin/dev`. **Cannot** change architectural shape — requires ADR + human review per [Directive 2](../../plans/MASTERPLAN.md).
 
 **Escalation.** If the 4-hour SLA misses, emits `EVT-CANARY-REGRESSION-SLA-MISS` and pages the per-axis on-call. Does **not** block other PRs from promoting independently through their own change set.
 
-**Sanctioned tools.** Full `grit` + `icm` + `oya-tooling-agent-read` (`grit claim`, `grit done`).
 
-**ICM topic.** `staging-fixes`. Payload: `{event_id, regression_class, claimed_symbols[], pr_id, fix_sha, time_to_stable_minutes}`.
 
 **Image.** Distroless `cc-debian12`.
 
@@ -113,11 +104,9 @@ If all 5 green → fast-forward `prod` to `staging` HEAD; attach Cosign signatur
 
 **Authority.** Read-only on every code surface; write-access to `prod` ref only.
 
-**Sanctioned tools.** `grit` + `icm` + `oya-tooling-agent-read`. Direct `git push --signed origin staging:prod` permitted under Directive 12 with logged rationale.
 
 **Concurrency.** Single-flight global.
 
-**ICM topic.** `prod-promotions`. Payload: `{from_sha, to_sha, gate_results[5], canary_evidence_id, slo_evidence_id, cosign_signature, slsa_provenance_uri, promoted_at}`.
 
 **Audit event.** `EVT-PROD-PROMOTED`.
 
@@ -144,7 +133,6 @@ Reviewer agents render verdicts on PRs at the **local-dev → origin/dev** bound
 | Capability publish (`crates/oya-foundry-capability-*`) | `capability-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
 | Performance change (benchmarks / hot path) | `perf-reviewer` | Approve / Request-Changes | **yes** (uses post-canary perf data) |
 
-Verdict recorded via `icm store -t pr-review-verdicts` per Directive 12; without the record, `oya-foundry-fitness-pr-review-verdict-present` blocks promotion.
 
 ## 7. Anti-scope
 

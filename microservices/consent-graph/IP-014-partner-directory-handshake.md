@@ -186,3 +186,7 @@ Either side may unilaterally offboard the other. Offboarding cascades:
 5. Audit-chain bilateral entries on both sides.
 
 Runbook `partner-offboarding.md` is the procedure.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: TrustArc integration catalogs, OneTrust platform integrations, Snowflake/Databricks sharing partner setup, and Open Banking/FAPI trust relationships. This IP maps that counterpart surface into Oyatie's partner-directory handshake: peer tenant trust anchors, audit-chain root proof, partner state, offboarding cascade, and `partner-handshake-latency` SLO.

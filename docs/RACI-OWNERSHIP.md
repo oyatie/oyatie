@@ -133,7 +133,6 @@ This table is generated from `docs/teams/*/CHARTER.md` and validated by `oya gat
 
 | Role / row id | Responsible | Accountable | Consulted | Informed | Authorized cutover actions | Required pre-execution evidence |
 |---|---|---|---|---|---|---|
-| `human-orchestrator-cutover` | Founder-designated human operator for the agentic-pipeline cutover | `council-architecture` | `ops-sre-reliability`, `ops-security`, `crew-adr-promotion` | Founder, affected axis owners | P6 `git mv` archive moves, P7 `git rm` active-path deletions, and P9 `gh issue create` for the upstream `rtk-ai/grit` session bug only | `icm store -t cutover-orchestrator-actions -c '<action>' -i critical` before every carve-out invocation |
 
 This row does not grant agents direct `git` or `gh` authority. Agents prepare
 manifests, verification evidence, and halt rows; the human orchestrator performs

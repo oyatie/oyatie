@@ -43,7 +43,7 @@ capabilities:
     latency_budget_p99_ms: 300
     audit_event: TaskNextSuggestionShown (per-suggestion; minimal payload — task id hash list + score)
     fallback_on_model_failure: silent skip — falls back to heuristic
-    eu_ai_act_classification: minimal-risk (Annex III §4 NOT triggered — suggesting, not assigning)
+    risk_classification: minimal-risk (Annex III §4 NOT triggered — suggesting, not assigning)
     user_label: "AI suggestion — click to accept" (Art. 50 transparency)
 
   - id: T0-task-suggest-priority
@@ -69,7 +69,7 @@ capabilities:
     latency_budget_p99_ms: 250
     audit_event: TaskPrioritySuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — Tab to accept"
 
   - id: T0-task-suggest-label
@@ -93,7 +93,7 @@ capabilities:
     latency_budget_p99_ms: 200
     audit_event: TaskLabelSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — click to accept"
 
   - id: T0-task-suggest-due-date
@@ -117,7 +117,7 @@ capabilities:
     latency_budget_p99_ms: 150
     audit_event: TaskDueDateSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — Tab to accept"
 
 verification:

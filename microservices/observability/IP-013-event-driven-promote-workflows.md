@@ -17,7 +17,7 @@ acceptance_lanes: [oya-governance-protection-context-match]
 
 ## Intent
 
-Rewrite `.github/workflows/promote-dev-to-staging.yml` and `.github/workflows/promote-staging-to-production.yml` to consume `repository_dispatch` event `eligibility-changed`. Retain crons as reconciliation heartbeat only. Decommission FUTURE-marked stubs (`oya-foundry-fitness-canary-cohort-observability` + `oya-foundry-fitness-full-rollout-observability` references).
+Rewrite `.github/workflows/promote-dev-to-staging.yml` and `.github/workflows/promote-staging-to-production.yml` to consume `repository_dispatch` event `eligibility-changed`. Retain crons as reconciliation heartbeat only. Decommission FUTURE-marked stubs (`oya-governance-canary-cohort-observability` + `oya-governance-full-rollout-observability` references).
 
 ## Concrete File Targets
 

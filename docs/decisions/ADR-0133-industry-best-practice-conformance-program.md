@@ -49,7 +49,7 @@ Adopt the 6-axis continuous industry-best-practice + hyperscaler-grade conforman
 
 #### Axis 1 — Pipeline conformance
 
-Every CI lane (existing `oya-foundry-fitness-*` + new `oya-governance-*` + `oya-vcs-*`) audited against the canonical industry pipeline-stage taxonomy:
+Every CI lane (existing `oya-governance-*` + new `oya-governance-*` + `oya-vcs-*`) audited against the canonical industry pipeline-stage taxonomy:
 
 ```text
 build → test → security-scan → SBOM → sign → deploy → verify → promote
@@ -155,7 +155,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 
 ## Rejected Alternatives
 
-- **Trust the existing CI lanes are enough.** Rejected: existing `oya-foundry-fitness-*` lanes were not designed against a comprehensive 6-axis baseline; this audit surfaces what they miss.
+- **Trust the existing CI lanes are enough.** Rejected: existing `oya-governance-*` lanes were not designed against a comprehensive 6-axis baseline; this audit surfaces what they miss.
 - **One-off audit (no continuous program).** Rejected: industry baselines evolve (SLSA v1 → v2; OpenTelemetry semconv monthly; LTS lines move). Continuous discipline required.
 - **Per-axis audit owned by different teams without a unifying ADR.** Rejected: leads to inconsistent severity and remediation cadence.
 - **Run audit only on new artifacts (not legacy).** Rejected: legacy gaps are the largest surface; continuous = legacy + new.
@@ -164,7 +164,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 
 ### Positive
 
-- Every oyatie artifact has a named industry baseline; sales claims at the `oya-foundry-fitness-hyperscaler-maturity-claims` lane (per ADR-0123 HG-OBS gate) become source-bounded by this program.
+- Every oyatie artifact has a named industry baseline; sales claims at the `oya-governance-hyperscaler-maturity-claims` lane (per ADR-0123 HG-OBS gate) become source-bounded by this program.
 - Drift detected at PR time, not at audit time.
 - Agentic-dev-team optimisation is codified, not implicit.
 - External auditors (SOC 2 Type 2 / ISO 27001 / etc.) read the same audit-findings spec as the internal lane reads, simplifying audit preparation.

@@ -56,7 +56,7 @@ Industry references:
 
 ### 1. Tiered fidelity contract
 
-Documents are translated with explicit per-format fidelity tier (per `IP-009-document-translation-stack.md`):
+Documents are translated with explicit per-format fidelity class (per `IP-009-document-translation-stack.md`):
 
 | Tier | Formats | Guarantees |
 |---|---|---|
@@ -64,7 +64,7 @@ Documents are translated with explicit per-format fidelity tier (per `IP-009-doc
 | Tier-2 (high) | PPTX, XLSX, HTML, Markdown | Slide + text-frame + image-anchor + theme (PPTX); sheet + cell + formula + format (XLSX); markup-preserved (HTML + Markdown); CSS-class preserved; code-fence preserved |
 | Tier-3 (best-effort) | PDF | Text-flow preserved; layout best-effort (PDFs lose semantic structure on extract) |
 
-Tenants see the tier label per format on the API response (per `contracts/openapi/translate-files.yaml`).
+Tenants see the fidelity class label per format on the API response (per `contracts/openapi/translate-files.yaml`).
 
 ### 2. gVisor sandbox for all parsers
 
@@ -113,8 +113,8 @@ All XML parsing uses `quick-xml` (Rust) with:
 
 `tests/fidelity/corpus/` contains representative documents per format with:
 
-- Golden source file.
-- Expected target structure (per-tier fidelity assertion).
+- reference source file.
+- Expected target structure (per-class fidelity assertion).
 - Per-release regression test: DOCX → XLIFF → MT (test engine) → DOCX → assert paragraph count + table count + style count preserved.
 
 ### 7. PDF caveat: round-trip is best-effort
@@ -165,7 +165,7 @@ PDF lacks semantic structure; extract-translate-merge → re-render via LibreOff
 
 1. **Format coverage matches industry leaders** — DOCX/PPTX/XLSX/PDF/HTML/Markdown/PO/XLIFF/ARB/.strings/.resx/.properties; competitor parity per `competitor-parity-matrix.md`.
 2. **Sandboxed parser execution** — gVisor + seccomp + no-network + read-only-rootfs makes parser CVEs non-exploitable as cluster-compromise vectors; no competitor isolates at this granularity.
-3. **Tiered fidelity contract** — tenant expectations set per format; per-tier guarantees explicit in API.
+3. **Classed fidelity contract** — tenant expectations set per format; per-class guarantees explicit in API.
 4. **Placeholder + plural preservation across format families** — ICU + Mustache + C-style + shell-style + per-format escape sequences uniformly handled.
 
 ### negative

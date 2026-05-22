@@ -17,11 +17,11 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, oya-go
 
 ## Intent
 
-Implement the BLOCKER CI lane `oya-governance-deterministic-replay` that validates: for every workflow spec submitted in a PR (or already published), running the spec against its golden-input set produces an identical step sequence on every replay. Catches non-determinism regressions at PR-time before they reach production.
+Implement the BLOCKER CI lane `oya-governance-deterministic-replay` that validates: for every workflow spec submitted in a PR (or already published), running the spec against its canonical replay fixture set produces an identical step sequence on every replay. Catches non-determinism regressions at PR-time before they reach production.
 
 ## ChangeSet boundary
 
-One new lane validator crate + GitHub Actions workflow + golden-input set bootstrap.
+One new lane validator crate + GitHub Actions workflow + canonical replay fixture bootstrap.
 
 ## Concrete File Targets
 
@@ -29,16 +29,16 @@ One new lane validator crate + GitHub Actions workflow + golden-input set bootst
 |---|---|---|
 | `crates/oya-check-deterministic-replay/{Cargo.toml,src/lib.rs,src/main.rs}` | create | Lane validator binary; reads PR-affected specs, runs each through workflow-engine in a hermetic test container, verifies replay invariant |
 | `.github/workflows/governance-deterministic-replay.yml` | create | CI workflow that runs the validator on every PR touching `microservices/workflow-engine/**` or any `**/*.workflow.yaml` |
-| `microservices/workflow-engine/capabilities/eval/{workflow-execute,workflow-pause,workflow-replay}-golden.jsonl` | create | Golden input sets for the 3 capabilities (per `capabilities/*.yaml` `eval_set` references) |
+| `microservices/workflow-engine/capabilities/eval/{workflow-execute,workflow-pause,workflow-replay}-fixtures.jsonl` | create | Canonical replay fixture sets for the 3 capabilities (per `capabilities/*.yaml` `eval_set` references) |
 | `Cargo.toml` (workspace) | update | register `oya-check-deterministic-replay` |
 
 ## Code Shape
 
 ```rust
 // crates/oya-check-deterministic-replay/src/lib.rs
-pub fn validate_deterministic_replay(spec: &WorkflowSpec, golden_inputs: &[GoldenInput])
+pub fn validate_deterministic_replay(spec: &WorkflowSpec, replay_fixtures: &[ReplayFixture])
     -> Result<ValidationResult, ValidationError> {
-    for input in golden_inputs {
+    for input in replay_fixtures {
         // 1. Run spec against input
         let original_run = engine.execute(spec, input).await?;
         // 2. Replay the run from event log
@@ -56,7 +56,7 @@ pub fn validate_deterministic_replay(spec: &WorkflowSpec, golden_inputs: &[Golde
 
 ```bash
 cargo nextest run -p oya-check-deterministic-replay --all-features
-cargo run -p oya-check-deterministic-replay -- validate --spec <path> --golden <path>
+cargo run -p oya-check-deterministic-replay -- validate --spec <path> --fixtures <path>
 ```
 
 ## Test Plan

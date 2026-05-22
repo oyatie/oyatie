@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading IaC orchestration platforms. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims` gate (HG-CLOUD-IAC per ADR-0123). Tells gtm-customer-success what to say + what NOT to say in tenant sales conversations. Re-validated bi-annually.
+Quantitative + qualitative parity comparison vs the industry-leading IaC orchestration platforms. Drives the `oya-governance-hyperscaler-maturity-claims` gate (HG-CLOUD-IAC per ADR-0123). Tells gtm-customer-success what to say + what NOT to say in tenant sales conversations. Re-validated bi-annually.
 
 ## Competitor Set
 

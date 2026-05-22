@@ -12,7 +12,7 @@ superseded_by: [ADR-0118]
 doc_class: DecisionRecord
 purpose: |
   Canonical inventory ledger for the grit/icm cutover; classifies every file/dir/script under oyatie/ and bominal/agents/ + bominal/docs/ scope by closed-set action (KEEP/KEEP+ANNOTATE/REPLACE-WITH-GRIT/REPLACE-WITH-ICM/REPLACE-WITH-HELPER/ARCHIVE/DELETE/FLAG-FOR-USER).
-planned_enforcement_ref: oya-foundry-fitness-inventory-tracker
+planned_enforcement_ref: oya-governance-inventory-tracker
 related:
   - ADR-0053
   - ADR-0054
@@ -38,7 +38,7 @@ tags:
 
 Accepted. This ADR satisfies acceptance criterion **A2** of `.omc/plans/ralplan-oyatie-sst-consolidation.md`: "A canonical inventory ledger ADR classifies every file/dir/script in scope by closed-set action before any deletion or archive move executes."
 
-Planned enforcement: `oya-foundry-fitness-inventory-tracker` remains advisory until the CI lane exists.
+Planned enforcement: `oya-governance-inventory-tracker` remains advisory until the CI lane exists.
 
 ---
 
@@ -71,7 +71,7 @@ Rules that follow from this ADR:
 2. **No DELETE-class artifact MAY be removed** until the corresponding ARCHIVE move has its own merged PR (per plan §P6→P7 gate).
 3. **KEEP+ANNOTATE artifacts MUST receive their annotation** no later than plan phase P4 (agent-instruction rewrite).
 4. **FLAG-FOR-USER items** are not actioned by automated agents; they require explicit human decision before any agent touches them.
-5. The `oya-foundry-fitness-inventory-tracker` lane **MUST** verify that every row with `Classification ≠ KEEP` has a corresponding successor-IP issue or completed-phase marker before P7 deletion is permitted to merge.
+5. The `oya-governance-inventory-tracker` lane **MUST** verify that every row with `Classification ≠ KEEP` has a corresponding successor-IP issue or completed-phase marker before P7 deletion is permitted to merge.
 
 ---
 
@@ -87,7 +87,7 @@ Rules that follow from this ADR:
 
 **Alt 1 — Inline comments in the plan file (`.omc/plans/ralplan-oyatie-sst-consolidation.md`).**
 - Pros: no new file; decisions co-located with phasing.
-- Cons: plan files are READ-ONLY per agent convention; comments in plan files are not tracked as authoritative decisions; `oya-foundry-fitness-inventory-tracker` cannot validate a non-ADR format. Rejected: violates §Constraints item 2 (authoritative = repo-tracked in `docs/`).
+- Cons: plan files are READ-ONLY per agent convention; comments in plan files are not tracked as authoritative decisions; `oya-governance-inventory-tracker` cannot validate a non-ADR format. Rejected: violates §Constraints item 2 (authoritative = repo-tracked in `docs/`).
 
 **Alt 2 — A standalone JSON ledger at `docs/machine-readable/inventory-grit-cutover.json`.**
 - Pros: machine-parseable natively; easier for CI lane to query.
@@ -105,7 +105,7 @@ This ADR satisfies:
 
 - **(a) Spec acceptance criterion A2** — "A canonical inventory ledger ADR classifies every file/dir/script in scope." This ADR is that document.
 - **(b) Master Plan principles** — P1 (inventory precedes deletion), P3 (authoritative = repo-tracked), P7 (reshape data to eliminate special cases: `G004-reconciliation-blocker.md` and `PAUSE.md` disappear because grit's data model has no place for them, not because we add a shim).
-- **(c) Prior ADRs** — builds on ADR-0015 (flat-crates; explains why all `crates/` entries are KEEP), ADR-0019 (doc catalog; explains why all `docs/` entries are KEEP), ADR-0025 (Foundry as engineering platform; why `oya-foundry-fitness-*` lanes are the enforcement vehicle).
+- **(c) Prior ADRs** — builds on ADR-0015 (flat-crates; explains why all `crates/` entries are KEEP), ADR-0019 (doc catalog; explains why all `docs/` entries are KEEP), ADR-0025 (Foundry as engineering platform; why `oya-governance-*` lanes are the enforcement vehicle).
 - **(d) Beats alternatives** — Alt 1 breaks the authoritative-tracking invariant; Alt 2 produces an orphaned JSON with no narrative; Alt 3 is the failure mode the plan was written to prevent.
 
 Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaffold-claim pattern) land in the same wave and are cross-cited here because their acceptance is a precondition for the REPLACE-WITH-GRIT and REPLACE-WITH-ICM action classes to have executable meaning.
@@ -117,15 +117,15 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 ### Positive
 
 - Every subsequent plan phase (P3–P10) can cite a stable ADR row as authority for why a specific artifact is being archived, annotated, or deleted.
-- `oya-foundry-fitness-inventory-tracker` has a parseable, versioned source of truth; classification drift is detectable as a CI failure.
+- `oya-governance-inventory-tracker` has a parseable, versioned source of truth; classification drift is detectable as a CI failure.
 - The seven cross-boundary artifacts have explicit dispositions; the `bominal` ↔ `oyatie` boundary ambiguity is resolved before any doc rewrites begin.
 - The phantom-path finding (`oyatie/.omx/ultragoal/` does not exist) is committed as a fact, preventing a future agent from wasting time searching for it.
 
 ### Negative
 
-- The ledger now covers 223 existing artifact rows across two repositories; any future artifact added to either scope without a corresponding ledger update will trigger an `oya-foundry-fitness-inventory-tracker` gap warning. This requires process discipline on all contributors.
+- The ledger now covers 223 existing artifact rows across two repositories; any future artifact added to either scope without a corresponding ledger update will trigger an `oya-governance-inventory-tracker` gap warning. This requires process discipline on all contributors.
 - The 15 ARCHIVE-class rows cannot be moved until this ADR merges, which is a hard sequencing constraint that blocks P6 in the plan.
-- Maintaining the ledger in a markdown table limits programmatic query ergonomics; the `oya-foundry-fitness-inventory-tracker` lane must implement its own markdown-table parser.
+- Maintaining the ledger in a markdown table limits programmatic query ergonomics; the `oya-governance-inventory-tracker` lane must implement its own markdown-table parser.
 
 ### Neutral
 
@@ -557,13 +557,13 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 
 4. **P4 — Agent-instruction rewrite.** Owner: `foundry` (P4 executor). Apply `KEEP+ANNOTATE` to `oyatie/CLAUDE.md`, `oyatie/AGENTS.md`, `oyatie/docs/AGENTS.md`. Gate: ADR-0053 merged (sanctioned-primitives closed set must be committed before agent-instruction rewrites reference it).
 
-5. **P6 — Archive moves.** Owner: human orchestrator + `foundry`. Move all 15 `ARCHIVE`-class rows from `bominal/agents/ultragoal/` to `archive/pre-grit-cutover-2026-05-12/`. Gate: this ADR merged + `oya-foundry-fitness-archive-orphan` lane scaffolded.
+5. **P6 — Archive moves.** Owner: human orchestrator + `foundry`. Move all 15 `ARCHIVE`-class rows from `bominal/agents/ultragoal/` to `archive/pre-grit-cutover-2026-05-12/`. Gate: this ADR merged + `oya-governance-archive-orphan` lane scaffolded.
 
-6. **P7 — Deletion.** Owner: human orchestrator. Remove 2 `DELETE`-class rows. Gate: three checks per RALPLAN pre-mortem item 2 — (a) banned-primitives lane green post-P6, (b) `oya-foundry-fitness-archive-orphan` lane confirms no living references to archived paths, (c) every ARCHIVE-class row has a non-null `Archived at` timestamp in this ADR's ledger.
+6. **P7 — Deletion.** Owner: human orchestrator. Remove 2 `DELETE`-class rows. Gate: three checks per RALPLAN pre-mortem item 2 — (a) banned-primitives lane green post-P6, (b) `oya-governance-archive-orphan` lane confirms no living references to archived paths, (c) every ARCHIVE-class row has a non-null `Archived at` timestamp in this ADR's ledger.
 
 7. **FLAG-FOR-USER — Global RTK extension.** Owner: human principal. Decide whether to extend the agent-instruction grit/icm primitive ban to `~/.claude/CLAUDE.md`. Default per spec §Non-Goals: no; scope is `oyatie/` only until the user explicitly broadens it.
 
-8. **`oya-foundry-fitness-inventory-tracker` lane.** Owner: `foundry`. Implement markdown-table parser that validates every row in this ADR has a classification value from the closed set; emit CI failure on gap. Required before P7 deletion gate (item 6 above).
+8. **`oya-governance-inventory-tracker` lane.** Owner: `foundry`. Implement markdown-table parser that validates every row in this ADR has a classification value from the closed set; emit CI failure on gap. Required before P7 deletion gate (item 6 above).
 
 ---
 
@@ -574,7 +574,7 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 - ADR-0001: cohesion thesis — authority chain declaration
 - ADR-0015: architectural flattening target — flat-crates; explains all `crates/` KEEP rows
 - ADR-0019: doc catalog and update protocol — explains all `docs/` KEEP rows
-- ADR-0025: Foundry as engineering platform — `oya-foundry-fitness-*` enforcement vehicle
+- ADR-0025: Foundry as engineering platform — `oya-governance-*` enforcement vehicle
 - ADR-0039: supply chain security — `deny.toml` KEEP rationale
 - ADR-0053: sanctioned primitives (sibling, parallel wave) — defines REPLACE-WITH-GRIT / REPLACE-WITH-ICM action classes
 - ADR-0054: grit scaffold-claim pattern (sibling, parallel wave) — icm-coordination-lock fallback for new-crate phases

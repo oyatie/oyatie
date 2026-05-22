@@ -1,0 +1,26 @@
+apiVersion: oyatie.io/v2
+kind: Capability
+metadata:
+  name: pack-overlay-subscribe
+  microservice: feature-flags
+  binding-adr: ADR-0251
+spec:
+  displayName: Pack Overlay Subscribe
+  description: |
+    Subscribe to pack-activation events and apply pack-mandated flag overrides.
+    Used by oyatie.feature-flags.pack-overlay-agent (automated principal).
+    Requires Foundry meta-trust-root attestation (ADR-0247 + ADR-0293).
+    Pack overlays are non-overridable by tenant admins.
+    Emits PackFlagOverrideApplied audit event (sealed).
+  tier: T2
+  risk_class: high
+  audience_types:
+    - INTERNAL_AGENT
+  transport:
+    async: oya.feature-flags.pack-override-applied
+  cedar_permit: policy/pack-overlay-authorization.cedar
+  requires_foundry_attestation: true
+  audit_emitted: true
+  audit_event_classes:
+    - PackFlagOverrideApplied
+  runbook: runbooks/pack-override-cascade.md

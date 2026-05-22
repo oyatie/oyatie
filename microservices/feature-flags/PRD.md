@@ -7,7 +7,7 @@ status: Accepted
 sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
-related_adrs: [ADR-0001, ADR-0003, ADR-0007, ADR-0009, ADR-0049, ADR-0110, ADR-0114, ADR-0128, ADR-0131, ADR-0139, ADR-0145, ADR-0157, ADR-0158, ADR-0159, ADR-0163]
+related_adrs: [ADR-0001, ADR-0003, ADR-0007, ADR-0009, ADR-0049, ADR-0110, ADR-0114, ADR-0128, ADR-0131, ADR-0139, ADR-0145, ADR-0157, ADR-0158, ADR-0159, ADR-0163, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/feature-flag-substrate-canonical.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-18
 owner_team: axis-governance
@@ -73,6 +73,37 @@ Out:
 - **Availability** ≥ 99.99%.
 - **Cache hit rate** ≥ 99% at client SDK.
 
+### DR posture (ADR-0343)
+
+- Service target: flag evaluation remains cell-local with RTO p99 ≤ 60s for server restart and RPO p99 ≤ 5s for flag definition replication, matching the existing definition-replication SLO.
+- Compliance floors considered: HIPAA-2024 RTO 3600s/RPO 300s/multi-region true, PCI-DSS-L1-v4 RTO 86400s/RPO 3600s, SOC2-T2 RTO 14400s/RPO 900s, and EU-AI-ACT-2024-HIGH-RISK RTO 1800s/RPO 300s/multi-region true for flagged automated-decision controls. The effective service target is 60s/5s; multi-region active-active is required by the existing cell model.
+- Failover runbook reference: `runbooks/killswitch-engaged.md`, `runbooks/flag-evaluation-regression.md`, and `runbooks/audit-replay.md`.
+- Multi-region posture: active-active per cell with local SDK cache fallback; definitions replicate asynchronously within the 5s p99 lag budget and each sovereign pack resolves inside its declared cell.
+- Tenant-visible behavior: a tenant retains deterministic last-known/default flag behavior during cell failover, so an emergency kill-switch degrades toward safety instead of disappearing.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.1 vCPU/128MiB server capacity, 10MiB flag-definition storage, 100MiB SDK/evaluation cache, and one streaming SDK connection class per active application.
+- Scaling dimension: `eval_per_second`, `flag_definition_count`, `targeting_rule_complexity`, `sdk_stream_connection`, and `audit_required_eval` size the evaluator and audit replay lanes.
+- Cell placement class: Tier-2 minimum from `manifest.json` `cell_eligibility.tier_min`; ADR-0338 Tier-1/Kata applies to privileged kill-switch mutation workers while hot evaluation replicas stay in the low-latency runtime tier declared by the cell overlay.
+- Autoscaling boundaries: minimum two evaluator replicas per cell, maximum 100 evaluator replicas per cell before tenant rate limits and SDK cache TTLs absorb additional load; audit-required tenants get a separate replay queue.
+- Tenant load profile served: steady high-QPS SDK evaluation, brief rollout storms, and low-frequency compliance audits stay isolated from mutation and kill-switch control paths.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every flag change, evaluation for `audit_required: true`, kill-switch invocation, experiment conclusion, pack override, rollout advance, and rollback row emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours`.
+- Carbon-aware provider routing: no for online flag evaluation or kill-switch paths because latency and safety dominate; yes for offline experiment aggregation, replay, and attribution jobs when ADR-0343 floors remain satisfied.
+- Tenant cost transparency surface: the flag audit ledger, experiment attribution dashboard, and FinOps portal expose per-flag evaluation volume, audit replay cost, cell, and compliance_pack.
+- Regulatory driver: CSRD, SB-253, and SEC climate-disclosure exports need auditable energy/cost evidence for automated decision flags; aggregate-only emissions would not prove which tenant or pack produced the workload.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: OpenFeature REST/gRPC, AsyncAPI, and proto contracts use the YYYY-MM-DD carrier triplet: `Oyatie-API-Version: <date>`, `/api/feature-flags/<date>/...`, and proto3 `api_version` fields.
+- SDK semver model: Rust/TypeScript/Python/OpenFeature SDKs publish `major.minor.patch`; semver major aligns with breaking changes to a supported date-versioned contract.
+- Support window: last N=3 public contract dates are supported for at least 180 days.
+- Per-tenant pinning: yes for server-side providers and SDK clients, because rollouts can span application release windows.
+- Internal-mesh exemption: yes; governance and progressive-delivery direct gRPC keep ADR-0145 behavior while the public OpenFeature surface remains date-versioned.
+
 ## Architecture
 
 - Layers 1-7 per ADR-0105: kernel-domain-usecase-adapter trio + REST/gRPC surface + composition root.
@@ -114,3 +145,23 @@ Out:
 ## Status
 
 Skeleton PRD shipped 2026-05-18 alongside ADR-0159. Full IP pack lands in stacked PR.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `feature-flags` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `feature-flags` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_request` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

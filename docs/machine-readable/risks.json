@@ -45,7 +45,7 @@
       "score": 75,
       "tier": "catastrophic",
       "owner": "platform-audit-evidence",
-      "mitigation": "Mandatory emission per capability registration; CI gate oya-foundry-fitness-audit-emit; per-quarter chain-integrity check + replay drill"
+      "mitigation": "Mandatory emission per capability registration; CI gate oya-governance-audit-emit; per-quarter chain-integrity check + replay drill"
     },
     {
       "id": "R-004",
@@ -111,7 +111,7 @@
       "score": 36,
       "tier": "operational",
       "owner": "ops-security+axis-foundry",
-      "mitigation": "License Policy ADR; oya-foundry-fitness-license CI lane; per-quarter license audit; Vendor-Partner-Ledger"
+      "mitigation": "License Policy ADR; oya-governance-license CI lane; per-quarter license audit; Vendor-Partner-Ledger"
     },
     {
       "id": "R-010",
@@ -221,7 +221,7 @@
       "score": 16,
       "tier": "watching",
       "owner": "council-architecture",
-      "mitigation": "oya-foundry-fitness-glossary checks for retired terms; banner in PRD \u00a73.1; ADR-0050/0185/0191 explicitly amended"
+      "mitigation": "oya-governance-glossary checks for retired terms; banner in PRD \u00a73.1; ADR-0050/0185/0191 explicitly amended"
     },
     {
       "id": "R-020",

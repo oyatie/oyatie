@@ -43,13 +43,13 @@ The µservice has no Bominal equivalent and originates in oyatie.
 | FR-02 | eval runner | to execute an eval set against a candidate route (provider+model) and emit per-case results | publish-gate / nightly / A/B / replay paths share one execution substrate | eval-runner | Must |
 | FR-03 | parity analyzer | to compare two eval-runs (incumbent vs candidate; provider-A vs provider-B; provider vs in-house) per-cohort | A/B routing changes and in-house-cutover decisions are evidence-backed | parity-analyzer | Must |
 | FR-04 | replay engine | to replay a sampled production-trace cohort against a candidate route with ≤ 100ms divergence tolerance on deterministic seeds | model upgrades catch regression before stable | replay-engine | Must |
-| FR-05 | golden-output store | to persist Cosign-signed golden outputs immutable + per-subject-keyed encrypted (DSR-shred per ADR-0024 §"Resolved 1") | regression detection is reproducible; subject erasure shreds without record-deletion | golden-output-store | Must |
+| FR-05 | baseline-output store | to persist Cosign-signed baseline outputs immutable + per-subject-keyed encrypted (DSR-shred per ADR-0024 §"Resolved 1") | regression detection is reproducible; subject erasure shreds without record-deletion | baseline-output-store | Must |
 | FR-06 | publish gate | to refuse `oya admin capability publish` when eval-set missing / adversarial cohort failed / linguistic minima unmet / latest run stale | a capability that lacks empirical assurance never reaches tenants | eval-runner + eval-set-registry | Must |
 | FR-07 | nightly orchestrator | to run every published capability's eval set against its current route on a 24h cadence and alarm on per-capability pass-rate drop ≥ 2 consecutive runs | drift is detected, not surprised | eval-runner | Must |
 | FR-08 | A/B router gate | to refuse `oya admin route preference` changes when the eval-set A/B verdict isn't a per-cohort win | routing changes carry their own provenance | parity-analyzer | Must |
 | FR-09 | in-house cutover gate | to emit a `InHouseCutoverEligible(capability, model)` verdict when the in-house variant beats the provider per-cohort on the live eval-set | ADR-0026 cutover is automated and reversible | parity-analyzer | Must |
 | FR-10 | tenant operator | to view per-capability latest verdict + per-cohort breakdown via `slo:eval:read:<tenant>` scope | tenants can refuse upgrades on stale or failing eval evidence | eval-runner-sdk | Must |
-| FR-11 | DSR cascade | to receive an `EraseSubject(subject_id)` event and shred all per-subject DEKs in the replay store within the 30d SLA | GDPR Art. 17 / KR PIPA Art. 36 erasure satisfied without breaking cross-cohort continuity | replay-engine + golden-output-store | Must |
+| FR-11 | DSR cascade | to receive an `EraseSubject(subject_id)` event and shred all per-subject DEKs in the replay store within the 30d SLA | GDPR Art. 17 / KR PIPA Art. 36 erasure satisfied without breaking cross-cohort continuity | replay-engine + baseline-output-store | Must |
 | FR-12 | foundry-evidence | to receive per-eval-run audit events (signed; Merkle-sealed) | every publish / nightly / A/B / replay run is auditable | eval-runner | Must |
 
 ## Non-Functional Requirements
@@ -65,12 +65,12 @@ The µservice has no Bominal equivalent and originates in oyatie.
 | Publish-gate verdict latency (read latest run + adversarial check) | ≤ 250ms | ≤ 1s | ≤ 2s | hot path for `oya admin capability publish` |
 | Nightly orchestrator queue lag | ≤ 60s | ≤ 5min | — | from cron tick to first case dispatched |
 | Replay-trace fetch latency (S3) | ≤ 100ms | ≤ 500ms | ≤ 1s | per replay-sample case |
-| Golden-output read latency (S3) | ≤ 50ms | ≤ 200ms | ≤ 500ms | per case (Cosign verify on cold-path) |
+| Baseline-output read latency (S3) | ≤ 50ms | ≤ 200ms | ≤ 500ms | per case (Cosign verify on cold-path) |
 
 ### Security
 
 - All eval-set authoring requires Cosign-signed manifests (per ADR-0024 §"Eval kernel"); checked-in YAML + detached sig.
-- Golden outputs encrypted with per-subject-keyed envelopes (DEK-per-subject wrapped by per-tenant KEK per Bominal ADR-0043); KMS-resident KEKs.
+- Baseline outputs encrypted with per-subject-keyed envelopes (DEK-per-subject wrapped by per-tenant KEK per Bominal ADR-0043); KMS-resident KEKs.
 - Replay traces inherit the subject-keyed encryption; DSR cascade shreds DEKs, never records.
 - GPU runner pool uses gVisor or Kata sandboxes (no shared CUDA context across cases); per-case ephemeral filesystem.
 - All eval-run emissions (PromQL / ClickHouse INSERT / Mimir) signed Ed25519 by eval-runner SPIFFE identity.
@@ -92,7 +92,7 @@ The µservice has no Bominal equivalent and originates in oyatie.
 
 ### Data residency
 
-- Eval sets, golden outputs, replay traces, parity analytics inherit the per-pack residency per ADR-0117. Pack-us-healthcare eval data stays in HIPAA-eligible US region; pack-kr in KR; pack-eu in EU.
+- Eval sets, baseline outputs, replay traces, parity analytics inherit the per-pack residency per ADR-0117. Pack-us-healthcare eval data stays in HIPAA-eligible US region; pack-kr in KR; pack-eu in EU.
 - Cross-pack eval-result aggregation goes through differential-privacy aggregation (per `policy/dp-analysis.md`) before exposure on the public parity dashboard.
 
 ## Bounded Contexts
@@ -105,9 +105,9 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `eval-runner` | `oya-foundry-eval-eval-runner-{kernel,domain,usecase,api,adapter,adapter-s3,adapter-gpu,rest,worker,sdk,app}` | Eval-set execution; per-case dispatch; aggregate computation; publish-gate; nightly + A/B + replay orchestration | `EvalRun`, `EvalCaseResult`, `EvalAggregate`, `ProviderRoute` |
 | `parity-analyzer` | `oya-foundry-eval-parity-analyzer-{kernel,domain,usecase,api,adapter,adapter-clickhouse,rest,worker,app}` | Two-run delta; per-cohort comparison; in-house-cutover verdict; competitor-parity matrix emission | `ParityReport`, `CohortDelta`, `InHouseCutoverVerdict` |
 | `replay-engine` | `oya-foundry-eval-replay-engine-{kernel,domain,usecase,api,adapter,adapter-s3,worker,app}` | Replay-trace sampling; deterministic-seed execution; divergence detection; per-subject-DEK shred | `ReplaySample`, `DivergenceReport`, `SubjectDek` |
-| `golden-output-store` | `oya-foundry-eval-golden-output-store-{kernel,domain,usecase,api,adapter,adapter-s3,app}` | Cosign-verified golden read/write; per-subject-keyed envelope; DSR shred surface | `GoldenOutput`, `EnvelopeKey`, `ShredEvent` |
+| `baseline-output-store` | `oya-foundry-eval-baseline-output-store-{kernel,domain,usecase,api,adapter,adapter-s3,app}` | Cosign-verified baseline read/write; per-subject-keyed envelope; DSR shred surface | `BaselineOutput`, `EnvelopeKey`, `ShredEvent` |
 
-Total crates introduced: **49** (6 eval-set-registry + 11 eval-runner + 9 parity-analyzer + 8 replay-engine + 7 golden-output-store + shared `app` composition root not double-counted). For the artifact pack we ship 12 of these crates initially (kernel + domain + usecase + api + adapter + adapter-s3 + adapter-clickhouse + adapter-gpu + rest + worker + sdk + app for the eval-runner BC; other BCs incremental).
+Total crates introduced: **49** (6 eval-set-registry + 11 eval-runner + 9 parity-analyzer + 8 replay-engine + 7 baseline-output-store + shared `app` composition root not double-counted). For the artifact pack we ship 12 of these crates initially (kernel + domain + usecase + api + adapter + adapter-s3 + adapter-clickhouse + adapter-gpu + rest + worker + sdk + app for the eval-runner BC; other BCs incremental).
 
 Naming justification — `eval-runner`:
 
@@ -116,7 +116,7 @@ NAME: oya-foundry-eval-eval-runner-<layer>
 JUSTIFICATION:
 - microservice = foundry-eval (microservices/foundry-eval/ per ADR-0131)
 - bc-tokens = eval-runner: primary BC for eval-set execution; sibling BCs
-  (eval-set-registry, parity-analyzer, replay-engine, golden-output-store)
+  (eval-set-registry, parity-analyzer, replay-engine, baseline-output-store)
   justify explicit BC token per ADR-0056 v4.1 BC-optionality rule.
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
   - kernel: port-trait + sealed-trait + entity types (EvalRun, EvalCaseResult,
@@ -127,7 +127,7 @@ JUSTIFICATION:
     composing aggregates, emitting verdicts via ports.
   - api: protocol-neutral typed I/O contracts.
   - adapter: protocol-neutral implementations (filesystem eval-set reader, etc.)
-  - adapter-s3: backend-qualified adapter for golden-output + replay-trace I/O
+  - adapter-s3: backend-qualified adapter for baseline-output + replay-trace I/O
     (per ADR-0105 Amendment 3 *-adapter-<backend> pattern).
   - adapter-gpu: backend-qualified adapter for GPU-pool case execution (CUDA
     or ROCm shim; gVisor / Kata sandbox enforcement). Per ADR-0105 Amendment 3.
@@ -202,15 +202,15 @@ JUSTIFICATION:
 - exemptions claimed: none.
 ```
 
-Naming justification — `golden-output-store`:
+Naming justification — `baseline-output-store`:
 
 ```
-NAME: oya-foundry-eval-golden-output-store-<layer>
+NAME: oya-foundry-eval-baseline-output-store-<layer>
 JUSTIFICATION:
 - microservice = foundry-eval.
-- bc-tokens = golden-output-store: per-case golden output + per-subject DEK
+- bc-tokens = baseline-output-store: per-case baseline output + per-subject DEK
   envelope + DSR shred.
-- layer = <layer>: kernel (GoldenOutput, EnvelopeKey, ShredEvent) + domain
+- layer = <layer>: kernel (BaselineOutput, EnvelopeKey, ShredEvent) + domain
   (envelope arithmetic, shred audit) + usecase + api + adapter +
   adapter-s3 + app.
 - exemptions claimed: none.
@@ -224,7 +224,7 @@ Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0
 | `eval-runner` | y | y | y | y | y | y | — | y | y | y | y | y |
 | `parity-analyzer` | y | y | y | y | y | — | y | — | y | y | — | y |
 | `replay-engine` | y | y | y | y | y | y | — | — | — | y | — | y |
-| `golden-output-store` | y | y | y | y | y | y | — | — | — | — | — | y |
+| `baseline-output-store` | y | y | y | y | y | y | — | — | — | — | — | y |
 
 Port traits declared in each kernel (zero business logic; zero I/O; `data_class` annotated per Bominal ADR-0028):
 
@@ -239,8 +239,8 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `ParityAnalyticsStore` | `oya-foundry-eval-parity-analyzer-kernel` | `-adapter-clickhouse` (ClickHouse INSERT + rollup SELECT) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `ReplaySampler` | `oya-foundry-eval-replay-engine-kernel` | `-usecase` (sampling orchestrator) | `BEHAVIORAL_TENANT_PRODUCT` + `PII_QUASI_IDENTIFIER` |
 | `DivergenceDetector` | `oya-foundry-eval-replay-engine-kernel` | `-domain` (pure divergence arithmetic) | — |
-| `SubjectDekStore` | `oya-foundry-eval-replay-engine-kernel` + `-golden-output-store-kernel` | `-adapter-s3` (KMS-wrapped per-subject DEKs; shred = DEK delete) | `SECRET` + `AUDIT` |
-| `GoldenOutputStore` | `oya-foundry-eval-golden-output-store-kernel` | `-adapter-s3` (Cosign-verified S3 object) | `BEHAVIORAL_TENANT_PRODUCT` + per-case data class |
+| `SubjectDekStore` | `oya-foundry-eval-replay-engine-kernel` + `-baseline-output-store-kernel` | `-adapter-s3` (KMS-wrapped per-subject DEKs; shred = DEK delete) | `SECRET` + `AUDIT` |
+| `BaselineOutputStore` | `oya-foundry-eval-baseline-output-store-kernel` | `-adapter-s3` (Cosign-verified S3 object) | `BEHAVIORAL_TENANT_PRODUCT` + per-case data class |
 | `EvalEvidenceEmitter` | `oya-foundry-eval-eval-runner-kernel` | `-adapter` (foundry-evidence client) | `AUDIT` |
 
 Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `oya-check-data-class` LEAN lane refuses unannotated fields at PR-time.
@@ -281,7 +281,7 @@ CI lanes that must green:
 | `CapabilityPublishRequested` | `foundry-runtime` | `eval-runner` | dispatch publish-gate run; emit `EvalRunCompleted` |
 | `RoutingPreferenceChangeRequested` | `foundry-providers` | `parity-analyzer` | dispatch A/B verdict; emit `ParityVerdictEmitted` |
 | `ModelUpgradeProposed` | `foundry-runtime` | `replay-engine` | sample + replay; emit `ReplayDivergenceDetected` if breach |
-| `EraseSubjectRequested` | `tenancy` (DSR cascade) | `replay-engine` + `golden-output-store` | shred per-subject DEKs; emit `EvalSubjectShred` |
+| `EraseSubjectRequested` | `tenancy` (DSR cascade) | `replay-engine` + `baseline-output-store` | shred per-subject DEKs; emit `EvalSubjectShred` |
 
 ### Ontology writes
 
@@ -290,7 +290,7 @@ CI lanes that must green:
 | `EvalRun{capability, version, route, started_at, aggregate, passed}` | `evaluates→Capability` | `eval-runner` | Ed25519 via `foundry-evidence` |
 | `ParityReport{capability, route_a, route_b, cohort_deltas, verdict}` | `compares→Capability` | `parity-analyzer` | Ed25519 |
 | `ReplayDivergence{capability, sample_id, divergence_ms, seed, signature}` | `regresses→Capability` | `replay-engine` | Ed25519 |
-| `GoldenOutput{case_id, content_hash, envelope_key_id}` | `golden_for→EvalCase` | `golden-output-store` | Ed25519 |
+| `BaselineOutput{case_id, content_hash, envelope_key_id}` | `baseline_for→EvalCase` | `baseline-output-store` | Ed25519 |
 
 ### Ontology reads
 
@@ -337,7 +337,7 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale: eval-runner workers are stateless (re-derivable from eval-set + golden-output store); Postgres for eval-set metadata; S3 for golden-outputs and replay traces; ClickHouse for parity-analytics; GPU pool ephemeral.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale: eval-runner workers are stateless (re-derivable from eval-set + baseline-output store); Postgres for eval-set metadata; S3 for baseline-outputs and replay traces; ClickHouse for parity-analytics; GPU pool ephemeral.
 
 **Active-active compatibility**: `stateless-compatible` for runners + worker; Postgres uses logical-replication-friendly schemas (per `policy/sharding.md`); ClickHouse is horizontally shardable via `Distributed` engine; S3 is multi-region replicable.
 
@@ -349,7 +349,7 @@ Per-cell capacity envelope:
 | GPU runner pool (eval cases) | 8 GPUs | 64 GPUs | pending-case backlog > 5 min |
 | Postgres eval-set metadata QPS | 1 k | 10 k | replica CPU > 70% |
 | ClickHouse parity-analytics QPS | 100 | 1 k | ClickHouse CPU > 70% |
-| S3 golden-output throughput | 1 GB/s | 10 GB/s | object-storage SLO breach |
+| S3 baseline-output throughput | 1 GB/s | 10 GB/s | object-storage SLO breach |
 | Replay traces ingest | 10⁶/day | 10⁸/day | S3 PUT rate-limit warning |
 
 Scale-out policy:
@@ -362,7 +362,7 @@ Scale-out policy:
 Cross-region story:
 - M01 launch: per-pack region (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → US HIPAA-eligible).
 - Cross-region replication of eval-sets (read-only): via S3 cross-region replication + Cosign signature carries across.
-- Cross-region replication of golden-outputs / replay traces: forbidden by default (residency); allowed only with explicit tenant SCC.
+- Cross-region replication of baseline-outputs / replay traces: forbidden by default (residency); allowed only with explicit tenant SCC.
 
 Sharding:
 - Eval-runs partition by `(capability_id, week)`; ClickHouse `parity_analytics` partitions by week.

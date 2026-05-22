@@ -10,7 +10,7 @@ info:
     tenant_id claim by middleware before request reaches handler).
 
     Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
-    The JWT carries: tenant_id, max_tier, pillar_kind, autonomy_tier (for agent JWTs).
+    The JWT carries: tenant_id, max_sensitivity_level, pillar_kind, autonomy_tier (for agent JWTs).
     X-Tenant-Id header MUST match the JWT tenant_id claim; mismatch returns 401.
   contact:
     name: axis-ontology
@@ -26,6 +26,56 @@ servers:
         default: kr
 
 components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: ontology
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-foundry-fitness-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
   securitySchemes:
     OIDC:
       type: openIdConnect
@@ -89,13 +139,13 @@ components:
   schemas:
     PropertyDescriptor:
       type: object
-      required: [name, type, property_tier, data_class]
+      required: [name, type, property_sensitivity_level, data_class]
       properties:
         name: {type: string}
         type:
           type: string
           enum: [scalar, vector, timeseries, geo, ciphertext, struct]
-        property_tier:
+        property_sensitivity_level:
           type: string
           enum: [Tier1Sensitive, Tier2Restricted, Tier3Internal, Tier4Public]
         data_class: {type: string}
@@ -175,7 +225,7 @@ components:
         tenant_id: {type: string}
         jurisdiction: {type: string}
         pillar_kind: {type: string, enum: [org, person]}
-        property_tier: {type: string, enum: [Tier1Sensitive, Tier2Restricted, Tier3Internal, Tier4Public]}
+        property_sensitivity_level: {type: string, enum: [Tier1Sensitive, Tier2Restricted, Tier3Internal, Tier4Public]}
         properties: {type: object, additionalProperties: true}
         schema_version: {type: integer}
         created_at: {type: string, format: date-time}

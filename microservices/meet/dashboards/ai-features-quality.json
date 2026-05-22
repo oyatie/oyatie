@@ -45,7 +45,7 @@
       "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_meet_live_caption_lag_seconds_bucket{pack=\"$pack\"}[5m])))", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.4, "color": "yellow"}, {"value": 0.5, "color": "red"}]}}}},
 
-    {"id": 3, "type": "stat", "title": "Transcription quality score (vs golden WER)",
+    {"id": 3, "type": "stat", "title": "Transcription quality score (vs baseline WER)",
       "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
       "targets": [{"expr": "avg(oya_meet_transcription_quality_score{pack=\"$pack\"})", "refId": "A"}],
       "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "red"}, {"value": 0.90, "color": "yellow"}, {"value": 0.95, "color": "green"}]}}}},
@@ -72,7 +72,7 @@
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "targets": [{"expr": "avg by (pod) (DCGM_FI_DEV_GPU_UTIL{namespace=\"meet\",pod=~\"transcription-worker-.*\"})", "legendFormat": "{{pod}}", "refId": "A"}]},
 
-    {"id": 9, "type": "timeseries", "title": "Live translation BLEU on synthetic golden (per language pair)",
+    {"id": 9, "type": "timeseries", "title": "Live translation BLEU on synthetic baseline (per language pair)",
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [{"expr": "avg by (language_pair) (oya_meet_translation_bleu{pack=\"$pack\"})", "legendFormat": "{{language_pair}}", "refId": "A"}]},
 

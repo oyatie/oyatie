@@ -1,0 +1,1 @@
+cedar/tenant-scope-enforcement.cedar

@@ -20,7 +20,7 @@ related_artifacts:
   - microservices/foundry/policy/tenant-scope.cedar
   - microservices/foundry/policy/synthetic-phi-only.md
 
-autonomy_tier: T2
+autonomy_level: T2
 # T2 = read-only sensitive data + write to ledger; not destructive.
 # Per ADR-0022 autonomy tiers.
 
@@ -90,14 +90,14 @@ cost_profile:
     - Provider model API token cost (eval-time invocation)
     - GPU pool compute (case dispatch overhead)
     - S3 + ClickHouse write (aggregate persistence)
-    - Cosign verify on golden read (per-case)
+    - Cosign verify on baseline read (per-case)
 
 cedar_policy_fragments:
   - microservices/foundry/policy/tenant-scope.cedar
   - microservices/foundry/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/eval-run-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/eval-run-baseline.jsonl
   pass_threshold: 0.99
   eval_metric: aggregate-correctness-against-reference-eval-runs
   cadence: per-release

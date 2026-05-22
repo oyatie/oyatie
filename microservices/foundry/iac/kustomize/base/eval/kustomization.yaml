@@ -33,11 +33,11 @@ helmCharts:
     version: 1.0.0
     releaseName: foundry-eval-clickhouse
     valuesFile: ../../helm/clickhouse/values.yaml
-  - name: golden-store
+  - name: baseline-store
     repo: oci://registry.oyatie.com/foundry-eval/charts
     version: 1.0.0
-    releaseName: foundry-eval-golden-store
-    valuesFile: ../../helm/golden-store/values.yaml
+    releaseName: foundry-eval-baseline-store
+    valuesFile: ../../helm/baseline-store/values.yaml
 
 # Common labels for all resources
 commonLabels:

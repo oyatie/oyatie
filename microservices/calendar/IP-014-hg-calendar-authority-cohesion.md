@@ -8,55 +8,78 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar + council-architecture
-acceptance_lanes: [oya-governance-hyperscaler-maturity-claims, oya-governance-authority-cohesion]
+acceptance_lanes: [hyperscaler-maturity-claim, parity-matrix-sync, doc-link-resolve]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-014: HG-CALENDAR authority cohesion
 
-# IP-014: HG-CALENDAR authority cohesion — hyperscaler-maturity claim wiring
+## A. Problem
+Calendar has many claim surfaces: PRD, architecture, competitor matrix, feature matrix, benchmarks, contracts, SLOs, policies, and runbooks. Hyperscaler maturity cannot be claimed if these disagree.
 
-## Intent
+## B. Approach
+Bind the HG-CALENDAR claim to repo-local evidence only. The authority chain starts at PRD and manifest, then traces through architecture, parity matrices, performance targets, contracts, policies, SLOs, dashboards, runbooks, and catalog entries.
 
-Register the calendar µservice as a hyperscaler-maturity-claim
-participant per ADR-0123 (HG-CALENDAR gate). Wire the authority-
-cohesion check between PRD ↔ specs/microservices/calendar/calendar.json ↔
-catalog records ↔ SLO authoring.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `PRD.md` | Product and requirement authority. |
+| `ARCHITECTURE.md` | Operating-contract and anchor authority. |
+| `manifest.json` | Machine-readable service inventory. |
+| `competitor-parity-matrix.md` and `feature-parity-matrix-2026-05-20.md` | Counterpart claim boundaries. |
+| `performance-benchmark-numbers-2026-05-20.md` and `benchmarks/gcal-outlook-calendly-vs-oyatie.md` | Target and workload evidence. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Resolve every manifest IP, contract, policy, SLO, and catalog path.
+2. Cross-check PRD must-haves against OpenAPI/AsyncAPI/proto surfaces.
+3. Cross-check competitor claims against the two parity matrices.
+4. Ensure SLO names map to dashboards and runbooks.
+5. Flag future claims that depend on missing implementation as targets, not measured evidence.
+6. Run the hyperscaler maturity gate.
+7. Record accepted gaps and rejected marketing claims in the changeset.
 
-Spec promotion + authority-cohesion test wiring; no new crates.
+## E. Acceptance
+- `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice calendar` passes.
+- Doc-link resolution passes for every cited local file.
+- Manifest JSON parses and every listed IP file exists.
+- No parity claim contradicts `competitor-parity-matrix.md`.
+- Missing source/tests remain explicitly marked as plan targets, not production proof.
 
-## Concrete File Targets
+## F. Evidence
+- `microservices/calendar/PRD.md`.
+- `microservices/calendar/ARCHITECTURE.md`.
+- `microservices/calendar/manifest.json`.
+- `microservices/calendar/competitor-parity-matrix.md`.
+- `microservices/calendar/feature-parity-matrix-2026-05-20.md`.
+- `microservices/calendar/performance-benchmark-numbers-2026-05-20.md`.
 
-| Path | Action | Description |
-|---|---|---|
-| `/specs/microservices/calendar/calendar.json` | create (promote) | promote from `/specs/microservices/calendar.json` per ADR-0134 Phase 5 |
-| `/specs/microservices/calendar.json` | mark deprecated | set `deprecated: true`; `replacement_path: /specs/microservices/calendar/calendar.json` |
-| `/specs/hyperscaler-gates.json` | extend | register HG-CALENDAR with SLO references |
-| `microservices/calendar/tests/authority-cohesion.rs` | create | per ADR-0123 cohesion checks |
+## G. Counterpart comparison
+Google, Outlook, Apple, Fastmail, Proton, Cal.com, Calendly, and Doodle each define part of the maturity bar. This IP does not implement a feature; it prevents overstating Oyatie by requiring every counterpart claim to trace to repo evidence and every gap to remain bounded.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: authority graph starts at PRD, manifest, architecture, and this IP set.
+- Deliverable detail: parity claims resolve to competitor and feature matrices before they appear in status summaries.
+- Deliverable detail: performance claims resolve to benchmark and SLO files, not prose assertions.
+- Deliverable detail: contract claims resolve to OpenAPI, AsyncAPI, and proto paths.
+- Deliverable detail: policy claims resolve to Cedar files, data-residency notes, compliance, and DPIA files.
+- Deliverable detail: runbook claims resolve to exact operational files for each SLO-backed failure mode.
+- Deliverable detail: missing source implementation stays labeled as planned evidence.
+- Deliverable detail: Slack collaboration-calendar pressure is recorded as a comparison vector, not hidden under Google/Outlook only.
 
-```bash
-cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice calendar
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice calendar
-```
+## I. Acceptance expansion
+- Acceptance detail: doc-link resolution must cover every file listed in PRD, architecture, manifest, parity, SLO, policy, and runbook sections.
+- Acceptance detail: hyperscaler gate must fail when a competitor claim lacks a local evidence path.
+- Acceptance detail: manifest parsing must prove every foundation IP file exists.
+- Acceptance detail: feature-parity and competitor matrices must not contradict each other.
+- Acceptance detail: performance benchmark claims must distinguish target from measured evidence.
+- Acceptance detail: remediation notes must record count and scope of the foundation IP repair.
+- Acceptance detail: branch promotion must include an evidence bundle for this authority graph.
+- Acceptance detail: Slack, Google, Outlook, and Cal.com comparisons must be named where they drive different requirements.
 
-## Test Plan
-
-- PRD claims must trace to spec entries + catalog rows + SLO files.
-- All 9 OpenSLO manifests register in HG-CALENDAR's `slo_files` array.
-- All 11-pack overlays cited in PRD §Pack scope are present.
-
-## Halt Conditions
-
-- Any PRD claim without a corresponding spec/catalog/SLO trace — block.
-
-## Next IP
-
-[`IP-015-hg-calendar-registration-and-branch-protection.md`](IP-015-hg-calendar-registration-and-branch-protection.md)
-
-## References
-
-- ADR-0123 (HG gate); ADR-0131; ADR-0134.
-- `/specs/hyperscaler-gates.json`.
+## J. Evidence expansion
+- Evidence detail: capture hyperscaler-maturity gate output for calendar.
+- Evidence detail: capture doc-link resolution output over calendar files.
+- Evidence detail: capture manifest parse output.
+- Evidence detail: cite `competitor-parity-matrix.md` for counterpart boundaries.
+- Evidence detail: cite `feature-parity-matrix-2026-05-20.md` for feature-by-feature status.
+- Evidence detail: cite `performance-benchmark-numbers-2026-05-20.md` for target numbers.
+- Evidence detail: cite Slack as collaboration-calendar interop pressure that must remain explicit in the claim map.

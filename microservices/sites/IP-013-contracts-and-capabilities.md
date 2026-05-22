@@ -7,7 +7,7 @@ impl_plan_id: IP-013-contracts-and-capabilities
 status: pending
 execution_unit: ChangeSet
 owner: axis-sites + foundry-providers + council-privacy
-acceptance_lanes: [openapi-lint, asyncapi-lint, proto-lint, oya-governance-capability-tier-lint]
+acceptance_lanes: [openapi-lint, asyncapi-lint, proto-lint, oya-governance-tenant-class-lint]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -28,7 +28,7 @@ Author contracts/openapi/sites.yaml, contracts/asyncapi/sites-events.yaml, contr
 spectral lint microservices/sites/contracts/openapi/sites.yaml --ruleset spectral:oas
 spectral lint microservices/sites/contracts/asyncapi/sites-events.yaml --ruleset spectral:asyncapi
 buf lint microservices/sites/contracts/proto/sites.proto
-cargo run -p oya-dev-cli -- gate validate capability-tier-lint --microservice sites
+cargo run -p oya-dev-cli -- gate validate tenant-class-lint --microservice sites
 ```
 
 ## ChangeSet metadata
@@ -48,7 +48,7 @@ acceptance_status: ga
 | AC-01 | OpenAPI 3.1 spec lints clean against `spectral:oas` ruleset | `spectral lint microservices/sites/contracts/openapi/sites.yaml --ruleset spectral:oas` |
 | AC-02 | AsyncAPI 3.0 spec lints clean against `spectral:asyncapi` | `spectral lint microservices/sites/contracts/asyncapi/sites-events.yaml --ruleset spectral:asyncapi` |
 | AC-03 | Protobuf lints clean (`buf lint`) and breaking-change check passes | `buf lint microservices/sites/contracts/proto/sites.proto` |
-| AC-04 | T0/T1/T2 capability YAMLs declare EU AI Act risk class per ADR-SITES-0006 | `cargo run -p oya-dev-cli -- gate validate capability-tier-lint --microservice sites` |
+| AC-04 | T0/T1/T2 capability YAMLs declare EU AI Act risk class per ADR-SITES-0006 | `cargo run -p oya-dev-cli -- gate validate tenant-class-lint --microservice sites` |
 | AC-05 | T2 ai-page-build capability marked REFUSED for legal/medical/employment overlays | `cargo nextest run --test capability_t2_refusal_overlays` |
 
 ## Build Sequence
@@ -57,7 +57,7 @@ acceptance_status: ga
 2. Author `contracts/asyncapi/sites-events.yaml` (publish/page-publish/cms-update events).
 3. Author `contracts/proto/sites.proto` (gRPC interop surface).
 4. Author `capabilities/T0-suggest.yaml`, `T1-assist.yaml`, `T2-auto.yaml`.
-5. Run `spectral lint` + `buf lint` + capability-tier-lint gate.
+5. Run `spectral lint` + `buf lint` + tenant-class-lint gate.
 
 ## Traceability
 

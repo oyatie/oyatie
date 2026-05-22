@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `foundry-guardrails` µservice is oyatie's substrate for **safety and policy enforcement at the agent-runtime boundary**: per-prompt classification (PII / PHI / jailbreak / prompt-injection / forbidden-topic), per-output validation (data exfiltration / unsafe completion / hallucinated tool args), autonomy-tier gating (per ADR-0022), content safety (toxicity / self-harm / sexual / violence / minors), jailbreak-pattern detection (canonicalisation-evasion / role-play wrapping / multi-turn drift), and AI-slop pattern detection (per `docs/quality/ai-slop-defense/`).
+The `foundry-guardrails` µservice is oyatie's substrate for **safety and policy enforcement at the agent-runtime boundary**: per-prompt classification (PII / PHI / jailbreak / prompt-injection / forbidden-topic), per-output validation (data exfiltration / unsafe completion / hallucinated tool args), autonomy-ceiling gating (per ADR-0022), content safety (toxicity / self-harm / sexual / violence / minors), jailbreak-pattern detection (canonicalisation-evasion / role-play wrapping / multi-turn drift), and AI-slop pattern detection (per `docs/quality/ai-slop-defense/`).
 
 Per ADR-0131 Foundry split, `foundry-guardrails` is the **safety + policy plane** of the Foundry. It is consumed by `foundry-runtime` on every capability invocation (pre-prompt + post-output round-trip) and by every other oyatie µservice that wishes to wrap an LLM call with the same safety substrate. It is the **single, ungated chokepoint** between agent traffic and provider traffic — no foundry-runtime invocation reaches `foundry-providers` without passing through `foundry-guardrails` first, and no provider response reaches a tenant surface without re-passing through it.
 
@@ -39,9 +39,9 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
-| FR-01 | foundry-runtime invocation orchestrator | to submit a candidate prompt + tenant context + autonomy-tier-claim | I receive an allow / block / redact verdict before dispatching to a provider | prompt-classifier | Must |
+| FR-01 | foundry-runtime invocation orchestrator | to submit a candidate prompt + tenant context + autonomy-ceiling-claim | I receive an allow / block / redact verdict before dispatching to a provider | prompt-classifier | Must |
 | FR-02 | foundry-runtime invocation orchestrator | to submit a candidate provider output + tenant context | I receive an allow / block / redact verdict before returning to the caller | output-validator | Must |
-| FR-03 | autonomy-tier-gate | to refuse capability execution above the principal's tier ceiling (per ADR-0022) | tier escalation can never happen silently | autonomy-tier-gate | Must |
+| FR-03 | autonomy-ceiling-gate | to refuse capability execution above the principal's tier ceiling (per ADR-0022) | tier escalation can never happen silently | autonomy-ceiling-gate | Must |
 | FR-04 | content-safety-rule-engine | to evaluate prompt + output against per-pack content categories (toxicity / self-harm / sexual / violence / minors / hate / weapons / illegal) | tenant + tenant-of-tenant safety expectations are enforced | content-safety-rule-engine | Must |
 | FR-05 | jailbreak-detector | to ensemble-evaluate (heuristic + classifier + LLM-as-judge) candidate prompts for known + emerging jailbreak patterns | injection / role-play / instruction-override attacks are caught pre-dispatch | jailbreak-detector | Must |
 | FR-06 | ai-slop-detector | to scan candidate outputs for the AI-slop failure modes catalogued in `docs/quality/ai-slop-defense/ai-slop-failure-mode-catalogue.md` | low-quality / hallucinated / verbose outputs are tagged + (when severe) blocked | ai-slop-detector | Must |
@@ -111,7 +111,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `prompt-classifier` | `oya-foundry-guardrails-prompt-classifier-{kernel,domain,usecase,api,adapter,adapter-classifier-model,rest,worker,sdk,app}` | Pre-invocation classification: PII / PHI / data-class tag / sensitive-topic / hate-speech / unsafe-medical-advice / known-jailbreak | `Prompt`, `Classification`, `DataClassTag`, `ClassifierModelVersion`, `ClassifierEnsembleResult` |
 | `output-validator` | `oya-foundry-guardrails-output-validator-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Post-output validation: data-exfiltration / unsafe-completion / hallucinated-tool-args / secret-leak | `ProviderOutput`, `Validation`, `RedactionDiff`, `BlockReason` |
-| `autonomy-tier-gate` | `oya-foundry-guardrails-autonomy-tier-gate-{kernel,domain,usecase,api,adapter-cedar,rest,worker,sdk,app}` | Cedar policy evaluation of effective autonomy ceiling (per ADR-0022); refusal on tier excess | `AutonomyTierClaim`, `EffectiveCeiling`, `TierViolation` |
+| `autonomy-ceiling-gate` | `oya-foundry-guardrails-autonomy-ceiling-gate-{kernel,domain,usecase,api,adapter-cedar,rest,worker,sdk,app}` | Cedar policy evaluation of effective autonomy ceiling (per ADR-0022); refusal on tier excess | `AutonomyLevelClaim`, `EffectiveCeiling`, `TierViolation` |
 | `content-safety-rule-engine` | `oya-foundry-guardrails-content-safety-rule-engine-{kernel,domain,usecase,api,adapter-postgres,rest,worker,sdk,app}` | Per-pack content-category evaluation (toxicity / self-harm / sexual / violence / minors / hate / weapons / illegal) | `ContentCategory`, `RuleDefinition`, `RuleEvaluation`, `CategoryScore` |
 | `jailbreak-detector` | `oya-foundry-guardrails-jailbreak-detector-{kernel,domain,usecase,api,adapter,adapter-classifier-model,rest,worker,sdk,app}` | Multi-detector ensemble: heuristic (regex/ngram/canonicalisation), classifier-model (BERT-class), LLM-as-judge (ambiguous fallback via foundry-providers) | `JailbreakSignal`, `EnsembleVerdict`, `DetectorVersion` |
 | `ai-slop-detector` | `oya-foundry-guardrails-ai-slop-detector-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Detect AI-slop patterns per `docs/quality/ai-slop-defense/`: stub injection / over-verbose preamble / fabricated citation / shotgun pattern / verbose-without-substance | `AiSlopPattern`, `SlopScore`, `SlopRationale` |
@@ -125,7 +125,7 @@ JUSTIFICATION:
   folder. Foundry split per ADR-0131 §"Foundry surface decomposition".
 - bc-tokens = prompt-classifier: primary BC for pre-invocation classification.
   ADR-0056 v4.1 BC-optionality rule honoured (multiple sibling BCs exist:
-  output-validator, autonomy-tier-gate, content-safety-rule-engine, jailbreak-detector,
+  output-validator, autonomy-ceiling-gate, content-safety-rule-engine, jailbreak-detector,
   ai-slop-detector), so explicit BC token is required.
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
   - kernel: port-trait + entity types (Prompt, Classification, DataClassTag,
@@ -161,13 +161,13 @@ JUSTIFICATION:
 - exemptions claimed: none.
 ```
 
-Naming justification — `autonomy-tier-gate`:
+Naming justification — `autonomy-ceiling-gate`:
 
 ```
-NAME: oya-foundry-guardrails-autonomy-tier-gate-<layer>
+NAME: oya-foundry-guardrails-autonomy-ceiling-gate-<layer>
 JUSTIFICATION:
 - microservice = foundry-guardrails.
-- bc-tokens = autonomy-tier-gate: enforcement of ADR-0022 effective-ceiling.
+- bc-tokens = autonomy-ceiling-gate: enforcement of ADR-0022 effective-ceiling.
 - adapter-cedar: backend-qualified per ADR-0105 §"Amendment 3" — Cedar v4 is the
   policy backend; no other backend is sanctioned (per ADR-0140 Cedar selection).
 ```
@@ -192,12 +192,12 @@ Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0
 |---|---|---|---|---|---|---|---|---|---|---|
 | `prompt-classifier` | ✓ | ✓ | ✓ | ✓ | ✓ | `-adapter-classifier-model` | ✓ | ✓ | ✓ | ✓ |
 | `output-validator` | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ |
-| `autonomy-tier-gate` | ✓ | ✓ | ✓ | ✓ | — | `-adapter-cedar` | ✓ | ✓ | ✓ | ✓ |
+| `autonomy-ceiling-gate` | ✓ | ✓ | ✓ | ✓ | — | `-adapter-cedar` | ✓ | ✓ | ✓ | ✓ |
 | `content-safety-rule-engine` | ✓ | ✓ | ✓ | ✓ | — | `-adapter-postgres` | ✓ | ✓ | ✓ | ✓ |
 | `jailbreak-detector` | ✓ | ✓ | ✓ | ✓ | ✓ | `-adapter-classifier-model` | ✓ | ✓ | ✓ | ✓ |
 | `ai-slop-detector` | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ |
 
-Total crates introduced by this µservice: **57** (10 in prompt-classifier + 9 in output-validator + 9 in autonomy-tier-gate + 9 in content-safety-rule-engine + 10 in jailbreak-detector + 9 in ai-slop-detector + 1 shared composition `-app` per BC). M01 ships a curated subset; remaining backfilled in M01+1.
+Total crates introduced by this µservice: **57** (10 in prompt-classifier + 9 in output-validator + 9 in autonomy-ceiling-gate + 9 in content-safety-rule-engine + 10 in jailbreak-detector + 9 in ai-slop-detector + 1 shared composition `-app` per BC). M01 ships a curated subset; remaining backfilled in M01+1.
 
 Port traits declared in each kernel (zero business logic; zero I/O; `data_class` annotated):
 
@@ -205,18 +205,18 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 |---|---|---|---|
 | `PromptClassifier` | `oya-foundry-guardrails-prompt-classifier-kernel` | `-adapter` + `-adapter-classifier-model` | `BEHAVIORAL_TENANT_PRODUCT` (prompt content); `PII_IDENTIFYING` (when detected); `INTERNAL_ONLY` (classifier scores) |
 | `OutputValidator` | `oya-foundry-guardrails-output-validator-kernel` | `-adapter` | `BEHAVIORAL_TENANT_PRODUCT`; `PII_IDENTIFYING`; `SECRET` (when leak detected) |
-| `AutonomyTierGate` | `oya-foundry-guardrails-autonomy-tier-gate-kernel` | `-adapter-cedar` | `INTERNAL_ONLY` (tier claim); `AUDIT` (refusal record) |
+| `AutonomyLevelGate` | `oya-foundry-guardrails-autonomy-ceiling-gate-kernel` | `-adapter-cedar` | `INTERNAL_ONLY` (tier claim); `AUDIT` (refusal record) |
 | `ContentSafetyRuleEvaluator` | `oya-foundry-guardrails-content-safety-rule-engine-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` (prompt + output text); `INTERNAL_ONLY` (rule definitions) |
 | `JailbreakDetectorEnsemble` | `oya-foundry-guardrails-jailbreak-detector-kernel` | `-adapter` (heuristic) + `-adapter-classifier-model` (classifier + LLM-judge) | `BEHAVIORAL_TENANT_PRODUCT` + `INTERNAL_ONLY` |
 | `AiSlopDetector` | `oya-foundry-guardrails-ai-slop-detector-kernel` | `-adapter` | `BEHAVIORAL_TENANT_PRODUCT` (output text); `INTERNAL_ONLY` (slop scores) |
 | `RuleStore` | `oya-foundry-guardrails-content-safety-rule-engine-kernel` | `-adapter-postgres` | `INTERNAL_ONLY` (rule defs); `AUDIT` (mutation history) |
-| `CedarEngineHandle` | `oya-foundry-guardrails-autonomy-tier-gate-kernel` | `-adapter-cedar` | `INTERNAL_ONLY` (policy text); `AUDIT` (decision record) |
+| `CedarEngineHandle` | `oya-foundry-guardrails-autonomy-ceiling-gate-kernel` | `-adapter-cedar` | `INTERNAL_ONLY` (policy text); `AUDIT` (decision record) |
 | `ClassifierModelServer` | `oya-foundry-guardrails-prompt-classifier-kernel` (re-exported by jailbreak-detector kernel) | `-adapter-classifier-model` (ONNX runtime client) | `INTERNAL_ONLY` (model artifact hash); `BEHAVIORAL_TENANT_PRODUCT` (inference input) |
 | `GuardrailDecisionEmitter` | `oya-foundry-guardrails-prompt-classifier-kernel` | `-adapter` (AsyncAPI publisher → foundry-evidence) | `AUDIT` |
 
 Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `oya-check-data-class` LEAN lane refuses unannotated fields at PR-time per `feedback_clean_architecture_requirements.md`.
 
-Cross-product rule: `foundry-guardrails` MUST NOT import any other product µservice crate at any layer. Cross-product flows go through Workflow events (`GuardrailDecisionEmitted`, `JailbreakDetected`, `AutonomyTierViolation`, `RuleStoreMutated`) or Ontology reads/writes. The LEAN-A2 CI lane enforces.
+Cross-product rule: `foundry-guardrails` MUST NOT import any other product µservice crate at any layer. Cross-product flows go through Workflow events (`GuardrailDecisionEmitted`, `JailbreakDetected`, `AutonomyLevelViolation`, `RuleStoreMutated`) or Ontology reads/writes. The LEAN-A2 CI lane enforces.
 
 CI lanes that must green:
 
@@ -239,7 +239,7 @@ CI lanes that must green:
 |---|---|---|---|
 | `GuardrailDecisionEmitted` | Every allow/block/redact verdict | `foundry-evidence`, `observability`, `audit-chain` | per-decision linear |
 | `JailbreakDetected` | Detector ensemble verdict ≥ block threshold | `foundry-supervisor`, `audit-chain`, `grafana-oncall` (Sev-1 page) | incident lifecycle |
-| `AutonomyTierViolation` | Effective-ceiling refusal at gate | `foundry-supervisor`, `audit-chain`, `tenancy` (tenant notification) | tier-violation review |
+| `AutonomyLevelViolation` | Effective-ceiling refusal at gate | `foundry-supervisor`, `audit-chain`, `tenancy` (tenant notification) | tier-violation review |
 | `ContentSafetyRuleFired` | Rule match above threshold | `foundry-evidence`, `audit-chain` | per-decision linear |
 | `RuleStoreMutated` | Rule definition created / modified / sunsetted | `audit-chain`, `governance`, `foundry-evidence` | append-only |
 | `ClassifierModelDeployed` | New classifier-model rolled out (shadow → enforce) | `audit-chain`, `observability` | shadow-vs-enforce review |
@@ -253,7 +253,7 @@ CI lanes that must green:
 | `CapabilityInvocationOutputReady` | `foundry-runtime` | `output-validator` | validate provider output |
 | `TenantOnboarded` | `tenancy` | `content-safety-rule-engine` | seed default per-pack rules for new tenant |
 | `TenantPackChanged` | `tenancy` | `content-safety-rule-engine` | re-evaluate per-pack rule overlay (e.g., add HIPAA pack rules) |
-| `AutonomyPolicyUpdated` | `foundry-supervisor` | `autonomy-tier-gate` | hot-reload Cedar fragments |
+| `AutonomyPolicyUpdated` | `foundry-supervisor` | `autonomy-ceiling-gate` | hot-reload Cedar fragments |
 
 ### Ontology writes
 
@@ -269,7 +269,7 @@ CI lanes that must green:
 | Object Type / Function | Read by BC | Query shape |
 |---|---|---|
 | `Tenant` (entitlements + pack) | every BC | `get_by_hashed_id(tenant_id)` |
-| `Capability` (declared autonomy tier) | `autonomy-tier-gate` | `get_by_id(capability_id)` |
+| `Capability` (declared autonomy tier) | `autonomy-ceiling-gate` | `get_by_id(capability_id)` |
 | `Pack` (jurisdiction + active rules) | `content-safety-rule-engine` | `get_by_pack_id(pack_id)` |
 
 ## Competitive Benchmark
@@ -340,12 +340,12 @@ Sharding:
 
 | AC-ID | Criterion | Verification method |
 |---|---|---|
-| AC-01 | `cargo run -p oya-foundry-guardrails-prompt-classifier-app -- classify <prompt-fixture>` returns a verdict matching golden fixture | unit + integration tests under `tests/` |
+| AC-01 | `cargo run -p oya-foundry-guardrails-prompt-classifier-app -- classify <prompt-fixture>` returns a verdict matching baseline fixture | unit + integration tests under `tests/` |
 | AC-02 | Pre-invocation classification p99 ≤ 50ms on reference workload | load test under `tests/load/` |
 | AC-03 | Post-output validation p99 ≤ 100ms on reference workload | load test |
 | AC-04 | Autonomy-tier excess refusal verified end-to-end via foundry-runtime invocation | e2e drill |
-| AC-05 | Cedar policy bundle validates against Cedar v4 schema; default-deny enforced | `cargo run -p oya-foundry-guardrails-autonomy-tier-gate-app -- validate-cedar` exit 0 |
-| AC-06 | Jailbreak ensemble catches all golden-fixture jailbreak prompts (5+ open + 5+ proprietary patterns) | `tests/jailbreak/golden_fixtures.rs` |
+| AC-05 | Cedar policy bundle validates against Cedar v4 schema; default-deny enforced | `cargo run -p oya-foundry-guardrails-autonomy-ceiling-gate-app -- validate-cedar` exit 0 |
+| AC-06 | Jailbreak ensemble catches all baseline-fixture jailbreak prompts (5+ open + 5+ proprietary patterns) | `tests/jailbreak/baseline_fixtures.rs` |
 | AC-07 | AI-slop detector flags 100% of catalogue patterns from `docs/quality/ai-slop-defense/` | `tests/aislop/catalogue.rs` |
 | AC-08 | Helm charts deploy clean against kind cluster | CI lane `oya-foundry-guardrails-iac-smoke` |
 | AC-09 | `gate validate per-microservice-layout --microservice foundry-guardrails` exit 0 | ADR-0131 lane |
@@ -361,7 +361,7 @@ Sharding:
 |---|---|---|---|
 | 1 | LLM-as-judge fallback: does foundry-providers expose a dedicated low-cost / low-latency endpoint, or does guardrails own its own per-pack low-cost model? | axis-foundry-guardrails + axis-foundry-providers | successor-IP ADR |
 | 2 | Shadow-mode duration default (7d? 14d?) for new rules | axis-foundry-guardrails | resolved in `policy/guardrail-enforcement.md` (Slice D) |
-| 3 | False-positive escalation budget per tier (trial vs production tenant) | axis-foundry-guardrails + gtm | successor-IP ADR |
+| 3 | False-positive escalation budget per autonomy level (trial vs production tenant) | axis-foundry-guardrails + gtm | successor-IP ADR |
 | 4 | In-house classifier model versions: pinned LTS vs auto-rollout? Default: pinned + ADR-gated upgrade | axis-foundry-guardrails | resolved in `runbooks/classifier-model-rollback.md` |
 | 5 | Does foundry-guardrails maintain its own audit-chain seal or share foundry-evidence's chain? Default: shared chain for cost; per-µservice signature for non-repudiation | council-architecture | successor-IP ADR |
 
@@ -380,7 +380,7 @@ Sharding:
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it; Foundry split |
 | ADR-0132 | Product-suite + bundle dissolution | guardrails ships as substrate, not a suite |
 | ADR-0133 | Industry-best-practice conformance program | competitor parity matrix mandate |
-| ADR-0140 | Cedar policy substrate | Cedar v4 is the autonomy-tier + tenant-overlay engine |
+| ADR-0140 | Cedar policy substrate | Cedar v4 is the autonomy-ceiling + tenant-overlay engine |
 
 ## References
 

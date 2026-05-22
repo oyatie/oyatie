@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs industry-leading mail products. Drives `oya-foundry-fitness-hyperscaler-maturity-claims` per ADR-0123 (HG-MAIL gate). Tells gtm what to claim and what NOT to claim.
+Quantitative + qualitative parity comparison vs industry-leading mail products. Drives `oya-governance-hyperscaler-maturity-claims` per ADR-0123 (HG-MAIL gate). Tells gtm what to claim and what NOT to claim.
 
 ## Competitor set
 

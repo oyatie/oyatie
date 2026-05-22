@@ -21,7 +21,7 @@ ONE of:
 
 1. **AutonomyViolated event flood** — `oya_supervisor_autonomy_violation_total` rate spike (FM-07).
 2. **Cedar latency spike** — `oya_supervisor_cedar_eval_p99 > 50 ms` (FM-09).
-3. **Tier-escalation alarm** — `oya_supervisor_autonomy_tier_escalation_attempt_total > 0` (T-E-01).
+3. **Tier-escalation alarm** — `oya_supervisor_autonomy_level_escalation_attempt_total > 0` (T-E-01).
 4. **Fail-open alarm** — autonomy-precondition returned `permit` when it should have denied (rare; pen-test or post-mortem).
 
 ## Severity
@@ -77,7 +77,7 @@ ONE of:
 
 - `oya_supervisor_autonomy_violation_total` rate returns to baseline.
 - `oya_supervisor_cedar_eval_p99` ≤ 15 ms.
-- `oya_supervisor_autonomy_tier_escalation_attempt_total` returns to 0.
+- `oya_supervisor_autonomy_level_escalation_attempt_total` returns to 0.
 - All overrides logged in audit-chain with reason + duration + signatures.
 
 ## References

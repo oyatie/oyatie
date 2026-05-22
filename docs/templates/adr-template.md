@@ -7,7 +7,7 @@ purpose: |
   Canonical ADR shape for every oyatie architectural decision. Enforces BNF v4.1
   naming justification, Bominal inheritance citation, and concrete file-path consequences.
   Every executor authoring a new ADR MUST start from this template.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/standards/naming.md
@@ -16,6 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
+  - ADR-0346  # oya verify --ci-required full CI mirror pre-push contract
 doc_status: published
 ---
 
@@ -34,7 +35,7 @@ doc_status: published
 | **supersedes** | ADR-YYYY (or `-`) |
 | **superseded_by** | ADR-ZZZZ (or `-`) |
 | **owner** | `<team-id>` from `docs/teams/` |
-| **related** | ADR-AAAA, ADR-BBBB |
+| **related** | comma-separated ADR identifiers, or `-` |
 | **bominal_source** | Bominal ADR-#### (inherited) \| oyatie override \| no Bominal equivalent |
 
 ---
@@ -120,7 +121,7 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- Grit symbol space affected (`<µservice>` symbols registered at `grit claim`).
+- ADR-0346 pre-push contract: `./bin/oya verify --ci-required` is the canonical local pre-push verifier; it MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success.
 
 ---
 
@@ -176,5 +177,6 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
-- Related oyatie ADRs: ADR-AAAA, ADR-BBBB
+- ADR-0346 `oya verify --ci-required` full CI mirror pre-push contract
+- Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`

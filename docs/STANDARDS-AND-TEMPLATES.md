@@ -69,7 +69,7 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 | ADR promotion | [`checklists/adr-promotion.md`](checklists/adr-promotion.md) | Proposed → Accepted | `crew-adr-promotion` | `adr-supersession-graph` |
 | Foundation-bypass renewal | [`checklists/foundation-bypass-renewal.md`](checklists/foundation-bypass-renewal.md) | Per bypass expiry | per-bypass owner | `bypass-expiry-monitor` |
 | Cross-axis contract change | [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) | Any DESIGN §10 row change | All affected axis teams | `design-contracts-mirror` |
-| License-tier review | [`checklists/license-tier-review.md`](checklists/license-tier-review.md) | New external dep / version bump | `ops-security` + `axis-foundry` | `oya-foundry-fitness-license` |
+| License-tier review | [`checklists/license-tier-review.md`](checklists/license-tier-review.md) | New external dep / version bump | `ops-security` + `axis-foundry` | `oya-governance-license` |
 | Build-vs-buy decision | [`checklists/build-vs-buy.md`](checklists/build-vs-buy.md) | New surface authored | Owning axis + `council-architecture` | `build-vs-buy-decision-validator` |
 | Tenant onboarding | [`checklists/tenant-onboarding.md`](checklists/tenant-onboarding.md) | New tenant | `gtm-customer-success` + per-vertical | `tenant-onboarding-evidence` |
 | Trust-portal publish | [`checklists/trust-portal-publish.md`](checklists/trust-portal-publish.md) | Audit-evidence regen | `ops-compliance` + `gtm-marketing` | trust-portal verification |
@@ -95,7 +95,7 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | `stop-validation` | Claude Code Stop | Verifies no leftover incomplete tasks before yielding | `.claude/hooks/stop-validation.sh` |
 | `pr-merge-review-guard` | gh CLI PreToolUse | Refuses `gh pr merge` without `## Code Review` H2 with reviewer-agent verdict | `scripts/hooks/guard-pr-merge-review.mjs` (existing) |
 | `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-foundry-evidence-*` |
-| `cohesion-fitness-on-pr` | CI | Runs `oya-foundry-fitness-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
+| `cohesion-fitness-on-pr` | CI | Runs `oya-governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
 | `license-fitness-on-pr` | CI | Runs `cargo deny licenses` + Trivy `--scanners license` + custom container scan | `.github/workflows/license-fitness.yml` |
 
 ---

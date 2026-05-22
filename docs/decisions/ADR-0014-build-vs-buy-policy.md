@@ -4,7 +4,7 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0014: Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-foundry-fitness-build-vs-buy CI lane
+# ADR-0014: Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-governance-build-vs-buy CI lane
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -107,7 +107,7 @@ external_deps:
     owning_team: axis-search
 ```
 
-### CI lane: `oya-foundry-fitness-build-vs-buy`
+### CI lane: `oya-governance-build-vs-buy`
 
 Runs on every PR that touches `Cargo.toml`, `package.json`, `requirements.txt`, `go.mod`, or any catalog record. It:
 
@@ -143,7 +143,7 @@ Runs on every PR that touches `Cargo.toml`, `package.json`, `requirements.txt`, 
 
 - On-call: `EVT-BUILD-VS-BUY-DENY` alerted weekly to council; `EVT-VENDOR-DEP-MATURITY-DROPPED` alert if a dep changes maturity tier.
 - Runbooks: `runbooks/external-dep-onboarding.md`, `runbooks/in-house-replacement-trigger.md`, `runbooks/dep-replacement-execution.md`.
-- CI: `oya-foundry-fitness-build-vs-buy` is a P0 lane.
+- CI: `oya-governance-build-vs-buy` is a P0 lane.
 - Per-quarter audit: vendor-partner-ledger reviewed; deps with stale `replacement_trigger` re-evaluated.
 
 ---

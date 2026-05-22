@@ -8,18 +8,23 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0172]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0172, ADR-0334, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/social.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
+last_amended: 2026-05-21
 owner_team: axis-social
 doc_status: published
 ---
 
-# PRD-social: First-Party Social Platform (Profiles + Posts + Feed + Follow-Graph + Reactions + Notifications)
+# PRD-social: First-Party Social Platform (Profiles + Posts + Feed + Follow-Graph + Reactions + Notifications + Short-Form Video)
 
 ## Purpose
 
-The `social` microservice is oyatie's native Twitter/X-class first-party social platform. Per parallel-session ADR-0135 (Connect dissolution), it is one of the 8 first-class µservices factored out of the legacy Connect umbrella. It owns **user-profile + follow-graph + chronological-and-algorithmic feed + post-composition + reactions + comments + reposts/quote-posts + mentions + hashtags + trending-topics + content-discovery + content-moderation + blocking + muting + lists + bookmarks + people-and-content-search + real-time-and-digest notifications + cross-context dual-pillar isolation (Personal B2C vs Professional B2B) + optional ActivityPub federation + content-moderation classifier + ranking model + abuse-reporting + appeal-workflow + age-verification + accessibility-alt-text + ads-substrate-stub (T2 capability, off by default)** across the 11 oyatie regulatory packs.
+The `social` microservice is oyatie's native Twitter/X-class first-party social platform. Per parallel-session ADR-0135 (Connect dissolution), it is one of the 8 first-class µservices factored out of the legacy Connect umbrella. It owns **user-profile + follow-graph + chronological-and-algorithmic feed + post-composition + reactions + comments + reposts/quote-posts + mentions + hashtags + trending-topics + content-discovery + content-moderation + blocking + muting + lists + bookmarks + people-and-content-search + real-time-and-digest notifications + cross-context dual-pillar isolation (Personal B2C vs Professional B2B) + optional ActivityPub federation + content-moderation classifier + ranking model + abuse-reporting + appeal-workflow + age-verification + accessibility-alt-text + ads-substrate-stub (T2 capability, off by default) + short-form video flavor (TikTok-/Reels-/YouTube-Shorts-/Snapchat-Spotlight-class: upload + multi-bitrate HLS/DASH ABR transcode + CDN delivery + audio-track-library + audio-attribution + stitch/duet remix + watch-time-tracking + sound-of-the-week trending + Content-ID-class copyright-claim + DRM tenant-class entitlement + auto-captions + age-gate + parental-controls + creator-analytics)** across the 11 oyatie regulatory packs.
+
+## Short-Form Video Flavor (absorbed from retired `shorts` µservice per ADR-0334)
+
+Per ADR-0334 (2026-05-21), the retired `shorts` µservice is absorbed into social as the TikTok-style short-video media flavor. Industry precedent (Instagram Reels inside Instagram; YouTube Shorts inside YouTube; X video inside X; LinkedIn video inside LinkedIn) places short-video inside the social product, not in a sibling service. The `Post.media.kind = short_video` discriminator carries variant ladders, audio-track binding, copyright-claim status, DRM policy, and `derives_from` parent edges for Stitch and Duet remix shapes. The social feed-timeline kernel admits both chronological and algorithmic For-You feed shapes for short-video posts, matching prior shorts product behavior. Tenant-class DRM entitlement gating follows ADR-0330 verbatim. The social copyright-claim BC owns the DMCA Title II safe-harbor workflow (takedown, counter-notice, repeat-infringer registry) with Content-ID-class fingerprint matching at ingest. Short-video specific SLOs (feed-load p95 ≤ 250ms, video-start p95 ≤ 400ms, like-action p99 ≤ 50ms, transcode throughput, copyright-claim match latency, DRM license issuance latency, auto-caption latency, moderation classifier latency) extend the social SLO set under social labels.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone social clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `social.post.v1` Workflow events and the `Person`, `Post`, `Topic` Ontology object types.
 
@@ -68,6 +73,21 @@ Bominal predecessor: the `connect-social` slice of Bominal's unified Connect sui
 | FR-28 | end-user (per pack regulation) | to attest age at signup | age-gate is enforced | age-verification | Must |
 | FR-29 | end-user | to opt-in their tenant to ActivityPub federation (Professional only) | external interop where wanted | federation-gateway | Should |
 | FR-30 | tenant-admin | to disable ads-substrate-stub T2 capability (off by default) | tenants choose monetisation | ads-substrate-stub | Must |
+| FR-31 | creator | to upload a short video (≤ 60s; ≤ 500MB) | I publish short-form content | post-composition (short_video flavor) | Must |
+| FR-32 | creator | to compose / clip / cut / add stickers + caption overlays before publishing a short video | I produce polished content | post-composition (short_video flavor) | Must |
+| FR-33 | system | to transcode the uploaded short video into a multi-bitrate HLS/DASH ladder (360p/480p/720p/1080p + optional 1440p) within 30s p95 | ABR streaming works on all devices | post-composition (short_video transcode) | Must |
+| FR-34 | system | to generate a poster + animated GIF preview thumbnail for short videos | feed-tile preview UX | post-composition (short_video flavor) | Must |
+| FR-35 | creator | to attach a licensed or UGC audio track and have it attributed to the original source | I score the video and rights chain is preserved | audio-track-library | Must |
+| FR-36 | viewer | to see a chronological and an algorithmic For-You feed of short videos | I choose how I consume | feed-timeline (short_video flavor) | Must |
+| FR-37 | system | to track watch-time + completion-ratio per (viewer, short_video) | engagement signal for ranking | feed-timeline (short_video flavor) | Must |
+| FR-38 | creator | to repost via Stitch (clip another's video + append my own) or Duet (side-by-side) | remix culture | post-composition (`derives_from` edge) | Must |
+| FR-39 | viewer | to see trending sounds + hashtags per pack (sound-of-the-week) | discovery surface | trending-topics | Must |
+| FR-40 | system | to fingerprint-match audio + video at ingest against the Content-ID corpus | copyright pre-check | copyright-claim | Must |
+| FR-41 | rights-holder | to file a copyright-claim takedown notice on short video | DMCA Title II + EU DSA Art. 16 | copyright-claim | Must |
+| FR-42 | creator | to file a counter-notice for a contested claim | DMCA counter-notice | copyright-claim | Must |
+| FR-43 | viewer | to see auto-generated captions on every short video (with manual override) | accessibility WCAG 2.2 Level AA | accessibility-captions | Must |
+| FR-44 | tenant-admin | to enable paid tenant_class DRM (Widevine + FairPlay + PlayReady) on short video | content protection per ADR-0330 | drm-stub | Should |
+| FR-45 | creator | to view creator-analytics (watch-time, audience, posting cadence, audience growth) on short video | I grow my channel | creator-analytics | Must |
 
 ## Non-Functional Requirements
 
@@ -81,13 +101,21 @@ Bominal predecessor: the `connect-social` slice of Bominal's unified Connect sui
 | Follow-action latency | ≤ 20ms | ≤ 50ms | ≤ 150ms | ≤ 400ms | Postgres adjacency-list write |
 | Search-people query (≤ 25 results) | ≤ 80ms | ≤ 300ms | ≤ 600ms | ≤ 1.2s | Meilisearch + Cedar filter |
 | Search-content query (≤ 25 results) | ≤ 150ms | ≤ 500ms | ≤ 1s | ≤ 2s | Meilisearch + Cedar filter |
-| Notification fanout (10k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Valkey Streams (Redis wire-compat) |
+| Notification fanout (10k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Valkey Streams (RESP3 wire-compatible) |
 | Notification fanout (100k followers) | ≤ 500ms | ≤ 2s | ≤ 5s | ≤ 15s | sharded fanout workers |
 | Comment / reply create | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert |
-| Reaction add | ≤ 15ms | ≤ 50ms | ≤ 120ms | ≤ 300ms | Redis-buffered + Postgres flush |
+| Reaction add | ≤ 15ms | ≤ 50ms | ≤ 120ms | ≤ 300ms | Valkey-buffered + Postgres flush |
 | Trending-topic compute | n/a | n/a | n/a | n/a | batched 5min windowed |
 | Media transcode (image, ≤ 10MB) | ≤ 800ms | ≤ 2s | ≤ 4s | ≤ 10s | ImageMagick |
 | Media transcode (video, ≤ 200MB) | ≤ 30s | ≤ 90s | ≤ 180s | ≤ 300s | ffmpeg HLS segmentation |
+| Short-video feed-load latency (top 10 short videos) | ≤ 80ms | ≤ 250ms | ≤ 500ms | ≤ 1.2s | Valkey hot-feed cache; ranking precomputed for hot accounts (absorbed from shorts per ADR-0334) |
+| Short-video start latency (first frame) | ≤ 120ms | ≤ 400ms | ≤ 800ms | ≤ 1.5s | CDN edge + signed URL + HLS init segment cache |
+| Short-video like-action latency | ≤ 15ms | ≤ 35ms | ≤ 50ms | ≤ 150ms | Valkey-buffered + Postgres flush |
+| Short-video transcode throughput (≤ 60s, ≤ 500MB) | ≤ 10s | ≤ 30s | ≤ 60s | ≤ 120s | ffmpeg ABR ladder; GPU-accelerated where available |
+| Auto-caption generation (≤ 60s video) | ≤ 8s | ≤ 18s | ≤ 30s | ≤ 60s | ASR pipeline; per-pack language model |
+| Copyright-claim fingerprint match latency | ≤ 600ms | ≤ 2s | ≤ 4s | ≤ 8s | Chromaprint audio + perceptual-hash video corpus lookup |
+| DRM license issuance latency | ≤ 60ms | ≤ 150ms | ≤ 300ms | ≤ 600ms | Widevine + FairPlay + PlayReady; tenant-class gated per ADR-0330 |
+| Short-video moderation classifier latency | ≤ 500ms | ≤ 2s | ≤ 4s | ≤ 8s | NSFW + violence + minor-protection classifier chain |
 
 ### Security
 
@@ -120,21 +148,52 @@ Bominal predecessor: the `connect-social` slice of Bominal's unified Connect sui
 - Per-tenant pack pinning per ADR-0117. Personal-tier user data follows the personal-residency model (per-user); professional follows tenant-residency.
 - Federation egress is per-tenant opt-in for the Professional tier only; subject to SCC + tenant attestation; Personal tier forbidden.
 
+### DR posture (per ADR-0343)
+
+- Manifest target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300`, `multi_region_active_active=true`, `replication_shape=active-active-multi-az-cross-region-warm`. The older 15-minute product SLO remains a stretch SLO, not the ADR-0343 manifest contract.
+- Applicable pack floors from `specs/compliance-pack-floors.json`: EU-AI-ACT-2024-HIGH-RISK `1800s/300s` with multi-region required; HIPAA-2024 `3600s/300s` with multi-region required; KR-PIPA-2023 default `14400s/900s`; SOC2-T2 `14400s/900s`; ISO27001-2022 `14400s/3600s`; KR-CSAP-v3.1 `3600s/900s` with multi-region required. The effective maximum pack floor is ISO27001 `14400s/3600s`; social keeps the stricter hero-product target.
+- `failover_runbook=runbooks/dr-failover.md`, resolved at `microservices/social/runbooks/dr-failover.md`; backup substrates are `postgres_wal_g`, `object_storage_versioned`, `valkey_cluster`, and `audit_chain_merkle_seal`.
+- `multi_region_active_active=true` for profile, post, feed, notification, and moderation action paths; media transcode may requeue and hydrate from object storage after regional failover.
+- Why: social is high-volume and safety-sensitive; tenants must retain feed availability, appeals, abuse reports, and EU-AI-governed moderation evidence during regional events.
+
+### Capacity model (per ADR-0340)
+
+- Per-tenant baseline: `0.22 vCPU`, `512 MiB RAM`, `20 GiB storage`, `connections_per_tenant={valkey:6, postgres:4, outbound_http:8}`.
+- Scaling dimension: `per_request` for feed generation, follow graph reads, notifications, search, moderation, and post/reaction writes.
+- Cell placement class: `Tier-3` with manifest `pod_runtime_tier=2`; short-video support raises storage and cache pressure, while the service remains product-tier rather than foundation placement.
+- Autoscaling boundaries: min `4` api/feed/moderation replicas per tenant-cell, max `96` before feed shard split; transcode and classifier workers have separate queues so viral media does not starve safety actions.
+- Why: social demand is fan-out-heavy and abuse-prone, with sharp viral spikes; the model reserves safety/moderation capacity while allowing discovery and media backfills to throttle.
+
+### Sustainability + cost attribution (per ADR-0344)
+
+- Every post, profile write, follow edge, feed materialization, reaction, media transcode, moderation verdict, copyright claim, notification, and search audit row emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with tenant, product, capability, provider, cell, and compliance-pack dimensions.
+- Provider routing is carbon-aware for media transcode backlogs, feed backfills, caption generation, and analytics; it is not carbon-routed for EU-AI-governed moderation/ranking decisions, minor-safety paths, CSAM response, HIPAA-adjacent alerts, or live abuse-report processing.
+- Tenant cost transparency surface: social admin exposes media/transcode spend, feed/ranking compute, moderation/classifier cost, search index cost, and federation egress; finops-portal supplies rollups by tenant, capability, and compliance pack.
+- Why: media and ranking workloads dominate social cost and emissions, so CSRD, SB-253, and SEC climate-disclosure exports need per-capability attribution instead of one blended social footprint.
+
+### API versioning posture (per ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet using `Oyatie-Version` header, `/v/YYYY-MM-DD/` REST/ActivityPub gateway prefix, and proto3 field `string oyatie_version = 8001` on public events/contracts.
+- SDK semver model: social SDKs publish `major.minor.patch`; mobile/web clients pin public behavior by date carrier.
+- Support window: last `N=3` public versions for at least `180` days after deprecation.
+- Per-tenant pinning: yes for regulated tenants, federation bridges, creator/brand integrations, and moderation tooling.
+- Internal-mesh exemption: yes; ADR-0145 direct gRPC over HTTP/3 remains tag-compatible and exempt from public carrier routing.
+
 ## Bounded Contexts
 
-Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename). Layers used: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-redis`, `adapter-s3`, `adapter-meilisearch`, `adapter-clamav`, `adapter-opswat`, `adapter-activitypub`, `adapter-imagemagick`, `adapter-ffmpeg`, `rest`, `worker`, `sdk`, `app`.
+Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename). Layers used: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-valkey`, `adapter-s3`, `adapter-meilisearch`, `adapter-clamav`, `adapter-opswat`, `adapter-activitypub`, `adapter-imagemagick`, `adapter-ffmpeg`, `rest`, `worker`, `sdk`, `app`.
 
 | BC | Crate family | Purpose | Key entities |
 |---|---|---|---|
 | `user-profile` | `oya-social-user-profile-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,sdk,app}` | Profile CRUD; handle uniqueness per (tenant, context); avatar + header media refs; verification badge; persona switch | `Profile`, `Handle`, `VerificationBadge`, `PersonaContext` |
 | `follow-graph` | `oya-social-follow-graph-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk}` | Directed follow edges; mutual-follow = friend; block / mute lists; adjacency-list storage | `FollowEdge`, `BlockEdge`, `MuteEdge`, `FriendDerivation` |
 | `post-composition` | `oya-social-post-composition-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,adapter-imagemagick,adapter-ffmpeg,rest,worker,sdk,app}` | Post + repost + quote-post + comment-reply CRUD; media upload + transcode; link-preview; visibility scope; cross-link to messenger | `Post`, `Repost`, `QuotePost`, `Comment`, `Media`, `LinkPreview`, `Visibility`, `ContentWarning` |
-| `feed-timeline` | `oya-social-feed-timeline-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis,worker,sdk,app}` | Chronological + algorithmic feed materialisation; fanout-on-write for hot-tier accounts; fanout-on-read for cold-tier; ranking | `FeedEntry`, `RankingSignal`, `FanoutPlan`, `RankSnapshot` |
-| `reactions` | `oya-social-reactions-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis,worker,sdk}` | Inline reactions (emoji set bounded); conflict-free counter; per-user reaction record | `Reaction`, `ReactionTally`, `UserReactionRecord` |
+| `feed-timeline` | `oya-social-feed-timeline-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk,app}` | Chronological + algorithmic feed materialisation; fanout-on-write for hot-tier accounts; fanout-on-read for cold-tier; ranking | `FeedEntry`, `RankingSignal`, `FanoutPlan`, `RankSnapshot` |
+| `reactions` | `oya-social-reactions-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk}` | Inline reactions (emoji set bounded); conflict-free counter; per-user reaction record | `Reaction`, `ReactionTally`, `UserReactionRecord` |
 | `mentions` | `oya-social-mentions-{kernel,domain,usecase,api,adapter,worker,sdk}` | @mention parse; Ontology lookup; fanout to notifications + cross-µservice (messenger bridge) | `Mention`, `MentionTarget`, `MentionFanoutPlan` |
 | `hashtags` | `oya-social-hashtags-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,sdk}` | #tag parse; per-tag corpus; trending input emission | `Hashtag`, `HashtagCorpus`, `HashtagEmission` |
-| `trending-topics` | `oya-social-trending-topics-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis,worker,sdk}` | Windowed trend compute over hashtags + entities; per-tenant per-pack ranking | `TrendingTopic`, `TrendWindow`, `TrendRank` |
-| `notifications` | `oya-social-notifications-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis,worker,sdk,app}` | Real-time + digest notification delivery; per-recipient idempotent; backpressure-coalesced | `Notification`, `DigestBucket`, `RealtimeFrame` |
+| `trending-topics` | `oya-social-trending-topics-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk}` | Windowed trend compute over hashtags + entities; per-tenant per-pack ranking | `TrendingTopic`, `TrendWindow`, `TrendRank` |
+| `notifications` | `oya-social-notifications-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey,worker,sdk,app}` | Real-time + digest notification delivery; per-recipient idempotent; backpressure-coalesced | `Notification`, `DigestBucket`, `RealtimeFrame` |
 | `content-moderation` | `oya-social-content-moderation-{kernel,domain,usecase,api,adapter,adapter-clamav,adapter-opswat,worker,sdk}` | AI-classifier verdicts; manual reviewer queue; appeal workflow input; abuse-report ingestion; EU AI Act high-risk | `ModerationVerdict`, `AbuseReport`, `Appeal`, `ClassifierVersion` |
 | `bookmarks` | `oya-social-bookmarks-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Per-user bookmark list; private to user | `Bookmark`, `BookmarkFolder` |
 | `lists` | `oya-social-lists-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | User-curated lists of accounts; per-list feed view; private or public | `List`, `ListMembership`, `ListVisibility` |
@@ -169,11 +228,11 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `ImageTranscoder` | `oya-social-post-composition-kernel` | `-adapter-imagemagick` | `INTERNAL_ONLY` |
 | `VideoTranscoder` | `oya-social-post-composition-kernel` | `-adapter-ffmpeg` | `INTERNAL_ONLY` |
 | `MalwareScanner` | `oya-social-content-moderation-kernel` | `-adapter-opswat` / `-adapter-clamav` | `INTERNAL_ONLY` |
-| `FeedCache` | `oya-social-feed-timeline-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ReactionCounter` | `oya-social-reactions-kernel` | `-adapter-redis` + `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `FeedCache` | `oya-social-feed-timeline-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `ReactionCounter` | `oya-social-reactions-kernel` | `-adapter-valkey` + `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `MentionResolver` | `oya-social-mentions-kernel` | `-adapter` (Ontology client) | `PII_IDENTIFYING` |
-| `TrendStore` | `oya-social-trending-topics-kernel` | `-adapter-postgres` + `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `NotificationStore` | `oya-social-notifications-kernel` | `-adapter-postgres` + `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
+| `TrendStore` | `oya-social-trending-topics-kernel` | `-adapter-postgres` + `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `NotificationStore` | `oya-social-notifications-kernel` | `-adapter-postgres` + `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
 | `SearchIndex` | `oya-social-search-kernel` | `-adapter-meilisearch` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `ModerationClassifier` | `oya-social-content-moderation-kernel` | `-adapter` (foundry-runtime client; T2) | `INTERNAL_ONLY` |
 | `ActivityPubGateway` | `oya-social-federation-gateway-kernel` | `-adapter-activitypub` | `BEHAVIORAL_TENANT_PRODUCT` (Professional only) |
@@ -395,3 +454,23 @@ Migration follows the per-BC sequenced cutover declared in ADR-0172 §"Migration
 ### SLO + observability
 
 Read-staleness SLO authored under `microservices/social/slos/feed-read-staleness.openslo.yaml` (M02 deliverable per ADR-0139). Per-replica `pg_stat_replication.replay_lag` exported to Mimir; alert at p99 > 2s.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `social` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `social` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_request` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

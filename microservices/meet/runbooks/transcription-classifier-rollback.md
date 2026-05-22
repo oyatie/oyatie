@@ -22,7 +22,7 @@ doc_status: published
 
 Any of:
 - `oya_meet_transcription_quality_score` regression > 5 % vs prior 7-day baseline.
-- WER (Word Error Rate) on golden set > Whisper-large published baseline + 5 %.
+- WER (Word Error Rate) on baseline set > Whisper-large published baseline + 5 %.
 - Tenant-admin escalation: > 50 tenant-reported transcript-quality complaints on a single model version in 24h.
 - Council-privacy review identifies a regulatory non-compliance (EU AI Act Art. 50 mislabel; per-pack policy violation).
 - For pack-us-financial / pack-us-healthcare: any false-transcription event affecting recorded supervised-comms.
@@ -47,7 +47,7 @@ Any of:
 
 | Hypothesis | Signal | Investigation |
 |---|---|---|
-| Whisper model retraining drift | timing matches model deploy; golden-set WER regression | rerun eval golden set; bisect retrain |
+| Whisper model retraining drift | timing matches model deploy; baseline-set WER regression | rerun eval baseline set; bisect retrain |
 | Audio quality degraded upstream (LiveKit codec change) | upstream LiveKit deploy timing | inspect audio bitrate + codec mix |
 | GPU degradation (faster-whisper acceleration unhealthy) | per-batch latency increased | inspect GPU node health |
 | Locale gap (low coverage on new language) | clustering on `language_code` label | re-train with affected-locale data or disable for that locale |
@@ -83,7 +83,7 @@ Any of:
 ## Whisper Versioning + Audit
 
 Per `capabilities/T1-assist.yaml`:
-- Every Whisper model version tagged with: model SHA + training-dataset SHA + commit + golden-set WER baseline.
+- Every Whisper model version tagged with: model SHA + training-dataset SHA + commit + baseline-set WER baseline.
 - Per-version evidence_topic record: `oya.meet.capability.t1_assist.evidence`.
 - Rollback record sealed via audit-chain Ed25519.
 

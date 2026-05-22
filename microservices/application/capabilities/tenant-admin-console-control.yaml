@@ -49,7 +49,7 @@ cedar_policy_fragments:
 
 evidence_topic: oya.application.tenant-admin.policy-change-applied
 eval_set:
-  golden_inputs_path: microservices/application/capabilities/eval/tenant-admin-console-control-golden.jsonl
+  canonical_inputs_path: microservices/application/capabilities/eval/tenant-admin-console-control-canonical.jsonl
   pass_threshold: 1.0
   eval_metric: tenant-policy-simulation-refusal-correctness
   cadence: per-release

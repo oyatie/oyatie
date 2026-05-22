@@ -16,7 +16,7 @@ exit_gate: |
   All 15 IPs merged; slides binary deployed to dev cluster (with WASM bundle on CDN); slides-pptx-roundtrip-subset
   CI lane present in .github/branch-protection.yaml required_status_checks on dev and staging;
   release/slides/{staging,production} pattern protection live; PPTX round-trip subset drill passes
-  (import 100 golden decks, emit, reimport byte-equal over round-trippable subset ≥ 95%); collab CRDT
+  (import 100 reference decks, emit, reimport byte-equal over round-trippable subset ≥ 95%); collab CRDT
   merge drill passes (10 concurrent users, no silent loss); per-slide Cedar ACL drill passes;
   broadcast-mode LiveKit-bridge drill passes (200 concurrent viewers); reduced-motion fallback drill
   passes; ai-act-risk-class-stamp lane green; cargo nextest run --workspace exits 0; oya gate validate
@@ -74,7 +74,7 @@ Ordered. Each IP is one ChangeSet.
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| `IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Valkey + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | — |
+| `IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Valkey + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | — |
 | `IP-002-presentation-slide-kernel-domain.md` | presentation + slide BCs kernel + domain | pending | axis-workspace + council-design-system | — |
 | `IP-003-slide-layout-text-box-shape-kernel-domain.md` | slide-layout + text-box + shape + table + equation BCs kernel + domain | pending | axis-workspace | IP-002 |
 | `IP-004-asset-bcs-image-video-audio-adapters.md` | image + video-embed + audio-embed BCs with ImageMagick / ffmpeg / ClamAV / OPSWAT adapters | pending | axis-workspace + ops-security | IP-002 |
@@ -124,7 +124,7 @@ oya gate validate authority-cohesion
 
 | Drill | Source | Pass condition |
 |---|---|---|
-| PPTX round-trip subset | 100 golden PPTX decks under `tests/golden/pptx/` | re-import byte-equal over round-trippable subset for ≥ 95 / 100 |
+| PPTX round-trip subset | 100 reference PPTX decks under `tests/reference/pptx/` | re-import byte-equal over round-trippable subset for ≥ 95 / 100 |
 | Loro CRDT no-silent-loss | proptest under `crates/oya-slides-real-time-collaboration-domain/tests/no_silent_overwrite.rs` | 1000 random op-stream pairs; never silent drop |
 | Present-mode 60fps | `tests/load/present-mode-frame-budget.js` on 50-slide deck | p95 transition ≤ 50ms |
 | Broadcast-mode LiveKit-bridge | `tests/e2e/broadcast-200-viewers.rs` | 200 concurrent viewers; session signal stable; SLO `oya-slides-broadcast-mode-availability` green |

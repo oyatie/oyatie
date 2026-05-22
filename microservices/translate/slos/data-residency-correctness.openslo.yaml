@@ -8,7 +8,7 @@ metadata:
     microservice: translate
     bc: data-residency-bound-inference
     sli_class: correctness
-    tier: hero-and-substrate
+    service_classification: hero-and-substrate
     owner_team: axis-translate + council-privacy + ops-security
     pack_scope: all
     invariant: HARD

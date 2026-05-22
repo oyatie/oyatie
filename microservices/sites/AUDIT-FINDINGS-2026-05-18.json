@@ -4,7 +4,7 @@
   "scanned_files": 100,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -58,7 +58,7 @@
             },
             {
               "line": 22,
-              "excerpt": "per ADR-0117); Valkey 8.1 (Redis wire-compat) for the page-render + CMS-collection"
+              "excerpt": "per ADR-0117); Valkey 8.1 (RESP3 wire-compatible) for the page-render + CMS-collection"
             },
             {
               "line": 75,

@@ -16,4 +16,4 @@ allowed_dependency_edges: []
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, AUDIT]
 operational_classes_owned: [AUDIT]
 autonomy_tier_required: T1
-eu_ai_act_classification: limited_risk
+risk_classification: limited_risk

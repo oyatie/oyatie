@@ -1,0 +1,21 @@
+schema_version: "1.0"
+crate: oya-plant-maintenance-equipment-master-api
+microservice: plant-maintenance
+bounded_context: equipment-master
+layer: api
+adr_0105_layer: api
+owner_team: axis-plant-maintenance
+status: planned
+sap_code: "PM"
+benchmarks:
+  - "SAP PM Plant Maintenance"
+  - "Oracle Fusion Maintenance"
+  - "Workday Extend asset-maintenance workflow counterpart"
+  - "NetSuite Fixed Assets and Field Service counterpart"
+  - "Microsoft Dynamics 365 Asset Management"
+contracts:
+  openapi: microservices/plant-maintenance/contracts/openapi-v1.yaml
+  asyncapi: microservices/plant-maintenance/contracts/asyncapi-v1.yaml
+  proto: microservices/plant-maintenance/contracts/plant-maintenance-v1.proto
+policy_fragment: microservices/plant-maintenance/policy/equipment-master-authorization.cedar
+settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

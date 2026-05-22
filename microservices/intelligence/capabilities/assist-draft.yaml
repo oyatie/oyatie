@@ -50,7 +50,7 @@ cedar_policy_fragments:
 
 evidence_topic: oya.intelligence.assist-draft.completed
 eval_set:
-  golden_inputs_path: microservices/intelligence/capabilities/eval/assist-draft-golden.jsonl
+  canonicalen_inputs_path: microservices/intelligence/capabilities/eval/assist-draft-canonicalen.jsonl
   pass_threshold: 0.995
   eval_metric: context-bound-draft-refusal-correctness
   cadence: per-release

@@ -1,0 +1,263 @@
+{
+  "schema": "oyatie.multispectrum-review.v2.4.0.facet-verdict",
+  "review_target": "keystone-bundle-2026-05-20",
+  "facet_id": "F4",
+  "facet_name": "Architecture",
+  "facet_lens": "Does the 14-ADR foundational keystone bundle (ADR-0242..ADR-0255), plus ADR-0280 substrate DAG and the ADR-0255 library-first amendment, compose into a coherent platform architecture? Are dependency-DAG acyclicity, substrate-vs-product layering, cellular-tier interaction, and the universal-mediator anti-pattern (per ADR-0255 amendment) handled correctly?",
+  "reviewer": {
+    "kind": "spectrum-lens-subagent",
+    "persona": "council-architecture (F4 lens)",
+    "tooling": "Read, Grep over docs/decisions/ADR-{0245,0246,0247,0248,0255,0280}*.md, specs/platform-architecture.json, docs/architecture/keystone-bundle-idea-refine-deep-dive.md"
+  },
+  "date": "2026-05-20",
+  "round": 1,
+  "evidence_path": "/Users/jasonlee/oyatie/evidence/debate/keystone-bundle-2026-05-20-F4-architecture-r1.json",
+  "corpus_consulted": [
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0245-substrate-vs-product-layering.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md",
+    "/Users/jasonlee/oyatie/specs/platform-architecture.json",
+    "/Users/jasonlee/oyatie/docs/architecture/keystone-bundle-idea-refine-deep-dive.md"
+  ],
+  "verdict": "APPROVE_WITH_CONDITIONS",
+  "verdict_summary": "The bundle achieves architectural coherence on its load-bearing axes: substrate-vs-product layering is manifest-declared and CI-enforceable (ADR-0245); the substrate DAG is moved from prose to machine-readable spec with Tarjan-SCC acyclicity enforcement and Kahn topological-sort bootstrap derivation (ADR-0280); the cellular four-tier model (Tier 0 external / Tier 1 bootstrap / Tier 2 control plane / Tier 3 data plane) plus service-cell peer tier composes correctly with the substrate-vs-product axis because tier is the deployment-topology axis and substrate/product is the role axis (they are orthogonal); and the universal-mediator anti-pattern that F-ANTI-1 in the idea-refine deep-dive flagged against Intelligence is now structurally foreclosed by the ADR-0255 library-first amendment with per-SecretReference + per-Cedar network-side opt-in. APPROVE_WITH_CONDITIONS rather than full APPROVE because three load-bearing seams remain advisory-until-bootstrap, two analogous library-first amendments are missing for Policy-Engine and Ontology (the same universal-mediator pattern leaks through them), and the bootstrap-tier vs substrate-DAG topological-sort coherence between ADR-0242 §D-5, ADR-0247 §D-5 Stage 1, and ADR-0280 §D-1 bootstrap_order is asserted but not yet cross-validated end-to-end.",
+  "dag_acyclicity_confirmed": "CONDITIONAL_YES",
+  "dag_acyclicity_confirmation_basis": "ADR-0280 §D-1 declares a single canonical artifact at /specs/substrate-dependency-dag.json, JSON-Schema validates 10 Tier-1 nodes and ~23 declared edges with per-edge cascade_rule + dependency_weight + version_compatibility_range + cedar_permit_fragment, plus an explicit `forbidden_edges_assertion` block (negative-space declaration). §D-3 specifies the CI lane runs Tarjan's strongly-connected-components algorithm on the DAG and exits 1 on any SCC of size > 1; §D-3 also verifies that Kahn's topological sort equals `bootstrap_order` AND ADR-0242 §D-5 declared order. The doctrine forbids override paths for cycles (§D-3 step 5: a cycle is never acceptable; the resolution is to extract a leaf substrate or rewire, never to introduce the cycle). The inspected initial edge set (cell at the leaf; identity/tenancy/policy-engine in S1-S3; audit-chain transitively depending on policy-engine; ontology/intelligence/workflow-engine at S3-S4) is verifiable acyclic by inspection. CONDITIONAL because enforcement_status is `advisory-until-dag-spec-lands-and-validator-green` and the prerequisites (DAG spec file authored, validator crate compiled, CI lane registered, per-substrate manifest.json `substrate_dag_position` declared, substrate catalog populated) are not yet shown landed; the doctrinal text is sound but acyclicity is enforced-in-text not enforced-in-CI as of 2026-05-20.",
+  "layering_violations": [
+    {
+      "id": "F4-LV-1",
+      "severity": "P1",
+      "kind": "tier-classification-residual-ambiguity",
+      "location": "ADR-0245 §D-3.A foundry row",
+      "finding": "Foundry is classified `substrate-meta` with a parenthetical 'reserved subtype; see note' but the closed `tier_subtype_enum` (D-2 + platform-architecture.json line 311+) does not list `substrate-meta`. The note says 'Tentative classification' and explicitly forwards final disposition to ADR-0247 dissolution. As of 2026-05-20, ADR-0247 §D-1 redistributes the six Foundry BCs to workflow-engine + intelligence + audit-chain + policy-engine and retires microservices/foundry/. Until the dissolution lands, the tier_classification_rationale lane (D-7 Mode 1) will reject `substrate-meta` because the value is not in the enum. Residual layering violation: an ADR-declared tier_subtype that is not in the spec's enum.",
+      "remedy": "Either (a) add `substrate-meta` to the closed enum in platform-architecture.json and ADR-0245 §D-2 with the explicit semantics that exactly one µservice may carry it during the dissolution window and tracking ADR-0247 retirement, OR (b) accelerate ADR-0247 §D-9 artifact migration plan so Foundry exits the tier table before the lane promotes to BLOCKER.",
+      "blocks_keystone_acceptance": false,
+      "blocks_lane_promotion_to_blocker": true
+    },
+    {
+      "id": "F4-LV-2",
+      "severity": "P1",
+      "kind": "service-cell-vs-product-overlap",
+      "location": "ADR-0245 §D-3.B vs §D-3.C vs §D-5.4 + §D-5.5",
+      "finding": "The substrate-vs-product-vs-service-cell split is sound in theory but the §D-5 deep-dive explicitly notes that `analytics` (product, §D-3.B) and the `service-cell-analytics` peer cell co-exist as 'front-end UI' and 'backend pipelines' respectively. Same pattern for `ops-dashboard-control-center` (product) vs `service-cell-ops-console`. This duplicates the BFF-vs-backend split inside the tier system. The boundary between them is not declared in CI-enforceable terms — i.e., what code/contracts may live in the product half vs the service-cell half. Without an explicit rule, the per-µservice flat layout (ADR-0131) and the no-suite policy (ADR-0132) cannot detect drift where logic accumulates on the wrong side of the line.",
+      "remedy": "Add a §D-3.F rule to ADR-0245: a product/service-cell pair MUST declare in its product manifest a `paired_service_cell:` field; the service-cell manifest MUST declare a `paired_product:` field; the product's surface code MUST NOT contain pipeline/ingestion logic; the service-cell MUST NOT host an end-user surface. CI lane: `oya-check-product-service-cell-pair-split-coherence`.",
+      "blocks_keystone_acceptance": false,
+      "blocks_lane_promotion_to_blocker": false
+    },
+    {
+      "id": "F4-LV-3",
+      "severity": "P0",
+      "kind": "missing-product-DAG",
+      "location": "ADR-0280 §D-1 + §Appendix-C",
+      "finding": "ADR-0280 explicitly scopes the DAG spec to the 10 Tier-1 substrates and defers the remaining 9 substrates to §Appendix C. But the doctrine's anti-pattern protection — Tarjan acyclicity + bootstrap-order derivation + SLO Markov composition — applies equally to the product layer (27 product µservices per ADR-0245 §D-3.E count) and to product↔substrate edges. ADR-0245 §D-4.F explicitly permits product-to-product calls under ADR-0145 invariants, which means product↔product edges exist. Without those edges in the DAG, the acyclicity lane cannot reject a product-A → product-B → product-A cycle even though §D-4.A/D-4.C only constrain the substrate ↔ product direction.",
+      "remedy": "ADR-0280 must declare in §D-1 (or in a sibling ADR ADR-0285 product-dependency-DAG) that the canonical artifact spans every tier the bundle has classified — substrate + product + service-cell + reserved — with per-edge cascade_rule attribute. Reserved µservices declare planned_dependencies in their own DAG section but contribute zero live edges per ADR-0245 §D-4.E. The Tarjan SCC algorithm runs over the union graph.",
+      "blocks_keystone_acceptance": false,
+      "blocks_lane_promotion_to_blocker": true
+    },
+    {
+      "id": "F4-LV-4",
+      "severity": "P1",
+      "kind": "bootstrap-tier-vs-substrate-DAG-coherence",
+      "location": "ADR-0242 §D-5 (per ADR-0247 §D-5 transcription) vs ADR-0247 §D-5 Stage 1 vs ADR-0280 §D-1 bootstrap_order field vs ADR-0248 §D-2 Tier-1 bootstrap cell contents",
+      "finding": "Three authoritative sources declare the bootstrap sequence: (1) ADR-0242 §D-5 (referenced by ADR-0246 §Status and ADR-0247 §D-5 Stage 1 step table); (2) ADR-0280 §D-1's `bootstrap_order` field that MUST equal Kahn's topological sort of the DAG and MUST match ADR-0242 §D-5; (3) ADR-0248 §D-2 listing the bootstrap-cell-hosted substrates (cloud-secrets, identity, tenancy, policy-engine, audit-chain, cell, workflow-engine, foundry — the foundry substrate-meta). The three orderings are consistent by reading but the cross-validation lane is not yet present. ADR-0280 §D-3 says the validator 'MUST equal `bootstrap_order` (and ADR-0242 §D-5)' but does not assert against ADR-0248 §D-2 nor ADR-0247 §D-5 Stage 1. If any of the four ever drift, the doctrine has no single source of truth.",
+      "remedy": "Designate one source as canonical (recommend: /specs/substrate-dependency-dag.json `bootstrap_order` as the machine-readable canonical) and require the other three to either embed-by-reference or be CI-validated to match. ADR-0280 §D-3 lane should extend its coherence check to ADR-0247 §D-5 Stage 1 + ADR-0248 §D-2.",
+      "blocks_keystone_acceptance": false,
+      "blocks_lane_promotion_to_blocker": true
+    },
+    {
+      "id": "F4-LV-5",
+      "severity": "P2",
+      "kind": "self-modification-meta-permit-fragment-not-in-DAG",
+      "location": "ADR-0247 §D-8 vs ADR-0280 §D-1 edges",
+      "finding": "ADR-0247 §D-8 declares the canonical Cedar fragment `policy-engine/fragments/oyatie-self-modification-permits.cedar` whose META-PERMIT gates modification of itself by requiring ≥3 human approvers + council-security + council-architecture + org-root-key-intermediate signature. This is the chicken-and-egg root anchor. The fragment is a substrate-internal artifact, so it is not itself a substrate-to-substrate edge; the DAG should not list it as a node. However the doctrine that 'the gate that gates the gate is itself a Cedar fragment, bounded by chain-of-trust at the org root' is the load-bearing architectural property that prevents unbounded self-modification — and it is not surfaced anywhere in ADR-0280 or platform-architecture.json. A future amendment that quietly modifies this fragment without invoking the meta-permit would be invisible to the substrate DAG.",
+      "remedy": "Add to /specs/platform-architecture.json a top-level field `self_modification_root_fragment:` with sha256 + signing-key reference + meta-permit conditions. Add a CI lane that verifies fragment changes touching this fragment-id carry the ≥3-approver evidence + org-root-key intermediate signature. This is orthogonal to the DAG but it is the architectural anchor for ADR-0247's chicken-and-egg resolution; without surfacing it the architectural property is implicit in code.",
+      "blocks_keystone_acceptance": false,
+      "blocks_lane_promotion_to_blocker": false
+    },
+    {
+      "id": "F4-LV-6",
+      "severity": "P1",
+      "kind": "intelligence-amendment-applied-only-to-intelligence",
+      "location": "ADR-0255-amendment vs Policy-Engine (ADR-0246) vs Ontology (ADR-0246 implicit / ADR-0145)",
+      "finding": "The library-first / network-opt-in amendment to ADR-0255 closes F-ANTI-1 for Intelligence by declaring `oya-shared-intelligence-client-*` as the default and the µservice as cross-cutting coordination only. The same anti-pattern threat applies to ADR-0246 (Policy-Engine — F-ANTI-2 in the idea-refine deep-dive) and to Ontology (F-ANTI-3). The idea-refine deep-dive explicitly recommends 'ADR-0246 amendment clarifying the library-mode default' and 'ADR-0278 Ontology read-path doctrine'. As of 2026-05-20 ADR-0246 §D-3 mentions a `oya-shared-policy-engine-client-sdk` library crate but does NOT establish library-mode as the default with per-call in-process evaluation; §D-5 describes a 'per-cell evaluator pool' that callers consult via gRPC. The same universal-mediator shape that the Intelligence amendment closed is therefore still load-bearing for Cedar — every state-changing call in the platform takes a per-call gRPC hop to the cell-local policy-engine evaluator pool.",
+      "remedy": "Author an ADR-0246-amendment-library-first-network-opt-in-clarification by parallel construction with ADR-0255-amendment-library-first-network-opt-in-clarification. The Cedar evaluator runs in-process from a bundled fragment snapshot (already supported by cedar-policy v4.2 Rust crate); the policy-engine µservice does fragment authoring + distribution + hot-reload (the cross-cutting work that genuinely needs central state). Similarly author ADR-0278 Ontology read-path doctrine establishing read-replicas per cell + materialised per-consumer views + CDC update path + per-product subset binding as defaults; the Ontology µservice is the write-side authority not a per-read mediator.",
+      "blocks_keystone_acceptance": true,
+      "blocks_lane_promotion_to_blocker": true
+    },
+    {
+      "id": "F4-LV-7",
+      "severity": "P2",
+      "kind": "self-cell-routing-substrate-coupling",
+      "location": "ADR-0248 §D-7 shuffle-sharding service in microservices/cell/",
+      "finding": "ADR-0248 §D-7 places the shuffle-sharding tenant→cell assignment service inside `microservices/cell/`. This is correct as the source of truth, but cell-substrate sits at S0 (leaf) in the DAG per ADR-0245 §D-4.B and ADR-0280 §D-1's node list places it as the lowest-tier root. Every tenant-bound request from any µservice must therefore consult cell-substrate before any other substrate to determine the tenant's home_cell — meaning every hot-path call has a hard dependency on cell-substrate. ADR-0248 §D-9 partially mitigates this via the constant-work snapshot pattern: Tier 3 cells pull the tenant→cell snapshot hourly from Tier 2 and cache locally. But the snapshot caching is described as data-plane caching, not as a library-first pattern. A request that hits a cell whose cache is stale and whose corresponding tenant has been re-sharded faces a routing ambiguity.",
+      "remedy": "Document that the tenant→cell binding is a library-first concern (each µservice's request entry-point linked against `oya-shared-cell-routing-client` consulting the local hourly snapshot, with optional opt-in for live consultation via cell-substrate gRPC). Add the cascade_rule for the implicit 'every µservice → cell' routing edge in ADR-0280's DAG. Or model cell-routing not as a DAG edge at all but as a request-entry library responsibility orthogonal to the substrate DAG (preferred — matches the platform-architecture.json mental model where cell-id is a request-scoped attribute).",
+      "blocks_keystone_acceptance": false,
+      "blocks_lane_promotion_to_blocker": false
+    }
+  ],
+  "anti_patterns_detected": [
+    {
+      "id": "F4-AP-1",
+      "anti_pattern": "Universal Mediator returning under a substrate label",
+      "severity": "P0",
+      "deep_dive_finding": "F-ANTI-1, F-ANTI-2, F-ANTI-3",
+      "intelligence_status": "CLOSED by ADR-0255-amendment-library-first-network-opt-in-clarification. The amendment is structurally sound: library is default, µservice is restricted to cross-cutting state (credential pool, rate budgets, cost rollup, registry distribution, Brand Surface Layer B), per-SecretReference + per-Cedar opt-in, six CI lanes ('oya-check-intelligence-library-first-default', 'oya-check-no-unnecessary-intelligence-service-hop', etc.). The library_crates inventory (`oya-shared-intelligence-client-*` family, 18 crates) and the Foundry CI agent worked example in Appendix B demonstrate the static-stability property. The amendment correctly cites Hamilton 2007 + AWS SDK + Bedrock + Anthropic SDK + OpenAI SDK as precedent. The Foundry CI agent reference path explicitly asserts zero network hops to microservices/intelligence/ on the dispatch path. APPROVE.",
+      "policy_engine_status": "OPEN — same anti-pattern remains for Policy-Engine. ADR-0246 §D-3 ships `oya-shared-policy-engine-client-sdk` but ADR-0246 §D-5 describes 'per-cell evaluator pool that downstream µservices call over gRPC with an SDK that holds a connection pool + circuit breaker + cache fallback'. The natural reading is that the SDK is a thin remote-procedure wrapper around the evaluator gRPC, not an in-process Cedar evaluator. The Cedar v4.2 Rust crate (`cedar-policy`) is designed for in-process evaluation with hot-reloadable fragment bundles, which is exactly the library-first pattern. F-ANTI-2 in the idea-refine deep-dive raised this; the bundle has not authored the matching amendment. Until amended, Cedar is the universal gateway for authorization.",
+      "ontology_status": "OPEN — ADR-0245 §D-3.A classifies ontology as substrate-data; ADR-0145 already said 'Ontology is a SUBSTRATE for cross-µservice read queries, not a GATEWAY' but the bundle does not lock the read-replica-per-cell + materialised-view + CDC-update + per-product-subset-binding pattern as defaults. F-ANTI-3 in the idea-refine deep-dive recommended ADR-0278 Ontology read-path doctrine; this ADR is not in the keystone bundle. Without it, every cross-product Ontology read becomes a synchronous network hop and the universal-gateway pathology emerges via Ontology.",
+      "recommendation": "Author parallel amendments for Policy-Engine (ADR-0246-amendment-library-first) and Ontology (ADR-0278 Ontology read-path doctrine) before lane BLOCKER promotion. The three universal-gateway risks are STRUCTURALLY IDENTICAL; closing only one of three is incomplete protection."
+    },
+    {
+      "id": "F4-AP-2",
+      "anti_pattern": "Distributed Monolith (substrate-of-substrate cycle)",
+      "severity": "P1",
+      "deep_dive_finding": "F-ANTI-7",
+      "status": "CLOSED-IN-TEXT by ADR-0280. The DAG spec at /specs/substrate-dependency-dag.json + Tarjan SCC validator + Kahn topological-sort coherence + forbidden_edges_assertion negative-space declaration + per-substrate independent-deploy CI lane (recommended) are the canonical hyperscaler pattern (Google Borg strata, AWS Bezos API mandate, Hamilton 2007 §2.2, Stripe tier-0/1/2/3, Kubernetes component-dependency model). The doctrine is sound. Enforcement is advisory-until-dag-spec-lands-and-validator-green so the CLOSED-IN-TEXT property must be promoted to CLOSED-IN-CI before structural confidence is full. The five §Status prerequisites (DAG spec file, validator crate, CI lane registration, per-substrate manifest fields, substrate catalog) are the gate.",
+      "audit_chain_dependency_on_policy_engine_edge_note": "ADR-0280 §D-1 worked example declares the edge `{from: 'audit-chain', to: 'policy-engine', cascade_rule: 'FULL'}` because audit-chain admission is gated by Cedar (per ADR-0243 §D-1). This edge is correct architecturally — audit emission consults Cedar — but it implies the bootstrap order MUST put policy-engine before audit-chain. The DAG's stated bootstrap_order does this (audit-chain at S3 with policy-engine listed as a predecessor). Cross-checked against ADR-0247 §D-5 Stage 1 step 1.6 (policy-engine deploy) preceding step 1.7 (audit-chain deploy): consistent. No cycle. Audit-chain → tenancy edge has `cascade_rule: DEGRADED` so a tenancy brown-out does not block audit emission — the seal degrades to 'unscoped' rather than fail. This is the correct cascade-direction asymmetry per Hamilton 2007 §2.2."
+    },
+    {
+      "id": "F4-AP-3",
+      "anti_pattern": "God Service (Workflow Engine takes on too many roles)",
+      "severity": "P1",
+      "deep_dive_finding": "F-ANTI-4",
+      "status": "PARTIALLY MITIGATED. ADR-0247 §D-1 redistributes Foundry's six BCs across workflow-engine (runtime + supervisor), intelligence (providers + guardrails + eval), audit-chain (evidence), policy-engine (autonomy-tier-gate Cedar fragments). The workflow-engine receives two of the six BCs (runtime + supervisor). Combined with the workflow-engine's existing universal orchestration role (per ADR-0249, durable workflow execution + version pinning + per-instance pinning + atomic active-version swap), the workflow-engine remains close to the god-service threshold. The idea-refine deep-dive's F-ANTI-4 recommendation 'ADR-0279 Workflow Engine scope boundary' (Workflow Engine is a substrate; products are separate; per-class workflow isolation by shard; workflow-definition-compiler-library separate from execution-engine) is not in the keystone bundle. Risk: workflow-engine becomes the platform-wide failure perimeter for every durable workflow + every self-modification class + every saga + every backfill.",
+      "remedy": "Author ADR-0279 Workflow Engine scope boundary by parallel construction with the deep-dive F-ANTI-4 recommendation. Declare per-class workflow isolation (short <1s workflows vs long >1m workflows run on different shards/consumer-groups). Split the workflow-definition-compile+validate library from the execution-engine. The split allows Foundry workflows to publish definitions via the library without being coupled to execution-engine availability."
+    },
+    {
+      "id": "F4-AP-4",
+      "anti_pattern": "Premature µservicisation (50+ µservices)",
+      "severity": "P2",
+      "deep_dive_finding": "F-ANTI-8",
+      "status": "OPEN — bundle implies 54 µservices total (19 substrate + 27 product + 1 service-cell + 7 reserved per ADR-0245 §D-3.E). Idea-refine deep-dive recommends ADR-0281 µservice portfolio rationalisation cadence with explicit merge criteria (shared >70% dep closure + correlated request rate + same team owner) and explicit split criteria (>50k LOC OR >2 on-call domains OR SLO conflicts). The bundle does not author the cadence. F-PAIN-3 in the deep-dive also raises the max_sub_scope_depth=4 limit which structurally caps hierarchy.",
+      "remedy": "Lower priority for this keystone bundle; defer to ADR-0281 in the next tranche. Document the merge + split criteria as an architecture invariant before µservice count exceeds 60."
+    },
+    {
+      "id": "F4-AP-5",
+      "anti_pattern": "Shared Mutable Global State (cells share a global tenant directory + Cedar registry + audit-chain merkle anchor + time root)",
+      "severity": "P1",
+      "deep_dive_finding": "F-ANTI-10",
+      "status": "PARTIALLY MITIGATED via ADR-0248 §D-8 static-stability + §D-9 constant-work pattern (Brooker 2020). Tier 2 control plane publishes versioned snapshots on 30s/hourly cadence; Tier 3 data plane pulls snapshots. 24-hour static-stability tolerance is required. The Cedar fragment registry is signed + content-addressed (per ADR-0243 §D-5 chain of trust + ADR-0246 §D-3 signing-chain BC). The bundle does not explicitly lock the audit-chain merkle root partition tolerance (per-region anchor; cross-region reconciliation daily) nor the time-coordination root behaviour during regional partition. F-ANTI-10 deep-dive recommends ADR-0283 global state coordination doctrine.",
+      "remedy": "Author ADR-0283 global-state-coordination doctrine specifying per-cell read replicas + partition tolerance behaviour + reconciliation cadence for the four named global-state primitives (tenant directory, Cedar registry, audit-chain merkle root, time root). Reference ADR-0252 (time coordination) and ADR-0049 (cross-region replication) as anchors."
+    },
+    {
+      "id": "F4-AP-6",
+      "anti_pattern": "Cross-µservice synchronous cascade",
+      "severity": "P1",
+      "deep_dive_finding": "F-ANTI-6",
+      "status": "PARTIALLY MITIGATED. ADR-0248 §D-6 establishes the per-cell vs cross-cell bright line (hot path is always intra-cell). ADR-0245 §D-4.F permits product-to-product direct gRPC calls under ADR-0145 invariants. The 7-hop synchronous chain example in the deep-dive (BFF → Cedar → Messenger → Ontology → Cedar → Intelligence → Audit) is not explicitly bounded by any per-product call-chain budget. Recommended ADR-0145 amendment + per-product `/specs/microservices/<svc>.json` call-chain-budget specs are not yet in the bundle.",
+      "remedy": "Add per-product call_chain_budget field to /specs/microservices/<svc>.json declaring max synchronous-hop depth (recommend ≤4) and total p99 latency budget. CI lane verifies declared synchronous call sites do not exceed budget."
+    }
+  ],
+  "coherence_checks_performed": [
+    {
+      "check": "ADR-0245 substrate-vs-product axis is orthogonal to ADR-0248 cellular tier (0/1/2/3) axis",
+      "result": "CONFIRMED — substrate/product/service-cell/reserved is the *role* axis (capability vs surface vs peer-function vs placeholder); Tier-0/1/2/3 is the *deployment-topology* axis. A substrate may deploy to Tier 2 (control plane: tenancy, identity, policy-engine, audit-chain) or to Tier 3 (data plane: every product, plus data-plane-half of substrates). The orthogonality is correctly stated in ADR-0248 §D-3 (Tier 2 = authoritative state for substrates) + §D-4 (Tier 3 = product workloads + data-plane-half of substrates).",
+      "consistency_with_platform_architecture_json": "Verified by reading specs/platform-architecture.json §tier_enum (4 values) which carries no overlap with the cellular tier-0/1/2/3 model."
+    },
+    {
+      "check": "Substrate DAG bootstrap order matches ADR-0242 §D-5 bootstrap sequence + ADR-0247 §D-5 Stage 1 + ADR-0248 §D-2",
+      "result": "CONSISTENT-BY-INSPECTION across the three sources: cloud-secrets → identity → tenancy → policy-engine → audit-chain → cell → workflow-engine → foundry. Cross-checked node tier_subtype values against the closed enum: cloud-secrets (S0/T0), identity (S1/T1), tenancy (S2/T1), policy-engine (S3/T1), audit-chain (S3/T1), cell (S0/T1 — substrate-infra), workflow-engine (S4/T1). The DAG ordering matches. But this is not yet CI-validated by the bootstrap_order coherence lane (advisory).",
+      "remedy_for_lane_promotion": "See F4-LV-4."
+    },
+    {
+      "check": "Cellular per-cell static-stability vs substrate-of-substrate DAG cascade rules",
+      "result": "COHERENT — ADR-0280 §D-1 declares per-edge cascade_rule (FULL/DEGRADED/BROWNOUT/INDEPENDENT) which composes with ADR-0248 §D-8 24-hour static-stability tolerance via the cached-state snapshot pattern. A FULL-cascade edge from substrate A to substrate B means A fully fails when B is unavailable; a DEGRADED edge means A serves with reduced fidelity (e.g., audit-chain → tenancy is DEGRADED, so audit emission tags 'unscoped' when tenancy is unreachable); a BROWNOUT edge means A enters brown-out per ADR-0176 protocol (e.g., policy-engine → cell is BROWNOUT because cell-local Postgres+Valkey are part of evaluator infrastructure but the evaluator's compiled-bundle cache survives short brownouts). The cascade-rule taxonomy aligns with Hamilton 2007 cascading-failure literature and matches AWS Builder's Library 'Avoiding Cascading Failures' (2019).",
+      "gap": "ADR-0280 declares cascade_rule per edge but the runtime brown-out signal authoring (per ADR-0176) is not yet shown wired into each substrate's actual code path. The doctrine is in place; the enforcement is pending."
+    },
+    {
+      "check": "Self-modification chicken-and-egg resolution holds together",
+      "result": "COHERENT — ADR-0247 §D-8 declares the meta-permit Cedar fragment requiring ≥3 human approvers + council-security + council-architecture + org-root-key intermediate signature to modify the self-modification permits fragment itself. This is the PKI-root-ceremony pattern (Shamir M-of-N at the org-root HSM; intermediate keys for day-to-day; root for intermediate-rotation only). The pattern matches rustc stage0 bootstrap, kubeadm self-hosting, Linux From Scratch §5-6, AWS internal-AWS-migration. ADR-0247 §D-4 declares the strict Tier-0 bootstrap minimum (hardware + DNS + git host + container registry); Tier-0 explicitly excludes CI/CD, signing, secrets, observability, identity, audit-chain, policy-engine, workflow-engine — all of which self-host post-bootstrap. The static-stability + circuit-breaker properties protect dispatch when the meta-substrate is being modified. The chicken-and-egg breaks cleanly via the bootstrap-replay log (Stage 0.5, ingested at Stage 2.6) making external-CI actions retroactively auditable. APPROVE.",
+      "residual_concern": "See F4-LV-5 — the meta-permit fragment's identity is not surfaced in /specs/platform-architecture.json so a future amendment touching it could escape architectural notice."
+    },
+    {
+      "check": "Two-layer Intelligence (Substrate Layer A + Brand Surface Layer B) + library-first amendment compose correctly",
+      "result": "COHERENT — ADR-0255 §D-1 places both layers in the same Cargo workspace (microservices/intelligence/) with separate BCs (8 + 6) and separate Cedar fragments and separate audit-event classes. The amendment further specifies that Layer A is delivered as the `oya-shared-intelligence-client-*` library family (default path; in-process composition), while the µservice retains Layer B (Brand Surface) APIs + cross-cutting coordination + adapter+tool-registry+rate-card snapshots. Layer A and Layer B share the same code repository but are wired at the call site by audience tag — calls with audience tag `internal-platform-ops`/`oyatie-self-modification`/`developer-platform` skip Layer B and use Layer A library only; calls with `b2b-tenant-product`/`b2c-consumer` invoke Layer B which decorates and delegates to Layer A library. The composition is architecturally sound.",
+      "subtle_property": "The amendment establishes that the audit row for an LLM call is emitted by the caller's SPIFFE-ID (not Intelligence's SPIFFE-ID), which preserves ADR-0145 Invariant 1 'each caller emits its own seal'. This property is verified by the `oya-check-library-audit-emission-coherence` CI lane (§Verification 6). The verification gate explicitly asserts seal.emitting_principal == caller.SPIFFE-ID, not Intelligence.SPIFFE-ID. APPROVE."
+    },
+    {
+      "check": "Per-tenant cellular shuffle-sharding (ADR-0248 §D-7) composes with per-substrate per-cell deployment + cross-cell coordination forbidden on hot path (ADR-0248 §D-6)",
+      "result": "COHERENT — Shuffle sharding (C=100 cells, S=8 shard width, default) places each tenant in 8 cells with 1 home_cell + 1 dr_cell + 6 read_replica_cells. The hot path (tenant request serving) resolves entirely in home_cell. The math (5.4e-12 probability of two-tenant full overlap; 8% per-cell impact bounded to 12.5% capacity loss per affected tenant) is sound and matches MacCárthaigh 2014. Cross-cell traffic is permitted only for explicit coordination concerns (cross-tenant sharing, cross-cell durable workflows, DSAR cascade) per §D-6, all of which are async + idempotent + rate-bounded + audit-chained + Cedar-gated."
+    }
+  ],
+  "approve_with_conditions": [
+    "C-1 (P0): Author ADR-0246-amendment-library-first-network-opt-in-clarification by parallel construction with ADR-0255-amendment. Policy-Engine MUST default to library-mode in-process Cedar evaluation against a periodically-refreshed signed fragment bundle; the µservice retains fragment authoring + signing-chain verification + hot-reload distribution + cross-cell coverage rollup. This closes F4-LV-6 + F4-AP-1 for Cedar. Without this amendment, the bundle has surfaced one of three universal-mediator risks (Intelligence) while leaving the structurally identical risks in Policy-Engine and Ontology open.",
+    "C-2 (P0): Author ADR-0278 Ontology read-path doctrine with read-replicas-per-cell + materialised-per-consumer-views + CDC-update + per-product-subset-binding as defaults. This closes F4-LV-6 + F4-AP-1 for Ontology.",
+    "C-3 (P0): Extend ADR-0280 §D-1 DAG spec scope to include product↔product and product↔substrate edges (or sibling ADR ADR-0285 product-dependency-DAG). The Tarjan SCC algorithm must run over the union graph; F4-LV-3 explains why substrate-only-DAG is insufficient.",
+    "C-4 (P1): Land the five ADR-0280 §Status prerequisites (DAG spec file, validator crate, CI lane registration, per-substrate manifest.json substrate_dag_position field, substrate catalog population) before promoting `oya-check-substrate-dependency-dag-acyclicity` to BLOCKER. CONDITIONAL_YES on DAG acyclicity becomes YES after these land.",
+    "C-5 (P1): Extend ADR-0280 §D-3 bootstrap_order coherence check to assert against ADR-0247 §D-5 Stage 1 step table + ADR-0248 §D-2 bootstrap cell substrate list. This closes F4-LV-4.",
+    "C-6 (P1): Add ADR-0245 §D-3.F product/service-cell pair coherence rule. This closes F4-LV-2.",
+    "C-7 (P1): Author ADR-0279 Workflow Engine scope boundary with per-class workflow isolation + workflow-definition-compile-library separation. This closes F4-AP-3.",
+    "C-8 (P1): Author ADR-0283 global-state-coordination doctrine for the four named global-state primitives (tenant directory, Cedar registry, audit-chain merkle root, time root). This closes F4-AP-5.",
+    "C-9 (P2): Resolve the foundry `substrate-meta` tier_subtype enum question (add to enum or accelerate ADR-0247 §D-9 migration). This closes F4-LV-1.",
+    "C-10 (P2): Surface the self-modification root fragment (ADR-0247 §D-8) in /specs/platform-architecture.json + add the CI lane verifying meta-permit signatures. This closes F4-LV-5."
+  ],
+  "top_findings": [
+    {
+      "rank": 1,
+      "id": "F4-LV-6 / F4-AP-1",
+      "severity": "P0",
+      "headline": "Universal-mediator anti-pattern closed for Intelligence but still load-bearing for Policy-Engine and Ontology",
+      "why_it_matters": "F-ANTI-1 in the idea-refine deep-dive was the highest-risk single finding (70% probability of 12-month regret per the adversarial scoring). The ADR-0255 amendment is structurally excellent — library-first by default, µservice scoped to cross-cutting state, per-Secret + per-Cedar opt-in, six CI lanes, worked example in Appendix B. But F-ANTI-2 (Policy-Engine) and F-ANTI-3 (Ontology) are STRUCTURALLY THE SAME RISK and remain open. Cedar evaluation sits on the hot path of every state-changing call in the platform (the load-bearing claim of ADR-0243); if that hot path requires a gRPC hop to the cell-local evaluator pool (per ADR-0246 §D-5), then Cedar IS the universal gateway under a different name. The Cedar v4.2 Rust crate is designed for library-mode in-process evaluation with hot-reloadable signed fragment bundles; the architecturally correct pattern matches the Intelligence amendment 1:1. Author the parallel amendments now, before any caller code is written against ADR-0246's current text."
+    },
+    {
+      "rank": 2,
+      "id": "F4-LV-3",
+      "severity": "P0",
+      "headline": "Substrate DAG is scoped to 10 Tier-1 nodes; product↔product and product↔substrate edges are not in the acyclicity lane",
+      "why_it_matters": "ADR-0280 §D-1 explicitly defers products + 9 Tier-2 substrates to §Appendix C. ADR-0245 §D-4.F permits product-to-product direct gRPC under ADR-0145 invariants. A product-A → product-B → product-A cycle is therefore architecturally permitted but not detected by the Tarjan SCC validator — because the validator operates on the substrate-only DAG. The protection-against-cycles property MUST extend to the full tier-classification union (substrate + product + service-cell + reserved-planned-edges); otherwise the doctrine has a structural blind spot equal to the product layer."
+    },
+    {
+      "rank": 3,
+      "id": "F4-LV-4",
+      "severity": "P1",
+      "headline": "Bootstrap sequence has four authoritative sources (ADR-0242 §D-5, ADR-0247 §D-5 Stage 1, ADR-0248 §D-2, ADR-0280 §D-1 bootstrap_order) without a single canonical and only partial cross-coherence",
+      "why_it_matters": "ADR-0280 §D-3 lane verifies bootstrap_order equals ADR-0242 §D-5 but does not assert against ADR-0247 §D-5 Stage 1 (which has 10-step external-CI-bootstrap) nor ADR-0248 §D-2 (Tier-1 bootstrap-cell substrate list). The three are consistent by reading on 2026-05-20 but the lack of single-source-of-truth means future drift is undetected. Designate /specs/substrate-dependency-dag.json bootstrap_order as canonical; require the three text-form sources to embed-by-reference or be CI-validated."
+    },
+    {
+      "rank": 4,
+      "id": "F4-AP-3",
+      "severity": "P1",
+      "headline": "Workflow Engine acquires runtime + supervisor BCs from Foundry on top of existing universal-orchestration role; god-service threshold approached",
+      "why_it_matters": "Per ADR-0247 §D-1 redistribution, workflow-engine receives 2 of 6 Foundry BCs (runtime + supervisor). Combined with workflow-engine's role as universal durable-orchestration substrate, n8n-class Workflow Studio engine, saga orchestrator, backfill runtime, cross-cell call coordinator (per ADR-0249), the workflow-engine is the platform's largest single failure perimeter for any durable workflow. ADR-0279 Workflow Engine scope boundary (per-class workflow isolation + workflow-definition-compile-library separation) is the recommended structural mitigation."
+    },
+    {
+      "rank": 5,
+      "id": "F4-LV-1",
+      "severity": "P1",
+      "headline": "`substrate-meta` foundry tier_subtype is not in the closed enum",
+      "why_it_matters": "ADR-0245 §D-3.A row for foundry uses 'substrate-meta' which is absent from the closed tier_subtype_enum in §D-2 + platform-architecture.json. The Mode-1 declaration-completeness lane will reject it. Either add to enum (with the understood limit of exactly one µservice during dissolution) or accelerate ADR-0247 §D-9 dissolution. The bundle text says 'Tentative classification' and forwards to ADR-0247 — fine doctrinally but blocks lane promotion."
+    },
+    {
+      "rank": 6,
+      "id": "F4-LV-2",
+      "severity": "P1",
+      "headline": "Product / service-cell pair (e.g., analytics product + service-cell-analytics; ops-dashboard product + service-cell-ops-console) lacks declared boundary rule",
+      "why_it_matters": "ADR-0245 §D-5.4 + §D-5.5 explicitly describes the pair-pattern. Without a CI-enforceable rule preventing logic drift across the pair boundary, the pair degrades to a BFF-vs-backend split with no enforcement of which logic belongs where. Add §D-3.F + a CI lane."
+    },
+    {
+      "rank": 7,
+      "id": "F4-AP-5",
+      "severity": "P1",
+      "headline": "Global mutable state (tenant directory, Cedar registry, audit-chain merkle root, time root) is partially mitigated via constant-work snapshots but partition-tolerance behaviour is not locked",
+      "why_it_matters": "ADR-0248 §D-9 names the constant-work pattern; ADR-0252 names time coordination; ADR-0049 names cross-region replication. But the four named global-state primitives are not jointly documented as a coordination doctrine. F-ANTI-10 in the deep-dive recommends ADR-0283; the keystone bundle does not include it. Without locking partition-tolerance behaviour, regional outages produce architecturally surprising behaviour."
+    }
+  ],
+  "approves_provided": [
+    "The substrate-vs-product layering doctrine (ADR-0245) is sound — manifest-declared tier + tier_subtype + tier_classification_rationale + tier_promotion_history, four production tiers + one reserved tier, hyperscaler-shape parity with AWS / Apple / GCP / Salesforce / Microsoft Azure as named precedent, and a CI lane enforcing both declaration completeness AND semantic coherence AND cross-tier dependency direction.",
+    "The substrate-of-substrate DAG doctrine (ADR-0280) is the correct level-up from prose to machine-readable invariant. Tarjan SCC + Kahn topological sort + per-edge cascade_rule + version_compatibility_range + cedar_permit_fragment + forbidden_edges_assertion is the right schema. Five named hyperscaler precedents (Google Borg, AWS Bezos mandate, Hamilton 2007, Stripe tiers, Kubernetes components) are cited correctly.",
+    "The cellular four-tier model (ADR-0248) — Tier 0 external + Tier 1 bootstrap + Tier 2 control plane + Tier 3 data plane + dedicated service-cell peer tier — is the canonical AWS shape correctly cited (Hamilton 2007 + MacCárthaigh 2014 shuffle sharding + AWS re:Invent ARC408/ARC405/ARC404 + Stripe Cells 2024 + Brooker 2020 constant work + Weiss/Furr static stability). Shuffle sharding parameters (C=100, S=8) yield correct fault-isolation math.",
+    "Self-hosting / self-modification doctrine (ADR-0247) resolves the chicken-and-egg via the PKI-root-ceremony pattern (Shamir M-of-N at org root + intermediate-key-day-to-day + root-for-intermediate-rotation-only) plus the bootstrap-replay log that makes external-CI Stage 1 actions retroactively auditable within the platform's own audit chain.",
+    "Intelligence two-layer doctrine (ADR-0255) is structurally well-formed — eight Substrate BCs (audience-neutral) + six Brand Surface BCs (consumer-only) in one Cargo workspace with separate Cedar fragments and separate audit streams. The BYOK-everywhere SecretReference model is correctly designed (substrate owns zero credentials).",
+    "The ADR-0255 library-first / network-opt-in amendment closes F-ANTI-1 cleanly. Library is default; µservice is restricted to cross-cutting state; per-SecretReference + per-Cedar opt-in; six CI lanes verify the library-only failure perimeter + Cedar-gate coherence + audit-emission coherence + no-unnecessary-service-hop. Foundry CI agent worked example demonstrates the static-stability property end-to-end. Hyperscaler precedent (AWS SDK + Bedrock, Anthropic SDK, OpenAI SDK, Apple Foundation Models, Cedar v4.2 client library, oya-shared-audit-chain-client, oya-shared-tracing-client, SPIRE agent) is the canonical pattern."
+  ],
+  "rejects": [],
+  "open_questions_for_reviewer_agent_synthesis": [
+    "Q1: Does the reviewer-agent accept that F4 APPROVE_WITH_CONDITIONS at this stage suffices for keystone-bundle ratification, with C-1 + C-2 + C-3 + C-4 (the four P0 conditions) treated as IN-FLIGHT ADRs that MUST land before any of ADR-0245/0246/0280/0255 lanes promote to BLOCKER?",
+    "Q2: Does synthesis ratify the proposal that the substrate-DAG be canonical and that ADR-0242 §D-5, ADR-0247 §D-5 Stage 1, ADR-0248 §D-2 embed-by-reference rather than re-declare bootstrap order?",
+    "Q3: Should the F4 facet's APPROVE_WITH_CONDITIONS be downgraded to CONDITIONAL_REJECT if the parallel amendments for Policy-Engine (C-1) and Ontology (C-2) are not authored before keystone bundle merge? The structural argument is: the bundle should not ship with one universal-gateway risk closed and two open; close all three at once or close none."
+  ],
+  "summary_for_synthesis": "F4-Architecture verdict: APPROVE_WITH_CONDITIONS. The bundle composes coherently on its load-bearing axes (substrate-vs-product layering as the role axis orthogonal to cellular tier-0/1/2/3 as the deployment-topology axis; substrate-DAG acyclicity enforced via Tarjan SCC + Kahn topological sort with explicit forbidden-edges declaration; self-modification chicken-and-egg resolved via PKI-root-ceremony anchor; Intelligence universal-mediator anti-pattern closed by the library-first amendment). Three load-bearing conditions are P0: (C-1) author the parallel library-first amendment for Policy-Engine because Cedar evaluation sits on every state-changing call's hot path and the current ADR-0246 §D-5 reads as a per-call gRPC mediator; (C-2) author ADR-0278 Ontology read-path doctrine to extend the same closure to Ontology; (C-3) extend ADR-0280 DAG scope to include product↔product and product↔substrate edges so the Tarjan SCC validator covers the full tier-classification union, not just substrates. Without C-1+C-2+C-3, the bundle ships with structurally identical universal-gateway risks closed for one substrate and open for two — partial closure of an anti-pattern is worse than no closure because the closed instance creates the illusion of architectural protection. Three additional P1 conditions (bootstrap-order single source of truth; god-service mitigation for Workflow Engine; global-state coordination doctrine) and four P2 conditions complete the punch list."
+}

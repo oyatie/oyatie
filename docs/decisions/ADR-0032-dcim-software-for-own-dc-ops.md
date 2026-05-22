@@ -167,7 +167,7 @@ If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, f
 - Per-cell HSM partition rotation + per-DC fire-drill quarterly.
 - Per-vendor BMS/BAS adapter regression test suite runs nightly against vendor sandbox.
 - Per-asset retirement audit chain reviewed monthly; proof-of-erasure published to Trust Portal per ADR-0038.
-- DCIM lane: `oya-foundry-fitness-dcim-substrate` enforces no DCIM action escapes the audit chain.
+- DCIM lane: `oya-governance-dcim-substrate` enforces no DCIM action escapes the audit chain.
 
 ---
 

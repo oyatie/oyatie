@@ -63,7 +63,7 @@ enum BlockReason {
   BLOCK_REASON_AI_SLOP = 15;
 }
 
-enum AutonomyTier {
+enum AutonomyLevel {
   AUTONOMY_TIER_UNSPECIFIED = 0;
   AUTONOMY_TIER_T0 = 1;
   AUTONOMY_TIER_T1 = 2;
@@ -128,7 +128,7 @@ message Validation {
 
 message AutonomyDecision {
   Verdict verdict = 1;
-  AutonomyTier effective_ceiling = 2;
+  AutonomyLevel effective_ceiling = 2;
   string ceiling_source = 3;
   repeated string cedar_policy_ids = 4;
   google.protobuf.Timestamp evaluated_at = 5;
@@ -172,7 +172,7 @@ message ClassifyPromptRequest {
   string prompt_text = 1;
   string capability_id = 2;
   uint32 session_turn_count = 3;
-  AutonomyTier autonomy_tier_claim = 4;
+  AutonomyLevel autonomy_level_claim = 4;
 }
 
 message ValidateOutputRequest {
@@ -183,7 +183,7 @@ message ValidateOutputRequest {
 
 message EnforceAutonomyRequest {
   string capability_id = 1;
-  AutonomyTier requested_tier = 2;
+  AutonomyLevel requested_autonomy_level = 2;
   Pack pack = 3;
   SubjectClass subject_class = 4;
 }

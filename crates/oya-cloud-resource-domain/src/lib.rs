@@ -697,30 +697,19 @@ mod tests {
 
     use super::*;
 
-    const TENANT: &str = "ten_alpha";
-    const REGION: &str = "alpha-region";
-    const AZ: &str = "alpha-region-a";
-    const CELL: &str = "cell-alpha-region-a-001";
-    const RESOURCE_ID: &str = "oya:cloud:alpha-region:ten_alpha:instance:api-001";
-    const METERING_TAG: &str = "oya:metering:ten_alpha:instance";
-
-    fn regulator_overlay() -> RegulatorOverlay {
-        RegulatorOverlay::new(RegulatorOverlayCreate {
-            regulator_refs: vec!["regulator-alpha".to_string()],
-            evidence_ref: "regulator-overlay/alpha".to_string(),
-        })
-        .expect("regulator overlay fixture is valid")
-    }
-
-    fn pack_residency() -> ResidencyClass {
+    fn residency_class() -> ResidencyClass {
         ResidencyClass::PerPack(Box::new(
             PerPackResidency::new(PerPackResidencyCreate {
-                allowed_primary_regions: vec![REGION.to_string()],
-                allowed_replica_regions: vec![REGION.to_string()],
-                forbidden_regions: Vec::new(),
-                regulator_overlay: regulator_overlay(),
+                allowed_primary_regions: vec!["region-alpha1".to_string()],
+                allowed_replica_regions: vec!["region-beta1".to_string()],
+                forbidden_regions: vec!["region-gamma1".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/cloud-resource".to_string()],
+                    evidence_ref: "evidence/residency/cloud-resource".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
             })
-            .expect("pack residency fixture is valid"),
+            .expect("per-pack residency fixture is valid"),
         ))
     }
 
@@ -733,19 +722,19 @@ mod tests {
 
     fn compute_resource_create() -> ResourceCreate {
         ResourceCreate {
-            id: RESOURCE_ID.to_string(),
-            tenant_id: TENANT.to_string(),
-            region: REGION.to_string(),
-            az: Some(AZ.to_string()),
-            cell_id: CELL.to_string(),
+            id: "oya:cloud:region-alpha1:ten_alpha:instance:api-001".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
+            az: Some("region-alpha1-a".to_string()),
+            cell_id: "cell-region-alpha1-a-001".to_string(),
             kind: ResourceKind::ComputeInstance(InstanceFlavor::GeneralPurpose),
             data_class: DataClass::InternalOnly,
             owner_principal: "sp_foundry".to_string(),
             state: ResourceState::Pending,
             tags: tags(),
             iam_policy_attachments: vec!["pol_cloud_compute_admin".to_string()],
-            metering_tag: METERING_TAG.to_string(),
-            residency: ResidencyClass::Global,
+            metering_tag: "oya:metering:ten_alpha:instance".to_string(),
+            residency: residency_class(),
             created_at_epoch_seconds: 1_700_000_000,
             updated_at_epoch_seconds: 1_700_000_000,
         }
@@ -755,26 +744,32 @@ mod tests {
     fn creates_resource_aggregate_with_location_residency_and_metering_identity() {
         let resource = Resource::new(compute_resource_create()).expect("resource should be valid");
 
-        assert_eq!(resource.tenant_id.value, TENANT);
-        assert_eq!(resource.region.value.value, REGION);
-        assert_eq!(resource.az.value.expect("compute has AZ").value, AZ);
-        assert_eq!(resource.cell_id.value.value, CELL);
+        assert_eq!(resource.tenant_id.value, "ten_alpha");
+        assert_eq!(resource.region.value.value, "region-alpha1");
+        assert_eq!(
+            resource.az.value.expect("compute has AZ").value,
+            "region-alpha1-a"
+        );
+        assert_eq!(resource.cell_id.value.value, "cell-region-alpha1-a-001");
         assert_eq!(resource.kind.value.type_label(), "instance");
-        assert_eq!(resource.metering_tag.value.value, METERING_TAG);
+        assert_eq!(
+            resource.metering_tag.value.value,
+            "oya:metering:ten_alpha:instance"
+        );
         assert_eq!(resource.schema_version.value, RESOURCE_SCHEMA_VERSION);
     }
 
     #[test]
     fn rejects_resource_id_that_disagrees_with_tenant_region_or_kind() {
         let tenant_error = Resource::new(ResourceCreate {
-            id: "oya:cloud:alpha-region:ten_other:instance:api-001".to_string(),
+            id: "oya:cloud:region-alpha1:ten_other:instance:api-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("resource id tenant must match resource tenant");
         assert_eq!(tenant_error, CloudResourceError::ResourceIdTenantMismatch);
 
         let kind_error = Resource::new(ResourceCreate {
-            id: "oya:cloud:alpha-region:ten_alpha:bucket:api-001".to_string(),
+            id: "oya:cloud:region-alpha1:ten_alpha:bucket:api-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("resource id kind must match resource kind");
@@ -785,7 +780,7 @@ mod tests {
     fn rejects_az_scoped_resource_without_az() {
         let error = Resource::new(ResourceCreate {
             az: None,
-            cell_id: "cell-alpha-region-001".to_string(),
+            cell_id: "cell-region-alpha1-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("compute instances must declare AZ placement");
@@ -796,14 +791,14 @@ mod tests {
     #[test]
     fn rejects_location_tuple_drift_between_region_az_and_cell() {
         let az_error = Resource::new(ResourceCreate {
-            az: Some("beta-region-a".to_string()),
+            az: Some("region-gamma1-a".to_string()),
             ..compute_resource_create()
         })
         .expect_err("AZ must belong to region");
         assert_eq!(az_error, CloudResourceError::AzRegionMismatch);
 
         let cell_error = Resource::new(ResourceCreate {
-            cell_id: "cell-alpha-region-b-001".to_string(),
+            cell_id: "cell-region-alpha1-b-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("cell must belong to AZ namespace");
@@ -873,14 +868,13 @@ mod tests {
     #[test]
     fn rejects_residency_region_mismatch_and_wrong_metering_tag() {
         let residency_error = Resource::new(ResourceCreate {
-            region: "beta-region".to_string(),
-            az: Some("beta-region-a".to_string()),
-            cell_id: "cell-beta-region-a-001".to_string(),
-            id: "oya:cloud:beta-region:ten_alpha:instance:api-001".to_string(),
-            residency: pack_residency(),
+            region: "region-gamma1".to_string(),
+            az: Some("region-gamma1-a".to_string()),
+            cell_id: "cell-region-gamma1-a-001".to_string(),
+            id: "oya:cloud:region-gamma1:ten_alpha:instance:api-001".to_string(),
             ..compute_resource_create()
         })
-        .expect_err("pack residency resource cannot move outside its allowed region");
+        .expect_err("pack residency cannot move to a forbidden region");
         assert_eq!(residency_error, CloudResourceError::ResidencyRegionMismatch);
 
         let metering_error = Resource::new(ResourceCreate {

@@ -5,7 +5,7 @@ status: Drafting
 authority_tier: 2
 owner: axis-compliance
 co_owners: [axis-security, council-architecture]
-related_adrs: [ADR-0131, ADR-0145, ADR-0170, ADR-0181, ADR-0183, ADR-0209]
+related_adrs: [ADR-0131, ADR-0145, ADR-0170, ADR-0181, ADR-0183, ADR-0209, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 date: 2026-05-18
 ---
 
@@ -96,6 +96,39 @@ The µservice is a thin layer over existing primitives:
 - **Auditor portal p99 latency:** 800 ms (per `observability.trace_sampling_recipe.p99_latency_threshold_ms`).
 - **Cross-tenant isolation invariant:** 0 violations (any → Sev-1).
 
+## Non-Functional Requirements
+
+### DR posture (ADR-0343)
+
+- Target: RTO ≤1800s and RPO ≤300s for evidence collection state, DSAR queues, auditor engagements, pack-overlay decisions, and audit-seal verification metadata. The current manifest has no D-2 `dr` block, so this is a PRD-level doctrine target pending manifest backfill.
+- Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 1800s, RPO 300s, multi-region for regulated packs.
+- Failover runbook: `microservices/compliance/runbooks/seaweedfs-evidence-bucket-loss.md`, matching manifest `dr.failover_runbook`; collector and auditor-facing continuity use `microservices/compliance/runbooks/certification-evidence-pipeline-stall.md` and `microservices/compliance/runbooks/regulator-evidence-export-failure.md`.
+- Multi-region active-active: yes for collector scheduling, coverage ledgers, and auditor portal metadata; object evidence remains pack-resident and is restored through the evidence bucket runbook if a storage cell is lost.
+- WHY: auditors and privacy officers can keep statutory evidence windows open during a region outage without risking cross-tenant DSAR leakage or unverifiable artifacts.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.16 vCPU, 256 MiB RAM, 12 GiB evidence/export storage allowance, 2 Valkey connections, 3 Postgres connections, and 8 outbound collector/API slots, matching manifest `capacity_model`.
+- Scaling dimension: `per_workflow_run`, because manifest doctrine treats evidence exports and compliance collectors as workflow-execution shaped.
+- Cell placement class: Tier-2 compliance workflow substrate, matching manifest `capacity_model.cell_placement_class`; runtime placement maps to pod runtime Tier 1 because manifest `pod_runtime_tier=1`.
+- Autoscaling boundary: minimum 2 collectors, 1 DSAR worker, 1 coverage evaluator, and 1 auditor portal replica per regulated pack/cell; maximum 20 collectors and 10 DSAR/evidence workers per tenant during audit windows before workload isolation is required.
+- WHY: the model supports quarterly SOC2/HIPAA/PCI audit surges and DSAR statutory deadlines without letting one tenant's engagement drain collector capacity for another tenant.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every evidence artifact, DSAR state transition, pack subscription, manual upload, auditor access, seal verification, and breach-clock event emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, and `carbon_intensity_source` in its audit row.
+- Provider-routing affected by carbon: no for breach notification clocks, DSAR statutory caps, evidence sealing, or pack gates; yes for batch evidence replay, coverage recomputation, and non-deadline report generation when pack policy permits.
+- Per-tenant cost surface: the compliance portal shows pack-level evidence costs and links to the tenant FinOps dashboard for the tenant/product/capability/provider/cell/compliance_pack axes.
+- WHY: CSRD, SB-253, and SEC climate-disclosure support must be traceable to compliance evidence itself, not reconstructed after the audit.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: DSAR, evidence coverage, artifact, manual upload, auditor portal, and regulator export APIs use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and `oyatie_version` proto3 field.
+- SDK semver model: compliance client SDKs ship as major.minor.patch and map supported date versions explicitly.
+- Support window: last 3 public API versions for at least 180 days.
+- Per-tenant pinning: yes for auditor engagements, DSAR clients, and regulated-pack integrations.
+- Internal-mesh exemption: yes; collector-to-substrate gRPC remains exempt under ADR-0145.
+
 ## Cost ceiling
 
 - Steady-state: $1,500/month for a 32-µservice fleet at moderate scale.
@@ -125,3 +158,23 @@ The µservice is a thin layer over existing primitives:
 - ADR-0209 — compliance evidence automation (this µservice's authority).
 - `docs/standards/compliance-evidence-automation.md` — canonical standard.
 - `oya-shared-compliance-evidence-kernel` — kernel implementation.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `compliance` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `compliance` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 4 module pin(s) across 4 context(s).
+- Scaling input: `per_workflow_run` with cell placement `Tier-2` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

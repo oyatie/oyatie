@@ -42,7 +42,7 @@ capabilities:
     latency_budget_p99_ms: 1500
     audit_event: SitesSeoSuggested (Ed25519-sealed; payload — page id hash + suggestion hash)
     fallback_on_model_failure: fall back to rule-based heuristic
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggested SEO meta — review before publish"
 
   - id: T0-sites-alt-text-suggest
@@ -70,7 +70,7 @@ capabilities:
     latency_budget_p99_ms: 2000
     audit_event: SitesAltTextSuggested (Ed25519-sealed; payload — image hash + suggestion hash)
     fallback_on_model_failure: empty suggestion (tenant must author)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggested alt-text — edit if needed"
     accessibility_note: |
       Alt-text MUST be authored even if T0 is disabled. This capability accelerates
@@ -103,7 +103,7 @@ capabilities:
     latency_budget_p99_ms: 800
     audit_event: SitesContentSuggested (Ed25519-sealed; payload — block id hash + suggestion hash + accepted flag)
     fallback_on_model_failure: silent
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — Tab to accept, ESC to dismiss"
 
   - id: T0-sites-redirect-suggest
@@ -121,7 +121,7 @@ capabilities:
     model: {primary: rule-based; no LLM}
     latency_budget_p99_ms: 100
     audit_event: SitesRedirectSuggested
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "Suggested redirect 301 — review"
 
 verification:
@@ -130,7 +130,7 @@ verification:
   - All T0 suggestions emit an audit-chain event when accepted (and optionally when dismissed for telemetry).
   - All T0 capabilities are labelled per EU AI Act Art. 50.
   - All T0 capabilities respect tenant-isolation: Tenant-A's prompts NEVER include Tenant-B's content.
-  - All T0 capabilities are tenant-tier-gated: free tier may receive rule-based; pro/business/enterprise unlock LLM-backed.
+  - All T0 capabilities are tenant-tenant_class-gated: demo_trial tenant_class may receive rule-based; pro/business/enterprise unlock LLM-backed.
 
 references:
   - /specs/agentic-tiers.json — autonomy tier spec.

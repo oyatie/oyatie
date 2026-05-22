@@ -9,9 +9,9 @@ adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Search index/ranker rollouts with A/B + cohort.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-shadow-diff
-  - oya-foundry-fitness-cohort-honor
+  - oya-governance-canary-required
+  - oya-governance-shadow-diff
+  - oya-governance-cohort-honor
 related_adrs: [ADR-0030, ADR-0046, ADR-0047, ADR-0048]
 doc_status: published
 ---

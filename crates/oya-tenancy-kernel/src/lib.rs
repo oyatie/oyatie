@@ -185,27 +185,27 @@ impl FromStr for RegionCode {
 /// Tenant residency class. The value is immutable once bound to a tenant.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ResidencyClass {
-    StrictHome,
-    StrictSecondary,
-    HomeWithFailover,
+    StrictHomeRegion,
+    StrictFederatedRegion,
+    HomeWithRecoveryFailover,
     Global,
 }
 
 impl ResidencyClass {
     pub const fn label(self) -> &'static str {
         match self {
-            Self::StrictHome => "strict_home",
-            Self::StrictSecondary => "strict_secondary",
-            Self::HomeWithFailover => "home_with_failover",
+            Self::StrictHomeRegion => "strict_home_region",
+            Self::StrictFederatedRegion => "strict_federated_region",
+            Self::HomeWithRecoveryFailover => "home_with_recovery_failover",
             Self::Global => "global",
         }
     }
 
     pub fn parse_label(value: &str) -> Option<Self> {
         match value {
-            "strict_home" => Some(Self::StrictHome),
-            "strict_secondary" => Some(Self::StrictSecondary),
-            "home_with_failover" => Some(Self::HomeWithFailover),
+            "strict_home_region" => Some(Self::StrictHomeRegion),
+            "strict_federated_region" => Some(Self::StrictFederatedRegion),
+            "home_with_recovery_failover" => Some(Self::HomeWithRecoveryFailover),
             "global" => Some(Self::Global),
             _ => None,
         }
@@ -213,16 +213,18 @@ impl ResidencyClass {
 
     pub fn allows_primary_region(self, region: &RegionCode) -> bool {
         match self {
-            Self::StrictHome | Self::HomeWithFailover => region.as_str().starts_with("home-"),
-            Self::StrictSecondary => region.as_str().starts_with("secondary-"),
+            Self::StrictHomeRegion | Self::HomeWithRecoveryFailover => {
+                region.as_str().starts_with("region-home")
+            }
+            Self::StrictFederatedRegion => region.as_str().starts_with("region-federated"),
             Self::Global => true,
         }
     }
 
     pub fn allows_failover_region(self, region: &RegionCode) -> bool {
         match self {
-            Self::StrictHome | Self::StrictSecondary => false,
-            Self::HomeWithFailover => region.as_str().starts_with("failover-"),
+            Self::StrictHomeRegion | Self::StrictFederatedRegion => false,
+            Self::HomeWithRecoveryFailover => region.as_str().starts_with("region-recovery"),
             Self::Global => true,
         }
     }
@@ -642,13 +644,13 @@ mod tests {
 
     fn home_binding() -> RegionBinding {
         RegionBinding::new(
-            region("home-region"),
+            region("region-home"),
             None,
-            ResidencyClass::StrictHome,
+            ResidencyClass::StrictHomeRegion,
             "audit_evt_tenant_bound_001",
             1_762_992_000,
         )
-        .expect("strict home binding is valid")
+        .expect("strict home-region binding is valid")
     }
 
     #[test]
@@ -663,7 +665,10 @@ mod tests {
 
     #[test]
     fn region_binding_enforces_residency_primary_and_failover_rules() {
-        assert_eq!(home_binding().residency_class(), ResidencyClass::StrictHome);
+        assert_eq!(
+            home_binding().residency_class(),
+            ResidencyClass::StrictHomeRegion
+        );
         assert_eq!(
             home_binding().schema_version(),
             REGION_BINDING_SCHEMA_VERSION
@@ -671,9 +676,9 @@ mod tests {
 
         assert_eq!(
             RegionBinding::new(
-                region("failover-region"),
+                region("region-recovery"),
                 None,
-                ResidencyClass::StrictHome,
+                ResidencyClass::StrictHomeRegion,
                 "audit_evt_bad_region",
                 1,
             ),
@@ -681,9 +686,9 @@ mod tests {
         );
         assert_eq!(
             RegionBinding::new(
-                region("home-region"),
-                Some(region("partner-region")),
-                ResidencyClass::HomeWithFailover,
+                region("region-home"),
+                Some(region("region-expansion")),
+                ResidencyClass::HomeWithRecoveryFailover,
                 "audit_evt_bad_failover",
                 1,
             ),
@@ -691,9 +696,9 @@ mod tests {
         );
         assert!(
             RegionBinding::new(
-                region("home-region"),
-                Some(region("failover-region")),
-                ResidencyClass::HomeWithFailover,
+                region("region-home"),
+                Some(region("region-recovery")),
+                ResidencyClass::HomeWithRecoveryFailover,
                 "audit_evt_good_failover",
                 1,
             )
@@ -714,8 +719,8 @@ mod tests {
 
         assert_eq!(tenant.id().as_str(), "ten_alpha");
         assert_eq!(tenant.legal_name(), "Alpha Tenant Ltd");
-        assert_eq!(tenant.region_binding().primary().as_str(), "home-region");
-        assert_eq!(tenant.residency_class().label(), "strict_home");
+        assert_eq!(tenant.region_binding().primary().as_str(), "region-home");
+        assert_eq!(tenant.residency_class().label(), "strict_home_region");
         assert_eq!(tenant.schema_version(), TENANT_SCHEMA_VERSION);
         assert!(tenant.plane_grants().contains(TenantPlane::Control));
     }

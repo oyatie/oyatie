@@ -336,7 +336,7 @@ paths:
     parameters:
       - { name: deck_id, in: path, required: true, schema: { type: string } }
     post:
-      summary: T2 AI full-deck-from-prompt (EU AI Act risk-class evaluated per ADR-SLIDES-0006)
+      summary: T2 AI full-deck-from-prompt (regional AI-risk class evaluated per ADR-SLIDES-0006)
       operationId: ai_content_generate
       requestBody:
         required: true
@@ -344,7 +344,7 @@ paths:
       responses:
         '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/AiContentGenerateResponse' } } } }
         '403':
-          description: Refused (EU AI Act Annex III high-risk; pack-override required)
+          description: Refused (high-risk; pack-override required)
           content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
         '429': { $ref: '#/components/responses/TooManyRequests' }
   /decks/{deck_id}/accessibility/alt-text:
@@ -382,6 +382,56 @@ paths:
         '200': { description: ready }
         '503': { description: not-ready }
 components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: slides
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-foundry-fitness-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
   securitySchemes:
     oidcBearer:
       type: openIdConnect
@@ -443,7 +493,7 @@ components:
         share_link_scope: { type: string, enum: [restricted, anyone_with_link], nullable: true }
         contains_special_category: { type: boolean }
         broadcast_link_public: { type: boolean }
-        ai_risk_class: { type: string, enum: [low, medium, high_risk_annex_iii], nullable: true }
+        ai_risk_class: { type: string, enum: [low, medium, high_risk_auto_decision], nullable: true }
     DeckCreateRequest:
       type: object
       required: [title]
@@ -701,7 +751,7 @@ components:
       required: [suggestions, risk_class]
       properties:
         suggestions: { type: array, items: { type: object } }
-        risk_class: { type: string, enum: [low, medium, high_risk_annex_iii] }
+        risk_class: { type: string, enum: [low, medium, high_risk_auto_decision] }
         provenance: { type: string, description: foundry-runtime correlation id }
     AiContentGenerateRequest:
       type: object
@@ -715,7 +765,7 @@ components:
       required: [generated_deck, risk_class, provenance_watermark]
       properties:
         generated_deck: { $ref: '#/components/schemas/Deck' }
-        risk_class: { type: string, enum: [low, medium, high_risk_annex_iii] }
+        risk_class: { type: string, enum: [low, medium, high_risk_auto_decision] }
         provenance_watermark: { type: string, description: 'indelible provenance marker per ADR-SLIDES-0006' }
         human_review_required: { type: boolean }
     AltTextSuggestRequest:

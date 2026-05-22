@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Parity comparison vs the industry-leading cloud-native audit-trail products. Drives `oya-foundry-fitness-hyperscaler-maturity-claims` (ADR-0123 HG-AUDIT) and informs gtm-customer-success on permissible sales claims.
+Parity comparison vs the industry-leading cloud-native audit-trail products. Drives `oya-governance-hyperscaler-maturity-claims` (ADR-0123 HG-AUDIT) and informs gtm-customer-success on permissible sales claims.
 
 ## Competitor Set
 

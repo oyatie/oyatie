@@ -76,7 +76,7 @@ LIMIT 10;
 ### Specific tenant's queries slow on cold tier
 
 1. Investigate query pattern — does the tenant frequently scan >1 yr of data?
-2. Tier upgrade conversation: Enterprise tier extends hot-window from 90 d → 365 d.
+2. Paid tenant_class contract conversation: contract overlay extends hot-window from 90 d → 365 d.
 3. Add dashboard-layer caching (analytics-api crate emits cache headers).
 
 ### TTL stuck (parts not migrating to cold)

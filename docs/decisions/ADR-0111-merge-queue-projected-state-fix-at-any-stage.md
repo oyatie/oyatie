@@ -158,7 +158,7 @@ saves the CI budget.
   - Per-team round-robin (caps any single team's work)
 - Synthesized `merge-queue-staging-i` refs are throwaway — they
   must be cleaned up after each iteration (or queue-deletion task
-  for GC'd PRs). The `oya-foundry-fitness-merge-queue-ref-hygiene`
+  for GC'd PRs). The `oya-governance-merge-queue-ref-hygiene`
   lane (new, in wave-C) enforces.
 - The "concurrent-safe path" predicate (Decision invariant 2)
   starts conservative (any overlap = refuse). Future relaxation
@@ -183,7 +183,7 @@ saves the CI budget.
 - **Wave B**: retrofit the gate-validate lanes to allow
   re-runs against projected bases (transient
   `merge-queue-staging-i` refs).
-- **Wave C**: `oya-foundry-fitness-merge-queue-ref-hygiene` lane.
+- **Wave C**: `oya-governance-merge-queue-ref-hygiene` lane.
 - **Wave D**: `concurrent-safe path` whitelist per-product registry.
 
 ## Naming justification
@@ -193,8 +193,8 @@ saves the CI budget.
   `oya-foundry-vcs-merge-queue-fix-loop-app` keeps the dispatcher
   role; the new kernel is pure-domain (port-in-kernel per
   ADR-0056).
-- Lane id `oya-foundry-fitness-merge-queue-ref-hygiene` follows
-  the `oya-foundry-fitness-` family.
+- Lane id `oya-governance-merge-queue-ref-hygiene` follows
+  the `oya-governance-` family.
 
 ## Open questions
 

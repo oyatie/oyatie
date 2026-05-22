@@ -6,7 +6,7 @@
 use oya_application_app::{
     AdversarialKind, AutonomyTier, CapabilityInvocationPrincipal, DataClass, EvalCaseInput,
     EvalMetric, EvalRunInput, EvalSetInput, Foundation, PolicyEffect, PolicyRuleInput, PolicyScope,
-    PolicyVersion, PrivacyDataClass, REQUIRED_LINGUISTIC_COHORTS,
+    PolicyVersion, PrivacyDataClass, REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
 
 pub fn seed_passing_eval(foundation: &mut Foundation, capability_id: &str) {
@@ -38,9 +38,9 @@ pub fn seed_invocation_policy(foundation: &mut Foundation, tenant_id: &str, role
 
 fn passing_eval_set(capability_id: &str) -> EvalSetInput {
     let mut cases = vec![
-        eval_case("case-alpha", REQUIRED_LINGUISTIC_COHORTS[0], None),
-        eval_case("case-beta", REQUIRED_LINGUISTIC_COHORTS[1], None),
-        eval_case("case-gamma", REQUIRED_LINGUISTIC_COHORTS[2], None),
+        eval_case("case-alpha", REQUIRED_LINGUISTIC_COHORT_LOCALES[0], None),
+        eval_case("case-beta", REQUIRED_LINGUISTIC_COHORT_LOCALES[1], None),
+        eval_case("case-gamma", REQUIRED_LINGUISTIC_COHORT_LOCALES[2], None),
     ];
     for (case_id, kind) in [
         ("adv-prompt", AdversarialKind::PromptInjection),
@@ -50,7 +50,7 @@ fn passing_eval_set(capability_id: &str) -> EvalSetInput {
     ] {
         cases.push(eval_case(
             case_id,
-            REQUIRED_LINGUISTIC_COHORTS[0],
+            REQUIRED_LINGUISTIC_COHORT_LOCALES[0],
             Some(kind),
         ));
     }

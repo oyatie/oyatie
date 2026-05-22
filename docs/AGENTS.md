@@ -8,7 +8,7 @@ excludes:
   reason: Machine-readable entry-point registry; this contract is discovered through
     it.
 - path: /specs/master-plan-sequencing.json
-  reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and
+  reason: Primitive policy, Oya VCS sequencing, and ChangeSet promotion; cited and
     not duplicated fully.
 - path: /specs/markdown-retirement-policy.json
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
@@ -53,6 +53,17 @@ Canonical doctrine: [`/specs/oyatie-doctrine.json`](..//specs/oyatie-doctrine.js
 
 Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first, SDK as enrichment). See `oyatie-doctrine.json#scope_clarifications`.
 
+## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
+
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine until superseded by a newer ADR.
+
+| ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
+|---|---|---|
+| ADR-0346 | `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before success. | `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`. |
+| ADR-0347 | Every `oya-foundry-fitness-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; the rename is name-only and lane invariants remain preserved. | `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`. |
+| ADR-0348 | Cellular topology MUST support autosharding, auto-rebalance, and dynamic sharding through manifest-declared `sharding_automation` blocks, honoring residency, reversibility, and audit-chain emission. | `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`. |
+| ADR-0349 | Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates: Jenkins augments GitHub Actions for self-hostable CI, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. | `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`. |
+
 ## Multispectrum review bar — required on every change
 
 Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). Oya VCS admission plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
@@ -84,7 +95,7 @@ system / developer / user instructions
   > working drafts (never authoritative)
 ```
 
-The chain is mirrored from `/specs/root-hub-pointers.json` and the markdown-retirement policy. The `oya-foundry-fitness-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
+The chain is mirrored from `/specs/root-hub-pointers.json` and the markdown-retirement policy. The `oya-governance-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
 
 `tools/agent-skills/AGENTS.md` is the inherited base from `addyosmani/agent-skills` (MIT) — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). See `tools/agent-skills/INHERITANCE.md` for the full pattern.
 
@@ -129,12 +140,12 @@ Before any change, every agent and every human MUST complete these items.
 
 1. **Identify the change class.** Feature / bugfix / refactor / migration / docs / chore / capability / plugin / runbook / ADR / pack-update. *Why:* a class-blind change misses class-specific validators. *Test:* PR body's `## Issue` section names the class.
 2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Traceability` cites the doc(s) read.
-3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-foundry-fitness-data-class` lane.
-4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-foundry-fitness-autonomy-ceiling` lane.
+3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-governance-data-class` lane.
+4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-governance-autonomy-ceiling` lane.
 5. **Confirm license posture.** New dependencies MUST clear `cargo deny check`. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* `cargo deny check` exit 0.
 6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the reviewer signs `## Code Review` at merge time; no signature, no merge. *Test:* §"Per-change-class reviewer agents" table below; merge-gate hook validates.
-8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-foundry-fitness-cross-axis-notify` lane.
+8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
 9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
 
 ## Per-change-class reviewer agents
@@ -170,9 +181,12 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set: Oya VCS compatibility ratchet claim / verify / done / promote plus the `oya-vcs-admission` CI lane, all delivered through the Foundry pipeline (M01-P18). Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release until the task #38 `oya git` drop-in surface lands with explicit policy verbs split out. ADR-0052/ADR-0053/ADR-0054 are historical records only; the external coordination tools they sanctioned (grit, icm, rtk, vox) are retired per ADR-0116 (2026-05-16).
-
-External agent-coordination tooling (grit, rtk, icm, vox) is retired per ADR-0116. New crate scaffolds use plain `git mv` inside a per-agent `git worktree`; concurrent-file coordination happens at admission-gate time via `registry/vcs/concurrent-safe-paths.yaml` (ADR-0111 conflict-avoidance pre-admit gate). No external coordination tool participates in the prescribed surface.
+Agent-callable coordination and state-transition primitives are a closed set:
+Oya VCS compatibility ratchet claim / verify / done / promote plus the
+`oya-vcs-admission` CI lane, delivered through the Foundry pipeline (M01-P18).
+`oya git <git-subcommand>` is the git drop-in surface. Oya VCS owns claims,
+ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock
+release until those policy verbs split explicitly.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -189,7 +203,6 @@ required_sequence:
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-retirement_note: legacy grit/icm/rtk/vox are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. `oya git <git-subcommand>` is the git drop-in surface; Oya VCS remains the compatibility policy-ratchet spelling for claim / verify / done / promote until those policy verbs split explicitly.
 <!-- agent-instructions:end -->
 
 ## PR shape
@@ -209,23 +222,23 @@ The automated reviewer pipeline supplies `## Code Review` with the reviewer-agen
 Before declaring any change complete, every agent and every human MUST re-walk these items. Each box has a typed artifact (a command, a lane, or an explicit `(advisory)` marker).
 
 - [ ] **D1** All §"Pre-flight checklist" items checked. *Test:* per-item reviewer audit on PR.
-- [ ] **D2** Affected canonical docs updated in this same PR per [`DOC-CATALOG.md`](DOC-CATALOG.md). *Test:* `oya-foundry-fitness-doc-catalog` lane.
-- [ ] **D3** New ADRs (if any) authored from [`templates/adr-template.md`](templates/adr-template.md) <!-- forward-reference: wave-1 --> with all required sections. *Test:* `oya-foundry-fitness-adr-shape` lane.
-- [ ] **D4** New runbooks (if any) authored from [`templates/runbook-template.md`](templates/runbook-template.md) <!-- forward-reference: wave-1 -->; discoverable in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 -->. *Test:* `oya-foundry-fitness-runbook-index-resolves` lane.
-- [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-foundry-fitness-capability-publish` lane.
-- [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-foundry-fitness-data-class` lane.
-- [ ] **D7** Per-PR fitness lanes pass: `oya-foundry-fitness-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
+- [ ] **D2** Affected canonical docs updated in this same PR per [`DOC-CATALOG.md`](DOC-CATALOG.md). *Test:* `oya-governance-doc-catalog` lane.
+- [ ] **D3** New ADRs (if any) authored from [`templates/adr-template.md`](templates/adr-template.md) <!-- forward-reference: wave-1 --> with all required sections. *Test:* `oya-governance-adr-shape` lane.
+- [ ] **D4** New runbooks (if any) authored from [`templates/runbook-template.md`](templates/runbook-template.md) <!-- forward-reference: wave-1 -->; discoverable in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 -->. *Test:* `oya-governance-runbook-index-resolves` lane.
+- [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
+- [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
+- [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
 - [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* merge-gate hook (`scripts/hooks/guard-pr-merge-review.mjs`).
 - [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Test:* command output.
 - [ ] **D11** `cargo deny check` passes. *Test:* command output.
 - [ ] **D12** `oya verify` passes. *Test:* command output.
-- [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-foundry-fitness-perf-evidence` lane.
-- [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-foundry-fitness-schema-migration` lane.
+- [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
+- [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
 - [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` + `oya-pr-review` lanes.
-- [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-foundry-fitness-audit-emission` lane.
-- [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-foundry-fitness-mistakes-ledger-cite` lane.
-- [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-foundry-fitness-changelog-row` lane.
+- [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-governance-audit-emission` lane.
+- [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
+- [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.
 
 If any box is unchecked, the change is not complete. Loop back; do not declare success.
 
@@ -240,7 +253,7 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 | `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
 | `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
-| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Redirect-class discovery files. Non-authoritative. ≤25 lines each. Lane: `oya-foundry-fitness-redirect-thinness`. |
+| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Redirect-class discovery files. Non-authoritative. ≤25 lines each. Lane: `oya-governance-redirect-thinness`. |
 
 ## Boundaries
 

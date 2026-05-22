@@ -128,3 +128,7 @@ cargo run -p oya-dev-cli -- gate run-all
 - Google SRE Workbook Chapter 17 — Testing for Reliability.
 - Principles of Chaos Engineering — https://principlesofchaos.org/
 - `crates/oya-check-chaos-engineering-catalog` (to author).
+
+## Wave 15 counterpart verification note
+
+This IP was preserved as already substantive; the Wave 15 scrub adds the explicit counterpart hook required by ADR-0328 D-20. Governance parity is evaluated against GitHub Advanced Security, SonarQube, Snyk, Trivy, Open Policy Agent, Backstage TechDocs, and Renovate. The implementation must state which of those controls it closes or deliberately does not target before promotion.

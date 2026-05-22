@@ -13,7 +13,7 @@ purpose: >
   Fix the agent-callable coordination/state-transition primitive set at
   {grit, icm, oya-tooling-agent-read}. Direct git/gh permitted only with
   documented rationale per Directive 12.
-planned_enforcement_ref: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-governance-banned-primitives
 ---
 
 # ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work
@@ -23,7 +23,7 @@ planned_enforcement_ref: oya-foundry-fitness-banned-primitives
 - **Owners:** `council-architecture`, `foundry`
 - **Supersedes:** (none)
 - **Superseded by:** (none)
-- **Planned enforcement:** `oya-foundry-fitness-banned-primitives` remains advisory until the lane exists.
+- **Planned enforcement:** `oya-governance-banned-primitives` remains advisory until the lane exists.
 - **Siblings landing in parallel:** ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern)
 - **Operational driver:** [`.omc/plans/SST consolidation ralplan`](../../.omc/plans/SST consolidation ralplan)
 - **Operating contract shaped:** [`docs/AGENTS.md`](../AGENTS.md) §Sanctioned primitives
@@ -50,7 +50,7 @@ The set of agent-callable coordination and state-transition primitives is fixed 
 
 ### Cutover bootstrap window (P0.5 – P2)
 
-The sanctioned-primitive set above is the **steady-state contract**, valid from the moment the banned-primitives fitness lane activates at the P5 merge boundary. During the **cutover bootstrap window** — phases P0.5 (scaffold-claim ADR), P1 (inventory ADR), P2 (ship `oya-tooling-agent-read`) — the helper does not yet exist, so the temporarily-effective sanctioned set is `{grit, icm}` plus an explicit carve-out for read-only `git`/`gh` invocations strictly to inspect prior helper scaffolds, prior tooling crates, and existing repo state. Every such bootstrap-window invocation is recorded in the inventory ledger as a one-time bootstrap row (column: `bootstrap_window: true`, `invocation: <command>`, `purpose: <one-line>`, `agent_or_human: <id>`). The banned-primitives fitness lane (`oya-foundry-fitness-banned-primitives`) is **defined** in P4 (rewrite agent memory) but **activated** at P5 merge — between P4 and P5 the lane exists, the rewrite exists, but enforcement is off. The lane goes live with the P5 merge commit; from that commit forward, the carve-out is closed.
+The sanctioned-primitive set above is the **steady-state contract**, valid from the moment the banned-primitives fitness lane activates at the P5 merge boundary. During the **cutover bootstrap window** — phases P0.5 (scaffold-claim ADR), P1 (inventory ADR), P2 (ship `oya-tooling-agent-read`) — the helper does not yet exist, so the temporarily-effective sanctioned set is `{grit, icm}` plus an explicit carve-out for read-only `git`/`gh` invocations strictly to inspect prior helper scaffolds, prior tooling crates, and existing repo state. Every such bootstrap-window invocation is recorded in the inventory ledger as a one-time bootstrap row (column: `bootstrap_window: true`, `invocation: <command>`, `purpose: <one-line>`, `agent_or_human: <id>`). The banned-primitives fitness lane (`oya-governance-banned-primitives`) is **defined** in P4 (rewrite agent memory) but **activated** at P5 merge — between P4 and P5 the lane exists, the rewrite exists, but enforcement is off. The lane goes live with the P5 merge commit; from that commit forward, the carve-out is closed.
 
 ## Decision Drivers
 
@@ -103,7 +103,7 @@ Rewrite agent-facing memory FIRST (P4), ship `oya-tooling-agent-read` SECOND (P2
 - Upstream dependency on `rtk-ai/grit` 0.3.0+. The `grit session start` bug (documented in `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 1`) is a real blocker for the `grit session pr` flow until fixed upstream. Workaround is **session-less mode** documented in the spec.
 - New-crate creation has a chicken-and-egg with grit symbol-locking (you cannot claim a symbol that doesn't exist yet). Resolved by the **scaffold-claim pattern** in `ADR-0054-grit-scaffold-claim-pattern.md` (lifts from `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 2`).
 - Agents lose the convenience of `rtk gh pr view` etc.; they must route through `oya-tooling-agent-read pr-view`, which is one indirection.
-- The `oya-foundry-fitness-banned-primitives` lane must scope its grep to agent-instruction sections only (via HTML comment fences `<!-- agent-instructions:start -->`) — non-trivial to implement correctly.
+- The `oya-governance-banned-primitives` lane must scope its grep to agent-instruction sections only (via HTML comment fences `<!-- agent-instructions:start -->`) — non-trivial to implement correctly.
 
 ### Neutral
 - ICM external storage holds cross-project memory; project-canonical decisions are still duplicated into `oyatie/docs/` as tracked files (per spec §Constraints item 2). This is a pre-existing design; this ADR does not change it.
@@ -117,7 +117,7 @@ This ADR is consistent with the following Master-Plan-level principles; they sha
 
 1. **Provider-agnostic**: `oya-tooling-agent-read`'s surface is verb-level (`pr-view`, `log`, `diff`), not provider-level. GitHub-specific code lives behind the verb implementation; a future second forge gets its own implementation behind the same verb. See `oyatie/docs/CONSTITUTION.md` and Master Plan §Principles.
 2. **Distroless + smallest-image**: when `oya-tooling-agent-read` is containerized (for CI runners or sandboxed agents), the image is distroless (`gcr.io/distroless/static-debian12` for the static Rust binary) with `cargo build --release` + musl static linking. CI gates the image size budget. See Master Plan §Cross-cutting workstreams §Image discipline.
-3. **Current LTS dependencies enforced**: every direct dependency of `oya-tooling-agent-read` is pinned to current LTS (verified against `.omc/scratch/lts-versions-verified-2026-05-12.md`); the `oya-foundry-fitness-lts-dependency` lane (defined in Master Plan §Cross-cutting workstreams §Dependency hygiene) blocks PRs that introduce non-LTS deps without an exception ADR.
+3. **Current LTS dependencies enforced**: every direct dependency of `oya-tooling-agent-read` is pinned to current LTS (verified against `.omc/scratch/lts-versions-verified-2026-05-12.md`); the `oya-governance-lts-dependency` lane (defined in Master Plan §Cross-cutting workstreams §Dependency hygiene) blocks PRs that introduce non-LTS deps without an exception ADR.
 4. **Final-shape adoption**: the helper's read-only-only verb set, the three-primitive sanctioned set, and the bootstrap-window-as-explicit-one-time-carve-out are all final-form decisions, not iterative ones.
 
 ## Follow-ups
@@ -135,7 +135,7 @@ This ADR is consistent with the following Master-Plan-level principles; they sha
 
 - **ADR path:** `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md`
 - **ADR-INDEX row:** ADR-0053 appended to `docs/ADR-INDEX.md` under Cross-cutting / Tooling
-- **Audit-chain emission ID:** `EVT-ADR-LAND-0053-01HXXMKPRGRITICM00000000000000` (ULID emitted by `oya-foundry-fitness-banned-primitives` lane on first CI run after merge; superseded by ADR-0116 retirement so no further emissions expected against this entry).
+- **Audit-chain emission ID:** `EVT-ADR-LAND-0053-01HXXMKPRGRITICM00000000000000` (ULID emitted by `oya-governance-banned-primitives` lane on first CI run after merge; superseded by ADR-0116 retirement so no further emissions expected against this entry).
 - **Sibling ADRs landing in parallel:** ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern)
 - **Operational driver:** `.omc/plans/SST consolidation ralplan`
 - **Operating contract shaped:** `docs/AGENTS.md` §Sanctioned primitives

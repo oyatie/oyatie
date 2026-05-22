@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: treasury-throughput
+  labels:
+    service: treasury
+    sap_code: "TRM"
+spec:
+  description: "Treasury treasury-throughput objective; benchmarks SAP TRM Treasury and Risk Management | Oracle Fusion Cash Management | Workday Financial Management cash and treasury counterpart | NetSuite Cash Management | Microsoft Dynamics 365 Finance Cash and Bank"
+  service: treasury
+  indicator:
+    metadata:
+      name: treasury-throughput-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_treasury_accepted_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_treasury_received_total[5m]))"
+  objectives:
+    - displayName: treasury-throughput
+      target: 0.995

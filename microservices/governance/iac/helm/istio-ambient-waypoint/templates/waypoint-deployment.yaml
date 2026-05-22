@@ -276,7 +276,7 @@ data:
     {{ .Values.regulatoryResponseShape.gdprArt22.bodyTemplate | nindent 4 | trim }}
   eu-dsa-art-17.json: |
     {{ .Values.regulatoryResponseShape.euDsaArt17.bodyTemplate | nindent 4 | trim }}
-  eu-ai-act-annex-iii.json: |
+  eu-ai-act-risk_anchor-iii.json: |
     {{ .Values.regulatoryResponseShape.euAiActAnnexIII.bodyTemplate | nindent 4 | trim }}
   kr-pipa-art-17.json: |
     {{ .Values.regulatoryResponseShape.krPipaArt17.bodyTemplate | nindent 4 | trim }}

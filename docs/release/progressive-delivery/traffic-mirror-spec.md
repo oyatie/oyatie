@@ -9,7 +9,7 @@ purpose: |
   Istio/Envoy mirror primitive, provider-agnostic via service-mesh adapter pattern.
   The mesh-level mechanism dark-launch + per-cell rollback ride on.
 planned_enforcement_ref:
-  - oya-foundry-fitness-shadow-diff
+  - oya-governance-shadow-diff
 related_adrs: [ADR-0044, ADR-0040, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -17,7 +17,6 @@ doc_status: published
 
 # Traffic-Mirror Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Source:** [ADR-0044 service-mesh strategy](../../decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Primitive
 
@@ -63,7 +62,7 @@ Mirrored requests are tagged with `x-oya-shadow: true` (header) and `x-oya-shado
 2. Use a sandbox transaction or shadow store (per [`dark-launch-spec.md`](dark-launch-spec.md) §6).
 3. Tag downstream emitted events as shadow (don't propagate to real consumers).
 
-Lane `oya-foundry-fitness-shadow-diff` includes a static check for `x-oya-shadow` recognition in every service that may receive mirrored traffic.
+Lane `oya-governance-shadow-diff` includes a static check for `x-oya-shadow` recognition in every service that may receive mirrored traffic.
 
 ## 5. Cohort interaction
 
@@ -73,13 +72,12 @@ Mirrored traffic is sampled **only** from cohorts that consent to participate. S
 
 - **Shadow upstream slow.** Mirror is fire-and-forget by mesh contract; primary response unaffected. Slow shadow accumulates queue → mesh sheds at queue-depth threshold. Configured per-cell.
 - **Shadow upstream OOM / crash loop.** Mesh detects via outlier-detection and disables mirror automatically. Emits Sev-2 ticket.
-- **Header strip by intermediary.** Forbidden. `oya-foundry-fitness-shadow-diff` includes a CI check that no Envoy filter strips `x-oya-shadow*`.
+- **Header strip by intermediary.** Forbidden. `oya-governance-shadow-diff` includes a CI check that no Envoy filter strips `x-oya-shadow*`.
 
 ## 7. Auditability
 
 Every mirror activation emits a D14 audit-chain entry: which surface, which percentage, which cohort sample, start/stop timestamps, correlation IDs. Mirror activation requires named approver for surfaces tagged `regulated` ([ADR-0034](../../decisions/ADR-0034-per-vertical-data-class-overrides.md)).
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), mirror activation records stored via `icm store -t mirror-activations`.
 
 ## 8. Per-cell scope
 
@@ -100,10 +98,9 @@ Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-
 
 ## 11. Compliance gates
 
-- `oya-foundry-fitness-shadow-diff` (NEW; HIGH).
-- `oya-foundry-fitness-cohort-honor` (NEW; HIGH).
+- `oya-governance-shadow-diff` (NEW; HIGH).
+- `oya-governance-cohort-honor` (NEW; HIGH).
 
 ## 12. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — mirror activation records stored via `icm store -t mirror-activations`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — traffic mirror used in `staging` layer for dark-launch shadow traffic before `prod-promoter` evaluates the 5-gate.

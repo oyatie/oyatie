@@ -413,7 +413,7 @@ impl TenantCreateApiError {
             )],
             Self::InvalidResidencyClass { .. } => vec![detail(
                 "body.residency_class",
-                "must be one of strict_home, home_with_failover, or global",
+                "must be one of strict_home_region, home_with_recovery_failover, or global",
             )],
             Self::DuplicateTenant { .. } => {
                 vec![detail("body.tenant_id", "must be globally unique")]
@@ -694,7 +694,7 @@ fn tenant_error_issue(error: &TenantError) -> &'static str {
         TenantError::EmptyLegalName => "legal_name must be non-empty",
         TenantError::EmptyHomeRegion => "home_region must be non-empty",
         TenantError::HomeRegionNotAllowedForResidency => {
-            "strict home residency classes require a home-* region slot"
+            "strict home-region residency classes require a kr-* home region"
         }
         TenantError::MissingRegionalPack => "regulatory_packs must contain at least one pack",
     }

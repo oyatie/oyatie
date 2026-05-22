@@ -7,7 +7,7 @@ status: Active
 entry_gate: |
   ADR-0022 + ADR-0131 + ADR-0140 (retired per ADR-0145) accepted; foundry-runtime PRD published; observability PHASE-01 substrate live so guardrails' self-SLOs can be evaluated; cargo workspace ready to accept the new crates under microservices/foundry-guardrails/src/crates/.
 exit_gate: |
-  All 15 IPs merged; classifier-model-serving Helm chart deployed; Cedar v4 policy bundle validates default-deny; rule-store Postgres schema migrated; pre-invocation classification p99 ≤ 50ms on reference workload; post-output validation p99 ≤ 100ms; Sev-1 jailbreak drill auto-creates post-mortem; foundry-runtime calls guardrails on every dispatch (verified by oya-foundry-fitness-runtime-guardrails-coupling lane); HG-FGUARD gate green; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice foundry-guardrails exits 0; oya gate validate authority-cohesion exits 0.
+  All 15 IPs merged; classifier-model-serving Helm chart deployed; Cedar v4 policy bundle validates default-deny; rule-store Postgres schema migrated; pre-invocation classification p99 ≤ 50ms on reference workload; post-output validation p99 ≤ 100ms; Sev-1 jailbreak drill auto-creates post-mortem; foundry-runtime calls guardrails on every dispatch (verified by oya-governance-runtime-guardrails-coupling lane); HG-FGUARD gate green; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice foundry-guardrails exits 0; oya gate validate authority-cohesion exits 0.
 depends_on:
   - milestone: M01-foundation
     phase: P01-agentic-slo-gated-promotion (observability)
@@ -26,7 +26,7 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundry-guardrails substrate: prompt classifier, output validator, autonomy-tier gate (Cedar v4), content-safety rule engine (Postgres-backed), jailbreak detector (heuristic + classifier + LLM-judge ensemble), and AI-slop detector. It is delivered as one phase in M01-foundation because foundry-runtime cannot enter tenant-bearing traffic without this gate (the ADR-0131 Foundry split makes guardrails a precondition for runtime acceptance into production tier).
+This phase ships the foundry-guardrails substrate: prompt classifier, output validator, autonomy-ceiling gate (Cedar v4), content-safety rule engine (Postgres-backed), jailbreak detector (heuristic + classifier + LLM-judge ensemble), and AI-slop detector. It is delivered as one phase in M01-foundation because foundry-runtime cannot enter tenant-bearing traffic without this gate (the ADR-0131 Foundry split makes guardrails a precondition for runtime acceptance into production tier).
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (competitor parity vs Bedrock / Constitutional AI / OpenAI Moderation / Azure Content Safety / Perspective / NeMo Guardrails / Llama Guard).
@@ -41,10 +41,10 @@ This phase advances master-plan principles:
 
 | µservice | Bounded Contexts | Files / crates affected |
 |---|---|---|
-| `foundry-guardrails` | `prompt-classifier`, `output-validator`, `autonomy-tier-gate`, `content-safety-rule-engine`, `jailbreak-detector`, `ai-slop-detector` | All under `microservices/foundry-guardrails/` per ADR-0131 |
+| `foundry-guardrails` | `prompt-classifier`, `output-validator`, `autonomy-ceiling-gate`, `content-safety-rule-engine`, `jailbreak-detector`, `ai-slop-detector` | All under `microservices/foundry-guardrails/` per ADR-0131 |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
-- `.github/branch-protection.yaml` — add `oya-foundry-fitness-runtime-guardrails-coupling` to required_status_checks on `dev` and `staging`.
+- `.github/branch-protection.yaml` — add `oya-governance-runtime-guardrails-coupling` to required_status_checks on `dev` and `staging`.
 - `Cargo.toml` (workspace) — register the new crates under `microservices/foundry-guardrails/src/crates/`.
 - `/specs/hyperscaler-gates.json` — register HG-FGUARD gate per ADR-0123.
 - `docs/quality/ai-slop-defense/ai-slop-failure-mode-catalogue.md` — referenced as the source-of-truth catalogue for `ai-slop-detector` test fixtures.
@@ -69,14 +69,14 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-003-rule-store-postgres-iac.md`](IP-003-rule-store-postgres-iac.md) | Helm chart for per-pack Postgres HA (rule store + Cedar fragment registry + audit-mutation log); migrations under `iac/postgres/migrations/` | pending | axis-foundry-guardrails + ops-sre-reliability | — |
 | [`IP-004-prompt-classifier-kernel.md`](IP-004-prompt-classifier-kernel.md) | `oya-foundry-guardrails-prompt-classifier-kernel`: port traits + entities + value objects | pending | axis-foundry-guardrails | — |
 | [`IP-005-output-validator-kernel.md`](IP-005-output-validator-kernel.md) | `oya-foundry-guardrails-output-validator-kernel`: port traits + entities | pending | axis-foundry-guardrails | — |
-| [`IP-006-autonomy-tier-gate-kernel-and-cedar-adapter.md`](IP-006-autonomy-tier-gate-kernel-and-cedar-adapter.md) | `oya-foundry-guardrails-autonomy-tier-gate-kernel` + `-adapter-cedar` (Cedar v4 client + policy-bundle loader) | pending | axis-foundry-guardrails | IP-001 |
+| [`IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter.md`](IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter.md) | `oya-foundry-guardrails-autonomy-ceiling-gate-kernel` + `-adapter-cedar` (Cedar v4 client + policy-bundle loader) | pending | axis-foundry-guardrails | IP-001 |
 | [`IP-007-content-safety-rule-engine-kernel-and-postgres-adapter.md`](IP-007-content-safety-rule-engine-kernel-and-postgres-adapter.md) | `oya-foundry-guardrails-content-safety-rule-engine-kernel` + `-adapter-postgres` | pending | axis-foundry-guardrails | IP-003 |
 | [`IP-008-jailbreak-detector-ensemble.md`](IP-008-jailbreak-detector-ensemble.md) | `oya-foundry-guardrails-jailbreak-detector-{kernel,domain,usecase,adapter,adapter-classifier-model}`: heuristic + classifier + LLM-judge ensemble | pending | axis-foundry-guardrails | IP-002, IP-004 |
 | [`IP-009-ai-slop-detector.md`](IP-009-ai-slop-detector.md) | `oya-foundry-guardrails-ai-slop-detector-{kernel,domain,usecase,adapter}`: catalogue-driven pattern detection | pending | axis-foundry-guardrails | IP-005 |
 | [`IP-010-classifier-model-adapter-onnx.md`](IP-010-classifier-model-adapter-onnx.md) | `-adapter-classifier-model` shared between prompt-classifier + jailbreak-detector kernels; ONNX-runtime client; per-model version pinning | pending | axis-foundry-guardrails | IP-002 |
 | [`IP-011-rest-and-grpc-surface.md`](IP-011-rest-and-grpc-surface.md) | `-rest` crates for all 6 BCs; OpenAPI 3.2 + gRPC contracts; per-route Cedar policy bind | pending | axis-foundry-guardrails | IP-006, IP-007, IP-008, IP-009 |
 | [`IP-012-worker-and-app-composition.md`](IP-012-worker-and-app-composition.md) | `-worker` + `-app` crates (composition roots); rule-cache hot-reload; shadow-mode runner | pending | axis-foundry-guardrails | IP-011 |
-| [`IP-013-runtime-guardrails-coupling-lane.md`](IP-013-runtime-guardrails-coupling-lane.md) | New BLOCKER CI lane `oya-foundry-fitness-runtime-guardrails-coupling`: asserts every foundry-runtime dispatch path goes through foundry-guardrails before foundry-providers | pending | axis-foundry + axis-foundry-guardrails | IP-011 |
+| [`IP-013-runtime-guardrails-coupling-lane.md`](IP-013-runtime-guardrails-coupling-lane.md) | New BLOCKER CI lane `oya-governance-runtime-guardrails-coupling`: asserts every foundry-runtime dispatch path goes through foundry-guardrails before foundry-providers | pending | axis-foundry + axis-foundry-guardrails | IP-011 |
 | [`IP-014-shadow-mode-rollout-and-false-positive-budget.md`](IP-014-shadow-mode-rollout-and-false-positive-budget.md) | Shadow→enforce rule rollout per ADR-0114 precedent; per-tenant false-positive escalation budget; rule-author dashboard | pending | axis-foundry-guardrails | IP-007 |
 | [`IP-015-sdk-rust-and-typescript.md`](IP-015-sdk-rust-and-typescript.md) | `oya-foundry-guardrails-prompt-classifier-sdk` (Rust first-party) + TS SDK via OpenAPI generator | pending | axis-foundry-guardrails + gtm | IP-011 |
 
@@ -129,7 +129,7 @@ oya gate validate rule-store-migrations-up-to-date
 | Allow happy path | `cargo nextest run -p oya-foundry-guardrails-prompt-classifier-usecase --test classify_allow_happy` | verdict allow; signed; ledger record appended |
 | Block: jailbreak | `cargo nextest run --test jailbreak_block` | verdict block; reason `jailbreak_injection`; Sev-1 incident issued |
 | Block: PHI in non-HC pack | `cargo nextest run --test phi_block_non_hipaa` | verdict block; reason `phi_outside_baa` |
-| Tier excess refusal | `cargo nextest run --test tier_excess_refusal` | refused at autonomy-tier-gate |
+| Tier excess refusal | `cargo nextest run --test tier_excess_refusal` | refused at autonomy-ceiling-gate |
 | Shadow→enforce promotion | scripted e2e: deploy rule shadow; verify decisions; promote enforce | enforce-decision matches shadow-decision within tolerance |
 | FP escalation budget | scripted e2e: tenant marks N+1 block as FP | budget exceeded message; rule-author queue receives |
 | Classifier-model rollback | scripted e2e: deploy bad model; verify rollback runbook | prior model restored within RTO |
@@ -216,13 +216,13 @@ branches:
   dev:
     required_status_checks:
       # ADDED by this phase (IP-013):
-      - oya-foundry-fitness-runtime-guardrails-coupling
-      - oya-foundry-fitness-cedar-default-deny-enforced
-      - oya-foundry-fitness-classifier-model-cosign-signed
+      - oya-governance-runtime-guardrails-coupling
+      - oya-governance-cedar-default-deny-enforced
+      - oya-governance-classifier-model-cosign-signed
 
   staging:
     required_status_checks:
-      - oya-foundry-fitness-runtime-guardrails-coupling
+      - oya-governance-runtime-guardrails-coupling
 ```
 
 ## Oya VCS Symbol Locks

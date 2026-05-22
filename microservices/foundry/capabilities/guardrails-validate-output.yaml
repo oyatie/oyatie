@@ -19,7 +19,7 @@ related_artifacts:
   - microservices/foundry/contracts/openapi/guardrails.yaml
   - microservices/foundry/policy/guardrail-enforcement.md
 
-autonomy_tier: T2
+autonomy_level: T2
 
 inputs:
   - name: output_text
@@ -93,9 +93,9 @@ cedar_policy_fragments:
   - microservices/foundry/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/validate-output-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/validate-output-baseline.jsonl
   pass_threshold: 0.95
-  eval_metric: composite-recall-precision-against-golden-fixtures
+  eval_metric: composite-recall-precision-against-baseline-fixtures
   cadence: per-release + per-classifier-model-rollout
 
 sunset:

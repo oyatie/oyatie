@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading agentic-control-plane products. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims` gate (ADR-0123 HG-FND-SUP) and informs gtm-customer-success.
+Quantitative + qualitative parity comparison vs the industry-leading agentic-control-plane products. Drives the `oya-governance-hyperscaler-maturity-claims` gate (ADR-0123 HG-FND-SUP) and informs gtm-customer-success.
 
 ## Competitor Set
 
@@ -118,7 +118,7 @@ Quantitative + qualitative parity comparison vs the industry-leading agentic-con
 
 ## Key oyatie Differentiators (NOT in any competitor)
 
-1. **GitOps capability authoring with PR review + signed commits** — capability definitions live in tenant-owned git repos; admit-loop validates against schema + autonomy-tier + cost budget + Cedar.
+1. **GitOps capability authoring with PR review + signed commits** — capability definitions live in tenant-owned git repos; admit-loop validates against schema + autonomy-ceiling + cost budget + Cedar.
 2. **SLO-gated rollout** — phase advance gated by `observability` `EligibilityChanged` verdict; competitors deploy on click.
 3. **Cryptographic audit-chain over supervision events** — Ed25519 + Merkle per ADR-0028; competitors emit unsigned admin events.
 4. **2-person rule on fleet-wide kill-switch** — competitors permit single-admin engagement.

@@ -21,7 +21,7 @@ related_artifacts:
   - microservices/foundry/policy/provider-router-tenant-scope.cedar
   - microservices/foundry/policy/credential-isolation.md
 
-autonomy_tier: T2
+autonomy_level: T2
 # T2 = read sensitive data (prompts include PII per DPIA) + write to audit-chain (ProviderInvoked event)
 # Per ADR-0022 autonomy tiers (Bominal-inherited).
 
@@ -102,7 +102,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/openbao-credential.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/provider-invoke-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/provider-invoke-baseline.jsonl
   pass_threshold: 0.95
   eval_metric: response-shape-conformance + cost-within-bounds + latency-within-budget
   cadence: per-release

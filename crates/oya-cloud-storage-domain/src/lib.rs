@@ -1721,37 +1721,33 @@ mod tests {
 
     use super::*;
 
-    fn regulator_overlay() -> RegulatorOverlay {
-        RegulatorOverlay::new(RegulatorOverlayCreate {
-            regulator_refs: vec!["regulator-alpha".to_string()],
-            evidence_ref: "regulator-overlay/alpha".to_string(),
-        })
-        .expect("regulator overlay fixture is valid")
-    }
-
-    fn pack_residency() -> ResidencyClass {
+    fn residency_class() -> ResidencyClass {
         ResidencyClass::PerPack(Box::new(
             PerPackResidency::new(PerPackResidencyCreate {
-                allowed_primary_regions: vec!["alpha-region".to_string()],
-                allowed_replica_regions: vec!["alpha-region".to_string()],
-                forbidden_regions: Vec::new(),
-                regulator_overlay: regulator_overlay(),
+                allowed_primary_regions: vec!["region-alpha1".to_string()],
+                allowed_replica_regions: vec!["region-beta1".to_string()],
+                forbidden_regions: vec!["region-gamma1".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/cloud-storage".to_string()],
+                    evidence_ref: "evidence/residency/cloud-storage".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
             })
-            .expect("pack residency fixture is valid"),
+            .expect("per-pack residency fixture is valid"),
         ))
     }
 
     fn bucket_create() -> BucketCreate {
         BucketCreate {
-            resource_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "tenant-assets".to_string(),
-            region: "alpha-region".to_string(),
-            residency: pack_residency(),
+            region: "region-alpha1".to_string(),
+            residency: residency_class(),
             tier: BucketTier::Standard,
             replication: ReplicationPolicyCreate::Regional,
             encryption: EncryptionMode::SseKms,
-            kms_key: Some("kms/alpha-region/ten_alpha/object-key".to_string()),
+            kms_key: Some("kms/region-alpha1/ten_alpha/object-key".to_string()),
             object_lock: Some(ObjectLockPolicy {
                 mode: ObjectLockMode::Compliance,
                 retain_until_epoch_seconds: 1_800_000_000,
@@ -1772,7 +1768,7 @@ mod tests {
 
     fn object_encryption() -> ObjectEncryptionBindingCreate {
         ObjectEncryptionBindingCreate {
-            kms_key: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            kms_key: "kms/region-alpha1/ten_alpha/object-key".to_string(),
             kms_key_version: 1,
             material_ref: "matref/ten_alpha/object/report".to_string(),
             ciphertext_ref: "ct/ten_alpha/object/report".to_string(),
@@ -1786,14 +1782,14 @@ mod tests {
         StorageProviderObjectPutRequest {
             request_id: "storageprov_req_put_001".to_string(),
             provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
-            bucket_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             object_key: "workspace/report.pdf".to_string(),
             object_body_ref: "objbody/ten_alpha/workspace/report".to_string(),
             size_bytes: 42,
             etag: "0123456789abcdef0123456789abcdef".to_string(),
             data_class: DataClass::PiiIdentifying,
-            kms_key: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            kms_key: "kms/region-alpha1/ten_alpha/object-key".to_string(),
             ciphertext_ref: "ct/ten_alpha/object/report".to_string(),
             actor: "sp_storage".to_string(),
             idempotency_key: "idem-storage-object-put".to_string(),
@@ -1805,7 +1801,7 @@ mod tests {
         StorageProviderObjectGetRequest {
             request_id: "storageprov_req_get_001".to_string(),
             provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
-            bucket_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             object_key: "workspace/report.pdf".to_string(),
             result_body_ref: "objbody/ten_alpha/workspace/report-read".to_string(),
@@ -1816,13 +1812,13 @@ mod tests {
 
     fn volume_create() -> VolumeCreate {
         VolumeCreate {
-            resource_id: "oya:cloud:alpha-region:ten_alpha:volume:db-primary".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:volume:db-primary".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "db-primary".to_string(),
-            region: "alpha-region".to_string(),
-            az: "alpha-region-a".to_string(),
-            cell_id: "cell-alpha-region-a-001".to_string(),
-            residency: pack_residency(),
+            region: "region-alpha1".to_string(),
+            az: "region-alpha1-a".to_string(),
+            cell_id: "cell-region-alpha1-a-001".to_string(),
+            residency: residency_class(),
             tier: VolumeTier::ProvisionedIopsSsd,
             size_gib: 512,
             performance: VolumePerformance {
@@ -1830,7 +1826,7 @@ mod tests {
                 throughput_mbps: 750,
             },
             encryption: EncryptionMode::Byok,
-            kms_key: Some("byok/alpha-region/ten_alpha/db-key".to_string()),
+            kms_key: Some("byok/region-alpha1/ten_alpha/db-key".to_string()),
             data_class: DataClass::PiiIdentifying,
             state: VolumeState::Creating,
             created_at_epoch_seconds: 1_700_000_000,
@@ -1842,7 +1838,7 @@ mod tests {
         StorageProviderBlockCreateVolumeRequest {
             request_id: "storageprov_req_block_create_001".to_string(),
             provider_volume_ref:
-                "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary".to_string(),
+                "oci-block://ocid1.compartment.oc1..cloud/region-alpha1-a/db-primary".to_string(),
             volume_id: volume.resource_id,
             tenant_id: volume.tenant_id,
             name: volume.name,
@@ -1867,7 +1863,7 @@ mod tests {
         let bucket = Bucket::new(bucket_create()).expect("bucket is valid");
 
         assert_eq!(bucket.resource_id.value.kind_label().unwrap(), "bucket");
-        assert_eq!(bucket.region.value.value, "alpha-region");
+        assert_eq!(bucket.region.value.value, "region-alpha1");
         assert_eq!(bucket.name.value.value, "tenant-assets");
         assert_eq!(bucket.replication.value.mode(), ReplicationMode::Regional);
         assert_eq!(bucket.encryption.value, EncryptionMode::SseKms);
@@ -1901,12 +1897,12 @@ mod tests {
         );
         assert_eq!(
             ArchiveVault::new(ArchiveVaultCreate {
-                resource_id: "oya:cloud:alpha-region:ten_alpha:archive-vault:state-test"
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:archive-vault:state-test"
                     .to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 name: "state-test".to_string(),
-                region: "alpha-region".to_string(),
-                residency: pack_residency(),
+                region: "region-alpha1".to_string(),
+                residency: residency_class(),
                 tier: ArchiveTier::Cold,
                 encryption: EncryptionMode::Sse,
                 kms_key: None,
@@ -1922,7 +1918,7 @@ mod tests {
     #[test]
     fn rejects_bucket_identity_encryption_and_object_lock_drift() {
         let wrong_kind = Bucket::new(BucketCreate {
-            resource_id: "oya:cloud:alpha-region:ten_alpha:volume:tenant-assets".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:volume:tenant-assets".to_string(),
             ..bucket_create()
         })
         .expect_err("resource id kind must match bucket");
@@ -1951,11 +1947,11 @@ mod tests {
     fn rejects_cross_region_replication_that_violates_residency() {
         let error = Bucket::new(BucketCreate {
             replication: ReplicationPolicyCreate::CrossRegion {
-                destination_regions: vec!["beta-region".to_string()],
+                destination_regions: vec!["region-gamma1".to_string()],
             },
             ..bucket_create()
         })
-        .expect_err("pack residency buckets cannot replicate outside allowed regions");
+        .expect_err("pack residency forbids replication to a forbidden region");
 
         assert_eq!(error, CloudStorageError::ReplicationResidencyDenied);
     }
@@ -2041,7 +2037,7 @@ mod tests {
                 etag: "0123456789abcdef0123456789abcdef".to_string(),
                 data_class: DataClass::PiiIdentifying,
                 encryption: ObjectEncryptionBindingCreate {
-                    kms_key: "byok/alpha-region/ten_alpha/object-key".to_string(),
+                    kms_key: "byok/region-alpha1/ten_alpha/object-key".to_string(),
                     kms_encrypt_event_id: "kmsuse_object_wrong_key_001".to_string(),
                     ..object_encryption()
                 },
@@ -2092,7 +2088,7 @@ mod tests {
 
         let mut bad_bucket_kind = provider_put_request();
         bad_bucket_kind.bucket_id =
-            "oya:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
+            "oya:cloud:region-alpha1:ten_alpha:volume:not-bucket".to_string();
         assert_eq!(
             bad_bucket_kind.validate(),
             Err(StorageProviderObjectError::InvalidRequestShape(
@@ -2140,7 +2136,7 @@ mod tests {
         );
         assert_eq!(
             put.kms_key,
-            Some("kms/alpha-region/ten_alpha/object-key".to_string())
+            Some("kms/region-alpha1/ten_alpha/object-key".to_string())
         );
         assert_eq!(
             put.ciphertext_ref,
@@ -2167,7 +2163,7 @@ mod tests {
 
         let mut bad_volume_kind = provider_block_create_volume_request();
         bad_volume_kind.volume_id =
-            "oya:cloud:alpha-region:ten_alpha:bucket:not-volume".to_string();
+            "oya:cloud:region-alpha1:ten_alpha:bucket:not-volume".to_string();
         assert_eq!(
             bad_volume_kind.validate(),
             Err(StorageProviderBlockError::InvalidRequestShape(
@@ -2189,7 +2185,7 @@ mod tests {
             StorageProviderKind::OciBlockStorage,
             provider_block_create_volume_request(),
             "oci-block-create-001",
-            "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary/create",
+            "oci-block://ocid1.compartment.oc1..cloud/region-alpha1-a/db-primary/create",
         )
         .expect("block receipt keeps references only");
 
@@ -2197,18 +2193,18 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_volume");
         assert_eq!(
             receipt.provider_volume_ref,
-            "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary"
+            "oci-block://ocid1.compartment.oc1..cloud/region-alpha1-a/db-primary"
         );
         assert_eq!(
             receipt.volume_id,
-            "oya:cloud:alpha-region:ten_alpha:volume:db-primary"
+            "oya:cloud:region-alpha1:ten_alpha:volume:db-primary"
         );
         assert_eq!(receipt.size_gib, 512);
         assert_eq!(receipt.performance.iops, 12_000);
         assert_eq!(receipt.encryption, EncryptionMode::Byok);
         assert_eq!(
             receipt.kms_key,
-            Some("byok/alpha-region/ten_alpha/db-key".to_string())
+            Some("byok/region-alpha1/ten_alpha/db-key".to_string())
         );
         assert_eq!(receipt.actor, "sp_storage");
         assert_eq!(receipt.schema_version, STORAGE_SCHEMA_VERSION);
@@ -2236,8 +2232,8 @@ mod tests {
         let volume = BlockVolume::new(volume_create()).expect("volume is valid");
 
         assert_eq!(volume.resource_id.value.kind_label().unwrap(), "volume");
-        assert_eq!(volume.az.value.value, "alpha-region-a");
-        assert_eq!(volume.cell_id.value.value, "cell-alpha-region-a-001");
+        assert_eq!(volume.az.value.value, "region-alpha1-a");
+        assert_eq!(volume.cell_id.value.value, "cell-region-alpha1-a-001");
         assert_eq!(volume.performance.value.iops, 12_000);
         assert_eq!(volume.encryption.value, EncryptionMode::Byok);
         assert_eq!(volume.schema_version.value, STORAGE_SCHEMA_VERSION);
@@ -2246,15 +2242,15 @@ mod tests {
     #[test]
     fn rejects_volume_location_and_performance_drift() {
         let az_error = BlockVolume::new(VolumeCreate {
-            az: "beta-region-a".to_string(),
-            cell_id: "cell-beta-region-a-001".to_string(),
+            az: "region-gamma1-a".to_string(),
+            cell_id: "cell-region-gamma1-a-001".to_string(),
             ..volume_create()
         })
         .expect_err("volume AZ must belong to region");
         assert_eq!(az_error, CloudStorageError::AzRegionMismatch);
 
         let cell_error = BlockVolume::new(VolumeCreate {
-            cell_id: "cell-alpha-region-b-001".to_string(),
+            cell_id: "cell-region-alpha1-b-001".to_string(),
             ..volume_create()
         })
         .expect_err("volume cell must belong to AZ namespace");
@@ -2292,7 +2288,7 @@ mod tests {
                 id: "snap_db_primary_001".to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 source_volume_id: volume.resource_id.value.value.clone(),
-                region: "alpha-region".to_string(),
+                region: "region-alpha1".to_string(),
                 data_class: DataClass::PiiIdentifying,
                 state: SnapshotState::Creating,
                 created_at_epoch_seconds: 1_700_000_030,
@@ -2316,7 +2312,7 @@ mod tests {
                 id: "snap_db_primary_public".to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 source_volume_id: volume.resource_id.value.value.clone(),
-                region: "alpha-region".to_string(),
+                region: "region-alpha1".to_string(),
                 data_class: DataClass::Public,
                 state: SnapshotState::Creating,
                 created_at_epoch_seconds: 1_700_000_030,
@@ -2329,13 +2325,13 @@ mod tests {
     #[test]
     fn creates_filesystem_and_archive_vault_surfaces() {
         let filesystem = CloudFilesystem::new(FilesystemCreate {
-            resource_id: "oya:cloud:alpha-region:ten_alpha:filesystem:shared-docs".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:filesystem:shared-docs".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "shared-docs".to_string(),
-            region: "alpha-region".to_string(),
-            az: "alpha-region-a".to_string(),
-            cell_id: "cell-alpha-region-a-001".to_string(),
-            residency: pack_residency(),
+            region: "region-alpha1".to_string(),
+            az: "region-alpha1-a".to_string(),
+            cell_id: "cell-region-alpha1-a-001".to_string(),
+            residency: residency_class(),
             tier: FilesystemTier::ThroughputOptimized,
             size_gib: 2048,
             throughput_mbps: 1024,
@@ -2352,14 +2348,14 @@ mod tests {
         );
 
         let vault = ArchiveVault::new(ArchiveVaultCreate {
-            resource_id: "oya:cloud:alpha-region:ten_alpha:archive-vault:cold-records".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:archive-vault:cold-records".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "cold-records".to_string(),
-            region: "alpha-region".to_string(),
-            residency: pack_residency(),
+            region: "region-alpha1".to_string(),
+            residency: residency_class(),
             tier: ArchiveTier::DeepCold,
             encryption: EncryptionMode::Hyok,
-            kms_key: Some("hyok/alpha-region/ten_alpha/archive-key".to_string()),
+            kms_key: Some("hyok/region-alpha1/ten_alpha/archive-key".to_string()),
             allowed_data_classes: vec![DataClass::PiiIdentifying, DataClass::Phi],
             state: ArchiveVaultState::Creating,
             created_at_epoch_seconds: 1_700_000_000,

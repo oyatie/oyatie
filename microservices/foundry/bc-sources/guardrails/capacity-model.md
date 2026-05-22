@@ -32,7 +32,7 @@ Sizing formulas + reference-architecture baseline numbers for every Layer-A comp
 | Total pack invocations/sec | `I_pack_total = sum across tenants` | derived |
 | Pre-invocation classification depth (heuristic + classifier + LLM-judge%) | `D_class` | default: heuristic always + classifier always + LLM-judge for 5% (ambiguous) |
 | Post-output validation depth | `D_validate` | default: heuristic always + classifier 50% + LLM-judge 2% |
-| Cedar evaluations per invocation | `C_cedar` | default: 4 (autonomy-tier + tenant-scope + pack-rules + entitlement) |
+| Cedar evaluations per invocation | `C_cedar` | default: 4 (autonomy-ceiling + tenant-scope + pack-rules + entitlement) |
 | Rule-store lookups per invocation | `R_rule` | default: 2 (per-tenant rules + per-pack base rules) |
 
 ## Classifier-Model Serving Sizing

@@ -13,7 +13,7 @@ fn valid_request() -> CloudBillingInvoiceGenerateRequest {
         account: CloudBillingAccountSnapshotRequest {
             id: "ba_001".to_owned(),
             tenant_id: "ten_001".to_owned(),
-            region: "home-region-1".to_owned(),
+            region: "region-home-1".to_owned(),
             regional_pack: "oya-pack-kr".to_owned(),
             payment_method: "pm_001".to_owned(),
             credit_balance: CloudBillingMoneyRequest {

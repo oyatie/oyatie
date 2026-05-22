@@ -66,7 +66,7 @@ enum PayloadDataClass {
   SECRET = 8;
 }
 
-enum AutonomyTier {
+enum AutonomyLevel {
   AUTONOMY_TIER_UNSPECIFIED = 0;
   T0 = 1;
   T1 = 2;
@@ -100,7 +100,7 @@ message InvocationEnvelope {
   SourceMicroservice source_microservice = 5;
   string agent_id = 6;
   string capability_id = 7;
-  AutonomyTier autonomy_tier_decision = 8;
+  AutonomyLevel autonomy_level_decision = 8;
   google.protobuf.Timestamp invocation_ts = 9;
   string pack = 10;
   string idempotency_key = 11;           // ULID
@@ -160,7 +160,7 @@ message EvidencePack {
   SourceMicroservice source_microservice = 6;
   string agent_id = 7;
   string capability_id = 8;
-  AutonomyTier autonomy_tier_decision = 9;
+  AutonomyLevel autonomy_level_decision = 9;
   google.protobuf.Timestamp invocation_ts = 10;
   optional google.protobuf.Timestamp sealed_at = 11;
   string pack = 12;
@@ -169,7 +169,7 @@ message EvidencePack {
   string output_payload_sha = 15;
   optional EvalVerdictAtInvocation eval_verdict_at_invocation = 16;
   repeated GuardrailDecision guardrail_decisions = 17;
-  optional string autonomy_tier_rationale_hash = 18;
+  optional string autonomy_level_rationale_hash = 18;
   optional string audit_event_id = 19;
   optional string merkle_inclusion_proof_hash = 20;
   bool sealed = 21;
@@ -196,7 +196,7 @@ message EvidencePackQuery {
   optional string invocation_id = 4;
   optional string agent_id = 5;
   optional string capability_id = 6;
-  optional AutonomyTier autonomy_tier = 7;
+  optional AutonomyLevel autonomy_level = 7;
   optional Framework framework_filter = 8;
   bool include_superseded = 9;
   bool include_partial = 10;

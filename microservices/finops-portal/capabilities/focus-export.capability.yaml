@@ -1,6 +1,6 @@
 # Capability declaration — focus-export
 # Authored 2026-05-18.
-# Authority: ADR-0083 + ADR-0199 D-4 + EU AI Act risk classification.
+# Authority: ADR-0083 + ADR-0199 D-4 + risk classification.
 schema_version: "1.0"
 capability:
   id: focus-export
@@ -20,7 +20,7 @@ capability:
   outputs:
     - signed_download_url
     - export_manifest (row count, byte count, schema_version)
-  eu_ai_act:
+  risk_class:
     risk_class: minimal
     rationale: |
       Pure data-export capability. No decisioning, no

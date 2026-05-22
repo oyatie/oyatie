@@ -5,7 +5,7 @@ argo-cd:
       registry: quay.io
       repository: argoproj/argocd
       tag: "v2.13.0"  # LTS pin per docs/standards/observability-slo.md
-  redis-ha:
+  redis-ha: # counterpart-fact: upstream Argo CD Helm chart key; backing substrate is Valkey.
     enabled: true
     replicas:
       servers: 3

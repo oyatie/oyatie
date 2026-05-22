@@ -14,18 +14,18 @@ depends_on: [IP-004]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-redis
+# IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-valkey
 
 ## Intent
 
-Author the `collab-crdt` BC's first six layers: CRDT merge engine (loro-based tree CRDT), conflict surfacer, editor-session store port, and Valkey adapter (Redis wire-compat) for ephemeral CRDT state. The "never silent loss" invariant (AC-06) is the load-bearing assertion of this IP.
+Author the `collab-crdt` BC's first six layers: CRDT merge engine (loro-based tree CRDT), conflict surfacer, editor-session store port, and Valkey adapter (RESP wire-compatible) for ephemeral CRDT state. The "never silent loss" invariant (AC-06) is the load-bearing assertion of this IP.
 
 ## ChangeSet boundary
 
 Six crates:
-- `oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-redis}`
+- `oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-valkey}`
 
-Per ADR-0105 Amendment 3 backend-qualified naming for `adapter-redis`.
+Per ADR-0105 Amendment 3 backend-qualified naming for `adapter-valkey`.
 
 ## Concrete File Targets
 
@@ -36,8 +36,8 @@ Per ADR-0105 Amendment 3 backend-qualified naming for `adapter-redis`.
 | `src/crates/oya-workflow-studio-collab-crdt-usecase/{Cargo.toml,src/lib.rs,src/orchestrator.rs}` | create |
 | `src/crates/oya-workflow-studio-collab-crdt-api/{Cargo.toml,src/lib.rs,src/contracts.rs}` | create |
 | `src/crates/oya-workflow-studio-collab-crdt-adapter/{Cargo.toml,src/lib.rs,src/impl.rs}` | create |
-| `src/crates/oya-workflow-studio-collab-crdt-adapter-redis/{Cargo.toml,src/lib.rs,src/redis_impl.rs,tests/redis_integration.rs}` | create |
-| `microservices/workflow-studio/catalog/oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-redis}.yaml` | create |
+| `src/crates/oya-workflow-studio-collab-crdt-adapter-valkey/{Cargo.toml,src/lib.rs,src/valkey_impl.rs,tests/valkey_integration.rs}` | create |
+| `microservices/workflow-studio/catalog/oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-valkey}.yaml` | create |
 
 ## Code Shape
 
@@ -112,9 +112,9 @@ proptest! {
 ```bash
 cargo check -p oya-workflow-studio-collab-crdt-kernel -p oya-workflow-studio-collab-crdt-domain \
   -p oya-workflow-studio-collab-crdt-usecase -p oya-workflow-studio-collab-crdt-api \
-  -p oya-workflow-studio-collab-crdt-adapter -p oya-workflow-studio-collab-crdt-adapter-redis
+  -p oya-workflow-studio-collab-crdt-adapter -p oya-workflow-studio-collab-crdt-adapter-valkey
 cargo nextest run -p oya-workflow-studio-collab-crdt-domain --test no_silent_overwrite
-cargo nextest run -p oya-workflow-studio-collab-crdt-adapter-redis --test redis_integration -- --include-ignored
+cargo nextest run -p oya-workflow-studio-collab-crdt-adapter-valkey --test valkey_integration -- --include-ignored
 cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workflow-studio
 ```
 
@@ -125,8 +125,8 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workf
 | `test_no_silent_overwrite` (property) | AC-06; 1000 random op-stream pairs; never silent loss |
 | `test_merge_commutativity` (property) | merge(a, b) == merge(b, a) for commuting ops |
 | `test_conflict_surfaced_when_needed` | overlapping field-edits produce Conflict, not silent merge |
-| `test_redis_lease_single_writer` | only one WS pod holds the lease at a time |
-| `test_redis_ttl_expiry` | abandoned lease expires after TTL |
+| `test_valkey_lease_single_writer` | only one WS pod holds the lease at a time |
+| `test_valkey_ttl_expiry` | abandoned lease expires after TTL |
 
 ## Halt Conditions
 
@@ -144,3 +144,13 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workf
 - loro CRDT docs — `loro.dev/docs`.
 - yrs (Yjs Rust port) — `github.com/y-crdt/y-crdt`.
 - Shapiro et al. — "Conflict-free Replicated Data Types" (Inria 2011).
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-005-collab-crdt-kernel-domain-adapter.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

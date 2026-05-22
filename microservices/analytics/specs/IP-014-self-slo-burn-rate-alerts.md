@@ -37,7 +37,7 @@ The 4-window burn-rate model is canonical per ADR-0139:
 
 ## Acceptance criteria
 
-- `cargo run -p oya-foundry-fitness-slo-coverage -- microservices/analytics/` reports the full set of authored SLOs.
+- `cargo run -p oya-governance-slo-coverage -- microservices/analytics/` reports the full set of authored SLOs.
 - Each compiled PrometheusRule covers all 4 windows per ADR-0139.
 - Burn-rate breach → AlertManager → PagerDuty + Opsgenie per ADR-0186 Stage 4 (verified in dev cell via synthetic burn).
 - Every alert carries a `runbook` annotation referencing the proper runbook file.
@@ -153,12 +153,12 @@ Composite SLO: the analytics µservice availability = MIN(clickhouse-cluster-ava
 
 ### T8 — Per-tenant SLO opt-in (deferred)
 
-Tenants on Enterprise tier may have a contracted SLO different from the fleet default (e.g., 99.99% instead of 99.95%). This is deferred — phase 2 — and tracked at `evidence/per-tenant-slo-roadmap.md` (deferred).
+Tenants on paid tenant_class contract overlays may have a contracted SLO different from the fleet default (e.g., 99.99% instead of 99.95%). This is deferred — phase 2 — and tracked at `evidence/per-tenant-slo-roadmap.md` (deferred).
 
 ## Out of scope
 
 - Composite SLOs (downstream of leaf SLOs; observability µservice owns).
-- Per-µservice burn-rate budget redistribution (per ADR-0180-slo-composition).
+- Per-µservice burn-rate budget reallocation (per ADR-0180-slo-composition).
 - ML-based anomaly detection (per ADR-0180-anomaly).
 
 ## Failure modes
@@ -206,3 +206,22 @@ This IP authors the SLOs. The SLO targets themselves are recorded in each source
 - `microservices/analytics/slos/*.openslo.yaml`.
 - Sloth project: https://sloth.dev
 - Google SRE Workbook ch. 5 (alerting on SLOs): https://sre.google/workbook/alerting-on-slos/
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/analytics/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `iceberg_snapshot`, `clickhouse_iceberg_layered`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/analytics/specs/IP-014-self-slo-burn-rate-alerts.md:1` - # IP-014 — Self-SLO Authoring + 4-Window Burn-Rate Alerts; `microservices/analytics/specs/IP-014-self-slo-burn-rate-alerts.md:5` - **Authority ADRs:** ADR-0139 4-window alerting, ADR-0186 Stage 5 SLO authoring, ADR-0180-slo-composition-inheritance-arithmetic.
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: excluded from deferral for synchronous clinical or critical-care paths; carbon-aware placement can apply only to offline replay, export, archive, or backfill work when pack recovery bounds remain satisfied.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/analytics/specs/IP-014-self-slo-burn-rate-alerts.md:195` - ## Evidence emission.

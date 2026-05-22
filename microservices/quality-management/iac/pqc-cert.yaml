@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: oya-quality-management-pqc
+spec:
+  secretName: oya-quality-management-tls
+  commonName: quality-management.svc.oyatie.example
+  privateKey:
+    algorithm: Ed25519
+  usages: [server auth, client auth]
+  subject:
+    organizations: [Oyatie]
+  additionalOutputFormats:
+    - type: CombinedPEM

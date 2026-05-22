@@ -187,7 +187,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Secret-scanner CI lane detection; GitHub secret-scanning push protection |
-| Detection | `oya-foundry-fitness-evidence-secret-scan` lane alarm |
+| Detection | `oya-governance-evidence-secret-scan` lane alarm |
 | Tenant impact | Time-window between leak and rotation = exposure risk (mitigated by rotation speed) |
 | Severity | Sev-1 (security breach) |
 | Immediate mitigation | OpenBao rotates secret < 60s of detection; revoke old credential; forensic trace of leak path; tenant notification per breach-notification SLA if applicable |

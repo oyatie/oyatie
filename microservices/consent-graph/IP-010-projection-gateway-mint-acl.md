@@ -203,3 +203,7 @@ region; the sovereignty contract requires this is a per-agreement explicit decis
 - **R**: Pulsar cluster outage in grantor region.
   **M**: Active-active across 3 AZs; ADR-0078 mandates regional HA. Single-region outage means
   cross-tenant reads from that grantor halt — failure mode is correct (deny-by-default).
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: Snowflake/Databricks mint share access inside their own control planes; Cookiebot/OneTrust/TrustArc do not mint real-time projection topics. This IP's service-specific substance is tenant-aware Pulsar topic naming, ACL token delivery, destruction, and sovereignty-safe replication rather than generic data-share permissioning.
