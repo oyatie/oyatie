@@ -664,3 +664,27 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
 - ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
 - CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+
+## ADR-0341 integration
+ADR0341-ARCH-001: ADR-0341 binds the existing `cell-lifecycle` hexagonal ports to explicit Tier 0..4 promotion and demotion evidence rather than adding a new ownership domain.
+ADR0341-ARCH-002: `CellLifecycleCommandPort` accepts promotion intent only after request validation supplies cell id, current tier, target tier, evidence pack id, gate snapshot digest, idempotency key, and caller context.
+ADR0341-ARCH-003: `ObservabilityGatePort` supplies Gate 1 error-budget, Gate 3 canary SLO, Gate 4 cell-mesh health, alert-burst, and quiet-window receipts.
+ADR0341-ARCH-004: `TenancyResidentCountPort` supplies Gate 5 tenant-class coverage receipts for demo_trial and paid coverage on the current tier.
+ADR0341-ARCH-005: Compliance-pack coverage is consumed as a signed receipt set bound to ADR-0251 pack ids; downstream implementation may place the adapter behind tenancy, compliance, or policy integration, but the domain accepts only receipt ids and digests.
+ADR0341-ARCH-006: `LifecycleHistoryRepository` persists from_state, to_state, from_tier, to_tier, lifecycle_version, HLC timestamp, gate_snapshot_sha256, evidence_pack_id, idempotency key, result, and audit-chain event id.
+ADR0341-ARCH-007: `AuditChainEmitterPort` emits or verifies `cell.promotion.executed`, `cell.promotion.demoted`, and `cell.promotion.override` before a privileged transition reports success.
+ADR0341-ARCH-008: `CedarAuthorizationPort` proves the principal may request or automate the transition; Cedar allow never substitutes for evidence sufficiency.
+ADR0341-ARCH-009: `CellRegistryRepository` remains the source of truth for current Cell state and tier; Valkey remains a hot lookup projection and cannot satisfy a gate.
+ADR0341-ARCH-010: The architecture fails closed when any gate receipt is missing, stale, wrong-direction, mismatched to cell id, mismatched to tier edge, or inconsistent with the evidence-pack digest.
+ADR0341-ARCH-011: OpenAPI 3.2.0 remains the REST contract surface for lifecycle commands; future schema work must expose bounded evidence and refusal fields without embedding raw telemetry or compliance material.
+ADR0341-ARCH-012: AsyncAPI 3.1.0 is the appropriate event-contract format if transition events are published to internal consumers; event messages must carry audit references and digests.
+ADR0341-ARCH-013: Demotion uses the same append-history and audit-chain path as promotion, but with ADR-0341 safety thresholds and no routine-promotion quiet-window delay.
+ADR0341-ARCH-014: Emergency override uses a separate event class and multiparty authorization but still stores the gate snapshot visible at override time.
+ADR0341-ARCH-015: Cross-region replay uses HLC ordering and lifecycle_version compare-and-swap to avoid divergent regional views of the same Cell state.
+ADR0341-ARCH-016: The manifest `cell_promotion_gates` declaration is read as architecture input for applicable tiers, windows, evidence sources, and enforcement lanes.
+ADR0341-ARCH-017: The manifest `cell_promotion_history` array is architecture output from real promotion events, not a hand-authored status ledger.
+ADR0341-ARCH-018: The service scales by cell and transition volume, not by tenant request volume; dependency fan-in is bounded through receipt snapshots.
+ADR0341-ARCH-019: Tier 0 and Tier 1 transitions receive the strongest audit and isolation review because lifecycle mistakes there affect foundation and substrate blast radius.
+ADR0341-ARCH-020: Tier 4 and Tier 3 transitions still require evidence because low-criticality placement can become a correlated failure source if it bypasses mesh or tenant-class gates.
+ADR0341-ARCH-021: The implementation handoff must add tests for tier direction, stale evidence, missing gate, idempotency retry, audit-chain ordering, HLC replay, and fail-closed dependency behavior.
+ADR0341-ARCH-022: This integration block is documentation-stage only and preserves the current no-provisioning, no-tenant-migration, no-routing boundaries.

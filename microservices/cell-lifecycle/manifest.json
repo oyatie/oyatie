@@ -530,6 +530,80 @@
       "audit_chain_emit": true
     }
   },
+  "cell_promotion_gates": {
+    "applicable_tiers": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "cellular_deployment_pattern": "substrate_dedicated",
+    "default_initial_tier": 0,
+    "promotion_window_per_edge_seconds": {
+      "tier_0_to_1": 604800,
+      "tier_1_to_2": 1209600,
+      "tier_2_to_3": 2419200,
+      "tier_3_to_4": 4838400
+    },
+    "quiet_window_per_edge_seconds": {
+      "tier_0_to_1": 86400,
+      "tier_1_to_2": 172800,
+      "tier_2_to_3": 345600,
+      "tier_3_to_4": 604800
+    },
+    "compliance_pack_floor": [
+      "kr",
+      "eu",
+      "us",
+      "us-healthcare",
+      "jp",
+      "sg",
+      "au",
+      "in",
+      "br",
+      "ae",
+      "ksa",
+      "lgpd",
+      "soc2",
+      "iso27001",
+      "gdpr",
+      "hipaa",
+      "us-financial",
+      "us-public-sector",
+      "PCI-DSS",
+      "soc2-type2",
+      "il5",
+      "il6",
+      "fedramp-high",
+      "eu-ai-act"
+    ],
+    "evidence_sources": {
+      "error_budget_intact": "observability",
+      "warm_soak_floor": "cell-lifecycle",
+      "canary_cohort_slo": "observability",
+      "cell_mesh_health": "observability",
+      "tenant_class_coverage": "tenancy",
+      "compliance_pack_coverage": "compliance"
+    },
+    "lifecycle_state_mapping": {
+      "tier_4": "Promoted-T4",
+      "tier_3": "Promoted-T3",
+      "tier_2": "Promoted-T2",
+      "tier_1": "Promoted-T1",
+      "tier_0": "Promoted-T0"
+    },
+    "enforced_by": [
+      "oya-check-cell-promotion-gates",
+      "oya-governance-cell-tier-promotion-evidence",
+      "oya-governance-cell-tier-numbering-convention",
+      "oya-governance-cell-promotion-quiet-window",
+      "oya-governance-cell-orchestrator-binding",
+      "Kyverno enforce-cell-promotion-gates"
+    ],
+    "evidence_ip": "microservices/cell-lifecycle/IPs/IP-ADR-0341-Cellular-Promotion-Gates.md"
+  },
+  "cell_promotion_history": [],
   "supported_oses": [
     "talos-linux",
     "rhel",
