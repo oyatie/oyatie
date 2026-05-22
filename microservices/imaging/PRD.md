@@ -998,3 +998,16 @@ gRPC API stability:
 ## 25. Acknowledgements
 
 This PRD is authored as the sole-owner artifact for the imaging µservice per ADR-0132 + user directive 2026-05-21. It supersedes the imaging portions of the concurrently-authored diagnostics µservice, with reconciliation queued for Wave 15M follow-up. All performance leadership claims preserved from `microservices/healthcare-integration/performance-benchmark-numbers-2026-05-20.md`. All compliance pack obligations rooted in ADR-0251. All cross-µservice contracts defined per ADR-0245 substrate-vs-product layering.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `imaging` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `imaging` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 9 module pin(s) across 5 context(s).
+- Scaling input: `per_request` with cell placement `Tier-2` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

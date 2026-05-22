@@ -872,3 +872,16 @@ notes:
   - OCI Always Free deployment_context included per OCI-Always-Free-maximization memory.
   - All six deployment contexts covered per multi-context + provider-agnostic memory.
 -->
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `emergency` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `emergency` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 9 module pin(s) across 6 context(s).
+- Scaling input: `per_request` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

@@ -237,7 +237,32 @@
     "openbao"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "iam-role",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "vault",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-cedar-policy-bundle",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "tenant-namespace",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ],
   "data_classes_processed": [
     "AUTHENTICATION",
     "PII_IDENTIFYING",

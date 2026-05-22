@@ -240,7 +240,32 @@
     "kyverno"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "vpc",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "vcn",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "drg",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-zone",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ],
   "data_classes_processed": [
     "INTERNAL_ONLY",
     "AUDIT"

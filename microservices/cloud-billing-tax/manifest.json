@@ -234,7 +234,32 @@
     "cedar"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "rds-postgres",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "kms-key",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "autonomous-db",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-audit-chain-shard",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ],
   "data_classes_processed": [
     "FINANCIAL",
     "AUDIT"

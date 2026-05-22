@@ -238,7 +238,32 @@
     "clickhouse"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "s3-bucket",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "object-storage",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest/always-free",
+      "primitive": "vault-free",
+      "version_pin": "v1",
+      "tenant_class_scope": "demo_trial"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-audit-chain-shard",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ],
   "data_classes_processed": [
     "PII_IDENTIFYING",
     "PII_SENSITIVE",

@@ -237,7 +237,32 @@
     "cedar"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "kms-key",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "vault",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-kms-key-hierarchy",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-audit-chain-shard",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ],
   "data_classes_processed": [
     "AUTHENTICATION",
     "AUDIT",

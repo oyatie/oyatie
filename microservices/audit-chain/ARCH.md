@@ -54,3 +54,27 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
 - ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
 - CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+
+## ADR-0339 integration
+- Integration state: PROPOSED for `audit-chain`; ACCEPTED waits for service wrapper implementation and signed module evidence.
+- Ownership split: cloud-iac owns reusable OpenTofu primitive bodies; `audit-chain` owns wrapper selection, variables, SLO-driven sizing, and blast-radius review.
+- Current manifest pins: oci-guest/postgresql-cluster@v1[paid], on-prem/object-storage-versioned@v1[paid], colo/openbao-secret-binding@v1[paid], oyatie-as-cloud-provider/audit-chain-merkle-seal@v1[paid].
+- Wrapper shape: each `iac/<context>/main.tf` contains module, variable, output, terraform, and provider declarations only.
+- Resource-body rule: no service-local shared resource bodies are introduced; common provider wiring belongs under cloud-iac modules.
+- Cell placement: `Tier-0` is passed as placement intent under ADR-0248 and ADR-0341.
+- Runtime isolation: pod runtime tier `1` informs module nodepool selection under ADR-0338.
+- Capacity: `per_message` drives CPU `0.22`, RAM `384`, storage `8`, and connection pool variables.
+- DR: RTO `300` seconds and RPO `0` seconds constrain backup and failover primitives.
+- Sharding: autosharding `control_plane_driven` and explicit auto_rebalance/dynamic_sharding thresholds remain manifest-driven.
+- Supply chain: every module pin carries ADR-0181 cosign evidence before blocker-mode consumption.
+- Versioning: module semantic versions are independent from public API date versions and SDK semver releases.
+- Observability: module releases emit cost, carbon, tenant, cell, primitive, and version labels for ADR-0344 FinOps review.
+- Security: wrappers pass tenant_class and compliance-pack labels to prevent demo_trial, paid, regulated, and BYOK paths from sharing defaults.
+- Blast radius: primitive updates are reviewed once in cloud-iac and then consumed by explicit per-service pin movement.
+- Five-context posture: aws-guest, oci-guest, oci-guest/always-free, on-prem, colo, and oyatie-as-cloud-provider remain separate wrapper contexts.
+- OCI Always Free: any always-free invocation is demo_trial-only and cannot silently inherit paid-tenant features.
+- On-prem and colo: modules encode kubeadm, Cilium, Istio Ambient, Envoy Gateway, OpenBao, PostgreSQL, and Valkey substrate choices where selected.
+- Oyatie-as-provider: modules encode cell-zone, shard-cell, tenant namespace, per-cell nodepool, observability, audit-chain, KMS, and Cedar bundle primitives where selected.
+- Contract impact: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 files remain unchanged in this document-stage wave.
+- Review boundary: architecture acceptance requires the IP line floor, manifest field, PRD section, ADR-citation gate, cohesion gate, and refreshed doc inventory.
+- Implementation boundary: no Rust code, crate metadata, OpenTofu body, Helm chart, ArgoCD Application, or live infrastructure apply is part of this propagation.
