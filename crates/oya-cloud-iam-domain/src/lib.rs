@@ -78,6 +78,28 @@ pub struct StsSessionId {
     pub value: String, // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamPlacementBoundary {
+    pub tenant_id: CloudIamBoundaryTenantId, // data_class: INTERNAL_ONLY
+    pub cell_id: CloudIamBoundaryCellId,     // data_class: INTERNAL_ONLY
+    pub region_id: CloudIamBoundaryRegionId, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CloudIamBoundaryTenantId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CloudIamBoundaryCellId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CloudIamBoundaryRegionId {
+    pub value: String, // data_class: PUBLIC
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum IamPrincipalKind {
     User,

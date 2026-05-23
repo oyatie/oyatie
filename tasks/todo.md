@@ -26,7 +26,10 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - RED: failing API test required `Oyatie-Version` boundary fields and missing/unsupported public-version errors.
   - GREEN: API boundary validates supported date carriers before auth/idempotency/domain mutation; OpenAPI declares required `Oyatie-Version`.
   - VERIFY: `cargo test -p oya-cloud-iam-api`; Cloud IAM package tests; Cloud IAM clippy; `cargo fmt --all -- --check`; `./bin/oya gate validate api-semver --contracts-dir contracts`.
-- ⬜ CS-CLOUD-IAM-004 — typed tenant/cell/region boundary objects for IAM hot paths.
+- ✅ CS-CLOUD-IAM-004 — typed tenant/cell/region boundary objects for IAM hot paths.
+  - RED: failing API test required typed placement boundary structs/fields and placement-specific errors before IAM execution.
+  - GREEN: shared Cloud IAM typed placement boundary now flows through API boundary contexts and Cedar bind use-case requests; validation rejects missing cell/region or tenant drift before auth/idempotency/domain mutation.
+  - VERIFY: `cargo test -p oya-cloud-iam-api -p oya-cloud-iam-app`; Cloud IAM package tests; Cloud IAM clippy; `cargo fmt --all -- --check`.
 - ⬜ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
 
 ### Next Phase 0 services, after Cloud IAM checkpoint

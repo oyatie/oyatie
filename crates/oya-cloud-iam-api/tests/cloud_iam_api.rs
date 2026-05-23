@@ -6,8 +6,9 @@ use oya_cloud_iam_api::{
     CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION, CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
     CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE, CLOUD_IAM_ROLE_CREATE_SURFACE,
     CLOUD_IAM_STS_TOKEN_SURFACE, CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS, CloudIamApiAuthorization,
-    CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal,
-    CloudIamApiReadBoundaryContext, CloudIamIdentityProviderCreateApiRequest,
+    CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPlacementBoundary,
+    CloudIamApiPrincipal, CloudIamApiReadBoundaryContext, CloudIamBoundaryCellId,
+    CloudIamBoundaryRegionId, CloudIamBoundaryTenantId, CloudIamIdentityProviderCreateApiRequest,
     CloudIamIdentityProviderCreateApiStatus, CloudIamIdentityProviderCreateIdempotencyLedger,
     CloudIamIdentityProviderCreateRequest, CloudIamIdentityProviderDeleteApiRequest,
     CloudIamIdentityProviderDeleteApiStatus, CloudIamIdentityProviderDeleteIdempotencyLedger,
@@ -34,6 +35,7 @@ fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryC
         tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
         oyatie_version: CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION.to_string(),
+        placement: placement_for("ten_alpha", "cell-alpha-region-a-001", "region-home"),
     }
 }
 
@@ -42,6 +44,21 @@ fn read_boundary_for(request_id: &str) -> CloudIamApiReadBoundaryContext {
         request_id: request_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
         oyatie_version: CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION.to_string(),
+        placement: placement_for("ten_alpha", "cell-alpha-region-a-001", "region-home"),
+    }
+}
+
+fn placement_for(tenant_id: &str, cell_id: &str, region_id: &str) -> CloudIamApiPlacementBoundary {
+    CloudIamApiPlacementBoundary {
+        tenant_id: CloudIamBoundaryTenantId {
+            value: tenant_id.to_string(),
+        },
+        cell_id: CloudIamBoundaryCellId {
+            value: cell_id.to_string(),
+        },
+        region_id: CloudIamBoundaryRegionId {
+            value: region_id.to_string(),
+        },
     }
 }
 
@@ -400,6 +417,7 @@ fn identity_provider_list_api_rejects_cross_tenant_or_unauthorized_reads() {
     let directory = IamDirectory::default();
     let mut cross_tenant = identity_provider_list_api_request("req-idp-list-cross-tenant");
     cross_tenant.boundary.tenant_id = "ten_beta".to_string();
+    cross_tenant.boundary.placement.tenant_id.value = "ten_beta".to_string();
 
     assert_eq!(
         list_cloud_iam_identity_providers_from_api(&directory, cross_tenant),
@@ -855,6 +873,82 @@ fn identity_provider_create_api_accepts_manifest_public_versions_and_keys_by_ver
 }
 
 #[test]
+fn iam_api_rejects_missing_typed_cell_or_region_boundary_before_ledger() {
+    let mut directory = IamDirectory::default();
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let mut missing_cell =
+        identity_provider_api_request("req-idp-cell-missing", "idem-idp-cell-missing");
+    missing_cell.boundary.placement.cell_id.value = " ".to_string();
+    missing_cell.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, missing_cell),
+        Err(CloudIamApiError::EmptyBoundaryCell)
+    );
+    assert!(ledger.is_empty());
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("missing typed cell boundary rejected before directory mutation");
+
+    let mut directory = directory_with_principals();
+    let mut ledger = CloudIamRoleCreateIdempotencyLedger::default();
+    let mut missing_region =
+        role_api_request("req-role-region-missing", "idem-role-region-missing");
+    missing_region.boundary.placement.region_id.value = String::new();
+    missing_region.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        create_cloud_iam_role_from_api(&mut directory, &mut ledger, missing_region),
+        Err(CloudIamApiError::EmptyBoundaryRegion)
+    );
+    assert!(ledger.is_empty());
+    directory
+        .create_role(role_create())
+        .expect("missing typed region boundary rejected before directory mutation");
+}
+
+#[test]
+fn iam_api_rejects_typed_boundary_tenant_drift_before_authorization_or_domain() {
+    let mut directory = IamDirectory::default();
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let mut request =
+        identity_provider_api_request("req-idp-placement-tenant", "idem-idp-placement-tenant");
+    request.boundary.placement.tenant_id.value = "ten_beta".to_string();
+    request.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request),
+        Err(CloudIamApiError::PlacementTenantMismatch {
+            header_tenant_id: "ten_alpha".to_string(),
+            placement_tenant_id: "ten_beta".to_string(),
+        })
+    );
+    assert!(ledger.is_empty());
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("tenant placement drift rejected before directory mutation");
+}
+
+#[test]
+fn iam_api_keys_idempotency_fingerprints_by_typed_placement_boundary() {
+    let mut directory = IamDirectory::default();
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let request = identity_provider_api_request("req-idp-placement-key", "idem-idp-placement-key");
+    create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("typed placement boundary succeeds");
+
+    let mut cell_drifted = request;
+    cell_drifted.boundary.placement.cell_id.value = "cell-alpha-region-a-002".to_string();
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, cell_drifted),
+        Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: "idem-idp-placement-key".to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), 1);
+}
+
+#[test]
 fn identity_provider_create_api_registers_oidc_provider_once_and_replays() {
     let mut directory = IamDirectory::default();
     directory
@@ -999,6 +1093,7 @@ fn role_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
 
     empty_request.boundary.request_id = "req-tenant-drift".to_string();
     empty_request.boundary.tenant_id = "ten_other".to_string();
+    empty_request.boundary.placement.tenant_id.value = "ten_other".to_string();
     assert_eq!(
         create_cloud_iam_role_from_api(&mut directory, &mut ledger, empty_request),
         Err(CloudIamApiError::TenantMismatch {
