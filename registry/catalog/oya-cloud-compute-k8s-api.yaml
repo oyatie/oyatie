@@ -2,8 +2,13 @@ context: cloud
 role: api
 capability: compute-k8s
 plane: control
-slo: stable-control-plane
-data_classes_owned: [PUBLIC, INTERNAL_ONLY, PII_IDENTIFYING, PII_QUASI_IDENTIFIER, PHI, PCI, FINANCIAL_REGULATED_CREDIT, BEHAVIORAL_TENANT_PRODUCT, BEHAVIORAL_ADS, DECLARED_PREFERENCE, SEARCH_QUERY, SENSITIVE_PIPA_ART23]
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+non_claims:
+  - no live Kubernetes cluster bootstrap EKS or OKE integration
+  - no CNI service mesh RuntimeClass or Pod Security Admission apply
+  - no measured SLO or DR evidence

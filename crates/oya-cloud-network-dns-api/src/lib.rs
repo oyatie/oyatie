@@ -812,6 +812,15 @@ fn cloud_network_status_kind(error: &CloudNetworkError) -> CloudNetworkDnsApiSta
         | CloudNetworkError::InvalidHealthAlarmRef
         | CloudNetworkError::MeshControlPlaneReplicasRequired
         | CloudNetworkError::MeshUpgradeDrillRequired
+        | CloudNetworkError::DefaultDenyIngressRequired
+        | CloudNetworkError::DefaultDenyEgressRequired
+        | CloudNetworkError::DnsEgressExceptionRequired
+        | CloudNetworkError::CrossCellDefaultTrafficForbidden
+        | CloudNetworkError::EnvoyExtAuthzRequired
+        | CloudNetworkError::EnvoyFailClosedRequired
+        | CloudNetworkError::CoreDnsInsecurePodModeForbidden
+        | CloudNetworkError::EvidenceRefMissing
+        | CloudNetworkError::EvidenceRefLooksSecretLike
         | CloudNetworkError::InvalidFlowAnomalyId
         | CloudNetworkError::FlowLogsRequired => CloudNetworkDnsApiStatusKind::BadRequest,
     }
@@ -963,6 +972,31 @@ fn cloud_network_issue(error: &CloudNetworkError) -> &'static str {
         }
         CloudNetworkError::MeshUpgradeDrillRequired => {
             "service mesh requires quarterly upgrade drills"
+        }
+        CloudNetworkError::DefaultDenyIngressRequired => {
+            "cell guardrail requires default-deny ingress"
+        }
+        CloudNetworkError::DefaultDenyEgressRequired => {
+            "cell guardrail requires default-deny egress"
+        }
+        CloudNetworkError::DnsEgressExceptionRequired => {
+            "cell guardrail requires an explicit DNS egress exception"
+        }
+        CloudNetworkError::CrossCellDefaultTrafficForbidden => {
+            "cell guardrail forbids default cross-cell traffic"
+        }
+        CloudNetworkError::EnvoyExtAuthzRequired => {
+            "Envoy guardrail requires external authorization"
+        }
+        CloudNetworkError::EnvoyFailClosedRequired => {
+            "Envoy external authorization must fail closed"
+        }
+        CloudNetworkError::CoreDnsInsecurePodModeForbidden => {
+            "CoreDNS pod mode must not be insecure"
+        }
+        CloudNetworkError::EvidenceRefMissing => "evidence ref must use evidence://",
+        CloudNetworkError::EvidenceRefLooksSecretLike => {
+            "evidence ref must not contain secret-like material"
         }
         CloudNetworkError::DuplicateServiceMesh => "service mesh id is already present",
         CloudNetworkError::InvalidFlowAnomalyId => "flow anomaly id must use the flowanom_ prefix",
