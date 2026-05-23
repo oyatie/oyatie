@@ -30,7 +30,10 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - RED: failing API test required typed placement boundary structs/fields and placement-specific errors before IAM execution.
   - GREEN: shared Cloud IAM typed placement boundary now flows through API boundary contexts and Cedar bind use-case requests; validation rejects missing cell/region or tenant drift before auth/idempotency/domain mutation.
   - VERIFY: `cargo test -p oya-cloud-iam-api -p oya-cloud-iam-app`; Cloud IAM package tests; Cloud IAM clippy; `cargo fmt --all -- --check`.
-- ⬜ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
+- ✅ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
+  - RED: pre-change manifest inspection found unimplemented/stale claims: missing Cloud IAM app/adapter crates, extra non-existent layers, schema-invalid capability availability fields, a measured SLO without metrics evidence, stale doctrine/DR seal events, active-active DR claims without drill evidence, and sharding audit-emits without Cloud IAM automation implementation.
+  - GREEN: manifest now lists only implemented Cloud IAM crates/layers/capabilities/contracts, removes measured SLO claims, records hyperscaler invariant gaps as explicit non-claims, limits audit-chain seal events to the implemented IdP registry event shape, and treats capacity as an ADR-0340 planning declaration rather than runtime autoscaler evidence.
+  - VERIFY: JSON parse, CS-005 coherence validator, architecture-boundaries, api-semver, planning-closure, dependency-seam, design-spec-maturity negative-control, and diff whitespace checks.
 
 ### Next Phase 0 services, after Cloud IAM checkpoint
 
