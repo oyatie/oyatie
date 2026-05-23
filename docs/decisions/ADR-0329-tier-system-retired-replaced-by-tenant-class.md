@@ -3,6 +3,17 @@ id: ADR-0329
 title: Tier system retired; replaced by tenant-class model
 status: Accepted
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - council-product
+  - council-engineering
+  - council-privacy
+  - council-security
+  - axis-policy-engine
+  - axis-tenancy
+  - axis-foundry
+  - ops-compliance
+  - ops-sre-reliability
 owners:
   - council-architecture
   - council-product

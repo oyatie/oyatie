@@ -3,6 +3,11 @@ id: ADR-0340
 title: Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant + scaling_dimension + cell_placement_class)
 status: Proposed
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-sre-reliability
+  - ops-finops
+  - axis-cloud-data
 owners:
   - council-architecture
   - ops-sre-reliability

@@ -70,6 +70,8 @@ enforced_by:
 decision_owner: council-quality
 ---
 
+# ADR-0322: Substance Bar as Doctrine and CI Enforcement
+
 ## Status
 
 Proposed (2026-05-20). Active for all documentation authored on or after the
@@ -784,7 +786,7 @@ oya-governance-nightly workflow.
 ## Appendix A — Worked example: a Tier-1 ADR clearing the bar
 
 The following worked example demonstrates the gating flow for a
-hypothetical Tier-1 ADR `ADR-0399-hypothetical-doctrine.md` so that
+hypothetical Tier-1 ADR `ADR-NNNN-hypothetical-doctrine.md` so that
 agents and operators have a concrete reference.
 
 1. **Author drafts the ADR** at commit `abc1234`. The artifact has
@@ -802,12 +804,12 @@ agents and operators have a concrete reference.
 4. **Author remediates** the thin section by adding bespoke
    substance; recommits at `abc1235`; the lane re-runs.
 5. **Lane PASSes** all sub-checks; verdict signed and stored at
-   `evidence/substance-bar/ADR-0399-hypothetical-doctrine/verdict.signed.json`.
+   `evidence/substance-bar/ADR-NNNN-hypothetical-doctrine/verdict.signed.json`.
 6. **Reviewer-agent assignment**: the wave descriptor names
    `reviewer-substance-r12` as the F4-substance signer.
 7. **Reviewer agent reads** the artifact at `abc1235`, the lane
    evidence, and the wave context; signs the F4-substance facet at
-   `evidence/debate/ADR-0399-hypothetical-doctrine/F4-substance.signed.json`.
+   `evidence/debate/ADR-NNNN-hypothetical-doctrine/F4-substance.signed.json`.
 8. **The ADR's frontmatter** is updated to carry
    `substance_bar_facet_binding: "reviewer-substance-r12"` at commit
    `abc1236`.

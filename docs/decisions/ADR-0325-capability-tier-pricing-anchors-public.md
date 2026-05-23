@@ -81,6 +81,8 @@ enforced_by:
 decision_owner: council-product
 ---
 
+# ADR-0325: Capability Tier Pricing Anchors Public
+
 ## Status
 
 Proposed (2026-05-20). The anchors below are effective on the publication

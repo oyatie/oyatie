@@ -16,7 +16,7 @@ supersedes: []
 amends: []
 requires_amendment_to:
   - ADR-0255-intelligence-as-two-layer-ai-substrate.md (§D-2 library-first dispatch surface gains the sidecar key-holder primitive OR the ≤60s OpenBao token TTL constraint; in-process provider-credential caching prohibited beyond a single in-flight call; audit-signing key never resident in caller process memory)
-  - ADR-0255-amendment-library-first-network-opt-in-clarification.md (§D-2 caller-process scope reduced — audit-signing key + provider credentials move out of caller process into the sidecar; ADR-0294 soak-window applicable to sidecar permit fragment publications)
+  - ADR-0355-amendment-library-first-network-opt-in-clarification.md (§D-2 caller-process scope reduced — audit-signing key + provider credentials move out of caller process into the sidecar; ADR-0294 soak-window applicable to sidecar permit fragment publications)
   - ADR-0246-policy-engine-substrate-promotion.md (Cedar fragments touching tool-call permits must include a `sidecar_credential_handle_lifetime_ms` context attribute; `oya-check-library-first-credential-sidecar` lane added to coverage report)
 superseded_by: []
 related:
@@ -41,7 +41,7 @@ related:
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0251-compliance-pack-cell-certification-levels.md
   - ADR-0255-intelligence-as-two-layer-ai-substrate.md
-  - ADR-0255-amendment-library-first-network-opt-in-clarification.md
+  - ADR-0355-amendment-library-first-network-opt-in-clarification.md
   - ADR-0263-observability-emission-contract.md
   - ADR-0293-foundry-meta-trust-root.md
   - ADR-0294-cedar-fragment-soak-anomaly-rollback.md

@@ -3,6 +3,7 @@ id: ADR-0331
 title: Cross-µservice tenant_class Adoption Template
 status: Accepted
 date: 2026-05-21
+owner_team: council-architecture
 decision_owner: council-architecture
 doc_class: Architecture-Decision-Record
 shape: Decision

@@ -75,6 +75,8 @@ enforced_by:
 decision_owner: council-foundry
 ---
 
+# ADR-0323: Multi-Wave Sequencing Doctrine
+
 ## Status
 
 Proposed (2026-05-20). The doctrine applies retroactively to in-flight waves

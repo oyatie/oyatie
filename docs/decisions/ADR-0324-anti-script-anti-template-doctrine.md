@@ -76,6 +76,8 @@ enforced_by:
 decision_owner: council-quality
 ---
 
+# ADR-0324: Anti-Script Anti-Template Doctrine
+
 ## Status
 
 Proposed (2026-05-20). Applies to all in-scope content (per ADR-0322 scope)
@@ -724,7 +726,7 @@ A provenance record for a single-artifact authoring run:
 
 ```json
 {
-  "artifact_path": "docs/decisions/ADR-0399-hypothetical-doctrine.md",
+  "artifact_path": "docs/decisions/ADR-NNNN-hypothetical-doctrine.md",
   "author_principal": "claude-opus-4-7@dispatcher-instance-19",
   "tool_chain": [
     {
@@ -742,7 +744,7 @@ A provenance record for a single-artifact authoring run:
     {
       "tool": "claude-opus-4-7",
       "operation": "write",
-      "target_path": "docs/decisions/ADR-0399-hypothetical-doctrine.md",
+      "target_path": "docs/decisions/ADR-NNNN-hypothetical-doctrine.md",
       "timestamp": "2026-05-20T14:08:55.000Z"
     }
   ],

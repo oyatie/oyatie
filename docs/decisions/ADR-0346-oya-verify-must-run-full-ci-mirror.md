@@ -3,6 +3,11 @@ id: ADR-0346
 title: oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all + oya doc adr-index + oya lint adr-shape) and block on exit-0 of EACH step before returning success
 status: Proposed
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-platform
+  - axis-dev-cli
+  - ops-sre-reliability
 owners:
   - council-architecture
   - ops-platform

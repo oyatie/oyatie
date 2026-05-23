@@ -3,6 +3,13 @@ id: ADR-0349
 title: Jenkins (LTS) + ArgoCD canonical self-hostable CI/CD substrate (Jenkins augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164)
 status: Proposed
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-platform
+  - ops-sre-reliability
+  - axis-cloud-iac
+  - axis-observability
+  - council-security
 owners:
   - council-architecture
   - ops-platform

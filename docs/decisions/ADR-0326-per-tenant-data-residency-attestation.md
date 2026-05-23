@@ -89,6 +89,8 @@ enforced_by:
 decision_owner: council-compliance
 ---
 
+# ADR-0326: Per-Tenant Data Residency Attestation
+
 ## Status
 
 Proposed (2026-05-20). The residency tiers and attestation mechanism are

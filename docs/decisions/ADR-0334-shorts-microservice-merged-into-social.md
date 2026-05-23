@@ -2,6 +2,10 @@
 id: ADR-0334
 status: Accepted
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - axis-social
+  - axis-shorts
 deciders:
   - user-directive-2026-05-21
   - council-architecture

@@ -3,6 +3,11 @@ id: ADR-0339
 title: Shared IaC module library (`microservices/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)
 status: Proposed
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-platform-iac
+  - ops-sre-reliability
+  - council-security
 owners:
   - council-architecture
   - ops-platform-iac

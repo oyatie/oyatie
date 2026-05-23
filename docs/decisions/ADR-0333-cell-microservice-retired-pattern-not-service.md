@@ -2,6 +2,13 @@
 id: ADR-0333
 status: Accepted
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - axis-tenancy
+  - axis-cloud-iac
+  - axis-observability
+  - axis-audit-chain
+  - axis-api-gateway
 deciders:
   - user-directive-2026-05-21
   - council-architecture

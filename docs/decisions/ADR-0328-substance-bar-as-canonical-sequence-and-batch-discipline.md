@@ -3,6 +3,7 @@ id: ADR-0328
 title: Substance Bar as Canonical Sequence and Batch Discipline
 status: Proposed
 date: 2026-05-20
+owner_team: council-architecture
 related_adrs: [ADR-0244, ADR-0263, ADR-0316, ADR-0321, ADR-0322, ADR-0323, ADR-0324, ADR-0327, ADR-0136-amendment, ADR-0247, ADR-0255-amendment, ADR-0138]
 decision_owner: council-architecture
 doc_class: Architecture-Decision-Record

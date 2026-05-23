@@ -3,6 +3,17 @@ id: ADR-0338
 title: Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc for first-party + edge)
 status: Proposed
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - council-security
+  - ops-sre-reliability
+  - ops-security
+  - ops-dr-capacity
+  - axis-cloud
+  - axis-cell
+  - axis-deployment
+  - axis-policy-engine
+  - axis-observability
 owners:
   - council-architecture
   - council-security

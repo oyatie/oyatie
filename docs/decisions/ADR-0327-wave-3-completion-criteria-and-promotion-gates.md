@@ -123,6 +123,8 @@ enforced_by:
 decision_owner: council-foundry
 ---
 
+# ADR-0327: Wave 3 Completion Criteria and Promotion Gates
+
 ## Status
 
 Proposed (2026-05-20). The gates defined herein become effective the day
