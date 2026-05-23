@@ -202,6 +202,8 @@ pub struct KmsEncryptRequest {
     pub event_id: String,                // data_class: INTERNAL_ONLY
     pub key_id: String,                  // data_class: INTERNAL_ONLY
     pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub region: String,                  // data_class: PUBLIC
+    pub cell_id: String,                 // data_class: PUBLIC
     pub plaintext_ref: String,           // data_class: INTERNAL_ONLY
     pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
     pub data_class: DataClass,           // data_class: INTERNAL_ONLY
@@ -216,6 +218,8 @@ pub struct KmsDecryptRequest {
     pub event_id: String,                // data_class: INTERNAL_ONLY
     pub key_id: String,                  // data_class: INTERNAL_ONLY
     pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub region: String,                  // data_class: PUBLIC
+    pub cell_id: String,                 // data_class: PUBLIC
     pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
     pub data_class: DataClass,           // data_class: INTERNAL_ONLY
     pub purpose: KmsPurpose,             // data_class: INTERNAL_ONLY
@@ -335,6 +339,7 @@ pub enum CloudKmsError {
     KeyIdRegionMismatch,
     InvalidCellId,
     CellRegionMismatch,
+    CellPlacementMismatch,
     InvalidHsmPartitionRef,
     HsmPartitionMismatch,
     HsmValidationDenied,
@@ -743,7 +748,14 @@ impl KmsProviderCryptoReceipt {
 
 impl KmsUseReceipt {
     pub fn encrypt(key: &KmsKey, input: KmsEncryptRequest) -> Result<Self, CloudKmsError> {
-        validate_use_key(key, &input.key_id, &input.tenant_id, input.data_class)?;
+        validate_use_key(
+            key,
+            &input.key_id,
+            &input.tenant_id,
+            &input.region,
+            &input.cell_id,
+            input.data_class,
+        )?;
         validate_aad_fingerprint(&input.aad_fingerprint)?;
         Ok(Self {
             event_id: internal(KmsUseEventId::new(input.event_id)?),
@@ -763,7 +775,14 @@ impl KmsUseReceipt {
     }
 
     pub fn decrypt(key: &KmsKey, input: KmsDecryptRequest) -> Result<Self, CloudKmsError> {
-        validate_use_key(key, &input.key_id, &input.tenant_id, input.data_class)?;
+        validate_use_key(
+            key,
+            &input.key_id,
+            &input.tenant_id,
+            &input.region,
+            &input.cell_id,
+            input.data_class,
+        )?;
         Ok(Self {
             event_id: internal(KmsUseEventId::new(input.event_id)?),
             key_id: internal(KmsKeyId::new(input.key_id)?),
@@ -922,6 +941,8 @@ fn validate_use_key(
     key: &KmsKey,
     key_id: &str,
     tenant_id: &str,
+    region: &str,
+    cell_id: &str,
     data_class: DataClass,
 ) -> Result<(), CloudKmsError> {
     let key_id = KmsKeyId::new(key_id.to_string())?;
@@ -930,6 +951,16 @@ fn validate_use_key(
     }
     if tenant_id != key.tenant_id.value {
         return Err(CloudKmsError::ResourceTenantMismatch);
+    }
+    let region =
+        RegionCode::new(region.to_string()).map_err(|_| CloudKmsError::InvalidResourceId)?;
+    if region != key.region.value {
+        return Err(CloudKmsError::ResourceRegionMismatch);
+    }
+    let cell_id = CellId::new(cell_id.to_string()).map_err(|_| CloudKmsError::InvalidCellId)?;
+    validate_cell_region(&cell_id, &region)?;
+    if cell_id != key.cell_id.value {
+        return Err(CloudKmsError::CellPlacementMismatch);
     }
     if !key.state.value.can_serve_crypto() {
         return Err(CloudKmsError::InvalidKeyState);
@@ -1132,6 +1163,8 @@ mod tests {
             event_id: event_id.to_string(),
             key_id: KEY_ID.to_string(),
             tenant_id: TENANT.to_string(),
+            region: REGION.to_string(),
+            cell_id: CELL.to_string(),
             plaintext_ref: PLAINTEXT_REF.to_string(),
             ciphertext_ref: CIPHERTEXT_REF.to_string(),
             data_class: DataClass::PiiIdentifying,
@@ -1364,6 +1397,8 @@ mod tests {
                 event_id: "kmsuse_decrypt_001".to_string(),
                 key_id: KEY_ID.to_string(),
                 tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: CELL.to_string(),
                 ciphertext_ref: CIPHERTEXT_REF.to_string(),
                 data_class: DataClass::PiiIdentifying,
                 purpose: KmsPurpose::CloudObjectStorage,
@@ -1374,6 +1409,40 @@ mod tests {
         .expect("decrypt request is valid");
         assert_eq!(decrypt.operation.value, KmsOperation::Decrypt);
         assert!(decrypt.material_ref.value.is_none());
+    }
+
+    #[test]
+    fn rejects_crypto_use_when_request_region_or_cell_drift_from_key_placement() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+
+        let region_error = KmsUseReceipt::encrypt(
+            &key,
+            KmsEncryptRequest {
+                region: GLOBAL_REGION.to_string(),
+                cell_id: GLOBAL_CELL.to_string(),
+                ..encrypt_request("kmsuse_region_drift")
+            },
+        )
+        .expect_err("request region must match key placement");
+        assert_eq!(region_error, CloudKmsError::ResourceRegionMismatch);
+
+        let cell_error = KmsUseReceipt::decrypt(
+            &key,
+            KmsDecryptRequest {
+                event_id: "kmsuse_cell_drift".to_string(),
+                key_id: KEY_ID.to_string(),
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: "cell-region-alpha1-b-001".to_string(),
+                ciphertext_ref: CIPHERTEXT_REF.to_string(),
+                data_class: DataClass::PiiIdentifying,
+                purpose: KmsPurpose::CloudObjectStorage,
+                actor: "usr_alice".to_string(),
+                requested_at_epoch_seconds: 1_700_000_020,
+            },
+        )
+        .expect_err("request cell must match key placement");
+        assert_eq!(cell_error, CloudKmsError::CellPlacementMismatch);
     }
 
     #[test]

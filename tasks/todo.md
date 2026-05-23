@@ -6,9 +6,8 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 
 - `/specs/masterplan.json`
 - `/specs/master-plan-sequencing.json`
-- `docs/decisions/` with later ADRs winning conflicts
-- `docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md`
-- `docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md`
+- `docs/decisions/` with later ADRs winning conflicts.
+- Stale README/PRD handoff documents are non-authoritative unless a later ADR explicitly reaffirms them.
 
 ## Phase 0 — shared cloud infrastructure
 
@@ -43,7 +42,10 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - RED: failing API test required `Oyatie-Version` boundary field, N=3 supported-version constants, and missing/unsupported public-version errors.
   - GREEN: API boundary validates supported date carriers before auth/idempotency/KMS receipt mutation; idempotency fingerprint includes the version; OpenAPI declares required `Oyatie-Version`.
   - VERIFY: targeted API tests; `cargo test -p oya-cloud-kms-api`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; `./bin/oya gate validate api-semver --contracts-dir contracts`.
-- ⬜ CS-CLOUD-KMS-002 — typed tenant/cell/region boundary objects for KMS hot paths.
+- ✅ CS-CLOUD-KMS-002 — typed tenant/cell/region boundary objects for KMS hot paths.
+  - RED: failing API/domain tests required placement boundary headers and region/cell request fields before KMS hot paths could compile/pass.
+  - GREEN: domain/API carries typed region/cell boundary context, validates missing/mismatched placement before authorization/idempotency/receipt mutation, and includes placement in idempotency fingerprints.
+  - VERIFY: targeted RED/GREEN tests; `cargo test -p oya-cloud-kms-api`; `cargo test -p oya-cloud-kms-domain`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; api-semver; architecture-boundaries; planning-closure; dependency-seam.
 - ⬜ CS-CLOUD-KMS-003 — audit/evidence mapping for rotation, destruction, and provider crypto receipts.
 - ⬜ CS-CLOUD-KMS-004 — Cloud KMS manifest/gate coherence update based only on implemented evidence.
 

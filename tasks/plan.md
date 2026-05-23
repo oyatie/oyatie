@@ -202,12 +202,15 @@ Live implementation roots:
 - `microservices/cloud-kms/manifest.json`
   - Phase 0 manifest with version pins and currently over-broad implementation claims to reconcile after API/domain evidence is complete
 
-Material gaps to close before Cloud KMS can support the FD-001 foundation bar:
+Closed Cloud KMS gaps:
 
-1. Public encrypt/decrypt contract lacks enforced `Oyatie-Version` carrier despite ADR-0342 and manifest version declarations.
-2. API hot paths do not yet carry typed tenant/cell/region placement metadata at the boundary.
-3. Rotation/destruction/provider receipts need audit-chain evidence mapping reviewed against the latest ADRs.
-4. Manifest claims still overstate implemented layers/capabilities/SLO/DR surfaces and must be reconciled to evidence.
+- Public encrypt/decrypt contract now enforces the `Oyatie-Version` carrier declared by ADR-0342 and the Cloud KMS manifest.
+- API/domain hot paths now carry and enforce typed tenant/cell/region placement metadata at the boundary.
+
+Remaining material gaps to close before Cloud KMS can support the FD-001 foundation bar:
+
+1. Rotation/destruction/provider receipts need audit-chain evidence mapping reviewed against the latest ADRs.
+2. Manifest claims still overstate implemented layers/capabilities/SLO/DR surfaces and must be reconciled to evidence.
 
 ## Cloud KMS ChangeSet sequence
 
@@ -236,11 +239,26 @@ Material gaps to close before Cloud KMS can support the FD-001 foundation bar:
 
 ### CS-CLOUD-KMS-002 — typed tenant/cell/region boundary object for KMS hot paths
 
+**Scope**
+
+- `crates/oya-cloud-kms-domain/src/lib.rs`
+- `crates/oya-cloud-kms-api/src/lib.rs`
+- `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs`
+- `contracts/openapi/cloud/cloud-kms-v1.yaml`
+
 **Acceptance criteria**
 
 - KMS encrypt/decrypt API requests carry typed tenant/cell/region boundary metadata.
-- Boundary metadata is validated before business logic.
+- Boundary metadata is validated before authorization, idempotency ledger mutation, and KMS receipt mutation.
 - No KMS operation can execute without tenant/cell/region context matching key residency/cell metadata.
+- Idempotency fingerprints include the placement boundary carried by the API.
+- OpenAPI declares required `X-Region-Code` and `X-Cell-Id` headers for encrypt/decrypt.
+
+**Verification**
+
+- RED tests first: API placement-boundary rejection and domain placement-drift rejection.
+- GREEN package tests: `cargo test -p oya-cloud-kms-domain -p oya-cloud-kms-api`.
+- KMS package regression, clippy, format, OpenAPI semver, architecture, planning, and dependency-seam gates.
 
 ### CS-CLOUD-KMS-003 — audit/evidence mapping for KMS rotation/destruction/provider crypto receipts
 
@@ -262,8 +280,8 @@ Material gaps to close before Cloud KMS can support the FD-001 foundation bar:
 
 - After each code ChangeSet: targeted tests + package tests + clippy must pass before moving on.
 - After Cloud IAM CS-001..005: run `./bin/oya verify --ci-required` or record any tool/runtime blocker with next-best evidence.
-- Current active slice: Phase 0 `cloud-kms` CS-CLOUD-KMS-001.
+- Current active slice: Phase 0 `cloud-kms` CS-CLOUD-KMS-003.
 
-## First executable task
+## Next executable task
 
-Begin Cloud KMS with **CS-CLOUD-KMS-001** because it aligns the existing public encrypt/decrypt API surface with ADR-0342 and the manifest's N=3 version pins before deeper KMS custody, placement, receipt, or manifest claims are widened.
+Continue Cloud KMS with **CS-CLOUD-KMS-003** because the public API version carrier and typed placement boundary are now enforced; receipt/evidence mapping is the next sequential invariant before manifest claims are reconciled.

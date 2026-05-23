@@ -9,6 +9,7 @@ use oya_cloud_kms_domain::{
     CloudKmsDirectory, CloudKmsError, KmsDecryptRequest, KmsEncryptRequest, KmsOperation,
     KmsPurpose, KmsRepo, KmsUseReceipt,
 };
+use oya_cloud_region_domain::{CellId, RegionCode};
 use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_KMS_ENCRYPT_SURFACE: &str = "cloud.kms.encrypt";
@@ -47,6 +48,11 @@ pub enum CloudKmsApiErrorCode {
     TenantHeaderEmpty,
     PublicApiVersionMissing,
     PublicApiVersionUnsupported,
+    RegionHeaderEmpty,
+    RegionHeaderInvalid,
+    CellHeaderEmpty,
+    CellHeaderInvalid,
+    BoundaryCellRegionMismatch,
     IdempotencyKeyEmpty,
     PathKeyIdEmpty,
     KeyIdMismatch,
@@ -72,6 +78,11 @@ impl CloudKmsApiErrorCode {
             Self::TenantHeaderEmpty => "CLOUD_KMS_TENANT_HEADER_EMPTY",
             Self::PublicApiVersionMissing => "CLOUD_KMS_PUBLIC_API_VERSION_MISSING",
             Self::PublicApiVersionUnsupported => "CLOUD_KMS_PUBLIC_API_VERSION_UNSUPPORTED",
+            Self::RegionHeaderEmpty => "CLOUD_KMS_REGION_HEADER_EMPTY",
+            Self::RegionHeaderInvalid => "CLOUD_KMS_REGION_HEADER_INVALID",
+            Self::CellHeaderEmpty => "CLOUD_KMS_CELL_HEADER_EMPTY",
+            Self::CellHeaderInvalid => "CLOUD_KMS_CELL_HEADER_INVALID",
+            Self::BoundaryCellRegionMismatch => "CLOUD_KMS_BOUNDARY_CELL_REGION_MISMATCH",
             Self::IdempotencyKeyEmpty => "CLOUD_KMS_IDEMPOTENCY_KEY_EMPTY",
             Self::PathKeyIdEmpty => "CLOUD_KMS_PATH_KEY_ID_EMPTY",
             Self::KeyIdMismatch => "CLOUD_KMS_KEY_ID_MISMATCH",
@@ -96,6 +107,8 @@ impl CloudKmsApiErrorCode {
 pub struct CloudKmsApiBoundaryContext {
     pub request_id: String,      // data_class: INTERNAL_ONLY
     pub tenant_id: String,       // data_class: INTERNAL_ONLY
+    pub region: String,          // data_class: PUBLIC
+    pub cell_id: String,         // data_class: PUBLIC
     pub idempotency_key: String, // data_class: INTERNAL_ONLY
     pub oyatie_version: String,  // data_class: PUBLIC
 }
@@ -262,6 +275,18 @@ pub enum CloudKmsApiError {
     UnsupportedPublicApiVersion {
         oyatie_version: String, // data_class: PUBLIC
     },
+    EmptyRegionHeader,
+    InvalidRegionHeader {
+        region: String, // data_class: PUBLIC
+    },
+    EmptyCellHeader,
+    InvalidCellHeader {
+        cell_id: String, // data_class: PUBLIC
+    },
+    BoundaryCellRegionMismatch {
+        region: String,  // data_class: PUBLIC
+        cell_id: String, // data_class: PUBLIC
+    },
     EmptyIdempotencyKey,
     EmptyPathKeyId,
     KeyIdMismatch {
@@ -328,6 +353,13 @@ impl CloudKmsApiError {
             Self::UnsupportedPublicApiVersion { .. } => {
                 CloudKmsApiErrorCode::PublicApiVersionUnsupported
             }
+            Self::EmptyRegionHeader => CloudKmsApiErrorCode::RegionHeaderEmpty,
+            Self::InvalidRegionHeader { .. } => CloudKmsApiErrorCode::RegionHeaderInvalid,
+            Self::EmptyCellHeader => CloudKmsApiErrorCode::CellHeaderEmpty,
+            Self::InvalidCellHeader { .. } => CloudKmsApiErrorCode::CellHeaderInvalid,
+            Self::BoundaryCellRegionMismatch { .. } => {
+                CloudKmsApiErrorCode::BoundaryCellRegionMismatch
+            }
             Self::EmptyIdempotencyKey => CloudKmsApiErrorCode::IdempotencyKeyEmpty,
             Self::EmptyPathKeyId => CloudKmsApiErrorCode::PathKeyIdEmpty,
             Self::KeyIdMismatch { .. } => CloudKmsApiErrorCode::KeyIdMismatch,
@@ -385,6 +417,11 @@ impl CloudKmsApiError {
             | Self::EmptyTenantHeader
             | Self::MissingPublicApiVersion
             | Self::UnsupportedPublicApiVersion { .. }
+            | Self::EmptyRegionHeader
+            | Self::InvalidRegionHeader { .. }
+            | Self::EmptyCellHeader
+            | Self::InvalidCellHeader { .. }
+            | Self::BoundaryCellRegionMismatch { .. }
             | Self::EmptyIdempotencyKey
             | Self::EmptyPathKeyId
             | Self::KeyIdMismatch { .. }
@@ -400,6 +437,17 @@ impl CloudKmsApiError {
             Self::MissingPublicApiVersion => "Oyatie-Version header is required",
             Self::UnsupportedPublicApiVersion { .. } => {
                 "Oyatie-Version header must be a supported YYYY-MM-DD public API version"
+            }
+            Self::EmptyRegionHeader => "X-Region-Code header is required",
+            Self::InvalidRegionHeader { .. } => {
+                "X-Region-Code header must be a canonical region code"
+            }
+            Self::EmptyCellHeader => "X-Cell-Id header is required",
+            Self::InvalidCellHeader { .. } => {
+                "X-Cell-Id header must be a canonical cell identifier"
+            }
+            Self::BoundaryCellRegionMismatch { .. } => {
+                "X-Cell-Id header must belong to X-Region-Code"
             }
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
             Self::EmptyPathKeyId => "Path key id is required",
@@ -442,6 +490,20 @@ impl CloudKmsApiError {
             Self::UnsupportedPublicApiVersion { .. } => vec![detail(
                 "header.Oyatie-Version",
                 "must match a Cloud KMS supported public API version",
+            )],
+            Self::EmptyRegionHeader => vec![detail("header.X-Region-Code", "must be non-empty")],
+            Self::InvalidRegionHeader { .. } => vec![detail(
+                "header.X-Region-Code",
+                "must be a canonical region code",
+            )],
+            Self::EmptyCellHeader => vec![detail("header.X-Cell-Id", "must be non-empty")],
+            Self::InvalidCellHeader { .. } => vec![detail(
+                "header.X-Cell-Id",
+                "must be a canonical cell identifier",
+            )],
+            Self::BoundaryCellRegionMismatch { .. } => vec![detail(
+                "header.X-Cell-Id",
+                "cell must be scoped to header.X-Region-Code",
             )],
             Self::EmptyIdempotencyKey => {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
@@ -550,6 +612,7 @@ pub fn authorize_cloud_kms_encrypt_from_api(
     request: CloudKmsEncryptApiRequest,
 ) -> Result<CloudKmsCryptoSuccessResponse, CloudKmsApiError> {
     validate_cloud_kms_encrypt_request(&request)?;
+    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
     let key = idempotency_key_for(
         &request.boundary,
         &request.principal,
@@ -566,7 +629,7 @@ pub fn authorize_cloud_kms_encrypt_from_api(
     }
 
     let request_id = request.boundary.request_id.clone();
-    let result = encrypt_input(request.body)
+    let result = encrypt_input(&request.boundary, request.body)
         .and_then(|input| {
             directory
                 .authorize_encrypt(input)
@@ -589,6 +652,7 @@ pub fn authorize_cloud_kms_decrypt_from_api(
     request: CloudKmsDecryptApiRequest,
 ) -> Result<CloudKmsCryptoSuccessResponse, CloudKmsApiError> {
     validate_cloud_kms_decrypt_request(&request)?;
+    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
     let key = idempotency_key_for(
         &request.boundary,
         &request.principal,
@@ -605,7 +669,7 @@ pub fn authorize_cloud_kms_decrypt_from_api(
     }
 
     let request_id = request.boundary.request_id.clone();
-    let result = decrypt_input(request.body)
+    let result = decrypt_input(&request.boundary, request.body)
         .and_then(|input| {
             directory
                 .authorize_decrypt(input)
@@ -630,8 +694,64 @@ fn validate_boundary(boundary: &CloudKmsApiBoundaryContext) -> Result<(), CloudK
         return Err(CloudKmsApiError::EmptyTenantHeader);
     }
     validate_public_api_version(&boundary.oyatie_version)?;
+    let _placement = boundary_placement(boundary)?;
     if boundary.idempotency_key.trim().is_empty() {
         return Err(CloudKmsApiError::EmptyIdempotencyKey);
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudKmsBoundaryPlacement {
+    region: RegionCode, // data_class: PUBLIC
+    cell_id: CellId,    // data_class: PUBLIC
+}
+
+fn boundary_placement(
+    boundary: &CloudKmsApiBoundaryContext,
+) -> Result<CloudKmsBoundaryPlacement, CloudKmsApiError> {
+    if boundary.region.trim().is_empty() {
+        return Err(CloudKmsApiError::EmptyRegionHeader);
+    }
+    let region = RegionCode::new(boundary.region.clone()).map_err(|_| {
+        CloudKmsApiError::InvalidRegionHeader {
+            region: boundary.region.clone(),
+        }
+    })?;
+    if boundary.cell_id.trim().is_empty() {
+        return Err(CloudKmsApiError::EmptyCellHeader);
+    }
+    let cell_id =
+        CellId::new(boundary.cell_id.clone()).map_err(|_| CloudKmsApiError::InvalidCellHeader {
+            cell_id: boundary.cell_id.clone(),
+        })?;
+    let expected_cell_prefix = format!("cell-{}-", region.value);
+    if !cell_id.value.starts_with(&expected_cell_prefix) {
+        return Err(CloudKmsApiError::BoundaryCellRegionMismatch {
+            region: region.value,
+            cell_id: cell_id.value,
+        });
+    }
+    Ok(CloudKmsBoundaryPlacement { region, cell_id })
+}
+
+fn validate_key_placement_boundary(
+    directory: &CloudKmsDirectory,
+    path_key_id: &str,
+    boundary: &CloudKmsApiBoundaryContext,
+) -> Result<(), CloudKmsApiError> {
+    let placement = boundary_placement(boundary)?;
+    let Some(key) = directory
+        .keys()
+        .find(|key| key.key_id.value.value == path_key_id)
+    else {
+        return Ok(());
+    };
+    if key.region.value != placement.region {
+        return Err(CloudKmsApiError::Kms(CloudKmsError::ResourceRegionMismatch));
+    }
+    if key.cell_id.value != placement.cell_id {
+        return Err(CloudKmsApiError::Kms(CloudKmsError::CellPlacementMismatch));
     }
     Ok(())
 }
@@ -724,11 +844,16 @@ fn validate_authorization(
     Ok(())
 }
 
-fn encrypt_input(body: CloudKmsEncryptRequest) -> Result<KmsEncryptRequest, CloudKmsApiError> {
+fn encrypt_input(
+    boundary: &CloudKmsApiBoundaryContext,
+    body: CloudKmsEncryptRequest,
+) -> Result<KmsEncryptRequest, CloudKmsApiError> {
     Ok(KmsEncryptRequest {
         event_id: body.event_id,
         key_id: body.key_id,
         tenant_id: body.tenant_id,
+        region: boundary.region.clone(),
+        cell_id: boundary.cell_id.clone(),
         plaintext_ref: body.plaintext_ref,
         ciphertext_ref: body.ciphertext_ref,
         data_class: parse_api_data_class(body.data_class)?,
@@ -739,11 +864,16 @@ fn encrypt_input(body: CloudKmsEncryptRequest) -> Result<KmsEncryptRequest, Clou
     })
 }
 
-fn decrypt_input(body: CloudKmsDecryptRequest) -> Result<KmsDecryptRequest, CloudKmsApiError> {
+fn decrypt_input(
+    boundary: &CloudKmsApiBoundaryContext,
+    body: CloudKmsDecryptRequest,
+) -> Result<KmsDecryptRequest, CloudKmsApiError> {
     Ok(KmsDecryptRequest {
         event_id: body.event_id,
         key_id: body.key_id,
         tenant_id: body.tenant_id,
+        region: boundary.region.clone(),
+        cell_id: boundary.cell_id.clone(),
         ciphertext_ref: body.ciphertext_ref,
         data_class: parse_api_data_class(body.data_class)?,
         purpose: parse_api_purpose(body.purpose)?,
@@ -793,6 +923,8 @@ fn encrypt_fingerprint_for(request: &CloudKmsEncryptApiRequest) -> CloudKmsReque
             format!("path.key_id={}", request.path_key_id),
             format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("header.region={}", request.boundary.region),
+            format!("header.cell_id={}", request.boundary.cell_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
             format!(
@@ -835,6 +967,8 @@ fn decrypt_fingerprint_for(request: &CloudKmsDecryptApiRequest) -> CloudKmsReque
             format!("path.key_id={}", request.path_key_id),
             format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("header.region={}", request.boundary.region),
+            format!("header.cell_id={}", request.boundary.cell_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
             format!(
@@ -916,6 +1050,7 @@ fn cloud_kms_status_kind(error: &CloudKmsError) -> CloudKmsApiStatusKind {
         CloudKmsError::UnknownKey => CloudKmsApiStatusKind::NotFound,
         CloudKmsError::ResourceTenantMismatch
         | CloudKmsError::ResourceRegionMismatch
+        | CloudKmsError::CellPlacementMismatch
         | CloudKmsError::InvalidDataClass
         | CloudKmsError::InvalidKeyState
         | CloudKmsError::InvalidKeyUsage => CloudKmsApiStatusKind::Forbidden,
@@ -967,6 +1102,7 @@ fn cloud_kms_issue(error: &CloudKmsError) -> &'static str {
         CloudKmsError::KeyIdRegionMismatch => "key_id region must match request region",
         CloudKmsError::InvalidCellId => "cell_id must be a canonical cell identifier",
         CloudKmsError::CellRegionMismatch => "cell_id must belong to key region",
+        CloudKmsError::CellPlacementMismatch => "request cell must match key cell",
         CloudKmsError::InvalidHsmPartitionRef => "hsm_partition_ref must be canonical",
         CloudKmsError::HsmPartitionMismatch => "hsm_partition_ref must bind region and cell",
         CloudKmsError::HsmValidationDenied => "KMS keys require an accepted HSM validation profile",

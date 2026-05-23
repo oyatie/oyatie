@@ -1517,6 +1517,7 @@ name = "oya-cloud-kms-api"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-kms-domain",
+ "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]

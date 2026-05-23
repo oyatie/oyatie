@@ -35,6 +35,24 @@ paths:
             minLength: 1
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Region-Code
+          in: header
+          required: true
+          description: Typed region placement carrier; must match the KMS key home region.
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        - name: X-Cell-Id
+          in: header
+          required: true
+          description: Typed cell placement carrier; must belong to X-Region-Code and match the KMS key cell.
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
         - name: Oyatie-Version
           in: header
           required: true
@@ -76,7 +94,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CloudKmsApiErrorResponse'
         '403':
-          description: Tenant, actor, authorization, key state, usage, or data-class policy denied the request.
+          description: Tenant, actor, authorization, placement, key state, usage, or data-class policy denied the request.
           content:
             application/json:
               schema:
@@ -128,6 +146,24 @@ paths:
             minLength: 1
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Region-Code
+          in: header
+          required: true
+          description: Typed region placement carrier; must match the KMS key home region.
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        - name: X-Cell-Id
+          in: header
+          required: true
+          description: Typed cell placement carrier; must belong to X-Region-Code and match the KMS key cell.
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
         - name: Oyatie-Version
           in: header
           required: true
@@ -169,7 +205,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CloudKmsApiErrorResponse'
         '403':
-          description: Tenant, actor, authorization, key state, usage, or data-class policy denied the request.
+          description: Tenant, actor, authorization, placement, key state, usage, or data-class policy denied the request.
           content:
             application/json:
               schema:

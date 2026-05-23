@@ -21,6 +21,8 @@ fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudKmsApiBoundaryC
     CloudKmsApiBoundaryContext {
         request_id: request_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
+        region: "region-home".to_string(),
+        cell_id: "cell-region-home-a-001".to_string(),
         idempotency_key: idempotency_key.to_string(),
         oyatie_version: CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION.to_string(),
     }
@@ -216,6 +218,52 @@ fn kms_api_rejects_missing_or_unsupported_oyatie_version_before_ledger() {
         Err(CloudKmsApiError::UnsupportedPublicApiVersion {
             oyatie_version: "not-a-date".to_string(),
         })
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+}
+
+#[test]
+fn kms_api_rejects_missing_or_drifted_placement_before_ledger() {
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
+
+    let mut missing_region =
+        encrypt_api_request("req-kms-region-missing", "idem-kms-region-missing");
+    missing_region.boundary.region = " ".to_string();
+    missing_region.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, missing_region),
+        Err(CloudKmsApiError::EmptyRegionHeader)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut missing_cell = decrypt_api_request("req-kms-cell-missing", "idem-kms-cell-missing");
+    missing_cell.boundary.cell_id = "\t".to_string();
+    missing_cell.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        authorize_cloud_kms_decrypt_from_api(&mut directory, &mut ledger, missing_cell),
+        Err(CloudKmsApiError::EmptyCellHeader)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut region_drift = encrypt_api_request("req-kms-region-drift", "idem-kms-region-drift");
+    region_drift.boundary.region = "region-away".to_string();
+    region_drift.boundary.cell_id = "cell-region-away-a-001".to_string();
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, region_drift),
+        Err(CloudKmsApiError::Kms(CloudKmsError::ResourceRegionMismatch))
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut cell_drift = decrypt_api_request("req-kms-cell-drift", "idem-kms-cell-drift");
+    cell_drift.boundary.cell_id = "cell-region-home-b-001".to_string();
+    assert_eq!(
+        authorize_cloud_kms_decrypt_from_api(&mut directory, &mut ledger, cell_drift),
+        Err(CloudKmsApiError::Kms(CloudKmsError::CellPlacementMismatch))
     );
     assert!(ledger.is_empty());
     assert_eq!(directory.receipts().count(), 0);
