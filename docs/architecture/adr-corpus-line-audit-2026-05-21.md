@@ -108,10 +108,10 @@ A contradiction is a pair of ADRs both at `Status: Accepted` (or both `Proposed`
 | ADR-0052-inventory-grit-cutover.md | `status: Superseded`, `superseded_by: [ADR-0118]` | ADR-0116 | normative body | ADR-0052 superseded by ADR-0118 (orphan-fitness-lane archive) but the *substantive* retirement is ADR-0116. The link points to the wrong ADR. | **P2** |
 | ADR-0244-tenant-as-universal-scoping-primitive.md | DDL section: `byok_enabled BOOL` co-exists with `provider_credential_mode` | keystone synthesis §4 | clarification | The synthesis explicitly splits these fields into two disjoint flags. ADR-0244 still wires both but other ADRs (0255 amendment, 0246 amendment) mention only the new field; ADR-0308 invokes `provider_credential_mode` independently. | **P1** |
 | ADR-0245-substrate-vs-product-layering.md | `date: 2026-MM-DD` (placeholder) | doc-style frontmatter rules | normative | A 2026-MM-DD date in a keystone-bundle ADR is undated metadata; nothing else in the corpus uses placeholders. | **P1** |
-| ADR-0246-policy-engine-substrate-promotion.md | `id: ADR-0246` | ADR-0246-amendment-library-first-network-opt-in-clarification.md | `id: ADR-0246-amendment-library-first-network-opt-in-clarification` | Two files share ADR number 0246. The amendment uses a compound id (`ADR-0246-amendment-...`) but the *file* still claims the 0246 slot. Tools that key by 0-padded id will collide. | **P0** |
-| ADR-0253-network-topology-edge-service-mesh.md | `id: ADR-0253` | ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md | `id: ADR-0253-amendment` | Same defect as 0246. | **P0** |
-| ADR-0255-intelligence-as-two-layer-ai-substrate.md | `id: ADR-0255` + `status: Substantially-Rewritten` | ADR-0255-amendment-library-first-network-opt-in-clarification.md | `id: ADR-0255-amendment-...` | Same defect as 0246. ALSO: ADR-0255 carries an *invalid* status value `Substantially-Rewritten` which is not in the canonical status enum (`Proposed / Accepted / Superseded / Deprecated / Withdrawn`). | **P0** |
-| ADR-0257-ontology-object-type-versioning-deprecation-handshake.md | `id: ADR-0257` | ADR-0257-amendment-library-first-ontology-read-path.md | `id: ADR-0257-amendment-...` | Same defect as 0246. | **P0** |
+| ADR-0246-policy-engine-substrate-promotion.md | `id: ADR-0246` | ADR-0353-amendment-library-first-network-opt-in-clarification.md | `id: ADR-0353-amendment-library-first-network-opt-in-clarification` | Two files share ADR number 0246. The amendment uses a compound id (`ADR-0246-amendment-...`) but the *file* still claims the 0246 slot. Tools that key by 0-padded id will collide. | **P0** |
+| ADR-0253-network-topology-edge-service-mesh.md | `id: ADR-0253` | ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md | `id: ADR-0253-amendment` | Same defect as 0246. | **P0** |
+| ADR-0255-intelligence-as-two-layer-ai-substrate.md | `id: ADR-0255` + `status: Substantially-Rewritten` | ADR-0355-amendment-library-first-network-opt-in-clarification.md | `id: ADR-0255-amendment-...` | Same defect as 0246. ALSO: ADR-0255 carries an *invalid* status value `Substantially-Rewritten` which is not in the canonical status enum (`Proposed / Accepted / Superseded / Deprecated / Withdrawn`). | **P0** |
+| ADR-0257-ontology-object-type-versioning-deprecation-handshake.md | `id: ADR-0257` | ADR-0356-amendment-library-first-ontology-read-path.md | `id: ADR-0257-amendment-...` | Same defect as 0246. | **P0** |
 | ADR-0006-ontology-typed-entity-layer.md | Still uses "Object Graph" terminology in §C/§D | ADR-0055-object-graph-renamed-to-ontology.md | normative body of the rename | ADR-0006 predates the rename; ADR-0055 + ADR-0122 perform the rename. ADR-0006 should be cleaned up; currently it carries the retired term in its `Accepted` body. | **P1** |
 | ADR-0059-workflow-ontology-ecosystem-adapter-layer.md | `status: accepted` (lowercase) | ADR-0145-inter-microservice-communication-reform.md | normative body | Memory `feedback_workflow_objectgraph_adapter_layer` (RETIRED per ADR-0145) explicitly notes ADR-0145 *replaces* the Workflow+Ontology forced-adapter rule. ADR-0059 ships `accepted` (lowercase, schema-invalid enum) and lacks `superseded_by: ADR-0145`. | **P0** |
 | ADR-0136-foundry-as-single-microservice.md | `status: Accepted` (2026-05-18) | ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md + ADR-0247-self-hosting-self-modification-doctrine.md | normative body | Per the synthesis doc §3 KB-F1 finding, ADR-0136 is functionally superseded by ADR-0247 + ADR-0239 amendment but carries no `superseded_by:`. | **P1** |
@@ -128,7 +128,7 @@ A contradiction is a pair of ADRs both at `Status: Accepted` (or both `Proposed`
 |---|---|---|
 | ADR-0244 | DDL §D-3 + Cedar entity-schema §D-2 | DDL declares both `byok_enabled` + `provider_credential_mode`; Cedar entity schema declares them as the same field with conflicting type signatures. Synthesis §4 fixes this in text only; the DDL has not been re-rendered. **P1.** |
 | ADR-0257-ontology-object-type-versioning-deprecation-handshake.md | §G References | Cites "ADR-0257's deprecation handshake remains authoritative" — a self-citation in third person. Indicates copy-paste from an outer doc; doesn't break, but smells. **P2.** |
-| ADR-0246-policy-engine-substrate-promotion.md | §H Change log | References "the amendment" without specifying that the amendment lives in a separately-named file (`ADR-0246-amendment-library-first-network-opt-in-clarification.md`). Reader must guess. **P2.** |
+| ADR-0246-policy-engine-substrate-promotion.md | §H Change log | References "the amendment" without specifying that the amendment lives in a separately-named file (`ADR-0353-amendment-library-first-network-opt-in-clarification.md`). Reader must guess. **P2.** |
 
 ### 2.3 Supersedes / superseded-by claim mismatches
 
@@ -167,18 +167,18 @@ ADRs that mention BYOK but **DO NOT disambiguate provider-BYOK vs encryption-BYO
 - ADR-0245-substrate-vs-product-layering.md — P1
 - ADR-0254-deployment-model-spectrum.md — P1
 - ADR-0293-foundry-meta-trust-root.md — P1
-- ADR-0257-amendment-library-first-ontology-read-path.md — P1
+- ADR-0356-amendment-library-first-ontology-read-path.md — P1
 - ADR-0284-platform-owner-name-indirection.md — P1
-- ADR-0255-amendment-library-first-network-opt-in-clarification.md — P1
+- ADR-0355-amendment-library-first-network-opt-in-clarification.md — P1
 - ADR-0250-build-ahead-of-certification-doctrine.md — P1
 - ADR-0242-oyatie-is-a-tenant-doctrine.md — P1
 - ADR-0251-compliance-pack-cell-certification-levels.md — P1
 - ADR-0276-backup-portability-format-gdpr-article-20.md — P1
 - ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md — P1
-- ADR-0246-amendment-library-first-network-opt-in-clarification.md — P1
+- ADR-0353-amendment-library-first-network-opt-in-clarification.md — P1
 - ADR-0280-substrate-of-substrate-dependency-doctrine.md — P1
 - ADR-0296-library-first-credential-sidecar.md — P1
-- ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md — P1
+- ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md — P1
 
 **Total: 21 ADRs need BYOK-disambiguation pass.** Each must, where BYOK is mentioned, qualify it as either *provider*-BYOK (ADR-0255 §D-4) or *encryption*-BYOK (ADR-0251 §D-10) per the synthesis doc §4.
 
@@ -203,7 +203,7 @@ ADRs invoking a layer enum:
   - ADR-0122-ontology-crate-rename-from-object-graph.md
   - ADR-0115-registry-consolidation-flat-singular.md
 - **References 12-layer term anywhere (even retrospectively) — needs verification (P2):**
-  - ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md
+  - ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md
   - ADR-0284-platform-owner-name-indirection.md
   - ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md
   - ADR-0307-detection-substrate-streaming-batch.md
@@ -229,7 +229,7 @@ ADRs still using "Object Graph" / "object-graph" / "object_graph":
 - ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md — title acknowledges rename (OK)
 - ADR-0141-workflow-ontology-read-path-direct.md — superseded; OK with note (P2)
 - ADR-0255-intelligence-as-two-layer-ai-substrate.md — uses old term in §D (P1)
-- ADR-0257-amendment-library-first-ontology-read-path.md — title uses new term (OK); body? — verify
+- ADR-0356-amendment-library-first-ontology-read-path.md — title uses new term (OK); body? — verify
 - ADR-0276-backup-portability-format-gdpr-article-20.md — uses old term in §E (P2)
 - ADR-0257-ontology-object-type-versioning-deprecation-handshake.md — title uses new term (OK)
 - README.md — should document the rename, not present in source-of-truth (P2)
@@ -695,7 +695,7 @@ Severity-ordered punch list. Each item maps 1:1 to a remediation step.
 
 ### 8.1 P0 items (production-breaking — must fix before any keystone-bundle ADR promotes from Proposed to Accepted)
 
-1. **R-P0-01: Resolve 4 duplicate ADR-number file collisions.** Files: `ADR-0246-policy-engine-substrate-promotion.md` vs `ADR-0246-amendment-library-first-network-opt-in-clarification.md`; `ADR-0253-network-topology-edge-service-mesh.md` vs `ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md`; `ADR-0255-intelligence-as-two-layer-ai-substrate.md` vs `ADR-0255-amendment-library-first-network-opt-in-clarification.md`; `ADR-0257-ontology-object-type-versioning-deprecation-handshake.md` vs `ADR-0257-amendment-library-first-ontology-read-path.md`. Action: renumber the four amendment files to unused slots (unused ADR slot 0259 / 0260 / 0261 / 0262 are available) OR adopt a sub-id convention (e.g., `ADR-0246.1`) and update all referrers.
+1. **R-P0-01: Resolve 4 duplicate ADR-number file collisions.** Files: `ADR-0246-policy-engine-substrate-promotion.md` vs `ADR-0353-amendment-library-first-network-opt-in-clarification.md`; `ADR-0253-network-topology-edge-service-mesh.md` vs `ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md`; `ADR-0255-intelligence-as-two-layer-ai-substrate.md` vs `ADR-0355-amendment-library-first-network-opt-in-clarification.md`; `ADR-0257-ontology-object-type-versioning-deprecation-handshake.md` vs `ADR-0356-amendment-library-first-ontology-read-path.md`. Action: renumber the four amendment files to unused slots (unused ADR slot 0259 / 0260 / 0261 / 0262 are available) OR adopt a sub-id convention (e.g., `ADR-0246.1`) and update all referrers.
 2. **R-P0-02: Fix ADR-0255-intelligence-as-two-layer-ai-substrate.md invalid status.** It carries `status: Substantially-Rewritten` (not in canonical enum). Action: replace with `Proposed` (consistent with keystone bundle staging) + remove duplicate `status:` key.
 3. **R-P0-03: Fix ADR-0263-observability-emission-contract.md duplicate frontmatter keys.** Multiple `status:` entries (`Proposed` then `OK` x3). Action: dedupe; the first one (`Proposed`) wins per YAML semantics; remove the others.
 4. **R-P0-04: Mark ADR-0053 (`grit-icm-as-sanctioned-primitives`) as Superseded by ADR-0116.** Action: set `status: Superseded` + add `superseded_by: ADR-0116` + move file to `docs/decisions/superseded/`.
@@ -1100,12 +1100,12 @@ These ADRs are within striking distance of the rigor floor and require targeted 
 
 | ADR | Lines | Status | Gap | Remediation refs |
 |---|---:|---|---:|---|
-| ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc | 833 | Proposed | +(-167) at amendment floor 1000 | R-P0-01 (renumber), R-P1-15 (target 1000) |
+| ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc | 833 | Proposed | +(-167) at amendment floor 1000 | R-P0-01 (renumber), R-P1-15 (target 1000) |
 | ADR-0294-cedar-fragment-soak-anomaly-rollback | 1067 | Proposed | -433 | R-P1-15 (expand to 1500) |
 | ADR-0242-oyatie-is-a-tenant-doctrine | 1098 | Proposed | -402 | R-P1-15, R-P1-21 (post-gate promote) |
 | ADR-0243-cedar-as-universal-gate | 1102 | Proposed | -398 | R-P1-15, R-P1-21 |
 | ADR-0258-api-versioning-model | 1107 | Accepted | -393 | R-P1-15, R-P1-05 (OpenAPI 3.2.0), R-P1-06 (AsyncAPI 3.1.0) |
-| ADR-0255-amendment-library-first-network-opt-in-clarification | 1186 | Proposed | +186 vs 1000 amendment floor | R-P0-01 (renumber) |
+| ADR-0355-amendment-library-first-network-opt-in-clarification | 1186 | Proposed | +186 vs 1000 amendment floor | R-P0-01 (renumber) |
 | ADR-0295-bootstrap-ci-spiffe-kill-switch | 1242 | Proposed | -258 | R-P1-15, R-P1-21 |
 | ADR-0293-foundry-meta-trust-root | 1348 | Proposed | -152 | R-P1-15, R-P1-21 |
 | ADR-0296-library-first-credential-sidecar | 1377 | Proposed | -123 | R-P1-15, R-P1-01 (BYOK), R-P1-21 |
@@ -1122,9 +1122,9 @@ These ADRs meet the rigor §2 floor but may still have content gaps (BYOK disamb
 | ADR-0305-delegated-agent-authority-chain | 1559 | Proposed | +59 | R-P1-21 |
 | ADR-0302-deceased-user-inheritance-doctrine | 1595 | Proposed | +95 | R-P1-21 |
 | ADR-0306-disaster-mode-cell-resilience | 1639 | Proposed | +139 | R-P1-21 |
-| ADR-0257-amendment-library-first-ontology-read-path | 1649 | Proposed | +649 (amendment floor 1000) | R-P0-01 (renumber) |
+| ADR-0356-amendment-library-first-ontology-read-path | 1649 | Proposed | +649 (amendment floor 1000) | R-P0-01 (renumber) |
 | ADR-0300-whistleblower-press-freedom-anonymity | 1649 | Proposed | +149 | R-P1-21 |
-| ADR-0246-amendment-library-first-network-opt-in-clarification | 1667 | Proposed | +667 | R-P0-01 (renumber) |
+| ADR-0353-amendment-library-first-network-opt-in-clarification | 1667 | Proposed | +667 | R-P0-01 (renumber) |
 | ADR-0298-emergency-services-bypass-life-safety | 1668 | Proposed | +168 | R-P1-21 |
 | ADR-0284-platform-owner-name-indirection | 1754 | Proposed | +254 | R-P1-01 (BYOK), R-P1-21 |
 | ADR-0309-detection-fairness-audit-civil-rights | 1782 | Proposed | +282 | R-P1-21 |
@@ -1680,7 +1680,7 @@ For the remediation agent's convenience, this is an index of every ADR mentioned
 - **ADR-0244:** P1 BYOK DDL re-render.
 - **ADR-0245:** P1 date placeholder.
 - **ADR-0246-policy-engine-substrate-promotion:** **P0** renumber + P1 placeholder marker removal.
-- **ADR-0246-amendment-library-first-network-opt-in-clarification:** **P0** renumber.
+- **ADR-0353-amendment-library-first-network-opt-in-clarification:** **P0** renumber.
 - **ADR-0247:** OK (Tier-G) but must clear F5-247-01/02 fix gates.
 - **ADR-0248:** OK (Tier-G) but must clear A7 math errata gate.
 - **ADR-0249:** OK (Tier-G).

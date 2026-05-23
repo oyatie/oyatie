@@ -1556,11 +1556,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 487 refs / 2222 lines = 21.92 per 100 lines
 - artifact: `docs/decisions/ADR-0254-deployment-model-spectrum.md`
 - named gaps: none named; retain in regression audit
-### ADR-0255 — ADR-0255-amendment-library-first-network-opt-in-clarification.md
+### ADR-0255 — ADR-0355-amendment-library-first-network-opt-in-clarification.md
 - status: Proposed
 - depth: A-rigorous; lines=1187; substance_markers=10
 - cross-ref-density: 244 refs / 1187 lines = 20.56 per 100 lines
-- artifact: `docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md`
+- artifact: `docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0256
 - status: MISSING

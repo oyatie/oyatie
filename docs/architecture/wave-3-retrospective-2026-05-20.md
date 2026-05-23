@@ -2509,10 +2509,10 @@ Month 1 output: Rust scaffold batch selection.
 Month 1 validation: Oya VCS evidence for backlog, inventory, and selected batches.
 Month 1 stop condition: no new scope until inventory drift is resolved or waived.
 Month 2 objective: implement first CI gate crates.
-Month 2 output: six-hop graph walker MVP.
-Month 2 output: capability-tier registry validator MVP.
-Month 2 output: ADR status validator MVP.
-Month 2 output: duplicate-clause detector MVP.
+Month 2 output: six-hop graph walker minimum viable implementation.
+Month 2 output: capability-tier registry validator minimum viable implementation.
+Month 2 output: ADR status validator minimum viable implementation.
+Month 2 output: duplicate-clause detector minimum viable implementation.
 Month 2 validation: validators run on scoped corpus and emit machine-readable evidence.
 Month 2 stop condition: graph and registry blockers are named, not silently ignored.
 Month 3 objective: create first Rust service scaffolds.

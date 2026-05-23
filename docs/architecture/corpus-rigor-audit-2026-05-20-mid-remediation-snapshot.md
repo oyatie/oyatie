@@ -4930,18 +4930,18 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md`; provider_signals=0; encryption_signals=42; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`; provider_signals=0; encryption_signals=2; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0296-library-first-credential-sidecar.md`; provider_signals=6; encryption_signals=9; finding=local disambiguation signal present.
-- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`; provider_signals=0; encryption_signals=2; finding=local disambiguation signal present.
-- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md`; provider_signals=7; encryption_signals=0; finding=local disambiguation signal present.
+- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`; provider_signals=0; encryption_signals=2; finding=local disambiguation signal present.
+- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md`; provider_signals=7; encryption_signals=0; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0293-foundry-meta-trust-root.md`; provider_signals=0; encryption_signals=53; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0312-court-warrant-scoped-piercing.md`; provider_signals=0; encryption_signals=1; finding=local disambiguation signal present.
-- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md`; provider_signals=0; encryption_signals=18; finding=local disambiguation signal present.
+- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md`; provider_signals=0; encryption_signals=18; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0284-platform-owner-name-indirection.md`; provider_signals=1; encryption_signals=6; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0045-database-tier-strategy.md`; provider_signals=0; encryption_signals=3; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0276-backup-portability-format-gdpr-article-20.md`; provider_signals=0; encryption_signals=18; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0243-cedar-as-universal-gate.md`; provider_signals=1; encryption_signals=20; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md`; provider_signals=0; encryption_signals=1; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md`; provider_signals=2; encryption_signals=7; finding=local disambiguation signal present.
-- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md`; provider_signals=3; encryption_signals=0; finding=local disambiguation signal present.
+- Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md`; provider_signals=3; encryption_signals=0; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0253-network-topology-edge-service-mesh.md`; provider_signals=0; encryption_signals=5; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0245-substrate-vs-product-layering.md`; provider_signals=0; encryption_signals=8; finding=local disambiguation signal present.
 - Severity: P2 IMPROVE; Confidence: MED; path=`docs/decisions/ADR-0246-policy-engine-substrate-promotion.md`; provider_signals=1; encryption_signals=19; finding=local disambiguation signal present.
@@ -5107,14 +5107,14 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Reverse-ref sample: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
-- Reverse-ref sample: `docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`
-- Reverse-ref sample: `docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md`
+- Reverse-ref sample: `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`
+- Reverse-ref sample: `docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md`
 - Reverse-ref sample: `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
 - Reverse-ref sample: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
 - Reverse-ref sample: `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0312-court-warrant-scoped-piercing.md`
 - Reverse-ref sample: `docs/decisions/ADR-0306-disaster-mode-cell-resilience.md`
-- Reverse-ref sample: `docs/decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md`
+- Reverse-ref sample: `docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md`
 
 ### ADR-0243
 - Severity: P2 IMPROVE
@@ -5173,9 +5173,9 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Reverse-ref sample: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
-- Reverse-ref sample: `docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`
+- Reverse-ref sample: `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md`
-- Reverse-ref sample: `docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md`
+- Reverse-ref sample: `docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md`
 - Reverse-ref sample: `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
 - Reverse-ref sample: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
 - Reverse-ref sample: `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
@@ -5200,8 +5200,8 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Reverse-ref sample: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
-- Reverse-ref sample: `docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`
-- Reverse-ref sample: `docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md`
+- Reverse-ref sample: `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`
+- Reverse-ref sample: `docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md`
 - Reverse-ref sample: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
 - Reverse-ref sample: `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0312-court-warrant-scoped-piercing.md`
@@ -5215,7 +5215,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 ### ADR-0246
 - Severity: P2 IMPROVE
 - Confidence: HIGH
-- Own files: `docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`, `docs/decisions/ADR-0246-policy-engine-substrate-promotion.md`
+- Own files: `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`, `docs/decisions/ADR-0246-policy-engine-substrate-promotion.md`
 - Reverse references found: 600
 - Verdict: PASS
 - Reverse-ref sample: `docs/GLOSSARY.md`
@@ -5238,7 +5238,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Reverse-ref sample: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
-- Reverse-ref sample: `docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md`
+- Reverse-ref sample: `docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md`
 - Reverse-ref sample: `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
 - Reverse-ref sample: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
 - Reverse-ref sample: `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
@@ -5271,7 +5271,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Reverse-ref sample: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
-- Reverse-ref sample: `docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`
+- Reverse-ref sample: `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`
 - Reverse-ref sample: `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md`
 - Reverse-ref sample: `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
 - Reverse-ref sample: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
@@ -5279,7 +5279,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 ### ADR-0255
 - Severity: P2 IMPROVE
 - Confidence: HIGH
-- Own files: `docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md`, `docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md`
+- Own files: `docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md`, `docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md`
 - Reverse references found: 341
 - Verdict: PASS
 - Reverse-ref sample: `docs/GLOSSARY.md`
@@ -5292,8 +5292,8 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Reverse-ref sample: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`
 - Reverse-ref sample: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
 - Reverse-ref sample: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
-- Reverse-ref sample: `docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md`
-- Reverse-ref sample: `docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md`
+- Reverse-ref sample: `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md`
+- Reverse-ref sample: `docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md`
 - Reverse-ref sample: `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
 - Reverse-ref sample: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
 - Reverse-ref sample: `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
