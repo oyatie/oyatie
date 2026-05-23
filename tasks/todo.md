@@ -46,7 +46,10 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - RED: failing API/domain tests required placement boundary headers and region/cell request fields before KMS hot paths could compile/pass.
   - GREEN: domain/API carries typed region/cell boundary context, validates missing/mismatched placement before authorization/idempotency/receipt mutation, and includes placement in idempotency fingerprints.
   - VERIFY: targeted RED/GREEN tests; `cargo test -p oya-cloud-kms-api`; `cargo test -p oya-cloud-kms-domain`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; api-semver; architecture-boundaries; planning-closure; dependency-seam.
-- ⬜ CS-CLOUD-KMS-003 — audit/evidence mapping for rotation, destruction, and provider crypto receipts.
+- ✅ CS-CLOUD-KMS-003 — audit/evidence mapping for rotation, destruction, and provider crypto receipts.
+  - RED: failing domain test required Cloud KMS evidence event/receipt types, rotation receipts, provider/schema/evidence-ref drift errors, and receipt conversion functions.
+  - GREEN: domain receipts now convert to immutable metadata-only evidence events for use, provider crypto, rotation, and destruction without carrying raw plaintext/ciphertext/key material.
+  - VERIFY: targeted RED/GREEN tests; `cargo test -p oya-cloud-kms-domain`; `cargo test -p oya-cloud-kms-api`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; api-semver; architecture-boundaries; planning-closure; dependency-seam.
 - ⬜ CS-CLOUD-KMS-004 — Cloud KMS manifest/gate coherence update based only on implemented evidence.
 
 ### Remaining Phase 0 services

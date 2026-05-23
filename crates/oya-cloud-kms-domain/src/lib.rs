@@ -31,6 +31,7 @@ const KMS_KEY_PREFIX: &str = "kms";
 const BYOK_KEY_PREFIX: &str = "byok";
 const HYOK_KEY_PREFIX: &str = "hyok";
 const HSM_PARTITION_PREFIX: &str = "hsm/";
+const KMS_SYSTEM_ACTOR: &str = "sp_kms_control_plane";
 const MAX_DESTRUCTION_SLA_SECONDS: u64 = 86_400;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -124,6 +125,21 @@ pub enum KmsProviderKind {
     OciKms,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum CloudKmsEvidenceOperation {
+    Encrypt,
+    Decrypt,
+    Rotate,
+    Destroy,
+    ProviderEncrypt,
+    ProviderDecrypt,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum CloudKmsEvidenceStatus {
+    Succeeded,
+}
+
 impl KmsProviderKind {
     pub const fn label(self) -> &'static str {
         match self {
@@ -154,6 +170,19 @@ impl KmsPurpose {
             Self::SecretProvider => "secret_provider",
             Self::CrossRegionReplication => "cross_region_replication",
             Self::DatabaseBackup => "database_backup",
+        }
+    }
+}
+
+impl CloudKmsEvidenceOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Encrypt => "encrypt",
+            Self::Decrypt => "decrypt",
+            Self::Rotate => "rotate",
+            Self::Destroy => "destroy",
+            Self::ProviderEncrypt => "provider_encrypt",
+            Self::ProviderDecrypt => "provider_decrypt",
         }
     }
 }
@@ -327,6 +356,60 @@ pub struct KeyDestructionReceipt {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyRotationRequest {
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub rotation_evidence_ref: String,   // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub completed_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyRotationReceipt {
+    pub key_id: Classified<KmsKeyId>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub actor: Classified<ActorRef>,   // data_class: INTERNAL_ONLY
+    pub previous_key_version: Classified<u32>, // data_class: INTERNAL_ONLY
+    pub new_key_version: Classified<u32>, // data_class: INTERNAL_ONLY
+    pub rotation_evidence_ref: Classified<String>, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub completed_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsEvidenceEvent {
+    event_id: String,                     // data_class: INTERNAL_ONLY
+    tenant_id: String,                    // data_class: INTERNAL_ONLY
+    key_id: String,                       // data_class: INTERNAL_ONLY
+    actor: String,                        // data_class: INTERNAL_ONLY
+    operation: CloudKmsEvidenceOperation, // data_class: PUBLIC
+    status: CloudKmsEvidenceStatus,       // data_class: PUBLIC
+    evidence_ref: String,                 // data_class: INTERNAL_ONLY
+    provider: Option<KmsProviderKind>,    // data_class: PUBLIC
+    provider_request_id: Option<String>,  // data_class: INTERNAL_ONLY
+    key_version: Option<u32>,             // data_class: INTERNAL_ONLY
+    occurred_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
+    schema_version: u32,                  // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsEvidenceReceipt {
+    event_id: String,                     // data_class: INTERNAL_ONLY
+    tenant_id: String,                    // data_class: INTERNAL_ONLY
+    key_id: String,                       // data_class: INTERNAL_ONLY
+    operation: CloudKmsEvidenceOperation, // data_class: PUBLIC
+    status: CloudKmsEvidenceStatus,       // data_class: PUBLIC
+    evidence_ref: String,                 // data_class: INTERNAL_ONLY
+    provider: Option<KmsProviderKind>,    // data_class: PUBLIC
+    provider_request_id: Option<String>,  // data_class: INTERNAL_ONLY
+    key_version: Option<u32>,             // data_class: INTERNAL_ONLY
+    occurred_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
+    schema_version: u32,                  // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudKmsError {
     InvalidTenantId,
     InvalidResourceId,
@@ -356,6 +439,9 @@ pub enum CloudKmsError {
     InvalidTimeOrder,
     DestructionSlaExceeded,
     InvalidDestructionProofRef,
+    ProviderMismatch,
+    InvalidEvidenceRef,
+    InvalidEvidenceSchemaVersion,
     DuplicateKey,
     UnknownKey,
     DuplicateUseEvent,
@@ -593,6 +679,38 @@ impl KmsKey {
         Ok(updated)
     }
 
+    pub fn rotate_with_receipt(
+        &self,
+        input: KeyRotationRequest,
+    ) -> Result<(Self, KeyRotationReceipt), CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id)?;
+        if key_id != self.key_id.value {
+            return Err(CloudKmsError::UnknownKey);
+        }
+        if input.tenant_id != self.tenant_id.value {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        let actor = ActorRef::new(input.actor)?;
+        validate_evidence_ref(&input.rotation_evidence_ref)?;
+        validate_time_order(
+            input.requested_at_epoch_seconds,
+            input.completed_at_epoch_seconds,
+        )?;
+        let rotated = self.rotate(input.completed_at_epoch_seconds)?;
+        let receipt = KeyRotationReceipt {
+            key_id: internal(key_id),
+            tenant_id: internal(input.tenant_id),
+            actor: internal(actor),
+            previous_key_version: internal(self.current_version.value),
+            new_key_version: internal(rotated.current_version.value),
+            rotation_evidence_ref: internal(input.rotation_evidence_ref),
+            requested_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
+            completed_at_epoch_seconds: internal(input.completed_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        };
+        Ok((rotated, receipt))
+    }
+
     pub fn destroy(
         &self,
         input: KeyDestructionRequest,
@@ -798,6 +916,249 @@ impl KmsUseReceipt {
             occurred_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
             schema_version: public(KMS_SCHEMA_VERSION),
         })
+    }
+}
+
+impl CloudKmsEvidenceEvent {
+    pub fn from_use_receipt(
+        expected_tenant_id: &str,
+        receipt: KmsUseReceipt,
+        evidence_ref: impl Into<String>,
+    ) -> Result<Self, CloudKmsError> {
+        validate_expected_tenant(expected_tenant_id)?;
+        validate_evidence_schema_version(receipt.schema_version.value)?;
+        let tenant_id = receipt.tenant_id.value;
+        if tenant_id != expected_tenant_id {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        let evidence_ref = evidence_ref.into();
+        validate_evidence_ref(&evidence_ref)?;
+        let operation = match receipt.operation.value {
+            KmsOperation::Encrypt => CloudKmsEvidenceOperation::Encrypt,
+            KmsOperation::Decrypt => CloudKmsEvidenceOperation::Decrypt,
+        };
+        let source_id = receipt.event_id.value.value;
+        let event_id = evidence_event_id(&tenant_id, operation, &source_id);
+        Ok(Self {
+            event_id,
+            tenant_id,
+            key_id: receipt.key_id.value.value,
+            actor: receipt.actor.value.value,
+            operation,
+            status: CloudKmsEvidenceStatus::Succeeded,
+            evidence_ref,
+            provider: None,
+            provider_request_id: None,
+            key_version: Some(receipt.key_version.value),
+            occurred_at_epoch_seconds: receipt.occurred_at_epoch_seconds.value,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn from_provider_crypto_receipt(
+        expected_tenant_id: &str,
+        expected_provider: KmsProviderKind,
+        receipt: KmsProviderCryptoReceipt,
+    ) -> Result<Self, CloudKmsError> {
+        validate_expected_tenant(expected_tenant_id)?;
+        validate_evidence_schema_version(receipt.schema_version)?;
+        if receipt.tenant_id != expected_tenant_id {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        if receipt.provider != expected_provider {
+            return Err(CloudKmsError::ProviderMismatch);
+        }
+        validate_evidence_ref(&receipt.provider_evidence_ref)?;
+        let operation = match receipt.operation {
+            KmsOperation::Encrypt => CloudKmsEvidenceOperation::ProviderEncrypt,
+            KmsOperation::Decrypt => CloudKmsEvidenceOperation::ProviderDecrypt,
+        };
+        let event_id =
+            evidence_event_id(&receipt.tenant_id, operation, &receipt.provider_request_id);
+        Ok(Self {
+            event_id,
+            tenant_id: receipt.tenant_id,
+            key_id: receipt.key_id,
+            actor: receipt.actor,
+            operation,
+            status: CloudKmsEvidenceStatus::Succeeded,
+            evidence_ref: receipt.provider_evidence_ref,
+            provider: Some(receipt.provider),
+            provider_request_id: Some(receipt.provider_request_id),
+            key_version: None,
+            occurred_at_epoch_seconds: receipt.occurred_at_epoch_seconds,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn from_key_rotation_receipt(
+        expected_tenant_id: &str,
+        receipt: KeyRotationReceipt,
+    ) -> Result<Self, CloudKmsError> {
+        validate_expected_tenant(expected_tenant_id)?;
+        validate_evidence_schema_version(receipt.schema_version.value)?;
+        let tenant_id = receipt.tenant_id.value;
+        if tenant_id != expected_tenant_id {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        let evidence_ref = receipt.rotation_evidence_ref.value;
+        validate_evidence_ref(&evidence_ref)?;
+        let operation = CloudKmsEvidenceOperation::Rotate;
+        let event_id = evidence_event_id(&tenant_id, operation, &evidence_ref);
+        Ok(Self {
+            event_id,
+            tenant_id,
+            key_id: receipt.key_id.value.value,
+            actor: receipt.actor.value.value,
+            operation,
+            status: CloudKmsEvidenceStatus::Succeeded,
+            evidence_ref,
+            provider: None,
+            provider_request_id: None,
+            key_version: Some(receipt.new_key_version.value),
+            occurred_at_epoch_seconds: receipt.completed_at_epoch_seconds.value,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn from_key_destruction_receipt(
+        expected_tenant_id: &str,
+        receipt: KeyDestructionReceipt,
+    ) -> Result<Self, CloudKmsError> {
+        validate_expected_tenant(expected_tenant_id)?;
+        validate_evidence_schema_version(receipt.schema_version.value)?;
+        let tenant_id = receipt.tenant_id.value;
+        if tenant_id != expected_tenant_id {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        let evidence_ref = receipt.proof_ref.value.value;
+        validate_evidence_ref(&evidence_ref)?;
+        let operation = CloudKmsEvidenceOperation::Destroy;
+        let event_id = evidence_event_id(&tenant_id, operation, &evidence_ref);
+        Ok(Self {
+            event_id,
+            tenant_id,
+            key_id: receipt.key_id.value.value,
+            actor: KMS_SYSTEM_ACTOR.to_string(),
+            operation,
+            status: CloudKmsEvidenceStatus::Succeeded,
+            evidence_ref,
+            provider: None,
+            provider_request_id: None,
+            key_version: None,
+            occurred_at_epoch_seconds: receipt.completed_at_epoch_seconds.value,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn event_id(&self) -> &str {
+        &self.event_id
+    }
+
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    pub fn key_id(&self) -> &str {
+        &self.key_id
+    }
+
+    pub fn actor(&self) -> &str {
+        &self.actor
+    }
+
+    pub const fn operation(&self) -> CloudKmsEvidenceOperation {
+        self.operation
+    }
+
+    pub const fn status(&self) -> CloudKmsEvidenceStatus {
+        self.status
+    }
+
+    pub fn evidence_ref(&self) -> &str {
+        &self.evidence_ref
+    }
+
+    pub const fn provider(&self) -> Option<KmsProviderKind> {
+        self.provider
+    }
+
+    pub fn provider_request_id(&self) -> Option<&str> {
+        self.provider_request_id.as_deref()
+    }
+
+    pub const fn key_version(&self) -> Option<u32> {
+        self.key_version
+    }
+
+    pub const fn occurred_at_epoch_seconds(&self) -> u64 {
+        self.occurred_at_epoch_seconds
+    }
+
+    pub const fn schema_version(&self) -> u32 {
+        self.schema_version
+    }
+
+    pub fn receipt(&self) -> CloudKmsEvidenceReceipt {
+        CloudKmsEvidenceReceipt {
+            event_id: self.event_id.clone(),
+            tenant_id: self.tenant_id.clone(),
+            key_id: self.key_id.clone(),
+            operation: self.operation,
+            status: self.status,
+            evidence_ref: self.evidence_ref.clone(),
+            provider: self.provider,
+            provider_request_id: self.provider_request_id.clone(),
+            key_version: self.key_version,
+            occurred_at_epoch_seconds: self.occurred_at_epoch_seconds,
+            schema_version: self.schema_version,
+        }
+    }
+}
+
+impl CloudKmsEvidenceReceipt {
+    pub fn event_id(&self) -> &str {
+        &self.event_id
+    }
+
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    pub fn key_id(&self) -> &str {
+        &self.key_id
+    }
+
+    pub const fn operation(&self) -> CloudKmsEvidenceOperation {
+        self.operation
+    }
+
+    pub const fn status(&self) -> CloudKmsEvidenceStatus {
+        self.status
+    }
+
+    pub fn evidence_ref(&self) -> &str {
+        &self.evidence_ref
+    }
+
+    pub const fn provider(&self) -> Option<KmsProviderKind> {
+        self.provider
+    }
+
+    pub fn provider_request_id(&self) -> Option<&str> {
+        self.provider_request_id.as_deref()
+    }
+
+    pub const fn key_version(&self) -> Option<u32> {
+        self.key_version
+    }
+
+    pub const fn occurred_at_epoch_seconds(&self) -> u64 {
+        self.occurred_at_epoch_seconds
+    }
+
+    pub const fn schema_version(&self) -> u32 {
+        self.schema_version
     }
 }
 
@@ -1044,6 +1405,66 @@ fn validate_provider_ref(
         Err(error)
     } else {
         Ok(())
+    }
+}
+
+fn validate_expected_tenant(value: &str) -> Result<(), CloudKmsError> {
+    validate_tenant_id(value)
+}
+
+fn validate_evidence_schema_version(value: u32) -> Result<(), CloudKmsError> {
+    if value == KMS_SCHEMA_VERSION {
+        Ok(())
+    } else {
+        Err(CloudKmsError::InvalidEvidenceSchemaVersion)
+    }
+}
+
+fn validate_evidence_ref(value: &str) -> Result<(), CloudKmsError> {
+    if value.trim().is_empty()
+        || value.starts_with(MATERIAL_REF_PREFIX)
+        || value.starts_with(CIPHERTEXT_REF_PREFIX)
+        || looks_like_serialized_token(value)
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        return Err(CloudKmsError::InvalidEvidenceRef);
+    }
+    Ok(())
+}
+
+fn looks_like_serialized_token(value: &str) -> bool {
+    value.starts_with("eyJ") && value.matches('.').count() >= 2
+}
+
+fn evidence_event_id(
+    tenant_id: &str,
+    operation: CloudKmsEvidenceOperation,
+    source_id: &str,
+) -> String {
+    format!(
+        "kmsevt_{}_{}_{}",
+        evidence_event_segment(tenant_id),
+        operation.label(),
+        evidence_event_segment(source_id)
+    )
+}
+
+fn evidence_event_segment(value: &str) -> String {
+    let mut segment = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() {
+            segment.push(char::from(byte.to_ascii_lowercase()));
+        } else if !segment.ends_with('_') {
+            segment.push('_');
+        }
+    }
+    let segment = segment.trim_matches('_').to_string();
+    if segment.is_empty() {
+        "unknown".to_string()
+    } else {
+        segment
     }
 }
 
@@ -1299,6 +1720,176 @@ mod tests {
         assert_eq!(decrypt.operation, KmsOperation::Decrypt);
         assert_eq!(decrypt.material_ref, None);
         assert_eq!(decrypt.ciphertext_ref, "ct/ten_alpha/object/001");
+    }
+
+    #[test]
+    fn kms_receipts_convert_to_metadata_only_evidence_events() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+        let encrypt = KmsUseReceipt::encrypt(&key, encrypt_request("kmsuse_encrypt_001"))
+            .expect("encrypt receipt is valid");
+        let encrypt_event = CloudKmsEvidenceEvent::from_use_receipt(
+            TENANT,
+            encrypt,
+            "audit-chain://cloud-kms/kmsuse_encrypt_001",
+        )
+        .expect("use receipt converts to metadata-only evidence");
+        assert_eq!(encrypt_event.tenant_id(), TENANT);
+        assert_eq!(encrypt_event.key_id(), KEY_ID);
+        assert_eq!(encrypt_event.actor(), "sp_storage");
+        assert_eq!(
+            encrypt_event.operation(),
+            CloudKmsEvidenceOperation::Encrypt
+        );
+        assert_eq!(encrypt_event.status(), CloudKmsEvidenceStatus::Succeeded);
+        assert_eq!(
+            encrypt_event.evidence_ref(),
+            "audit-chain://cloud-kms/kmsuse_encrypt_001"
+        );
+        assert_eq!(encrypt_event.provider(), None);
+        let encrypt_evidence_receipt = encrypt_event.receipt();
+        assert_eq!(
+            encrypt_evidence_receipt.event_id(),
+            encrypt_event.event_id()
+        );
+        assert_eq!(encrypt_evidence_receipt.tenant_id(), TENANT);
+        assert_eq!(
+            encrypt_evidence_receipt.operation(),
+            CloudKmsEvidenceOperation::Encrypt
+        );
+
+        let provider_encrypt = KmsProviderCryptoReceipt::encrypt(
+            KmsProviderKind::OpenBaoTransit,
+            provider_encrypt_request(),
+            "openbao-audit-001",
+            "openbao-transit://kms.oyatie.com/transit/object-key/kmsprov_req_encrypt_001",
+        )
+        .expect("provider receipt is valid");
+        let provider_event = CloudKmsEvidenceEvent::from_provider_crypto_receipt(
+            TENANT,
+            KmsProviderKind::OpenBaoTransit,
+            provider_encrypt,
+        )
+        .expect("provider receipt converts to metadata-only evidence");
+        assert_eq!(
+            provider_event.operation(),
+            CloudKmsEvidenceOperation::ProviderEncrypt
+        );
+        assert_eq!(
+            provider_event.provider(),
+            Some(KmsProviderKind::OpenBaoTransit)
+        );
+        assert_eq!(
+            provider_event.provider_request_id(),
+            Some("openbao-audit-001")
+        );
+        assert_eq!(
+            provider_event.evidence_ref(),
+            "openbao-transit://kms.oyatie.com/transit/object-key/kmsprov_req_encrypt_001"
+        );
+
+        let (rotated_key, rotation_receipt) = key
+            .rotate_with_receipt(KeyRotationRequest {
+                key_id: KEY_ID.to_string(),
+                tenant_id: TENANT.to_string(),
+                actor: "sp_kms_rotator".to_string(),
+                rotation_evidence_ref: "kms-rotation://ten_alpha/object-key/2".to_string(),
+                requested_at_epoch_seconds: 1_700_000_050,
+                completed_at_epoch_seconds: 1_700_000_060,
+            })
+            .expect("rotation receipt is valid");
+        assert_eq!(rotated_key.current_version.value, 2);
+        let rotation_event =
+            CloudKmsEvidenceEvent::from_key_rotation_receipt(TENANT, rotation_receipt)
+                .expect("rotation receipt converts to evidence");
+        assert_eq!(
+            rotation_event.operation(),
+            CloudKmsEvidenceOperation::Rotate
+        );
+        assert_eq!(rotation_event.actor(), "sp_kms_rotator");
+        assert_eq!(rotation_event.key_version(), Some(2));
+
+        let (_, destruction_receipt) = rotated_key
+            .destroy(KeyDestructionRequest {
+                key_id: KEY_ID.to_string(),
+                tenant_id: TENANT.to_string(),
+                proof_ref: "kproof_tenant_offboard_001".to_string(),
+                requested_at_epoch_seconds: 1_700_000_200,
+                completed_at_epoch_seconds: 1_700_000_300,
+            })
+            .expect("destruction receipt is valid");
+        let destruction_event =
+            CloudKmsEvidenceEvent::from_key_destruction_receipt(TENANT, destruction_receipt)
+                .expect("destruction receipt converts to evidence");
+        assert_eq!(
+            destruction_event.operation(),
+            CloudKmsEvidenceOperation::Destroy
+        );
+        assert_eq!(
+            destruction_event.evidence_ref(),
+            "kproof_tenant_offboard_001"
+        );
+    }
+
+    #[test]
+    fn kms_evidence_events_reject_tenant_schema_evidence_ref_and_raw_material_drift() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+        let encrypt = KmsUseReceipt::encrypt(&key, encrypt_request("kmsuse_encrypt_001"))
+            .expect("encrypt receipt is valid");
+
+        let tenant_mismatch = CloudKmsEvidenceEvent::from_use_receipt(
+            GLOBAL_TENANT,
+            encrypt.clone(),
+            "audit-chain://cloud-kms/kmsuse_encrypt_001",
+        )
+        .expect_err("evidence event is tenant-bound");
+        assert_eq!(tenant_mismatch, CloudKmsError::ResourceTenantMismatch);
+
+        let mut schema_drift = encrypt.clone();
+        schema_drift.schema_version = public(KMS_SCHEMA_VERSION + 1);
+        let schema_error = CloudKmsEvidenceEvent::from_use_receipt(
+            TENANT,
+            schema_drift,
+            "audit-chain://cloud-kms/kmsuse_encrypt_001",
+        )
+        .expect_err("evidence event rejects schema drift");
+        assert_eq!(schema_error, CloudKmsError::InvalidEvidenceSchemaVersion);
+
+        let raw_material_ref_error =
+            CloudKmsEvidenceEvent::from_use_receipt(TENANT, encrypt.clone(), PLAINTEXT_REF)
+                .expect_err("evidence ref cannot be a plaintext material ref");
+        assert_eq!(raw_material_ref_error, CloudKmsError::InvalidEvidenceRef);
+
+        let token_shaped_ref_error = CloudKmsEvidenceEvent::from_use_receipt(
+            TENANT,
+            encrypt,
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGljZSJ9.signature",
+        )
+        .expect_err("evidence ref cannot be a token");
+        assert_eq!(token_shaped_ref_error, CloudKmsError::InvalidEvidenceRef);
+
+        let mut provider_receipt = KmsProviderCryptoReceipt::encrypt(
+            KmsProviderKind::OpenBaoTransit,
+            provider_encrypt_request(),
+            "openbao-audit-001",
+            "openbao-transit://kms.oyatie.com/transit/object-key/kmsprov_req_encrypt_001",
+        )
+        .expect("provider receipt is valid");
+        let provider_mismatch = CloudKmsEvidenceEvent::from_provider_crypto_receipt(
+            TENANT,
+            KmsProviderKind::OciKms,
+            provider_receipt.clone(),
+        )
+        .expect_err("evidence event is provider-bound");
+        assert_eq!(provider_mismatch, CloudKmsError::ProviderMismatch);
+
+        provider_receipt.provider_evidence_ref = CIPHERTEXT_REF.to_string();
+        let provider_raw_ref = CloudKmsEvidenceEvent::from_provider_crypto_receipt(
+            TENANT,
+            KmsProviderKind::OpenBaoTransit,
+            provider_receipt,
+        )
+        .expect_err("provider evidence cannot point at ciphertext material");
+        assert_eq!(provider_raw_ref, CloudKmsError::InvalidEvidenceRef);
     }
 
     #[test]

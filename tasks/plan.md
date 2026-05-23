@@ -206,11 +206,11 @@ Closed Cloud KMS gaps:
 
 - Public encrypt/decrypt contract now enforces the `Oyatie-Version` carrier declared by ADR-0342 and the Cloud KMS manifest.
 - API/domain hot paths now carry and enforce typed tenant/cell/region placement metadata at the boundary.
+- KMS use, provider crypto, rotation, and destruction receipts now convert to metadata-only Cloud KMS evidence events with tenant/provider/schema/evidence-ref drift rejection.
 
 Remaining material gaps to close before Cloud KMS can support the FD-001 foundation bar:
 
-1. Rotation/destruction/provider receipts need audit-chain evidence mapping reviewed against the latest ADRs.
-2. Manifest claims still overstate implemented layers/capabilities/SLO/DR surfaces and must be reconciled to evidence.
+1. Manifest claims still overstate implemented layers/capabilities/SLO/DR surfaces and must be reconciled to evidence.
 
 ## Cloud KMS ChangeSet sequence
 
@@ -268,6 +268,12 @@ Remaining material gaps to close before Cloud KMS can support the FD-001 foundat
 - Evidence records reject raw key material, plaintext, ciphertext bodies, and provider credentials.
 - Receipt/evidence event shapes carry schema version, tenant, key id, actor, operation, status, evidence ref, and occurred timestamp.
 
+**Verification**
+
+- RED test first: `cargo test -p oya-cloud-kms-domain kms_receipts_convert_to_metadata_only_evidence_events -- --nocapture`
+- GREEN targeted tests: KMS evidence event conversion and tenant/schema/evidence-ref/provider drift rejection.
+- KMS package regression, clippy, format, OpenAPI semver, architecture, planning, and dependency-seam gates.
+
 ### CS-CLOUD-KMS-004 — Cloud KMS manifest/gate coherence update
 
 **Acceptance criteria**
@@ -280,8 +286,8 @@ Remaining material gaps to close before Cloud KMS can support the FD-001 foundat
 
 - After each code ChangeSet: targeted tests + package tests + clippy must pass before moving on.
 - After Cloud IAM CS-001..005: run `./bin/oya verify --ci-required` or record any tool/runtime blocker with next-best evidence.
-- Current active slice: Phase 0 `cloud-kms` CS-CLOUD-KMS-003.
+- Current active slice: Phase 0 `cloud-kms` CS-CLOUD-KMS-004.
 
 ## Next executable task
 
-Continue Cloud KMS with **CS-CLOUD-KMS-003** because the public API version carrier and typed placement boundary are now enforced; receipt/evidence mapping is the next sequential invariant before manifest claims are reconciled.
+Continue Cloud KMS with **CS-CLOUD-KMS-004** because receipt/evidence mapping is now enforced; manifest/gate coherence is the next sequential invariant before Cloud KMS can claim the implemented Phase 0 surface.

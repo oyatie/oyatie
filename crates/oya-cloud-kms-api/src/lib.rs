@@ -1075,7 +1075,10 @@ fn cloud_kms_status_kind(error: &CloudKmsError) -> CloudKmsApiStatusKind {
         | CloudKmsError::InvalidAadFingerprint
         | CloudKmsError::InvalidTimeOrder
         | CloudKmsError::DestructionSlaExceeded
-        | CloudKmsError::InvalidDestructionProofRef => CloudKmsApiStatusKind::BadRequest,
+        | CloudKmsError::InvalidDestructionProofRef
+        | CloudKmsError::ProviderMismatch
+        | CloudKmsError::InvalidEvidenceRef
+        | CloudKmsError::InvalidEvidenceSchemaVersion => CloudKmsApiStatusKind::BadRequest,
     }
 }
 
@@ -1124,6 +1127,13 @@ fn cloud_kms_issue(error: &CloudKmsError) -> &'static str {
         }
         CloudKmsError::InvalidDestructionProofRef => {
             "destruction proof must be a kproof_ reference"
+        }
+        CloudKmsError::ProviderMismatch => "provider receipt must match the requested provider",
+        CloudKmsError::InvalidEvidenceRef => {
+            "evidence_ref must be immutable metadata evidence, not raw key material"
+        }
+        CloudKmsError::InvalidEvidenceSchemaVersion => {
+            "evidence receipt schema_version must match Cloud KMS schema"
         }
         CloudKmsError::DuplicateKey => "key identifier is already present",
         CloudKmsError::UnknownKey => "key must exist before cryptographic use",
