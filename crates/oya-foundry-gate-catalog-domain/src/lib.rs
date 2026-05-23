@@ -135,6 +135,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "olap-tier-discipline",
     "wasm-runtime-discipline",
     "iac-tier-discipline",
+    "cloud-iac-module-catalog",
     "a11y-discipline",
     "i18n-coverage",
     "compliance-evidence-coverage",

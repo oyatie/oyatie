@@ -806,6 +806,30 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("cloud-iac-module-catalog")) => {
+            match crate::parse_cloud_iac_module_catalog_validate_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_module_catalog_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-module-catalog validation passed: {} modules, {} files checked; manifest {}; catalog {}",
+                            report.modules_checked,
+                            report.files_checked,
+                            report.manifest_path,
+                            report.catalog_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("a11y-discipline")) => {
             match crate::validate_a11y_discipline_gate(args.collect()) {
                 Ok(summary) => {

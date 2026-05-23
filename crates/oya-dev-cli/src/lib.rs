@@ -42,6 +42,7 @@ mod catalog_registry;
 mod cedar_fragment_coverage_gate;
 mod changeset_state_enum_closed_gate;
 mod changeset_state_monotonicity_gate;
+mod cloud_iac_module_catalog_gate;
 mod codeview_read_surface_gates;
 mod command_output;
 mod command_process;
@@ -121,6 +122,9 @@ pub(crate) use changeset_state_enum_closed_gate::{
 };
 pub(crate) use changeset_state_monotonicity_gate::{
     parse_changeset_state_monotonicity_validate_args, validate_changeset_state_monotonicity_gate,
+};
+pub(crate) use cloud_iac_module_catalog_gate::{
+    parse_cloud_iac_module_catalog_validate_args, validate_cloud_iac_module_catalog_gate,
 };
 pub(crate) use codeview_read_surface_gates::{
     parse_codeview_read_surface_validate_args, validate_codeview_read_surface_gate,
@@ -329,6 +333,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"
+        + "\n       oya gate validate cloud-iac-module-catalog [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>]"
         + "\n       oya gate validate dependency-seam [--repo-root <.>] [--registry <registry/dependency-rationales.json>] [--evidence <evidence/multispectrum/<change>.json>]... [--fixture-root <crates/oya-check-dependency-seam/tests/fixtures>] [--offline|--online-audit] [--severity <report-only|error>] [--emit-report <path>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-lockin-discipline [--registry <registry/vendor-lockin-phaseout/index.json>] [--workspace <Cargo.toml>]"

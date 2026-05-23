@@ -6,228 +6,90 @@
   "bounded_contexts": [
     {
       "name": "cloud-iac",
-      "description": "Bounded context 'cloud-iac' within cloud-iac (control plane)",
+      "description": "Code-backed Cloud IaC local foundation for metadata-only OpenTofu module release records, in-memory module registry invariants, cell topology planning metadata, GitOps reconciliation evidence, and the existing IaC tier-discipline gate. No live OpenTofu registry API, REST/SDK/worker runtime, provider plan/apply, Argo CD API integration, measured SLO, active-active DR, sharding automation, or audit-chain persistence is claimed by CS-CLOUD-IAC-001.",
       "crates": [
-        "oya-cloud-iac-iac-applier-adapter",
-        "oya-cloud-iac-iac-applier-adapter-argocd",
-        "oya-cloud-iac-iac-applier-api",
-        "oya-cloud-iac-iac-applier-app",
-        "oya-cloud-iac-iac-applier-domain",
-        "oya-cloud-iac-iac-applier-kernel",
-        "oya-cloud-iac-iac-applier-rest",
-        "oya-cloud-iac-iac-applier-usecase",
-        "oya-cloud-iac-iac-applier-worker",
-        "oya-cloud-iac-iac-registry-adapter",
-        "oya-cloud-iac-iac-registry-adapter-postgres",
-        "oya-cloud-iac-iac-registry-api",
-        "oya-cloud-iac-iac-registry-app",
-        "oya-cloud-iac-iac-registry-domain",
-        "oya-cloud-iac-iac-registry-kernel",
-        "oya-cloud-iac-iac-registry-rest",
-        "oya-cloud-iac-iac-registry-sdk",
-        "oya-cloud-iac-iac-registry-usecase",
-        "oya-cloud-iac-iac-registry-worker",
-        "oya-cloud-iac-iac-renderer-adapter",
-        "oya-cloud-iac-iac-renderer-adapter-helm",
-        "oya-cloud-iac-iac-renderer-adapter-kustomize",
-        "oya-cloud-iac-iac-renderer-adapter-opentofu",
-        "oya-cloud-iac-iac-renderer-api",
-        "oya-cloud-iac-iac-renderer-app",
-        "oya-cloud-iac-iac-renderer-domain",
-        "oya-cloud-iac-iac-renderer-kernel",
-        "oya-cloud-iac-iac-renderer-rest",
-        "oya-cloud-iac-iac-renderer-sdk",
-        "oya-cloud-iac-iac-renderer-usecase",
-        "oya-cloud-iac-iac-renderer-worker",
-        "oya-cloud-iac-iac-rollback-adapter",
-        "oya-cloud-iac-iac-rollback-api",
-        "oya-cloud-iac-iac-rollback-app",
-        "oya-cloud-iac-iac-rollback-domain",
-        "oya-cloud-iac-iac-rollback-kernel",
-        "oya-cloud-iac-iac-rollback-rest",
-        "oya-cloud-iac-iac-rollback-usecase",
-        "oya-cloud-iac-iac-rollback-worker",
-        "oya-cloud-iac-iac-validator-adapter",
-        "oya-cloud-iac-iac-validator-api",
-        "oya-cloud-iac-iac-validator-app",
-        "oya-cloud-iac-iac-validator-domain",
-        "oya-cloud-iac-iac-validator-kernel",
-        "oya-cloud-iac-iac-validator-rest",
-        "oya-cloud-iac-iac-validator-usecase",
-        "oya-cloud-iac-iac-validator-worker"
+        "oya-cloud-iac-domain",
+        "oya-check-iac-tier-discipline"
       ]
     }
   ],
   "layers": [
-    "adapter",
-    "api",
-    "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "domain"
   ],
   "contracts": {
-    "openapi": [
-      "microservices/cloud-iac/contracts/openapi/cloud-iac.yaml"
-    ],
-    "asyncapi": [
-      "microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml"
-    ],
-    "proto": [
-      "microservices/cloud-iac/contracts/proto/cloud-iac.proto"
-    ]
+    "openapi": [],
+    "asyncapi": [],
+    "proto": []
   },
   "capabilities": [
     {
-      "tier": "T3",
-      "name": "iac-apply",
-      "file": "microservices/cloud-iac/capabilities/iac-apply.yaml",
+      "tier": "T1",
+      "name": "metadata-only-opentofu-module-release",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
-      "name": "iac-render",
-      "file": "microservices/cloud-iac/capabilities/iac-render.yaml",
-      "risk_class": "minimal"
+      "name": "in-memory-module-registry-invariants",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
     },
     {
-      "tier": "T3",
-      "name": "iac-rollback",
-      "file": "microservices/cloud-iac/capabilities/iac-rollback.yaml",
+      "tier": "T1",
+      "name": "cell-topology-plan-metadata",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "gitops-reconciliation-evidence-metadata",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "iac-tier-discipline-gate",
+      "file": "crates/oya-check-iac-tier-discipline/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "local-opentofu-module-catalog",
+      "file": "microservices/cloud-iac/tofu/modules/catalog.json",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "local-opentofu-module-catalog-coherence-invariants",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-catalog-gate",
+      "file": "crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs",
       "risk_class": "high"
     }
   ],
-  "slos": [
-    {
-      "name": "oya-cloud-iac-helm-chart-lint-correctness",
-      "target": "1.0",
-      "sli": "sum(rate(oya_cloud_iac_helm_lint_total{outcome=\"pass\"}[5m]))",
-      "file": "microservices/cloud-iac/slos/helm-chart-lint-correctness.openslo.yaml"
-    },
-    {
-      "name": "oya-cloud-iac-iac-apply-latency",
-      "target": "0.95",
-      "sli": "sum(rate(oya_cloud_iac_apply_duration_seconds_bucket{le=\"30\"}[5m]))",
-      "file": "microservices/cloud-iac/slos/iac-apply-latency.openslo.yaml"
-    },
-    {
-      "name": "oya-cloud-iac-iac-render-latency",
-      "target": "0.95",
-      "sli": "sum(rate(oya_cloud_iac_render_duration_seconds_bucket{le=\"10\"}[5m]))",
-      "file": "microservices/cloud-iac/slos/iac-render-latency.openslo.yaml"
-    },
-    {
-      "name": "oya-cloud-iac-iac-rollback-latency",
-      "target": "0.95",
-      "sli": "sum(rate(oya_cloud_iac_rollback_duration_seconds_bucket{le=\"60\"}[5m]))",
-      "file": "microservices/cloud-iac/slos/iac-rollback-latency.openslo.yaml"
-    },
-    {
-      "name": "oya-cloud-iac-iac-validator-availability",
-      "target": "0.999",
-      "sli": "sum(rate(oya_cloud_iac_validate_total{outcome=~\"pass|fail\"}[5m]))",
-      "file": "microservices/cloud-iac/slos/iac-validator-availability.openslo.yaml"
-    },
-    {
-      "name": "oya-cloud-iac-slsa-provenance-completeness",
-      "target": "1.0",
-      "sli": "sum(rate(oya_cloud_iac_apply_total{slsa_l3=\"true\"}[5m]))",
-      "file": "microservices/cloud-iac/slos/slsa-provenance-completeness.openslo.yaml"
-    }
-  ],
+  "slos": [],
   "ips": [
     {
-      "id": "IP-001-layer-a-argocd-flux-iac",
-      "title": "IP-001: Layer-A ArgoCD + Flux + Helm-controller + Kustomize-controller IaC",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-001-layer-a-argocd-flux-iac.md"
+      "id": "CS-CLOUD-IAC-001",
+      "title": "Metadata-only OpenTofu module registry, cell topology, and GitOps evidence foundation",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs"
     },
     {
-      "id": "IP-002-layer-a-opentofu-iac",
-      "title": "IP-002: Layer-A OpenTofu self-hosted runner + per-pack state-bucket IaC",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-002-layer-a-opentofu-iac.md"
+      "id": "CS-CLOUD-IAC-CATALOG-COHERENCE-001",
+      "title": "Code-backed local OpenTofu module catalog coherence invariants",
+      "acceptance_status": "implemented-local-domain-guard",
+      "file": "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs"
     },
     {
-      "id": "IP-003-iac-renderer-kernel",
-      "title": "IP-003: oya-cloud-iac-iac-renderer-kernel",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-003-iac-renderer-kernel.md"
-    },
-    {
-      "id": "IP-004-iac-renderer-domain-usecase",
-      "title": "IP-004: oya-cloud-iac-iac-renderer-{domain,usecase,api}",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-004-iac-renderer-domain-usecase.md"
-    },
-    {
-      "id": "IP-005-iac-renderer-adapter-trio",
-      "title": "IP-005: iac-renderer backend-qualified adapter trio (helm, kustomize, opentofu)",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-005-iac-renderer-adapter-trio.md"
-    },
-    {
-      "id": "IP-006-iac-validator-kernel-domain-usecase",
-      "title": "IP-006: oya-cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter}",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-006-iac-validator-kernel-domain-usecase.md"
-    },
-    {
-      "id": "IP-007-iac-applier-kernel-domain-usecase",
-      "title": "IP-007: oya-cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd}",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-007-iac-applier-kernel-domain-usecase.md"
-    },
-    {
-      "id": "IP-008-iac-registry-postgres",
-      "title": "IP-008: oya-cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres}",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-008-iac-registry-postgres.md"
-    },
-    {
-      "id": "IP-009-iac-rollback-engine",
-      "title": "IP-009: oya-cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter}",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-009-iac-rollback-engine.md"
-    },
-    {
-      "id": "IP-010-rest-surfaces",
-      "title": "IP-010: oya-cloud-iac-iac-*-rest crates (all 5 BCs)",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-010-rest-surfaces.md"
-    },
-    {
-      "id": "IP-011-worker-binaries",
-      "title": "IP-011: oya-cloud-iac-iac-*-worker crates (all 5 BCs)",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-011-worker-binaries.md"
-    },
-    {
-      "id": "IP-012-app-composition-roots",
-      "title": "IP-012: oya-cloud-iac-iac-*-app crates (all 5 BCs)",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-012-app-composition-roots.md"
-    },
-    {
-      "id": "IP-013-sdk-and-observability-slo",
-      "title": "IP-013: SDK crates + OpenSLO manifests + observability self-SLOs",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-013-sdk-and-observability-slo.md"
-    },
-    {
-      "id": "IP-014-per-pack-iac-overlays",
-      "title": "IP-014: Per-pack Kustomize overlays for cloud-iac substrate",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-014-per-pack-iac-overlays.md"
-    },
-    {
-      "id": "IP-015-hg-cloud-iac-registration",
-      "title": "IP-015: HG-CLOUD-IAC gate registration + bootstrap-paradox resolution",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-iac/IP-015-hg-cloud-iac-registration.md"
+      "id": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
+      "title": "First-class local Oya gate for Cloud IaC OpenTofu module catalog coherence",
+      "acceptance_status": "implemented-local-gate",
+      "file": "crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs"
     }
   ],
   "regulatory_packs": [
@@ -244,11 +106,15 @@
     "ksa"
   ],
   "lts_pins": {
-    "argocd": "v2.13.0\"  # ArgoCD LTS line per docs/standards/observability-slo.md",
-    "opentofu": "1.8.0\"  # OpenTofu LTS pin per docs/standards/observability-slo.md",
-    "rust": "1.83"
+    "rust": "1.95.0"
   },
   "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
@@ -256,80 +122,14 @@
       "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
     },
     {
-      "id": "ADR-0105",
-      "title": "13 Layer Enum And Check Family Patterns",
+      "id": "ADR-0218",
+      "title": "OpenTofu Not Terraform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
-    },
-    {
-      "id": "ADR-0117",
-      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
-    },
-    {
-      "id": "ADR-0120",
-      "title": "Rust First Onprem Tooling With Paired Uninstall",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md"
-    },
-    {
-      "id": "ADR-0121",
-      "title": "Onprem K8s Stack Kubeadm Containerd Istio Envoy",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md"
-    },
-    {
-      "id": "ADR-0123",
-      "title": "Hyperscaler Maturity Claim Gate",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
-    },
-    {
-      "id": "ADR-0234",
-      "title": "Connect Social Expansion Planning Contract",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
-    },
-    {
-      "id": "ADR-0132",
-      "title": "Product Suite And Bundle Dissolution",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
-    },
-    {
-      "id": "ADR-0236",
-      "title": "Op11 Corpus Remediation Planning Contract",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md"
-    },
-    {
-      "id": "ADR-0139",
-      "title": "Agentic Slo Gated Promotion",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0171",
-      "title": "Multi Cluster Federation",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0171-multi-cluster-federation.md"
-    },
-    {
-      "id": "ADR-0337",
-      "title": "Iceberg Canonical Olap Write Path",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
-    },
-    {
-      "id": "ADR-0338",
-      "title": "Pod Runtime Tier 0 To 3",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+      "file": "docs/decisions/ADR-0218-opentofu-not-terraform.md"
     },
     {
       "id": "ADR-0339",
-      "title": "Shared Iac Module Library",
+      "title": "Shared IaC Module Library",
       "scope": "repo",
       "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
     },
@@ -340,207 +140,110 @@
       "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
     },
     {
-      "id": "ADR-0341",
-      "title": "Cellular Promotion Gates Explicit Tier Criteria",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
-    },
-    {
       "id": "ADR-0342",
       "title": "Api Versioning Hybrid Date Public Semver Sdk",
       "scope": "repo",
       "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
     },
     {
-      "id": "ADR-0343",
-      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "id": "ADR-0346",
+      "title": "Oya Verify Must Run Full Ci Mirror",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+      "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
     },
     {
-      "id": "ADR-0344",
-      "title": "Sustainability Finops Dimensional Model",
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
     },
     {
-      "id": "ADR-0345",
-      "title": "Oss Stewardship Class Policy And Cve Response Sla",
+      "id": "ADR-0349",
+      "title": "Jenkins Argocd Self Hostable Ci Cd Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "not_claimed_cs_cloud_iac_001: no implemented Cloud IaC runtime circuit-breaker/bulkhead or PrometheusRule evidence",
+    "tenant_rate_limit": "not_claimed_cs_cloud_iac_001: no implemented per-tenant Cloud IaC API quota/rate-limit enforcement",
+    "golden_signals": "not_claimed_cs_cloud_iac_001: no implemented metrics/OpenSLO/golden-signal emission evidence",
+    "error_budget_burn": "not_claimed_cs_cloud_iac_001: SLO list is empty because no measured Cloud IaC SLI or burn-rate rule is implemented yet"
   },
   "audit_chain": {
-    "enabled": true,
-    "seal_events": [
-      "oya.cloud-iac.iac-apply",
-      "oya.cloud-iac.iac-render",
-      "oya.cloud-iac.iac-rollback"
-    ]
+    "enabled": false,
+    "seal_events": [],
+    "non_claim": "CS-CLOUD-IAC-001 creates metadata evidence refs and an evidence bundle but does not implement audit-chain persistence or sealing."
   },
   "secrets_substrate": {
     "provider": "openbao",
-    "format": "${openbao:secret/<path>}"
+    "format": "SecretReference metadata only through Cloud Secrets; Cloud IaC does not store raw provider credentials, kubeconfigs, tokens, state files, or secret material."
   },
   "ontology_projections": [],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
-    "north_south_only": false
+    "north_south_only": false,
+    "runtime_evidence_status": "not_measured_cs_cloud_iac_001",
+    "non_claim": "CS-CLOUD-IAC-001 records cell topology metadata and forbids default cross-cell traffic in domain validation, but does not implement or measure live mesh policy enforcement."
   },
-  "naming_justifications": "cloud-iac is a BNF v4.1 kebab-case microservice slug; generated names follow oya-cloud-iac-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
-  "tenant_class_eligibility": [
-    "demo_trial",
-    "paid"
-  ],
-  "paid_billing_components_emitted": [
-    "per_usage"
-  ],
-  "packs": [
-    "kr",
-    "eu",
-    "us",
-    "us-healthcare",
-    "jp",
-    "sg",
-    "au",
-    "in",
-    "br",
-    "ae",
-    "ksa",
-    "hipaa",
-    "SOC 2 Type 2",
-    "iso27001",
-    "gdpr",
-    "kr-isms-p",
-    "NIS2",
-    "lgpd",
-    "soc2",
-    "cn-pipl-2021",
-    "fedramp",
-    "il5",
-    "DORA"
-  ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "naming_justifications": "Cloud IaC now claims only the implemented oya-cloud-iac-domain foundation crate and the existing oya-check-iac-tier-discipline crate. The previous oya-cloud-iac-iac-* crate roster was removed from this manifest because none of those crates exists in the workspace.",
   "owner_team": "axis-cloud-iac",
   "module_library_scope": {
-    "note": "Per ADR-0339 (2026-05-21), cloud-iac is the canonical home for the shared OpenTofu IaC module library at microservices/cloud-iac/modules/<context>/<primitive>/. The library houses ~50 reusable per-context primitives consumed by every Oyatie microservice via thin invocation wrappers (<=80 LOC) at microservices/<name>/iac/<context>/main.tf. This is a scope expansion of the cloud-iac microservice from {iac-renderer, iac-validator, iac-applier, iac-registry, iac-rollback} bounded contexts to {iac-renderer, iac-validator, iac-applier, iac-registry, iac-rollback, modules-library}. Authoring the ~50 module bodies is queued as the Wave 15Q-IaC-modules sub-wave per /specs/master-plan-sequencing.json#realignment_wave_sequence.wave_15.subwaves.15Q-IaC-modules.",
-    "canonical_path": "microservices/cloud-iac/modules/<context>/<primitive>/",
-    "canonical_wrapper_path": "microservices/<name>/iac/<context>/main.tf",
-    "wrapper_line_ceiling": 80,
-    "wrapper_substance": "primitive selection + tenant-scoped parameters (which library primitives the microservice invokes + how tenant_id/tenant_class/compliance_pack/etc. are passed); NOT inline resource declarations",
-    "contexts": [
-      "aws-guest",
-      "oci-guest",
-      "oci-guest/always-free (demo_trial-only sub-context per feedback_oci_always_free_maximization_2026_05_20)",
-      "on-prem",
-      "colo (alias of on-prem)",
-      "oyatie-as-cloud-provider"
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "actual_path_root": "microservices/cloud-iac/tofu/modules",
+    "catalog_status": "local-foundation-skeleton-index",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
     ],
-    "primitive_count_minimum_set": 50,
-    "primitive_enumeration_per_context": {
-      "aws-guest": [
-        "eks-cluster",
-        "rds-postgres",
-        "elasticache-valkey",
-        "s3-bucket",
-        "kms-key",
-        "iam-role",
-        "vpc",
-        "alb",
-        "route53-zone",
-        "sg-baseline"
-      ],
-      "oci-guest": [
-        "oke-cluster",
-        "autonomous-db",
-        "oci-cache-valkey",
-        "object-storage",
-        "vault",
-        "vcn",
-        "lb",
-        "drg"
-      ],
-      "oci-guest/always-free": [
-        "ampere-a1",
-        "e2-micro",
-        "atp",
-        "adw",
-        "lb-free",
-        "vault-free"
-      ],
-      "on-prem": [
-        "kubeadm-cluster",
-        "cilium-cni",
-        "istio-ambient",
-        "envoy-gateway",
-        "valkey-cluster",
-        "pg-cluster",
-        "milvus-cluster"
-      ],
-      "colo": "alias of on-prem (symlink-via-source-pin per primitive unless colo-specific divergence exists)",
-      "oyatie-as-cloud-provider": [
-        "cell-zone",
-        "shard-cell",
-        "tenant-namespace",
-        "per-cell-nodepool-kata",
-        "per-cell-nodepool-runc",
-        "cell-observability-collector",
-        "cell-audit-chain-bridge",
-        "cross-cell-mesh-link",
-        "cell-cedar-bundle-loader",
-        "cell-compliance-pack-binding"
-      ]
-    },
-    "versioning": "semantic versioning scoped to module path; tag form <context>/<primitive>/v<MAJOR>.<MINOR>.<PATCH>; quarterly upgrade windows aligned with network-substrate-versions cadence",
-    "signing": "cosign attestation per module release per ADR-0181; attestation digest published in docs/standards/iac-module-catalog.md",
-    "catalog": "docs/standards/iac-module-catalog.md + machine-readable mirror microservices/cloud-iac/modules/catalog.json",
-    "enforcement_lanes_new": [
-      "oya-check-iac-shared-module-usage",
-      "oya-check-iac-module-path-canonical",
-      "oya-check-iac-module-signature-cosign",
-      "oya-check-iac-module-pin",
-      "oya-check-iac-thin-wrapper-line-floor",
-      "oya-check-iac-module-catalog-discoverability"
+    "registry_protocol_fields_modeled": [
+      "namespace",
+      "name",
+      "system",
+      "version",
+      "source_path",
+      "main_file",
+      "release_status",
+      "evidence_ref"
     ],
-    "enforcement_lane_preserved": "oya-check-iac-opentofu-only (ADR-0218 + feedback_zero_handroll_opentofu_only_2026_05_20)",
-    "sunset_window": "30 days post-ADR-0339-Acceptance for new authoring; per-microservice migration of existing iac/ bodies follows ADR-0328 canonical-build phase order",
-    "blast_radius_collapse": "385 from-scratch module dirs (77 microservices x 5 contexts) -> ~50 shared primitives + 385 thin wrappers; ~120,000 LOC duplication eliminated",
-    "hyperscaler_precedents": [
-      "AWS Solutions Constructs",
-      "Google Cloud Foundation Toolkit",
-      "Azure Verified Modules",
-      "HashiCorp Terraform Registry pattern"
+    "canonical_adr_0339_path_not_claimed": "ADR-0339's microservices/cloud-iac/modules/<context>/<primitive>/ library has not been materialized in this ChangeSet; current evidence is limited to the pre-existing microservices/cloud-iac/tofu/modules skeleton catalog plus the domain registry invariants.",
+    "non_claims": [
+      "no live private module registry API",
+      "no signed or cosign-attested module release index",
+      "no OpenTofu providers mirror or dependency lock evidence",
+      "no tofu init/validate/test/plan/apply evidence",
+      "no provider-resource-complete module bodies"
     ],
-    "authority_adrs": [
-      "ADR-0339",
-      "ADR-0181",
-      "ADR-0215",
-      "ADR-0216",
-      "ADR-0218",
-      "ADR-0244",
-      "ADR-0248",
-      "ADR-0254",
-      "ADR-0322",
-      "ADR-0328",
-      "ADR-0331",
-      "ADR-0336"
-    ],
-    "authority_memory": [
-      "feedback_idea_refine_decisions_2026_05_21",
-      "feedback_zero_handroll_opentofu_only_2026_05_20",
-      "feedback_multi_context_provider_agnostic_2026_05_20",
-      "feedback_oci_always_free_maximization_2026_05_20"
-    ]
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
+      "crate": "oya-dev-cli",
+      "gate": "cloud-iac-module-catalog",
+      "runtime_mode": "local-filesystem-json-gate",
+      "types": [
+        "LocalOpenTofuModuleCatalog",
+        "LocalOpenTofuModuleCatalogEntry",
+        "LocalModuleReleaseStatus"
+      ],
+      "enforced_invariants": [
+        "manifest catalog path, source root, module count, module names, and modeled fields must match the catalog",
+        "catalog id and source path root are non-empty repo-relative paths",
+        "every module source_path must stay under the declared source_path_root",
+        "every module main_file must be exactly <source_path>/main.tofu",
+        "every module main_file must exist in the local workspace",
+        "duplicate namespace/name/system/version entries are rejected",
+        "local-foundation-skeleton entries cannot claim provider resources, outputs, or tests"
+      ],
+      "runtime_non_claim": "First-class Oya local filesystem/JSON gate only; no live registry API, OpenTofu CLI execution, provider lockfile, module signing, provider credentials, tofu init/validate/plan/apply, or Argo CD API integration is implemented by this ChangeSet."
+    }
   },
-  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "data_classification": "INTERNAL_ONLY, AUDIT",
   "compliance_packs_applicable": [
     "kr",
     "eu",
@@ -553,58 +256,51 @@
     "br",
     "ae",
     "ksa",
-    "hipaa",
-    "SOC 2 Type 2",
-    "iso27001",
     "gdpr",
-    "kr-isms-p",
-    "NIS2",
-    "lgpd",
+    "hipaa",
+    "iso27001",
     "soc2",
+    "PCI-DSS",
+    "SOC 2 Type 2",
+    "lgpd",
+    "NIS2",
     "cn-pipl-2021",
     "fedramp",
-    "il5",
-    "DORA"
+    "il5"
   ],
   "depends_on_microservices": [
-    "docs",
-    "observability",
-    "audit-chain",
-    "cloud-k8s",
-    "cloud-secrets",
-    "identity",
     "tenancy",
-    "network",
-    "ontology",
-    "detection",
-    "cell",
-    "application"
+    "identity",
+    "audit-chain",
+    "observability",
+    "cloud-secrets",
+    "cloud-kms"
   ],
-  "failure_domain": "north-south edge admission and routing plane",
+  "failure_domain": "cloud-iac-metadata-foundation",
   "criticality_tier": "T1",
-  "layer": "rest",
+  "layer": "domain",
   "doc_class": "Machine-Readable-Spec",
   "capacity_model": {
-    "baseline_cpu_per_tenant": 0.18,
-    "baseline_ram_per_tenant": 384,
-    "storage_per_tenant": 3,
-    "connections_per_tenant": {
-      "valkey": 2,
-      "postgres": 3,
-      "outbound_http": 10
-    },
-    "scaling_dimension": "per_workflow_run",
+    "baseline_cpu_per_tenant": 0.0,
+    "baseline_ram_per_tenant": 0,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {},
+    "scaling_dimension": "not_claimed_runtime",
     "cell_placement_class": "Tier-1",
-    "notes": "Renderer/applier/validator load scales by render/apply/drift workflow runs and iac-state-index catalog growth; capacity-model.md lists p99 render/apply and drift ceilings."
+    "notes": "CS-CLOUD-IAC-001 is a pure domain/metadata foundation. Runtime OpenTofu execution, module registry service, Argo CD API integration, measured capacity, autoscaling, and SLOs remain explicit non-claims."
   },
   "sharding_automation": {
-    "autosharding": "control_plane_driven",
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
     "auto_rebalance": {
       "enabled": false,
       "trigger_load_skew_threshold_percent": 30,
       "honors_residency": true,
       "honors_compliance_packs": true,
-      "audit_chain_emit": true
+      "audit_chain_emit": false
     },
     "dynamic_sharding": {
       "enabled": false,
@@ -612,97 +308,47 @@
       "hot_split_utilization_threshold_percent": 80,
       "cold_merge_utilization_threshold_percent": 20,
       "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
+      "audit_chain_emit": false
+    },
+    "non_claim": "CS-CLOUD-IAC-001 records cell topology metadata only; it does not implement autosharding, auto-rebalance, dynamic-sharding execution, tenant migration, or audit-chain persistence."
   },
   "dr": {
-    "rto_p99_seconds": 900,
-    "rpo_p99_seconds": 300,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "postgres_wal_g",
-      "object_storage_versioned",
-      "seaweedfs_replicated",
-      "audit_chain_merkle_seal"
-    ],
-    "failover_runbook": "runbooks/restore-drill-quarterly.md",
-    "dr_tier": "T2",
-    "replication_shape": "active-active-multi-az-cross-region-warm"
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "dr_tier": "not_claimed_runtime",
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No Cloud IaC runtime persistence store, restore drill, active-active replication, or failover evidence is implemented by CS-CLOUD-IAC-001."
   },
   "pod_runtime_tier": 1,
-  "pod_runtime_tier_justification": "Shared substrate control plane: cloud-iac applies and validates cluster/IaC state for other services and can expose tenant cluster state in plan previews, so it belongs on the tenant-data-touching substrate runtime rather than default runc.",
+  "pod_runtime_tier_justification": "Cloud IaC controls deployment/cell topology metadata for future high-criticality infrastructure. Runtime pods are not implemented yet; Tier-1 is retained only as intended future isolation class.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/cloud-iac/PRD.md",
-    "microservices/cloud-iac/ARCHITECTURE.md",
-    "microservices/cloud-iac/capacity-model.md"
+    "crates/oya-cloud-iac-domain/src/lib.rs",
+    "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs",
+    "crates/oya-check-iac-tier-discipline/src/lib.rs",
+    "microservices/cloud-iac/tofu/modules/catalog.json"
   ],
   "tenant_version_pinning": {
-    "declared_versions": [
-      "2026-05-21",
-      "2026-02-21",
-      "2025-11-21"
-    ],
-    "default_version": "2026-05-21",
-    "supported_window_size": 3,
-    "supported_window_minimum_days": 180,
-    "supports_per_tenant_pinning": true,
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 0,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
     "deprecation_calendar": [],
-    "public_surface_files": {
-      "openapi": {
-        "2026-05-21": "microservices/cloud-iac/contracts/openapi/cloud-iac.yaml",
-        "2026-02-21": "microservices/cloud-iac/contracts/openapi/cloud-iac.yaml",
-        "2025-11-21": "microservices/cloud-iac/contracts/openapi/cloud-iac.yaml"
-      }
-    }
+    "public_surface_files": {}
   },
   "consumes_upstream_oss": [
-    "opentofu",
-    "postgresql",
-    "valkey",
-    "kafka",
-    "openbao",
-    "cilium",
-    "istio",
-    "kyverno",
-    "cosign"
+    "opentofu"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [
-    {
-      "context": "on-prem",
-      "primitive": "kubeadm-cluster",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "on-prem",
-      "primitive": "cilium-cni",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "on-prem",
-      "primitive": "istio-ambient",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "tenant-namespace",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "cell-observability-collector",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "cell-audit-chain-bridge",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    }
+  "iac_module_invocations": [],
+  "foundation_non_claims": [
+    "no oya-cloud-iac-iac-* crates exist or are claimed",
+    "no REST, SDK, worker, provider adapter, OpenTofu CLI runner, Argo CD API adapter, Postgres registry adapter, rollback engine, or drift detector runtime is implemented",
+    "no measured SLO, burn-rate, active-active DR, sharding execution, live mesh enforcement, provider lockfile, tofu plan/apply, or capacity telemetry evidence exists for Cloud IaC runtime",
+    "legacy microservices/cloud-iac/*.md IP files and capability YAMLs may remain historical planning/prose but are not used as implementation-ready evidence by this manifest",
+    "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001 adds a first-class local filesystem/JSON Oya gate for manifest/catalog/main.tofu coherence but does not implement a private module registry, module signing, provider lockfiles, provider-resource-complete modules, or tofu init/validate/plan/apply runtime."
   ]
 }

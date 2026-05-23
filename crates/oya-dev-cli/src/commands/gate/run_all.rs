@@ -339,6 +339,11 @@ mod tests {
     }
 
     #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_module_catalog() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-catalog"));
+    }
+
+    #[test]
     fn deferred_gates_documented() {
         assert!(deferred_gate_count() > 0);
         for (name, reason) in DEFERRED_GATES {
