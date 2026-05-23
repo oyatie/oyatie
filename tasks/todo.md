@@ -18,8 +18,11 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - RED: failing domain test for snapshot persistence, duplicate idempotency rejection, and forbidden raw/credential/assertion/STS bytes.
   - GREEN: pure domain implementation, no runtime I/O.
   - VERIFY: `cargo test -p oya-cloud-iam-domain`; `cargo clippy -p oya-cloud-iam-domain --all-targets -- -D warnings`.
-- 🟦 CS-CLOUD-IAM-002 — audit/evidence receipt for IdP registry sync.
-- ⬜ CS-CLOUD-IAM-003 — API contract/version enforcement for identity-provider mutation paths.
+- ✅ CS-CLOUD-IAM-002 — audit/evidence receipt for IdP registry sync.
+  - TEST: domain regression covers immutable metadata-only evidence event creation from provider sync receipt, tenant/provider mismatch rejection, and missing/token-shaped evidence ref rejection.
+  - GREEN: pure domain event/receipt conversion with private immutable event fields and no runtime I/O.
+  - VERIFY: `cargo test -p oya-cloud-iam-domain`; `cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-api --all-targets -- -D warnings`.
+- 🟦 CS-CLOUD-IAM-003 — API contract/version enforcement for identity-provider mutation paths.
 - ⬜ CS-CLOUD-IAM-004 — typed tenant/cell/region boundary objects for IAM hot paths.
 - ⬜ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
 

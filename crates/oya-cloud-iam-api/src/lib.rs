@@ -1787,6 +1787,7 @@ fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
         | CloudIamError::PrincipalKindMismatch
         | CloudIamError::ProviderRequired
         | CloudIamError::InvalidProviderEvidenceRef
+        | CloudIamError::ProviderMismatch
         | CloudIamError::MissingExternalSubject
         | CloudIamError::UnexpectedExternalSubject
         | CloudIamError::UnknownProvider
@@ -1858,6 +1859,9 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         }
         CloudIamError::InvalidProviderEvidenceRef => {
             "provider evidence ref must use an allowlisted opaque IdP evidence-ref scheme"
+        }
+        CloudIamError::ProviderMismatch => {
+            "identity provider registry evidence provider does not match expected provider"
         }
         CloudIamError::MissingExternalSubject => {
             "federated/external principal requires external_subject"

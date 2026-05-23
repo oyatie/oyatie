@@ -22,6 +22,7 @@ const IAM_ROLE_SCHEMA_VERSION: u32 = 1;
 const STS_SESSION_SCHEMA_VERSION: u32 = 1;
 const IDENTITY_PROVIDER_SCHEMA_VERSION: u32 = 1;
 const IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION: u32 = 1;
+const IAM_PROVIDER_IDP_REGISTRY_EVIDENCE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
 const USER_ID_PREFIX: &str = "usr_";
 const SERVICE_PRINCIPAL_PREFIX: &str = "sp_";
@@ -275,6 +276,32 @@ pub struct IdentityProviderRegistrySnapshotCommit {
     pub schema_version: u32,                // data_class: PUBLIC
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityProviderRegistryEvidenceEvent {
+    event_id: String,                                   // data_class: INTERNAL_ONLY
+    tenant_id: String,                                  // data_class: INTERNAL_ONLY
+    actor: String,                                      // data_class: INTERNAL_ONLY
+    provider: CloudIamProviderKind,                     // data_class: PUBLIC
+    operation: IamProviderIdentityProviderOperation,    // data_class: PUBLIC
+    sync_status: IamProviderIdentityProviderSyncStatus, // data_class: PUBLIC
+    identity_provider_id: String,                       // data_class: INTERNAL_ONLY
+    provider_request_id: String,                        // data_class: INTERNAL_ONLY
+    provider_evidence_ref: String,                      // data_class: INTERNAL_ONLY
+    idempotency_key: String,                            // data_class: INTERNAL_ONLY
+    occurred_at_epoch_seconds: u64,                     // data_class: INTERNAL_ONLY
+    schema_version: u32,                                // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityProviderRegistryEvidenceReceipt {
+    event_id: String,               // data_class: INTERNAL_ONLY
+    tenant_id: String,              // data_class: INTERNAL_ONLY
+    provider: CloudIamProviderKind, // data_class: PUBLIC
+    provider_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    idempotency_key: String,        // data_class: INTERNAL_ONLY
+    schema_version: u32,            // data_class: PUBLIC
+}
+
 pub trait IdentityProviderRegistrySnapshotRepository {
     fn persist_snapshot(
         &mut self,
@@ -428,6 +455,7 @@ pub enum CloudIamError {
     DuplicateIdentityProviderRegistrySnapshot,
     DuplicateIdentityProviderRegistryRecord,
     IdentityProviderRegistryRawMaterialForbidden,
+    ProviderMismatch,
     MissingExternalSubject,
     UnexpectedExternalSubject,
     DuplicateProvider,
@@ -800,6 +828,150 @@ impl IdentityProviderRegistrySnapshot {
             }
         }
         Ok(())
+    }
+}
+
+impl IdentityProviderRegistryEvidenceEvent {
+    pub fn from_sync_receipt(
+        expected_tenant_id: &str,
+        expected_provider: CloudIamProviderKind,
+        receipt: IamProviderIdentityProviderSyncReceipt,
+    ) -> Result<Self, CloudIamError> {
+        validate_tenant_id(expected_tenant_id)?;
+        if receipt.tenant_id != expected_tenant_id {
+            return Err(CloudIamError::TenantMismatch);
+        }
+        if receipt.provider != expected_provider {
+            return Err(CloudIamError::ProviderMismatch);
+        }
+        if receipt.schema_version != IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION {
+            return Err(CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion);
+        }
+        validate_registry_provider_evidence_ref(&receipt.provider_evidence_ref)?;
+        validate_registry_ref(
+            &receipt.provider_request_id,
+            CloudIamError::InvalidProviderEvidenceRef,
+        )?;
+        validate_registry_ref(
+            &receipt.request_id,
+            CloudIamError::InvalidProviderEvidenceRef,
+        )?;
+        validate_registry_ref(
+            &receipt.idempotency_key,
+            CloudIamError::InvalidProviderEvidenceRef,
+        )?;
+        infer_principal_id(receipt.actor.clone()).map_err(|_| CloudIamError::InvalidPrincipalId)?;
+
+        let event_id = format!(
+            "evt_cloud_iam_idp_registry_{}_{}_{}",
+            receipt.tenant_id,
+            receipt.provider.label(),
+            receipt.idempotency_key
+        );
+        validate_registry_ref(
+            &event_id,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotId,
+        )?;
+
+        Ok(Self {
+            event_id,
+            tenant_id: receipt.tenant_id,
+            actor: receipt.actor,
+            provider: receipt.provider,
+            operation: receipt.operation,
+            sync_status: receipt.sync_status,
+            identity_provider_id: receipt.identity_provider_id,
+            provider_request_id: receipt.provider_request_id,
+            provider_evidence_ref: receipt.provider_evidence_ref,
+            idempotency_key: receipt.idempotency_key,
+            occurred_at_epoch_seconds: receipt.occurred_at_epoch_seconds,
+            schema_version: IAM_PROVIDER_IDP_REGISTRY_EVIDENCE_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn event_id(&self) -> &str {
+        &self.event_id
+    }
+
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    pub fn actor(&self) -> &str {
+        &self.actor
+    }
+
+    pub fn provider(&self) -> CloudIamProviderKind {
+        self.provider
+    }
+
+    pub fn operation(&self) -> IamProviderIdentityProviderOperation {
+        self.operation
+    }
+
+    pub fn sync_status(&self) -> IamProviderIdentityProviderSyncStatus {
+        self.sync_status
+    }
+
+    pub fn identity_provider_id(&self) -> &str {
+        &self.identity_provider_id
+    }
+
+    pub fn provider_request_id(&self) -> &str {
+        &self.provider_request_id
+    }
+
+    pub fn provider_evidence_ref(&self) -> &str {
+        &self.provider_evidence_ref
+    }
+
+    pub fn idempotency_key(&self) -> &str {
+        &self.idempotency_key
+    }
+
+    pub fn occurred_at_epoch_seconds(&self) -> u64 {
+        self.occurred_at_epoch_seconds
+    }
+
+    pub fn schema_version(&self) -> u32 {
+        self.schema_version
+    }
+
+    pub fn receipt(&self) -> IdentityProviderRegistryEvidenceReceipt {
+        IdentityProviderRegistryEvidenceReceipt {
+            event_id: self.event_id.clone(),
+            tenant_id: self.tenant_id.clone(),
+            provider: self.provider,
+            provider_evidence_ref: self.provider_evidence_ref.clone(),
+            idempotency_key: self.idempotency_key.clone(),
+            schema_version: self.schema_version,
+        }
+    }
+}
+
+impl IdentityProviderRegistryEvidenceReceipt {
+    pub fn event_id(&self) -> &str {
+        &self.event_id
+    }
+
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    pub fn provider(&self) -> CloudIamProviderKind {
+        self.provider
+    }
+
+    pub fn provider_evidence_ref(&self) -> &str {
+        &self.provider_evidence_ref
+    }
+
+    pub fn idempotency_key(&self) -> &str {
+        &self.idempotency_key
+    }
+
+    pub fn schema_version(&self) -> u32 {
+        self.schema_version
     }
 }
 
@@ -1808,6 +1980,142 @@ mod tests {
         assert_eq!(
             blank_provider_ref.validate(),
             Err(IamProviderIdentityProviderError::InvalidProviderIdentityProviderRef)
+        );
+    }
+
+    #[test]
+    fn idp_registry_sync_receipt_converts_to_metadata_only_evidence_event() {
+        let identity_provider =
+            IdentityProvider::new(provider_create()).expect("identity provider fixture is valid");
+        let request = IamProviderIdentityProviderSyncRequest {
+            request_id: "iam-idp-sync-001".to_string(),
+            provider_identity_provider_ref: "oci-iam-idp://identity-domain-alpha/idp_alpha_saml"
+                .to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            actor: "sp_cloud_provisioner".to_string(),
+            idempotency_key: "idem-iam-idp-sync-001".to_string(),
+            requested_at_epoch_seconds: 1_700_000_020,
+            operation: IamProviderIdentityProviderOperation::Upsert,
+            identity_provider,
+        };
+        let receipt = IamProviderIdentityProviderSyncReceipt::from_request(
+            CloudIamProviderKind::OciIdentityDomain,
+            request,
+            "oci-iam-1700000020-iam-idp-sync-001",
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml/iam-idp-sync-001",
+        )
+        .expect("provider sync receipt is valid");
+
+        let event = IdentityProviderRegistryEvidenceEvent::from_sync_receipt(
+            "ten_alpha",
+            CloudIamProviderKind::OciIdentityDomain,
+            receipt.clone(),
+        )
+        .expect("metadata-only evidence event is valid");
+
+        assert_eq!(
+            event.event_id(),
+            "evt_cloud_iam_idp_registry_ten_alpha_oci_identity_domain_idem-iam-idp-sync-001"
+        );
+        assert_eq!(event.tenant_id(), "ten_alpha");
+        assert_eq!(event.actor(), "sp_cloud_provisioner");
+        assert_eq!(event.provider(), CloudIamProviderKind::OciIdentityDomain);
+        assert_eq!(
+            event.operation(),
+            IamProviderIdentityProviderOperation::Upsert
+        );
+        assert_eq!(
+            event.sync_status(),
+            IamProviderIdentityProviderSyncStatus::Synchronized
+        );
+        assert_eq!(event.identity_provider_id(), "idp_alpha_saml");
+        assert_eq!(
+            event.provider_request_id(),
+            "oci-iam-1700000020-iam-idp-sync-001"
+        );
+        assert_eq!(
+            event.provider_evidence_ref(),
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml/iam-idp-sync-001"
+        );
+        assert_eq!(event.idempotency_key(), "idem-iam-idp-sync-001");
+        assert_eq!(event.occurred_at_epoch_seconds(), 1_700_000_020);
+        assert_eq!(
+            event.schema_version(),
+            IAM_PROVIDER_IDP_REGISTRY_EVIDENCE_SCHEMA_VERSION
+        );
+
+        let evidence_receipt = event.receipt();
+        assert_eq!(evidence_receipt.event_id(), event.event_id());
+        assert_eq!(evidence_receipt.tenant_id(), "ten_alpha");
+        assert_eq!(
+            evidence_receipt.provider(),
+            CloudIamProviderKind::OciIdentityDomain
+        );
+        assert_eq!(
+            evidence_receipt.provider_evidence_ref(),
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml/iam-idp-sync-001"
+        );
+        assert_eq!(evidence_receipt.idempotency_key(), "idem-iam-idp-sync-001");
+        assert_eq!(
+            evidence_receipt.schema_version(),
+            IAM_PROVIDER_IDP_REGISTRY_EVIDENCE_SCHEMA_VERSION
+        );
+
+        let tenant_mismatch_error = IdentityProviderRegistryEvidenceEvent::from_sync_receipt(
+            "ten_beta",
+            CloudIamProviderKind::OciIdentityDomain,
+            receipt.clone(),
+        )
+        .expect_err("evidence event is tenant-bound");
+        assert_eq!(tenant_mismatch_error, CloudIamError::TenantMismatch);
+
+        let provider_mismatch_error = IdentityProviderRegistryEvidenceEvent::from_sync_receipt(
+            "ten_alpha",
+            CloudIamProviderKind::SelfHostedOidcControlPlane,
+            receipt.clone(),
+        )
+        .expect_err("evidence event is provider-bound");
+        assert_eq!(provider_mismatch_error, CloudIamError::ProviderMismatch);
+
+        let mut missing_evidence_ref = receipt.clone();
+        missing_evidence_ref.provider_evidence_ref.clear();
+        let missing_evidence_ref_error = IdentityProviderRegistryEvidenceEvent::from_sync_receipt(
+            "ten_alpha",
+            CloudIamProviderKind::OciIdentityDomain,
+            missing_evidence_ref,
+        )
+        .expect_err("evidence event requires provider evidence ref");
+        assert_eq!(
+            missing_evidence_ref_error,
+            CloudIamError::InvalidProviderEvidenceRef
+        );
+
+        let mut token_shaped_evidence_ref = receipt.clone();
+        token_shaped_evidence_ref.provider_evidence_ref =
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGljZSJ9.signature".to_string();
+        let token_shaped_evidence_ref_error =
+            IdentityProviderRegistryEvidenceEvent::from_sync_receipt(
+                "ten_alpha",
+                CloudIamProviderKind::OciIdentityDomain,
+                token_shaped_evidence_ref,
+            )
+            .expect_err("evidence event rejects token-shaped provider evidence");
+        assert_eq!(
+            token_shaped_evidence_ref_error,
+            CloudIamError::InvalidProviderEvidenceRef
+        );
+
+        let mut schema_mismatch = receipt;
+        schema_mismatch.schema_version = IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION + 1;
+        let schema_mismatch_error = IdentityProviderRegistryEvidenceEvent::from_sync_receipt(
+            "ten_alpha",
+            CloudIamProviderKind::OciIdentityDomain,
+            schema_mismatch,
+        )
+        .expect_err("evidence event rejects receipt schema drift");
+        assert_eq!(
+            schema_mismatch_error,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion
         );
     }
 
