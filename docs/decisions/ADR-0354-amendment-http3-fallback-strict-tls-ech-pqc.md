@@ -1,5 +1,5 @@
 ---
-id: ADR-0253-amendment
+id: ADR-0354
 status: Proposed
 date: 2026-05-20
 owners:
@@ -57,9 +57,9 @@ enforced_by:
   - oya gate validate pqc-hybrid-kem-declared
 ---
 
-# ADR-0253: Amendment — HTTP/3 Fallback Chain, Strict TLS, ECH, PQC Hybrid
+# ADR-0354: Amendment — HTTP/3 Fallback Chain, Strict TLS, ECH, PQC Hybrid
 
-## §A — Context and Motivation
+## Context
 
 ADR-0253 established HTTP/3 + QUIC as the default transport for all
 oyatie endpoints (KS#10 per `feedback_http3_quic_default_protocol`).
@@ -103,7 +103,7 @@ FixupTask family.
 
 ---
 
-## §B — Decisions
+## Decision
 
 ### §B-1 HTTP/3 Fallback Chain
 
@@ -758,7 +758,7 @@ sacrificing HTTP/3 benefits for clients that support it.
 
 ---
 
-## §F — Cross-Cutting Impact
+## Consequences
 
 ### F-1 Impact on ADR-0295 Bootstrap SPIFFE
 

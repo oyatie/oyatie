@@ -1,5 +1,5 @@
 ---
-id: ADR-0246-amendment-library-first-network-opt-in-clarification
+id: ADR-0353
 status: Proposed
 date: 2026-05-20
 owners:
@@ -44,7 +44,7 @@ related:
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0251-compliance-pack-cell-certification-levels.md
   - ADR-0255-intelligence-as-two-layer-ai-substrate.md
-  - ADR-0255-amendment-library-first-network-opt-in-clarification.md
+  - ADR-0355-amendment-library-first-network-opt-in-clarification.md
   - ADR-NNNN-library-first-credential-sidecar
 related_specs:
   - /specs/platform-architecture.json
@@ -78,7 +78,7 @@ enforced_by:
   - oya gate validate library-credential-sidecar-coherence-policy-engine
 ---
 
-# ADR-0246: Amendment — Library-First / Network-Opt-In Clarification
+# ADR-0353: Amendment — Library-First / Network-Opt-In Clarification
 
 ## Status
 
@@ -1437,7 +1437,7 @@ for this Status item.
   mediation path in §D-4 references ADR-0248 §D-7 cell-trust-tier
   taxonomy.
 - **ADR-0255** — Intelligence as two-layer AI substrate.
-- **ADR-0255-amendment-library-first-network-opt-in-clarification** —
+- **ADR-0355-amendment-library-first-network-opt-in-clarification** —
   The structural twin of this amendment for Intelligence. This
   amendment is 1-of-2 in the F4 library-first symmetry promotion-gate
   fix; the ADR-0257 amendment is 2-of-2.

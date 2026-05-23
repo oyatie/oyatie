@@ -1,5 +1,5 @@
 ---
-id: ADR-0257-amendment-library-first-ontology-read-path
+id: ADR-0356
 status: Proposed
 date: 2026-05-20
 owners:
@@ -44,12 +44,12 @@ related:
   - ADR-0244-tenant-as-universal-scoping-primitive.md
   - ADR-0245-substrate-vs-product-layering.md
   - ADR-0246-policy-engine-substrate-promotion.md
-  - ADR-0246-amendment-library-first-network-opt-in-clarification.md
+  - ADR-0353-amendment-library-first-network-opt-in-clarification.md
   - ADR-0247-self-hosting-self-modification-doctrine.md
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0252-time-coordination-distributed-consistency.md
   - ADR-0255-intelligence-as-two-layer-ai-substrate.md
-  - ADR-0255-amendment-library-first-network-opt-in-clarification.md
+  - ADR-0355-amendment-library-first-network-opt-in-clarification.md
   - ADR-NNNN-library-first-credential-sidecar
 related_specs:
   - /specs/microservices/ontology.json
@@ -83,7 +83,7 @@ enforced_by:
   - oya gate validate ontology-read-credential-sidecar-coherence
 ---
 
-# ADR-0257: Amendment — Library-First Ontology Read-Path Clarification
+# ADR-0356: Amendment — Library-First Ontology Read-Path Clarification
 
 ## Status
 
@@ -1442,7 +1442,7 @@ under §Verification 3 above is the gating evidence.
   substrate (substrate-data per §D-3.A); the library shape is the
   consumption surface for reads.
 - **ADR-0246** — Policy-Engine Substrate Promotion.
-- **ADR-0246-amendment-library-first-network-opt-in-clarification** —
+- **ADR-0353-amendment-library-first-network-opt-in-clarification** —
   The Policy-Engine library-first amendment; this Ontology amendment
   is its structural twin for the read-path axis. Together (with the
   ADR-0255 amendment) the three amendments close all three structurally
@@ -1454,7 +1454,7 @@ under §Verification 3 above is the gating evidence.
   mediation path in §D-4 references ADR-0248 §D-7 cell-trust-tier
   taxonomy.
 - **ADR-0255** — Intelligence as two-layer AI substrate.
-- **ADR-0255-amendment-library-first-network-opt-in-clarification** —
+- **ADR-0355-amendment-library-first-network-opt-in-clarification** —
   The Intelligence library-first amendment.
 - **ADR-0257** — Ontology Object Type Versioning & Deprecation
   Handshake. Base ADR amended by this document.

@@ -1,5 +1,5 @@
 ---
-id: ADR-0255-amendment-library-first-network-opt-in-clarification
+id: ADR-0355
 status: Proposed
 date: 2026-05-20
 owners:
@@ -64,7 +64,7 @@ enforced_by:
   - oya gate validate library-audit-emission-coherence
 ---
 
-# ADR-0255: Amendment — Library-First / Network-Opt-In Clarification
+# ADR-0355: Amendment — Library-First / Network-Opt-In Clarification
 
 ## Status
 
