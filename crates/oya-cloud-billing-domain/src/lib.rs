@@ -7,7 +7,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_region_domain::RegionCode;
 use oya_cloud_resource_domain::ResourceId;
@@ -19,6 +19,7 @@ use oya_metering_domain::{
 const BILLING_ACCOUNT_SCHEMA_VERSION: u32 = 1;
 const CLOUD_BILLING_EVENT_SCHEMA_VERSION: u32 = 1;
 const CLOUD_INVOICE_SCHEMA_VERSION: u32 = 1;
+const CLOUD_BILLING_TENANT_GUARDRAIL_SCHEMA_VERSION: u32 = 1;
 const BILLING_ACCOUNT_ID_PREFIX: &str = "ba_";
 const CLOUD_BILLING_EVENT_ID_PREFIX: &str = "cbill_";
 const INVOICE_ID_PREFIX: &str = "inv_";
@@ -29,6 +30,11 @@ const RATE_CARD_PREFIX: &str = "rate/";
 const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
 const TAX_INVOICE_FORMAT_PREFIX: &str = "tax-format/";
 const TAX_REGISTRATION_ID_PREFIX: &str = "tax-registration/";
+pub const BILLING_METERING_EVIDENCE_PREFIX: &str = "evidence/billing/metering/";
+pub const BILLING_INVOICE_EVIDENCE_PREFIX: &str = "evidence/billing/invoice/";
+pub const BILLING_TAX_EVIDENCE_PREFIX: &str = "evidence/billing/tax/";
+pub const BILLING_AUDIT_CHAIN_PREFIX: &str = "audit-chain/billing/";
+pub const BILLING_DEMO_TRIAL_CAP_EVIDENCE_PREFIX: &str = "evidence/billing/demo-trial-cap/";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct BillingAccountId {
@@ -75,6 +81,19 @@ pub enum BillingAccountState {
     Active,
     Suspended,
     Delinquent,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum TenantClass {
+    DemoTrial,
+    Paid,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum BillingComponent {
+    RevenueShare,
+    PerSeat,
+    PerUsage,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -204,6 +223,45 @@ pub struct BillingAccount {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudBillingTenantGuardrailCreate {
+    pub tenant_id: String,                           // data_class: INTERNAL_ONLY
+    pub region: String,                              // data_class: PUBLIC
+    pub billing_account_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_class: TenantClass,                   // data_class: INTERNAL_ONLY
+    pub billing_components: Vec<BillingComponent>,   // data_class: INTERNAL_ONLY
+    pub regional_pack: String,                       // data_class: INTERNAL_ONLY
+    pub tax_invoice_format: TaxInvoiceFormat,        // data_class: INTERNAL_ONLY
+    pub rate_card_ref: String,                       // data_class: INTERNAL_ONLY
+    pub invoice_id: String,                          // data_class: INTERNAL_ONLY
+    pub billing_period: BillingPeriod,               // data_class: INTERNAL_ONLY
+    pub metering_evidence_refs: Vec<String>,         // data_class: AUDIT
+    pub invoice_evidence_ref: String,                // data_class: AUDIT
+    pub tax_evidence_ref: String,                    // data_class: AUDIT
+    pub audit_chain_ref: String,                     // data_class: AUDIT
+    pub demo_trial_cap_evidence_ref: Option<String>, // data_class: AUDIT
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudBillingTenantGuardrail {
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub region: Classified<RegionCode>, // data_class: PUBLIC
+    pub billing_account_id: Classified<BillingAccountId>, // data_class: INTERNAL_ONLY
+    pub tenant_class: Classified<TenantClass>, // data_class: INTERNAL_ONLY
+    pub billing_components: Classified<Vec<BillingComponent>>, // data_class: INTERNAL_ONLY
+    pub regional_pack: Classified<String>, // data_class: INTERNAL_ONLY
+    pub tax_invoice_format: Classified<TaxInvoiceFormat>, // data_class: INTERNAL_ONLY
+    pub rate_card_ref: Classified<RateCardRef>, // data_class: INTERNAL_ONLY
+    pub invoice_id: Classified<InvoiceId>, // data_class: INTERNAL_ONLY
+    pub billing_period: Classified<BillingPeriod>, // data_class: INTERNAL_ONLY
+    pub metering_evidence_refs: Classified<Vec<String>>, // data_class: AUDIT
+    pub invoice_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub tax_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub audit_chain_ref: Classified<String>, // data_class: AUDIT
+    pub demo_trial_cap_evidence_ref: Classified<Option<String>>, // data_class: AUDIT
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudBillingEventCreate {
     pub id: String,                     // data_class: INTERNAL_ONLY
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
@@ -253,6 +311,10 @@ pub enum CloudBillingError {
     InvalidInvoiceLineItem,
     InvalidInvoiceTotal,
     InvalidTaxInvoiceFormat,
+    InvalidTenantClassPolicy,
+    InvalidBillingComponentPolicy,
+    InvalidBillingEvidenceRef,
+    InvalidAuditChainRef,
     InvalidDataClass,
     BillingAccountInactive,
     TenantMismatch,
@@ -405,6 +467,33 @@ impl Money {
     }
 }
 
+impl TenantClass {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::DemoTrial => "demo_trial",
+            Self::Paid => "paid",
+        }
+    }
+}
+
+impl BillingComponent {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::RevenueShare => "revenue_share",
+            Self::PerSeat => "per_seat",
+            Self::PerUsage => "per_usage",
+        }
+    }
+}
+
+pub const fn tenant_class_label(value: TenantClass) -> &'static str {
+    value.label()
+}
+
+pub const fn billing_component_label(value: BillingComponent) -> &'static str {
+    value.label()
+}
+
 impl TaxInvoiceFormat {
     pub fn for_regional_pack(value: &str) -> Result<Self, CloudBillingError> {
         match value {
@@ -523,7 +612,7 @@ impl Invoice {
             issued_at_epoch_seconds: internal(input.issued_at_epoch_seconds),
             due_at_epoch_seconds: internal(input.due_at_epoch_seconds),
             data_class: internal(financial_data_class(input.data_class)?),
-            schema_version: public(CLOUD_INVOICE_SCHEMA_VERSION),
+            schema_version: public(CLOUD_BILLING_TENANT_GUARDRAIL_SCHEMA_VERSION),
         })
     }
 }
@@ -548,6 +637,77 @@ impl BillingAccount {
             data_class: internal(data_class),
             created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
             schema_version: public(BILLING_ACCOUNT_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl CloudBillingTenantGuardrail {
+    pub fn new(input: CloudBillingTenantGuardrailCreate) -> Result<Self, CloudBillingError> {
+        validate_tenant_id(&input.tenant_id)?;
+        let region =
+            RegionCode::new(input.region).map_err(|_| CloudBillingError::RegionMismatch)?;
+        let billing_account_id = BillingAccountId::new(input.billing_account_id)?;
+        let billing_components =
+            validate_billing_components(input.tenant_class, input.billing_components)?;
+        validate_regional_pack(&input.regional_pack)?;
+        let expected_tax_invoice_format =
+            TaxInvoiceFormat::for_regional_pack(&input.regional_pack)?;
+        if input.tax_invoice_format != expected_tax_invoice_format {
+            return Err(CloudBillingError::InvalidTaxInvoiceFormat);
+        }
+        let rate_card_ref = RateCardRef::new(input.rate_card_ref)?;
+        let invoice_id = InvoiceId::new(input.invoice_id)?;
+        let metering_evidence_refs = validate_evidence_refs(
+            input.metering_evidence_refs,
+            BILLING_METERING_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region.value,
+            CloudBillingError::InvalidBillingEvidenceRef,
+        )?;
+        let invoice_evidence_ref = validate_evidence_ref(
+            input.invoice_evidence_ref,
+            BILLING_INVOICE_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region.value,
+            CloudBillingError::InvalidBillingEvidenceRef,
+        )?;
+        let tax_evidence_ref = validate_evidence_ref(
+            input.tax_evidence_ref,
+            BILLING_TAX_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region.value,
+            CloudBillingError::InvalidBillingEvidenceRef,
+        )?;
+        let audit_chain_ref = validate_evidence_ref(
+            input.audit_chain_ref,
+            BILLING_AUDIT_CHAIN_PREFIX,
+            &input.tenant_id,
+            &region.value,
+            CloudBillingError::InvalidAuditChainRef,
+        )?;
+        let demo_trial_cap_evidence_ref = validate_demo_trial_cap_evidence_ref(
+            input.tenant_class,
+            input.demo_trial_cap_evidence_ref,
+            &input.tenant_id,
+            &region.value,
+        )?;
+        Ok(Self {
+            tenant_id: internal(input.tenant_id),
+            region: public(region),
+            billing_account_id: internal(billing_account_id),
+            tenant_class: internal(input.tenant_class),
+            billing_components: internal(billing_components),
+            regional_pack: internal(input.regional_pack),
+            tax_invoice_format: internal(input.tax_invoice_format),
+            rate_card_ref: internal(rate_card_ref),
+            invoice_id: internal(invoice_id),
+            billing_period: internal(input.billing_period),
+            metering_evidence_refs: audit(metering_evidence_refs),
+            invoice_evidence_ref: audit(invoice_evidence_ref),
+            tax_evidence_ref: audit(tax_evidence_ref),
+            audit_chain_ref: audit(audit_chain_ref),
+            demo_trial_cap_evidence_ref: audit(demo_trial_cap_evidence_ref),
+            schema_version: public(CLOUD_INVOICE_SCHEMA_VERSION),
         })
     }
 }
@@ -709,6 +869,94 @@ fn sum_line_items(line_items: &[InvoiceLineItem]) -> Result<Money, CloudBillingE
     Ok(total)
 }
 
+fn validate_billing_components(
+    tenant_class: TenantClass,
+    components: Vec<BillingComponent>,
+) -> Result<Vec<BillingComponent>, CloudBillingError> {
+    match tenant_class {
+        TenantClass::DemoTrial => {
+            if components.is_empty() {
+                Ok(components)
+            } else {
+                Err(CloudBillingError::InvalidBillingComponentPolicy)
+            }
+        }
+        TenantClass::Paid => {
+            if components.is_empty() {
+                return Err(CloudBillingError::InvalidBillingComponentPolicy);
+            }
+            let mut seen = BTreeSet::new();
+            for component in &components {
+                if !seen.insert(*component) {
+                    return Err(CloudBillingError::InvalidBillingComponentPolicy);
+                }
+            }
+            Ok(components)
+        }
+    }
+}
+
+fn validate_demo_trial_cap_evidence_ref(
+    tenant_class: TenantClass,
+    value: Option<String>,
+    tenant_id: &str,
+    region: &str,
+) -> Result<Option<String>, CloudBillingError> {
+    match (tenant_class, value) {
+        (TenantClass::DemoTrial, Some(value)) => validate_evidence_ref(
+            value,
+            BILLING_DEMO_TRIAL_CAP_EVIDENCE_PREFIX,
+            tenant_id,
+            region,
+            CloudBillingError::InvalidBillingEvidenceRef,
+        )
+        .map(Some),
+        (TenantClass::DemoTrial, None) => Err(CloudBillingError::InvalidTenantClassPolicy),
+        (TenantClass::Paid, Some(_)) => Err(CloudBillingError::InvalidTenantClassPolicy),
+        (TenantClass::Paid, None) => Ok(None),
+    }
+}
+
+fn validate_evidence_refs(
+    values: Vec<String>,
+    prefix: &str,
+    tenant_id: &str,
+    region: &str,
+    error: CloudBillingError,
+) -> Result<Vec<String>, CloudBillingError> {
+    if values.is_empty() {
+        return Err(error);
+    }
+    let mut seen = BTreeSet::new();
+    let mut validated = Vec::with_capacity(values.len());
+    for value in values {
+        let value = validate_evidence_ref(value, prefix, tenant_id, region, error.clone())?;
+        if !seen.insert(value.clone()) {
+            return Err(error);
+        }
+        validated.push(value);
+    }
+    Ok(validated)
+}
+
+fn validate_evidence_ref(
+    value: String,
+    prefix: &str,
+    tenant_id: &str,
+    region: &str,
+    error: CloudBillingError,
+) -> Result<String, CloudBillingError> {
+    if !value.starts_with(prefix)
+        || !is_safe_reference(&value)
+        || contains_secret_marker(&value)
+        || !reference_matches_tenant_region(&value, prefix, tenant_id, region)
+    {
+        Err(error)
+    } else {
+        Ok(value)
+    }
+}
+
 fn validate_metering_tag(
     value: &str,
     tenant_id: &str,
@@ -726,7 +974,9 @@ fn validate_metering_tag(
 }
 
 fn validate_tenant_id(value: &str) -> Result<(), CloudBillingError> {
-    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
+    if let Some(segment) = value.strip_prefix(TENANT_ID_PREFIX)
+        && is_canonical_tenant_segment(segment)
+    {
         Ok(())
     } else {
         Err(CloudBillingError::InvalidTenantId)
@@ -766,11 +1016,68 @@ fn prefixed_id(
     prefix: &str,
     error: CloudBillingError,
 ) -> Result<String, CloudBillingError> {
-    if value.starts_with(prefix) && value.len() > prefix.len() {
+    if value.starts_with(prefix) && value.len() > prefix.len() && is_safe_reference(&value) {
         Ok(value)
     } else {
         Err(error)
     }
+}
+
+fn reference_matches_tenant_region(
+    value: &str,
+    prefix: &str,
+    tenant_id: &str,
+    region: &str,
+) -> bool {
+    let Some(suffix) = value.strip_prefix(prefix) else {
+        return false;
+    };
+    let mut parts = suffix.split('/');
+    parts.next() == Some(tenant_id) && parts.next() == Some(region) && parts.next().is_some()
+}
+
+fn is_canonical_tenant_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && !segment.starts_with('-')
+        && !segment.ends_with('-')
+        && !segment.contains("--")
+        && segment.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'-'
+        })
+}
+
+fn is_safe_reference(value: &str) -> bool {
+    value == value.trim()
+        && !value.is_empty()
+        && !value.contains("//")
+        && !value.bytes().any(|byte| {
+            byte.is_ascii_control()
+                || byte.is_ascii_whitespace()
+                || matches!(byte, b'\\' | b'?' | b'#')
+        })
+        && value
+            .split('/')
+            .all(|segment| !segment.is_empty() && segment != "." && segment != "..")
+}
+
+fn contains_secret_marker(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    [
+        "access_token",
+        "api_key",
+        "apikey",
+        "bearer",
+        "credential",
+        "kubeconfig",
+        "openbao",
+        "password",
+        "private_key",
+        "secret",
+        "tax_registration_secret",
+        "token=",
+    ]
+    .iter()
+    .any(|marker| lower.contains(marker))
 }
 
 fn is_ascii_token(value: &str) -> bool {
@@ -786,6 +1093,10 @@ fn public<T>(value: T) -> Classified<T> {
 
 fn internal<T>(value: T) -> Classified<T> {
     Classified::new(value, DataClass::InternalOnly)
+}
+
+fn audit<T>(value: T) -> Classified<T> {
+    Classified::new(value, DataClass::Audit)
 }
 
 #[cfg(test)]
