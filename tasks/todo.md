@@ -22,7 +22,10 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - TEST: domain regression covers immutable metadata-only evidence event creation from provider sync receipt, tenant/provider mismatch rejection, and missing/token-shaped evidence ref rejection.
   - GREEN: pure domain event/receipt conversion with private immutable event fields and no runtime I/O.
   - VERIFY: `cargo test -p oya-cloud-iam-domain`; `cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-api --all-targets -- -D warnings`.
-- 🟦 CS-CLOUD-IAM-003 — API contract/version enforcement for identity-provider mutation paths.
+- ✅ CS-CLOUD-IAM-003 — API contract/version enforcement for identity-provider mutation paths.
+  - RED: failing API test required `Oyatie-Version` boundary fields and missing/unsupported public-version errors.
+  - GREEN: API boundary validates supported date carriers before auth/idempotency/domain mutation; OpenAPI declares required `Oyatie-Version`.
+  - VERIFY: `cargo test -p oya-cloud-iam-api`; Cloud IAM package tests; Cloud IAM clippy; `cargo fmt --all -- --check`; `./bin/oya gate validate api-semver --contracts-dir contracts`.
 - ⬜ CS-CLOUD-IAM-004 — typed tenant/cell/region boundary objects for IAM hot paths.
 - ⬜ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
 

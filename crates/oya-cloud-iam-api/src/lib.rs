@@ -17,6 +17,10 @@ pub const CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE: &str = "cloud.iam.identity_p
 pub const CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE: &str = "cloud.iam.identity_provider.update";
 pub const CLOUD_IAM_ROLE_CREATE_SURFACE: &str = "cloud.iam.role.create";
 pub const CLOUD_IAM_STS_TOKEN_SURFACE: &str = "cloud.iam.sts.token";
+pub const CLOUD_IAM_PUBLIC_API_VERSION_HEADER: &str = "Oyatie-Version";
+pub const CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION: &str = "2026-05-21";
+pub const CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS: &[&str] =
+    &["2026-05-21", "2026-02-21", "2025-11-21"];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudIamIdentityProviderDeleteApiStatus {
@@ -144,6 +148,8 @@ impl CloudIamStsTokenApiStatus {
 pub enum CloudIamApiErrorCode {
     RequestIdEmpty,
     TenantHeaderEmpty,
+    PublicApiVersionMissing,
+    PublicApiVersionUnsupported,
     IdempotencyKeyEmpty,
     PathProviderIdEmpty,
     PathRoleIdEmpty,
@@ -167,6 +173,8 @@ impl CloudIamApiErrorCode {
         match self {
             Self::RequestIdEmpty => "CLOUD_IAM_REQUEST_ID_EMPTY",
             Self::TenantHeaderEmpty => "CLOUD_IAM_TENANT_HEADER_EMPTY",
+            Self::PublicApiVersionMissing => "CLOUD_IAM_PUBLIC_API_VERSION_MISSING",
+            Self::PublicApiVersionUnsupported => "CLOUD_IAM_PUBLIC_API_VERSION_UNSUPPORTED",
             Self::IdempotencyKeyEmpty => "CLOUD_IAM_IDEMPOTENCY_KEY_EMPTY",
             Self::PathProviderIdEmpty => "CLOUD_IAM_PATH_PROVIDER_ID_EMPTY",
             Self::PathRoleIdEmpty => "CLOUD_IAM_PATH_ROLE_ID_EMPTY",
@@ -192,12 +200,14 @@ pub struct CloudIamApiBoundaryContext {
     pub request_id: String,      // data_class: INTERNAL_ONLY
     pub tenant_id: String,       // data_class: INTERNAL_ONLY
     pub idempotency_key: String, // data_class: INTERNAL_ONLY
+    pub oyatie_version: String,  // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamApiReadBoundaryContext {
-    pub request_id: String, // data_class: INTERNAL_ONLY
-    pub tenant_id: String,  // data_class: INTERNAL_ONLY
+    pub request_id: String,     // data_class: INTERNAL_ONLY
+    pub tenant_id: String,      // data_class: INTERNAL_ONLY
+    pub oyatie_version: String, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -641,6 +651,10 @@ pub struct CloudIamApiErrorDetail {
 pub enum CloudIamApiError {
     EmptyRequestId,
     EmptyTenantHeader,
+    MissingPublicApiVersion,
+    UnsupportedPublicApiVersion {
+        oyatie_version: String, // data_class: PUBLIC
+    },
     EmptyIdempotencyKey,
     EmptyPathProviderId,
     EmptyPathRoleId,
@@ -770,6 +784,10 @@ impl CloudIamApiError {
         match self {
             Self::EmptyRequestId => CloudIamApiErrorCode::RequestIdEmpty,
             Self::EmptyTenantHeader => CloudIamApiErrorCode::TenantHeaderEmpty,
+            Self::MissingPublicApiVersion => CloudIamApiErrorCode::PublicApiVersionMissing,
+            Self::UnsupportedPublicApiVersion { .. } => {
+                CloudIamApiErrorCode::PublicApiVersionUnsupported
+            }
             Self::EmptyIdempotencyKey => CloudIamApiErrorCode::IdempotencyKeyEmpty,
             Self::EmptyPathProviderId => CloudIamApiErrorCode::PathProviderIdEmpty,
             Self::EmptyPathRoleId => CloudIamApiErrorCode::PathRoleIdEmpty,
@@ -824,6 +842,8 @@ impl CloudIamApiError {
             Self::Iam(error) => cloud_iam_status_kind(error),
             Self::EmptyRequestId
             | Self::EmptyTenantHeader
+            | Self::MissingPublicApiVersion
+            | Self::UnsupportedPublicApiVersion { .. }
             | Self::EmptyIdempotencyKey
             | Self::EmptyPathProviderId
             | Self::EmptyPathRoleId
@@ -837,6 +857,10 @@ impl CloudIamApiError {
         match self {
             Self::EmptyRequestId => "X-Request-Id header is required",
             Self::EmptyTenantHeader => "X-Tenant-Id header is required",
+            Self::MissingPublicApiVersion => "Oyatie-Version header is required",
+            Self::UnsupportedPublicApiVersion { .. } => {
+                "Oyatie-Version header must be a supported YYYY-MM-DD public API version"
+            }
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
             Self::EmptyPathProviderId => "Path identity provider id is required",
             Self::EmptyPathRoleId => "Path role id is required",
@@ -870,6 +894,14 @@ impl CloudIamApiError {
         match self {
             Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
             Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
+            Self::MissingPublicApiVersion => vec![detail(
+                "header.Oyatie-Version",
+                "must be a non-empty YYYY-MM-DD public API version",
+            )],
+            Self::UnsupportedPublicApiVersion { .. } => vec![detail(
+                "header.Oyatie-Version",
+                "must match a Cloud IAM supported public API version",
+            )],
             Self::EmptyIdempotencyKey => {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
             }
@@ -1274,6 +1306,7 @@ fn validate_boundary(boundary: &CloudIamApiBoundaryContext) -> Result<(), CloudI
     if boundary.tenant_id.trim().is_empty() {
         return Err(CloudIamApiError::EmptyTenantHeader);
     }
+    validate_public_api_version(&boundary.oyatie_version)?;
     if boundary.idempotency_key.trim().is_empty() {
         return Err(CloudIamApiError::EmptyIdempotencyKey);
     }
@@ -1288,6 +1321,20 @@ fn validate_read_boundary(
     }
     if boundary.tenant_id.trim().is_empty() {
         return Err(CloudIamApiError::EmptyTenantHeader);
+    }
+    validate_public_api_version(&boundary.oyatie_version)?;
+    Ok(())
+}
+
+fn validate_public_api_version(oyatie_version: &str) -> Result<(), CloudIamApiError> {
+    let normalized_version = oyatie_version.trim();
+    if normalized_version.is_empty() {
+        return Err(CloudIamApiError::MissingPublicApiVersion);
+    }
+    if !CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS.contains(&oyatie_version) {
+        return Err(CloudIamApiError::UnsupportedPublicApiVersion {
+            oyatie_version: oyatie_version.to_string(),
+        });
     }
     Ok(())
 }
@@ -1455,6 +1502,7 @@ fn identity_provider_create_fingerprint_for(
                 "path.identity_provider_id={}",
                 request.path_identity_provider_id
             ),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1505,6 +1553,7 @@ fn identity_provider_update_fingerprint_for(
                 "path.identity_provider_id={}",
                 request.path_identity_provider_id
             ),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1551,6 +1600,7 @@ fn identity_provider_delete_fingerprint_for(
                 "path.identity_provider_id={}",
                 request.path_identity_provider_id
             ),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1582,6 +1632,7 @@ fn role_create_fingerprint_for(
     CloudIamRequestFingerprint {
         canonical: [
             format!("path.role_id={}", request.path_role_id),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1637,6 +1688,7 @@ fn role_create_fingerprint_for(
 fn sts_token_fingerprint_for(request: &CloudIamStsTokenApiRequest) -> CloudIamRequestFingerprint {
     CloudIamRequestFingerprint {
         canonical: [
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),

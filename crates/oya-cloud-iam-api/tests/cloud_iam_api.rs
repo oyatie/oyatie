@@ -3,8 +3,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_iam_api::{
-    CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE, CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
-    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization,
+    CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION, CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
+    CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE, CLOUD_IAM_ROLE_CREATE_SURFACE,
+    CLOUD_IAM_STS_TOKEN_SURFACE, CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS, CloudIamApiAuthorization,
     CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal,
     CloudIamApiReadBoundaryContext, CloudIamIdentityProviderCreateApiRequest,
     CloudIamIdentityProviderCreateApiStatus, CloudIamIdentityProviderCreateIdempotencyLedger,
@@ -32,6 +33,7 @@ fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryC
         request_id: request_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
+        oyatie_version: CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION.to_string(),
     }
 }
 
@@ -39,6 +41,7 @@ fn read_boundary_for(request_id: &str) -> CloudIamApiReadBoundaryContext {
     CloudIamApiReadBoundaryContext {
         request_id: request_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
+        oyatie_version: CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION.to_string(),
     }
 }
 
@@ -693,6 +696,162 @@ fn identity_provider_create_api_rejects_path_body_provider_drift_before_ledger()
     directory
         .register_identity_provider(external_oidc_provider_create())
         .expect("path/body denial happened before directory mutation");
+}
+
+#[test]
+fn identity_provider_mutation_api_rejects_missing_or_unsupported_oyatie_version_before_ledger() {
+    let mut directory = IamDirectory::default();
+    let mut create_ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let mut missing_create =
+        identity_provider_api_request("req-idp-version-missing", "idem-idp-version-missing");
+    missing_create.boundary.oyatie_version = " ".to_string();
+    missing_create.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(
+            &mut directory,
+            &mut create_ledger,
+            missing_create
+        ),
+        Err(CloudIamApiError::MissingPublicApiVersion)
+    );
+    assert!(create_ledger.is_empty());
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("missing version rejection happened before directory mutation");
+
+    let mut directory = IamDirectory::default();
+    let mut create_ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let mut unsupported_create =
+        identity_provider_api_request("req-idp-version-unsupported", "idem-idp-version-bad");
+    unsupported_create.boundary.oyatie_version = "2026-01-01".to_string();
+    unsupported_create.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(
+            &mut directory,
+            &mut create_ledger,
+            unsupported_create
+        ),
+        Err(CloudIamApiError::UnsupportedPublicApiVersion {
+            oyatie_version: "2026-01-01".to_string(),
+        })
+    );
+    assert!(create_ledger.is_empty());
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("unsupported version rejection happened before directory mutation");
+
+    let mut directory = IamDirectory::default();
+    let mut update_ledger = CloudIamIdentityProviderUpdateIdempotencyLedger::default();
+    let mut missing_update = identity_provider_update_api_request(
+        "req-idp-update-version-missing",
+        "idem-update-missing",
+    );
+    missing_update.boundary.oyatie_version = String::new();
+    missing_update.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        update_cloud_iam_identity_provider_from_api(
+            &mut directory,
+            &mut update_ledger,
+            missing_update
+        ),
+        Err(CloudIamApiError::MissingPublicApiVersion)
+    );
+    assert!(update_ledger.is_empty());
+
+    let mut unsupported_update = identity_provider_update_api_request(
+        "req-idp-update-version-unsupported",
+        "idem-update-unsupported",
+    );
+    unsupported_update.boundary.oyatie_version = "not-a-date".to_string();
+    unsupported_update.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        update_cloud_iam_identity_provider_from_api(
+            &mut directory,
+            &mut update_ledger,
+            unsupported_update
+        ),
+        Err(CloudIamApiError::UnsupportedPublicApiVersion {
+            oyatie_version: "not-a-date".to_string(),
+        })
+    );
+    assert!(update_ledger.is_empty());
+
+    let mut delete_ledger = CloudIamIdentityProviderDeleteIdempotencyLedger::default();
+    let mut missing_delete = identity_provider_delete_api_request(
+        "req-idp-delete-version-missing",
+        "idem-delete-missing",
+    );
+    missing_delete.boundary.oyatie_version = "\t".to_string();
+    missing_delete.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        delete_cloud_iam_identity_provider_from_api(
+            &mut directory,
+            &mut delete_ledger,
+            missing_delete
+        ),
+        Err(CloudIamApiError::MissingPublicApiVersion)
+    );
+    assert!(delete_ledger.is_empty());
+
+    let mut unsupported_delete = identity_provider_delete_api_request(
+        "req-idp-delete-version-unsupported",
+        "idem-delete-unsupported",
+    );
+    unsupported_delete.boundary.oyatie_version = "2026-01-01".to_string();
+    unsupported_delete.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        delete_cloud_iam_identity_provider_from_api(
+            &mut directory,
+            &mut delete_ledger,
+            unsupported_delete
+        ),
+        Err(CloudIamApiError::UnsupportedPublicApiVersion {
+            oyatie_version: "2026-01-01".to_string(),
+        })
+    );
+    assert!(delete_ledger.is_empty());
+}
+
+#[test]
+fn identity_provider_create_api_accepts_manifest_public_versions_and_keys_by_version() {
+    for (index, oyatie_version) in CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS
+        .iter()
+        .copied()
+        .enumerate()
+    {
+        let mut directory = IamDirectory::default();
+        let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+        let mut request = identity_provider_api_request(
+            &format!("req-idp-version-supported-{index}"),
+            &format!("idem-idp-version-supported-{index}"),
+        );
+        request.boundary.oyatie_version = oyatie_version.to_string();
+
+        let response =
+            create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+                .expect("manifest-declared public API version is accepted");
+
+        assert_eq!(response.data.identity_provider_id, "idp_partner_oidc");
+        assert_eq!(ledger.len(), 1);
+    }
+
+    let mut directory = IamDirectory::default();
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let request = identity_provider_api_request("req-idp-version-default", "idem-idp-version-key");
+    create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("default public API version succeeds");
+
+    let mut version_drifted = request;
+    version_drifted.boundary.oyatie_version = "2026-02-21".to_string();
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, version_drifted),
+        Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: "idem-idp-version-key".to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), 1);
 }
 
 #[test]
