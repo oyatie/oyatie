@@ -1,54 +1,45 @@
-# Hyperscaler Gap-Closure — Task List
+# FD-001 Phase 0 Task List
 
 Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 
-## Slice A — Security + Privacy posture
+## Authority
 
-- 🟦 A1 — threat-model.md (STRIDE per asset; 12+ threats; mitigations; owners; residual risk)
-- ⬜ A2 — dpia.md (ICO + CNIL template; GDPR / KR PIPA / HIPAA citations)
-- ⬜ A3 — policy/tenant-isolation.md (Mimir X-Scope-OrgID + oya-ci reserved)
-- ⬜ A4 — policy/data-residency.md (per-pack jurisdiction map)
-- ⬜ A5 — policy/*.cedar (tenant + ci + public read; Cedar v3.4 schema)
-- ⬜ A6 — /specs/agentic-slo-gated-promotion.json multi-tenancy update
+- `/specs/masterplan.json`
+- `/specs/master-plan-sequencing.json`
+- `docs/decisions/` with later ADRs winning conflicts
+- `docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md`
+- `docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md`
 
-## Slice B — Operational posture (depends on Slice A)
+## Phase 0 — shared cloud infrastructure
 
-- ⬜ B1 — cost-budget.md (line-item Grafana stack costs + scale formulas)
-- ⬜ B2 — failure-modes.md (10+ scenarios; impact / detection / mitigation / recovery)
-- ⬜ B3 — capacity-model.md (sizing formulas)
-- ⬜ B4 — compliance.md (control-to-framework mapping)
-- ⬜ B5 — multi-region.md (federated Mimir + replication)
-- ⬜ B6 — incident-response.md (escalation + comms templates)
-- ⬜ B7 — runbooks/ (6 runbooks)
+### Cloud IAM
 
-## Slice C — Interface + Tenant posture (depends on Slice A)
+- ✅ CS-CLOUD-IAM-001 — durable metadata-only IdP registry snapshot port and in-memory test adapter.
+  - RED: failing domain test for snapshot persistence, duplicate idempotency rejection, and forbidden raw/credential/assertion/STS bytes.
+  - GREEN: pure domain implementation, no runtime I/O.
+  - VERIFY: `cargo test -p oya-cloud-iam-domain`; `cargo clippy -p oya-cloud-iam-domain --all-targets -- -D warnings`.
+- 🟦 CS-CLOUD-IAM-002 — audit/evidence receipt for IdP registry sync.
+- ⬜ CS-CLOUD-IAM-003 — API contract/version enforcement for identity-provider mutation paths.
+- ⬜ CS-CLOUD-IAM-004 — typed tenant/cell/region boundary objects for IAM hot paths.
+- ⬜ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
 
-- ⬜ C1 — contracts/openapi/slo-engine.yaml
-- ⬜ C2 — contracts/asyncapi/eligibility-events.yaml
-- ⬜ C3 — contracts/proto/slo-engine.proto
-- ⬜ C4 — capabilities/*.yaml (3 capability records with eval-sets)
-- ⬜ C5 — dashboards/*.json (3 Grafana dashboards)
-- ⬜ C6 — backfill-replay.md
-- ⬜ C7 — sdk-plan.md
+### Next Phase 0 services, after Cloud IAM checkpoint
 
-## Slice D — Convention + Tooling addenda (depends on A + B + C)
+- ⬜ Cloud KMS — key/DEK/BYOK/HSM custody kernel and audit-backed rotation surfaces.
+- ⬜ Cloud Secrets — OpenBao-backed secret reference model and fail-closed bootstrap policy.
+- ⬜ Cloud IaC — OpenTofu module registry, cell topology, and GitOps evidence.
+- ⬜ Cloud Network + DNS — Cilium/Envoy/DNS surfaces with no cross-cell default traffic.
+- ⬜ Cloud Data — Postgres+Citus tenant/cell partitioning and migration/backup gates.
+- ⬜ Cloud Storage — object/block/file storage seams with tenant prefix and evidence controls.
+- ⬜ Cloud Compute Functions/K8s/VM — workload identity, isolation tier, scheduling, and audit surfaces.
+- ⬜ Cloud Billing + Tax — metering, tenant class, invoicing, tax evidence, and billing audit chain.
+- ⬜ Cloud Capacity/Cell/DCOps/FinOps/Marketplace/FSH — complete remaining Phase 0 infrastructure bar.
 
-- ⬜ D1 — docs/standards/observability-slo.md
-- ⬜ D2 — /specs/microservice-migration-tooling.json
-- ⬜ D3 — microservices/observability/competitor-parity-matrix.md
-- ⬜ D4 — ADR-0130 edits (Bominal verify + competitor parity)
-- ⬜ D5 — ADR-0131 edits (migration cost + src/ path fix)
-- ⬜ D6 — ADR-0132 edits (migration cost)
-- ⬜ D7 — PHASE-01 edits (ChangeSet per IP + test coverage + branch-protection diff)
-- ⬜ D8 — /specs/agentic-slo-gated-promotion.json (backfill + canary finalization)
+## Global done criteria for each checked task
 
-## Exit criteria
-
-- ✅ All four slices closed
-- ✅ `oya gate validate per-microservice-layout --microservice observability` exit 0
-- ✅ `oya gate validate authority-cohesion` exit 0
-- ✅ Turn 2 (15 observability IPs) unblocked
-
----
-
-After all 28 tasks complete: begin Turn 2 (Tasks #7, #8 in TaskCreate index).
+- [ ] Oya VCS claim/work/verify/done evidence recorded.
+- [ ] Tests prove behavior and negative cases.
+- [ ] Clean architecture layer direction preserved.
+- [ ] No placeholder/stub/thin false-green claims.
+- [ ] Security/privacy/policy/audit consequences reviewed.
+- [ ] Relevant manifests/docs updated only for implemented evidence.

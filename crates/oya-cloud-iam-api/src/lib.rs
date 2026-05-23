@@ -1751,6 +1751,8 @@ fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
         | CloudIamError::DuplicatePrincipal
         | CloudIamError::DuplicateRole
         | CloudIamError::DuplicateSession
+        | CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        | CloudIamError::DuplicateIdentityProviderRegistryRecord
         | CloudIamError::ProviderInUse => CloudIamApiStatusKind::Conflict,
         CloudIamError::PrincipalCannotAssumeRole
         | CloudIamError::MfaNotVerified
@@ -1772,14 +1774,19 @@ fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
         | CloudIamError::InvalidVerificationMaterialRef
         | CloudIamError::InvalidSessionId
         | CloudIamError::InvalidExternalId
+        | CloudIamError::InvalidIdentityProviderRegistrySnapshotId
+        | CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion
         | CloudIamError::InvalidDataClass
         | CloudIamError::InvalidSemver
         | CloudIamError::InvalidSessionDuration
+        | CloudIamError::EmptyIdentityProviderRegistrySnapshot
+        | CloudIamError::IdentityProviderRegistryRawMaterialForbidden
         | CloudIamError::MissingAssumablePrincipal
         | CloudIamError::DuplicateAssumablePrincipal
         | CloudIamError::DuplicateScope
         | CloudIamError::PrincipalKindMismatch
         | CloudIamError::ProviderRequired
+        | CloudIamError::InvalidProviderEvidenceRef
         | CloudIamError::MissingExternalSubject
         | CloudIamError::UnexpectedExternalSubject
         | CloudIamError::UnknownProvider
@@ -1816,12 +1823,24 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         }
         CloudIamError::InvalidSessionId => "session_id must be a sts_ identifier",
         CloudIamError::InvalidExternalId => "external_id must be non-empty when present",
+        CloudIamError::InvalidIdentityProviderRegistrySnapshotId => {
+            "identity provider registry snapshot id must be non-empty metadata"
+        }
+        CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion => {
+            "identity provider registry snapshot schema version is unsupported"
+        }
         CloudIamError::InvalidDataClass => "role data_class must be a public privacy class",
         CloudIamError::InvalidSemver => "cedar_policy_version must be semver",
         CloudIamError::InvalidSessionDuration => {
             "session duration must be >0 and <= role/platform limit"
         }
         CloudIamError::MissingAssumablePrincipal => "role must trust at least one principal",
+        CloudIamError::EmptyIdentityProviderRegistrySnapshot => {
+            "identity provider registry snapshot must contain at least one record"
+        }
+        CloudIamError::IdentityProviderRegistryRawMaterialForbidden => {
+            "identity provider registry snapshots must not contain raw provider, credential, assertion, or STS material"
+        }
         CloudIamError::DuplicateAssumablePrincipal => "role trust policy has duplicate principals",
         CloudIamError::DuplicateScope => "STS scope list has duplicate scopes",
         CloudIamError::PrincipalKindMismatch => "principal kind does not match identifier",
@@ -1837,6 +1856,9 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         CloudIamError::ProviderInUse => {
             "identity provider cannot be deleted while principals reference it"
         }
+        CloudIamError::InvalidProviderEvidenceRef => {
+            "provider evidence ref must use an allowlisted opaque IdP evidence-ref scheme"
+        }
         CloudIamError::MissingExternalSubject => {
             "federated/external principal requires external_subject"
         }
@@ -1846,7 +1868,11 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         CloudIamError::DuplicateProvider
         | CloudIamError::DuplicatePrincipal
         | CloudIamError::DuplicateRole
-        | CloudIamError::DuplicateSession => "resource identifier is already present",
+        | CloudIamError::DuplicateSession
+        | CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        | CloudIamError::DuplicateIdentityProviderRegistryRecord => {
+            "resource identifier is already present"
+        }
         CloudIamError::UnknownProvider => {
             "identity provider must exist before principal registration"
         }

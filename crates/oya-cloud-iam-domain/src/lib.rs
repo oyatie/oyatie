@@ -34,6 +34,8 @@ const CERT_REF_PREFIX: &str = "cert/";
 const JWKS_REF_PREFIX: &str = "jwks/";
 const CLOUD_SCOPE_PREFIX: &str = "cloud.";
 const CLOUD_IAM_CAPABILITY_ID: &str = "cap.cloud.iam";
+const OCI_IDP_EVIDENCE_REF_PREFIX: &str = "oci-iam-idp://";
+const SELFHOSTED_IDP_EVIDENCE_REF_PREFIX: &str = "selfhosted-idp://";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct IamPrincipalId {
@@ -210,12 +212,81 @@ pub struct IamProviderIdentityProviderSyncReceipt {
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
     pub identity_provider_id: String,   // data_class: INTERNAL_ONLY
     pub identity_provider_kind: IdentityProviderKind, // data_class: PUBLIC
+    pub region_pack: String,            // data_class: INTERNAL_ONLY
+    pub issuer_ref: String,             // data_class: INTERNAL_ONLY
+    pub audience_ref: String,           // data_class: INTERNAL_ONLY
+    pub verification_material_ref: String, // data_class: INTERNAL_ONLY
     pub provider_identity_provider_ref: String, // data_class: INTERNAL_ONLY
     pub actor: String,                  // data_class: INTERNAL_ONLY
     pub idempotency_key: String,        // data_class: INTERNAL_ONLY
     pub provider_evidence_ref: String,  // data_class: INTERNAL_ONLY
     pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     pub schema_version: u32,            // data_class: PUBLIC
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct IdentityProviderRegistryRawMaterialCounters {
+    pub raw_provider_document_bytes: u64, // data_class: INTERNAL_ONLY
+    pub credential_material_bytes: u64,   // data_class: INTERNAL_ONLY
+    pub assertion_material_bytes: u64,    // data_class: INTERNAL_ONLY
+    pub sts_material_bytes: u64,          // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityProviderRegistryRecord {
+    pub tenant_id: String,                            // data_class: INTERNAL_ONLY
+    pub identity_provider_id: String,                 // data_class: INTERNAL_ONLY
+    pub identity_provider_kind: IdentityProviderKind, // data_class: PUBLIC
+    pub region_pack: String,                          // data_class: INTERNAL_ONLY
+    pub issuer_ref: String,                           // data_class: INTERNAL_ONLY
+    pub audience_ref: String,                         // data_class: INTERNAL_ONLY
+    pub verification_material_ref: String,            // data_class: INTERNAL_ONLY
+    pub provider: CloudIamProviderKind,               // data_class: PUBLIC
+    pub operation: IamProviderIdentityProviderOperation, // data_class: PUBLIC
+    pub sync_status: IamProviderIdentityProviderSyncStatus, // data_class: PUBLIC
+    pub provider_identity_provider_ref: String,       // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,                  // data_class: INTERNAL_ONLY
+    pub actor: String,                                // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                      // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,                // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64,               // data_class: INTERNAL_ONLY
+    pub raw_provider_document_bytes: u64,             // data_class: INTERNAL_ONLY
+    pub credential_material_bytes: u64,               // data_class: INTERNAL_ONLY
+    pub assertion_material_bytes: u64,                // data_class: INTERNAL_ONLY
+    pub sts_material_bytes: u64,                      // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                          // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityProviderRegistrySnapshot {
+    pub snapshot_id: String,                          // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                            // data_class: INTERNAL_ONLY
+    pub records: Vec<IdentityProviderRegistryRecord>, // data_class: INTERNAL_ONLY
+    pub raw_material_counters: IdentityProviderRegistryRawMaterialCounters, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                                                // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityProviderRegistrySnapshotCommit {
+    pub snapshot_id: String,                // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub persisted_record_count: usize,      // data_class: INTERNAL_ONLY
+    pub max_occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                // data_class: PUBLIC
+}
+
+pub trait IdentityProviderRegistrySnapshotRepository {
+    fn persist_snapshot(
+        &mut self,
+        snapshot: IdentityProviderRegistrySnapshot,
+    ) -> Result<IdentityProviderRegistrySnapshotCommit, CloudIamError>;
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct InMemoryIdentityProviderRegistrySnapshotRepository {
+    snapshots: BTreeMap<String, IdentityProviderRegistrySnapshot>,
+    records: BTreeMap<(String, String), IdentityProviderRegistryRecord>,
+    idempotency_keys: BTreeSet<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -350,6 +421,13 @@ pub enum CloudIamError {
     ProviderRequired,
     ProviderTenantMismatch,
     ProviderInUse,
+    InvalidProviderEvidenceRef,
+    InvalidIdentityProviderRegistrySnapshotId,
+    InvalidIdentityProviderRegistrySnapshotSchemaVersion,
+    EmptyIdentityProviderRegistrySnapshot,
+    DuplicateIdentityProviderRegistrySnapshot,
+    DuplicateIdentityProviderRegistryRecord,
+    IdentityProviderRegistryRawMaterialForbidden,
     MissingExternalSubject,
     UnexpectedExternalSubject,
     DuplicateProvider,
@@ -547,10 +625,7 @@ impl IamProviderIdentityProviderSyncReceipt {
             &provider_request_id,
             IamProviderIdentityProviderError::InvalidProviderRequestId,
         )?;
-        validate_provider_ref(
-            &provider_evidence_ref,
-            IamProviderIdentityProviderError::InvalidProviderEvidenceRef,
-        )?;
+        validate_provider_evidence_ref(&provider_evidence_ref)?;
         let sync_status = match input.operation {
             IamProviderIdentityProviderOperation::Upsert => {
                 IamProviderIdentityProviderSyncStatus::Synchronized
@@ -568,6 +643,10 @@ impl IamProviderIdentityProviderSyncReceipt {
             tenant_id: input.tenant_id,
             identity_provider_id: input.identity_provider.id.value.value,
             identity_provider_kind: input.identity_provider.kind.value,
+            region_pack: input.identity_provider.region_pack.value,
+            issuer_ref: input.identity_provider.issuer_uri.value,
+            audience_ref: input.identity_provider.audience.value,
+            verification_material_ref: input.identity_provider.verification_material_ref.value,
             provider_identity_provider_ref: input.provider_identity_provider_ref,
             actor: input.actor,
             idempotency_key: input.idempotency_key,
@@ -575,6 +654,215 @@ impl IamProviderIdentityProviderSyncReceipt {
             occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
             schema_version: IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION,
         })
+    }
+}
+
+impl IdentityProviderRegistryRawMaterialCounters {
+    fn ensure_metadata_only(self) -> Result<(), CloudIamError> {
+        if self.raw_provider_document_bytes == 0
+            && self.credential_material_bytes == 0
+            && self.assertion_material_bytes == 0
+            && self.sts_material_bytes == 0
+        {
+            Ok(())
+        } else {
+            Err(CloudIamError::IdentityProviderRegistryRawMaterialForbidden)
+        }
+    }
+}
+
+impl IdentityProviderRegistryRecord {
+    fn from_receipt(receipt: IamProviderIdentityProviderSyncReceipt) -> Self {
+        Self {
+            tenant_id: receipt.tenant_id,
+            identity_provider_id: receipt.identity_provider_id,
+            identity_provider_kind: receipt.identity_provider_kind,
+            region_pack: receipt.region_pack,
+            issuer_ref: receipt.issuer_ref,
+            audience_ref: receipt.audience_ref,
+            verification_material_ref: receipt.verification_material_ref,
+            provider: receipt.provider,
+            operation: receipt.operation,
+            sync_status: receipt.sync_status,
+            provider_identity_provider_ref: receipt.provider_identity_provider_ref,
+            provider_request_id: receipt.provider_request_id,
+            actor: receipt.actor,
+            idempotency_key: receipt.idempotency_key,
+            provider_evidence_ref: receipt.provider_evidence_ref,
+            occurred_at_epoch_seconds: receipt.occurred_at_epoch_seconds,
+            raw_provider_document_bytes: 0,
+            credential_material_bytes: 0,
+            assertion_material_bytes: 0,
+            sts_material_bytes: 0,
+            schema_version: receipt.schema_version,
+        }
+    }
+
+    fn key(&self) -> (String, String) {
+        (self.tenant_id.clone(), self.identity_provider_id.clone())
+    }
+}
+
+impl IdentityProviderRegistrySnapshot {
+    pub fn from_receipts(
+        snapshot_id: impl Into<String>,
+        tenant_id: impl Into<String>,
+        receipts: Vec<IamProviderIdentityProviderSyncReceipt>,
+        raw_material_counters: IdentityProviderRegistryRawMaterialCounters,
+    ) -> Result<Self, CloudIamError> {
+        let snapshot_id = snapshot_id.into();
+        let tenant_id = tenant_id.into();
+        validate_registry_ref(
+            &snapshot_id,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotId,
+        )?;
+        validate_tenant_id(&tenant_id)?;
+        raw_material_counters.ensure_metadata_only()?;
+        if receipts.is_empty() {
+            return Err(CloudIamError::EmptyIdentityProviderRegistrySnapshot);
+        }
+
+        let mut seen_idempotency_keys = BTreeSet::new();
+        let mut seen_records = BTreeSet::new();
+        let mut records = Vec::with_capacity(receipts.len());
+        for receipt in receipts {
+            if receipt.tenant_id != tenant_id {
+                return Err(CloudIamError::TenantMismatch);
+            }
+            if !seen_idempotency_keys.insert(receipt.idempotency_key.clone()) {
+                return Err(CloudIamError::DuplicateIdentityProviderRegistrySnapshot);
+            }
+            let record = IdentityProviderRegistryRecord::from_receipt(receipt);
+            if !seen_records.insert(record.key()) {
+                return Err(CloudIamError::DuplicateIdentityProviderRegistryRecord);
+            }
+            records.push(record);
+        }
+
+        Ok(Self {
+            snapshot_id,
+            tenant_id,
+            records,
+            raw_material_counters,
+            schema_version: IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION,
+        })
+    }
+
+    fn validate_for_persistence(&self) -> Result<(), CloudIamError> {
+        validate_registry_ref(
+            &self.snapshot_id,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotId,
+        )?;
+        validate_tenant_id(&self.tenant_id)?;
+        if self.schema_version != IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION {
+            return Err(CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion);
+        }
+        if self.records.is_empty() {
+            return Err(CloudIamError::EmptyIdentityProviderRegistrySnapshot);
+        }
+        self.raw_material_counters.ensure_metadata_only()?;
+        let mut seen_idempotency_keys = BTreeSet::new();
+        let mut seen_records = BTreeSet::new();
+        for record in &self.records {
+            if record.tenant_id != self.tenant_id {
+                return Err(CloudIamError::TenantMismatch);
+            }
+            validate_registry_ref(
+                &record.provider_identity_provider_ref,
+                CloudIamError::InvalidProviderEvidenceRef,
+            )?;
+            validate_registry_provider_evidence_ref(&record.provider_evidence_ref)?;
+            validate_registry_ref(
+                &record.provider_request_id,
+                CloudIamError::InvalidProviderEvidenceRef,
+            )?;
+            validate_registry_ref(
+                &record.idempotency_key,
+                CloudIamError::InvalidProviderEvidenceRef,
+            )?;
+            infer_principal_id(record.actor.clone())
+                .map_err(|_| CloudIamError::InvalidPrincipalId)?;
+            if !seen_idempotency_keys.insert(record.idempotency_key.clone()) {
+                return Err(CloudIamError::DuplicateIdentityProviderRegistrySnapshot);
+            }
+            if !seen_records.insert(record.key()) {
+                return Err(CloudIamError::DuplicateIdentityProviderRegistryRecord);
+            }
+            if record.raw_provider_document_bytes != 0
+                || record.credential_material_bytes != 0
+                || record.assertion_material_bytes != 0
+                || record.sts_material_bytes != 0
+            {
+                return Err(CloudIamError::IdentityProviderRegistryRawMaterialForbidden);
+            }
+            if record.schema_version != IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION {
+                return Err(CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion);
+            }
+        }
+        Ok(())
+    }
+}
+
+impl IdentityProviderRegistrySnapshotRepository
+    for InMemoryIdentityProviderRegistrySnapshotRepository
+{
+    fn persist_snapshot(
+        &mut self,
+        snapshot: IdentityProviderRegistrySnapshot,
+    ) -> Result<IdentityProviderRegistrySnapshotCommit, CloudIamError> {
+        snapshot.validate_for_persistence()?;
+        if self.snapshots.contains_key(&snapshot.snapshot_id)
+            || snapshot
+                .records
+                .iter()
+                .any(|record| self.idempotency_keys.contains(&record.idempotency_key))
+        {
+            return Err(CloudIamError::DuplicateIdentityProviderRegistrySnapshot);
+        }
+        if snapshot
+            .records
+            .iter()
+            .any(|record| self.records.contains_key(&record.key()))
+        {
+            return Err(CloudIamError::DuplicateIdentityProviderRegistryRecord);
+        }
+
+        let max_occurred_at_epoch_seconds = snapshot
+            .records
+            .iter()
+            .map(|record| record.occurred_at_epoch_seconds)
+            .max()
+            .unwrap_or(0);
+        let commit = IdentityProviderRegistrySnapshotCommit {
+            snapshot_id: snapshot.snapshot_id.clone(),
+            tenant_id: snapshot.tenant_id.clone(),
+            persisted_record_count: snapshot.records.len(),
+            max_occurred_at_epoch_seconds,
+            schema_version: snapshot.schema_version,
+        };
+
+        for record in &snapshot.records {
+            self.idempotency_keys.insert(record.idempotency_key.clone());
+            self.records.insert(record.key(), record.clone());
+        }
+        self.snapshots
+            .insert(snapshot.snapshot_id.clone(), snapshot);
+        Ok(commit)
+    }
+}
+
+impl InMemoryIdentityProviderRegistrySnapshotRepository {
+    pub fn snapshot_count(&self) -> usize {
+        self.snapshots.len()
+    }
+
+    pub fn record(
+        &self,
+        tenant_id: &str,
+        identity_provider_id: &str,
+    ) -> Option<&IdentityProviderRegistryRecord> {
+        self.records
+            .get(&(tenant_id.to_string(), identity_provider_id.to_string()))
     }
 }
 
@@ -1078,6 +1366,57 @@ fn validate_provider_ref(
     }
 }
 
+fn validate_provider_evidence_ref(value: &str) -> Result<(), IamProviderIdentityProviderError> {
+    if is_provider_evidence_ref(value) {
+        Ok(())
+    } else {
+        Err(IamProviderIdentityProviderError::InvalidProviderEvidenceRef)
+    }
+}
+
+fn validate_registry_ref(value: &str, error: CloudIamError) -> Result<(), CloudIamError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_registry_provider_evidence_ref(value: &str) -> Result<(), CloudIamError> {
+    if is_provider_evidence_ref(value) {
+        Ok(())
+    } else {
+        Err(CloudIamError::InvalidProviderEvidenceRef)
+    }
+}
+
+fn is_provider_evidence_ref(value: &str) -> bool {
+    provider_evidence_segments(value, OCI_IDP_EVIDENCE_REF_PREFIX, 3)
+        || provider_evidence_segments(value, SELFHOSTED_IDP_EVIDENCE_REF_PREFIX, 5)
+}
+
+fn provider_evidence_segments(value: &str, prefix: &str, expected_segments: usize) -> bool {
+    let Some(rest) = value.strip_prefix(prefix) else {
+        return false;
+    };
+    let segments = rest.split('/').collect::<Vec<_>>();
+    segments.len() == expected_segments
+        && segments
+            .iter()
+            .all(|segment| is_safe_provider_ref_segment(segment))
+}
+
+fn is_safe_provider_ref_segment(value: &str) -> bool {
+    !value.is_empty()
+        && value.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
+}
+
 fn display_name_class(kind: IamPrincipalKind) -> DataClass {
     match kind {
         IamPrincipalKind::User | IamPrincipalKind::Federated | IamPrincipalKind::External => {
@@ -1469,6 +1808,360 @@ mod tests {
         assert_eq!(
             blank_provider_ref.validate(),
             Err(IamProviderIdentityProviderError::InvalidProviderIdentityProviderRef)
+        );
+    }
+
+    #[test]
+    fn idp_registry_snapshot_rejects_raw_material_and_duplicate_idempotency() {
+        let identity_provider =
+            IdentityProvider::new(provider_create()).expect("identity provider fixture is valid");
+        let sync_request = IamProviderIdentityProviderSyncRequest {
+            request_id: "iam-idp-sync-001".to_string(),
+            provider_identity_provider_ref: "oci-iam-idp://identity-domain-alpha/idp_alpha_saml"
+                .to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            actor: "sp_cloud_provisioner".to_string(),
+            idempotency_key: "idem-iam-idp-sync-001".to_string(),
+            requested_at_epoch_seconds: 1_700_000_020,
+            operation: IamProviderIdentityProviderOperation::Upsert,
+            identity_provider,
+        };
+        let receipt = IamProviderIdentityProviderSyncReceipt::from_request(
+            CloudIamProviderKind::OciIdentityDomain,
+            sync_request.clone(),
+            "oci-iam-1700000020-iam-idp-sync-001",
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml/iam-idp-sync-001",
+        )
+        .expect("provider sync receipt is valid");
+        let token_shaped_evidence_error = IamProviderIdentityProviderSyncReceipt::from_request(
+            CloudIamProviderKind::OciIdentityDomain,
+            sync_request,
+            "oci-iam-1700000020-iam-idp-sync-001",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGljZSJ9.signature",
+        )
+        .expect_err("token-shaped provider evidence material is not an opaque evidence ref");
+        assert_eq!(
+            token_shaped_evidence_error,
+            IamProviderIdentityProviderError::InvalidProviderEvidenceRef
+        );
+
+        let snapshot = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-001",
+            "ten_alpha",
+            vec![receipt.clone()],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("metadata-only snapshot is valid");
+
+        let mut repository = InMemoryIdentityProviderRegistrySnapshotRepository::default();
+        let commit = repository
+            .persist_snapshot(snapshot.clone())
+            .expect("metadata-only snapshot persists");
+
+        assert_eq!(commit.snapshot_id, "idp-registry-snapshot-001");
+        assert_eq!(commit.tenant_id, "ten_alpha");
+        assert_eq!(commit.persisted_record_count, 1);
+        assert_eq!(commit.max_occurred_at_epoch_seconds, 1_700_000_020);
+        assert_eq!(commit.schema_version, IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION);
+        assert_eq!(repository.snapshot_count(), 1);
+
+        let record = repository
+            .record("ten_alpha", "idp_alpha_saml")
+            .expect("record persisted by tenant and provider");
+        assert_eq!(record.provider, CloudIamProviderKind::OciIdentityDomain);
+        assert_eq!(record.tenant_id, "ten_alpha");
+        assert_eq!(record.identity_provider_id, "idp_alpha_saml");
+        assert_eq!(record.identity_provider_kind, IdentityProviderKind::Saml);
+        assert_eq!(record.region_pack, "oya-pack-alpha");
+        assert_eq!(record.issuer_ref, "https://idp.alpha.example/saml");
+        assert_eq!(record.audience_ref, "urn:oyatie:cloud");
+        assert_eq!(record.verification_material_ref, "cert/alpha-saml-signing");
+        assert_eq!(
+            record.provider_identity_provider_ref,
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml"
+        );
+        assert_eq!(
+            record.provider_request_id,
+            "oci-iam-1700000020-iam-idp-sync-001"
+        );
+        assert_eq!(record.actor, "sp_cloud_provisioner");
+        assert_eq!(record.idempotency_key, "idem-iam-idp-sync-001");
+        assert_eq!(
+            record.provider_evidence_ref,
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml/iam-idp-sync-001"
+        );
+        assert_eq!(record.occurred_at_epoch_seconds, 1_700_000_020);
+        assert_eq!(record.schema_version, IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION);
+        assert_eq!(
+            record.operation,
+            IamProviderIdentityProviderOperation::Upsert
+        );
+        assert_eq!(
+            record.sync_status,
+            IamProviderIdentityProviderSyncStatus::Synchronized
+        );
+        assert_eq!(record.raw_provider_document_bytes, 0);
+        assert_eq!(record.credential_material_bytes, 0);
+        assert_eq!(record.assertion_material_bytes, 0);
+        assert_eq!(record.sts_material_bytes, 0);
+
+        let duplicate_error = repository
+            .persist_snapshot(snapshot)
+            .expect_err("duplicate idempotency key cannot be persisted twice");
+        assert_eq!(
+            duplicate_error,
+            CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        );
+
+        let second_identity_provider = IdentityProvider::new(IdentityProviderCreate {
+            id: "idp_beta_saml".to_string(),
+            issuer_uri: "https://idp.beta.example/saml".to_string(),
+            verification_material_ref: "cert/beta-saml-signing".to_string(),
+            ..provider_create()
+        })
+        .expect("second identity provider fixture is valid");
+        let reused_idempotency_request = IamProviderIdentityProviderSyncRequest {
+            request_id: "iam-idp-sync-002".to_string(),
+            provider_identity_provider_ref: "oci-iam-idp://identity-domain-alpha/idp_beta_saml"
+                .to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            actor: "sp_cloud_provisioner".to_string(),
+            idempotency_key: "idem-iam-idp-sync-001".to_string(),
+            requested_at_epoch_seconds: 1_700_000_021,
+            operation: IamProviderIdentityProviderOperation::Upsert,
+            identity_provider: second_identity_provider,
+        };
+        let reused_idempotency_receipt = IamProviderIdentityProviderSyncReceipt::from_request(
+            CloudIamProviderKind::OciIdentityDomain,
+            reused_idempotency_request,
+            "oci-iam-1700000021-iam-idp-sync-002",
+            "oci-iam-idp://identity-domain-alpha/idp_beta_saml/iam-idp-sync-002",
+        )
+        .expect("second provider sync receipt is valid");
+        let reused_idempotency_snapshot = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-reused-idempotency",
+            "ten_alpha",
+            vec![reused_idempotency_receipt],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("second snapshot has a different snapshot id and provider record");
+        let reused_idempotency_error = repository
+            .persist_snapshot(reused_idempotency_snapshot)
+            .expect_err("idempotency key reuse is rejected independently of snapshot id");
+        assert_eq!(
+            reused_idempotency_error,
+            CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        );
+
+        let leak_cases = [
+            IdentityProviderRegistryRawMaterialCounters {
+                raw_provider_document_bytes: 1,
+                ..IdentityProviderRegistryRawMaterialCounters::default()
+            },
+            IdentityProviderRegistryRawMaterialCounters {
+                credential_material_bytes: 1,
+                ..IdentityProviderRegistryRawMaterialCounters::default()
+            },
+            IdentityProviderRegistryRawMaterialCounters {
+                assertion_material_bytes: 1,
+                ..IdentityProviderRegistryRawMaterialCounters::default()
+            },
+            IdentityProviderRegistryRawMaterialCounters {
+                sts_material_bytes: 1,
+                ..IdentityProviderRegistryRawMaterialCounters::default()
+            },
+        ];
+
+        for (index, counters) in leak_cases.into_iter().enumerate() {
+            let leaky_snapshot = IdentityProviderRegistrySnapshot::from_receipts(
+                format!("idp-registry-snapshot-raw-{index}"),
+                "ten_alpha",
+                vec![receipt.clone()],
+                counters,
+            )
+            .expect_err("raw provider documents, credentials, assertions, and STS are forbidden");
+            assert_eq!(
+                leaky_snapshot,
+                CloudIamError::IdentityProviderRegistryRawMaterialForbidden
+            );
+        }
+
+        let empty_snapshot_error = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-empty",
+            "ten_alpha",
+            Vec::new(),
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect_err("empty registry snapshots cannot create false evidence");
+        assert_eq!(
+            empty_snapshot_error,
+            CloudIamError::EmptyIdentityProviderRegistrySnapshot
+        );
+
+        let tenant_mismatch_error = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-wrong-tenant",
+            "ten_beta",
+            vec![receipt.clone()],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect_err("registry snapshots are tenant-bound");
+        assert_eq!(tenant_mismatch_error, CloudIamError::TenantMismatch);
+
+        let mut duplicate_record_receipt = receipt.clone();
+        duplicate_record_receipt.idempotency_key = "idem-iam-idp-sync-002".to_string();
+        let duplicate_record_error = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-duplicate-record",
+            "ten_alpha",
+            vec![receipt.clone(), duplicate_record_receipt],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect_err("same provider record cannot appear twice in one snapshot");
+        assert_eq!(
+            duplicate_record_error,
+            CloudIamError::DuplicateIdentityProviderRegistryRecord
+        );
+
+        let public_snapshot_template = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-public-template",
+            "ten_alpha",
+            vec![receipt.clone()],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("template snapshot starts valid");
+
+        let mut public_empty_snapshot = public_snapshot_template.clone();
+        public_empty_snapshot.snapshot_id = "idp-registry-snapshot-public-empty".to_string();
+        public_empty_snapshot.records.clear();
+        let public_empty_error = InMemoryIdentityProviderRegistrySnapshotRepository::default()
+            .persist_snapshot(public_empty_snapshot)
+            .expect_err("repository rechecks non-empty invariant on public snapshots");
+        assert_eq!(
+            public_empty_error,
+            CloudIamError::EmptyIdentityProviderRegistrySnapshot
+        );
+
+        let mut public_tenant_mismatch = public_snapshot_template.clone();
+        public_tenant_mismatch.snapshot_id =
+            "idp-registry-snapshot-public-tenant-mismatch".to_string();
+        public_tenant_mismatch.records[0].tenant_id = "ten_beta".to_string();
+        let public_tenant_mismatch_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_tenant_mismatch)
+                .expect_err("repository rechecks record tenant against snapshot tenant");
+        assert_eq!(public_tenant_mismatch_error, CloudIamError::TenantMismatch);
+
+        let mut public_duplicate_idempotency = public_snapshot_template.clone();
+        public_duplicate_idempotency.snapshot_id =
+            "idp-registry-snapshot-public-duplicate-idempotency".to_string();
+        let mut second_public_record = public_duplicate_idempotency.records[0].clone();
+        second_public_record.identity_provider_id = "idp_gamma_saml".to_string();
+        public_duplicate_idempotency
+            .records
+            .push(second_public_record);
+        let public_duplicate_idempotency_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_duplicate_idempotency)
+                .expect_err("repository rechecks duplicate idempotency in public snapshots");
+        assert_eq!(
+            public_duplicate_idempotency_error,
+            CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        );
+
+        let mut public_duplicate_record = public_snapshot_template.clone();
+        public_duplicate_record.snapshot_id =
+            "idp-registry-snapshot-public-duplicate-record".to_string();
+        let mut duplicate_public_record = public_duplicate_record.records[0].clone();
+        duplicate_public_record.idempotency_key = "idem-iam-idp-sync-public-duplicate".to_string();
+        public_duplicate_record
+            .records
+            .push(duplicate_public_record);
+        let public_duplicate_record_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_duplicate_record)
+                .expect_err("repository rechecks duplicate provider records in public snapshots");
+        assert_eq!(
+            public_duplicate_record_error,
+            CloudIamError::DuplicateIdentityProviderRegistryRecord
+        );
+
+        let mut public_invalid_snapshot_id = public_snapshot_template;
+        public_invalid_snapshot_id.snapshot_id = " ".to_string();
+        let public_invalid_snapshot_id_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_invalid_snapshot_id)
+                .expect_err("repository rechecks snapshot id format on public snapshots");
+        assert_eq!(
+            public_invalid_snapshot_id_error,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotId
+        );
+
+        let mut public_invalid_snapshot_schema = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-public-invalid-schema",
+            "ten_alpha",
+            vec![receipt.clone()],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("template snapshot starts valid");
+        public_invalid_snapshot_schema.schema_version = IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION + 1;
+        let public_invalid_snapshot_schema_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_invalid_snapshot_schema)
+                .expect_err("repository rechecks snapshot schema version");
+        assert_eq!(
+            public_invalid_snapshot_schema_error,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion
+        );
+
+        let mut public_invalid_record_schema = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-public-invalid-record-schema",
+            "ten_alpha",
+            vec![receipt.clone()],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("template snapshot starts valid");
+        public_invalid_record_schema.records[0].schema_version =
+            IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION + 1;
+        let public_invalid_record_schema_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_invalid_record_schema)
+                .expect_err("repository rechecks record schema version");
+        assert_eq!(
+            public_invalid_record_schema_error,
+            CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion
+        );
+
+        let mut public_token_shaped_evidence_ref = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-public-token-evidence-ref",
+            "ten_alpha",
+            vec![receipt.clone()],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("template snapshot starts valid");
+        public_token_shaped_evidence_ref.records[0].provider_evidence_ref =
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGljZSJ9.signature".to_string();
+        let public_token_shaped_evidence_ref_error =
+            InMemoryIdentityProviderRegistrySnapshotRepository::default()
+                .persist_snapshot(public_token_shaped_evidence_ref)
+                .expect_err("repository rejects token-shaped evidence refs on public snapshots");
+        assert_eq!(
+            public_token_shaped_evidence_ref_error,
+            CloudIamError::InvalidProviderEvidenceRef
+        );
+
+        let mut tampered_snapshot = IdentityProviderRegistrySnapshot::from_receipts(
+            "idp-registry-snapshot-tampered",
+            "ten_alpha",
+            vec![receipt],
+            IdentityProviderRegistryRawMaterialCounters::default(),
+        )
+        .expect("metadata-only snapshot starts valid");
+        tampered_snapshot.records[0].credential_material_bytes = 1;
+        let tampered_error = InMemoryIdentityProviderRegistrySnapshotRepository::default()
+            .persist_snapshot(tampered_snapshot)
+            .expect_err("repository rejects post-construction raw-material mutation");
+        assert_eq!(
+            tampered_error,
+            CloudIamError::IdentityProviderRegistryRawMaterialForbidden
         );
     }
 }
