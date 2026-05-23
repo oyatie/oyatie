@@ -1,4 +1,4 @@
-# Implementation Plan: FD-001 Masterplan Execution — Phase 0 Cloud IAM
+# Implementation Plan: FD-001 Masterplan Execution — Phase 0 Cloud Foundations
 
 ## Status and authority
 
@@ -45,6 +45,21 @@ Official/upstream guidance used to shape Phase 0 tasks:
   Source: <https://spec.openapis.org/oas/>
 
 Implementation implication: Cloud IAM work must prioritize least privilege, short-lived STS/session material, external IdP federation seams, contract-first API surfaces, and measured SLO/evidence hooks.
+
+Cloud KMS extension evidence for the next Phase 0 slice:
+
+- GitHub REST API versioning uses date-named API versions selected by request header and defines explicit support windows, upgrade testing, and deprecation/sunset headers.
+  Source: <https://docs.github.com/rest/about-the-rest-api/api-versions/>
+- Stripe API versioning allows per-request version override through a request header and recommends testing a new API version before committing to an upgrade.
+  Source: <https://docs.stripe.com/api/versioning>
+- AWS KMS best practices emphasize centralized/decentralized key-management choices, secure key stores/HSM validation, access management, detective controls, and auditability.
+  Source: <https://docs.aws.amazon.com/prescriptive-guidance/latest/aws-kms-best-practices/introduction.html>
+- Google Cloud KMS CMEK best practices recommend per-location key rings, appropriate granularity, centralized key projects per environment, and HSM/EKM choices based on custody requirements.
+  Source: <https://cloud.google.com/kms/docs/cmek-best-practices>
+- Azure Key Vault guidance recommends per-application/region/environment isolation, least privilege, and not storing general configuration in key-management stores.
+  Source: <https://learn.microsoft.com/en-us/azure/key-vault/general/security-features>
+
+Implementation implication: Cloud KMS work must preserve a strict public API version boundary, tenant-scoped custody metadata, HSM/residency evidence, and audit-backed crypto-use receipts without leaking raw key/plaintext material into API or evidence records.
 
 ## Current Cloud IAM state
 
@@ -170,12 +185,85 @@ Material gaps to close before Cloud IAM can support the FD-001 foundation bar:
 - JSON validation
 - relevant `oya gate validate` lanes
 
+## Current Cloud KMS state
+
+Live implementation roots:
+
+- `crates/oya-cloud-kms-domain/src/lib.rs`
+  - typed key creation, encrypt/decrypt authorization, rotation, destruction, provider crypto ports, use/destruction receipts
+- `crates/oya-cloud-kms-api/src/lib.rs`
+  - API boundary mapping, authorization checks, idempotency ledger, KMS receipt responses
+- `crates/oya-cloud-kms-adapter-oci/src/lib.rs`
+  - deterministic OCI KMS command translation, no provider SDK/network I/O
+- `crates/oya-cloud-kms-adapter-openbao/src/lib.rs`
+  - deterministic OpenBao transit command translation, no network I/O
+- `contracts/openapi/cloud/cloud-kms-v1.yaml`
+  - public encrypt/decrypt contract surface
+- `microservices/cloud-kms/manifest.json`
+  - Phase 0 manifest with version pins and currently over-broad implementation claims to reconcile after API/domain evidence is complete
+
+Material gaps to close before Cloud KMS can support the FD-001 foundation bar:
+
+1. Public encrypt/decrypt contract lacks enforced `Oyatie-Version` carrier despite ADR-0342 and manifest version declarations.
+2. API hot paths do not yet carry typed tenant/cell/region placement metadata at the boundary.
+3. Rotation/destruction/provider receipts need audit-chain evidence mapping reviewed against the latest ADRs.
+4. Manifest claims still overstate implemented layers/capabilities/SLO/DR surfaces and must be reconciled to evidence.
+
+## Cloud KMS ChangeSet sequence
+
+### CS-CLOUD-KMS-001 — API contract/version enforcement for encrypt/decrypt paths
+
+**Scope**
+
+- `crates/oya-cloud-kms-api/src/lib.rs`
+- `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs`
+- `contracts/openapi/cloud/cloud-kms-v1.yaml`
+
+**Acceptance criteria**
+
+- API boundary rejects missing/unsupported date-based public API version carrier before authorization, idempotency ledger mutation, or KMS receipt mutation.
+- Encrypt/decrypt paths remain authorization-gated and idempotency-keyed.
+- All manifest-declared public versions are accepted.
+- Idempotency fingerprint includes the resolved public API version so the same idempotency key cannot replay across version boundaries.
+- OpenAPI declares the `Oyatie-Version` header with the same N=3 supported versions as the Cloud KMS manifest.
+
+**Verification**
+
+- RED test first: `cargo test -p oya-cloud-kms-api kms_api_rejects_missing_or_unsupported_oyatie_version_before_ledger -- --nocapture`
+- GREEN package test: `cargo test -p oya-cloud-kms-api`
+- KMS package regression: `cargo test -p oya-cloud-kms-domain -p oya-cloud-kms-api -p oya-cloud-kms-adapter-oci -p oya-cloud-kms-adapter-openbao`
+- Lint/format/contracts/gates: Cloud KMS clippy, `cargo fmt --all -- --check`, `./bin/oya gate validate api-semver --contracts-dir contracts`, architecture/planning/dependency gates
+
+### CS-CLOUD-KMS-002 — typed tenant/cell/region boundary object for KMS hot paths
+
+**Acceptance criteria**
+
+- KMS encrypt/decrypt API requests carry typed tenant/cell/region boundary metadata.
+- Boundary metadata is validated before business logic.
+- No KMS operation can execute without tenant/cell/region context matching key residency/cell metadata.
+
+### CS-CLOUD-KMS-003 — audit/evidence mapping for KMS rotation/destruction/provider crypto receipts
+
+**Acceptance criteria**
+
+- KMS use/rotation/destruction/provider receipts convert to immutable metadata-only evidence events.
+- Evidence records reject raw key material, plaintext, ciphertext bodies, and provider credentials.
+- Receipt/evidence event shapes carry schema version, tenant, key id, actor, operation, status, evidence ref, and occurred timestamp.
+
+### CS-CLOUD-KMS-004 — Cloud KMS manifest/gate coherence update
+
+**Acceptance criteria**
+
+- Manifest advertises only implemented Cloud KMS crates/layers/capabilities/contracts.
+- SLO/capacity/DR/sharding claims map to actual evidence or are explicit non-claims.
+- ADR references include the newest applicable ADRs.
+
 ## Checkpoints
 
 - After each code ChangeSet: targeted tests + package tests + clippy must pass before moving on.
 - After Cloud IAM CS-001..005: run `./bin/oya verify --ci-required` or record any tool/runtime blocker with next-best evidence.
-- Only then proceed to Phase 0 `cloud-kms`.
+- Current active slice: Phase 0 `cloud-kms` CS-CLOUD-KMS-001.
 
 ## First executable task
 
-Begin with **CS-CLOUD-IAM-001** because it strengthens the current IdP sync seam without adding runtime I/O or crossing into handlers/adapters. It is small, independently verifiable, and directly supports the masterplan requirements for IAM federation, auditability, evidence-backed claims, tenant isolation, and clean architecture.
+Begin Cloud KMS with **CS-CLOUD-KMS-001** because it aligns the existing public encrypt/decrypt API surface with ADR-0342 and the manifest's N=3 version pins before deeper KMS custody, placement, receipt, or manifest claims are widened.

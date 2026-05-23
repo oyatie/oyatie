@@ -35,6 +35,19 @@ paths:
             minLength: 1
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+        - name: Oyatie-Version
+          in: header
+          required: true
+          description: Public Cloud KMS API version date carrier per ADR-0342.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+            enum:
+              - '2026-05-21'
+              - '2026-02-21'
+              - '2025-11-21'
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
         - name: Idempotency-Key
           in: header
           required: true
@@ -115,6 +128,19 @@ paths:
             minLength: 1
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+        - name: Oyatie-Version
+          in: header
+          required: true
+          description: Public Cloud KMS API version date carrier per ADR-0342.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+            enum:
+              - '2026-05-21'
+              - '2026-02-21'
+              - '2025-11-21'
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
         - name: Idempotency-Key
           in: header
           required: true

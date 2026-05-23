@@ -37,7 +37,18 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 
 ### Next Phase 0 services, after Cloud IAM checkpoint
 
-- ⬜ Cloud KMS — key/DEK/BYOK/HSM custody kernel and audit-backed rotation surfaces.
+### Cloud KMS
+
+- ✅ CS-CLOUD-KMS-001 — API contract/version enforcement for encrypt/decrypt paths.
+  - RED: failing API test required `Oyatie-Version` boundary field, N=3 supported-version constants, and missing/unsupported public-version errors.
+  - GREEN: API boundary validates supported date carriers before auth/idempotency/KMS receipt mutation; idempotency fingerprint includes the version; OpenAPI declares required `Oyatie-Version`.
+  - VERIFY: targeted API tests; `cargo test -p oya-cloud-kms-api`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; `./bin/oya gate validate api-semver --contracts-dir contracts`.
+- ⬜ CS-CLOUD-KMS-002 — typed tenant/cell/region boundary objects for KMS hot paths.
+- ⬜ CS-CLOUD-KMS-003 — audit/evidence mapping for rotation, destruction, and provider crypto receipts.
+- ⬜ CS-CLOUD-KMS-004 — Cloud KMS manifest/gate coherence update based only on implemented evidence.
+
+### Remaining Phase 0 services
+
 - ⬜ Cloud Secrets — OpenBao-backed secret reference model and fail-closed bootstrap policy.
 - ⬜ Cloud IaC — OpenTofu module registry, cell topology, and GitOps evidence.
 - ⬜ Cloud Network + DNS — Cilium/Envoy/DNS surfaces with no cross-cell default traffic.

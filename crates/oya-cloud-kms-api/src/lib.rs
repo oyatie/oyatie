@@ -13,6 +13,10 @@ use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_KMS_ENCRYPT_SURFACE: &str = "cloud.kms.encrypt";
 pub const CLOUD_KMS_DECRYPT_SURFACE: &str = "cloud.kms.decrypt";
+pub const CLOUD_KMS_PUBLIC_API_VERSION_HEADER: &str = "Oyatie-Version";
+pub const CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION: &str = "2026-05-21";
+pub const CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS: &[&str] =
+    &["2026-05-21", "2026-02-21", "2025-11-21"];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudKmsCryptoApiStatus {
@@ -41,6 +45,8 @@ impl CloudKmsCryptoApiStatus {
 pub enum CloudKmsApiErrorCode {
     RequestIdEmpty,
     TenantHeaderEmpty,
+    PublicApiVersionMissing,
+    PublicApiVersionUnsupported,
     IdempotencyKeyEmpty,
     PathKeyIdEmpty,
     KeyIdMismatch,
@@ -64,6 +70,8 @@ impl CloudKmsApiErrorCode {
         match self {
             Self::RequestIdEmpty => "CLOUD_KMS_REQUEST_ID_EMPTY",
             Self::TenantHeaderEmpty => "CLOUD_KMS_TENANT_HEADER_EMPTY",
+            Self::PublicApiVersionMissing => "CLOUD_KMS_PUBLIC_API_VERSION_MISSING",
+            Self::PublicApiVersionUnsupported => "CLOUD_KMS_PUBLIC_API_VERSION_UNSUPPORTED",
             Self::IdempotencyKeyEmpty => "CLOUD_KMS_IDEMPOTENCY_KEY_EMPTY",
             Self::PathKeyIdEmpty => "CLOUD_KMS_PATH_KEY_ID_EMPTY",
             Self::KeyIdMismatch => "CLOUD_KMS_KEY_ID_MISMATCH",
@@ -89,6 +97,7 @@ pub struct CloudKmsApiBoundaryContext {
     pub request_id: String,      // data_class: INTERNAL_ONLY
     pub tenant_id: String,       // data_class: INTERNAL_ONLY
     pub idempotency_key: String, // data_class: INTERNAL_ONLY
+    pub oyatie_version: String,  // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -249,6 +258,10 @@ pub struct CloudKmsApiErrorDetail {
 pub enum CloudKmsApiError {
     EmptyRequestId,
     EmptyTenantHeader,
+    MissingPublicApiVersion,
+    UnsupportedPublicApiVersion {
+        oyatie_version: String, // data_class: PUBLIC
+    },
     EmptyIdempotencyKey,
     EmptyPathKeyId,
     KeyIdMismatch {
@@ -311,6 +324,10 @@ impl CloudKmsApiError {
         match self {
             Self::EmptyRequestId => CloudKmsApiErrorCode::RequestIdEmpty,
             Self::EmptyTenantHeader => CloudKmsApiErrorCode::TenantHeaderEmpty,
+            Self::MissingPublicApiVersion => CloudKmsApiErrorCode::PublicApiVersionMissing,
+            Self::UnsupportedPublicApiVersion { .. } => {
+                CloudKmsApiErrorCode::PublicApiVersionUnsupported
+            }
             Self::EmptyIdempotencyKey => CloudKmsApiErrorCode::IdempotencyKeyEmpty,
             Self::EmptyPathKeyId => CloudKmsApiErrorCode::PathKeyIdEmpty,
             Self::KeyIdMismatch { .. } => CloudKmsApiErrorCode::KeyIdMismatch,
@@ -366,6 +383,8 @@ impl CloudKmsApiError {
             Self::Kms(error) => cloud_kms_status_kind(error),
             Self::EmptyRequestId
             | Self::EmptyTenantHeader
+            | Self::MissingPublicApiVersion
+            | Self::UnsupportedPublicApiVersion { .. }
             | Self::EmptyIdempotencyKey
             | Self::EmptyPathKeyId
             | Self::KeyIdMismatch { .. }
@@ -378,6 +397,10 @@ impl CloudKmsApiError {
         match self {
             Self::EmptyRequestId => "X-Request-Id header is required",
             Self::EmptyTenantHeader => "X-Tenant-Id header is required",
+            Self::MissingPublicApiVersion => "Oyatie-Version header is required",
+            Self::UnsupportedPublicApiVersion { .. } => {
+                "Oyatie-Version header must be a supported YYYY-MM-DD public API version"
+            }
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
             Self::EmptyPathKeyId => "Path key id is required",
             Self::KeyIdMismatch { .. } => "Path and body key ids must match",
@@ -412,6 +435,14 @@ impl CloudKmsApiError {
         match self {
             Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
             Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
+            Self::MissingPublicApiVersion => vec![detail(
+                "header.Oyatie-Version",
+                "must be a non-empty YYYY-MM-DD public API version",
+            )],
+            Self::UnsupportedPublicApiVersion { .. } => vec![detail(
+                "header.Oyatie-Version",
+                "must match a Cloud KMS supported public API version",
+            )],
             Self::EmptyIdempotencyKey => {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
             }
@@ -598,8 +629,21 @@ fn validate_boundary(boundary: &CloudKmsApiBoundaryContext) -> Result<(), CloudK
     if boundary.tenant_id.trim().is_empty() {
         return Err(CloudKmsApiError::EmptyTenantHeader);
     }
+    validate_public_api_version(&boundary.oyatie_version)?;
     if boundary.idempotency_key.trim().is_empty() {
         return Err(CloudKmsApiError::EmptyIdempotencyKey);
+    }
+    Ok(())
+}
+
+fn validate_public_api_version(oyatie_version: &str) -> Result<(), CloudKmsApiError> {
+    if oyatie_version.trim().is_empty() {
+        return Err(CloudKmsApiError::MissingPublicApiVersion);
+    }
+    if !CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS.contains(&oyatie_version) {
+        return Err(CloudKmsApiError::UnsupportedPublicApiVersion {
+            oyatie_version: oyatie_version.to_string(),
+        });
     }
     Ok(())
 }
@@ -747,6 +791,7 @@ fn encrypt_fingerprint_for(request: &CloudKmsEncryptApiRequest) -> CloudKmsReque
     CloudKmsRequestFingerprint {
         canonical: [
             format!("path.key_id={}", request.path_key_id),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -788,6 +833,7 @@ fn decrypt_fingerprint_for(request: &CloudKmsDecryptApiRequest) -> CloudKmsReque
     CloudKmsRequestFingerprint {
         canonical: [
             format!("path.key_id={}", request.path_key_id),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
