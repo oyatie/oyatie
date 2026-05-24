@@ -180,6 +180,13 @@ impl VerifyFixture {
         command
             .current_dir(repo_root())
             .args(args)
+            // These integration tests intentionally spawn a nested `oya verify`
+            // process while the outer full-verify lane may have set the
+            // production recursion guard on the test process environment.
+            // Remove the inherited guard so the fixture can exercise the real
+            // mirror contract without weakening production child-command guard
+            // propagation inside `verify.rs`.
+            .env_remove("OYA_VERIFY_RUNNING")
             .env("PATH", fixture_path(&self.bin))
             .env("FAKE_VERIFY_LOG", &self.log)
             .env("FAKE_VERIFY_GIT_ROOT", repo_root())

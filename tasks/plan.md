@@ -810,6 +810,22 @@ Verification:
 - `./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog`.
 - `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog`.
 
+### CS-BACKBONE-VERIFY-RECURSION-FIXTURE-001 — Local verify nested-test unblock
+Scope:
+- `crates/oya-dev-cli/tests/oya_verify_ci_mirror.rs` fixture environment handling for nested `oya verify --ci-required` integration tests.
+- Evidence/task tracking for the D-4 nextest local full-verify blocker resolution.
+
+Acceptance:
+- The production `OYA_VERIFY_RUNNING` recursion guard remains in `verify.rs`; only the test fixture removes an inherited outer guard before intentionally spawning the real `oya verify` binary.
+- The oya verify CI mirror tests pass when the parent test process inherits `OYA_VERIFY_RUNNING=1`, matching the full `oya verify --ci-required` execution environment.
+- Workspace nextest passes under the inherited guard, while the broader full verify remains honestly non-green on documented D-5/D-6 governance lanes.
+
+Verification:
+- `OYA_VERIFY_RUNNING=1 cargo test -p oya-dev-cli --test oya_verify_ci_mirror -- --nocapture`.
+- `OYA_VERIFY_RUNNING=1 cargo nextest run -p oya-dev-cli --test oya_verify_ci_mirror`.
+- `OYA_VERIFY_RUNNING=1 cargo nextest run --workspace --no-fail-fast`.
+- `./bin/oya verify --ci-required` records D-4 nextest as pass and remains non-green on D-5/D-6 lanes.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
