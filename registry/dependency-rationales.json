@@ -114,10 +114,11 @@
       "version_pin": "1",
       "layer_seam": "adapter-and-application",
       "owner_team": "council-architecture",
-      "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
+      "rationale": "Serialization framework. Used by adapters (DTOs), application orchestrators (event emission), and the application-shell frontend prototype's mock-only render-envelope DTO boundary. Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter and application layer crates; kernel violations report-only",
       "allowed_crates": [
+        "oya-application-shell-frontend-prototype",
         "oya-check-authz-tier-discipline",
         "oya-check-dependency-seam",
         "oya-check-ontology-projection-coverage",
@@ -134,12 +135,13 @@
     },
     "serde_json": {
       "version_pin": "1",
-      "layer_seam": "adapter-only",
+      "layer_seam": "adapter-only + mock frontend render-envelope boundary",
       "owner_team": "council-architecture",
-      "rationale": "JSON ser/de. Strictly adapter-layer; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime).",
+      "rationale": "JSON ser/de. Strictly adapter-layer except for the app-shell frontend prototype's local dev-server-to-WASM render-envelope boundary; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime). The app-shell exception is mock-only, carries no PHI/PII/production tenant data, and does not establish a production backend/API readiness claim.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter-layer crates",
       "allowed_crates": [
+        "oya-application-shell-frontend-prototype",
         "oya-check-authz-tier-discipline",
         "oya-check-dependency-seam",
         "oya-check-ontology-projection-coverage",
@@ -279,6 +281,12 @@
       "who": "codex-fd001-planning-closure",
       "what_changed": "Reconciled registry coverage with the live [workspace.dependencies] roster: added anyhow/clap/tempfile/walkdir/serde_yaml/regex and removed orphan toml_edit.",
       "why": "M01-P13-IP-002 closeout requires registry-coverage to be rerunnable against the current checkout instead of historical evidence only."
+    },
+    {
+      "when": "2026-05-23",
+      "who": "codex-app-shell-serde-policy-fix",
+      "what_changed": "Authorized oya-application-shell-frontend-prototype for serde and serde_json only at its mock render-envelope DTO/local dev-server boundary.",
+      "why": "Current source serializes and hydrates a typed TenantRenderEnvelope between the SSR dev server and selective WASM island. The exception is narrow, mock-only, data-class INTERNAL_ONLY, and preserves the no-kernel/no-production-backend dependency seam required by ADR-0092."
     }
   ]
 }
