@@ -42,7 +42,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
+      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime \u2014 those leaks are CLOSED.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
@@ -81,7 +81,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
+      "rationale": "HTTP I/O protocol \u2014 h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
@@ -99,6 +99,28 @@
         "oya-http-runtime-hyper-adapter"
       ]
     },
+    "prost": {
+      "version_pin": "0.14.3",
+      "layer_seam": "adapter-only-generated-protobuf-bindings",
+      "owner_team": "council-architecture",
+      "rationale": "Protocol Buffers message encode/decode traits used only by the generated backbone gRPC adapter crate. Domain/API/usecase kernels keep framework-free request/receipt types and explicit conversion seams.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
+      "allowed_crates": [
+        "oya-shared-backbone-grpc-generated-adapter"
+      ]
+    },
+    "protoc-bin-vendored": {
+      "version_pin": "3.2.0",
+      "layer_seam": "build-script-only-protobuf-codegen",
+      "owner_team": "council-architecture",
+      "rationale": "Pins a vendored protoc binary for reproducible compile-time descriptor/stub generation without relying on mutable CI host tool installation. Used only by the generated gRPC adapter build script.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
+      "allowed_crates": [
+        "oya-shared-backbone-grpc-generated-adapter"
+      ]
+    },
     "regex": {
       "version_pin": "1",
       "layer_seam": "tooling-and-validation-only",
@@ -114,7 +136,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-and-application",
       "owner_team": "council-architecture",
-      "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
+      "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde \u2014 pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter and application layer crates; kernel violations report-only",
       "allowed_crates": [
@@ -175,6 +197,18 @@
         "oya-foundry-webhook-receiver-app"
       ]
     },
+    "sqlx": {
+      "version_pin": "0.8.6",
+      "layer_seam": "adapter-only-postgres-runtime",
+      "owner_team": "council-architecture + axis-data",
+      "rationale": "Async PostgreSQL client used only by SQLx adapter crates to execute tenant-scoped prepared statements and claim transactional outbox rows. Kernel/domain/usecase crates remain SQLx-free and expose typed command/outbox plans only.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, and future *-adapter-postgres runtime crates only",
+      "allowed_crates": [
+        "oya-shared-postgres-command-adapter-sqlx",
+        "oya-shared-transactional-outbox-adapter-sqlx"
+      ]
+    },
     "tempfile": {
       "version_pin": "3",
       "layer_seam": "tests-and-tooling-only",
@@ -196,9 +230,9 @@
       "version_pin": "1",
       "layer_seam": "adapter-only (current) + future async chain when ADR-0094 cancellation lands",
       "owner_team": "council-architecture",
-      "rationale": "Async runtime (rt-multi-thread + net). No realistic alternative for async HTTP server in Rust today. Adapter declares; ops-runtime indirectly via the adapter and #[tokio::main].",
+      "rationale": "Async runtime (rt-multi-thread + net + timers). No realistic alternative for async HTTP server and bounded worker delay wiring in Rust today. Adapter/runtime crates declare it; domain/kernel/usecase crates stay runtime-free.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary); cell-runtime main.rs entry",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary), oya-shared-transactional-outbox-runtime-tokio-app for bounded outbox poller sleep, oya-shared-backbone-grpc-transport-adapter tests for local tonic loopback, oya-shared-postgres-command-adapter-sqlx tests for env-gated live Postgres/RLS harness, and cell-runtime main.rs entry",
       "allowed_crates": [
         "oya-foundry-claude-account-adapter",
         "oya-foundry-codex-account-adapter",
@@ -206,7 +240,10 @@
         "oya-foundry-supervisor-app",
         "oya-foundry-webhook-receiver-app",
         "oya-http-runtime-hyper-adapter",
-        "oya-ops-workspace-shell-app"
+        "oya-ops-workspace-shell-app",
+        "oya-shared-backbone-grpc-transport-adapter",
+        "oya-shared-postgres-command-adapter-sqlx",
+        "oya-shared-transactional-outbox-runtime-tokio-app"
       ]
     },
     "toml": {
@@ -220,11 +257,45 @@
         "oya-check-dependency-seam"
       ]
     },
+    "tonic": {
+      "version_pin": "0.14.6",
+      "layer_seam": "adapter-only-grpc-generated-bindings-and-local-transport",
+      "owner_team": "council-architecture",
+      "rationale": "Tonic codegen traits/types compile generated gRPC client/server bindings, and the isolated transport adapter enables local TCP server/client loopback tests over those generated bindings. Domain/kernel/usecase crates remain tonic-free.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter and oya-shared-backbone-grpc-transport-adapter",
+      "allowed_crates": [
+        "oya-shared-backbone-grpc-generated-adapter",
+        "oya-shared-backbone-grpc-transport-adapter"
+      ]
+    },
+    "tonic-prost": {
+      "version_pin": "0.14.6",
+      "layer_seam": "adapter-only-grpc-prost-codec",
+      "owner_team": "council-architecture",
+      "rationale": "Prost codec type referenced by tonic 0.14 generated service bindings. Kept inside the generated adapter crate and not exposed to domain/usecase logic.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
+      "allowed_crates": [
+        "oya-shared-backbone-grpc-generated-adapter"
+      ]
+    },
+    "tonic-prost-build": {
+      "version_pin": "0.14.6",
+      "layer_seam": "build-script-only-grpc-codegen",
+      "owner_team": "council-architecture",
+      "rationale": "Compile-time generator that bridges tonic service stub generation with prost message generation for source-controlled proto contracts. Used only in the generated adapter build script.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
+      "allowed_crates": [
+        "oya-shared-backbone-grpc-generated-adapter"
+      ]
+    },
     "tracing": {
       "version_pin": "0.1",
       "layer_seam": "infrastructure-only",
       "owner_team": "council-architecture",
-      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
+      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing \u2014 pure types don't emit spans. Current usage is bounded.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates",
       "allowed_crates": [
@@ -236,7 +307,7 @@
       "version_pin": "0.3",
       "layer_seam": "app-only",
       "owner_team": "council-architecture",
-      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
+      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries \u2014 never in libraries \u2014 so binaries decide their own log routing.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "app-layer binaries (composition roots)",
       "allowed_crates": [
@@ -253,6 +324,39 @@
       "isolated_in_crate": "oya-check-* lane crates and tooling binaries",
       "allowed_crates": [
         "oya-codeview-cli"
+      ]
+    },
+    "opentelemetry": {
+      "version_pin": "0.32.0",
+      "layer_seam": "adapter-only-observability-api",
+      "owner_team": "council-architecture + observability",
+      "rationale": "Rust OpenTelemetry metrics API used only by the OTLP metrics adapter to construct canonical counters/gauges from the shared HyperscalerMetrics port. Domain/kernel/usecase crates remain OpenTelemetry-free.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "allowed_crates": [
+        "oya-shared-hyperscaler-metrics-adapter-otlp"
+      ]
+    },
+    "opentelemetry-otlp": {
+      "version_pin": "0.32.0",
+      "layer_seam": "adapter-only-otlp-exporter",
+      "owner_team": "council-architecture + observability",
+      "rationale": "OTLP HTTP/protobuf metric exporter used behind an explicit environment gate for collector integration harnesses. It does not leak into microservice domain/API/usecase crates and no live export is claimed unless the operator enables the harness with a reachable collector.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "allowed_crates": [
+        "oya-shared-hyperscaler-metrics-adapter-otlp"
+      ]
+    },
+    "opentelemetry_sdk": {
+      "version_pin": "0.32.0",
+      "layer_seam": "adapter-only-observability-sdk",
+      "owner_team": "council-architecture + observability",
+      "rationale": "OpenTelemetry SDK MeterProvider used only by the OTLP metrics adapter to host instruments and periodic metric export. Composition roots opt in explicitly; pure layers remain SDK-free.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "allowed_crates": [
+        "oya-shared-hyperscaler-metrics-adapter-otlp"
       ]
     }
   },

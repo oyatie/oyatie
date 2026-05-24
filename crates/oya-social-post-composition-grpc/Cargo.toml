@@ -1,0 +1,21 @@
+[package]
+name = "oya-social-post-composition-grpc"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
+oya-shared-protocol-transport-kernel = { path = "../oya-shared-protocol-transport-kernel" }
+oya-social-app = { path = "../oya-social-app" }
+oya-social-post-composition-api = { path = "../oya-social-post-composition-api" }
+
+[lib]
+name = "oya_social_post_composition_grpc"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,6 +1,21 @@
 [workspace]
 members = [
   "crates/oya-data-boundary-kernel",
+  "crates/oya-shared-postgres-command-kernel",
+  "crates/oya-shared-postgres-command-adapter-sqlx",
+  "crates/oya-shared-protocol-parity-kernel",
+  "crates/oya-shared-protocol-transport-kernel",
+  "crates/oya-shared-protocol-transport-retry-app",
+  "crates/oya-shared-backbone-proto-contracts-kernel",
+  "crates/oya-shared-backbone-grpc-generated-adapter",
+  "crates/oya-shared-backbone-grpc-transport-adapter",
+  "crates/oya-shared-transactional-outbox-kernel",
+  "crates/oya-shared-transactional-outbox-adapter-sqlx",
+  "crates/oya-shared-transactional-outbox-dispatch-app",
+  "crates/oya-shared-outbox-broker-http-adapter",
+  "crates/oya-shared-transactional-outbox-worker-app",
+  "crates/oya-shared-transactional-outbox-poller-app",
+  "crates/oya-shared-transactional-outbox-runtime-tokio-app",
   "crates/oya-residency-domain",
   "crates/oya-dsr-domain",
   "crates/oya-dsr-usecase",
@@ -278,6 +293,12 @@ members = [
   "crates/oya-connect-address-book-domain",
   "crates/oya-connect-calendar-domain",
   "crates/oya-connect-messenger-domain",
+  "crates/oya-messenger-message-stream-api",
+  "crates/oya-messenger-message-stream-usecase",
+  "crates/oya-messenger-message-stream-rest",
+  "crates/oya-messenger-message-stream-grpc",
+  "crates/oya-messenger-app",
+  "crates/oya-messenger-message-stream-adapter-postgres",
   "crates/oya-connect-collab-runtime-domain",
   "crates/oya-connect-document-format-domain",
   "crates/oya-connect-dlp-domain",
@@ -287,6 +308,19 @@ members = [
   "crates/oya-connect-dsr-domain",
   "crates/oya-connect-forms-domain",
   "crates/oya-connect-mail-domain",
+  "crates/oya-mail-mailbox-store-api",
+  "crates/oya-mail-mailbox-store-usecase",
+  "crates/oya-mail-mailbox-store-rest",
+  "crates/oya-mail-mailbox-store-grpc",
+  "crates/oya-mail-mailbox-store-app",
+  "crates/oya-mail-mailbox-store-adapter-postgres",
+  "crates/oya-connect-social-domain",
+  "crates/oya-social-post-composition-api",
+  "crates/oya-social-post-composition-usecase",
+  "crates/oya-social-post-composition-rest",
+  "crates/oya-social-post-composition-grpc",
+  "crates/oya-social-app",
+  "crates/oya-social-post-composition-adapter-postgres",
   "crates/oya-connect-meet-domain",
   "crates/oya-connect-notes-domain",
   "crates/oya-connect-recordings-domain",
@@ -297,6 +331,13 @@ members = [
   "crates/oya-connect-tasks-domain",
   "crates/oya-connect-translate-domain",
   "crates/oya-connect-trust-portal-domain",
+  "crates/oya-community-post-store-domain",
+  "crates/oya-community-post-store-api",
+  "crates/oya-community-post-store-usecase",
+  "crates/oya-community-post-store-rest",
+  "crates/oya-community-post-store-grpc",
+  "crates/oya-community-post-store-app",
+  "crates/oya-community-post-store-adapter-postgres",
   "crates/oya-dev-cli",
   "crates/oya-codeview-cli",
   "tools/oya-foundry-fitness-banned-primitives-app",
@@ -366,6 +407,7 @@ members = [
   "crates/oya-json-kernel",
   "crates/oya-shared-hyperscaler-metrics-kernel",
   "crates/oya-shared-hyperscaler-metrics-adapter-prometheus",
+  "crates/oya-shared-hyperscaler-metrics-adapter-otlp",
   "crates/oya-check-high-risk-auto-decision-refusal",
   "crates/oya-check-slsa-l3-evidence-grounded",
   "crates/oya-gen-microservice-manifests-app",
@@ -675,6 +717,12 @@ adr_cite = "ADR-0056"
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+prost = "0.14.3"
+protoc-bin-vendored = "3.2.0"
+tonic = { version = "0.14.6", default-features = false, features = ["codegen"] }
+tonic-prost = "0.14.6"
+tonic-prost-build = { version = "0.14.6", default-features = false, features = ["cleanup-markdown"] }
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
 # Hyper canonical HTTP backbone per ADR-0090 (user-issued 2026-05-14).

@@ -8,7 +8,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod governance;
 pub mod thread_state;
+pub use governance::*;
 pub use thread_state::{MailboxKind, ThreadStatus};
 
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};

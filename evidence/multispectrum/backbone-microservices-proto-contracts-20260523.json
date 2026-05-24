@@ -1,0 +1,127 @@
+{
+  "change_id": "backbone-microservices-proto-contracts-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Source-controlled proto3 write service contracts and validation registry for backbone messenger, mail, social, and community write RPCs.",
+  "scope": [
+    "specs/proto/backbone/**",
+    "crates/oya-shared-backbone-proto-contracts-kernel/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-backbone-proto-contracts-kernel.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Source contract and deterministic validation only. This slice adds hand-authored proto3 files for the implemented write RPC names and a Rust validator that embeds and checks them. It does not run protoc/prost/tonic, generate Rust stubs, serialize protobuf binary payloads, start a gRPC server/client, contact a broker, or prove transport delivery.",
+  "source_basis": [
+    {
+      "url": "https://protobuf.dev/reference/protobuf/proto3-spec/",
+      "use": "Official Protocol Buffers proto3 language specification for syntax/package/field/message/service/RPC proto-file structure."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "Proto files remain source-controlled under specs/proto/backbone while the validator is a small dependency-free kernel that performs deterministic string/token checks.",
+    "F2_hyperscaler": "Stable proto package/service/RPC contracts and common tenant/principal/idempotency/policy/audit metadata prepare future generated stubs and service gateways for multi-tenant cloud integration without claiming runtime traffic.",
+    "F3_adversarial": "Negative tests reject missing proto3 syntax, missing RPC declarations, missing common metadata fields, and forbidden proto2 required-field usage.",
+    "F4_api_contract": "The registry exposes BackboneProtoContract, BackboneProtoRpc, BACKBONE_PROTO_CONTRACTS, validate_proto_contract, and validate_all_backbone_proto_contracts for future CI and generator entrypoints.",
+    "F5_quality": "Focused proto-contract tests plus the 43-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "CI path filters, GitHub Actions package matrices, and Jenkins BACKBONE_CARGO_PACKAGES include the proto-contract kernel so later proto contract changes exercise the same validation lane.",
+    "F7_security_privacy": "The proto contracts model identifier/reference metadata and encrypted envelope references; they do not add raw message/mail/post body content, secrets, broker URLs, database URLs, or principal credentials.",
+    "F8_supply_chain": "No third-party dependency is introduced; the new kernel uses include_str! and local validation logic only.",
+    "F9_testing": "Focused tests passed for 6 proto-contract unit tests and the broad backbone matrix passed 274 unit tests plus the existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "GitHub Actions and all four Jenkinsfiles include the proto-contract kernel; this is static CI definition evidence and does not claim remote CI execution.",
+    "F11_observability": "Common audit_correlation_id, idempotency_key, and policy_decision_ref fields in each source contract preserve the metadata future runtime telemetry and audit correlation will need.",
+    "F13_reversibility": "The change is localized to proto source files, one dependency-free validation crate, catalog/CI task wiring, and evidence; reverting removes contract validation without changing runtime handlers."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-backbone-proto-contracts-kernel",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-proto-contracts-kernel",
+      "result": "pass",
+      "evidence": "6 focused unit tests passed, including all-contract validation and negative syntax/RPC/common-field/required-keyword cases."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-backbone-proto-contracts-kernel --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-backbone-proto-contracts-kernel",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <43 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <43 backbone package matrix>",
+      "result": "pass",
+      "evidence": "274 unit tests passed across backbone domain/API/usecase/REST/app/gRPC/adapter-postgres/shared-command/shared-sqlx/shared-protocol/shared-transport-retry/shared-proto-contract/shared-outbox/shared-policy/shared-metrics packages; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <43 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <43 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; duplicate/wildcard diagnostics remain non-blocking warnings under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 457 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 457 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "ruby parse/config validation for proto files, workflow matrix/path filters, catalog, Jenkins, workspace, manifest, and evidence JSON",
+      "result": "pass",
+      "evidence": "parse_config_validation=pass proto_files=4 matrix_rows=4; workflow governance smoke parsed 17 evidence/proto/YAML files."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 342 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + proto specs + proto-contract crate + CI/Jenkins + catalog + evidence corpus>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 5 documents, 1073 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No prost/tonic/protoc code generation was run or added.",
+    "No generated Rust gRPC stubs are present.",
+    "No protobuf binary serialization or compatibility test is claimed.",
+    "No live gRPC server/client, broker publish, database call, or runtime daemon is started by this slice.",
+    "No production SLO, delivery guarantee, remote CI run, branch protection, or deployment completion is claimed."
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "change_id": "backbone-microservices-foundation-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Domain-foundation invariants for messenger, mail, social, and community microservices ahead of cloud integration.",
+  "scope": [
+    "crates/oya-connect-messenger-domain/src/governance.rs",
+    "crates/oya-connect-mail-domain/src/governance.rs",
+    "crates/oya-connect-social-domain/src/lib.rs",
+    "crates/oya-community-post-store-domain/src/lib.rs",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Domain-foundation invariants only; no production, hyperscaler maturity, SLO, compliance, API, persistence, or cloud-deploy readiness claim.",
+  "facets": {
+    "F1_simplicity": "Pure domain value objects and deterministic constructors; no runtime I/O.",
+    "F2_hyperscaler": "Honest non-claim: targets remain pending until telemetry/runtime gates exist.",
+    "F3_adversarial": "Negative tests cover cross-pillar presence, personal/work envelope mismatch, missing policy, no biometric persistence, self-vote, duplicate vote, and moderation evidence.",
+    "F5_quality": "cargo test and clippy pass for touched packages.",
+    "F7_security_privacy": "Personal/work isolation, tenant DEK, four-eyes, no plaintext AI assist, anonymous audit disclosure, and AR biometric denial are encoded at domain layer.",
+    "F11_observability": "Audit/evidence refs are carried as metadata for future OTel/app-layer emission; no runtime emission claim."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-connect-messenger-domain -p oya-connect-mail-domain -p oya-connect-social-domain -p oya-community-post-store-domain",
+      "result": "pass",
+      "evidence": "52 unit tests passed across touched packages"
+    },
+    {
+      "command": "cargo clippy -p oya-connect-messenger-domain -p oya-connect-mail-domain -p oya-connect-social-domain -p oya-community-post-store-domain --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-connect-messenger-domain -p oya-connect-mail-domain -p oya-connect-social-domain -p oya-community-post-store-domain",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "433 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "pass",
+      "evidence": "41 contracts, 41 metadata records"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/backbone-microservices-foundation-20260523.json",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks --corpus-root crates/oya-connect-messenger-domain --corpus-root crates/oya-connect-mail-domain --corpus-root crates/oya-connect-social-domain --corpus-root crates/oya-community-post-store-domain --corpus-root microservices/social --plans-dir .omc/plans/milestones",
+      "result": "pass",
+      "evidence": "158 documents, 24039 lines, 0 dependency edges, 0 global artifact writes"
+    },
+    {
+      "command": "python3 -m json.tool microservices/social/manifest.json && python3 -m json.tool evidence/multispectrum/backbone-microservices-foundation-20260523.json && ruby -e YAML.load_file(...) registry/catalog/oya-*-domain.yaml",
+      "result": "pass",
+      "evidence": "JSON and catalog YAML parse checks passed"
+    }
+  ],
+  "known_external_blockers": [
+    "Full catalog validation currently fails outside this slice on missing crate record oya-tenancy-tenant-lifecycle-kernel.",
+    "Data-class validation currently fails outside this slice on crates/oya-audit-chain-emission-kernel::ChainCoordinate.pack."
+  ],
+  "generated_at": "2026-05-23T00:00:00Z"
+}

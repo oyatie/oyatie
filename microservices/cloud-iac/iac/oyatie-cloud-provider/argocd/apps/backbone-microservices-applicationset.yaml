@@ -1,0 +1,114 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: backbone-microservices-dev
+  namespace: oya-cd-argocd
+  labels:
+    app.kubernetes.io/part-of: oya-ci-cd-substrate
+    app.kubernetes.io/managed-by: argocd
+    oyatie.com/adr: ADR-0349
+    oyatie.com/image-promotion: ADR-0181
+    oyatie.com/context: oyatie-cloud-provider
+    oyatie.com/change-bundle: cb-backbone-microservices-argocd-promotion-20260523
+  annotations:
+    cosign.sigstore.dev/required: "true"
+    oyatie.com/fail-open: "false"
+    oyatie.com/audit-chain-event: EVT-BACKBONE-ARGOCD-SYNC-REQUESTED
+    oyatie.com/non-claim: "static-promotion-manifest-only-no-live-sync"
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - list:
+        elements:
+          - microservice: messenger
+            owner: axis-messenger
+            chartPath: microservices/messenger/iac/k8s/helm
+            namespace: oya-backbone-messenger
+            imageRepository: oya-messenger
+            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            primaryCargoPackage: oya-messenger-app
+          - microservice: mail
+            owner: axis-mail
+            chartPath: microservices/mail/iac/k8s/helm
+            namespace: oya-backbone-mail
+            imageRepository: oya-mail
+            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            primaryCargoPackage: oya-mail-mailbox-store-app
+          - microservice: social
+            owner: axis-social
+            chartPath: microservices/social/iac/k8s/helm
+            namespace: oya-backbone-social
+            imageRepository: oya-social
+            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            primaryCargoPackage: oya-social-app
+          - microservice: community
+            owner: axis-community
+            chartPath: microservices/community/iac/k8s/helm
+            namespace: oya-backbone-community
+            imageRepository: oya-community
+            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            primaryCargoPackage: oya-community-post-store-app
+  template:
+    metadata:
+      name: '{{ .microservice }}-dev'
+      labels:
+        app.kubernetes.io/name: '{{ .microservice }}'
+        app.kubernetes.io/part-of: oyatie-backbone-microservices
+        app.kubernetes.io/managed-by: argocd
+        oyatie.com/adr: ADR-0349
+        oyatie.com/image-promotion: ADR-0181
+        oyatie.com/context: oyatie-cloud-provider
+        oyatie.com/owner: '{{ .owner }}'
+        oyatie.com/primary-cargo-package: '{{ .primaryCargoPackage }}'
+      annotations:
+        cosign.sigstore.dev/required: "true"
+        oyatie.com/fail-open: "false"
+        oyatie.com/audit-chain-event: EVT-BACKBONE-ARGOCD-SYNC-REQUESTED
+        oyatie.com/tenant-namespace-isolation: single-microservice
+    spec:
+      project: oya-oyatie-cloud-provider-tenants
+      source:
+        repoURL: https://git.oyatie.internal/oyatie/oyatie.git
+        targetRevision: dev
+        path: '{{ .chartPath }}'
+        helm:
+          releaseName: 'oya-{{ .microservice }}'
+          valueFiles:
+            - values.yaml
+          parameters:
+            - name: image.repository
+              value: '{{ .imageRepository }}'
+            - name: image.digest
+              value: '{{ .imageDigest }}'
+            - name: image.cosign.required
+              value: "true"
+            - name: config.environment
+              value: dev
+            - name: config.imagePromotionPolicy
+              value: cosign-required
+            - name: otel.endpoint
+              value: http://otel-collector.observability.svc.cluster.local:4317
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .namespace }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        managedNamespaceMetadata:
+          labels:
+            app.kubernetes.io/part-of: oyatie-backbone-microservices
+            istio.io/dataplane-mode: ambient
+            oyatie.com/context: oyatie-cloud-provider
+            oyatie.com/microservice: '{{ .microservice }}'
+            oyatie.com/tenant-class: contributor
+          annotations:
+            oyatie.com/namespace-isolation: single-microservice
+            oyatie.com/audit-chain-event: EVT-BACKBONE-ARGOCD-NAMESPACE-DECLARED
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - ApplyOutOfSyncOnly=true
+          - PrunePropagationPolicy=foreground

@@ -1,0 +1,90 @@
+{
+  "change_id": "backbone-microservices-transport-ack-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Recording broker/gRPC acknowledgement contract for planned backbone protocol transport bundles.",
+  "scope": [
+    "crates/oya-shared-protocol-transport-kernel/**",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Recording executor contract only. This slice converts planned AsyncAPI broker publish and proto/gRPC unary descriptors into deterministic acknowledgement reports for integration tests. It does not connect to a live broker, start a gRPC server, serialize protobuf payloads, perform retries, run an async runtime, or claim production delivery guarantees.",
+  "facets": {
+    "F1_simplicity": "The acknowledgement seam extends the existing transport kernel instead of adding a broker SDK or async runtime dependency.",
+    "F2_hyperscaler": "Transport plans now have deterministic acknowledgement reports carrying tenant, audit, policy, idempotency, broker, and gRPC metadata before live broker/server integration.",
+    "F3_adversarial": "Tests cover successful ack recording, deterministic sequence refs, tenant-scope drift between broker and gRPC descriptors, and idempotency drift refusal.",
+    "F5_quality": "Focused transport tests plus broad 34-package backbone cargo check/test/clippy/fmt, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F7_security_privacy": "Acknowledgement reports carry routing and audit metadata only; no payload bodies, credentials, or raw personal content are recorded.",
+    "F11_observability": "Ack refs and execution reports provide deterministic audit/debug evidence for future runtime adapters, while live broker/gRPC telemetry remains pending."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-shared-protocol-transport-kernel",
+      "result": "pass",
+      "evidence": "6 unit tests passed, including 3 acknowledgement executor tests."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-protocol-transport-kernel --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-protocol-transport-kernel",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <34 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <34 backbone package matrix>",
+      "result": "pass",
+      "evidence": "219 unit tests passed across backbone domain/API/usecase/REST/app/gRPC/adapter-postgres/policy/shared-command/shared-metrics/shared-protocol packages."
+    },
+    {
+      "command": "cargo clippy -p <34 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <34 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "448 workspace members"
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "pre-existing oya-audit-chain-emission-kernel::ChainCoordinate.pack annotation issue."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "ruby -rjson <transport-ack evidence>",
+      "result": "pass",
+      "evidence": "parsed transport-ack evidence file"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "6 subchecks: 3 pass, 2 report-only, 1 skipped, 0 fail, 2 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + transport kernel + evidence corpus>",
+      "result": "pass",
+      "evidence": "3 documents, 542 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    }
+  ],
+  "non_claims": [
+    "No live broker publisher, consumer acknowledgement, or broker durability guarantee is implemented by this slice.",
+    "No live gRPC server/client, protobuf serialization, retry policy, or async runtime is implemented by this slice.",
+    "No production delivery SLO, runtime telemetry, or cloud deployment evidence is claimed."
+  ]
+}

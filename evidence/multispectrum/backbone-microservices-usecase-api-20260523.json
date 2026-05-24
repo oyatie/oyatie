@@ -1,0 +1,86 @@
+{
+  "change_id": "backbone-microservices-usecase-api-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Protocol-neutral API and usecase foundation crates for messenger, mail, social, and community microservices, layered over the domain foundation slice.",
+  "scope": [
+    "crates/oya-messenger-message-stream-api/**",
+    "crates/oya-messenger-message-stream-usecase/**",
+    "crates/oya-mail-mailbox-store-api/**",
+    "crates/oya-mail-mailbox-store-usecase/**",
+    "crates/oya-social-post-composition-api/**",
+    "crates/oya-social-post-composition-usecase/**",
+    "crates/oya-community-post-store-api/**",
+    "crates/oya-community-post-store-usecase/**",
+    "microservices/messenger/manifest.json",
+    "microservices/mail/manifest.json",
+    "microservices/social/manifest.json",
+    "registry/catalog/oya-*-api.yaml",
+    "registry/catalog/oya-*-usecase.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "API/usecase foundation only; no REST handler, adapter, persistence, runtime, CI/CD, production, hyperscaler maturity, SLO attainment, compliance, or cloud-deploy readiness claim.",
+  "facets": {
+    "F1_simplicity": "Small protocol-neutral types and deterministic pure usecase functions; no async runtime, no provider SDKs, no I/O.",
+    "F2_hyperscaler": "Honest non-claim: hyperscaler grade remains pending until runtime, telemetry, SLO, rollback, CI/CD, and promotion evidence exist.",
+    "F3_adversarial": "Negative tests cover tenant scope/idempotency/audit context, author/principal mismatch, voter/principal mismatch, personal mail handoff refusal, no plaintext AI assist, DMARC hard reject, personal messenger disclosure denial, work social consent, Teamblind policy, duplicate vote, and moderation evidence.",
+    "F5_quality": "cargo test, clippy -D warnings, and cargo fmt --check pass for all touched domain/API/usecase packages.",
+    "F7_security_privacy": "Usecase boundaries enforce personal/work and tenant scope, idempotency, audit correlation, lawful basis, no plaintext AI assist, author binding, and audit-safe evidence references.",
+    "F11_observability": "Audit correlation IDs and event-type receipts are modeled for future OTel/app-layer emission; no runtime emission claim."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-connect-messenger-domain -p oya-connect-mail-domain -p oya-connect-social-domain -p oya-community-post-store-domain -p oya-messenger-message-stream-api -p oya-messenger-message-stream-usecase -p oya-mail-mailbox-store-api -p oya-mail-mailbox-store-usecase -p oya-social-post-composition-api -p oya-social-post-composition-usecase -p oya-community-post-store-api -p oya-community-post-store-usecase",
+      "result": "pass",
+      "evidence": "72 unit tests passed across touched domain/API/usecase packages; doc-tests passed with zero doctest cases."
+    },
+    {
+      "command": "cargo clippy -p oya-connect-messenger-domain -p oya-connect-mail-domain -p oya-connect-social-domain -p oya-community-post-store-domain -p oya-messenger-message-stream-api -p oya-messenger-message-stream-usecase -p oya-mail-mailbox-store-api -p oya-mail-mailbox-store-usecase -p oya-social-post-composition-api -p oya-social-post-composition-usecase -p oya-community-post-store-api -p oya-community-post-store-usecase --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-connect-messenger-domain -p oya-connect-mail-domain -p oya-connect-social-domain -p oya-community-post-store-domain -p oya-messenger-message-stream-api -p oya-messenger-message-stream-usecase -p oya-mail-mailbox-store-api -p oya-mail-mailbox-store-usecase -p oya-social-post-composition-api -p oya-social-post-composition-usecase -p oya-community-post-store-api -p oya-community-post-store-usecase",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "433 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/backbone-microservices-foundation-20260523.json --evidence evidence/multispectrum/backbone-microservices-usecase-api-20260523.json",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks --corpus-root touched crates --corpus-root microservices/{messenger,mail,social,community} --plans-dir .omc/plans/milestones",
+      "result": "pass",
+      "evidence": "781 documents, 152839 lines, 0 dependency edges, 0 serialization edges, 0 global artifact writes"
+    },
+    {
+      "command": "python3 -m json.tool microservices/{messenger,mail,social}/manifest.json evidence/multispectrum/*.json && ruby -e YAML.load_file(...) registry/catalog/oya-*.yaml",
+      "result": "pass",
+      "evidence": "JSON and catalog YAML parse checks passed"
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "pass",
+      "evidence": "41 contracts, 41 metadata records"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "evidence": "pass"
+    },
+    {
+      "command": "cargo metadata --no-deps --format-version 1",
+      "result": "pass",
+      "evidence": "pass"
+    }
+  ],
+  "known_external_blockers": [
+    "Full catalog validation fails outside this slice: missing crate record oya-tenancy-tenant-lifecycle-kernel.",
+    "Data-class validation fails outside this slice: crates/oya-audit-chain-emission-kernel::ChainCoordinate.pack lacks accepted annotation/legacy row."
+  ],
+  "generated_at": "2026-05-23T00:00:00Z"
+}

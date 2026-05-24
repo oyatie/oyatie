@@ -1,73 +1,58 @@
-# FD-001 Phase 0 Task List
+# Messenger/Mail/Community/Social Task List
 
 Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 
-## Authority
+- ✅ CS-BACKBONE-MSG-001 — Messenger governance invariants and tests.
+- ✅ CS-BACKBONE-MAIL-001 — Mail governance invariants and tests.
+- ✅ CS-BACKBONE-SOCIAL-001 — Connect Social domain scaffold, catalog, manifest binding.
+- ✅ CS-BACKBONE-COMMUNITY-001 — Community post-store domain scaffold and catalog.
+- ✅ CS-BACKBONE-API-USECASE-001 — Protocol-neutral API + usecase crates for messenger, mail, social, and community.
+- ✅ CS-BACKBONE-REST-001 — Framework-free REST/OpenAPI boundary crates for messenger, mail, social, and community write paths.
+- ✅ CS-BACKBONE-POLICY-001 — Cedar policy-decision seams and negative cross-context API/REST tests.
+- ✅ CS-BACKBONE-ROUTE-CATALOG-001 — OpenAPI operation route catalogs for messenger, mail, social, and community REST crates.
+- ✅ CS-BACKBONE-PERSISTENCE-001 — Postgres/Citus migration bundles with tenant/cell/shard keys for messenger, mail, social, and community write stores.
+- ✅ CS-BACKBONE-REPOSITORY-COMMANDS-001 — Tenant-scoped repository SQL command seams for messenger, mail, social, and community Postgres adapters.
+- ✅ CS-BACKBONE-MANIFEST-CONSISTENCY-001 — Manifest layer lists now reflect implemented API/usecase crates for messenger, mail, and social.
+- ✅ CS-BACKBONE-TELEMETRY-BINDINGS-001 — Canonical request telemetry metric-name bindings for implemented write routes.
+- ✅ CS-BACKBONE-REST-DISPATCH-001 — Fail-closed 501 dispatch for OpenAPI-declared contract-only REST routes.
+- ✅ CS-BACKBONE-REST-WRITE-DISPATCH-001 — Framework-free method/path dispatch now calls implemented REST business handlers instead of requiring out-of-band typed entrypoints.
+- ✅ CS-BACKBONE-PROTOCOL-PARITY-001 — AsyncAPI/proto parity bindings for implemented write receipts.
+- ✅ CS-BACKBONE-CI-MATRIX-001 — GitHub Actions/Jenkins package matrices for implemented backbone crates.
+- ✅ CS-BACKBONE-APP-ORCHESTRATION-001 — Runtime-neutral app write plans composing usecase, persistence, and protocol event seams.
+- ✅ CS-BACKBONE-REST-APP-PLAN-001 — REST write-plan entrypoints exposing app orchestration outputs for implemented write routes.
+- ✅ CS-BACKBONE-TRANSPORT-PLAN-001 — Runtime-neutral broker/gRPC transport plans for implemented write routes.
+- ✅ CS-BACKBONE-PROTOCOL-PAYLOAD-CODEC-001 — Deterministic proto-json payload codec seam for protocol transport planning.
+- ✅ CS-BACKBONE-PROTO-CONTRACTS-001 — Source-controlled proto3 contracts and validation registry for backbone write RPCs.
+- ✅ CS-BACKBONE-GRPC-GENERATED-001 — Compile-time tonic/prost generated bindings and prost binary round-trip tests for backbone write RPCs.
+- ✅ CS-BACKBONE-GRPC-PLAN-ADAPTER-001 — Generated gRPC request adapters now bridge tonic/prost messages into existing write-plan boundaries without sockets.
+- ✅ CS-BACKBONE-GRPC-TRANSPORT-ADAPTER-001 — Live tonic transport server/client socket seam exercises generated write RPCs over local TCP without SQL/broker execution.
+- ✅ CS-BACKBONE-TRANSPORT-ACK-001 — Recording broker/gRPC acknowledgement contract for planned write transport bundles.
+- ✅ CS-BACKBONE-TRANSPORT-RETRY-APP-001 — Bounded retry/dead-letter decision seam for broker/gRPC transport execution.
+- ✅ CS-BACKBONE-BROKER-HTTP-PUBLISHER-001 — Live HTTP broker-gateway publisher adapter posts outbox metadata over local TCP and captures broker acks without DB/gRPC execution.
+- ✅ CS-BACKBONE-HTTP-OUTBOX-EXECUTOR-001 — HTTP broker publisher implements the outbox transport executor seam for worker injection with explicit no-gRPC-execution ack refs.
+- ✅ CS-BACKBONE-SQL-EXECUTION-CONTRACT-001 — Postgres pool and SQL execution contracts attached to app write plans.
+- ✅ CS-BACKBONE-SQLX-EXECUTOR-001 — SQLx-backed Postgres command executor adapter seam for tenant-scoped write plans.
+- ✅ CS-BACKBONE-LIVE-POSTGRES-RLS-HARNESS-001 — Env-gated SQLx live Postgres RLS probe harness with optional Citus distribution check, skipped unless explicitly enabled.
+- ✅ CS-BACKBONE-TRANSACTIONAL-OUTBOX-001 — Transactional outbox command seam appended to backbone write plans.
+- ✅ CS-BACKBONE-OUTBOX-SQLX-DRAIN-001 — SQLx transactional outbox drain adapter seam using queue-safe row claims.
+- ✅ CS-BACKBONE-OUTBOX-DISPATCH-APP-001 — Runtime-neutral outbox dispatch app over claimed protocol outbox rows.
+- ✅ CS-BACKBONE-OUTBOX-WORKER-APP-001 — SQLx outbox worker-cycle seam composing claim, dispatch, and SQL state mutation.
+- ✅ CS-BACKBONE-OUTBOX-POLLER-APP-001 — Bounded outbox poller scheduler-policy seam with idle/error stop rules.
+- ✅ CS-BACKBONE-OUTBOX-TOKIO-RUNTIME-001 — Tokio runtime sleeper seam for bounded outbox poller loops.
+- ✅ CS-BACKBONE-OUTBOX-SERVICE-LOOP-001 — Bounded outbox service-loop lifecycle seam for future daemon composition.
+- ✅ CS-BACKBONE-OUTBOX-SUPERVISOR-LIFECYCLE-001 — Supervised outbox service lifecycle envelope records start/ready/shutdown/stopped events around the bounded Tokio service loop.
+- ✅ CS-BACKBONE-CEDAR-RUNTIME-001 — Cedar runtime evaluator and backbone write-policy conformance pack.
+- ✅ CS-BACKBONE-RUNTIME-OBSERVABILITY-001 — Runtime metrics exercise, SLO burn model, and Prometheus adapter coverage.
+- ✅ CS-BACKBONE-OTLP-METRICS-HARNESS-001 — Env-gated OpenTelemetry OTLP/HTTP metrics exporter harness for shared hyperscaler metrics, disabled unless explicitly enabled.
+- ✅ CS-BACKBONE-ARGOCD-PROMOTION-001 — ArgoCD ApplicationSet promotion manifest for backbone services.
+- ✅ CS-BACKBONE-EDGE-TLS-HARDENING-001 — Static messenger/community edge WAF, ECH, and PQC certificate manifests align them with existing mail/social edge hardening posture.
 
-- `/specs/masterplan.json`
-- `/specs/master-plan-sequencing.json`
-- `docs/decisions/` with later ADRs winning conflicts.
-- Stale README/PRD handoff documents are non-authoritative unless a later ADR explicitly reaffirms them.
+## Remaining toward full requested microservices
 
-## Phase 0 — shared cloud infrastructure
-
-### Cloud IAM
-
-- ✅ CS-CLOUD-IAM-001 — durable metadata-only IdP registry snapshot port and in-memory test adapter.
-  - RED: failing domain test for snapshot persistence, duplicate idempotency rejection, and forbidden raw/credential/assertion/STS bytes.
-  - GREEN: pure domain implementation, no runtime I/O.
-  - VERIFY: `cargo test -p oya-cloud-iam-domain`; `cargo clippy -p oya-cloud-iam-domain --all-targets -- -D warnings`.
-- ✅ CS-CLOUD-IAM-002 — audit/evidence receipt for IdP registry sync.
-  - TEST: domain regression covers immutable metadata-only evidence event creation from provider sync receipt, tenant/provider mismatch rejection, and missing/token-shaped evidence ref rejection.
-  - GREEN: pure domain event/receipt conversion with private immutable event fields and no runtime I/O.
-  - VERIFY: `cargo test -p oya-cloud-iam-domain`; `cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-api --all-targets -- -D warnings`.
-- ✅ CS-CLOUD-IAM-003 — API contract/version enforcement for identity-provider mutation paths.
-  - RED: failing API test required `Oyatie-Version` boundary fields and missing/unsupported public-version errors.
-  - GREEN: API boundary validates supported date carriers before auth/idempotency/domain mutation; OpenAPI declares required `Oyatie-Version`.
-  - VERIFY: `cargo test -p oya-cloud-iam-api`; Cloud IAM package tests; Cloud IAM clippy; `cargo fmt --all -- --check`; `./bin/oya gate validate api-semver --contracts-dir contracts`.
-- ✅ CS-CLOUD-IAM-004 — typed tenant/cell/region boundary objects for IAM hot paths.
-  - RED: failing API test required typed placement boundary structs/fields and placement-specific errors before IAM execution.
-  - GREEN: shared Cloud IAM typed placement boundary now flows through API boundary contexts and Cedar bind use-case requests; validation rejects missing cell/region or tenant drift before auth/idempotency/domain mutation.
-  - VERIFY: `cargo test -p oya-cloud-iam-api -p oya-cloud-iam-app`; Cloud IAM package tests; Cloud IAM clippy; `cargo fmt --all -- --check`.
-- ✅ CS-CLOUD-IAM-005 — Cloud IAM manifest/gate coherence update based only on implemented evidence.
-  - RED: pre-change manifest inspection found unimplemented/stale claims: missing Cloud IAM app/adapter crates, extra non-existent layers, schema-invalid capability availability fields, a measured SLO without metrics evidence, stale doctrine/DR seal events, active-active DR claims without drill evidence, and sharding audit-emits without Cloud IAM automation implementation.
-  - GREEN: manifest now lists only implemented Cloud IAM crates/layers/capabilities/contracts, removes measured SLO claims, records hyperscaler invariant gaps as explicit non-claims, limits audit-chain seal events to the implemented IdP registry event shape, and treats capacity as an ADR-0340 planning declaration rather than runtime autoscaler evidence.
-  - VERIFY: JSON parse, CS-005 coherence validator, architecture-boundaries, api-semver, planning-closure, dependency-seam, design-spec-maturity negative-control, and diff whitespace checks.
-
-### Next Phase 0 services, after Cloud IAM checkpoint
-
-### Cloud KMS
-
-- ✅ CS-CLOUD-KMS-001 — API contract/version enforcement for encrypt/decrypt paths.
-  - RED: failing API test required `Oyatie-Version` boundary field, N=3 supported-version constants, and missing/unsupported public-version errors.
-  - GREEN: API boundary validates supported date carriers before auth/idempotency/KMS receipt mutation; idempotency fingerprint includes the version; OpenAPI declares required `Oyatie-Version`.
-  - VERIFY: targeted API tests; `cargo test -p oya-cloud-kms-api`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; `./bin/oya gate validate api-semver --contracts-dir contracts`.
-- ✅ CS-CLOUD-KMS-002 — typed tenant/cell/region boundary objects for KMS hot paths.
-  - RED: failing API/domain tests required placement boundary headers and region/cell request fields before KMS hot paths could compile/pass.
-  - GREEN: domain/API carries typed region/cell boundary context, validates missing/mismatched placement before authorization/idempotency/receipt mutation, and includes placement in idempotency fingerprints.
-  - VERIFY: targeted RED/GREEN tests; `cargo test -p oya-cloud-kms-api`; `cargo test -p oya-cloud-kms-domain`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; api-semver; architecture-boundaries; planning-closure; dependency-seam.
-- ✅ CS-CLOUD-KMS-003 — audit/evidence mapping for rotation, destruction, and provider crypto receipts.
-  - RED: failing domain test required Cloud KMS evidence event/receipt types, rotation receipts, provider/schema/evidence-ref drift errors, and receipt conversion functions.
-  - GREEN: domain receipts now convert to immutable metadata-only evidence events for use, provider crypto, rotation, and destruction without carrying raw plaintext/ciphertext/key material.
-  - VERIFY: targeted RED/GREEN tests; `cargo test -p oya-cloud-kms-domain`; `cargo test -p oya-cloud-kms-api`; Cloud KMS package tests; Cloud KMS clippy; `cargo fmt --all -- --check`; api-semver; architecture-boundaries; planning-closure; dependency-seam.
-- ⬜ CS-CLOUD-KMS-004 — Cloud KMS manifest/gate coherence update based only on implemented evidence.
-
-### Remaining Phase 0 services
-
-- ⬜ Cloud Secrets — OpenBao-backed secret reference model and fail-closed bootstrap policy.
-- ⬜ Cloud IaC — OpenTofu module registry, cell topology, and GitOps evidence.
-- ⬜ Cloud Network + DNS — Cilium/Envoy/DNS surfaces with no cross-cell default traffic.
-- ⬜ Cloud Data — Postgres+Citus tenant/cell partitioning and migration/backup gates.
-- ⬜ Cloud Storage — object/block/file storage seams with tenant prefix and evidence controls.
-- ⬜ Cloud Compute Functions/K8s/VM — workload identity, isolation tier, scheduling, and audit surfaces.
-- ⬜ Cloud Billing + Tax — metering, tenant class, invoicing, tax evidence, and billing audit chain.
-- ⬜ Cloud Capacity/Cell/DCOps/FinOps/Marketplace/FSH — complete remaining Phase 0 infrastructure bar.
-
-## Global done criteria for each checked task
-
-- [ ] Oya VCS claim/work/verify/done evidence recorded.
-- [ ] Tests prove behavior and negative cases.
-- [ ] Clean architecture layer direction preserved.
-- [ ] No placeholder/stub/thin false-green claims.
-- [ ] Security/privacy/policy/audit consequences reviewed.
-- [ ] Relevant manifests/docs updated only for implemented evidence.
+- ⬜ Broader contract-only REST/OpenAPI endpoints, vendor broker integration, live production gateway/TLS rollout evidence, full live outbox poller-to-publisher deployment, and acknowledgements beyond framework-free implemented write-route dispatch, static messenger/community edge WAF/ECH/PQC manifests, transport planning metadata, deterministic payload codec, source-controlled proto3 contracts, generated write-plan conversion, local tonic loopback server/client seams, local HTTP broker-gateway publish/executor seams, retry decisions, transactional outbox command/drain/dispatch/worker-cycle/poller-policy/Tokio-sleeper/service-loop/supervisor-lifecycle seams, and recording acknowledgement contracts.
+- ⬜ Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
+- ⬜ Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
+- ⬜ Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
+- ⬜ Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.
+- ⬜ Oya VCS verify/done/promote lifecycle closeout for each expanded ChangeBundle.
+- ⬜ Pull request against `dev` from the isolated worktree branch.

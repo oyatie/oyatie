@@ -40,7 +40,8 @@
 #![forbid(unsafe_code)]
 
 use oya_shared_hyperscaler_metrics_kernel::{
-    CircuitState, HyperscalerMetrics, MetricFamily, MetricsContext, MetricsError, metric_name,
+    BackpressureObservation, CircuitState, HyperscalerMetrics, MetricFamily, MetricsContext,
+    MetricsError, RequestTelemetryBinding, RequestTelemetryOutcome, metric_name,
 };
 use prometheus::{GaugeVec, IntCounter, IntCounterVec, Opts, Registry};
 
@@ -277,6 +278,63 @@ mod tests {
         (registry, adapter)
     }
 
+    fn binding(slug: &str, operation_id: &str) -> RequestTelemetryBinding {
+        let ctx = MetricsContext::new(slug).unwrap();
+        RequestTelemetryBinding::new(&ctx, operation_id).unwrap()
+    }
+
+    fn counter_value(registry: &Registry, name: &str) -> f64 {
+        registry
+            .gather()
+            .iter()
+            .find(|mf| mf.get_name() == name)
+            .and_then(|mf| mf.get_metric().first())
+            .map(|metric| metric.get_counter().get_value())
+            .unwrap_or(0.0)
+    }
+
+    fn labeled_counter_value(
+        registry: &Registry,
+        name: &str,
+        label_name: &str,
+        label_value: &str,
+    ) -> f64 {
+        registry
+            .gather()
+            .iter()
+            .find(|mf| mf.get_name() == name)
+            .and_then(|mf| {
+                mf.get_metric().iter().find(|metric| {
+                    metric.get_label().iter().any(|label| {
+                        label.get_name() == label_name && label.get_value() == label_value
+                    })
+                })
+            })
+            .map(|metric| metric.get_counter().get_value())
+            .unwrap_or(0.0)
+    }
+
+    fn circuit_gauge_value(registry: &Registry, capability_id: &str, state: &str) -> f64 {
+        registry
+            .gather()
+            .iter()
+            .find(|mf| mf.get_name() == "oya_messenger_capability_circuit_state")
+            .and_then(|mf| {
+                mf.get_metric().iter().find(|metric| {
+                    let has_capability = metric.get_label().iter().any(|label| {
+                        label.get_name() == "capability_id" && label.get_value() == capability_id
+                    });
+                    let has_state = metric
+                        .get_label()
+                        .iter()
+                        .any(|label| label.get_name() == "state" && label.get_value() == state);
+                    has_capability && has_state
+                })
+            })
+            .map(|metric| metric.get_gauge().get_value())
+            .unwrap_or(0.0)
+    }
+
     #[test]
     fn register_succeeds_for_canonical_slug() {
         let (_registry, adapter) = fresh_adapter("messenger");
@@ -470,5 +528,70 @@ mod tests {
         // satisfy unused-import lint on Collector in test scope when only
         // collect() and not desc() is called.
         let _ = adapter.responses_total.desc();
+    }
+
+    #[test]
+    fn runtime_outcome_default_emitter_records_prometheus_counters() {
+        let (registry, adapter) = fresh_adapter("messenger");
+        let binding = binding("messenger", "messenger.post_message");
+        let outcomes = [
+            RequestTelemetryOutcome::new(binding.clone(), "tenant-a", 202, true).unwrap(),
+            RequestTelemetryOutcome::with_backpressure(
+                binding.clone(),
+                "tenant-a",
+                429,
+                false,
+                Some(
+                    BackpressureObservation::new("broker-publish", CircuitState::Open, true)
+                        .unwrap(),
+                ),
+            )
+            .unwrap(),
+            RequestTelemetryOutcome::new(binding, "tenant-a", 503, false).unwrap(),
+        ];
+
+        for outcome in &outcomes {
+            adapter.record_request_outcome(outcome).unwrap();
+        }
+
+        assert_eq!(counter_value(&registry, "oya_messenger_request_total"), 3.0);
+        assert_eq!(
+            counter_value(&registry, "oya_messenger_request_success_total"),
+            1.0
+        );
+        assert_eq!(
+            counter_value(&registry, "oya_messenger_responses_total"),
+            3.0
+        );
+        assert_eq!(
+            labeled_counter_value(
+                &registry,
+                "oya_messenger_responses_429_total",
+                "tenant_id",
+                "tenant-a"
+            ),
+            1.0
+        );
+        assert_eq!(
+            counter_value(&registry, "oya_messenger_responses_5xx_total"),
+            1.0
+        );
+        assert_eq!(
+            labeled_counter_value(
+                &registry,
+                "oya_messenger_capability_retry_budget_exhausted_total",
+                "capability_id",
+                "broker-publish"
+            ),
+            1.0
+        );
+        assert_eq!(
+            circuit_gauge_value(&registry, "broker-publish", "open"),
+            1.0
+        );
+        assert_eq!(
+            circuit_gauge_value(&registry, "broker-publish", "closed"),
+            0.0
+        );
     }
 }
