@@ -1,5 +1,5 @@
 context: social
-role: api
+role: domain
 capability: social-post-composition
 plane: data
 slo: preview-data-plane

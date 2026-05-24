@@ -1,5 +1,5 @@
 context: shared
-role: app
+role: usecase
 capability: transactional-outbox-dispatch-app
 plane: data
 slo: preview-data-plane

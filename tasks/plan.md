@@ -793,6 +793,23 @@ Verification:
 - Full `./bin/oya verify --ci-required` is recorded honestly as non-green: local catalog/data-class blockers are resolved, while repo-global/local mirror lanes still fail on recursive `oya verify` nextest cases, doc/readme catalog coverage, ADR citation/index metadata, design/spec maturity, glossary/placeholder debt, dependency-seam, architecture/layered-architecture discipline, and VCS admission audit-chain coverage.
 
 
+### CS-BACKBONE-ARCHITECTURE-BOUNDARY-ALIGNMENT-001 — Transport/catalog role alignment
+Scope:
+- `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs` role matrix and focused tests.
+- Catalog role truth-down for backbone REST/gRPC/API DTO/outbox composition crates plus audit-chain DTO crates that are imported by domain code.
+- Evidence/task tracking for the architecture-boundaries lane outcome.
+
+Acceptance:
+- `architecture-boundaries` recognizes REST/gRPC/adapter crates as outer composition surfaces that may depend inward on usecase/app/application/domain/kernel roles without allowing kernel/domain outward dependencies.
+- API DTO crates that are consumed by domain/usecase/app code are cataloged as `domain` contract crates rather than outward API facades.
+- Local architecture-boundaries validation passes for the current workspace/catalog snapshot, with no production runtime or remote CI green claim.
+
+Verification:
+- `cargo fmt --check -p oya-dev-cli`.
+- `cargo test -p oya-dev-cli architecture_boundaries -- --nocapture`.
+- `./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog`.
+- `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog`.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.

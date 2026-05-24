@@ -1,5 +1,5 @@
 context: audit
-role: api
+role: domain
 capability: audit-chain-verification
 plane: control
 slo: preview-control-plane

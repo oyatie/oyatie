@@ -1,5 +1,5 @@
 context: shared
-role: app
+role: runtime
 capability: transactional-outbox-tokio-runtime-sleeper-service-loop-supervisor
 plane: data
 slo: preview-data-plane

@@ -1,5 +1,5 @@
 context: community
-role: api
+role: domain
 capability: community-post-store
 plane: data
 slo: preview-data-plane

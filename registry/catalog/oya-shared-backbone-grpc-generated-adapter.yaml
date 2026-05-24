@@ -1,5 +1,5 @@
 context: shared
-role: adapter
+role: grpc
 capability: backbone-tonic-prost-generated-write-plan-adapter
 plane: data
 slo: preview-data-plane

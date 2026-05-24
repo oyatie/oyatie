@@ -1,5 +1,5 @@
 context: mail
-role: api
+role: domain
 capability: mail-mailbox-store
 plane: data
 slo: preview-data-plane

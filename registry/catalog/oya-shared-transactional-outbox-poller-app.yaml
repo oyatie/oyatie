@@ -1,5 +1,5 @@
 context: shared
-role: app
+role: runtime
 capability: transactional-outbox-bounded-poller-policy
 plane: data
 slo: preview-data-plane

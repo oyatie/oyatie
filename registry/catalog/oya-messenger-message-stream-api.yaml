@@ -1,5 +1,5 @@
 context: messenger
-role: api
+role: domain
 capability: messenger-message-stream
 plane: data
 slo: preview-data-plane
