@@ -2,6 +2,7 @@
 id: ADR-0325
 status: Proposed
 date: 2026-05-20
+owner: council-product
 owners:
   - council-product
   - council-architecture
@@ -80,6 +81,8 @@ enforced_by:
   - oya-governance-pricing-anchor-drift-monitor
 decision_owner: council-product
 ---
+
+# ADR-0325: Capability Tier Pricing Anchors Public
 
 ## Status
 

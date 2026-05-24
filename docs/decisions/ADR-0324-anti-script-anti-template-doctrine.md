@@ -2,6 +2,7 @@
 id: ADR-0324
 status: Proposed
 date: 2026-05-20
+owner: council-quality
 owners:
   - council-architecture
   - council-engineering
@@ -75,6 +76,8 @@ enforced_by:
   - oya-governance-no-template-stamping
 decision_owner: council-quality
 ---
+
+# ADR-0324: Anti-Script and Anti-Template Doctrine
 
 ## Status
 
@@ -724,7 +727,7 @@ A provenance record for a single-artifact authoring run:
 
 ```json
 {
-  "artifact_path": "docs/decisions/ADR-0399-hypothetical-doctrine.md",
+  "artifact_path": "docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md",
   "author_principal": "claude-opus-4-7@dispatcher-instance-19",
   "tool_chain": [
     {
@@ -742,7 +745,7 @@ A provenance record for a single-artifact authoring run:
     {
       "tool": "claude-opus-4-7",
       "operation": "write",
-      "target_path": "docs/decisions/ADR-0399-hypothetical-doctrine.md",
+      "target_path": "docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md",
       "timestamp": "2026-05-20T14:08:55.000Z"
     }
   ],

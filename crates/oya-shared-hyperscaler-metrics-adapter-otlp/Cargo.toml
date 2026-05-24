@@ -13,9 +13,9 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-shared-hyperscaler-metrics-kernel = { path = "../oya-shared-hyperscaler-metrics-kernel" }
-opentelemetry = { version = "0.32.0", default-features = false, features = ["metrics"] }
-opentelemetry-otlp = { version = "0.32.0", default-features = false, features = ["http-proto", "metrics", "reqwest-blocking-client"] }
-opentelemetry_sdk = { version = "0.32.0", default-features = false, features = ["metrics"] }
+opentelemetry.workspace = true
+opentelemetry-otlp.workspace = true
+opentelemetry_sdk.workspace = true
 
 [lints]
 workspace = true

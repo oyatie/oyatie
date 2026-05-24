@@ -201,12 +201,13 @@
       "version_pin": "0.8.6",
       "layer_seam": "adapter-only-postgres-runtime",
       "owner_team": "council-architecture + axis-data",
-      "rationale": "Async PostgreSQL client used only by SQLx adapter crates to execute tenant-scoped prepared statements and claim transactional outbox rows. Kernel/domain/usecase crates remain SQLx-free and expose typed command/outbox plans only.",
+      "rationale": "Async PostgreSQL client used only by SQLx adapter crates and the bounded transactional outbox worker composition root that accepts SQLx adapter types to execute tenant-scoped prepared statements and claim transactional outbox rows. Kernel/domain/usecase crates remain SQLx-free and expose typed command/outbox plans only.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, and future *-adapter-postgres runtime crates only",
+      "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, oya-shared-transactional-outbox-worker-app, and future *-adapter-postgres runtime crates only",
       "allowed_crates": [
         "oya-shared-postgres-command-adapter-sqlx",
-        "oya-shared-transactional-outbox-adapter-sqlx"
+        "oya-shared-transactional-outbox-adapter-sqlx",
+        "oya-shared-transactional-outbox-worker-app"
       ]
     },
     "tempfile": {

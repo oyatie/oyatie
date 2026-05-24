@@ -120,6 +120,28 @@
       ],
       "agent_authoring_allowed": false
     },
+    "doc.agents_operating_contract": {
+      "path": "docs/AGENTS-OPERATING-CONTRACT.md",
+      "owner_team": [
+        "axis-foundry",
+        "council-architecture"
+      ],
+      "tier": 1,
+      "update_trigger": [
+        "agent operating-contract doctrine reference change",
+        "PHASE-5 operating-contract promotion change"
+      ],
+      "update_cadence": "quarterly",
+      "dependent_docs": [
+        "doc.agents",
+        "specs/agent-operating-contract.json"
+      ],
+      "validation_check": [
+        "doc-catalog-self-coverage",
+        "readme-doc-coverage"
+      ],
+      "agent_authoring_allowed": false
+    },
     "doc.agent_instruction_sources": {
       "path": "docs/AGENT-INSTRUCTION-SOURCES.md",
       "owner_team": [

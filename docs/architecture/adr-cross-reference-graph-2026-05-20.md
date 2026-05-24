@@ -630,7 +630,7 @@ Per-ADR outgoing target inventory:
 - ADR-0319: existing_out=7 broken_out=0 targets=ADR-0243, ADR-0244, ADR-0251, ADR-0263, ADR-0297, ADR-0313, ADR-0316
 - ADR-0320: existing_out=6 broken_out=0 targets=ADR-0244, ADR-0292, ADR-0299, ADR-0305, ADR-0311, ADR-0313
 - ADR-0321: existing_out=26 broken_out=1 targets=ADR-0058, ADR-0105, ADR-0130, ADR-0131, ADR-0132, ADR-0145, ADR-0243, ADR-0244, ADR-0245, ADR-0247, ADR-0249, ADR-0250, ADR-0251, ADR-0254, ADR-0255, ADR-0257, ADR-0272, ADR-0276, ADR-0293, ADR-0299, ADR-0304, ADR-0313, ADR-0314, ADR-0315, ADR-0316, ADR-0318
-  broken_targets=ADR-0291
+  broken_targets=none (historical CLM reference reconciled to ADR-0316)
 
 ## §4 Top-30 Load-Bearing ADRs By In-Degree
 
@@ -853,7 +853,7 @@ Cluster membership detail:
 | ADR-0234 | ADR-0126 | inline | 4 | `docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md:43` The ADR number intentionally avoids `ADR-0126`. The inherited Bominal ADR map already uses `ADR-0126` for employment classification, so an Oyatie Connect decision with that number would create ambiguous cross-repo citati<br>`docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md:43` The ADR number intentionally avoids `ADR-0126`. The inherited Bominal ADR map already uses `ADR-0126` for employment classification, so an Oyatie Connect decision with that number would create ambiguous cross-repo citati |
 | ADR-0237 | ADR-0126 | inline | 2 | `docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md:20` (Connect super-app expansion; originally drafted as ADR-0126 in the<br>`docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md:22` dev's ADR-0126 Employment classification). ADR-0238 establishes the |
 | ADR-0238 | ADR-0126 | inline | 10 | `docs/decisions/ADR-0238-connect-super-app-expansion.md:18` Originally drafted as ADR-0126 in the oyatie 2026-05-17 session.<br>`docs/decisions/ADR-0238-connect-super-app-expansion.md:20` ADR-0126 (Employment classification, PR #135). See "Numbering note" |
-| ADR-0321 | ADR-0291 | inline | 4 | `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:4173` - Oyatie destination: `marketplace` (catalog + RFx + sourcing-event + DealSet + supplier-onboarding); `finance-erp` (PO + receipt + invoice + 3-way-match per D-027); `contract-lifecycle-management` (supplier-contract per<br>`docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:4281` 11. **Contract-reference rebind**: per-PO contract-reference re-link to CLM contract (per ADR-0291); negotiated-pricing schedule re-apply. |
+| ADR-0321 | ADR-0316 | inline | 4 | `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:4173` - Oyatie destination: `marketplace` (catalog + RFx + sourcing-event + DealSet + supplier-onboarding); `finance-erp` (PO + receipt + invoice + 3-way-match per D-027); `contract-lifecycle-management` (supplier-contract per<br>`docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:4281` 11. **Contract-reference rebind**: per-PO contract-reference re-link to CLM contract (per ADR-0316); negotiated-pricing schedule re-apply. |
 
 Broken-target rollup:
 
@@ -869,7 +869,7 @@ Broken-target rollup:
 | ADR-0232 | 1 | ADR-0060 |
 | ADR-0088 | 1 | ADR-0069 |
 | ADR-0086 | 1 | ADR-0110 |
-| ADR-0291 | 1 | ADR-0321 |
+| ADR-0316 | 1 | ADR-0321 |
 
 ## §8 Missing Reverse Cite Catalog
 
@@ -3684,7 +3684,7 @@ The following 50 fixes are ranked by leverage: broken targets first, then accept
 | 6 | P0-broken-target | Create/retire-map missing ADR-0127 or rewrite 2 source edge(s): ADR-0060, ADR-0132 |
 | 7 | P0-broken-target | Create/retire-map missing ADR-0231 or rewrite 1 source edge(s): ADR-0060 |
 | 8 | P0-broken-target | Create/retire-map missing ADR-0232 or rewrite 1 source edge(s): ADR-0060 |
-| 9 | P0-broken-target | Create/retire-map missing ADR-0291 or rewrite 1 source edge(s): ADR-0321 |
+| 9 | P0-broken-target | Create/retire-map missing ADR-0316 or rewrite 1 source edge(s): ADR-0321 |
 | 10 | P0-broken-target | Create/retire-map missing ADR-0086 or rewrite 1 source edge(s): ADR-0110 |
 | 11 | P0-broken-target | Create/retire-map missing ADR-0088 or rewrite 1 source edge(s): ADR-0069 |
 | 12 | P0-status-drift | Review ADR-0060 -> ADR-0140: accepted source cites superseded target; either cite successor or justify historical dependency. |

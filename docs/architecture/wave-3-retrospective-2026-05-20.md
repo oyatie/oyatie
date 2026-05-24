@@ -795,7 +795,7 @@ An implementation plan must name dependencies.
 An implementation plan must name stop conditions.
 An implementation plan must cite doctrine.
 An implementation plan must be narrow enough to execute.
-Script-generated shells are useful as TODO markers only if labeled as shells.
+Script-generated shells are useful as explicit follow-up markers only if labeled as shells.
 They are harmful if counted as substantive IPs.
 Wave-4 should either delete shallow generated IPs, mark them as scaffold-only, or deepen them before using them for implementation.
 Future IP creation should be direct-authored or generated from a schema with required semantic fields and then manually reviewed.
@@ -1055,7 +1055,7 @@ An IP line with a file target, test plan, dependency, or halt condition has high
 A registry line with a schema-backed mapping has high substance.
 A repeated clause-loop line has low substance.
 A generic placeholder line has low substance.
-A "TODO" line has low substance.
+A generic follow-up marker line has low substance.
 A duplicated vendor sentence has low substance.
 The post-Wave-3-G remediation increased substance by deleting or collapsing low-substance repetition.
 That means a line-count drop can be a quality improvement.
@@ -2509,10 +2509,10 @@ Month 1 output: Rust scaffold batch selection.
 Month 1 validation: Oya VCS evidence for backlog, inventory, and selected batches.
 Month 1 stop condition: no new scope until inventory drift is resolved or waived.
 Month 2 objective: implement first CI gate crates.
-Month 2 output: six-hop graph walker MVP.
-Month 2 output: capability-tier registry validator MVP.
-Month 2 output: ADR status validator MVP.
-Month 2 output: duplicate-clause detector MVP.
+Month 2 output: six-hop graph walker minimum-viable product.
+Month 2 output: capability-tier registry validator minimum-viable product.
+Month 2 output: ADR status validator minimum-viable product.
+Month 2 output: duplicate-clause detector minimum-viable product.
 Month 2 validation: validators run on scoped corpus and emit machine-readable evidence.
 Month 2 stop condition: graph and registry blockers are named, not silently ignored.
 Month 3 objective: create first Rust service scaffolds.

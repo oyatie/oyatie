@@ -115,7 +115,7 @@ ensureLines, which is the concrete script-based shallow-IP signal this
 catalogue forbids for human-authored canonical doctrine.
 
 The masterplan and planning-closure surfaces reject reduced-scope shortcuts:
-current scope posture is not MVP, not preview, and not reduced scope.
+current scope posture is not thin-launch, not preview, and not reduced scope.
 
 Those incidents are cited again in §7.
 
@@ -583,7 +583,7 @@ true blocker.
 
 Required phrase when blocked: "blocked by X; completed Y; remaining Z."
 
-Anchor: specs/masterplan.json scope_posture not_mvp_not_preview_not_reduced_scope.
+Anchor: specs/masterplan.json scope_posture not_thin_launch_not_preview_not_reduced_scope.
 
 ### AP-A11 Conservative Re-Scoping
 
@@ -597,7 +597,7 @@ full version is large.
 Why it harms Oyatie: conservative scope feels safe locally but accumulates
 system-wide false readiness.
 
-Detection: "for now", "initial", "lightweight", "MVP", or "representative"
+Detection: "for now", "initial", "lightweight", "thin-launch", or "representative"
 appears where the request asked for definitive coverage.
 
 CI candidate: not reliable; review-caught.
@@ -653,7 +653,7 @@ Why it harms Oyatie: downstream work treats placeholders as real constraints.
 Detection: file contains headings but no concrete paths, tables, schema,
 permits, or tests.
 
-Detection: "reserved", "future", or "TBD" appears in a supposedly complete
+Detection: "reserved", "future", or an explicit placeholder marker appears in a supposedly complete
 section.
 
 CI candidate: placeholder string scan plus doc-class density validation.
@@ -2704,7 +2704,7 @@ Source: specs/masterplan.json.
 
 Source: planning-closure references in root-hub-pointers.json.
 
-Oyatie's current execution posture rejects MVP, preview, reduced-scope,
+Oyatie's current execution posture rejects thin-launch, preview, reduced-scope,
 placeholder, stub, thin scaffold, and deferred-scope claims for masterplan
 delivery.
 

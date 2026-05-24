@@ -2,6 +2,7 @@
 id: ADR-0322
 status: Proposed
 date: 2026-05-20
+owner: council-quality
 owners:
   - council-architecture
   - council-product
@@ -69,6 +70,8 @@ enforced_by:
   - oya-governance-substance-bar-spectrum-binding
 decision_owner: council-quality
 ---
+
+# ADR-0322: Substance Bar as Doctrine and CI Enforcement
 
 ## Status
 
@@ -297,7 +300,7 @@ canonical Markdown). The check passes when:
 - Each D-N section has a body of ≥40 lines after subheading stripping.
 - The D-N headings are uniquely numbered 1..N with no gaps.
 
-Synthetic D-N sections (e.g. heading present but body says "TODO: fill in")
+Synthetic D-N sections (e.g. heading present but body says "follow-up marker: fill in")
 are detected by a no-empty-section sub-check that BLOCKS on any body of less
 than 8 non-blank, non-heading lines.
 
@@ -784,7 +787,7 @@ oya-governance-nightly workflow.
 ## Appendix A — Worked example: a Tier-1 ADR clearing the bar
 
 The following worked example demonstrates the gating flow for a
-hypothetical Tier-1 ADR `ADR-0399-hypothetical-doctrine.md` so that
+hypothetical Tier-1 ADR `ADR-0324-anti-script-anti-template-doctrine.md` so that
 agents and operators have a concrete reference.
 
 1. **Author drafts the ADR** at commit `abc1234`. The artifact has
@@ -802,12 +805,12 @@ agents and operators have a concrete reference.
 4. **Author remediates** the thin section by adding bespoke
    substance; recommits at `abc1235`; the lane re-runs.
 5. **Lane PASSes** all sub-checks; verdict signed and stored at
-   `evidence/substance-bar/ADR-0399-hypothetical-doctrine/verdict.signed.json`.
+   `evidence/substance-bar/ADR-0324-anti-script-anti-template-doctrine/verdict.signed.json`.
 6. **Reviewer-agent assignment**: the wave descriptor names
    `reviewer-substance-r12` as the F4-substance signer.
 7. **Reviewer agent reads** the artifact at `abc1235`, the lane
    evidence, and the wave context; signs the F4-substance facet at
-   `evidence/debate/ADR-0399-hypothetical-doctrine/F4-substance.signed.json`.
+   `evidence/debate/ADR-0324-anti-script-anti-template-doctrine/F4-substance.signed.json`.
 8. **The ADR's frontmatter** is updated to carry
    `substance_bar_facet_binding: "reviewer-substance-r12"` at commit
    `abc1236`.

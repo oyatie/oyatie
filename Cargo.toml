@@ -725,6 +725,9 @@ tonic-prost-build = { version = "0.14.6", default-features = false, features = [
 sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
+opentelemetry = { version = "0.32.0", default-features = false, features = ["metrics"] }
+opentelemetry-otlp = { version = "0.32.0", default-features = false, features = ["http-proto", "metrics", "reqwest-blocking-client"] }
+opentelemetry_sdk = { version = "0.32.0", default-features = false, features = ["metrics"] }
 # Hyper canonical HTTP backbone per ADR-0090 (user-issued 2026-05-14).
 # Only oya-http-runtime-hyper-adapter (Layer 5) consumes these directly;
 # Layers 1-4 remain std-only.

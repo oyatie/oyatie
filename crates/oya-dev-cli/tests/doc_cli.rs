@@ -852,6 +852,107 @@ fn doc_adr_index_writes_then_checks_generated_artifacts() {
 }
 
 #[test]
+fn doc_adr_index_accepts_decision_owner_frontmatter() {
+    let temp = temp_dir("doc-adr-index-decision-owner");
+    let decisions = temp.join("decisions");
+    fs::create_dir_all(&decisions).expect("decisions dir created");
+    fs::write(
+        decisions.join("ADR-0001-decision-owner.md"),
+        "---\n\
+         id: ADR-0001\n\
+         title: Decision Owner Fixture\n\
+         status: Accepted\n\
+         date: 2026-05-24\n\
+         decision_owner: council-architecture\n\
+         ---\n\n\
+         # ADR-0001: Decision Owner Fixture\n\n\
+         ## Context\n\n\
+         Fixture.\n",
+    )
+    .expect("decision_owner ADR written");
+    let index = temp.join("ADR-INDEX.md");
+    let machine = temp.join("decisions.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "doc",
+            "adr-index",
+            "--decisions-dir",
+            decisions.to_str().expect("utf8 decisions"),
+            "--index",
+            index.to_str().expect("utf8 index"),
+            "--machine",
+            machine.to_str().expect("utf8 machine"),
+            "--write",
+        ])
+        .output()
+        .expect("adr-index write command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json = fs::read_to_string(&machine).expect("machine mirror written");
+    assert!(
+        json.contains("\"owner\": \"council-architecture\""),
+        "json={json}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_adr_index_prefers_base_decision_over_duplicate_amendment_file() {
+    let temp = temp_dir("doc-adr-index-duplicate-amendment");
+    let decisions = temp.join("decisions");
+    write_adr(
+        &decisions,
+        "ADR-0001-base-decision.md",
+        "ADR-0001",
+        "Base Decision",
+        "Accepted",
+    );
+    write_adr(
+        &decisions,
+        "ADR-0001-amendment-clarification.md",
+        "ADR-0001",
+        "Amendment Clarification",
+        "Accepted",
+    );
+    let index = temp.join("ADR-INDEX.md");
+    let machine = temp.join("decisions.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "doc",
+            "adr-index",
+            "--decisions-dir",
+            decisions.to_str().expect("utf8 decisions"),
+            "--index",
+            index.to_str().expect("utf8 index"),
+            "--machine",
+            machine.to_str().expect("utf8 machine"),
+            "--write",
+        ])
+        .output()
+        .expect("adr-index write command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json = fs::read_to_string(&machine).expect("machine mirror written");
+    assert!(json.contains("Base Decision"), "json={json}");
+    assert!(!json.contains("Amendment Clarification"), "json={json}");
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn doc_adr_index_fails_when_committed_artifacts_drift() {
     let temp = temp_dir("doc-adr-index-drift");
     let decisions = temp.join("decisions");

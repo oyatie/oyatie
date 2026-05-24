@@ -831,6 +831,32 @@ fn adr_citation_gate_accepts_new_pack_refs_and_forensic_mapping_refs() {
 }
 
 #[test]
+fn adr_citation_gate_accepts_architecture_scorecard_as_forensic_surface() {
+    let temp = temp_dir("adr-citation-scorecard");
+    write_adr_citation_fixture(&temp, "ADR-0051 is active.", "Legacy ADR-0201 maps.");
+    fs::create_dir_all(temp.join("docs/architecture")).expect("architecture dir created");
+    fs::write(
+        temp.join("docs/architecture/wave-3-final-scorecard-2026-05-20.md"),
+        "# Scorecard\n\nHistorical missing slot ADR-0201 remains forensic-only.\n",
+    )
+    .expect("scorecard written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(adr_citation_args(&temp))
+        .output()
+        .expect("ADR citation gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn adr_citation_gate_rejects_legacy_ref_in_active_doc() {
     let temp = temp_dir("adr-citation-legacy");
     write_adr_citation_fixture(

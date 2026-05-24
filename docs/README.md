@@ -93,6 +93,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§2 Decisions](#
 3. [ADR-LEGACY-REGRESSION-MAPPING.md](ADR-LEGACY-REGRESSION-MAPPING.md) - ADR Legacy Regression Mapping: canonical navigation target for this shelf.
 4. [AGENT-INSTRUCTION-SOURCES.md](AGENT-INSTRUCTION-SOURCES.md) - Agent Instruction Sources: canonical navigation target for this shelf.
 5. [AGENTS.md](AGENTS.md) - Agents: canonical navigation target for this shelf.
+6. [AGENTS-OPERATING-CONTRACT.md](AGENTS-OPERATING-CONTRACT.md) - Agents Operating Contract: companion doctrine reference for the live agent operating contract.
 6. [CHANGELOG.md](CHANGELOG.md) - Changelog: canonical navigation target for this shelf.
 7. [COMPETITIVE-GAP-ANALYSIS.md](COMPETITIVE-GAP-ANALYSIS.md) - Competitive Gap Analysis: canonical navigation target for this shelf.
 8. [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md) - Compliance Matrix: canonical navigation target for this shelf.

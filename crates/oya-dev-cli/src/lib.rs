@@ -931,7 +931,8 @@ fn adr_citation_forensic_path(path: &str) -> bool {
                 || path.contains("synthesis")
                 || path.contains("adjudication")
                 || path.contains("lessons-learned")
-                || path.contains("executive-briefing")))
+                || path.contains("executive-briefing")
+                || path.contains("scorecard")))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

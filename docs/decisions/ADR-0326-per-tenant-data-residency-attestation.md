@@ -2,6 +2,7 @@
 id: ADR-0326
 status: Proposed
 date: 2026-05-20
+owner: council-compliance
 owners:
   - council-architecture
   - council-privacy
@@ -88,6 +89,8 @@ enforced_by:
   - oya-governance-residency-pack-binding
 decision_owner: council-compliance
 ---
+
+# ADR-0326: Per-Tenant Data Residency Attestation
 
 ## Status
 

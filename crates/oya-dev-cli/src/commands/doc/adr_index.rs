@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -179,6 +179,22 @@ fn read_adr_decision_records(decisions_dir: &Path) -> Result<Vec<AdrDecisionReco
             .is_some_and(|name| name.starts_with("ADR-") && name.ends_with(".md"))
     });
     paths.sort();
+    let base_decision_ids = paths
+        .iter()
+        .filter_map(|path| path.file_name().and_then(|name| name.to_str()))
+        .filter(|name| !name.contains("-amendment-"))
+        .filter_map(|name| name.get(0..8).map(str::to_string))
+        .collect::<BTreeSet<_>>();
+    paths.retain(|path| {
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            return true;
+        };
+        if !name.contains("-amendment-") {
+            return true;
+        }
+        name.get(0..8)
+            .is_none_or(|id| !base_decision_ids.contains(id))
+    });
 
     paths
         .iter()
@@ -406,7 +422,7 @@ fn frontmatter_metadata_key(key: &str) -> Option<&'static str> {
         "status" => Some("Status"),
         "date" => Some("Date"),
         "deciders" => Some("Deciders"),
-        "owner" | "owner_team" => Some("Owner"),
+        "owner" | "owner_team" | "decision_owner" => Some("Owner"),
         "owners" => Some("Owners"),
         "supersedes" => Some("Supersedes"),
         "superseded_by" => Some("Superseded-by"),

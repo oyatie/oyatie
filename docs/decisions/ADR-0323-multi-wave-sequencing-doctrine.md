@@ -2,6 +2,7 @@
 id: ADR-0323
 status: Proposed
 date: 2026-05-20
+owner: council-foundry
 owners:
   - council-architecture
   - council-engineering
@@ -74,6 +75,8 @@ enforced_by:
   - oya-governance-wave-pipeline-backpressure-respect
 decision_owner: council-foundry
 ---
+
+# ADR-0323: Multi-Wave Sequencing Doctrine
 
 ## Status
 

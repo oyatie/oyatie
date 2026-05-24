@@ -2,6 +2,7 @@
 id: ADR-0327
 status: Proposed
 date: 2026-05-20
+owner: council-foundry
 owners:
   - council-architecture
   - council-engineering
@@ -122,6 +123,8 @@ enforced_by:
   - oya-governance-promotion-rollback
 decision_owner: council-foundry
 ---
+
+# ADR-0327: Wave-3 Completion Criteria and Promotion Gates
 
 ## Status
 

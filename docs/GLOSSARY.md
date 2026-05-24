@@ -302,6 +302,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 |---|---|---|
 | AAAA | IPv6 address DNS resource record | (networking) |
 | AATL | Adobe Approved Trust List | §7 / e-signature trust |
+| AACSB | Association to Advance Collegiate Schools of Business | §7 / education accreditation packs |
 | ABAC | Attribute-Based Access Control | §4 |
 | AADC | Age Appropriate Design Code | §7 / ADR-0292 |
 | ADR | Architecture Decision Record | (project canon) |
