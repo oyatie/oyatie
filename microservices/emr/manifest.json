@@ -7,7 +7,7 @@
   "tier": "product",
   "audience_type": "tenant-b2b-healthcare-provider",
   "tier_subtype": "b2b-clinical-record-of-truth",
-  "doctrine_summary": "Foundational healthcare record-of-truth µservice. Owns Patient + Encounter + Problem + Medication + Allergy + Vital + Note + Order + Result + CareTeam + OrderSet + Documentation + BillingCode + PatientEducation + PortalSession bounded contexts. FHIR R5 (default) + R4 (compatibility) API surface. Cedar-gated PHI access; HIPAA pack mandatory.",
+  "doctrine_summary": "Foundational healthcare record-of-truth \u00b5service. Owns Patient + Encounter + Problem + Medication + Allergy + Vital + Note + Order + Result + CareTeam + OrderSet + Documentation + BillingCode + PatientEducation + PortalSession bounded contexts. FHIR R5 (default) + R4 (compatibility) API surface. Cedar-gated PHI access; HIPAA pack mandatory.",
   "binding_adrs": [
     "ADR-0131",
     "ADR-0132",
@@ -230,8 +230,8 @@
     "concurrent_portal_users_per_cell": 100000
   },
   "naming_justifications": {
-    "microservice_slug": "emr (kebab-case, BNF v4.1) — abbreviates 'electronic medical record'. EMR chosen over 'ehr' because clinicians use 'EMR' colloquially while regulators alternate; the µservice covers both (EMR = clinician-facing; EHR = patient-facing portal slice still owned here).",
-    "crate_pattern": "oya-emr-<bc>-<layer> where <bc> ∈ {patient, encounter, problem, medication, allergy, vital, note, order, result, care-team, order-set, documentation, billing-code, patient-education, portal-session} and <layer> ∈ ADR-0105 13-layer enum.",
+    "microservice_slug": "emr (kebab-case, BNF v4.1) \u2014 abbreviates 'electronic medical record'. EMR chosen over 'ehr' because clinicians use 'EMR' colloquially while regulators alternate; the \u00b5service covers both (EMR = clinician-facing; EHR = patient-facing portal slice still owned here).",
+    "crate_pattern": "oya-emr-<bc>-<layer> where <bc> \u2208 {patient, encounter, problem, medication, allergy, vital, note, order, result, care-team, order-set, documentation, billing-code, patient-education, portal-session} and <layer> \u2208 ADR-0105 13-layer enum.",
     "exemptions": "none"
   },
   "data_classification": {
@@ -297,7 +297,7 @@
     "product"
   ],
   "hyperscaler_benchmark": "Epic; Oracle Health Cerner; athenahealth; Allscripts Veradigm; Meditech Expanse",
-  "operational_concern": "Clinical record of truth — patient demographics, encounters, problems, medications, allergies, vitals, notes, orders, results, care team, FHIR API surface, mobile + web patient portal, HIPAA-compliant audit trail. Cannot be owned by generic 'application' or 'crm' — domain depth, regulatory weight, and clinical-workflow surface require dedicated µservice.",
+  "operational_concern": "Clinical record of truth \u2014 patient demographics, encounters, problems, medications, allergies, vitals, notes, orders, results, care team, FHIR API surface, mobile + web patient portal, HIPAA-compliant audit trail. Cannot be owned by generic 'application' or 'crm' \u2014 domain depth, regulatory weight, and clinical-workflow surface require dedicated \u00b5service.",
   "failure_domain": "cell-aware service eligible for hipaa-certified cells only",
   "layer": "rest",
   "doc_class": "Machine-Readable-Spec",
@@ -447,5 +447,11 @@
       "primitive": "per-cell-nodepool-kata",
       "version_pin": "v1"
     }
-  ]
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
 }

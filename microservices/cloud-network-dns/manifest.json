@@ -6,22 +6,19 @@
   "bounded_contexts": [
     {
       "name": "cloud-network-dns",
-      "description": "Bounded context 'cloud-network-dns' for authoritative DNS, recursive DNS, zone scoping, DNSSEC, health checks, routing policy, anycast.",
+      "description": "Code-backed Cloud Network DNS local foundation for DNS zone create API boundaries, public/private DNS zone domain invariants, provider-neutral OCI/self-hosted DNS command shaping, and CoreDNS/Cilium/Envoy cell guardrail metadata. No authoritative DNS serving, recursive resolver runtime, DNSSEC signing service, anycast, health-check routing, REST server, SDK, worker, measured SLO, active-active DR, sharding automation, or audit-chain persistence is claimed by CS-CLOUD-NETWORK-DNS-001.",
       "crates": [
-        "oya-cloud-network-dns-api"
+        "oya-cloud-network-domain",
+        "oya-cloud-network-dns-api",
+        "oya-cloud-network-adapter-oci",
+        "oya-cloud-network-adapter-selfhosted"
       ]
     }
   ],
   "layers": [
-    "adapter",
-    "api",
-    "app",
     "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "api",
+    "adapter"
   ],
   "contracts": {
     "openapi": [
@@ -32,32 +29,37 @@
   },
   "capabilities": [
     {
-      "name": "zone-management",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-network-dns/feature-parity-matrix-2026-05-20.md",
+      "tier": "T1",
+      "name": "dns-zone-domain-invariants",
+      "file": "crates/oya-cloud-network-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
-      "name": "dns-health-routing",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md",
+      "tier": "T1",
+      "name": "coredns-pod-mode-and-dns-egress-guardrail-metadata",
+      "file": "crates/oya-cloud-network-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-network-dns-zone-create-api-boundary",
+      "file": "crates/oya-cloud-network-dns-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "oci-and-selfhosted-dns-command-shaping-adapters",
+      "file": "crates/oya-cloud-network-adapter-oci/src/lib.rs",
       "risk_class": "high"
     }
   ],
-  "slos": [
-    {
-      "name": "oya-cloud-network-dns-cloud-network-dns-query-p99",
-      "target": "0.99",
-      "sli": "service_manifest_reference{microservice=\"cloud-network-dns\",slo=\"cloud-network-dns-query-p99\"}",
-      "file": "microservices/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md"
-    }
-  ],
+  "slos": [],
   "ips": [
     {
-      "id": "IP-001-wave-d-dns-baseline",
-      "title": "Wave-D DNS baseline from feature and performance matrices",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-network-dns/feature-parity-matrix-2026-05-20.md"
+      "id": "CS-CLOUD-NETWORK-DNS-001",
+      "title": "Cilium/Envoy/CoreDNS cell guardrail foundation and Cloud Network DNS manifest truth-down",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs"
     }
   ],
   "regulatory_packs": [
@@ -74,16 +76,26 @@
     "ksa"
   ],
   "lts_pins": {
-    "rust": "1.83",
-    "postgres": "17.x",
-    "valkey": "8.x"
+    "rust": "1.95.0"
   },
   "adrs": [
     {
-      "id": "ADR-0337",
-      "title": "Iceberg Canonical Olap Write Path",
+      "id": "ADR-0044",
+      "title": "Service Mesh Istio Ambient And Envoy Gateway",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
+      "file": "docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md"
+    },
+    {
+      "id": "ADR-0148",
+      "title": "Service Mesh Cilium Ambient Layered",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md"
+    },
+    {
+      "id": "ADR-0253",
+      "title": "Network Topology Edge Service Mesh",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"
     },
     {
       "id": "ADR-0338",
@@ -92,93 +104,100 @@
       "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
     },
     {
-      "id": "ADR-0339",
-      "title": "Shared Iac Module Library",
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
     },
     {
-      "id": "ADR-0340",
-      "title": "Capacity Model Per Microservice Manifest",
+      "id": "ADR-0349",
+      "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
-    },
-    {
-      "id": "ADR-0341",
-      "title": "Cellular Promotion Gates Explicit Tier Criteria",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
-    },
-    {
-      "id": "ADR-0342",
-      "title": "Api Versioning Hybrid Date Public Semver Sdk",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
-    },
-    {
-      "id": "ADR-0343",
-      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
-    },
-    {
-      "id": "ADR-0344",
-      "title": "Sustainability Finops Dimensional Model",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
-    },
-    {
-      "id": "ADR-0345",
-      "title": "Oss Stewardship Class Policy And Cve Response Sla",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
     }
   ],
-  "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
-  },
+  "hyperscaler_inv_coverage": {},
   "audit_chain": {
-    "enabled": true,
-    "seal_events": [
-      "oya.cloud-network-dns.doctrine-declared",
-      "oya.cloud-network-dns.dr-failover"
-    ]
+    "runtime_audit_emitter": false,
+    "evidence_refs": [
+      "evidence/multispectrum/cs-cloud-network-dns-foundation-20260523.json"
+    ],
+    "non_claim": "No live DNS audit-chain writer, query-log exporter, or Merkle seal persistence is implemented by CS-CLOUD-NETWORK-DNS-001."
   },
   "secrets_substrate": {
     "provider": "openbao",
-    "format": "${openbao:secret/<path>}"
+    "format": "SecretReference-only future integration",
+    "non_claim": "No raw DNS provider credential, TSIG key, DNSSEC KSK/ZSK private material, kubeconfig, or Cilium/Envoy token is introduced or consumed by this local foundation."
   },
   "ontology_projections": [],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
-    "north_south_only": false
+    "north_south_only": false,
+    "cilium_l4_policy_model": "metadata-guardrail-only",
+    "envoy_edge_gateway_model": "metadata-guardrail-only",
+    "coredns_pod_mode_model": "disabled-or-verified-only",
+    "default_deny_ingress_required": true,
+    "default_deny_egress_required": true,
+    "dns_egress_exception_required": true,
+    "cross_cell_default_traffic_allowed": false,
+    "runtime_dns_serving": false,
+    "non_claim": "The Rust guardrail validates intended DNS/network posture metadata only; it does not deploy CoreDNS, serve authoritative/recursive DNS, or apply Cilium policy."
   },
+  "data_classification": "PUBLIC DNS metadata, INTERNAL_ONLY control-plane metadata, AUDIT evidence",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "iso27001",
+    "soc2"
+  ],
+  "depends_on_microservices": [
+    "tenancy",
+    "identity",
+    "audit-chain",
+    "observability",
+    "cloud-iam",
+    "cloud-kms",
+    "cloud-secrets",
+    "cloud-iac",
+    "cloud-network"
+  ],
+  "failure_domain": "cloud-network-dns-local-foundation",
+  "criticality_tier": "T1",
+  "layer": "domain-api-adapter",
+  "doc_class": "Machine-Readable-Spec",
   "capacity_model": {
-    "baseline_cpu_per_tenant": 0.06,
-    "baseline_ram_per_tenant": 128,
-    "storage_per_tenant": 1,
-    "connections_per_tenant": {
-      "valkey": 3,
-      "postgres": 1,
-      "outbound_http": 4
-    },
-    "scaling_dimension": "per_request",
-    "cell_placement_class": "Tier-4",
-    "notes": "DNS query/control load scales by request volume and zone-policy cache churn; ADR-0340 Tier-4 matches edge/perf-critical DNS placement."
+    "baseline_cpu_per_tenant": 0.0,
+    "baseline_ram_per_tenant": 0,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {},
+    "scaling_dimension": "not_claimed_runtime",
+    "cell_placement_class": "Tier-3-intended-future",
+    "notes": "CS-CLOUD-NETWORK-DNS-001 adds metadata validation and API/adapter command-shape tests only. Runtime authoritative/recursive DNS serving, DNSSEC signing, health-check routing, anycast, SLOs, and capacity telemetry remain explicit non-claims."
   },
   "sharding_automation": {
-    "autosharding": "control_plane_driven",
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime"
+    },
     "auto_rebalance": {
       "enabled": false,
       "trigger_load_skew_threshold_percent": 30,
       "honors_residency": true,
       "honors_compliance_packs": true,
-      "audit_chain_emit": true
+      "audit_chain_emit": false
     },
     "dynamic_sharding": {
       "enabled": false,
@@ -186,83 +205,50 @@
       "hot_split_utilization_threshold_percent": 80,
       "cold_merge_utilization_threshold_percent": 20,
       "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
+      "audit_chain_emit": false
+    },
+    "non_claim": "No DNS autosharding, auto-rebalance, dynamic sharding execution, tenant migration, or audit-chain persistence is implemented by CS-CLOUD-NETWORK-DNS-001."
   },
   "dr": {
-    "rto_p99_seconds": 300,
-    "rpo_p99_seconds": 60,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "valkey_cluster",
-      "postgres_wal_g",
-      "object_storage_versioned"
-    ],
-    "failover_runbook": "runbooks/dns-zone-failover.md",
-    "dr_tier": "T1",
-    "replication_shape": "active-active-multi-az-cross-region-warm"
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "dr_tier": "not_claimed_runtime",
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No live DNS runtime store, health-check failover drill, anycast withdrawal, active-active replication, or DR evidence is implemented by CS-CLOUD-NETWORK-DNS-001."
   },
   "pod_runtime_tier": 3,
-  "pod_runtime_tier_justification": "DNS is edge/performance-critical: authoritative/recursive serving, health checks, and anycast routing demand dedicated edge runc placement per ADR-0338 Tier 3 rather than Kata substrate placement.",
+  "pod_runtime_tier_justification": "DNS is Tier-3 intended future edge/runtime substrate. CS-CLOUD-NETWORK-DNS-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/cloud-network-dns/README.md",
-    "microservices/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md",
-    "contracts/openapi/cloud/cloud-network-dns-v1.yaml"
+    "crates/oya-cloud-network-domain/src/lib.rs",
+    "crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs",
+    "crates/oya-cloud-network-dns-api/src/lib.rs"
   ],
   "tenant_version_pinning": {
-    "declared_versions": [
-      "2026-05-21",
-      "2026-02-21",
-      "2025-11-21"
-    ],
-    "default_version": "2026-05-21",
-    "supported_window_size": 3,
-    "supported_window_minimum_days": 180,
-    "supports_per_tenant_pinning": true,
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 0,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
     "deprecation_calendar": [],
     "public_surface_files": {
-      "openapi": {
-        "2026-05-21": "contracts/openapi/cloud/cloud-network-dns-v1.yaml",
-        "2026-02-21": "contracts/openapi/cloud/cloud-network-dns-v1.yaml",
-        "2025-11-21": "contracts/openapi/cloud/cloud-network-dns-v1.yaml"
-      }
+      "openapi": [
+        "contracts/openapi/cloud/cloud-network-dns-v1.yaml"
+      ]
     }
   },
   "consumes_upstream_oss": [
     "cilium",
-    "istio",
-    "valkey",
-    "postgresql"
+    "envoy",
+    "coredns"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [
-    {
-      "context": "aws-guest",
-      "primitive": "route53-zone",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oci-guest",
-      "primitive": "vcn",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "cell-zone",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "tenant-namespace",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    }
-  ],
-  "data_classes_processed": [
-    "INTERNAL_ONLY",
-    "AUDIT"
+  "iac_module_invocations": [],
+  "foundation_non_claims": [
+    "no authoritative DNS server, recursive resolver, DNSSEC signer, HSM integration, anycast control plane, health-check routing engine, REST server, SDK crate, worker, Kubernetes controller, Envoy xDS adapter, CoreDNS deployment adapter, Cilium policy apply path, or live data-plane reconciler is implemented",
+    "no measured DNS SLO, benchmark, p99 latency, active-active DR, anycast withdrawal, DNS sharding execution, query-log pipeline, provider lockfile, OpenTofu plan/apply, or capacity telemetry evidence exists for Cloud Network DNS runtime",
+    "legacy Cloud Network DNS Markdown benchmark/parity/runbook files may remain historical planning/prose but are not used as implementation-ready evidence by this manifest"
   ]
 }
