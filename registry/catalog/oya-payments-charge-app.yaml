@@ -1,0 +1,10 @@
+context: payments
+role: app
+capability: payments-charge
+plane: control
+slo: tier-0-revenue-critical
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

@@ -21,10 +21,10 @@ pub enum CellHealth {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RebalanceTask {
-    pub tenant: String,
-    pub from_cell: CellId,
-    pub to_cell: CellId,
-    pub reason: String,
+    pub tenant: String,    // data_class: INTERNAL_ONLY
+    pub from_cell: CellId, // data_class: INTERNAL_ONLY
+    pub to_cell: CellId,   // data_class: INTERNAL_ONLY
+    pub reason: String,    // data_class: INTERNAL_ONLY
 }
 
 pub trait CellAssignmentRepository {

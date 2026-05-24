@@ -46,6 +46,7 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 - ✅ CS-BACKBONE-OTLP-METRICS-HARNESS-001 — Env-gated OpenTelemetry OTLP/HTTP metrics exporter harness for shared hyperscaler metrics, disabled unless explicitly enabled.
 - ✅ CS-BACKBONE-ARGOCD-PROMOTION-001 — ArgoCD ApplicationSet promotion manifest for backbone services.
 - ✅ CS-BACKBONE-EDGE-TLS-HARDENING-001 — Static messenger/community edge WAF, ECH, and PQC certificate manifests align them with existing mail/social edge hardening posture.
+- ✅ CS-BACKBONE-GOVERNANCE-VALIDATOR-UNBLOCK-001 — Global catalog coverage and kernel data-class annotation cleanup now unblock local catalog/data-class validators; remote GitHub Actions failures are identified as Actions-budget-prevented jobs, not runner test failures; full local `oya verify --ci-required` remains non-green on recorded repo-global/local mirror lanes.
 
 ## Remaining toward full requested microservices
 
@@ -53,6 +54,6 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 - ⬜ Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - ⬜ Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - ⬜ Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
-- ⬜ Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.
-- ✅ Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-edge-tls-hardening-20260524` and PR closeout evidence.
+- ⬜ Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests. Remote GitHub Actions jobs for PR #179 were budget-prevented on 2026-05-24T20:47Z, so no remote green CI claim is made; local `oya verify --ci-required` also remains non-green on recorded full-repo mirror blockers outside the resolved catalog/data-class slice.
+- ✅ Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-governance-validator-unblock-20260524` and PR closeout evidence.
 - ✅ Pull request against `dev` opened from isolated worktree branch `agent/backbone-microservices-20260523T081210Z`: https://github.com/jason931225/oyatie/pull/179.

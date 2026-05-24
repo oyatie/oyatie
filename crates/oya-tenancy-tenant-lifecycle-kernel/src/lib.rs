@@ -34,17 +34,17 @@ pub struct JurisdictionCode(pub String);
 /// Aggregate tenant root.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Tenant {
-    pub id: TenantId,
-    pub status: TenantStatus,
-    pub plan_tier: PlanTier,
-    pub jurisdiction: JurisdictionCode,
+    pub id: TenantId,                   // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub status: TenantStatus,           // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub plan_tier: PlanTier,            // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub jurisdiction: JurisdictionCode, // data_class: BEHAVIORAL_TENANT_PRODUCT
 }
 
 /// Cross-cutting context every adapter checkout receives.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantContext {
-    pub tenant_id: TenantId,
-    pub jurisdiction: JurisdictionCode,
+    pub tenant_id: TenantId,            // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub jurisdiction: JurisdictionCode, // data_class: BEHAVIORAL_TENANT_PRODUCT
 }
 
 /// Sealed port for persistence access.

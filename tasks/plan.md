@@ -774,6 +774,24 @@ Verification:
 - Structural checks for EdgeWAFConfig/ECHConfig/Certificate kind coverage, TLS 1.3, ECH enabled, PQC hybrid fields, honeypot routes, and non-claim task/evidence markers.
 - dependency-seam, honest-claims, diff hygiene, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-GOVERNANCE-VALIDATOR-UNBLOCK-001 — Catalog/data-class validator unblock
+Scope:
+- `registry/catalog/oya-audit-chain-*.yaml`, `registry/catalog/oya-payments-*.yaml`, and `registry/catalog/oya-tenancy-*.yaml` records for existing workspace crates that already had workspace membership but lacked global catalog coverage.
+- Existing kernel field comments in audit-chain, tenancy, OIDC, and SCIM crates plus stale legacy data-class allowances.
+- PR metadata/evidence for the remote GitHub Actions budget failure mode.
+
+Acceptance:
+- Global catalog validation covers every current workspace crate with conservative preview/unreviewed/source-only records and does not promote live/security/supply-chain claims.
+- Data-class validation passes by semantically annotating existing exposed kernel fields and deleting only stale legacy allowances for fields now annotated.
+- Remote GitHub Actions failures are recorded honestly as budget-prevented jobs with no runner steps, not implementation test failures or remote green evidence.
+
+Verification:
+- `./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog`.
+- `./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv`.
+- Focused cargo check/fmt/test/clippy for the touched kernel crates.
+- GitHub check-run annotation audit for PR #179 confirms 36 failed checks share the Actions budget-prevented message.
+- Full `./bin/oya verify --ci-required` is recorded honestly as non-green: local catalog/data-class blockers are resolved, while repo-global/local mirror lanes still fail on recursive `oya verify` nextest cases, doc/readme catalog coverage, ADR citation/index metadata, design/spec maturity, glossary/placeholder debt, dependency-seam, architecture/layered-architecture discipline, and VCS admission audit-chain coverage.
+
 
 ### PR closeout — isolated worktree branch to `dev`
 

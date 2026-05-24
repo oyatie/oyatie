@@ -1,0 +1,10 @@
+context: payments
+role: domain
+capability: payments-settlement
+plane: data
+slo: tier-1-high-priority
+data_classes_owned: [FINANCIAL, INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

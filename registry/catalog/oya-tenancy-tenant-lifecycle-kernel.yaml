@@ -1,0 +1,10 @@
+context: tenancy
+role: kernel
+capability: tenant-lifecycle
+plane: control
+slo: substrate-stable
+data_classes_owned: [SENSITIVE_PIPA_ART23, BEHAVIORAL_TENANT_PRODUCT, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

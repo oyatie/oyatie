@@ -18,24 +18,24 @@ pub enum DsrKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DsrRequest {
-    pub id: DsrRequestId,
-    pub tenant_id: String,
-    pub subject_id: String,
-    pub kind: DsrKind,
+    pub id: DsrRequestId,   // data_class: AUDIT
+    pub tenant_id: String,  // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub subject_id: String, // data_class: SENSITIVE_PIPA_ART23
+    pub kind: DsrKind,      // data_class: SENSITIVE_PIPA_ART23
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ErasureReceipt {
-    pub request: DsrRequestId,
-    pub microservice: String,
-    pub merkle_leaf: [u8; 32],
+    pub request: DsrRequestId, // data_class: AUDIT
+    pub microservice: String,  // data_class: AUDIT
+    pub merkle_leaf: [u8; 32], // data_class: AUDIT
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProofOfErasure {
-    pub request: DsrRequestId,
-    pub merkle_root: [u8; 32],
-    pub receipts: Vec<ErasureReceipt>,
+    pub request: DsrRequestId,         // data_class: AUDIT
+    pub merkle_root: [u8; 32],         // data_class: AUDIT
+    pub receipts: Vec<ErasureReceipt>, // data_class: AUDIT
 }
 
 pub trait DsrRequestRepository {

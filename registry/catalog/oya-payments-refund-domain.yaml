@@ -1,0 +1,10 @@
+context: payments
+role: domain
+capability: payments-refund
+plane: control
+slo: tier-0-revenue-critical
+data_classes_owned: [FINANCIAL, PII_IDENTIFYING, INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

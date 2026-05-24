@@ -22,18 +22,18 @@ pub enum LockReason {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LifecycleLock {
-    pub id: LockId,
-    pub tenant_id: String,
-    pub reason: LockReason,
-    pub holder: String,
-    pub expires_at_epoch_s: u64,
+    pub id: LockId,              // data_class: AUDIT
+    pub tenant_id: String,       // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub reason: LockReason,      // data_class: AUDIT
+    pub holder: String,          // data_class: INTERNAL_ONLY
+    pub expires_at_epoch_s: u64, // data_class: AUDIT
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LockDecision {
-    pub allow: bool,
-    pub blocking_locks: Vec<LockId>,
-    pub explanation: String,
+    pub allow: bool,                 // data_class: AUDIT
+    pub blocking_locks: Vec<LockId>, // data_class: AUDIT
+    pub explanation: String,         // data_class: AUDIT
 }
 
 pub fn evaluate(action: &str, locks: &[LifecycleLock]) -> LockDecision {

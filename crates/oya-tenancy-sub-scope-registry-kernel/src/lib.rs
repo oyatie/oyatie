@@ -22,11 +22,11 @@ pub enum SubScopeKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubScope {
-    pub id: SubScopeId,
-    pub tenant_id: String,
-    pub kind: SubScopeKind,
-    pub parent: Option<SubScopeId>,
-    pub path: SubScopePath,
+    pub id: SubScopeId,             // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub tenant_id: String,          // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub kind: SubScopeKind,         // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub parent: Option<SubScopeId>, // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub path: SubScopePath,         // data_class: BEHAVIORAL_TENANT_PRODUCT
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -34,8 +34,8 @@ pub struct SubScopePath(pub Vec<String>);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HierarchyEdge {
-    pub parent: SubScopeId,
-    pub child: SubScopeId,
+    pub parent: SubScopeId, // data_class: BEHAVIORAL_TENANT_PRODUCT
+    pub child: SubScopeId,  // data_class: BEHAVIORAL_TENANT_PRODUCT
 }
 
 pub trait SubScopeRegistryPort {
