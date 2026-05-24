@@ -1,10 +1,17 @@
 context: cloud
 role: domain
 capability: cloud-finops
-plane: control
-slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY]
-operational_classes_owned: []
+plane: analytics
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL, BEHAVIORAL_TENANT_PRODUCT]
+operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
+non_claims:
+  - no OpenCost ingestion or FOCUS export runtime
+  - no tenant portal dashboard or invoice PDF renderer
+  - no measured SLO or audit-chain persistence

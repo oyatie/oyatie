@@ -1,10 +1,17 @@
 context: cell
 role: domain
-capability: cell
+capability: cell-binding
 plane: control
-slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY]
-operational_classes_owned: []
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
+non_claims:
+  - no cell lifecycle workflow runtime
+  - no cell provisioning or tenant move execution
+  - no measured SLO or DR evidence

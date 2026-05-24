@@ -2,9 +2,13 @@ context: cloud
 role: domain
 capability: cloud-compute
 plane: control
-slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY]
-operational_classes_owned: []
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+non_claims:
+  - no live VM Kubernetes or function runtime
+  - no tenant workload payload execution
+  - no measured SLO or DR evidence
