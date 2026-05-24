@@ -774,6 +774,14 @@ Verification:
 - Structural checks for EdgeWAFConfig/ECHConfig/Certificate kind coverage, TLS 1.3, ECH enabled, PQC hybrid fields, honeypot routes, and non-claim task/evidence markers.
 - dependency-seam, honest-claims, diff hygiene, and Oya VCS verify/done/promote.
 
+
+### PR closeout — isolated worktree branch to `dev`
+
+- Branch: `agent/backbone-microservices-20260523T081210Z`.
+- Commit: `1e0a4ef1 feat: add backbone microservice foundations`.
+- Pull request: https://github.com/jason931225/oyatie/pull/179.
+- Honest non-claim: remote CI/branch-protection results are not claimed here; the PR exists for the platform to run those live checks.
+
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
@@ -782,5 +790,5 @@ Still pending before the full objective can honestly be called complete:
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
 - Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.
-- Oya VCS verify/done/promote lifecycle closeout for each expanded ChangeBundle.
-- Pull request against `dev` from the isolated worktree branch.
+- Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-edge-tls-hardening-20260524` plus PR closeout evidence.
+- Pull request against `dev` opened from the isolated worktree branch: https://github.com/jason931225/oyatie/pull/179.

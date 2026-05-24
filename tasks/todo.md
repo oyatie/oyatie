@@ -54,5 +54,5 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
 - ⬜ Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - ⬜ Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
 - ⬜ Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.
-- ⬜ Oya VCS verify/done/promote lifecycle closeout for each expanded ChangeBundle.
-- ⬜ Pull request against `dev` from the isolated worktree branch.
+- ✅ Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-edge-tls-hardening-20260524` and PR closeout evidence.
+- ✅ Pull request against `dev` opened from isolated worktree branch `agent/backbone-microservices-20260523T081210Z`: https://github.com/jason931225/oyatie/pull/179.
