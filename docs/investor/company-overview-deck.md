@@ -134,7 +134,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Policy expansion is supported by Cedar fragments and policy-engine doctrine.
 - Workflow expansion is supported by `microservices/workflow-engine` and `microservices/workflow-studio`.
 - Ontology expansion is supported by `microservices/ontology`.
-- The wedge is not a thin MVP.
+- The wedge is not a thin minimum viable product.
 - The wedge is a reference enterprise substrate slice.
 - The named caution is that planning closure and production-grade claims remain gate-bound.
 - Investor language must avoid saying "production complete" until gates are green.

@@ -48,7 +48,7 @@ Artifact: `month-one-week-1-01` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
 
 ### Week 1 task 02
 Focus: Apply `workflow` doctrine to doctrine replay and first reviewed contribution with ADR-0247 as the decision anchor.
@@ -118,7 +118,7 @@ Artifact: `month-one-week-1-08` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
 
 ### Week 1 task 09
 Focus: Apply `workflow` doctrine to doctrine replay and first reviewed contribution with ADR-0254 as the decision anchor.
@@ -138,7 +138,7 @@ Artifact: `month-one-week-1-10` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 1 task 11
 Focus: Apply `audit-chain` doctrine to doctrine replay and first reviewed contribution with ADR-0257 as the decision anchor.
@@ -148,7 +148,7 @@ Artifact: `month-one-week-1-11` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
 
 ### Week 1 task 12
 Focus: Apply `foundry` doctrine to doctrine replay and first reviewed contribution with ADR-0258 as the decision anchor.
@@ -348,7 +348,7 @@ Artifact: `month-one-week-1-31` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 1 task 32
 Focus: Apply `audit-chain` doctrine to doctrine replay and first reviewed contribution with ADR-0247 as the decision anchor.
@@ -418,7 +418,7 @@ Artifact: `month-one-week-1-38` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
 
 ### Week 1 task 39
 Focus: Apply `audit-chain` doctrine to doctrine replay and first reviewed contribution with ADR-0254 as the decision anchor.
@@ -438,7 +438,7 @@ Artifact: `month-one-week-1-40` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 1 task 41
 Focus: Apply `ops-dashboard` doctrine to doctrine replay and first reviewed contribution with ADR-0257 as the decision anchor.
@@ -448,7 +448,7 @@ Artifact: `month-one-week-1-41` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
 
 ### Week 1 task 42
 Focus: Apply `tenancy` doctrine to doctrine replay and first reviewed contribution with ADR-0258 as the decision anchor.
@@ -648,7 +648,7 @@ Artifact: `month-one-week-1-61` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 1 task 62
 Focus: Apply `ops-dashboard` doctrine to doctrine replay and first reviewed contribution with ADR-0247 as the decision anchor.
@@ -718,7 +718,7 @@ Artifact: `month-one-week-1-68` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
 
 ### Week 1 task 69
 Focus: Apply `ops-dashboard` doctrine to doctrine replay and first reviewed contribution with ADR-0254 as the decision anchor.
@@ -738,7 +738,7 @@ Artifact: `month-one-week-1-70` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
 
 ### Week 1 task 71
 Focus: Apply `policy-engine` doctrine to doctrine replay and first reviewed contribution with ADR-0257 as the decision anchor.
@@ -748,7 +748,7 @@ Artifact: `month-one-week-1-71` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
 
 ### Week 1 task 72
 Focus: Apply `workflow` doctrine to doctrine replay and first reviewed contribution with ADR-0258 as the decision anchor.
@@ -800,7 +800,7 @@ Artifact: `month-one-week-2-01` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
 
 ### Week 2 task 02
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0247 as the decision anchor.
@@ -870,7 +870,7 @@ Artifact: `month-one-week-2-08` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
 
 ### Week 2 task 09
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0254 as the decision anchor.
@@ -890,7 +890,7 @@ Artifact: `month-one-week-2-10` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 2 task 11
 Focus: Apply `audit-chain` doctrine to substrate microservices deep dive with ADR-0257 as the decision anchor.
@@ -900,7 +900,7 @@ Artifact: `month-one-week-2-11` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
 
 ### Week 2 task 12
 Focus: Apply `foundry` doctrine to substrate microservices deep dive with ADR-0258 as the decision anchor.
@@ -1100,7 +1100,7 @@ Artifact: `month-one-week-2-31` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 2 task 32
 Focus: Apply `audit-chain` doctrine to substrate microservices deep dive with ADR-0247 as the decision anchor.
@@ -1170,7 +1170,7 @@ Artifact: `month-one-week-2-38` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
 
 ### Week 2 task 39
 Focus: Apply `audit-chain` doctrine to substrate microservices deep dive with ADR-0254 as the decision anchor.
@@ -1190,7 +1190,7 @@ Artifact: `month-one-week-2-40` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 2 task 41
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0257 as the decision anchor.
@@ -1200,7 +1200,7 @@ Artifact: `month-one-week-2-41` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
 
 ### Week 2 task 42
 Focus: Apply `tenancy` doctrine to substrate microservices deep dive with ADR-0258 as the decision anchor.
@@ -1400,7 +1400,7 @@ Artifact: `month-one-week-2-61` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 2 task 62
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0247 as the decision anchor.
@@ -1470,7 +1470,7 @@ Artifact: `month-one-week-2-68` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
 
 ### Week 2 task 69
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0254 as the decision anchor.
@@ -1490,7 +1490,7 @@ Artifact: `month-one-week-2-70` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
 
 ### Week 2 task 71
 Focus: Apply `policy-engine` doctrine to substrate microservices deep dive with ADR-0257 as the decision anchor.
@@ -1500,7 +1500,7 @@ Artifact: `month-one-week-2-71` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
 
 ### Week 2 task 72
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0258 as the decision anchor.
@@ -1552,7 +1552,7 @@ Artifact: `month-one-week-3-01` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
 
 ### Week 3 task 02
 Focus: Apply `workflow` doctrine to capability tier authoring and journey catalog contribution with ADR-0247 as the decision anchor.
@@ -1622,7 +1622,7 @@ Artifact: `month-one-week-3-08` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
 
 ### Week 3 task 09
 Focus: Apply `workflow` doctrine to capability tier authoring and journey catalog contribution with ADR-0254 as the decision anchor.
@@ -1642,7 +1642,7 @@ Artifact: `month-one-week-3-10` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 3 task 11
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0257 as the decision anchor.
@@ -1652,7 +1652,7 @@ Artifact: `month-one-week-3-11` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
 
 ### Week 3 task 12
 Focus: Apply `foundry` doctrine to capability tier authoring and journey catalog contribution with ADR-0258 as the decision anchor.
@@ -1852,7 +1852,7 @@ Artifact: `month-one-week-3-31` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 3 task 32
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0247 as the decision anchor.
@@ -1922,7 +1922,7 @@ Artifact: `month-one-week-3-38` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
 
 ### Week 3 task 39
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0254 as the decision anchor.
@@ -1942,7 +1942,7 @@ Artifact: `month-one-week-3-40` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 3 task 41
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0257 as the decision anchor.
@@ -1952,7 +1952,7 @@ Artifact: `month-one-week-3-41` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
 
 ### Week 3 task 42
 Focus: Apply `tenancy` doctrine to capability tier authoring and journey catalog contribution with ADR-0258 as the decision anchor.
@@ -2152,7 +2152,7 @@ Artifact: `month-one-week-3-61` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 3 task 62
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0247 as the decision anchor.
@@ -2222,7 +2222,7 @@ Artifact: `month-one-week-3-68` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
 
 ### Week 3 task 69
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0254 as the decision anchor.
@@ -2242,7 +2242,7 @@ Artifact: `month-one-week-3-70` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
 
 ### Week 3 task 71
 Focus: Apply `policy-engine` doctrine to capability tier authoring and journey catalog contribution with ADR-0257 as the decision anchor.
@@ -2252,7 +2252,7 @@ Artifact: `month-one-week-3-71` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
 
 ### Week 3 task 72
 Focus: Apply `workflow` doctrine to capability tier authoring and journey catalog contribution with ADR-0258 as the decision anchor.
@@ -2304,7 +2304,7 @@ Artifact: `month-one-week-4-01` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `policy-engine` term if present.
 
 ### Week 4 task 02
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0247 as the decision anchor.
@@ -2374,7 +2374,7 @@ Artifact: `month-one-week-4-08` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `policy-engine` term if present.
 
 ### Week 4 task 09
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0254 as the decision anchor.
@@ -2394,7 +2394,7 @@ Artifact: `month-one-week-4-10` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 4 task 11
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0257 as the decision anchor.
@@ -2404,7 +2404,7 @@ Artifact: `month-one-week-4-11` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `audit-chain` term if present.
 
 ### Week 4 task 12
 Focus: Apply `foundry` doctrine to incident shadow and first sole-ownership slice with ADR-0258 as the decision anchor.
@@ -2604,7 +2604,7 @@ Artifact: `month-one-week-4-31` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `ontology` term if present.
 
 ### Week 4 task 32
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0247 as the decision anchor.
@@ -2674,7 +2674,7 @@ Artifact: `month-one-week-4-38` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `ontology` term if present.
 
 ### Week 4 task 39
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0254 as the decision anchor.
@@ -2694,7 +2694,7 @@ Artifact: `month-one-week-4-40` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 4 task 41
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0257 as the decision anchor.
@@ -2704,7 +2704,7 @@ Artifact: `month-one-week-4-41` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `ops-dashboard` term if present.
 
 ### Week 4 task 42
 Focus: Apply `tenancy` doctrine to incident shadow and first sole-ownership slice with ADR-0258 as the decision anchor.
@@ -2904,7 +2904,7 @@ Artifact: `month-one-week-4-61` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), and `foundry` term if present.
 
 ### Week 4 task 62
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0247 as the decision anchor.
@@ -2974,7 +2974,7 @@ Artifact: `month-one-week-4-68` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), and `foundry` term if present.
 
 ### Week 4 task 69
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0254 as the decision anchor.
@@ -2994,7 +2994,7 @@ Artifact: `month-one-week-4-70` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), and `tenancy` term if present.
 
 ### Week 4 task 71
 Focus: Apply `policy-engine` doctrine to incident shadow and first sole-ownership slice with ADR-0257 as the decision anchor.
@@ -3004,7 +3004,7 @@ Artifact: `month-one-week-4-71` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), and `policy-engine` term if present.
 
 ### Week 4 task 72
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0258 as the decision anchor.
@@ -3061,7 +3061,7 @@ Artifact: `sole-owner-slice-03` with target file paths, rollback plan, verificat
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 04: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
-Artifact: `sole-owner-slice-04` with target file paths, rollback plan, verification command, and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md).
+Artifact: `sole-owner-slice-04` with target file paths, rollback plan, verification command, and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md).
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 05: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
@@ -3089,7 +3089,7 @@ Artifact: `sole-owner-slice-10` with target file paths, rollback plan, verificat
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 11: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
-Artifact: `sole-owner-slice-11` with target file paths, rollback plan, verification command, and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md).
+Artifact: `sole-owner-slice-11` with target file paths, rollback plan, verification command, and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md).
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 12: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
@@ -3097,11 +3097,11 @@ Artifact: `sole-owner-slice-12` with target file paths, rollback plan, verificat
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 13: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
-Artifact: `sole-owner-slice-13` with target file paths, rollback plan, verification command, and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md).
+Artifact: `sole-owner-slice-13` with target file paths, rollback plan, verification command, and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md).
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 14: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
-Artifact: `sole-owner-slice-14` with target file paths, rollback plan, verification command, and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md).
+Artifact: `sole-owner-slice-14` with target file paths, rollback plan, verification command, and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md).
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 15: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
@@ -3181,7 +3181,7 @@ Artifact: `sole-owner-slice-33` with target file paths, rollback plan, verificat
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 34: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
-Artifact: `sole-owner-slice-34` with target file paths, rollback plan, verification command, and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md).
+Artifact: `sole-owner-slice-34` with target file paths, rollback plan, verification command, and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md).
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 35: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
