@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 288,
-    "numbering": "ADR-0001..ADR-0351 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 293,
+    "numbering": "ADR-0001..ADR-0356 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0352",
+    "next_adr": "ADR-0357",
     "status_counts": {
       "Accepted": 125,
       "Accepted (amendment)": 1,
       "Amended": 1,
-      "Proposed": 80,
+      "Proposed": 85,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
       "Superseded": 4,
       "accepted": 39,
@@ -2817,7 +2817,7 @@
       "path": "decisions/ADR-0296-library-first-credential-sidecar.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0009", "ADR-0028", "ADR-0050", "ADR-0099", "ADR-0105", "ADR-0128", "ADR-0131", "ADR-0145", "ADR-0150", "ADR-0192", "ADR-0200", "ADR-0211", "ADR-0212", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0246", "ADR-0247", "ADR-0248", "ADR-0251", "ADR-0255", "ADR-0255", "ADR-0263", "ADR-0293", "ADR-0294", "ADR-0295"]
+      "related": ["ADR-0009", "ADR-0028", "ADR-0050", "ADR-0099", "ADR-0105", "ADR-0128", "ADR-0131", "ADR-0145", "ADR-0150", "ADR-0192", "ADR-0200", "ADR-0211", "ADR-0212", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0246", "ADR-0247", "ADR-0248", "ADR-0251", "ADR-0255", "ADR-0355", "ADR-0263", "ADR-0293", "ADR-0294", "ADR-0295"]
     },
     {
       "adr": "ADR-0297",
@@ -3028,7 +3028,7 @@
       "number": 314,
       "title": "Marketplace as Universal Deal-Settlement Substrate",
       "status": "Proposed",
-      "owner": "council-architecture",
+      "owner": "council-product + council-architecture",
       "date": "2026-05-20",
       "path": "decisions/ADR-0314-marketplace-as-universal-deal-settlement.md",
       "supersedes": [],
@@ -3040,7 +3040,7 @@
       "number": 315,
       "title": "ERP Coverage Doctrine - SAP-Parity Goal",
       "status": "Proposed",
-      "owner": "council-architecture",
+      "owner": "council-product + axis-erp",
       "date": "2026-05-20",
       "path": "decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md",
       "supersedes": [],
@@ -3122,7 +3122,7 @@
     {
       "adr": "ADR-0322",
       "number": 322,
-      "title": "Substance Bar As Doctrine And Ci Enforcement",
+      "title": "Substance Bar as Doctrine and CI Enforcement",
       "status": "Proposed",
       "owner": "council-architecture, council-product, council-engineering, council-quality, council-documentation, axis-policy-engine, axis-ontology, axis-workflow-engine, axis-foundry, ops-compliance, ops-sre-reliability",
       "date": "2026-05-20",
@@ -3134,7 +3134,7 @@
     {
       "adr": "ADR-0323",
       "number": 323,
-      "title": "Multi Wave Sequencing Doctrine",
+      "title": "Multi-Wave Sequencing Doctrine",
       "status": "Proposed",
       "owner": "council-architecture, council-engineering, council-product, council-quality, council-foundry, axis-workflow-engine, axis-foundry, axis-policy-engine, ops-sre-reliability, ops-program-management",
       "date": "2026-05-20",
@@ -3146,7 +3146,7 @@
     {
       "adr": "ADR-0324",
       "number": 324,
-      "title": "Anti Script Anti Template Doctrine",
+      "title": "Anti-Script Anti-Template Doctrine",
       "status": "Proposed",
       "owner": "council-architecture, council-engineering, council-quality, council-foundry, council-documentation, axis-policy-engine, axis-workflow-engine, axis-foundry, ops-compliance, ops-program-management",
       "date": "2026-05-20",
@@ -3170,7 +3170,7 @@
     {
       "adr": "ADR-0326",
       "number": 326,
-      "title": "Per Tenant Data Residency Attestation",
+      "title": "Per-Tenant Data Residency Attestation",
       "status": "Proposed",
       "owner": "council-architecture, council-privacy, council-security, council-compliance, council-product, axis-tenancy, axis-policy-engine, axis-audit-chain, axis-storage, axis-network, ops-compliance, ops-sre-reliability",
       "date": "2026-05-20",
@@ -3182,7 +3182,7 @@
     {
       "adr": "ADR-0327",
       "number": 327,
-      "title": "Wave 3 Completion Criteria And Promotion Gates",
+      "title": "Wave 3 Completion Criteria and Promotion Gates",
       "status": "Proposed",
       "owner": "council-architecture, council-engineering, council-quality, council-foundry, council-product, council-compliance, council-documentation, axis-policy-engine, axis-workflow-engine, axis-foundry, ops-program-management, ops-sre-reliability, ops-compliance",
       "date": "2026-05-20",
@@ -3256,7 +3256,7 @@
       "number": 333,
       "title": "Cell µservice retired; cellular architecture is a pattern, not a service",
       "status": "Accepted",
-      "owner": "user-directive-2026-05-21, council-architecture, axis-tenancy, axis-cloud-iac, axis-observability, axis-audit-chain, axis-api-gateway",
+      "owner": "council-architecture, axis-tenancy, axis-cloud-iac, axis-observability, axis-audit-chain, axis-api-gateway",
       "date": "2026-05-21",
       "path": "decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md",
       "supersedes": ["microservices/cell/PRD.md, microservices/cell/ARCHITECTURE.md"],
@@ -3268,7 +3268,7 @@
       "number": 334,
       "title": "shorts µservice retired; absorbed into social as short-video flavor",
       "status": "Accepted",
-      "owner": "user-directive-2026-05-21, council-architecture, axis-social, axis-shorts",
+      "owner": "council-architecture, axis-social, axis-shorts",
       "date": "2026-05-21",
       "path": "decisions/ADR-0334-shorts-microservice-merged-into-social.md",
       "supersedes": ["microservices/shorts/PRD.md, microservices/shorts/ARCHITECTURE.md"],
@@ -3280,7 +3280,7 @@
       "number": 335,
       "title": "foundry µservice retired; absorbed by intelligence; Hermes terminology dropped",
       "status": "Accepted",
-      "owner": "user-directive-2026-05-21, council-architecture, axis-intelligence, axis-foundry",
+      "owner": "council-architecture, axis-intelligence, axis-foundry",
       "date": "2026-05-21",
       "path": "decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md",
       "supersedes": ["microservices/foundry/PRD.md, microservices/foundry/ARCHITECTURE.md, microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md, microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
@@ -3478,6 +3478,66 @@
       "supersedes": [],
       "superseded_by": [],
       "related": []
+    },
+    {
+      "adr": "ADR-0352",
+      "number": 352,
+      "title": "Oyatie from-scratch architecture handoff",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-05-22",
+      "path": "decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0353",
+      "number": 353,
+      "title": "Amendment — Library-First / Network-Opt-In Clarification",
+      "status": "Proposed",
+      "owner": "council-architecture, council-security, council-privacy, council-product, ops-sre-reliability, ops-compliance, axis-policy-engine, axis-tenancy, axis-identity, axis-audit-chain, axis-ontology, axis-intelligence",
+      "date": "2026-05-20",
+      "path": "decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0028", "ADR-0050", "ADR-0099", "ADR-0105", "ADR-0128", "ADR-0131", "ADR-0140", "ADR-0144", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0176", "ADR-0183", "ADR-0211", "ADR-0212", "ADR-0241", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0247", "ADR-0248", "ADR-0251", "ADR-0255", "ADR-0355", "ADR-NNNN-library-first-credential-sidecar"]
+    },
+    {
+      "adr": "ADR-0354",
+      "number": 354,
+      "title": "Amendment — HTTP/3 Fallback Chain, Strict TLS, ECH, PQC Hybrid",
+      "status": "Proposed",
+      "owner": "council-architecture, council-security, council-privacy, axis-network, axis-cloud-k8s, axis-edge, ops-sre-reliability, ops-security, ops-compliance",
+      "date": "2026-05-20",
+      "path": "decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0044", "ADR-0121", "ADR-0148", "ADR-0149", "ADR-0211", "ADR-0243", "ADR-0246", "ADR-0253", "ADR-0293", "ADR-0295"]
+    },
+    {
+      "adr": "ADR-0355",
+      "number": 355,
+      "title": "Amendment — Library-First / Network-Opt-In Clarification",
+      "status": "Proposed",
+      "owner": "council-architecture, council-product, council-privacy, council-security, ops-sre-reliability, ops-compliance, axis-intelligence, axis-foundry, axis-policy-engine, axis-tenancy, axis-audit-chain",
+      "date": "2026-05-20",
+      "path": "decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0028", "ADR-0050", "ADR-0105", "ADR-0128", "ADR-0136", "ADR-0144", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0176", "ADR-0183", "ADR-0211", "ADR-0212", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0247", "ADR-0249"]
+    },
+    {
+      "adr": "ADR-0356",
+      "number": 356,
+      "title": "Amendment — Library-First Ontology Read-Path Clarification",
+      "status": "Proposed",
+      "owner": "council-architecture, council-product, council-privacy, council-security, ops-sre-reliability, ops-compliance, axis-ontology, axis-policy-engine, axis-workflow-engine, axis-audit-chain, axis-tenancy, axis-intelligence",
+      "date": "2026-05-20",
+      "path": "decisions/ADR-0356-amendment-library-first-ontology-read-path.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0005", "ADR-0009", "ADR-0028", "ADR-0050", "ADR-0055", "ADR-0099", "ADR-0105", "ADR-0106", "ADR-0122", "ADR-0128", "ADR-0131", "ADR-0141", "ADR-0144", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0176", "ADR-0211", "ADR-0212", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0246", "ADR-0353", "ADR-0247", "ADR-0248", "ADR-0252", "ADR-0255", "ADR-0355", "ADR-NNNN-library-first-credential-sidecar"]
     }
   ]
 }
