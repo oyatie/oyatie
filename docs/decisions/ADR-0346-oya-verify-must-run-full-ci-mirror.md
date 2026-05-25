@@ -132,7 +132,7 @@ The decision does not change which gates CI runs. The decision does not retire `
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: PR #177 surfaced 7 CI failures the local verifier missed
 
@@ -214,7 +214,7 @@ Across hyperscalers, the local mirror is the canonical pre-push tool. Oyatie's p
 - **A.8.11** Does not bypass the ADR-0263 audit-chain emission for verifier invocations. The verifier itself does not emit audit-chain rows (it is a local-developer tool, not a runtime µservice); this ADR does not change that posture.
 - **A.8.12** Does not change Cedar evaluation surface per ADR-0243. The verifier is a local tool; Cedar gates apply at runtime, not at verifier-invocation time.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -333,7 +333,7 @@ B2.040. The ADR explicitly preserves all prior `oya verify` callers verbatim. No
 - This ADR does not introduce a new dependency to the corpus.
 - This ADR does not author the actual Rust code changes to `crates/oya-dev-cli/src/commands/verify.rs`; that work is sequenced as Wave 15-ZA.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

@@ -516,6 +516,10 @@ intelligence workspace.
 C-21. The only approved AI substrate contract surface is intelligence
 OpenAPI, AsyncAPI, and proto.
 
+## Consequences
+
+Retiring `microservices/foundry/` and absorbing it into `microservices/intelligence/` means the AI substrate, model ownership, and related responsibilities move to intelligence as the canonical owner rather than a standalone foundry service; the data-model, operational, and migration consequences are enumerated in the sections below.
+
 ## Data Model Consequences
 
 M-1. `DispatchRequest` is the canonical AI substrate envelope per

@@ -62,7 +62,7 @@ No markdown-retirement exception is introduced by this decision.
 The sole durable product of this ADR is a normative ordering and verification
 contract for subsequent authoring and audit waves.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: drift now creates the wrong product
 
@@ -237,7 +237,7 @@ This ADR must remain compatible with ADR-0138.
 Retirement of the foundry path follows the six-path deprecation pattern and does
 not silently delete canonical provenance.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -327,7 +327,7 @@ same-file conflict and partial-completion failures.
 Driver 8: every dispatch must be self-contained enough that a fresh Codex agent
 can act without tribal memory.
 
-## C. Consequences and Engineering-Rigor Matrix
+## Consequences
 
 ### C.1 Positive consequences
 

@@ -155,7 +155,7 @@ self-quotable. This ADR meets the same bar.
   and was retracted within 48 hours after engineering computed the actual
   cost.
 
-## Decision Summary
+## Decision
 
 The per-tier anchor table is below. All amounts in USD, expressed as
 monthly recurring revenue (MRR) per tenant per category. Annual
@@ -192,6 +192,10 @@ Residency uplift (multiplicative on the post-pack base):
 These four schedules (base, pack, residency, multi-pack cap) combined with
 the BYOK adjustment and the prepayment discount form the deterministic
 price resolution function (D-5).
+
+## Consequences
+
+Publishing the per-tier anchor table with multiplicative compliance-pack uplifts and deterministic BYOK and prepayment adjustments means quotes resolve from a single public price function, so pricing becomes auditable and reproducible across tenants; the detailed mechanics, SLO implications, and migration path below enumerate the operational consequences of these public anchors.
 
 ## Detailed Mechanics
 

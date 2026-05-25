@@ -92,7 +92,7 @@ This ADR is `Accepted` (not `Proposed`) because the Wave 14 audit aggregation (`
 
 Enforcement transitions from `advisory` to `BLOCKER` per-µservice when each µservice lands its `IP-tenant-class-adoption.md` and the `ci-tenant-class-adoption-check` lane goes green for that µservice. Once all 77 µservices are green, the lane becomes a global BLOCKER.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: the gap is universal
 
@@ -160,7 +160,7 @@ Anchor 1: ADR-0329 (tier retirement). Anchor 2: ADR-0330 (replacement model). An
 - ADR-0316 — superseded by ADR-0329 (retirement); ADR-0331 cites the supersession but does not depend on it for adoption logic.
 - ADR-0145 — direct gRPC communication is unchanged; tenant_class travels as principal metadata, not as a service-to-service field.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -191,7 +191,7 @@ Driver 4: the substance bar (ADR-0322 + ADR-0328 §D-4) requires bespoke per-µs
 Driver 5: CI verification (ADR-0322 lanes) requires per-surface evidence; a uniform template makes verification scriptable.
 Driver 6: the audit findings backlog already names "tenant-class adoption gap" in 48 µservices; closing the backlog requires the template.
 
-## C. Consequences and Engineering-Rigor Matrix
+## Consequences
 
 ### C.1 Positive consequences
 

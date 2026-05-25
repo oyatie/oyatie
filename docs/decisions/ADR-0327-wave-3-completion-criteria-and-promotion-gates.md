@@ -200,7 +200,7 @@ there.
   slices themselves were the subject of the substance-bar failure that
   triggered the W2 remediation wave.
 
-## Decision Summary
+## Decision
 
 An ADR exists in one of five named states:
 
@@ -246,6 +246,10 @@ Wave-3 is `complete` when every member ADR is in `Accepted` state, the
 wave's evidence ledger is finalised, the wave's multispectrum cluster-
 level verdict is signed, and the wave's promotion event is emitted on
 the audit chain.
+
+## Consequences
+
+Defining the five named ADR states and the G-1..G-N promotion gates means an ADR only becomes Accepted once its substance-bar, anti-script provenance, and multispectrum facet verdicts are signed and its promotion event is emitted on the audit chain; the detailed mechanics, SLO implications, and migration path below enumerate the operational consequences of these completion criteria.
 
 ## Detailed Mechanics
 

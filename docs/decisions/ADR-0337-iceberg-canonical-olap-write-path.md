@@ -150,7 +150,7 @@ The retirement does not change encryption-at-rest, audit-emission, or TLS postur
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: hyperscaler convergence on Iceberg as the interop format
 
@@ -300,7 +300,7 @@ A.9.9 This ADR does not retire the `data-warehouse` µservice. The µservice is 
 
 A.9.10 This ADR does not amend ADR-0255 (BYOK opt-in). BYOK applies to LLM-provider credentials and to per-tenant encryption keys; substrate-format selection is independent.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -428,7 +428,7 @@ B2.057. The retirement clears the way for Wave 15A (crm rewrite), Wave 15B (clou
 
 B2.058. The retirement is final on Acceptance. No further Delta / Hudi canonical-write-path authoring is sanctioned in any Oyatie surface beyond the counterpart-fact / customer-migration-playbook allow-lists named in B2.029 / B2.030.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

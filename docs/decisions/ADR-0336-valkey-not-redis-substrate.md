@@ -137,7 +137,7 @@ The retirement does not break ADR-0211 in-house tech stack preference; Valkey is
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: Redis Inc. relicensed in March 2024 from BSD to SSPL/RSAL
 
@@ -233,7 +233,7 @@ A.9.9 This ADR does not amend ADR-0150 (Cedar policy engine). Cedar continues to
 
 A.9.10 This ADR does not amend ADR-0255 (BYOK opt-in). BYOK applies to LLM-provider credentials, not to substrate connections. Substrate connections remain platform-managed.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -355,7 +355,7 @@ B2.054. The retirement clears the way for Wave 15A (crm rewrite), Wave 15B (clou
 
 B2.055. The retirement is final on Acceptance. No further Redis-substrate authoring is sanctioned in any Oyatie surface beyond the counterpart-fact / license-history / customer-migration-playbook allow-lists named in B2.020 / B2.021 / B2.022.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

@@ -159,7 +159,7 @@ This ADR does not change Cedar evaluation from ADR-0243. Cedar evaluates applica
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: ad-hoc cell promotion is incompatible with hyperscaler-grade rigor
 
@@ -242,7 +242,7 @@ The auto-promotion path MUST have an emergency override for the rare case when a
 - This ADR does not author the Kyverno policy `enforce-cell-promotion-gates`. The policy is added in Wave 15T-Cell-Promotion-Gates as part of the admission-gate authoring.
 - This ADR does not change ADR-0338 pod runtime tier semantics. Pod runtime tier and cellular tier are independent axes; this ADR governs only the cellular axis.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -403,7 +403,7 @@ B2.060. This ADR is announced in the realignment-wave findings aggregation and i
 - This ADR does not change compliance pack activation gating; pack semantics are preserved per ADR-0251.
 - This ADR does not change ADR-0338 pod runtime tier semantics; pod runtime tier and cellular tier are independent axes.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

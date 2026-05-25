@@ -199,7 +199,7 @@ The decision does not retire GitHub Actions. The decision does not retire `kubec
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: GitHub Actions cannot serve air-gap, on-prem, colo, or oyatie-as-provider contexts
 
@@ -266,7 +266,7 @@ Per ADR-0242 (oyatie-is-a-tenant), ADR-0244 (tenant scoping), and the Amazon-sha
 - **A.9.10** Does not change Bominal corpus posture; Bominal authors its sibling rename ADR independently per `feedback_bominal_inheritance_precedence`.
 - **A.9.11** Does not impose Jenkins X, Tekton, Flux, Spinnaker, or any SaaS CI as alternatives; each is rejected with named reasons in §F below.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -364,7 +364,7 @@ B2.040. The Bominal parallel corpus authors its sibling Jenkins + ArgoCD ADR ind
 - This ADR does not change the K8s-everywhere runtime substrate per ADR-0254.
 - This ADR does not introduce a new programming language or build tool beyond the operationally familiar Jenkinsfile Groovy + JCasC YAML + ArgoCD CRDs.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

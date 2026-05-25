@@ -363,6 +363,10 @@ C-14. The only approved audit seal source is audit-chain.
 
 C-15. The only approved north-south routing decision point is api-gateway.
 
+## Consequences
+
+Retiring `microservices/cell/` as a standalone service while keeping cellular topology as an architectural pattern under ADR-0248 means workloads needing blast-radius isolation and shuffle-sharded tenant placement are served by the successor contract rather than a central cell service; the data-model, operational, and migration consequences are enumerated in the sections below.
+
 ## Data Model Consequences
 
 M-1. `tenant.cell` becomes part of tenant principal context.

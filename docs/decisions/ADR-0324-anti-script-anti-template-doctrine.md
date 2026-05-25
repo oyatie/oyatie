@@ -142,7 +142,7 @@ the CI mechanisms that detect them.
   a template body; required four-PR remediation before the W3-G ADR cluster
   could land.
 
-## Decision Summary
+## Decision
 
 The following are CATEGORICALLY forbidden as authoring mechanisms for
 substantive content artifacts:
@@ -178,6 +178,10 @@ The doctrine is enforced through three complementary mechanisms:
    commit hook detect script-driven write patterns and BLOCK them.
 3. **Template-stamping detector** (per ADR-0322 §D-7) — body-level
    detection of the symptoms of an undetected script.
+
+## Consequences
+
+Categorically forbidding script- and template-driven authoring of substantive content (AP-1..AP-6) means contributors must author each artifact per-name with bespoke substance, and the provenance and template-stamping detectors will block offending pull requests; the detailed mechanics, failure modes, and migration path below enumerate the operational consequences of that prohibition.
 
 ## Detailed Mechanics
 

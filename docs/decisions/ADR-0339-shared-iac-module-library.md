@@ -140,7 +140,7 @@ The decision does not delete any existing per-µservice IaC content. The decisio
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: 385-module-dir blast-radius today
 
@@ -250,7 +250,7 @@ Every hyperscaler-grade and CNCF precedent operates a shared module library with
 - **A.8.9** Does not relax the substance-bar for per-µservice IaC. Per ADR-0322, the per-µservice IaC wrapper substance is **which primitives are invoked + which tenant-scoped parameters are passed**, not lines of plumbing.
 - **A.8.10** Does not assert "one true module per primitive" — for primitives that exist across multiple contexts (e.g., Valkey across aws-guest + oci-guest + on-prem + colo + oyatie-as-cloud-provider), each context has its own module body because the underlying provider differs (AWS provider, OCI provider, kubernetes provider, oya-cell provider). The "shared" axis is **across µservices within a context**, not across contexts within a primitive.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -347,7 +347,7 @@ B2.039. The ADR is announced in the realignment-wave findings aggregation and in
 
 B2.040. The ADR's enforcement and sunset run in coordination with ADR-0336 Wave 15-Valkey. The two waves share the iac-module-path enforcement surface: ADR-0336 lands the Valkey vocabulary; this ADR lands the shared library shape.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

@@ -382,6 +382,10 @@ workspace.
 C-18. The only approved short-video contract surface is social OpenAPI,
 AsyncAPI, and proto.
 
+## Consequences
+
+Merging `microservices/shorts/` into `microservices/social/` means short-form video is owned by social and rides the same `Post` aggregate with a `media.kind = short_video` discriminator rather than a separate service; the data-model, operational, and migration consequences are enumerated in the sections below.
+
 ## Data Model Consequences
 
 M-1. `Post.media.kind` accepts `text`, `image`, `video`, and `short_video`.

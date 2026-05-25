@@ -163,7 +163,7 @@ This ADR does not change Cedar evaluation from ADR-0243. Cedar gates remain auth
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: Kata-everywhere costs without security gain on trusted first-party code
 
@@ -262,7 +262,7 @@ Wave 15 (per `specs/master-plan-sequencing.json` waves_15_plus) is actively auth
 - This ADR does not author the nodepool OpenTofu modules; that is sequenced as part of cloud-iac IaC module library work (ADR-0339 candidate).
 - This ADR does not select a specific Kubernetes distribution beyond ADR-0121 (on-prem k8s stack) + ADR-0254 (K8s everywhere).
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -406,7 +406,7 @@ B2.053. The canonical-primitives cheat sheet at `tools/hooks/_canonical-primitiv
 - This ADR does not introduce gVisor or other competing runtimes.
 - This ADR does not change the Kubernetes distribution selection from ADR-0121 / ADR-0254.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

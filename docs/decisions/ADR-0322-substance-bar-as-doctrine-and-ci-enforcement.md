@@ -169,7 +169,7 @@ artifacts regardless of authority tier. Code comments, commit messages, and
 inline doc-strings are out of scope and remain governed by existing per-lane
 review checks.
 
-## Decision Summary
+## Decision
 
 The substance bar is hereby canonical doctrine. Every in-scope artifact must
 clear all of the following before its containing pull request becomes
@@ -206,6 +206,10 @@ Each of S-1..S-8 corresponds to a CI check authored within the
 `oya-governance-no-template-stamping`, `oya-governance-doc-density-floor`,
 `oya-governance-doc-bespoke-ratio`, and `oya-governance-substance-bar-spectrum-binding`
 crates. Section D-9 details the crate authorship plan.
+
+## Consequences
+
+Making the substance bar canonical means every in-scope artifact must clear the S-1..S-8 checks before its pull request becomes merge-queue eligible, enforced by the `oya-governance-substance-bar` crate family; the detailed mechanics, SLO implications, failure modes, and phased migration path below enumerate the operational consequences of that enforcement.
 
 ## Detailed Mechanics
 

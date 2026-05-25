@@ -165,7 +165,7 @@ It does not govern:
 - Per-microservice feature work bounded to one lane and ≤3 files.
 - Routine dependency updates without contract changes.
 
-## Decision Summary
+## Decision
 
 A wave is the named unit of work delivery. Each wave has:
 
@@ -187,6 +187,10 @@ Waves are sequential within a lane (no two in-flight waves overlap on the
 same governance lane). Waves are concurrent across lanes provided the
 authority-chain invariants of ADR-0145 hold (no cross-lane forced
 coupling).
+
+## Consequences
+
+Adopting the wave as the named unit of delivery means every batch of work carries the W-Name, W-Ambition, W-Batch, evidence ledger, multispectrum verdict, and promotion criterion defined above, with waves running sequentially within a lane and concurrently across lanes; the detailed mechanics, SLO implications, and migration path below enumerate the operational consequences of that sequencing discipline.
 
 ## Detailed Mechanics
 

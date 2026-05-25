@@ -143,7 +143,7 @@ ADR-0037 and are out of scope here.
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: tier vocabulary became corpus residue at scale
 
@@ -403,7 +403,7 @@ Bronze/Silver/Gold/Platinum tokens entirely (no replacement is needed
 because the substance-bar doctrine in ADR-0322 already provides the
 uniform quality contract).
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -981,7 +981,7 @@ ADR-0252's title but is preserved per B2.039.
 B2.100. The retirement is final on Acceptance. No further capability-
 tier doctrine authoring is sanctioned in any Oyatie surface.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Maintainability
 

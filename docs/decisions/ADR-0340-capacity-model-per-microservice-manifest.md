@@ -151,7 +151,7 @@ The decision does not delete any existing manifest field. The decision does not 
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: no canonical per-µservice capacity declaration today
 
@@ -251,7 +251,7 @@ Both ADRs explicitly cited "per-µservice capacity model" as a missing input sur
 - **A.9.9** Does not relax the substance-bar for per-µservice manifest authoring. Per ADR-0322, the per-µservice capacity_model values are bespoke substance (each µservice owner reasons about its own workload shape), not template-stamped.
 - **A.9.10** Does not change which µservice owns which capability. The ownership shape is unchanged; only the declared surface in each µservice's manifest expands.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -371,7 +371,7 @@ B2.040. The ADR is announced in the realignment-wave findings aggregation and in
 - This ADR does not change the cell topology decision-tree from ADR-0248.
 - This ADR does not introduce a new tenant_class beyond demo_trial + paid per ADR-0330.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 
