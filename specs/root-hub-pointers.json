@@ -1057,6 +1057,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-target",
       "purpose": "Cloud resource catalog target (P-TARGET): per-resource-type architecture for all cloud-* services (IAM/KMS/Secrets/Compute/Storage/Network/Data/Billing/Capacity), each instantiating the control-plane per-resource contract (quota/billing/audit/lifecycle/slo/retention), Cedar-gated + OTel-instrumented + actuated via OpenTofu/operator/Argo. Target spec; metadata-only until P-STRANGLE."
+    },
+    "cloud_production_quality_kits_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-production-quality-kits-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-prod",
+      "purpose": "Cloud production quality kits target (P-PROD): seven harness-backed evidence gates (overload/fairness, shuffle-shard isolation, privacy/data-governance, canary+PRR, FOCUS cost, K8s PSS, abuse/fraud/DDoS) each with scenarios+evidence-format+feeding production_100_bar gate. Incorporated from plan/ quality review. Target spec; no harnesses/evidence implemented."
     }
   },
   "by_kind": {

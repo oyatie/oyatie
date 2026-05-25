@@ -5831,7 +5831,8 @@
       "specs/api-contract-ssot-canonical.json",
       "specs/cloud-authorization-target.json",
       "specs/cloud-observability-slo-target.json",
-      "specs/cloud-resource-catalog-target.json"
+      "specs/cloud-resource-catalog-target.json",
+      "specs/cloud-production-quality-kits-target.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -5960,9 +5961,12 @@
       {
         "id": "P-PROD",
         "title": "Production hardening to the P-DEFINE bar",
-        "status": "proposed",
+        "status": "quality-kits target specified (7 evidence gates); harnesses + measured evidence = execution",
         "parallel": "partial",
-        "deliverable": "Measured SLO/DR/rollback/security/compliance evidence to the production-100 exit bar; promote per ADR-0327 wave completion + agentic SLO-gated promotion."
+        "deliverable": "Measured SLO/DR/rollback/security/compliance evidence to the production-100 exit bar; promote per ADR-0327 wave completion + agentic SLO-gated promotion.",
+        "artifacts": [
+          "specs/cloud-production-quality-kits-target.json"
+        ]
       }
     ],
     "parallel_lane_model": "Lanes = vertical slices (one per microservice); decoupled by the flat-microservice-catalog + workflow-ontology-adapter-layer invariants. Concurrency bounded by the CI farm (Karpenter-elastic agents), not a single host. See .omx/plans/parallel-lane-scoping.md.",
