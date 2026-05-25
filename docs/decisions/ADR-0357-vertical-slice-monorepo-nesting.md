@@ -20,6 +20,8 @@ This conflicts internally: ADR-0131's stated intent was `microservices/<ms>/` wi
 
 Adopt vertical-slice nesting: a service's crates move to `microservices/<ms>/crates/oya-<service>-<layer>` so code, contracts, ci, iac, and manifest are co-located. Package names are unchanged (so imports and `registry/catalog` keys are stable); only physical paths and `Cargo.toml` member paths + `catalog` path fields change. The `architecture-boundaries` gate flips to enforce code under `microservices/<ms>/crates/` instead of flat `crates/`.
 
+Top-level naming (two buckets, services vs libs): deployable service code lives under `microservices/<ms>/crates/oya-<service>-<layer>` (co-located with that service's contracts, ci, iac, manifest); shared cross-cutting libraries (the `*-kernel` crates and `oya-shared-*` building blocks) live under a top-level `libs/<lib>/`. We use `microservices/` (not `packages/` — every crate is already a Cargo package, so the term is ambiguous) and `libs/` (not `common/` — a `common/` bucket accretes unowned junk). A crate is classified service-owned vs shared by whether more than one service depends on it; the migration includes that classification step.
+
 Sequencing: execute as a single dedicated mechanical migration AFTER the wave-3 worktree consolidation (enterprise + workflow + backbone bundles) has landed green, so the migration runs once on a stable tree rather than against a moving target of ~188 in-flight crates. Until then, flat `crates/` remains canonical and gate-enforced.
 
 ## Consequences
