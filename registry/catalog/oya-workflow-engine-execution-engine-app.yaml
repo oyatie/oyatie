@@ -1,5 +1,5 @@
 context: workflow-engine
-role: application
+role: app
 capability: execution-engine-source-level-app-composition-and-dogfood-workload-plan
 plane: control
 slo: preview-control-plane

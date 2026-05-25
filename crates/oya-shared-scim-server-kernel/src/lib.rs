@@ -81,7 +81,7 @@ pub struct UserName {
 pub struct Email {
     pub value: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
+    pub r#type: Option<String>, // data_class: SENSITIVE_PIPA_ART23
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub primary: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -95,7 +95,7 @@ pub struct GroupMembership {
     pub display: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[serde(rename = "$ref")]
-    pub r#ref: Option<String>,
+    pub r#ref: Option<String>, // data_class: SENSITIVE_PIPA_ART23
 }
 
 /// SCIM Enterprise extension per RFC 7643 §4.3.

@@ -938,6 +938,76 @@
       "current_path": "/specs/workspace-hygiene.json",
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Inventory-by-default hygiene pass for agent-created spillover across temp space, user-home coordination files, the main checkout, build artifacts, and Oyatie worktrees before pipeline closeout."
+    },
+    "prd_crm": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/crm.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "crm microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_global_trade": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/global-trade.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "global-trade microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_plant_maintenance": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/plant-maintenance.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "plant-maintenance microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_procurement": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/procurement.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "procurement microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_production_planning": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/production-planning.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "production-planning microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_quality_management": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/quality-management.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "quality-management microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_real_estate": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/real-estate.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "real-estate microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_supply_chain_planning": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/supply-chain-planning.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "supply-chain-planning microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_treasury": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/treasury.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "treasury microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_warehouse": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/warehouse.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "warehouse microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
     }
   },
   "by_kind": {

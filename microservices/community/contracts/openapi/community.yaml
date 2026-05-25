@@ -304,6 +304,17 @@ paths:
             schema: { $ref: '#/components/schemas/SubscriptionCreate' }
       responses:
         '201': { description: Created }
+  /health:
+    get:
+      summary: Liveness probe
+      responses:
+        '200': {description: healthy}
+  /ready:
+    get:
+      summary: Readiness probe
+      responses:
+        '200': {description: ready}
+        '503': {description: not ready}
 components:
   x-oyatie-sharding-automation-event-surface:
     microservice: community

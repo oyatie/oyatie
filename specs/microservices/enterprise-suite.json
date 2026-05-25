@@ -395,40 +395,28 @@
       "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, and availability contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as elastic production tenant workloads",
       "when": "tenant autoscaling guardrails are planned before any Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
       "then": "a review-only FD-001 tenant autoscaling contract covers all FD-001 manifest workloads in scope, Kubernetes HorizontalPodAutoscaler requirements, autoscaling/v2 API usage, min/max replica bounds, CPU and memory resource metrics, resource metrics pipeline evidence, scale-up behavior policies, scale-down behavior policies, stabilization windows, tenant label selectors, scaling audit evidence, tenant admission policy evidence linkage, and official Kubernetes source refs without recasting Oyatie Cloud as the product goal",
-      "test_ref": [
-        "cargo test -p oya-enterprise-suite-tenant-autoscaling-contract",
-        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_autoscaling_without_runtime_claim"
-      ]
+      "test_ref": "cargo test -p oya-enterprise-suite-tenant-autoscaling-contract; cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_autoscaling_without_runtime_claim"
     },
     {
       "id": "AC-43",
       "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, availability, and autoscaling contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as economically attributable production tenant workloads",
       "when": "tenant cost-allocation and FinOps showback guardrails are planned before any Kubernetes cluster attachment, resource metrics runtime attachment, OpenTelemetry collector runtime attachment, FinOps runtime attachment, cost report runtime generation, billing export runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
       "then": "a review-only FD-001 tenant cost-allocation contract covers all FD-001 manifest workloads in scope, Kubernetes tenant cost-allocation labels, Kubernetes recommended application labels, namespace cost boundaries, workload resource requests, ResourceQuota usage evidence, OpenTelemetry service resources, OpenTelemetry Kubernetes resource attributes, FinOps allocation strategy, shared-cost policy, allocation coverage KPIs, tenant label selectors, cost-allocation audit evidence, tenant admission policy evidence linkage, and official FinOps/Kubernetes/OpenTelemetry source refs without recasting Oyatie Cloud as the product goal",
-      "test_ref": [
-        "cargo test -p oya-enterprise-suite-tenant-cost-allocation-contract",
-        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_cost_allocation_without_runtime_claim"
-      ]
+      "test_ref": "cargo test -p oya-enterprise-suite-tenant-cost-allocation-contract; cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_cost_allocation_without_runtime_claim"
     },
     {
       "id": "AC-44",
       "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, availability, autoscaling, and cost-allocation contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as residency-bound production tenant workloads",
       "when": "tenant residency and data-perimeter placement guardrails are planned before any Kubernetes cluster attachment, namespace creation, node-affinity application, scheduler runtime observation, storage residency runtime attachment, telemetry residency runtime attachment, audit residency runtime attachment, cross-region egress runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
       "then": "a review-only FD-001 tenant residency contract covers all FD-001 manifest workloads in scope, tenant residency region labels, namespace residency labels, workload node-affinity requirements, topology region constraints, storage residency policy refs, telemetry residency policy refs, audit residency policy refs, cross-region egress policy refs, tenant-model jurisdiction refs, cell-placement residency refs, admission-policy evidence, workload-manifest evidence, residency audit evidence, and official Kubernetes/OpenTelemetry/AWS data-perimeter source refs without recasting Oyatie Cloud as the product goal",
-      "test_ref": [
-        "cargo test -p oya-enterprise-suite-tenant-residency-contract",
-        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_residency_without_runtime_claim"
-      ]
+      "test_ref": "cargo test -p oya-enterprise-suite-tenant-residency-contract; cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_residency_without_runtime_claim"
     },
     {
       "id": "AC-45",
       "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, availability, autoscaling, cost-allocation, and residency contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as zero-trust production tenant workloads",
       "when": "tenant workload cryptographic identity and service-to-service trust guardrails are planned before any Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE server runtime attachment, SPIRE agent runtime attachment, SVID runtime issuance, mTLS handshake observation, certificate-rotation runtime observation, Gateway BackendTLSPolicy application, authorization-policy runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
       "then": "a review-only FD-001 tenant workload-identity contract covers all FD-001 manifest workloads in scope, SPIFFE IDs, pinned trust domain, X.509 SVID requirements, JWT-SVID policy, mutual TLS policy, Gateway API BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, tenant-admission policy evidence linkage, workload-manifest evidence, and official SPIFFE/SPIRE/Kubernetes/Gateway API/OpenTelemetry source refs without recasting Oyatie Cloud as the product goal",
-      "test_ref": [
-        "cargo test -p oya-enterprise-suite-tenant-workload-identity-contract",
-        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_workload_identity_without_runtime_claim"
-      ],
+      "test_ref": "cargo test -p oya-enterprise-suite-tenant-workload-identity-contract; cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_workload_identity_without_runtime_claim",
       "evidence_ref": "evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json"
     }
   ],
@@ -578,7 +566,7 @@
       {
         "pack": "KR",
         "required": true,
-        "notes": "Korea-first HR/payroll/accounting fidelity: Labor Standards Act, 4대보험, HomeTax, K-GAAP/K-IFRS, PIPA, ISMS-P, SAPA, rules-of-employment and labor-management-council thresholds."
+        "notes": "Korea-first HR/payroll/accounting fidelity: Labor Standards Act, 4\ub300\ubcf4\ud5d8, HomeTax, K-GAAP/K-IFRS, PIPA, ISMS-P, SAPA, rules-of-employment and labor-management-council thresholds."
       },
       {
         "pack": "US",
@@ -827,10 +815,10 @@
       ]
     },
     {
-      "competitor": "WEHAGO/더존",
+      "competitor": "WEHAGO/\ub354\uc874",
       "observed_strengths": [
         "KR SME accounting/payroll footprint",
-        "HomeTax/4대보험 native integration",
+        "HomeTax/4\ub300\ubcf4\ud5d8 native integration",
         "local market familiarity"
       ],
       "gaps_vs_oyatie": [
@@ -937,7 +925,7 @@
       "measurable_target": "policy bypass count remains 0"
     },
     {
-      "competitor": "WEHAGO/더존",
+      "competitor": "WEHAGO/\ub354\uc874",
       "observed_strengths": [
         "KR SME accounting/payroll footprint"
       ],
@@ -951,44 +939,44 @@
   "industry_patterns_adopted": [
     {
       "pattern": "unified-suite shell with child product launch contracts",
-      "source": "Workday — single data model across HCM and Finance modules",
+      "source": "Workday \u2014 single data model across HCM and Finance modules",
       "implementation": "suite policy gateway + legal_entity_context shared across HR/Payroll/Accounting children"
     },
     {
       "pattern": "role-based self-service portal: employee / manager / HR admin tiers",
-      "source": "ADP Workforce Now, BambooHR — tiered self-service UX reduces admin burden",
+      "source": "ADP Workforce Now, BambooHR \u2014 tiered self-service UX reduces admin burden",
       "implementation": "EnterprisePolicyDisclosureBanner + EnterpriseWorkQueueList scoped per persona tier"
     },
     {
       "pattern": "SSO / SAML 2.0 / OIDC identity provider federation",
-      "source": "Workday, SAP SuccessFactors, Rippling — enterprise IdP federation required for suite adoption",
+      "source": "Workday, SAP SuccessFactors, Rippling \u2014 enterprise IdP federation required for suite adoption",
       "implementation": "suite shell delegates identity to workspace IdP seam; SAML/OIDC adapter in Connect layer"
     },
     {
       "pattern": "ISO 27001 + SOC 2 Type II compliance evidence generation",
-      "source": "Workday, NetSuite, ADP — enterprise procurement mandates these certifications",
+      "source": "Workday, NetSuite, ADP \u2014 enterprise procurement mandates these certifications",
       "implementation": "audit-chain WORM evidence + deployment-ops-contract gate covers SOC 2 control evidence; ISMS-P binding via KR pack"
     },
     {
       "pattern": "explicit data residency controls per region",
-      "source": "Workday, SAP — GDPR + data sovereignty require explicit region pinning",
+      "source": "Workday, SAP \u2014 GDPR + data sovereignty require explicit region pinning",
       "implementation": "ops_cell includes region pin; tenant data routing enforces residency at Postgres RLS + object store level"
     },
     {
       "pattern": "multi-currency with FX rate snapshot at transaction time",
-      "source": "NetSuite, Xero, Sage Intacct — global enterprise requires >3 currency pairs",
+      "source": "NetSuite, Xero, Sage Intacct \u2014 global enterprise requires >3 currency pairs",
       "implementation": "currency_handling extended to KRW, USD, EUR, JPY, GBP, CNY, AUD; FX rate snapshot stored on JournalVoucher and WageLedgerEntry"
     },
     {
       "pattern": "approval inbox with SLA budgets and escalation",
-      "source": "Workday — inbox-driven approval with configurable SLA thresholds",
+      "source": "Workday \u2014 inbox-driven approval with configurable SLA thresholds",
       "implementation": "Workflow queues expose SLA and exception budgets; operator inbox backpressure before overload"
     }
   ],
   "anti_patterns_avoided": [
     {
       "anti_pattern": "single global mutable ledger across legal entities",
-      "source_warning": "NetSuite multi-subsidiary anti-pattern — intercompany without elimination leads to double-counting",
+      "source_warning": "NetSuite multi-subsidiary anti-pattern \u2014 intercompany without elimination leads to double-counting",
       "mitigation": "legal-entity cell isolation; group rollups are projections only, never shared mutable state"
     },
     {

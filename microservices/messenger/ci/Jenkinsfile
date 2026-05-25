@@ -38,7 +38,7 @@ spec:
 
   environment {
     OYA_MICROSERVICE = 'messenger'
-    CARGO_PACKAGE = 'oya-messenger'
+    BACKBONE_CARGO_PACKAGES = 'oya-messenger-app oya-connect-messenger-domain oya-messenger-message-stream-api oya-messenger-message-stream-usecase oya-messenger-message-stream-rest oya-messenger-message-stream-grpc oya-messenger-message-stream-adapter-postgres oya-shared-postgres-command-kernel oya-shared-postgres-command-adapter-sqlx oya-shared-hyperscaler-metrics-kernel oya-shared-hyperscaler-metrics-adapter-prometheus oya-shared-hyperscaler-metrics-adapter-otlp oya-shared-protocol-parity-kernel oya-shared-protocol-transport-kernel oya-shared-protocol-transport-retry-app oya-shared-backbone-proto-contracts-kernel oya-shared-backbone-grpc-generated-adapter oya-shared-backbone-grpc-transport-adapter oya-shared-backbone-rest-runtime-adapter oya-shared-transactional-outbox-kernel oya-shared-transactional-outbox-adapter-sqlx oya-shared-transactional-outbox-dispatch-app oya-shared-outbox-broker-http-adapter oya-shared-transactional-outbox-worker-app oya-shared-transactional-outbox-poller-app oya-shared-transactional-outbox-runtime-tokio-app oya-policy-cedar-domain'
     CARGO_INCREMENTAL = '0'
     CARGO_TERM_COLOR = 'always'
     NEXTEST_PROFILE = 'ci'
@@ -68,26 +68,41 @@ spec:
       }
     }
 
-    stage('cargo check -p') {
+    stage('cargo check -p matrix') {
       steps {
         container('rust') {
-          sh 'cargo check -p "$CARGO_PACKAGE"'
+          sh '''
+set -eu
+for package in $BACKBONE_CARGO_PACKAGES; do
+  cargo check -p "$package"
+done
+'''
         }
       }
     }
 
-    stage('cargo clippy -p') {
+    stage('cargo clippy -p matrix') {
       steps {
         container('rust') {
-          sh 'cargo clippy -p "$CARGO_PACKAGE" --all-targets -- -D warnings'
+          sh '''
+set -eu
+for package in $BACKBONE_CARGO_PACKAGES; do
+  cargo clippy -p "$package" --all-targets -- -D warnings
+done
+'''
         }
       }
     }
 
-    stage('cargo nextest run -p') {
+    stage('cargo nextest run -p matrix') {
       steps {
         container('rust') {
-          sh 'cargo nextest run -p "$CARGO_PACKAGE" --no-fail-fast'
+          sh '''
+set -eu
+for package in $BACKBONE_CARGO_PACKAGES; do
+  cargo nextest run -p "$package" --no-fail-fast
+done
+'''
         }
       }
     }
@@ -112,14 +127,14 @@ cat > "$evidence_dir/wave-15-ze.json" <<JSON
   "wave": "15-ZE",
   "adr": "ADR-0349",
   "microservice": "${OYA_MICROSERVICE}",
-  "cargo_package": "${CARGO_PACKAGE}",
+  "cargo_packages": "${BACKBONE_CARGO_PACKAGES}",
   "ci_substrate": "jenkins-lts",
   "runtime_class": "kata-cloud-hypervisor",
-  "lanes": [
+  "lane_templates": [
     "cargo fmt --all -- --check",
-    "cargo check -p ${CARGO_PACKAGE}",
-    "cargo clippy -p ${CARGO_PACKAGE} --all-targets -- -D warnings",
-    "cargo nextest run -p ${CARGO_PACKAGE} --no-fail-fast",
+    "cargo check -p <each package in BACKBONE_CARGO_PACKAGES>",
+    "cargo clippy -p <each package in BACKBONE_CARGO_PACKAGES> --all-targets -- -D warnings",
+    "cargo nextest run -p <each package in BACKBONE_CARGO_PACKAGES> --no-fail-fast",
     "cargo run -q -p oya-foundry-vcs-admission-gate-app"
   ],
   "build_url": "${BUILD_URL:-local}",

@@ -1,0 +1,128 @@
+{
+  "change_id": "backbone-microservices-rest-write-dispatch-20260524",
+  "change_class_id": "CC-1",
+  "summary": "Framework-free REST method/path dispatch now calls implemented backbone write-route business handlers.",
+  "scope": [
+    "crates/oya-messenger-message-stream-rest/src/lib.rs",
+    "crates/oya-mail-mailbox-store-rest/src/lib.rs",
+    "crates/oya-social-post-composition-rest/src/lib.rs",
+    "crates/oya-community-post-store-rest/src/lib.rs",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds typed framework-free write-route dispatch in REST crates for already implemented write handlers. It maps OpenAPI method/path plus typed payload enums to the existing validated business handlers and refuses contract-only routes. It does not parse JSON, bind Hyper, deploy a production gateway, add TLS, implement still-contract-only endpoints, execute SQL, publish broker messages, or claim live service runtime evidence.",
+  "source_basis": [
+    {
+      "url": "repo://crates/oya-messenger-message-stream-rest/src/lib.rs",
+      "use": "Existing REST route catalog, typed post-message handler, and fail-closed contract-only dispatcher pattern."
+    },
+    {
+      "url": "repo://crates/oya-mail-mailbox-store-rest/src/lib.rs",
+      "use": "Existing mail submit-message REST handler and route catalog."
+    },
+    {
+      "url": "repo://crates/oya-social-post-composition-rest/src/lib.rs",
+      "use": "Existing social publish-post REST handler and route catalog."
+    },
+    {
+      "url": "repo://crates/oya-community-post-store-rest/src/lib.rs",
+      "use": "Existing community create-post, cast-vote, and moderation-action REST handlers and route catalog."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "Each REST crate gets small enum-based dispatch over existing handlers instead of introducing a web framework, JSON parser, macro router, or gateway runtime.",
+    "F2_hyperscaler": "The service boundary now has deterministic method/path-to-handler seams for implemented write routes, reducing later gateway composition risk while retaining independent service scaling boundaries.",
+    "F3_adversarial": "Tests cover successful method/path dispatch for implemented routes and fail-closed refusal for contract-only routes; existing unknown-route and typed-handler-required tests remain intact.",
+    "F4_api_contract": "OpenAPI route tables are unchanged; implemented routes gain dispatcher entrypoints while contract-only routes remain explicit 501/non-claim paths.",
+    "F5_quality": "Focused REST tests/clippy/fmt plus the 47-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "Runtime gateway composition can call a single framework-free dispatch function per REST crate for implemented write routes; still-contract-only endpoints remain safely refused.",
+    "F7_security_privacy": "Dispatch calls the existing handlers, preserving API context validation, policy-decision requirements, principal binding, and no body/secret logging.",
+    "F8_supply_chain": "No new third-party dependencies are introduced by this slice.",
+    "F9_testing": "Focused REST packages passed 50 unit tests; the broad backbone matrix passed 312 unit tests across 47 packages plus one existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "The touched REST crates are already present in the backbone GitHub Actions and Jenkins matrices; no remote CI run is claimed.",
+    "F11_observability": "The dispatch path preserves existing telemetry binding functions for implemented route operation IDs; it does not emit metrics by itself.",
+    "F13_reversibility": "The change is isolated to four REST crates and task/evidence metadata; reverting removes dispatcher enums/functions without changing API/usecase/app layers."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest",
+      "result": "pass",
+      "evidence": "50 focused REST unit tests passed across messenger, mail, social, and community REST crates."
+    },
+    {
+      "command": "cargo clippy -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <47 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <47 backbone package matrix>",
+      "result": "pass",
+      "evidence": "312 unit tests passed across the backbone package matrix; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <47 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <47 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; existing duplicate/wildcard diagnostics remain non-blocking under current policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 461 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 461 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing catalog coverage failure remains: MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing data-class failure remains: UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "python parse validation for REST dispatch enums/functions/tests, task markers, and diff hygiene",
+      "result": "pass",
+      "evidence": "rest_crates_checked=4 errors=0."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/backbone-microservices-*.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 2 pass, 3 report-only, 1 skipped, 0 fail, 445 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root crates/oya-messenger-message-stream-rest --corpus-root crates/oya-mail-mailbox-store-rest --corpus-root crates/oya-social-post-composition-rest --corpus-root crates/oya-community-post-store-rest --corpus-root evidence/multispectrum/backbone-microservices-rest-write-dispatch-20260524.json",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 3 documents, 950 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No JSON request parsing, response serialization, Hyper runtime binding, production gateway, or TLS rollout is implemented by this slice.",
+    "No still-contract-only REST/OpenAPI route is claimed implemented.",
+    "No SQL execution, outbox publication, broker acknowledgement, or live service deployment is claimed.",
+    "No remote CI execution, branch-protection rollout, data-plane SLO, or hyperscaler maturity certification is claimed."
+  ]
+}

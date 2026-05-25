@@ -509,7 +509,7 @@ F.3 **Rename to `oya-fitness-*` (drop both prefixes).** Drop both `foundry-` and
 
 F.4 **Rename in two phases (first rename workflows, later rename crates).** Split Wave 15-ZB into Wave 15-ZB1 (workflows + lanes.yaml + catalog + branch-protection) and Wave 15-ZB2 (crates + Cargo workspace + per-µservice manifests). Rejected because: (a) the rename surfaces are tightly coupled (workflows invoke crates by package name; renaming workflows without renaming crates leaves the workflow→crate binding broken); (b) the mixed-state window between Wave 15-ZB1 and Wave 15-ZB2 reintroduces the drift problem; (c) atomic landing of the full rename surface is the safest pattern.
 
-F.5 **Defer the rename to a future "vocabulary cleanup wave" untargeted.** Note the rename in TODO form; defer indefinitely. Rejected because: (a) the realignment-wave authoring cadence is the canonical time to land vocabulary cleanups per ADR-0327; (b) deferring after foundry retirement is complete leaves an ownership-attribution gap that compounds over time; (c) the `oya-governance-*` prefix is already in active use (E.1 + ADR-0345); deferring widens the inconsistency.
+F.5 **Defer the rename to a future "vocabulary cleanup wave" untargeted.** Note the rename as an untracked follow-up; defer indefinitely. Rejected because: (a) the realignment-wave authoring cadence is the canonical time to land vocabulary cleanups per ADR-0327; (b) deferring after foundry retirement is complete leaves an ownership-attribution gap that compounds over time; (c) the `oya-governance-*` prefix is already in active use (E.1 + ADR-0345); deferring widens the inconsistency.
 
 ## G. Multispectrum Review v2.4.0
 

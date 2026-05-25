@@ -9,7 +9,7 @@
     "status": "Accepted",
     "owner_team": "axis-intelligence + council-architecture",
     "created_at": "2026-05-23T08:20:00Z",
-    "purpose": "Intelligence product PRD — AI substrate authority after Foundry retirement per ADR-0335; covers provider routing, guardrails, eval, attribution, credential resolution, audit tap, assist-draft, and context-aware retrieval for later cloud-service integration."
+    "purpose": "Intelligence product PRD \u2014 AI substrate authority after Foundry retirement per ADR-0335; covers provider routing, guardrails, eval, attribution, credential resolution, audit tap, assist-draft, and context-aware retrieval for later cloud-service integration."
   },
   "identity": {
     "product_id": "intelligence",
@@ -56,7 +56,9 @@
       "$ref:registry/catalog/oya-intelligence-audit-tap-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-audit-tap-worker.yaml"
     ],
-    "user_facing_surface": false
+    "user_facing_surface": false,
+    "microservice": "intelligence",
+    "bounded_context": "intelligence"
   },
   "acceptance_criteria": [
     {
@@ -267,5 +269,158 @@
     "foundation_crates": "preview-foundation",
     "hyperscaler_claim": "not-claimed",
     "claim_policy": "Only claim implemented model-routing kernel/domain/usecase, assist-draft kernel/domain/usecase/adapter/api/rest/worker, guardrail kernel/domain/usecase, context-aware retrieval kernel/domain/usecase/adapter/worker, eval kernel/domain/usecase/adapter/worker, attribution kernel/domain/usecase/adapter/worker, dispatch, provider-envelope, credential-resolver domain/usecase/adapter, and audit-tap usecase/adapter/worker foundations with fresh cargo/oya evidence; assist-draft durable queue/runtime, HTTP serving, serialization framework integration, credential sidecar runtime/OpenBao I/O/raw secret material, audit-chain sidecar runtime/Ed25519 signing/Merkle construction/durable audit emission/durable queue processing/cloud runtime deployment, model-routing adapter/api/rest/grpc/worker runtime, broader provider adapters, eval binary/queue/runtime, retrieval runtime/vector-store/embedding/ontology-KG/document-fetch execution, attribution runtime, queue execution, citation text rendering, and cloud deployment claims remain non-claims until implemented and gated."
-  }
+  },
+  "inherits": {
+    "oyatie_specs": [
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json",
+      "$ref:specs/hyperscaler-gates.json"
+    ],
+    "user_decisions": [
+      "2026-05-24: vertical enters the enterprise microservice set as a flat single-concern domain crate"
+    ]
+  },
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "intelligence domain foundation"
+      ]
+    },
+    "out_of_scope": [
+      "no runtime/provider/production claim"
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "workflow.execution.v1",
+      "ontology.entity.v1"
+    ],
+    "produces": [
+      "enterprise.intelligence.v1"
+    ]
+  },
+  "data_model": {
+    "primary_crate_ref": "crates/oya-intelligence",
+    "entities_ref": [
+      {
+        "entity": "Intelligence",
+        "fields": [
+          "tenant_id",
+          "legal_entity_id",
+          "state",
+          "source_ref",
+          "data_class"
+        ],
+        "invariants": [
+          "tenant-scoped writes",
+          "metadata-only foundation"
+        ]
+      }
+    ]
+  },
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "async runtime primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "vendor ERP/CRM suite SDKs",
+        "reason": "no proprietary suite lock-in; flat single-concern crates only"
+      }
+    ]
+  },
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/localization-packs/kr/pack.yaml",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": false,
+        "notes": "Korea localization pack overlay applies when the vertical activates KR scope"
+      }
+    ]
+  },
+  "optimization_practices_ref": "$ref:specs/hyperscaler-gates.json",
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "intelligence enters the microservice set as a flat single-concern foundation; runtime/provider/production remain non-claims.",
+      "date": "2026-05-24"
+    }
+  ],
+  "goals": {
+    "scalability": "Independent horizontal scaling per ADR-0348 (autosharding/auto-rebalance); tenant- and cell-scoped writes with no shared mutable global state. Foundation scope: metadata-only, no measured scaling evidence.",
+    "security": "Default-deny tenant isolation via Cedar (ADR-0243) and tenant-as-scope (ADR-0244); no raw credential/PII/secret bytes in the domain. Foundation scope: no runtime authentication.",
+    "performance": "Per-manifest SLO and capacity targets (ADR-0340) required before any GA claim; async-first eventing on Pulsar. Foundation scope: no measured SLO.",
+    "efficiency": "FinOps cost attribution (ADR-0344) and flat single-concern crates (ADR-0131/0132) that avoid suite bloat. Foundation scope: no runtime cost telemetry.",
+    "reliability": "Idempotent metadata operations and rollback-first promotion. Foundation scope: no DR drill evidence."
+  },
+  "target_users": [
+    "enterprise intelligence operators",
+    "platform tenant administrators",
+    "vertical domain specialists"
+  ],
+  "risks": [
+    {
+      "risk": "foundation scope mistaken for runtime readiness",
+      "mitigation": "explicit non-claims in every manifest/catalog/evidence"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "SAP",
+      "note": "parity metadata only; no proprietary suite lock-in"
+    },
+    {
+      "competitor": "Oracle/Microsoft Dynamics",
+      "note": "reference scan only"
+    }
+  ],
+  "best_practices": [
+    "clean-architecture inward dependency layering",
+    "metadata-only foundation with honest non-claims",
+    "API-first contracts (OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3)",
+    "tenant/cell-scoped domain writes"
+  ],
+  "patterns": [
+    "flat single-concern microservice (ADR-0131/0132)",
+    "evidence-backed ChangeSet delivery",
+    "integration via Workflow/Ontology adapter layer"
+  ],
+  "anti_patterns": [
+    "suite/bundle monolith (retired by ADR-0132)",
+    "runtime/SLO/DR claims without measured evidence",
+    "direct cross-microservice calls bypassing Workflow/Ontology"
+  ],
+  "sources_scanned": [
+    "internal ADR corpus (ADR-0131/0132/0242/0340/0348)"
+  ],
+  "metrics": [
+    {
+      "name": "domain-test-green",
+      "targets": {
+        "preview": "RED/GREEN domain tests pass",
+        "stable": "clippy -D warnings + nextest green"
+      },
+      "lane_ref": "cargo nextest run"
+    },
+    {
+      "name": "architecture-boundary-conformance",
+      "targets": {
+        "preview": "0 forbidden dependency edges"
+      },
+      "lane_ref": "oya gate validate architecture-boundaries"
+    }
+  ]
 }
