@@ -8598,3 +8598,58 @@ fn documentation_system_gate_passes_clean_pipeline() {
 
     fs::remove_dir_all(temp).ok();
 }
+
+/// ADR-0361 R3b: with GitHub Actions workflows retired (absent dir), the
+/// Jenkins-reported status-context manifest is the producer source, and the
+/// protection-context-match gate still passes for aligned contexts.
+#[test]
+fn protection_context_match_gate_passes_from_jenkins_manifest_without_workflows() {
+    let temp = temp_dir("pcm-jenkins-manifest");
+    fs::create_dir_all(&temp).expect("temp dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-governance-protection-context-match\n    \
+                             require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let manifest = "{\n  \"reported_status_contexts\": [\n    \"cargo-fmt\",\n    \
+                    \"oya-governance-protection-context-match\"\n  ]\n}\n";
+    let manifest_file = temp.join("reported-status-contexts.json");
+    fs::write(&manifest_file, manifest).expect("manifest written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            // workflows dir intentionally ABSENT (retired per ADR-0361)
+            "--workflows-dir",
+            temp.join("no-such-workflows-dir").to_str().expect("utf8"),
+            "--reported-contexts",
+            manifest_file.to_str().expect("utf8 manifest path"),
+            "--branch",
+            "dev",
+            "--skip-applied-branch-protection",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "Jenkins manifest must satisfy required contexts with no workflows dir\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("protection-context-match validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
