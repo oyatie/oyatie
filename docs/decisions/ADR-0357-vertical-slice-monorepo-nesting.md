@@ -2,7 +2,7 @@
 
 ## Status
 
-> **Status:** Proposed
+Proposed — 2026-05-25.
 
 ## Date
 
