@@ -29,6 +29,18 @@ serviceAccount:
   automountToken: false
   nonClaim: static-serviceaccount-template-only-no-live-cluster-rbac-tokenreview-or-bound-token-issuance
 
+networkPolicy:
+  # Static app network boundary for FD-001 Oyatie Cloud dogfood posture.
+  # Live CNI enforcement, namespace labels, and traffic-flow proof remain separate rollout evidence.
+  enabled: true
+  nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
+  ingress:
+    gatewayNamespaceName: oya-gateway
+  egress:
+    dnsNamespaceName: kube-system
+    otelNamespaceName: observability
+    otelPort: 4317
+
 image:
   registry: registry.oyatie.dev
   repository: oya-community

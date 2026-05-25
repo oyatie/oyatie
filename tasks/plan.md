@@ -1086,6 +1086,28 @@ Verification:
 - Extracted `.github/workflows/backbone-microservices-ci.yml` governance-smoke run block parses the expanded 51-file argument set.
 - dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+
+### CS-BACKBONE-CLOUD-NETWORKPOLICY-HARDENING-001 — Static Kubernetes NetworkPolicy boundary for FD-001 dogfood workloads
+Scope:
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/values.yaml` default-enabled `networkPolicy` values and static-only non-claim text.
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/templates/networkpolicy.yaml` source NetworkPolicy templates.
+- `microservices/{messenger,mail,social,community}/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml` static rendered NetworkPolicy snapshots.
+- `.github/workflows/backbone-microservices-ci.yml` governance-smoke semantic coverage.
+- Task/evidence/audit tracking.
+- Substrate alignment: FD-001 product delivery remains the master-plan product goal; these network-boundary manifests prepare future Oyatie Cloud tenant workload review without claiming live CNI enforcement, namespace admission, service mesh authorization, or traffic isolation proof.
+
+Acceptance:
+- All four source Helm charts define default-enabled NetworkPolicy templates selecting only the service app Pods with existing FD-001 tenant/cost/workload/regulatory/dogfood labels and explicit non-claim annotations.
+- All four rendered snapshots include `Ingress` and `Egress` policy types, app-Pod selectors, default ingress from the `oya-gateway` namespace, and default egress only to `kube-system` DNS plus `observability` OTLP namespace seams.
+- Backbone governance smoke fails if any values file loses `networkPolicy.enabled: true`, any source template/snapshot is missing, or any rendered NetworkPolicy loses policy types, app selectors, expected gateway/DNS/OTLP namespace seams, labels, or non-claim annotations.
+- Honest non-claim: this is static chart/snapshot network-boundary intent only. No live Kubernetes API server, CNI plugin enforcement, namespace-label admission, Gateway reachability, DNS/OTLP availability, service mesh authorization, ArgoCD sync/health, remote CI green, or production tenant workload deployment is claimed.
+
+Verification:
+- TDD red Ruby static network-policy verification before implementation.
+- Ruby static network-policy verification after implementation across four values files, four source NetworkPolicy templates, and four rendered NetworkPolicy snapshots.
+- Extracted `.github/workflows/backbone-microservices-ci.yml` governance-smoke run block parses the expanded 60-file argument set.
+- tenant-cost-labels coverage, dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS work/verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -1096,7 +1118,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static topology-spread chart/snapshot constraints, static ServiceAccount token-automount hardening snapshots, and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static topology-spread chart/snapshot constraints, static ServiceAccount token-automount hardening snapshots, static NetworkPolicy boundary snapshots, and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Production/cloud workload DB rollout, backup/restore drills, Citus rebalance/failover evidence, and production DB SLO evidence beyond generated write batches, execution contracts, the generic env-gated RLS/Citus harness, and the env-gated disposable Citus workload migration/RLS/outbox harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
