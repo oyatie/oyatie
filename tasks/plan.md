@@ -941,6 +941,23 @@ Verification:
 - Backbone governance smoke Ruby command parses and checks the rendered snapshots along with the chart templates.
 - dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-ARGOCD-FD001-TENANT-METADATA-001 — ArgoCD FD-001 tenant metadata propagation
+Scope:
+- `microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml` metadata, list-generator elements, Helm parameter overrides, and managed namespace labels for the FD-001 dogfood tenant/cost/workload/regulatory label block.
+- `.github/workflows/backbone-microservices-ci.yml` governance smoke semantic assertions for the ApplicationSet tenant metadata, chart paths, four-service list generator, and workload label Helm parameters.
+- Task/evidence/audit tracking.
+
+Acceptance:
+- The static ArgoCD ApplicationSet carries the same FD-001 tenant ID, cost center, workload class, regulatory pack, dogfood substrate, and product-goal metadata used by the source Helm charts and rendered Deployment snapshots.
+- Each generated Application passes those fields into Helm via `workloadLabels.*` parameters so future controller syncs would not silently drift from the chart defaults.
+- Managed namespace metadata carries the same low-cardinality tenant/cost labels with `CreateNamespace=true`, preserving tenant namespace isolation as a static GitOps intent.
+- Honest non-claim: this is a source-controlled ApplicationSet intent update only. No ArgoCD controller reconciliation, namespace creation, sync health, cosign verification, OpenCost report, Kubernetes admission, or production tenant workload deployment is claimed.
+
+Verification:
+- YAML parse and ApplicationSet semantic checks for four generator elements, label values, chart path existence, Helm workload label parameters, template labels, and namespace labels.
+- Backbone governance smoke command parses the new evidence and asserts the ApplicationSet tenant metadata.
+- dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -951,7 +968,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, stateful community vote/moderation HTTP binding, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, stateful community vote/moderation HTTP binding, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
