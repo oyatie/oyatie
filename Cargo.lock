@@ -4340,6 +4340,7 @@ name = "oya-shared-backbone-rest-runtime-adapter"
 version = "0.1.0"
 dependencies = [
  "oya-community-post-store-api",
+ "oya-community-post-store-domain",
  "oya-community-post-store-rest",
  "oya-http-middleware-kernel",
  "oya-http-router-kernel",

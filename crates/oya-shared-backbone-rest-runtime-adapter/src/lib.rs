@@ -6,12 +6,23 @@
 //! It is intentionally honest about the current seam: probes, contract-only
 //! OpenAPI routes, and the stateless typed write routes are
 //! runtime-dispatchable; stateful write-plan routes remain explicit
-//! `501` seams until a backing read/write store is composed.
+//! `501` seams until a backing read/write store is composed. The community
+//! vote/moderation routes can be bound to an explicitly supplied local
+//! in-memory state object for loopback tests; that path still makes no durable
+//! database, broker, cluster, or production deployment claim.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::{fmt::Write as _, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    fmt::Write as _,
+    sync::{Arc, Mutex},
+};
 
-use oya_community_post_store_api::{CommunityApiMode, CreatePostRequest};
+use oya_community_post_store_api::{
+    CastVoteRequest, CommunityApiMode, CreatePostRequest, ModeratePostRequest, ModerationVerb,
+    VoteDirection,
+};
+use oya_community_post_store_domain::{CommunityPost, VoteLedger};
 use oya_community_post_store_rest as community_rest;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
@@ -79,6 +90,104 @@ pub struct BackboneRestRuntimeRoute {
     pub method: &'static str,
     pub path: &'static str,
     pub handler_kind: RuntimeRouteHandlerKind,
+}
+
+#[derive(Clone, Default)]
+pub struct BackboneRestRuntimeState {
+    community: Option<BackboneCommunityJsonState>,
+}
+
+impl BackboneRestRuntimeState {
+    pub fn without_state() -> Self {
+        Self::default()
+    }
+
+    pub fn with_community_state(community: BackboneCommunityJsonState) -> Self {
+        Self {
+            community: Some(community),
+        }
+    }
+
+    fn community_state(&self) -> Option<&BackboneCommunityJsonState> {
+        self.community.as_ref()
+    }
+
+    fn handler_kind_for(&self, route: BackboneRestRuntimeRoute) -> RuntimeRouteHandlerKind {
+        if self.binds_stateful_community_route(route) {
+            RuntimeRouteHandlerKind::JsonWrite
+        } else {
+            route.handler_kind
+        }
+    }
+
+    fn binds_stateful_community_route(&self, route: BackboneRestRuntimeRoute) -> bool {
+        self.community.is_some()
+            && route.microservice == BackboneRestMicroservice::Community
+            && route.handler_kind == RuntimeRouteHandlerKind::TypedWritePlan
+            && matches!(
+                (route.method, route.path),
+                (
+                    community_rest::CAST_VOTE_METHOD,
+                    community_rest::CAST_VOTE_ROUTE
+                ) | (
+                    community_rest::APPLY_MODERATION_ACTION_METHOD,
+                    community_rest::APPLY_MODERATION_ACTION_ROUTE
+                )
+            )
+    }
+}
+
+#[derive(Clone, Default)]
+pub struct BackboneCommunityJsonState {
+    inner: Arc<Mutex<BackboneCommunityJsonStateInner>>,
+}
+
+#[derive(Default)]
+struct BackboneCommunityJsonStateInner {
+    posts: BTreeMap<String, CommunityPost>,
+    vote_ledgers: BTreeMap<String, VoteLedger>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BackboneCommunityJsonStateError {
+    Poisoned,
+}
+
+impl std::fmt::Display for BackboneCommunityJsonStateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BackboneCommunityJsonStateError::Poisoned => {
+                write!(f, "community JSON state lock is poisoned")
+            }
+        }
+    }
+}
+
+impl std::error::Error for BackboneCommunityJsonStateError {}
+
+impl BackboneCommunityJsonState {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn seed_post(&self, post: CommunityPost) -> Result<(), BackboneCommunityJsonStateError> {
+        let post_id = post.post_id.value.clone();
+        let ledger = VoteLedger::new(&post);
+        let mut inner = self
+            .inner
+            .lock()
+            .map_err(|_| BackboneCommunityJsonStateError::Poisoned)?;
+        inner.posts.insert(post_id.clone(), post);
+        inner.vote_ledgers.entry(post_id).or_insert(ledger);
+        Ok(())
+    }
+
+    pub fn post_count(&self) -> Result<usize, BackboneCommunityJsonStateError> {
+        self.inner
+            .lock()
+            .map(|inner| inner.posts.len())
+            .map_err(|_| BackboneCommunityJsonStateError::Poisoned)
+    }
 }
 
 /// A router plus the counts auditors need to understand what is really bound.
@@ -197,7 +306,25 @@ pub fn build_backbone_rest_router(
     microservice: BackboneRestMicroservice,
     dependencies: Vec<BackboneRestReadinessDependency>,
 ) -> Result<BackboneRestRouter, BackboneRestRuntimeError> {
-    let routes = route_runtime_catalog(microservice);
+    build_backbone_rest_router_with_state(
+        microservice,
+        dependencies,
+        BackboneRestRuntimeState::without_state(),
+    )
+}
+
+pub fn build_backbone_rest_router_with_state(
+    microservice: BackboneRestMicroservice,
+    dependencies: Vec<BackboneRestReadinessDependency>,
+    runtime_state: BackboneRestRuntimeState,
+) -> Result<BackboneRestRouter, BackboneRestRuntimeError> {
+    let routes = route_runtime_catalog(microservice)
+        .into_iter()
+        .map(|mut route| {
+            route.handler_kind = runtime_state.handler_kind_for(route);
+            route
+        })
+        .collect::<Vec<_>>();
     let mut router: Router<BackboneRestSyncHandler> = Router::new();
     let mut probe_route_count = 0;
     let mut contract_only_route_count = 0;
@@ -218,8 +345,9 @@ pub fn build_backbone_rest_router(
                 path: route.path,
             })?;
         let route_dependencies = dependencies.clone();
+        let route_state = runtime_state.clone();
         let handler: BackboneRestSyncHandler = Arc::new(move |request: HttpRequest| {
-            dispatch_runtime_route(route, &route_dependencies, &request)
+            dispatch_runtime_route(route, &route_dependencies, &route_state, &request)
         });
         router
             .route(method, route.path, handler)
@@ -234,7 +362,13 @@ pub fn build_backbone_rest_router(
         contract_only_route_count,
         json_write_route_count,
         typed_write_plan_route_count,
-        non_claim: "local Hyper loopback/runtime binding only; no production gateway, TLS, database, broker, or stateful write-route claim",
+        non_claim: if microservice == BackboneRestMicroservice::Community
+            && runtime_state.community_state().is_some()
+        {
+            "local Hyper loopback/runtime binding with local in-memory community state only; no production gateway, TLS, durable database, broker, OpenCost, ArgoCD sync, or live deployment claim"
+        } else {
+            "local Hyper loopback/runtime binding only; no production gateway, TLS, database, broker, or stateful write-route claim"
+        },
     })
 }
 
@@ -282,12 +416,15 @@ pub fn dispatch_backbone_rest_request(
 fn dispatch_runtime_route(
     route: BackboneRestRuntimeRoute,
     dependencies: &[BackboneRestReadinessDependency],
+    runtime_state: &BackboneRestRuntimeState,
     request: &HttpRequest,
 ) -> HttpResponse {
     match route.handler_kind {
         RuntimeRouteHandlerKind::Probe => dispatch_probe_route(route, dependencies),
         RuntimeRouteHandlerKind::ContractOnly => contract_only_response(route, request),
-        RuntimeRouteHandlerKind::JsonWrite => dispatch_json_write_route(route, request),
+        RuntimeRouteHandlerKind::JsonWrite => {
+            dispatch_json_write_route(route, request, runtime_state)
+        }
         RuntimeRouteHandlerKind::TypedWritePlan => typed_write_plan_response(route, request),
     }
 }
@@ -394,6 +531,14 @@ enum JsonWriteBindingError {
         path_value: String,
         body_value: String,
     },
+    StateUnavailable {
+        path: &'static str,
+    },
+    StatePoisoned,
+    NotFound {
+        resource: &'static str,
+        id: String,
+    },
     Handler {
         reason: String,
     },
@@ -403,6 +548,9 @@ impl JsonWriteBindingError {
     fn status_code(&self) -> u16 {
         match self {
             JsonWriteBindingError::Handler { .. } => 422,
+            JsonWriteBindingError::StateUnavailable { .. } => 501,
+            JsonWriteBindingError::StatePoisoned => 500,
+            JsonWriteBindingError::NotFound { .. } => 404,
             _ => 400,
         }
     }
@@ -416,6 +564,9 @@ impl JsonWriteBindingError {
             JsonWriteBindingError::MissingField { .. } => "missing_field",
             JsonWriteBindingError::InvalidField { .. } => "invalid_field",
             JsonWriteBindingError::PathBodyDrift { .. } => "path_body_drift",
+            JsonWriteBindingError::StateUnavailable { .. } => "state_unavailable",
+            JsonWriteBindingError::StatePoisoned => "state_poisoned",
+            JsonWriteBindingError::NotFound { .. } => "not_found",
             JsonWriteBindingError::Handler { .. } => "handler_rejected",
         }
     }
@@ -447,6 +598,15 @@ impl JsonWriteBindingError {
             } => format!(
                 "JSON field `{field}` value `{body_value}` does not match path value `{path_value}`"
             ),
+            JsonWriteBindingError::StateUnavailable { path } => {
+                format!("route `{path}` requires explicitly supplied local state")
+            }
+            JsonWriteBindingError::StatePoisoned => {
+                "local community JSON state lock is poisoned".to_string()
+            }
+            JsonWriteBindingError::NotFound { resource, id } => {
+                format!("{resource} `{id}` was not found in local community JSON state")
+            }
             JsonWriteBindingError::Handler { reason } => {
                 format!("typed REST handler rejected the request: {reason}")
             }
@@ -454,15 +614,27 @@ impl JsonWriteBindingError {
     }
 }
 
+fn community_state_lock(
+    state: &BackboneCommunityJsonState,
+) -> Result<std::sync::MutexGuard<'_, BackboneCommunityJsonStateInner>, JsonWriteBindingError> {
+    state
+        .inner
+        .lock()
+        .map_err(|_| JsonWriteBindingError::StatePoisoned)
+}
+
 fn dispatch_json_write_route(
     route: BackboneRestRuntimeRoute,
     request: &HttpRequest,
+    runtime_state: &BackboneRestRuntimeState,
 ) -> HttpResponse {
     match route.microservice {
         BackboneRestMicroservice::Messenger => dispatch_messenger_json_write(route, request),
         BackboneRestMicroservice::Mail => dispatch_mail_json_write(route, request),
         BackboneRestMicroservice::Social => dispatch_social_json_write(route, request),
-        BackboneRestMicroservice::Community => dispatch_community_json_write(route, request),
+        BackboneRestMicroservice::Community => {
+            dispatch_community_json_write(route, request, runtime_state.community_state())
+        }
     }
     .unwrap_or_else(|error| json_write_error_response(route, request, error))
 }
@@ -504,6 +676,7 @@ fn dispatch_messenger_json_write(
                 idempotency_key: &receipt.idempotency_key,
                 policy_decision_ref: &receipt.policy_decision_ref,
                 extra: Some(("channel_id", receipt.channel_id.as_str())),
+                non_claim: STATELESS_JSON_WRITE_NON_CLAIM,
             }))
         }
     }
@@ -543,6 +716,7 @@ fn dispatch_mail_json_write(
                 idempotency_key: &receipt.idempotency_key,
                 policy_decision_ref: &receipt.policy_decision_ref,
                 extra: Some(("dmarc_action", dmarc_action_name(receipt.dmarc_action))),
+                non_claim: STATELESS_JSON_WRITE_NON_CLAIM,
             }))
         }
     }
@@ -582,12 +756,39 @@ fn dispatch_social_json_write(
                 idempotency_key: &receipt.idempotency_key,
                 policy_decision_ref: &receipt.policy_decision_ref,
                 extra: None,
+                non_claim: STATELESS_JSON_WRITE_NON_CLAIM,
             }))
         }
     }
 }
 
 fn dispatch_community_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    community_state: Option<&BackboneCommunityJsonState>,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    match (route.method, route.path) {
+        (community_rest::CREATE_POST_METHOD, community_rest::CREATE_POST_ROUTE) => {
+            dispatch_community_create_post_json_write(route, request)
+        }
+        (community_rest::CAST_VOTE_METHOD, community_rest::CAST_VOTE_ROUTE) => {
+            let state = community_state
+                .ok_or(JsonWriteBindingError::StateUnavailable { path: route.path })?;
+            dispatch_community_vote_json_write(route, request, state)
+        }
+        (
+            community_rest::APPLY_MODERATION_ACTION_METHOD,
+            community_rest::APPLY_MODERATION_ACTION_ROUTE,
+        ) => {
+            let state = community_state
+                .ok_or(JsonWriteBindingError::StateUnavailable { path: route.path })?;
+            dispatch_community_moderation_json_write(route, request, state)
+        }
+        _ => Err(JsonWriteBindingError::StateUnavailable { path: route.path }),
+    }
+}
+
+fn dispatch_community_create_post_json_write(
     route: BackboneRestRuntimeRoute,
     request: &HttpRequest,
 ) -> Result<HttpResponse, JsonWriteBindingError> {
@@ -626,6 +827,7 @@ fn dispatch_community_json_write(
                 idempotency_key: &receipt.idempotency_key,
                 policy_decision_ref: &receipt.policy_decision_ref,
                 extra: Some(("space_id", space_id.as_str())),
+                non_claim: STATELESS_JSON_WRITE_NON_CLAIM,
             }))
         }
         community_rest::CommunityWriteRouteResponse::CastVote(_)
@@ -633,6 +835,109 @@ fn dispatch_community_json_write(
             unreachable!("stateful community routes are not classified as JsonWrite")
         }
     }
+}
+
+fn dispatch_community_vote_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    state: &BackboneCommunityJsonState,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let post_id = path_capture(request, "post_id")?;
+    reject_path_body_drift(&body, "post_id", &post_id)?;
+    let context = community_context(request)?;
+    let audit_correlation_id = context.request_id.clone();
+    let idempotency_key = context.idempotency_key.clone();
+    let rest_request = CastVoteRequest {
+        post_id: post_id.clone(),
+        voter_ref: required_string(&body, "voter_ref")?,
+        direction: vote_direction(&required_string(&body, "direction")?)?,
+    };
+    let response =
+        {
+            let mut inner = community_state_lock(state)?;
+            let post = inner.posts.get(&post_id).cloned().ok_or_else(|| {
+                JsonWriteBindingError::NotFound {
+                    resource: "community post",
+                    id: post_id.clone(),
+                }
+            })?;
+            let ledger = inner
+                .vote_ledgers
+                .entry(post_id.clone())
+                .or_insert_with(|| VoteLedger::new(&post));
+            community_rest::cast_vote_from_rest(context, &post, ledger, rest_request)
+        }
+        .map_err(|error| JsonWriteBindingError::Handler {
+            reason: format!("{error:?}"),
+        })?;
+
+    Ok(json_write_success_response(JsonWriteReceipt {
+        route,
+        status_code: response.status_code,
+        resource_field: "post_id",
+        resource_id: &response.body.post_id,
+        event_type: response.body.event_type,
+        audit_correlation_id: &audit_correlation_id,
+        idempotency_key: &idempotency_key,
+        policy_decision_ref: &response.body.policy_decision_ref,
+        extra: Some(("vote_id", response.body.vote_id.as_str())),
+        non_claim: STATEFUL_COMMUNITY_JSON_WRITE_NON_CLAIM,
+    }))
+}
+
+fn dispatch_community_moderation_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    state: &BackboneCommunityJsonState,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let target_type = required_string(&body, "target_type")?;
+    if normalized_token(&target_type) != "post" {
+        return Err(JsonWriteBindingError::InvalidField {
+            name: "target_type",
+            expected: "post for the current local community state binding",
+        });
+    }
+    let post_id = match optional_string(&body, "post_id")? {
+        Some(post_id) => post_id,
+        None => required_string(&body, "target_id")?,
+    };
+    let context = community_context(request)?;
+    let audit_correlation_id = context.request_id.clone();
+    let idempotency_key = context.idempotency_key.clone();
+    let rest_request = ModeratePostRequest {
+        policy_ref: required_string(&body, "policy_ref")?,
+        evidence_ref: required_string(&body, "evidence_ref")?,
+        verb: moderation_verb(&required_string(&body, "verb")?)?,
+    };
+    let response =
+        {
+            let inner = community_state_lock(state)?;
+            let post = inner.posts.get(&post_id).cloned().ok_or_else(|| {
+                JsonWriteBindingError::NotFound {
+                    resource: "community post",
+                    id: post_id.clone(),
+                }
+            })?;
+            community_rest::apply_moderation_action(context, &post, rest_request)
+        }
+        .map_err(|error| JsonWriteBindingError::Handler {
+            reason: format!("{error:?}"),
+        })?;
+
+    Ok(json_write_success_response(JsonWriteReceipt {
+        route,
+        status_code: response.status_code,
+        resource_field: "post_id",
+        resource_id: &response.body.post_id,
+        event_type: response.body.event_type,
+        audit_correlation_id: &audit_correlation_id,
+        idempotency_key: &idempotency_key,
+        policy_decision_ref: &response.body.policy_decision_ref,
+        extra: Some(("evidence_ref", response.body.evidence_ref.as_str())),
+        non_claim: STATEFUL_COMMUNITY_JSON_WRITE_NON_CLAIM,
+    }))
 }
 
 struct JsonWriteReceipt<'a> {
@@ -645,11 +950,16 @@ struct JsonWriteReceipt<'a> {
     idempotency_key: &'a str,
     policy_decision_ref: &'a str,
     extra: Option<(&'a str, &'a str)>,
+    non_claim: &'a str,
 }
+
+const STATELESS_JSON_WRITE_NON_CLAIM: &str =
+    "local stateless write handler only; no database, broker, or live deployment claim";
+const STATEFUL_COMMUNITY_JSON_WRITE_NON_CLAIM: &str = "local in-memory state handler only; no durable database, broker, cluster, OpenCost, ArgoCD sync, or live deployment claim";
 
 fn json_write_success_response(receipt: JsonWriteReceipt<'_>) -> HttpResponse {
     let mut body = format!(
-        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"runtime_handler\":\"json_write\",\"status_code\":{},\"{}\":\"{}\",\"event_type\":\"{}\",\"audit_correlation_id\":\"{}\",\"idempotency_key\":\"{}\",\"policy_decision_ref\":\"{}\",\"non_claim\":\"local stateless write handler only; no database, broker, or live deployment claim\"",
+        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"runtime_handler\":\"json_write\",\"status_code\":{},\"{}\":\"{}\",\"event_type\":\"{}\",\"audit_correlation_id\":\"{}\",\"idempotency_key\":\"{}\",\"policy_decision_ref\":\"{}\",\"non_claim\":\"{}\"",
         receipt.route.microservice.slug(),
         receipt.route.method,
         receipt.route.path,
@@ -659,7 +969,8 @@ fn json_write_success_response(receipt: JsonWriteReceipt<'_>) -> HttpResponse {
         json_string_escape(receipt.event_type),
         json_string_escape(receipt.audit_correlation_id),
         json_string_escape(receipt.idempotency_key),
-        json_string_escape(receipt.policy_decision_ref)
+        json_string_escape(receipt.policy_decision_ref),
+        json_string_escape(receipt.non_claim)
     );
     if let Some((name, value)) = receipt.extra {
         body.push_str(&format!(
@@ -1030,6 +1341,30 @@ fn community_mode(value: &str) -> Result<CommunityApiMode, JsonWriteBindingError
     }
 }
 
+fn vote_direction(value: &str) -> Result<VoteDirection, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "up" | "upvote" => Ok(VoteDirection::Up),
+        "down" | "downvote" => Ok(VoteDirection::Down),
+        "clear" | "none" => Ok(VoteDirection::Clear),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "direction",
+            expected: "one of up, down, clear",
+        }),
+    }
+}
+
+fn moderation_verb(value: &str) -> Result<ModerationVerb, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "allow" | "resolve_flag" | "unhide" | "unlock" => Ok(ModerationVerb::Allow),
+        "hide" | "lock" | "quarantine" => Ok(ModerationVerb::Hide),
+        "remove" | "delete" => Ok(ModerationVerb::Remove),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "verb",
+            expected: "one of allow, hide, remove, resolve_flag, unhide, unlock, lock, quarantine, delete",
+        }),
+    }
+}
+
 fn dmarc_action_name(value: DmarcApiAction) -> &'static str {
     match value {
         DmarcApiAction::Accept => "accept",
@@ -1184,6 +1519,7 @@ fn community_dependencies(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_community_post_store_domain::{CommunityAuthor, CommunityMode, CommunityPost};
     use std::collections::BTreeMap;
     use std::io::{Read, Write};
     use std::net::{SocketAddr, TcpStream};
@@ -1219,6 +1555,36 @@ mod tests {
             ),
             ("x-request-id".to_string(), request_id.to_string()),
         ])
+    }
+
+    fn seeded_community_post(post_id: &str) -> CommunityPost {
+        CommunityPost::new(
+            post_id.to_string(),
+            "thread:seed".to_string(),
+            "tenant:t".to_string(),
+            CommunityMode::Reddit,
+            CommunityAuthor::new(
+                "display:author".to_string(),
+                "user:author".to_string(),
+                None,
+            )
+            .unwrap(),
+            "body:seed".to_string(),
+            "retention:community".to_string(),
+        )
+        .unwrap()
+    }
+
+    fn community_router_with_seeded_post() -> (BackboneRestRouter, BackboneCommunityJsonState) {
+        let state = BackboneCommunityJsonState::new();
+        state.seed_post(seeded_community_post("post-1")).unwrap();
+        let built = build_backbone_rest_router_with_state(
+            BackboneRestMicroservice::Community,
+            Vec::new(),
+            BackboneRestRuntimeState::with_community_state(state.clone()),
+        )
+        .unwrap();
+        (built, state)
     }
 
     #[test]
@@ -1396,6 +1762,83 @@ mod tests {
         assert_eq!(response.status, 501);
         assert!(body.contains("typed_write_plan_required"));
         assert!(body.contains("backing read/write state"));
+    }
+
+    #[test]
+    fn community_stateful_json_write_routes_bind_when_in_memory_state_is_composed() {
+        let (built, _) = community_router_with_seeded_post();
+
+        assert_eq!(built.route_count, 24);
+        assert_eq!(built.probe_route_count, 2);
+        assert_eq!(built.contract_only_route_count, 19);
+        assert_eq!(built.json_write_route_count, 3);
+        assert_eq!(built.typed_write_plan_route_count, 0);
+        assert!(built.non_claim.contains("local in-memory community state"));
+    }
+
+    #[test]
+    fn community_vote_json_write_uses_seeded_state_and_persists_vote_ledger() {
+        let (built, _) = community_router_with_seeded_post();
+        let chain = empty_middleware_chain();
+        let body = r#"{"post_id":"post-1","voter_ref":"user:u","direction":"up"}"#;
+
+        let response = dispatch_backbone_rest_request(
+            json_request(HttpMethod::Post, "/posts/post-1/vote", body),
+            &built.router,
+            &chain,
+        );
+        let parsed: Value = serde_json::from_slice(&response.body).unwrap();
+
+        assert_eq!(response.status, 200);
+        assert_eq!(parsed["runtime_handler"], "json_write");
+        assert_eq!(parsed["event_type"], "community.vote.cast");
+        assert_eq!(parsed["post_id"], "post-1");
+        assert_eq!(parsed["vote_id"], "idem-json");
+        assert!(
+            parsed["non_claim"]
+                .as_str()
+                .unwrap()
+                .contains("local in-memory state")
+        );
+
+        let duplicate = dispatch_backbone_rest_request(
+            json_request(HttpMethod::Post, "/posts/post-1/vote", body),
+            &built.router,
+            &chain,
+        );
+        let duplicate_body = String::from_utf8(duplicate.body).unwrap();
+
+        assert_eq!(duplicate.status, 422);
+        assert!(duplicate_body.contains("handler_rejected"));
+        assert!(duplicate_body.contains("DuplicateVote"));
+    }
+
+    #[test]
+    fn community_moderation_json_write_uses_seeded_state() {
+        let (built, _) = community_router_with_seeded_post();
+        let chain = empty_middleware_chain();
+        let response = dispatch_backbone_rest_request(
+            json_request(
+                HttpMethod::Post,
+                "/moderation/actions",
+                r#"{"target_id":"post-1","target_type":"post","verb":"hide","policy_ref":"policy:moderation","evidence_ref":"flag:1"}"#,
+            ),
+            &built.router,
+            &chain,
+        );
+        let parsed: Value = serde_json::from_slice(&response.body).unwrap();
+
+        assert_eq!(response.status, 201);
+        assert_eq!(parsed["runtime_handler"], "json_write");
+        assert_eq!(parsed["event_type"], "community.moderation.actioned");
+        assert_eq!(parsed["post_id"], "post-1");
+        assert_eq!(parsed["evidence_ref"], "flag:1");
+        assert!(
+            parsed["non_claim"]
+                .as_str()
+                .unwrap()
+                .contains("local in-memory state")
+        );
     }
 
     #[tokio::test]

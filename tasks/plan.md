@@ -958,6 +958,24 @@ Verification:
 - Backbone governance smoke command parses the new evidence and asserts the ApplicationSet tenant metadata.
 - dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-COMMUNITY-STATEFUL-JSON-WRITE-BINDING-001 — Local in-memory community vote/moderation JSON binding
+Scope:
+- `crates/oya-shared-backbone-rest-runtime-adapter/**` optional runtime state composition for community vote/moderation JSON write routes.
+- `crates/oya-shared-backbone-rest-runtime-adapter/Cargo.toml` and `Cargo.lock` path dependency wiring for the community domain post/ledger types already required by the service-owned REST vote handler.
+- Task/evidence/audit tracking.
+
+Acceptance:
+- The default community router keeps vote/moderation as honest `501 typed_write_plan_required` seams when no backing state is explicitly supplied.
+- A caller-supplied `BackboneCommunityJsonState` can seed local community posts and bind `POST /posts/{post_id}/vote` plus `POST /moderation/actions` as JSON write routes through the existing service-owned REST typed handlers.
+- The vote route mutates the local in-memory vote ledger so duplicate idempotency/vote requests are rejected by the existing domain/usecase logic.
+- Runtime counts distinguish the composed local state path (`json_write=3`, `typed_write_plan=0`) from the default stateless path (`json_write=1`, `typed_write_plan=2`).
+- Honest non-claim: this is a local in-memory loopback binding only. No durable Postgres/Citus persistence, broker/outbox publish, Kubernetes Gateway, OpenCost report, ArgoCD sync/health, or production tenant workload deployment is claimed.
+
+Verification:
+- TDD red/green focused cargo test for the new state-composed route binding tests.
+- `cargo test -p oya-shared-backbone-rest-runtime-adapter --lib`.
+- dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -968,10 +986,10 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, stateful community vote/moderation HTTP binding, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
 - Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.
-- Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-edge-tls-hardening-20260524` plus PR closeout evidence.
+- Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-community-stateful-json-write-binding-20260525` plus PR closeout evidence.
 - Pull request against `dev` opened from the isolated worktree branch: https://github.com/jason931225/oyatie/pull/179.
