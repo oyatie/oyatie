@@ -158,6 +158,65 @@ controller:
                             hostPath:
                               path: /Users/jasonlee/Developer/source
                               type: Directory
+                  - name: "rust-parallel"
+                    namespace: "oya-ci-jenkins"
+                    label: "oya-rust-parallel"
+                    yamlMergeStrategy: "override"
+                    # Same as rust-build but a 1-CPU request so multiple lanes
+                    # co-schedule on the single local node (concurrency demo).
+                    # Production scales lanes with Karpenter (cap, not fixed pool).
+                    yaml: |
+                      apiVersion: v1
+                      kind: Pod
+                      spec:
+                        securityContext:
+                          runAsNonRoot: true
+                          runAsUser: 1000
+                          fsGroup: 1000
+                        containers:
+                          - name: rust
+                            image: rust:1-bookworm
+                            command: ["sleep"]
+                            args: ["infinity"]
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities:
+                                drop: ["ALL"]
+                            env:
+                              - name: RUSTC_WRAPPER
+                                value: "sccache"
+                              - name: SCCACHE_BUCKET
+                                value: "oya-ci-sccache-shared-prod"
+                              - name: SCCACHE_ENDPOINT
+                                value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
+                              - name: SCCACHE_S3_USE_SSL
+                                value: "false"
+                              - name: SCCACHE_REGION
+                                value: "oya-local"
+                              - name: CARGO_INCREMENTAL
+                                value: "0"
+                              - name: AWS_ACCESS_KEY_ID
+                                valueFrom:
+                                  secretKeyRef: { name: seaweedfs-s3, key: access_key }
+                              - name: AWS_SECRET_ACCESS_KEY
+                                valueFrom:
+                                  secretKeyRef: { name: seaweedfs-s3, key: secret_key }
+                            volumeMounts:
+                              - name: repo-src
+                                mountPath: /workspace-src
+                                readOnly: true
+                            resources:
+                              requests:
+                                cpu: "1"
+                                memory: "2Gi"
+                              limits:
+                                cpu: "3"
+                                memory: "6Gi"
+                        volumes:
+                          - name: repo-src
+                            hostPath:
+                              path: /Users/jasonlee/Developer/source
+                              type: Directory
 
 persistence:
   enabled: true
