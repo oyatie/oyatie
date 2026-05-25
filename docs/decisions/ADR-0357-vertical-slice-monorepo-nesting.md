@@ -1,3 +1,12 @@
+---
+id: ADR-0357
+status: Proposed
+date: 2026-05-25
+owners:
+  - council-architecture
+supersedes: []
+amends: []
+---
 # ADR-0357: Vertical-slice monorepo nesting (co-locate crate code under microservices/<ms>/crates/)
 
 ## Status

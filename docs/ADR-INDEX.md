@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 293
-- **Numbering:** ADR-0001..ADR-0356 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0357
-- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 85, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 294
+- **Numbering:** ADR-0001..ADR-0357 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0358
+- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 86, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -279,12 +279,12 @@ doc_status: published
 | ADR-0319 | Proposed | Front Office / Middle Office / Back Office Information-Barrier Doctrine | Oyatie governance and compliance architecture | [`ADR-0319-front-middle-back-office-information-barrier.md`](decisions/ADR-0319-front-middle-back-office-information-barrier.md) |
 | ADR-0320 | Proposed | Apprentice, Intern, Resident, and Fellow Transient Identity Doctrine | identity-platform, community-platform, workplace-integration, audit-chain, payments-platform | [`ADR-0320-apprentice-intern-resident-fellow-transient-identity.md`](decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md) |
 | ADR-0321 | Proposed | B2B SaaS Industry-Leader Coverage Doctrine | council-architecture | [`ADR-0321-b2b-saas-industry-leader-coverage.md`](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) |
-| ADR-0322 | Proposed | Substance Bar as Doctrine and CI Enforcement | council-architecture, council-product, council-engineering, council-quality, council-documentation, axis-policy-engine, axis-ontology, axis-workflow-engine, axis-foundry, ops-compliance, ops-sre-reliability | [`ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md`](decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md) |
-| ADR-0323 | Proposed | Multi-Wave Sequencing Doctrine | council-architecture, council-engineering, council-product, council-quality, council-foundry, axis-workflow-engine, axis-foundry, axis-policy-engine, ops-sre-reliability, ops-program-management | [`ADR-0323-multi-wave-sequencing-doctrine.md`](decisions/ADR-0323-multi-wave-sequencing-doctrine.md) |
-| ADR-0324 | Proposed | Anti-Script Anti-Template Doctrine | council-architecture, council-engineering, council-quality, council-foundry, council-documentation, axis-policy-engine, axis-workflow-engine, axis-foundry, ops-compliance, ops-program-management | [`ADR-0324-anti-script-anti-template-doctrine.md`](decisions/ADR-0324-anti-script-anti-template-doctrine.md) |
-| ADR-0325 | Proposed | Capability Tier Pricing Anchors Public | council-product, council-architecture, council-marketing, council-finance, council-go-to-market, council-engineering, axis-billing, axis-tenancy, axis-policy-engine, axis-workflow-engine, axis-foundry, ops-compliance | [`ADR-0325-capability-tier-pricing-anchors-public.md`](decisions/ADR-0325-capability-tier-pricing-anchors-public.md) |
-| ADR-0326 | Proposed | Per-Tenant Data Residency Attestation | council-architecture, council-privacy, council-security, council-compliance, council-product, axis-tenancy, axis-policy-engine, axis-audit-chain, axis-storage, axis-network, ops-compliance, ops-sre-reliability | [`ADR-0326-per-tenant-data-residency-attestation.md`](decisions/ADR-0326-per-tenant-data-residency-attestation.md) |
-| ADR-0327 | Proposed | Wave 3 Completion Criteria and Promotion Gates | council-architecture, council-engineering, council-quality, council-foundry, council-product, council-compliance, council-documentation, axis-policy-engine, axis-workflow-engine, axis-foundry, ops-program-management, ops-sre-reliability, ops-compliance | [`ADR-0327-wave-3-completion-criteria-and-promotion-gates.md`](decisions/ADR-0327-wave-3-completion-criteria-and-promotion-gates.md) |
+| ADR-0322 | Proposed | Substance Bar as Doctrine and CI Enforcement | council-quality | [`ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md`](decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md) |
+| ADR-0323 | Proposed | Multi-Wave Sequencing Doctrine | council-foundry | [`ADR-0323-multi-wave-sequencing-doctrine.md`](decisions/ADR-0323-multi-wave-sequencing-doctrine.md) |
+| ADR-0324 | Proposed | Anti-Script Anti-Template Doctrine | council-quality | [`ADR-0324-anti-script-anti-template-doctrine.md`](decisions/ADR-0324-anti-script-anti-template-doctrine.md) |
+| ADR-0325 | Proposed | Capability Tier Pricing Anchors Public | council-product | [`ADR-0325-capability-tier-pricing-anchors-public.md`](decisions/ADR-0325-capability-tier-pricing-anchors-public.md) |
+| ADR-0326 | Proposed | Per-Tenant Data Residency Attestation | council-compliance | [`ADR-0326-per-tenant-data-residency-attestation.md`](decisions/ADR-0326-per-tenant-data-residency-attestation.md) |
+| ADR-0327 | Proposed | Wave 3 Completion Criteria and Promotion Gates | council-foundry | [`ADR-0327-wave-3-completion-criteria-and-promotion-gates.md`](decisions/ADR-0327-wave-3-completion-criteria-and-promotion-gates.md) |
 | ADR-0328 | Proposed | Substance Bar as Canonical Sequence and Batch Discipline | council-architecture | [`ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md`](decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md) |
 | ADR-0329 | Accepted | Tier system retired; replaced by tenant-class model | council-architecture, council-product, council-engineering, council-privacy, council-security, axis-policy-engine, axis-tenancy, axis-foundry, ops-compliance, ops-sre-reliability | [`ADR-0329-tier-system-retired-replaced-by-tenant-class.md`](decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md) |
 | ADR-0330 | Accepted | Tenant Class — demo_trial vs paid with Composable Billing Components | council-architecture | [`ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md`](decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md) |
@@ -314,11 +314,12 @@ doc_status: published
 | ADR-0354 | Proposed | Amendment — HTTP/3 Fallback Chain, Strict TLS, ECH, PQC Hybrid | council-architecture, council-security, council-privacy, axis-network, axis-cloud-k8s, axis-edge, ops-sre-reliability, ops-security, ops-compliance | [`ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md`](decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) |
 | ADR-0355 | Proposed | Amendment — Library-First / Network-Opt-In Clarification | council-architecture, council-product, council-privacy, council-security, ops-sre-reliability, ops-compliance, axis-intelligence, axis-foundry, axis-policy-engine, axis-tenancy, axis-audit-chain | [`ADR-0355-amendment-library-first-network-opt-in-clarification.md`](decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) |
 | ADR-0356 | Proposed | Amendment — Library-First Ontology Read-Path Clarification | council-architecture, council-product, council-privacy, council-security, ops-sre-reliability, ops-compliance, axis-ontology, axis-policy-engine, axis-workflow-engine, axis-audit-chain, axis-tenancy, axis-intelligence | [`ADR-0356-amendment-library-first-ontology-read-path.md`](decisions/ADR-0356-amendment-library-first-ontology-read-path.md) |
+| ADR-0357 | Proposed | Vertical-slice monorepo nesting (co-locate crate code under microservices/<ms>/crates/) | council-architecture | [`ADR-0357-vertical-slice-monorepo-nesting.md`](decisions/ADR-0357-vertical-slice-monorepo-nesting.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0357), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0358), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -345,6 +346,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 293 ADR files (sorted ascending)
+- `decisions/` directory listing — 294 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
