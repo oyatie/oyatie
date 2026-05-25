@@ -46,6 +46,7 @@ spec:
     spec:
       runtimeClassName: runc
       serviceAccountName: oya-mail
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:

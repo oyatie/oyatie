@@ -24,6 +24,10 @@ podRuntime:
 
 serviceAccount:
   name: oya-messenger
+  # FD-001 app workloads do not need Kubernetes API credentials by default.
+  # Keep token projection off unless a future live controller/RBAC slice proves need.
+  automountToken: false
+  nonClaim: static-serviceaccount-template-only-no-live-cluster-rbac-tokenreview-or-bound-token-issuance
 
 image:
   registry: registry.oyatie.dev

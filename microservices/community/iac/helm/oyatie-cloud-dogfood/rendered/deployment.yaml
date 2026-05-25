@@ -46,6 +46,7 @@ spec:
     spec:
       runtimeClassName: runc
       serviceAccountName: oya-community
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:

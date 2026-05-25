@@ -46,6 +46,7 @@ spec:
     spec:
       runtimeClassName: kata-cloud-hypervisor
       serviceAccountName: oya-messenger
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:

@@ -40,6 +40,7 @@ spec:
     spec:
       runtimeClassName: {{ .Values.podRuntime.runtimeClassName | quote }}
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}
       securityContext:
         runAsNonRoot: true
         seccompProfile:
