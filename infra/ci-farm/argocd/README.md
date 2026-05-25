@@ -23,7 +23,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 | Element | Production | Local profile |
 |---|---|---|
-| progressive delivery | Argo Rollouts canary + automated metric-gated rollback (ADR-0349) | ArgoCD core installed; Rollouts + analysis templates not yet wired |
+| progressive delivery | Argo Rollouts canary + automated metric-gated rollback (ADR-0349) | Argo Rollouts installed; canary + AnalysisTemplate wired (`rollouts-demo.yaml`); metric provider is a job placeholder (prod: Prometheus burn-rate) |
 | image trust | cosign-verified images (ADR-0181) admission-gated | not enforced locally |
 | HA | redundant controllers/repo-servers | single replicas (upstream `install.yaml`) |
 | exposure | ingress + SSO (dex/OIDC) | `port-forward` + initial admin secret |
@@ -32,6 +32,10 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 - **Claimed when green:** ArgoCD control plane runs on local k8s (server +
   application/applicationset controllers + repo-server + redis + dex).
-- **NOT claimed:** no Application is synced, no Argo Rollouts canary/analysis or
-  metric-gated rollback is configured, no measured deploy SLO. Per spec
-  `non_claims`, progressive-delivery behavior stays unproven pending wiring.
+- **Demonstrated:** Argo Rollouts canary stepped `25% → analysis gate → 50% →
+  75% → promote` on an image bump, with an `AnalysisRun` gating promotion
+  (`rollouts-demo.yaml`; evidence in `evidence/ci-farm-local/`).
+- **NOT claimed:** no ArgoCD git `Application` is synced (needs an in-cluster git
+  remote — same seam as the build lane), the analysis metric is a job placeholder
+  (not a real Prometheus SLO query), and no metric-triggered rollback or deploy
+  SLO is measured. Per spec `non_claims`, those stay unproven pending wiring.

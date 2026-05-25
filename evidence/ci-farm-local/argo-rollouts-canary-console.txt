@@ -1,0 +1,15 @@
+=== trigger canary (image bump) ===
+rollout.argoproj.io/demo patched
+=== watch canary step through weights + analysis (~70s) ===
+[1] phase=Progressing step=0 canaryWeight=0 analysisRun=none
+[2] phase=Paused step=1 canaryWeight=0 analysisRun=none
+[3] phase=Paused step=1 canaryWeight=0 analysisRun=none
+[4] phase=Progressing step=2 canaryWeight=0 analysisRun=Running
+[5] phase=Paused step=4 canaryWeight=0 analysisRun=Successful
+[6] phase=Paused step=4 canaryWeight=0 analysisRun=Successful
+[7] phase=Paused step=4 canaryWeight=0 analysisRun=Successful
+[8] phase=Paused step=6 canaryWeight=0 analysisRun=Successful
+[9] phase=Paused step=6 canaryWeight=0 analysisRun=Successful
+[10] phase=Progressing step=7 canaryWeight=0 analysisRun=Successful
+[11] phase=Healthy step=7 canaryWeight=0 analysisRun=Successful
+CANARY_PROMOTED
