@@ -325,6 +325,11 @@ mod tests {
     }
 
     #[test]
+    fn aggregated_lane_catalog_contains_platform_substrate_defaults() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"platform-substrate-defaults"));
+    }
+
+    #[test]
     fn dependency_seam_dispatch_uses_required_ci_args() {
         let args = dispatch_args_for_lane("dependency-seam");
         assert!(args.contains(&"--online-audit".to_string()));
@@ -341,6 +346,71 @@ mod tests {
     #[test]
     fn aggregated_lane_catalog_contains_cloud_iac_module_catalog() {
         assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-catalog"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_gitops_evidence() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-gitops-evidence"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_helm_chart_signed_image_wiring() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-helm-chart-signed-image-wiring"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_kubewarden_admission_policy() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-kubewarden-admission-policy"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_cell_topology() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-cell-topology"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_opentofu_validation() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-opentofu-validation"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_module_provenance() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-provenance"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_module_provider_requirements() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-provider-requirements"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_module_release_index() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-release-index"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_module_archive() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-archive"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_module_registry_protocol() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-registry-protocol"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_provider_readiness() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-provider-readiness"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_provider_lockfile() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-provider-lockfile"));
+    }
+
+    #[test]
+    fn aggregated_lane_catalog_contains_cloud_iac_provider_signature_review() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-provider-signature-review"));
     }
 
     #[test]

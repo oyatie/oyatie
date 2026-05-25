@@ -1,0 +1,289 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-opentofu-validation",
+  "timestamp_iso": "2026-05-24T21:02:17Z",
+  "freshness_unix": 1779656537,
+  "git_sha": "a93fe797",
+  "scope": [
+    "crates/oya-dev-cli/src/cloud_iac_opentofu_validation_gate.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/commands/gate/run_all.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "microservices/cloud-iac/manifest.json",
+    "microservices/cloud-iac/tofu/modules/dns/main.tofu",
+    "microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu",
+    "microservices/cloud-iac/tofu/modules/kms/main.tofu",
+    "microservices/cloud-iac/tofu/modules/secrets-bootstrap/main.tofu",
+    "microservices/cloud-iac/tofu/modules/vpc/main.tofu",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-opentofu-validation-gate-20260524.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Make Cloud IaC OpenTofu module skeleton init/validate evidence a first-class fail-closed local Oya gate while preserving tofu test/plan/apply, provider APIs, provider credentials, state backend, provider lock/provenance, registry API, Argo CD/Kubernetes APIs, provider-resource-complete modules, SLO, DR, and capacity telemetry as explicit non-claims.",
+  "complementary_plan_reference": [
+    "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
+    "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
+    "plan/hyperscaler-grade-cloud-platform-quality-review.md"
+  ],
+  "best_practice_sources": [
+    {
+      "source": "OpenTofu validate command",
+      "url": "https://opentofu.org/docs/cli/commands/validate/",
+      "evidence_used": "The gate uses tofu validate as a reusable-module syntax/internal-consistency check and does not treat it as state-aware plan/apply proof."
+    },
+    {
+      "source": "OpenTofu init command",
+      "url": "https://opentofu.org/docs/cli/commands/init/",
+      "evidence_used": "The gate runs init with -backend=false in temporary module copies only, never in the source tree."
+    },
+    {
+      "source": "OpenTofu dependency lock file",
+      "url": "https://opentofu.org/docs/language/files/dependency-lock/",
+      "evidence_used": "Provider lockfile/provenance remains a non-claim because current skeleton modules declare no provider dependencies requiring lock entries."
+    },
+    {
+      "source": "OpenTofu test command",
+      "url": "https://opentofu.org/docs/cli/commands/test/",
+      "evidence_used": "tofu test remains a non-claim; the gate rejects .tofutest.hcl/.tftest.hcl while catalog rows still set tests_present=false."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "./bin/oya gate validate cloud-iac-opentofu-validation --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --modules-root microservices/cloud-iac/tofu/modules",
+      "result": "FAIL before implementation",
+      "summary": "The command exited 2 and printed usage because cloud-iac-opentofu-validation was not wired in the gate dispatcher. Log: /tmp/cs-cloud-iac-opentofu-validation-red.log."
+    },
+    {
+      "command": "temp-copy per-module tofu init -backend=false -input=false -no-color && tofu validate -no-color probe",
+      "result": "FAIL before syntax repair",
+      "summary": "OpenTofu v1.12.0 probe passed for cloud-account and dns but failed k8s-namespace-bootstrap, kms, secrets-bootstrap, and vpc on invalid single-line variable blocks."
+    },
+    {
+      "command": "tofu fmt -check -recursive microservices/cloud-iac/tofu/modules",
+      "result": "FAIL before formatting normalization",
+      "summary": "Reported formatting drift in dns plus the repaired modules; tofu fmt -recursive normalized the claimed module skeleton files."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_opentofu_validation -- --nocapture",
+      "result": "PASS",
+      "summary": "7 focused tests passed, covering unknown flag rejection, valid temp-copy validation, validate failure, generated state artifact rejection, provider resource overclaim rejection, missing manifest scope rejection, and run-all catalog membership."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after adding cloud-iac-opentofu-validation to AGGREGATED_VALIDATE_LANES."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-opentofu-validation --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --modules-root microservices/cloud-iac/tofu/modules",
+      "result": "PASS",
+      "summary": "Live Cloud IaC OpenTofu validation gate passed: 6 modules, 6 init runs, 6 validate runs."
+    },
+    {
+      "command": "tofu fmt -check -recursive microservices/cloud-iac/tofu/modules",
+      "result": "PASS",
+      "summary": "OpenTofu formatting check passed after normalizing dns and repaired module files."
+    },
+    {
+      "command": "find microservices/cloud-iac/tofu/modules -maxdepth 4 -name .terraform -o -name .terraform.lock.hcl -o -name terraform.tfstate* -o -name '*.tfvars' -o -name '*.tfplan' -o -name '*.tofutest.hcl' -o -name '*.tftest.hcl'",
+      "result": "PASS",
+      "summary": "No generated OpenTofu directories, lockfiles, state, tfvars, plans, or test files were left under source modules."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-catalog; ./bin/oya gate validate cloud-iac-gitops-evidence; ./bin/oya gate validate cloud-iac-cell-topology",
+      "result": "PASS",
+      "summary": "Existing Cloud IaC module-catalog, GitOps-evidence, and cell-topology gates remain green after adding OpenTofu validation."
+    },
+    {
+      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain",
+      "result": "PASS",
+      "summary": "Scoped Rust check passed."
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped clippy passed with warnings denied."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Workspace Rust formatting check passed after formatting touched Rust files."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json; python3 -m json.tool microservices/cloud-iac/tofu/modules/catalog.json; python3 -m json.tool microservices/cloud-iac/cell-topology/foundation.json; audit-chain JSONL parse",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest/catalog/topology JSON parse and audit-chain JSONL parse passed before appending this slice row."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure && ./bin/oya gate validate api-semver --contracts-dir contracts && ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Planning closure, API semver, and architecture-boundaries passed."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root <touched Cloud IaC gate/manifest/module/task files>",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed: 10 documents, 2357 lines, 0 dependency edges, 0 serialization edges, 0 global artifact writes."
+    },
+    {
+      "command": "./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-opentofu-validation-retired-corpus-clean",
+      "result": "PASS_WITH_SCOPE_NOTE",
+      "summary": "Scoped clean corpus for new gate/manifest/modules/tasks passed: 4 documents, 0 drift hits. A broader touched-shared-file corpus hit pre-existing retired vocabulary in shared CLI/catalog files and was not used as closeout evidence."
+    },
+    {
+      "command": "./bin/oya gate run-all",
+      "result": "PASS",
+      "summary": "Default aggregate gates passed 85/85 lanes, including cloud-iac-opentofu-validation."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-opentofu-validation-gate-20260524.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-opentofu-validation-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam passed 6/6 subchecks with the new multispectrum evidence."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "FAIL_UNRELATED_BLOCKERS",
+      "summary": "D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4350 passed/1 skipped), and D-6 ADR index write passed. D-5 ci-required run-all failed on unrelated/concurrent app-shell compile drift for missing identity_workforce_suite and on oya-vcs-admission evidence metadata/audit-chain gaps in app-shell evidence files; provider execution and required-secrets preflight passed. D-7 adr-shape still fails on pre-existing ADR-0322..ADR-0349 section-shape diagnostics."
+    },
+    {
+      "command": "./bin/oya vcs work; ./bin/oya vcs verify --evidence evidence/multispectrum/cs-cloud-iac-opentofu-validation-gate-20260524.json; ./bin/oya vcs done --evidence evidence/multispectrum/cs-cloud-iac-opentofu-validation-gate-20260524.json; ./bin/oya vcs promote --bundle CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001 --environment local-foundry",
+      "result": "PASS",
+      "summary": "Oya VCS work, verify, done, and promote were accepted for CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001."
+    }
+  ],
+  "implemented_claims": [
+    "First-class local oya gate validate cloud-iac-opentofu-validation dispatcher, usage, run-all, and lane-catalog registration.",
+    "Gate reads Cloud IaC manifest and local OpenTofu module catalog, then validates every catalog module in a temporary copy using tofu init -backend=false -input=false -no-color followed by tofu validate -no-color.",
+    "Gate rejects generated OpenTofu artifacts in source, backend/provider/resource/data-source blocks, high-confidence raw secret markers, skeleton overclaims, missing main.tofu files, and manifest/catalog drift.",
+    "Cloud IaC manifest now records opentofu_validation_scope with exact command posture, official-source references, syntax-repair list, and explicit non-claims.",
+    "Invalid HCL variable-block syntax was repaired in k8s-namespace-bootstrap, kms, secrets-bootstrap, and vpc; dns plus repaired modules were normalized with tofu fmt."
+  ],
+  "explicit_non_claims": [
+    "No tofu test, plan, apply, destroy, import, drift detection, rollback, or live provisioning runtime is implemented.",
+    "No provider APIs, provider credentials, provider blocks, backend state access, provider dependency lockfile, provider provenance, or provider-resource-complete module bodies are claimed.",
+    "No live private module registry API, module signing, provider mirror, Argo CD API, Kubernetes API, repository credentials, live sync/diff/health/prune/self-heal, or cosign verification is implemented.",
+    "No REST/SDK/worker runtime adapters, measured SLO, active-active DR, live mesh enforcement, autosharding, auto-rebalance, capacity telemetry, or hyperscaler readiness claim is made."
+  ],
+  "false_green_findings_closed": [
+    "Cloud IaC manifest previously preserved no init/validate evidence; now local syntax/init/validate evidence is first-class and gate-backed.",
+    "Four module skeletons previously failed real OpenTofu parsing despite being listed in the local module catalog; this slice repairs that HCL syntax and prevents future syntax drift from going green.",
+    "OpenTofu validation now runs in temp copies, so a green gate cannot be produced by committing generated state/lock/tfvars/plan artifacts into the source tree."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required is not green because of unrelated/concurrent app-shell compile drift, app-shell evidence metadata/audit-chain admission gaps, and pre-existing ADR-shape diagnostics.",
+    "Provider dependency lockfile/provenance is still absent and remains a future slice once provider requirements are real and reviewed.",
+    "tofu test/plan/apply and provider-resource-complete modules remain future Cloud IaC slices; current evidence is syntax/init/validate only.",
+    "The gate uses the local tofu binary observed as OpenTofu v1.12.0; production/CI images must pin and re-check OpenTofu before provider-resource or plan/apply claims."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Small local gate plus syntax repair; no new runtime service, dependency, or provider abstraction."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Moves Cloud IaC from catalog-only skeleton truth toward evidence-backed module validity without claiming provisioning."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Negative tests cover missing gate, tofu validate failure, generated artifacts, provider resource overclaim, and missing manifest scope."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Command has live-path defaults, optional --tofu-bin for tests/alternate local installs, and aggregate module counts."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests, live gate, OpenTofu fmt check, Cloud IaC regressions, scoped check/clippy/fmt, JSON parsing, planning/api/architecture gates, run-all 85/85, and full verify attempt are recorded."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Rejected fake parser-only validation; official OpenTofu CLI validation is used while provider locks/tests/plan/apply remain deferred."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Source hygiene rejects state, tfvars, plan artifacts, provider credential blocks, backend blocks, and raw credential markers."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Local gate is bounded to six skeleton modules and temp copies; no runtime hot path or provider calls."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Explicit non-claims avoid overstating provider lock, provenance, deployment, SLO, DR, or hyperscaler readiness evidence."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Existing Cloud IaC module-catalog, GitOps-evidence, and cell-topology gates remain green."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Manifest, tasks, evidence, and audit-chain row document scope, official sources, verification, and non-claims; /plan remains complementary only."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reserved facet acknowledged; no reserved review needed."
+      ]
+    },
+    "F13_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Runbook-grade local validation command now exists and is part of default run-all; full verify blockers are unrelated/concurrent and named."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim/work used; evidence file prepared; no raw git/gh; scope and non-claims preserved."
+      ]
+    },
+    "A2_authority_cohesion": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Root hub and docs/AGENTS contract followed; manifest remains the source of truth while /plan is complementary reference."
+      ]
+    }
+  }
+}

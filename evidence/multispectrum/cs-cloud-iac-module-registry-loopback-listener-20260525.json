@@ -1,0 +1,315 @@
+{
+  "schema": "multispectrum-review/v2.4.0",
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-loopback-listener-20260525",
+  "timestamp_iso": "2026-05-25T05:16:11Z",
+  "freshness_unix": 1779686171,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "Cargo.lock",
+    "crates/oya-http-runtime-hyper-adapter/src/lib.rs",
+    "crates/oya-cloud-iac-runtime/Cargo.toml",
+    "crates/oya-cloud-iac-runtime/src/lib.rs",
+    "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs",
+    "registry/catalog/oya-http-runtime-hyper-adapter.yaml",
+    "registry/catalog/oya-cloud-iac-runtime.yaml",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Add deterministic one-connection local loopback listener evidence for the Cloud IaC OpenTofu module-registry service assembly through the canonical Hyper request/response conversion boundary, without claiming a daemonized listener, deployed endpoint, production readiness, provider runtime, OpenTofu plan/apply, cloud provisioning, or FD-001 tenant hosting.",
+  "complementary_plan_reference": {
+    "path": "/Users/jasonlee/Developer/source/plan",
+    "authority": "complementary-only-not-source-of-truth",
+    "use": "sequencing context only"
+  },
+  "best_practice_sources": [
+    {
+      "url": "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "what_it_establishes": "OpenTofu discovery begins with a GET request to /.well-known/terraform.json and expects a JSON object containing service identifiers such as modules.v1."
+    },
+    {
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "what_it_establishes": "OpenTofu module registry service discovery uses modules.v1, and versions/download endpoints are GET routes under the discovered base URL."
+    },
+    {
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "what_it_establishes": "Private/custom registry source addresses are supported separately from provider execution, credentials, and production serving concerns."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime loopback_listener -- --nocapture 2>&1 | tee /tmp/cs-cloud-iac-module-registry-loopback-listener-red.log",
+      "result": "FAIL_EXPECTED_RED",
+      "exit_code": 101,
+      "log": "/tmp/cs-cloud-iac-module-registry-loopback-listener-red.log",
+      "summary": "Failed before implementation because oya_http_runtime_hyper_adapter::serve_one_connection and CloudIacModuleRegistryHttpServiceAssembly::into_serve_parts did not exist."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-http-runtime-hyper-adapter serve_one_connection -- --nocapture",
+      "result": "PASS",
+      "summary": "Focused Hyper-adapter one-connection loopback harness test passed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime loopback_listener -- --nocapture",
+      "result": "PASS",
+      "summary": "Cloud IaC loopback listener test passed: raw HTTP/1.1 GET /.well-known/terraform.json over 127.0.0.1:0 returned 200, application/json, and the OpenTofu discovery body through Hyper parsing/serialization."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime -- --nocapture",
+      "result": "PASS",
+      "summary": "All 10 runtime tests passed, covering runtime composition, HTTP handler, service assembly, method seam, and loopback listener harness."
+    },
+    {
+      "command": "cargo test -p oya-http-router-kernel -p oya-http-runtime-hyper-adapter -p oya-cloud-iac-domain -p oya-cloud-iac-api -p oya-cloud-iac-rest -p oya-cloud-iac-runtime -- --nocapture",
+      "result": "PASS",
+      "summary": "Scoped HTTP/Cloud IaC tests passed: 27 router, 23 Hyper-adapter, 6 Cloud IaC domain, 10 API, 4 REST, and 10 runtime tests."
+    },
+    {
+      "command": "cargo fmt --all && cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Workspace formatting and format check passed."
+    },
+    {
+      "command": "cargo check -p oya-http-router-kernel -p oya-http-runtime-hyper-adapter -p oya-cloud-iac-runtime -p oya-cloud-iac-rest -p oya-cloud-iac-api -p oya-cloud-iac-domain --all-targets",
+      "result": "PASS",
+      "summary": "Scoped touched HTTP and Cloud IaC crates compiled for all targets."
+    },
+    {
+      "command": "cargo clippy -p oya-http-router-kernel -p oya-http-runtime-hyper-adapter -p oya-cloud-iac-runtime -p oya-cloud-iac-rest -p oya-cloud-iac-api -p oya-cloud-iac-domain --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped touched HTTP and Cloud IaC crates passed clippy with warnings denied."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after catalog traceability updates."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Architecture-boundaries passed with 444 packages, 444 catalog records, and 598 dependency edges."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts && ./bin/oya gate validate planning-closure",
+      "result": "PASS",
+      "summary": "API semver and planning-closure remained green."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json >/tmp/cloud-manifest-loopback-listener.pretty",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest remained valid JSON after adding loopback listener scope."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-registry-protocol && ./bin/oya gate validate cloud-iac-module-archive && ./bin/oya gate validate cloud-iac-module-release-index && ./bin/oya gate validate cloud-iac-module-provenance && ./bin/oya gate validate cloud-iac-module-provider-requirements && ./bin/oya gate validate cloud-iac-provider-readiness && ./bin/oya gate validate cloud-iac-provider-lockfile && ./bin/oya gate validate cloud-iac-provider-signature-review && ./bin/oya gate validate cloud-iac-opentofu-validation",
+      "result": "PASS",
+      "summary": "Cloud IaC module/provider/protocol/OpenTofu regression gates passed; OpenTofu validation covered 6 modules, 6 init runs, and 6 validate runs."
+    },
+    {
+      "command": "./bin/oya gate run-all 2>&1 | tee /tmp/cs-cloud-iac-module-registry-loopback-listener-run-all.log",
+      "result": "FAIL_REPO_WIDE_NOT_CLAIMED",
+      "summary": "Aggregate run-all is not claimed green. The attempted run passed 91/93 lanes before evidence closeout and failed loop-recovery-patterns on unrelated application-shell compile drift plus default dependency-seam because this new evidence had not yet been attached. Scoped strict dependency-seam is verified separately after evidence creation."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-module-registry-loopback-listener-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam validation passed after final lifecycle update: 6 subchecks, 6 pass, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root /tmp/cs-cloud-iac-module-registry-loopback-listener-corpus && ./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-module-registry-loopback-listener-retired",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed over 6 loopback-listener documents; scoped retired-vocabulary passed over 6 documents with 0 drift hits."
+    },
+    {
+      "command": "./bin/oya git diff --check -- Cargo.lock crates/oya-http-runtime-hyper-adapter/src/lib.rs crates/oya-cloud-iac-runtime/Cargo.toml crates/oya-cloud-iac-runtime/src/lib.rs crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs registry/catalog/oya-http-runtime-hyper-adapter.yaml registry/catalog/oya-cloud-iac-runtime.yaml microservices/cloud-iac/manifest.json tasks/plan.md tasks/todo.md evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Whitespace diff check passed for claimed loopback-listener paths."
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json && Python JSONL parse for evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Loopback-listener evidence parsed as JSON; audit-chain JSONL parsed 473 rows after lifecycle promoted row."
+    },
+    {
+      "command": "./bin/oya vcs work --agent codex-cloud-iac-loopback-listener-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json#work && ./bin/oya vcs verify --agent codex-cloud-iac-loopback-listener-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json#verify && ./bin/oya vcs done --agent codex-cloud-iac-loopback-listener-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json#done --controller-promote && ./bin/oya vcs promote --agent codex-cloud-iac-loopback-listener-20260525 --bundle CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001 --environment local-foundry --evidence evidence/multispectrum/cs-cloud-iac-module-registry-loopback-listener-20260525.json#promote",
+      "result": "PASS",
+      "summary": "Oya VCS work/verify/done --controller-promote/promote accepted for the loopback-listener ChangeSet."
+    }
+  ],
+  "implemented_claims": [
+    "Added oya-http-runtime-hyper-adapter::serve_one_connection for deterministic one-connection local loopback harnesses that reuse Hyper request parsing, body-limit enforcement, dispatch, and response serialization.",
+    "Added oya-http-runtime-hyper-adapter::serve_one_connection_on_std_listener so downstream tests can bind std loopback listeners without declaring tokio outside the isolated Hyper adapter crate.",
+    "Refactored the long-running Hyper serve path to share the same per-connection implementation used by the one-connection harness.",
+    "Added CloudIacModuleRegistryHttpServiceAssembly::into_serve_parts so the assembled router, middleware, and ServerConfig can be used by listener harness tests without daemon startup.",
+    "Added Cloud IaC loopback listener regression proving OpenTofu discovery JSON crosses a real local Hyper HTTP boundary.",
+    "Updated Cloud IaC manifest, catalog metadata, tasks, evidence, and audit chain with local loopback-only scope."
+  ],
+  "explicit_non_claims": [
+    "no daemonized HTTP listener",
+    "no deployed service discovery endpoint",
+    "no deployed module versions endpoint",
+    "no deployed module download endpoint",
+    "no registry publish path or object-store serving",
+    "no request authentication or Cedar runtime integration beyond existing injected in-process authorization metadata checks",
+    "no database adapter or persistence",
+    "no module signing, Sigstore/cosign execution, SLSA, or VSA attestation generation",
+    "no tofu test/plan/apply evidence",
+    "no provider runtime, provider API calls, provider credentials, or cloud provisioning",
+    "no live Argo CD/Jenkins/GitOps integration beyond existing local evidence gates",
+    "no production readiness claim",
+    "no FD-001 microservice dogfood tenant workload hosting or production tenant workload evidence",
+    "no full ./bin/oya verify --ci-required success claim",
+    "no aggregate ./bin/oya gate run-all success claim for current worktree"
+  ],
+  "false_green_findings_closed": [
+    "Transport-neutral dispatch tests and Router<SyncHandler> service assembly did not prove Hyper request/body/header conversion or on-wire response serialization.",
+    "The loopback test now proves at least one OpenTofu discovery request crosses the actual Hyper boundary on 127.0.0.1:0, while keeping deployed endpoint claims false.",
+    "Initial loopback test setup attempted a direct tokio dev-dependency in Cloud IaC runtime; strict dependency-seam rejected that, so the final implementation routes std-listener tests through the isolated Hyper adapter wrapper instead."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required is not claimed; repo-wide unrelated blockers remain outside this Cloud IaC slice.",
+    "Current aggregate ./bin/oya gate run-all is not claimed green; unrelated application-shell compile drift remains outside this ChangeSet.",
+    "Cloud IaC still needs daemonized listener/binary integration, deployed live endpoints, registry publish path, object-store serving, auth runtime, database adapter, signing/SLSA/VSA, provider runtime, tofu test/plan/apply, and live GitOps/provider integration evidence.",
+    "FD-001 remains the master-plan product delivery goal; Oyatie Cloud must later prove substrate readiness by hosting FD-001 microservices as tenant workloads, but this ChangeSet provides no tenant-workload dogfood evidence.",
+    "Concurrent unrelated application-shell and other agent work exists in the worktree; this ChangeSet does not claim or modify those surfaces."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The harness reuses the existing Hyper serve connection path instead of creating a second HTTP stack. The Cloud IaC runtime exposes serve parts by consuming the assembly rather than cloning hidden internals."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Adds the first local on-wire HTTP evidence for the Cloud IaC module registry substrate while explicitly stopping short of daemonized service, deployment, or production-readiness claims."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED failed on missing loopback serve symbols. GREEN sends raw HTTP/1.1 bytes over loopback and asserts status, content type, and OpenTofu discovery body."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Future service binaries/tests can reuse serve_one_connection and into_serve_parts instead of hand-wiring Hyper request conversion."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused loopback tests, scoped tests, fmt/check/clippy, architecture/api/planning gates, Cloud IaC regression gates, and strict scoped seam/honest gates passed. Aggregate run-all remains transparently unclaimed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Start a daemonized listener now",
+        "Keep direct dispatch-only evidence",
+        "Add deterministic one-connection loopback harness"
+      ],
+      "selected_rationale": "One-connection loopback evidence proves the Hyper boundary while avoiding service lifecycle/deployment/auth claims that are not yet implemented.",
+      "rejected_reasons": [
+        "Daemonized listener would require broader service lifecycle, auth, observability, and deployment evidence.",
+        "Direct dispatch-only evidence leaves Hyper conversion false greens."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "owasp_class_review": "configuration",
+      "severity_max": "low",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The harness binds only caller-provided local listeners in tests; Cloud IaC uses 127.0.0.1:0 and one connection. No credentials, provider APIs, persistence, or tenant data were introduced."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "No production hot path is changed beyond sharing per-connection serve logic; loopback harness serves one request and exits."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Manifest, catalog, tasks, evidence, and audit rows encode local loopback-only scope plus explicit nonclaims."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The loopback request exercises the official OpenTofu discovery path and JSON service identifier shape."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Cloud IaC manifest, runtime/adapter catalog records, tasks/plan, tasks/todo, evidence, and audit-chain entries updated."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "reserved",
+      "findings": [
+        "No reserved facet action required."
+      ]
+    },
+    "F13_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "One-connection harness gives deterministic evidence for future service binary work without leaving a process running or claiming deployment."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim was used before source changes; no raw git/gh; unrelated dirty worktree surfaces were not reverted or claimed."
+      ]
+    },
+    "A2_source_truthfulness": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Official OpenTofu docs anchor discovery and module-registry route expectations; repo-local evidence distinguishes local loopback harness from deployed endpoint readiness."
+      ]
+    },
+    "A3_nonclaim_discipline": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Explicit nonclaims exclude daemonized listener, deployment, auth runtime, persistence, provider execution, OpenTofu plan/apply, cloud provisioning, full verify, run-all green, and FD-001 tenant hosting."
+      ]
+    }
+  },
+  "lifecycle": {
+    "oya_vcs_work": "accepted",
+    "oya_vcs_verify": "accepted",
+    "oya_vcs_done": "accepted_with_controller_promote",
+    "oya_vcs_promote": "accepted_local_foundry",
+    "closed_at": "2026-05-25T05:20:49Z"
+  }
+}

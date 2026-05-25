@@ -1,0 +1,342 @@
+{
+  "schema": "multispectrum-review/v2.4.0",
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-service-assembly-20260525",
+  "timestamp_iso": "2026-05-25T04:46:55Z",
+  "freshness_unix": 1779684415,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "Cargo.lock",
+    "crates/oya-cloud-iac-runtime/Cargo.toml",
+    "crates/oya-cloud-iac-runtime/src/lib.rs",
+    "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs",
+    "registry/catalog/oya-cloud-iac-runtime.yaml",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Assemble the transport-neutral Cloud IaC OpenTofu module registry HTTP handler into the repo-canonical Hyper-adapter Router<SyncHandler> plus middleware dispatch path without binding sockets, starting a listener, deploying an endpoint, or claiming FD-001 tenant workload hosting.",
+  "complementary_plan_reference": {
+    "path": "/Users/jasonlee/Developer/source/plan",
+    "authority": "complementary-only-not-source-of-truth",
+    "use": "sequencing context only; all implementation claims are grounded in repo specs, code, tests, and evidence"
+  },
+  "best_practice_sources": [
+    {
+      "url": "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "what_it_establishes": "OpenTofu clients discover service base URLs through /.well-known/terraform.json, including modules.v1."
+    },
+    {
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "what_it_establishes": "The module registry protocol uses GET versions and download routes under the modules.v1 base; this slice only assembles dispatch for those route shapes."
+    },
+    {
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "what_it_establishes": "Registry source strings identify reusable module packages; credentials, provider execution, OpenTofu plan/apply, and production serving remain separate concerns."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime service_assembly -- --nocapture 2>&1 | tee /tmp/cs-cloud-iac-module-registry-service-assembly-red.log",
+      "result": "FAIL_EXPECTED_RED",
+      "exit_code": 101,
+      "log": "/tmp/cs-cloud-iac-module-registry-service-assembly-red.log",
+      "summary": "Failed before implementation because CLOUD_IAC_MODULE_REGISTRY_SERVICE_ASSEMBLY_NON_CLAIM, assemble_module_registry_http_service, and dispatch_module_registry_http_service_request did not exist. The shell pipeline returned tee's status, but the captured compiler error is the intended RED evidence."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime service_assembly -- --nocapture",
+      "result": "PASS",
+      "summary": "2 focused service-assembly tests passed, proving the canonical Hyper-adapter router registers exactly the OpenTofu discovery/versions/download routes, keeps middleware count zero, sets max_body_bytes=0, preserves versions JSON through adapter dispatch, and returns canonical 404 for unknown routes."
+    },
+    {
+      "command": "cargo fmt --all && cargo fmt --all -- --check && cargo test -p oya-cloud-iac-runtime -- --nocapture",
+      "result": "PASS",
+      "summary": "Runtime crate formatting and all 8 runtime tests passed after adding the service assembly."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iac-domain -p oya-cloud-iac-api -p oya-cloud-iac-rest -p oya-cloud-iac-runtime -- --nocapture",
+      "result": "PASS",
+      "summary": "28 scoped Cloud IaC tests passed: 6 domain, 10 API, 4 REST router, and 8 runtime/service tests."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Workspace formatting check passed."
+    },
+    {
+      "command": "cargo check -p oya-cloud-iac-runtime -p oya-cloud-iac-rest -p oya-cloud-iac-api -p oya-cloud-iac-domain --all-targets",
+      "result": "PASS",
+      "summary": "Scoped Cloud IaC domain/API/REST/runtime compilation passed for all targets."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iac-runtime -p oya-cloud-iac-rest -p oya-cloud-iac-api -p oya-cloud-iac-domain --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped Cloud IaC clippy passed with warnings denied."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "result": "PASS",
+      "summary": "Gate-catalog tests passed after adding the runtime Hyper-adapter dependency and catalog/manifest service-assembly scope."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Architecture-boundaries passed with 444 packages, 444 catalog records, and 598 dependency edges; service assembly lives in the runtime role and does not make rest depend on api."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts && ./bin/oya gate validate planning-closure",
+      "result": "PASS",
+      "summary": "API semver and planning-closure remained green."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json >/tmp/cloud-manifest.pretty",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest remained valid JSON after adding service-assembly scope."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-registry-protocol && ./bin/oya gate validate cloud-iac-module-archive && ./bin/oya gate validate cloud-iac-module-release-index && ./bin/oya gate validate cloud-iac-module-provenance && ./bin/oya gate validate cloud-iac-module-provider-requirements && ./bin/oya gate validate cloud-iac-provider-readiness && ./bin/oya gate validate cloud-iac-provider-lockfile && ./bin/oya gate validate cloud-iac-provider-signature-review && ./bin/oya gate validate cloud-iac-opentofu-validation",
+      "result": "PASS",
+      "summary": "Existing Cloud IaC module/provider/protocol/OpenTofu regression gates passed; OpenTofu validation covered 6 modules, 6 init runs, and 6 validate runs."
+    },
+    {
+      "command": "./bin/oya gate run-all 2>&1 | tee /tmp/cs-cloud-iac-module-registry-service-assembly-run-all.log",
+      "result": "PASS",
+      "summary": "Default aggregate gate run passed 93/93 lanes. Advisory findings reported by existing advisory lanes remain non-blocking and unrelated to this slice."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-module-registry-service-assembly-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam validation passed after final evidence/lifecycle update: 6 subchecks, 6 pass, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root /tmp/cs-cloud-iac-module-registry-service-assembly-corpus && ./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-module-registry-service-assembly-retired",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed over 5 final service-assembly documents; scoped retired-vocabulary passed over 5 documents with 0 drift hits."
+    },
+    {
+      "command": "./bin/oya git diff --check -- Cargo.lock crates/oya-cloud-iac-runtime/Cargo.toml crates/oya-cloud-iac-runtime/src/lib.rs crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs registry/catalog/oya-cloud-iac-runtime.yaml microservices/cloud-iac/manifest.json tasks/plan.md tasks/todo.md evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Oya tracked-diff whitespace check passed for claimed tracked paths; a separate Python whitespace scan covered all 10 claimed paths including untracked runtime/catalog/evidence files."
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json && Python JSONL parse for evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Service-assembly evidence parsed as JSON; audit-chain JSONL parsed 469 rows after lifecycle promoted row."
+    },
+    {
+      "command": "./bin/oya vcs work --agent codex-cloud-iac-service-assembly-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json#work && ./bin/oya vcs verify --agent codex-cloud-iac-service-assembly-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json#verify && ./bin/oya vcs done --agent codex-cloud-iac-service-assembly-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json#done --controller-promote && ./bin/oya vcs promote --agent codex-cloud-iac-service-assembly-20260525 --bundle CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001 --environment local-foundry --evidence evidence/multispectrum/cs-cloud-iac-module-registry-service-assembly-20260525.json#promote",
+      "result": "PASS",
+      "summary": "Oya VCS work/verify/done --controller-promote/promote accepted for the service-assembly ChangeSet."
+    },
+    {
+      "command": "Python whitespace scan over all 10 claimed paths (including untracked runtime/catalog/evidence files)",
+      "result": "PASS",
+      "summary": "No trailing whitespace or carriage returns found across Cargo.lock, runtime Cargo/source/tests, runtime catalog, Cloud IaC manifest, tasks, evidence, and audit-chain paths."
+    }
+  ],
+  "module_registry_service_assembly": {
+    "crate": "oya-cloud-iac-runtime",
+    "dependency_added": "oya-http-runtime-hyper-adapter",
+    "assembly_type": "canonical Hyper-adapter router/middleware dispatch path",
+    "routes_registered": [
+      {
+        "method": "GET",
+        "template": "/.well-known/terraform.json"
+      },
+      {
+        "method": "GET",
+        "template": "/v1/modules/{namespace}/{name}/{system}/versions"
+      },
+      {
+        "method": "GET",
+        "template": "/v1/modules/{namespace}/{name}/{system}/{version}/download"
+      }
+    ],
+    "server_config_metadata": {
+      "max_body_bytes": 0,
+      "listener_started": false,
+      "socket_bound": false,
+      "bind_function_called": false,
+      "serve_function_called": false
+    },
+    "middleware_count": 0,
+    "dispatch_path": "oya_http_runtime_hyper_adapter::dispatch(request, &service.router, &service.middleware)",
+    "non_claim_constant": "CLOUD_IAC_MODULE_REGISTRY_SERVICE_ASSEMBLY_NON_CLAIM=hyper-adapter-service-assembly-no-bind-no-listen-no-deploy"
+  },
+  "implemented_claims": [
+    "Added oya-http-runtime-hyper-adapter as an oya-cloud-iac-runtime dependency so module-registry handling can enter the canonical Hyper-adapter router/middleware dispatch path.",
+    "Added CloudIacModuleRegistryHttpServiceAssembly holding Router<SyncHandler>, MiddlewareChain<HttpRequest,HttpResponse>, and ServerConfig metadata.",
+    "Added assemble_module_registry_http_service to wrap CloudIacModuleRegistryHttpHandler with handler_to_sync and register the three OpenTofu module-registry GET route templates.",
+    "Added dispatch_module_registry_http_service_request to delegate request dispatch through oya-http-runtime-hyper-adapter::dispatch.",
+    "Declared a service-assembly non-claim constant and max_body_bytes=0 metadata to distinguish local assembly from live server/listener/deployment evidence.",
+    "Updated Cloud IaC manifest, runtime catalog, tasks, multispectrum evidence, and audit chain for the service-assembly slice."
+  ],
+  "explicit_non_claims": [
+    "no socket bind",
+    "no live HTTP listener",
+    "no Hyper server serve loop",
+    "no deployed service discovery endpoint",
+    "no deployed module versions endpoint",
+    "no deployed module download endpoint",
+    "no registry publish path or object-store serving",
+    "no request authentication or Cedar runtime integration beyond previously injected in-process authorization metadata checks",
+    "no database adapter or persistence",
+    "no module signing, Sigstore/cosign execution, SLSA, or VSA attestation generation",
+    "no tofu test/plan/apply evidence",
+    "no provider runtime, provider API calls, provider credentials, or cloud provisioning",
+    "no live Argo CD/Jenkins/GitOps integration beyond existing local evidence gates",
+    "no FD-001 microservice dogfood tenant workload hosting or production tenant workload evidence",
+    "no full ./bin/oya verify --ci-required success claim"
+  ],
+  "false_green_findings_closed": [
+    "Direct transport-neutral handler tests are not proof that the handler can be dispatched through the repo canonical router/middleware path; this slice adds focused tests that exercise oya-http-runtime-hyper-adapter dispatch over registered OpenTofu routes.",
+    "Route registration counts and 404 behavior are asserted to prevent treating an unregistered or ad hoc handler call as service assembly evidence."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required is not claimed by this ChangeSet; repo-wide unrelated blockers remain outside this Cloud IaC slice.",
+    "Cloud IaC still needs actual socket binding/listener, deployed live endpoints, registry publish path, object-store serving, auth runtime, database adapter, signing/SLSA/VSA, provider runtime, tofu test/plan/apply, and live GitOps/provider integration evidence.",
+    "FD-001 remains the master-plan product delivery goal; Oyatie Cloud must later prove substrate readiness by hosting FD-001 microservices as tenant workloads, but this ChangeSet provides no tenant-workload dogfood evidence.",
+    "Concurrent unrelated application-shell and other agent work exists in the worktree; this ChangeSet does not claim or modify those surfaces.",
+    "The complementary /Users/jasonlee/Developer/source/plan files informed sequencing only and are not treated as source-of-truth implementation evidence."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The assembly is a thin composition seam: one Router<SyncHandler>, an empty MiddlewareChain, default ServerConfig metadata, and a dispatch wrapper. No ad hoc HTTP stack or duplicate route parser was introduced."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Moves Oyatie Cloud substrate toward a service-hostable internal module registry while preserving the boundary that live listener, deployed endpoint, provider runtime, and tenant workload claims remain false until later evidence exists.",
+        "FD-001 tenant workload dogfood hosting remains a future substrate proof, not a claim of this service-assembly slice."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED test failed on missing assembly symbols before implementation; GREEN tests assert route registration count, max body metadata, adapter dispatch success, and unknown-route 404 behavior."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Future listener work can reuse assemble_module_registry_http_service rather than remembering three route templates or bypassing middleware/router dispatch."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused runtime tests, scoped Cloud IaC tests, fmt/check/clippy, architecture/api/planning gates, Cloud IaC regression gates, and aggregate run-all all passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Start a live Hyper listener now",
+        "Keep testing the handler only with direct function calls",
+        "Compose via the repo canonical Hyper-adapter router without binding sockets"
+      ],
+      "selected_rationale": "Canonical router/middleware assembly closes the false-green gap while staying within the safe local-only scope.",
+      "rejected_reasons": [
+        "Starting a live listener would overclaim endpoint/deployment readiness and require broader auth/ops evidence.",
+        "Direct handler-only tests do not prove integration with the repo service dispatch seam."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "owasp_class_review": "broken_access",
+      "severity_max": "low",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credential, provider, tenant data, network bind, or persistence path was added. The assembly preserves existing handler authorization checks and sets max_body_bytes=0 metadata for GET-only routes."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Dispatch adds a single in-memory router/middleware hop over the existing handler. No blocking I/O, provider calls, filesystem reads, or OpenTofu invocation are added."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Manifest, catalog, tasks, evidence, and audit rows encode local-only service-assembly scope plus explicit nonclaims."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Registered route templates align with OpenTofu service discovery and module-registry protocol route shapes already enforced by Cloud IaC protocol fixtures."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Cloud IaC manifest, runtime catalog, tasks/plan, tasks/todo, multispectrum evidence, and audit-chain entries were updated for traceability."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "reserved",
+      "findings": [
+        "No reserved facet action required."
+      ]
+    },
+    "F13_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "The service assembly exposes route_count, middleware_count, and server_config metadata for deterministic test/evidence inspection while avoiding live operations claims."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim was used before source changes; no raw git/gh commands were used; architecture-boundaries role constraints remain green."
+      ]
+    },
+    "A2_source_truthfulness": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Official OpenTofu docs anchor route/protocol semantics, and repo-local evidence distinguishes local service assembly from live endpoint or production substrate readiness."
+      ]
+    },
+    "A3_nonclaim_discipline": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Explicit nonclaims exclude socket bind/listen/serve/deploy, auth runtime, persistence, provider execution, OpenTofu plan/apply, cloud provisioning, full verify, and FD-001 tenant hosting."
+      ]
+    }
+  },
+  "lifecycle": {
+    "oya_vcs_work": "accepted",
+    "oya_vcs_verify": "accepted",
+    "oya_vcs_done": "accepted_with_controller_promote",
+    "oya_vcs_promote": "accepted_local_foundry",
+    "closed_at": "2026-05-25T04:48:05Z"
+  }
+}

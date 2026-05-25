@@ -102,6 +102,7 @@ oya-eventing-domain = { path = "../oya-eventing-domain" }
 oya-secrets-file-adapter = { path = "../oya-secrets-file-adapter" }
 oya-secrets-domain = { path = "../oya-secrets-domain" }
 serde_json = { workspace = true }
+sha2 = "0.10"
 
 [[bin]]
 name = "oya"

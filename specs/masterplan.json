@@ -90,6 +90,328 @@
         "Does not claim API/data/policy/evidence contracts are locked.",
         "Does not authorize product surface fanout before shared contract and chained-enforcement gates are green."
       ]
+    },
+    "session_directives_2026_05_25": {
+      "launch_architecture_directives": {
+        "source": "user-directive-in-codex-session-2026-05-25",
+        "authority_boundary": "Records launch architecture requirements; implementation/adapters/gates require future ChangeSets before readiness claims.",
+        "oyatie_cloud_role": "Oyatie Cloud is the hyperscaler-grade substrate that dogfoods FD-001 microservices as tenant workloads; FD-001 product delivery remains the master-plan product goal.",
+        "eventing_messaging": {
+          "launch_primary": "Apache Pulsar",
+          "first_class_adapters": [
+            "Apache Kafka",
+            "Redpanda",
+            "RabbitMQ"
+          ],
+          "requirement": "Adapter seams must preserve provider-neutral contracts and cannot make Kafka/Redpanda/RabbitMQ second-class or hand-waved compatibility modes."
+        },
+        "admission_policy": {
+          "default": "Kubewarden",
+          "first_class_adapters": [
+            "Kyverno"
+          ],
+          "requirement": "Kubewarden is the default Kubernetes admission/policy substrate; Kyverno remains a first-class adapter rather than the default."
+        },
+        "api_contracts": {
+          "single_shared_source_of_truth_required": true,
+          "rust_native_typespec_like_authoring_required": true,
+          "manual_parallel_schema_maintenance_forbidden": [
+            "OpenAPI REST",
+            "Protobuf gRPC",
+            "GraphQL SDL"
+          ],
+          "generated_or_validated_artifacts": [
+            "REST/OpenAPI",
+            "gRPC/Protobuf",
+            "GraphQL SDL/resolver contracts"
+          ],
+          "requirement": "GraphQL must be generated or validated from the same shared Rust-native contract source as REST/OpenAPI and gRPC/Protobuf; it must not become a separately hand-maintained schema."
+        },
+        "workload_specific_substrates": {
+          "universal_defaults_forbidden": [
+            "Citus",
+            "OpenSearch",
+            "Milvus",
+            "ClickHouse",
+            "Iceberg"
+          ],
+          "requirement": "Citus, OpenSearch, Milvus, ClickHouse, and Iceberg are workload-specific substrate selections, not universal defaults for every service, workload, tenant, or cell."
+        }
+      },
+      "cloud_control_plane_directives": {
+        "source": "user-directive-in-codex-session-2026-05-25",
+        "authority_boundary": "Records launch cloud control-plane/resource-model requirements; implementation, gates, services, runtime APIs, and production evidence require future ChangeSets before readiness claims.",
+        "canonical_resource_model": {
+          "hierarchy": [
+            "Organization",
+            "Account",
+            "Project",
+            "Region",
+            "Cell",
+            "Resource Group",
+            "Resource"
+          ],
+          "region_and_cell_first_class": true,
+          "resource_group_required_before_resource": true,
+          "tenant_scope_must_include": [
+            "organization",
+            "account",
+            "project"
+          ],
+          "requirement": "The Organization -> Account -> Project -> Region -> Cell -> Resource Group -> Resource hierarchy is the canonical Oya resource model and must not be implied or hidden in IaC internals."
+        },
+        "oya_resource_name": {
+          "acronym": "ORN",
+          "format": "orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}",
+          "required": true,
+          "requirement": "Every cloud resource must have a canonical Oya Resource Name addressable through the user-facing control plane."
+        },
+        "cloud_control_plane": {
+          "user_facing_api_required": true,
+          "flow": [
+            "API Gateway",
+            "Resource Registry",
+            "Operation Ledger",
+            "Workflow/Reconciler",
+            "OpenTofu/Operators/Argo"
+          ],
+          "implementation_mechanisms_not_user_facing_control_plane": [
+            "OpenTofu",
+            "Kubernetes Operators",
+            "Argo CD"
+          ],
+          "requirement": "OpenTofu and Argo are implementation mechanisms behind the Cloud Control Plane, not substitutes for the user-facing API."
+        },
+        "operation_ledger": {
+          "durable_async_operation_state_required_for": [
+            "create",
+            "update",
+            "delete"
+          ],
+          "requirement": "Every mutating resource operation needs durable long-running operation state."
+        },
+        "quota_metering_billing": {
+          "quota_service_required": true,
+          "metering_billing_event_pipeline_required": true,
+          "mandatory_on_every_resource_type": true,
+          "required_resource_fields": [
+            "quota_cost",
+            "billing_meters",
+            "audit_events",
+            "lifecycle_state",
+            "owner",
+            "tenant/account/project",
+            "region/cell",
+            "SLO tier",
+            "deletion/retention policy"
+          ],
+          "requirement": "Quota is reliability infrastructure and metering/billing must be designed into every resource from day one."
+        },
+        "developer_platform_core": {
+          "promote_to_core": true,
+          "internal_console_must_provision": [
+            "service",
+            "database",
+            "topic",
+            "bucket",
+            "secret",
+            "SLO",
+            "runbook",
+            "deploy pipeline",
+            "preview env"
+          ],
+          "requirement": "The service catalog/developer portal becomes a provisioning surface, not docs-only."
+        },
+        "kubernetes_and_delivery_standards": {
+          "cluster_api_required_for_kubernetes_fleet_lifecycle": true,
+          "gateway_api_required_for_kubernetes_networking": true,
+          "openfeature_required_for_cloud_rollout_release_semantics": true,
+          "focus_required_for_billing_dataset_shape": true,
+          "opencost_required_for_kubernetes_cost_attribution": true,
+          "progressive_delivery_required": true,
+          "progressive_delivery_default": "Argo Rollouts or an Oya-native equivalent with explicit canary/rollback semantics"
+        },
+        "non_claims": [
+          "No stable cloud-resource API contract, lifecycle state machine, identity binding runtime, policy evaluator integration, quota reservation runtime, billing ledger, audit persistence, observability pipeline, rollback controller, or reconciliation controller is implemented by this directive capture.",
+          "No Cloud Control Plane API, resource registry service, operation-ledger persistence, quota runtime, metering outbox, billing pipeline, developer portal provisioning workflow, Cluster API fleet integration, Gateway API deployment, OpenFeature rollout integration, FOCUS/OpenCost export, or Argo Rollouts runtime is implemented by this directive capture.",
+          "No FD-001 tenant workload hosting, provider-live operation, OpenTofu plan/apply, Argo CD sync, Kubernetes API call, production readiness, or hyperscaler readiness is claimed."
+        ],
+        "stable_cloud_resource_contract": {
+          "required": true,
+          "required_facets": [
+            "lifecycle",
+            "identity",
+            "policy",
+            "quota",
+            "billing",
+            "audit",
+            "observability",
+            "rollback",
+            "reconciliation"
+          ],
+          "requirement": "Oya exposes stable cloud resources with lifecycle, identity, policy, quota, billing, audit, observability, rollback, and reconciliation as first-class control-plane facets.",
+          "stability_rule": "A resource is not launch-ready unless these facets are explicit in its contract and discoverable through the Cloud Control Plane rather than hidden in backend IaC or operators."
+        }
+      }
+    },
+    "session_directives_2026_05_25_wave_3_consolidation": {
+      "purpose": "Bind the keystone cloud/wave-3 ADR corpus to the master plan and record the Oyatie Cloud service worktree-consolidation execution plan. Closes the representativeness gap where keystone cloud ADRs were decided but unbound in masterplan.json.",
+      "source_plan": ".omx/plans/wave-3-cloud-consolidation-and-parallel-green.md",
+      "oyatie_cloud_service_definition": "Oyatie Cloud is the backbone infrastructure substrate; Oyatie operates its own platform as a first-class tenant and dogfoods every product microservice as a tenant workload on that substrate (ADR-0242 oyatie-is-a-tenant, ADR-0245 substrate-vs-product layering, ADR-0247 self-hosting/self-modification). The cloud-* microservices (cloud-iac, cloud-iam, cloud-kms, cloud-secrets, cloud-network, cloud-data, cloud-storage, cloud-compute, cloud-billing, cloud-capacity) are the substrate; FD-001 products are tenants on it.",
+      "keystone_cloud_adrs": [
+        {
+          "adr": "ADR-0242",
+          "title": "oyatie-is-a-tenant doctrine"
+        },
+        {
+          "adr": "ADR-0243",
+          "title": "Cedar as universal gate"
+        },
+        {
+          "adr": "ADR-0244",
+          "title": "Tenant as universal scoping primitive"
+        },
+        {
+          "adr": "ADR-0245",
+          "title": "Substrate vs product layering"
+        },
+        {
+          "adr": "ADR-0246",
+          "title": "Policy-engine substrate promotion"
+        },
+        {
+          "adr": "ADR-0247",
+          "title": "Self-hosting / self-modification doctrine"
+        },
+        {
+          "adr": "ADR-0248",
+          "title": "Amazon-shape cellular architecture"
+        },
+        {
+          "adr": "ADR-0249",
+          "title": "Multi-category marketplace doctrine"
+        },
+        {
+          "adr": "ADR-0250",
+          "title": "Build-ahead-of-certification doctrine"
+        },
+        {
+          "adr": "ADR-0251",
+          "title": "Compliance pack + cell certification levels"
+        },
+        {
+          "adr": "ADR-0252",
+          "title": "Time, coordination, distributed consistency"
+        },
+        {
+          "adr": "ADR-0253",
+          "title": "Network topology: anycast apex + edge POPs + Cilium ambient mesh"
+        },
+        {
+          "adr": "ADR-0254",
+          "title": "Deployment-model spectrum (shared/dedicated/hybrid-byo/on-prem-connected/on-prem-air-gapped)"
+        },
+        {
+          "adr": "ADR-0255",
+          "title": "Intelligence as two-layer AI substrate"
+        },
+        {
+          "adr": "ADR-0327",
+          "title": "Wave-3 completion criteria and promotion gates"
+        },
+        {
+          "adr": "ADR-0348",
+          "title": "Autosharding + auto-rebalance + dynamic sharding"
+        },
+        {
+          "adr": "ADR-0349",
+          "title": "Jenkins (LTS) + ArgoCD self-hostable CI/CD substrate"
+        },
+        {
+          "adr": "ADR-0351",
+          "title": "Cell-rebalancer + cell-lifecycle microservices"
+        }
+      ],
+      "cloud_control_plane_shape": "Resource hierarchy Organization -> Account -> Project -> Region -> Cell -> Resource Group -> Resource; ORN orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}; control plane is API Gateway -> Resource Registry -> Operation Ledger -> Workflow/Reconciler -> OpenTofu/Operators/Argo, where OpenTofu and Argo are backend mechanisms, not the public API. Source: _meta.session_directives_2026_05_25.cloud_control_plane_directives.",
+      "cloud_foundations_status": {
+        "scope": "metadata-only local foundations for cloud-iac/iam/kms/secrets/network/data/storage/compute/billing/capacity per their manifests",
+        "anchor_verification": "All five mandatory oya verify --ci-required steps pass on the cloud-foundation anchor: cargo fmt, cargo check --workspace, cargo clippy --workspace -D warnings, cargo nextest run --workspace (4472 passed / 1 skipped), and gate run-all (103 lanes).",
+        "pre_existing_advisory_blocker": "D-7 ADR-shape advisory currently fails on 27 pre-existing lettered ADRs (ADR-0322..ADR-0349) that use '## A. Context' rather than the canonical '## Context' heading the ADR-shape gate requires. Tracked as a separate doc-convention normalization; it predates and is orthogonal to cloud-service consolidation."
+      },
+      "worktree_consolidation_plan": {
+        "model": "anchor-first, then replay+green each disjoint agent worktree bundle one at a time, ascending merge risk",
+        "bundles": [
+          {
+            "name": "enterprise",
+            "preserved_snapshot": "77678e1a",
+            "added_crates_approx": 64,
+            "crate_overlap_with_anchor": 0,
+            "surface": "HR/payroll/accounting/treasury/warehouse/procurement/quality/production-planning/real-estate/supply-chain/crm/global-trade/plant-maintenance + tenancy kernels"
+          },
+          {
+            "name": "workflow",
+            "preserved_snapshot": "5d434ee3",
+            "added_crates_approx": 81,
+            "crate_overlap_with_anchor": 0,
+            "surface": "workflow-engine, workflow-studio, intelligence-assist-draft/providers/credential-resolver"
+          },
+          {
+            "name": "backbone",
+            "preserved_branch": "agent/backbone-microservices-20260523T081210Z",
+            "head": "3faa5f9e",
+            "added_crates_approx": 43,
+            "crate_overlap_with_anchor": 3,
+            "surface": "community/mail/social/messenger + shared-backbone-grpc; reconcile oya-dev-cli, oya-http-runtime-hyper-adapter, oya-shared-postgres-command-adapter-sqlx and 9 ADRs against the green dev-cli"
+          }
+        ],
+        "single_writer_invariant": [
+          "Cargo.toml workspace members",
+          "evidence/audit-chain.jsonl",
+          "registry/dependency-rationales.json",
+          "specs/microservices/manifests-index.json",
+          "specs/root-hub-pointers.json",
+          "specs/masterplan.json"
+        ],
+        "parallel_workstreams": [
+          "WS-1 enterprise",
+          "WS-2 workflow-engine+studio",
+          "WS-3 intelligence",
+          "WS-4 backbone microservices"
+        ],
+        "ship_path": "Foundry pipeline: isolated worktree -> pull request against dev -> admission gate -> merge queue -> reviewer APPROVE + green CI (ADR-0110/0111/0112/0113/0116)"
+      },
+      "non_claims": [
+        "No production readiness, hyperscaler maturity, or GA claim is asserted; hyperscaler-maturity-claims remains blocked_until_required_evidence_is_green.",
+        "No live cloud provisioning, OpenTofu plan/apply, ArgoCD/Kubernetes API, cosign/SLSA/VSA signing execution, measured SLO, DR, or sharding runtime is claimed.",
+        "Added microservice bundles are integration-rough; crates are greened incrementally and any crate that cannot be greened honestly is excluded from the workspace rather than stubbed-green."
+      ],
+      "hyperscaler_platform_bar": {
+        "statement": "Oyatie Cloud is treated as a hyperscaler-grade cloud platform. Every microservice runs as a tenant workload on it (dogfooding per ADR-0242). Every decision, new or existing, must meet hyperscaler scalability, performance, and optimization requirements before any maturity claim.",
+        "binding_specs": [
+          "/specs/hyperscaler-gates.json",
+          "/specs/design-spec-maturity-claims.json",
+          "/specs/master-plan-sequencing.json"
+        ],
+        "scalability_requirements": [
+          "Independent horizontal scaling per microservice; stateless request paths; shardable state (ADR-0348 autosharding + auto-rebalance + dynamic sharding).",
+          "Cellular architecture as a pattern with cell-rebalancer + cell-lifecycle microservices (ADR-0248, ADR-0341, ADR-0351); no single-cell global bottleneck.",
+          "Multi-region, multi-cell tenant routing with per-tenant isolation (ADR-0244, ADR-0254 deployment-model spectrum)."
+        ],
+        "performance_requirements": [
+          "Each microservice manifest declares explicit latency/throughput SLO targets and a capacity model (ADR-0340); claims are blocked until measured evidence is green.",
+          "Async-first eventing on Apache Pulsar (launch-primary) with Kafka/Redpanda/RabbitMQ adapters; backpressure and brown-out degradation signals are first-class.",
+          "Approved runtime stack tuned for throughput: Tokio + Axum/Tower/tower-http + Hyper/hyper-util; observability via tracing + OpenTelemetry SDK."
+        ],
+        "optimization_requirements": [
+          "FinOps dimensional cost model + OpenCost/FOCUS export (ADR-0344); per-tenant cost attribution.",
+          "Pod runtime tiering runc/Kata/Cloud-Hypervisor by trust tier (ADR-0338) for density vs isolation optimization.",
+          "Progressive delivery (Argo Rollouts or Oya-native equivalent) and SLO-gated promotion; no promotion past dev without SLO authoring."
+        ],
+        "parallel_execution_mandate": "Consolidation and greening run as disjoint parallel workstreams (WS-1 enterprise, WS-2 workflow, WS-3 intelligence, WS-4 backbone) under a single-writer invariant on shared files; isolated git worktrees give separate build dirs for true concurrency, fanned in via the Foundry merge queue (ADR-0111).",
+        "non_claims_hyperscaler": [
+          "No hyperscaler maturity, measured SLO, scalability, performance, or optimization claim is asserted until its required evidence is green; hyperscaler-maturity-claims remains blocked_until_required_evidence_is_green."
+        ]
+      }
     }
   },
   "planning_closure": {
@@ -2315,7 +2637,7 @@
               {
                 "id": "M01-P04-IP-003",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/IP-003-eventing-adapters.md",
-                "title": "Kafka / Redpanda / Pulsar provider-agnostic adapters",
+                "title": "Pulsar primary plus Kafka / Redpanda / RabbitMQ provider-agnostic adapters",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2324,7 +2646,8 @@
                 "final_shape_compliance": "true",
                 "dependency_additions": [],
                 "source_plan": null,
-                "source_spec": null
+                "source_spec": null,
+                "directive_update_2026_05_25": "Launch primary is Apache Pulsar; Apache Kafka, Redpanda, and RabbitMQ remain first-class adapters."
               }
             ]
           },

@@ -1,0 +1,313 @@
+{
+  "schema": "multispectrum-review/v2.4.0",
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-RELEASE-INDEX-LOAD-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-app-release-index-20260525",
+  "timestamp_iso": "2026-05-25T05:55:08Z",
+  "freshness_unix": 1779688508,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "crates/oya-cloud-iac-app/src/lib.rs",
+    "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
+    "registry/catalog/oya-cloud-iac-app.yaml",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-registry-app-release-index-load-20260525.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Seed the local Cloud IaC app module registry from the gate-validated repo-local OpenTofu release-index metadata at startup, while preserving strict nonclaims for registry publish, object-store archive serving, production authentication, deployed endpoints, provider runtime, FD-001 tenant workload hosting, and cloud provisioning.",
+  "complementary_plan_reference": {
+    "path": "/Users/jasonlee/Developer/source/plan",
+    "authority": "complementary-only-not-source-of-truth",
+    "use": "hyperscaler substrate roadmap context only"
+  },
+  "best_practice_sources": [
+    {
+      "url": "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "what_it_establishes": "OpenTofu discovers services via /.well-known/terraform.json and service identifiers such as modules.v1."
+    },
+    {
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "what_it_establishes": "The module registry protocol uses versions and download endpoints below the discovered modules.v1 base path."
+    },
+    {
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "what_it_establishes": "Module source addresses are separate from provider credentials, state backends, and plan/apply execution."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "set -o pipefail; cargo test -p oya-cloud-iac-app release_index -- --nocapture 2>&1 | tee /tmp/cs-cloud-iac-module-registry-app-release-index-load-red.log",
+      "result": "FAIL_EXPECTED_RED",
+      "exit_code": 101,
+      "log": "/tmp/cs-cloud-iac-module-registry-app-release-index-load-red.log",
+      "summary": "Failed before implementation because release-index loader constants/functions and CloudIacAppConfig.release_index_path did not exist."
+    }
+  ],
+  "verification": [
+    {
+      "command": "set -o pipefail; cargo test -p oya-cloud-iac-app release_index -- --nocapture 2>&1 | tee /tmp/cs-cloud-iac-module-registry-app-release-index-load-red.log",
+      "result": "FAIL_EXPECTED_RED",
+      "summary": "RED failed to compile before implementation because release-index loader constants/functions and CloudIacAppConfig.release_index_path did not exist."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iac-app release_index -- --nocapture",
+      "result": "PASS",
+      "summary": "Focused release-index tests passed: six gate-validated local modules load into the app registry, versions/download routes respond for oyatie/vpc/opentofu/0.1.0, and empty modules plus credential-like evidence refs are rejected."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iac-app -- --nocapture",
+      "result": "PASS",
+      "summary": "All five Cloud IaC app tests passed, including config default/env release-index path handling, health/liveness/discovery, bounded loopback serving, and release-index-backed registry routes."
+    },
+    {
+      "command": "cargo test -p oya-http-router-kernel -p oya-http-runtime-hyper-adapter -p oya-cloud-iac-domain -p oya-cloud-iac-api -p oya-cloud-iac-rest -p oya-cloud-iac-runtime -p oya-cloud-iac-app -- --nocapture",
+      "result": "PASS",
+      "summary": "Scoped HTTP/Cloud IaC tests passed: 27 router, 24 Hyper-adapter, 6 domain, 10 API, 4 REST, 10 runtime, and 5 app tests."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Workspace format check passed after release-index loader changes."
+    },
+    {
+      "command": "cargo check -p oya-http-router-kernel -p oya-http-runtime-hyper-adapter -p oya-cloud-iac-domain -p oya-cloud-iac-api -p oya-cloud-iac-rest -p oya-cloud-iac-runtime -p oya-cloud-iac-app --all-targets",
+      "result": "PASS",
+      "summary": "Scoped touched HTTP and Cloud IaC crates compiled for all targets."
+    },
+    {
+      "command": "cargo clippy -p oya-http-router-kernel -p oya-http-runtime-hyper-adapter -p oya-cloud-iac-domain -p oya-cloud-iac-api -p oya-cloud-iac-rest -p oya-cloud-iac-runtime -p oya-cloud-iac-app --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped touched HTTP and Cloud IaC crates passed clippy with warnings denied."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after updating the oya-cloud-iac-app catalog record."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Catalog validation passed with 613 records."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Architecture-boundaries passed with 445 packages, 445 catalog records, and 604 dependency edges."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "PASS",
+      "summary": "API semver validation passed with 41 contracts and 41 metadata records."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "result": "PASS",
+      "summary": "Planning-closure validation remained green: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json && python3 -m json.tool evidence/multispectrum/cs-cloud-iac-module-registry-app-release-index-load-20260525.json",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest and multispectrum evidence remained valid JSON."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-catalog && cloud-iac-gitops-evidence && cloud-iac-cell-topology && cloud-iac-module-registry-protocol && cloud-iac-module-archive && cloud-iac-module-release-index && cloud-iac-module-provenance && cloud-iac-provider-readiness && cloud-iac-module-provider-requirements && cloud-iac-provider-lockfile && cloud-iac-provider-signature-review && cloud-iac-opentofu-validation",
+      "result": "PASS",
+      "summary": "Cloud IaC module, GitOps, cell-topology, registry-protocol, archive, release-index, provenance, provider, lockfile/signature, and OpenTofu validation gates passed; OpenTofu validation covered 6 modules, 6 init runs, and 6 validate runs."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-module-registry-app-release-index-load-20260525.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-module-registry-app-release-index-load-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam validation passed: 6 subchecks, 6 pass, 0 diagnostics, 0 blocking. No new external dependencies were added."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root /tmp/cs-cloud-iac-module-registry-app-release-index-load-corpus",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed over release-index loader corpus: 5 documents, 4093 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes."
+    },
+    {
+      "command": "./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-module-registry-app-release-index-load-retired",
+      "result": "PASS",
+      "summary": "Scoped retired-vocabulary passed over 7 documents with 0 drift hits."
+    },
+    {
+      "command": "./bin/oya git diff --check -- claimed release-index loader paths",
+      "result": "PASS",
+      "summary": "Whitespace diff check passed for claimed release-index loader paths."
+    },
+    {
+      "command": "python3 audit-chain JSONL parse for evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Audit-chain JSONL parsed 475 rows before closeout append."
+    },
+    {
+      "command": "./bin/oya vcs work/verify/done --controller-promote/promote for CS-CLOUD-IAC-MODULE-REGISTRY-APP-RELEASE-INDEX-LOAD-001",
+      "result": "PASS",
+      "summary": "Oya VCS work, verify, done --controller-promote, and promote accepted for the local-foundry environment."
+    }
+  ],
+  "implemented_claims": [
+    "Added OYA_CLOUD_IAC_RELEASE_INDEX_PATH and a default repo-local release-index path to CloudIacAppConfig.",
+    "Added a constrained std-only release-index loader that extracts module release rows, rejects empty modules, validates source paths/digests/evidence refs, and rejects credential-like markers before registry publication.",
+    "Converted release-index source_path/version pairs into deterministic OpenTofu-compatible git:: source URLs pinned by ref=v<version>.",
+    "Changed default app service construction and run_cloud_iac_app to build the module registry from release-index metadata instead of an empty registry.",
+    "Updated manifest, catalog, tasks, evidence, and audit-chain scope with truthful local release-index loader claims and nonclaims."
+  ],
+  "explicit_non_claims": [
+    "no registry publish API",
+    "no database adapter or object-store archive serving",
+    "no production authentication runtime or Cedar runtime integration",
+    "no deployed Cloud IaC endpoint",
+    "no signed module releases, Sigstore/cosign execution, SLSA, or VSA attestation generation",
+    "no tofu test/plan/apply evidence",
+    "no provider runtime, provider API calls, provider credentials, or cloud provisioning",
+    "no live Argo CD rollout, Kubernetes rollout, or Jenkins pipeline execution",
+    "no measured SLO, DR, sharding execution, tenant migration, or capacity telemetry",
+    "no FD-001 microservice dogfood tenant workload hosting or production tenant evidence",
+    "no full ./bin/oya verify --ci-required success claim",
+    "no aggregate ./bin/oya gate run-all success claim for current worktree"
+  ],
+  "false_green_findings_closed": [
+    "The previous app entrypoint could serve discovery and health, but its default registry was empty; default app service construction now loads the local release-index metadata into the registry.",
+    "Release-index/archive gates existed independently of app startup; app tests now prove versions and download route responses are backed by the current release-index fixture.",
+    "No serde/serde_json dependency was added for this loader; parsing remains constrained to the gate-validated local release-index shape and domain validation still owns release semantics."
+  ],
+  "known_gaps": [
+    "The download endpoint still returns source metadata; it does not serve archive bytes from object storage or local ZIP files.",
+    "Production authentication, persistence, module object storage, signed releases, OpenTofu plan/apply, provider runtime, and live GitOps/Kubernetes rollout evidence remain future work.",
+    "FD-001 remains the product delivery goal; this ChangeSet is substrate progress only and does not prove FD-001 tenant workload hosting.",
+    "Full ./bin/oya verify --ci-required and aggregate gate run-all are not claimed by this Cloud IaC slice."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Kept the slice boring and local: read one gate-validated release-index shape, validate fields, publish existing domain releases, and reuse existing app/router composition."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Moves Cloud IaC from an empty app registry toward a dogfoodable substrate seam while preserving nonclaims for production readiness, provider runtime, and tenant workload hosting."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED compile failure proved the loader API was absent; GREEN tests assert both positive release-index routing and negative malformed/credential-like input handling."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Operators can override release-index path with OYA_CLOUD_IAC_RELEASE_INDEX_PATH while defaulting to the repo-local foundation release index."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused release-index tests, app tests, and app clippy passed before broader final gates."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Add serde_json to the app crate",
+        "Keep default registry empty",
+        "Implement a constrained std-only loader for the gate-validated release-index shape"
+      ],
+      "selected_rationale": "The constrained loader avoids adding a dependency seam while closing the empty-default-registry false green for current local metadata.",
+      "rejected_reasons": [
+        "Adding serde_json would expand app dependencies and require new seam rationale for a narrow local bootstrap shape.",
+        "Leaving the default registry empty would keep versions/download routes unbacked in the app binary."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "owasp_class_review": "configuration-input-validation",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The loader rejects credential-like markers in source paths and evidence refs. No credentials, provider tokens, tenant data, or production auth claims were added."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Startup parsing is bounded by the local release-index file and current tests cover six modules. No SLO or load claim is made."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Manifest/catalog/task evidence records local scope and nonclaims; no compliance certification or production rollout is claimed."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "The app continues to expose the existing OpenTofu discovery, versions, and download route shapes while seeding data from the existing release-index file."
+      ]
+    },
+    "F11_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "App startup fails closed if the configured release-index file cannot be read or parsed. Health/liveness routes remain unchanged."
+      ]
+    },
+    "F12_reserved": {
+      "considered": false,
+      "rigor": "not_applicable",
+      "findings": []
+    },
+    "F13_traceability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "ChangeSet is tied to Oya VCS claim, manifest IP/capability row, catalog record, tasks, evidence bundle, and audit-chain closeout row."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Used Oya VCS claim; avoided raw git/gh; read root-hub and docs/AGENTS; kept /plan complementary-only; did not claim production/hyperscaler completion."
+      ]
+    },
+    "A2_dependency_seam": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No new external dependencies were introduced; the loader uses std and existing Cloud IaC domain validation."
+      ]
+    }
+  },
+  "review": {
+    "code_review_status": "self_review_passed_final_scoped_gates_green",
+    "ship_status": "NO_GO_FOR_PRODUCTION_DEPLOYMENT",
+    "ultraqa_status": "local_release_index_route_qa_passed_for_bounded_scope"
+  },
+  "lifecycle": {
+    "oya_vcs_claim": "accepted",
+    "oya_vcs_work": "accepted",
+    "oya_vcs_verify": "accepted",
+    "oya_vcs_done": "accepted_with_controller_promote",
+    "oya_vcs_promote": "accepted_local_foundry",
+    "closed_at": "2026-05-25T05:57:18Z"
+  }
+}

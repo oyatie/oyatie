@@ -312,8 +312,9 @@ pub(crate) struct VectorStoreSummary {
 pub(crate) fn validate_vector_store_discipline_gate(
     _args: Vec<String>,
 ) -> Result<VectorStoreSummary, String> {
-    // ADR-0192: Milvus-canonical vector store; manifest's data.vector_store
-    // namespace declares collections per µservice.
+    // 2026-05-25 launch directive: Milvus is workload-specific, not a
+    // universal vector-store default; manifest's data.vector_store namespace
+    // declares explicit collections only for workloads that select it.
     let manifests = discover_microservice_manifests()?;
     let mut records_scanned = 0usize;
     let mut violations = 0usize;
@@ -347,7 +348,9 @@ pub(crate) struct OlapTierSummary {
 pub(crate) fn validate_olap_tier_discipline_gate(
     _args: Vec<String>,
 ) -> Result<OlapTierSummary, String> {
-    // ADR-0193: ClickHouse-canonical OLAP; no rogue analytics on OLTP postgres.
+    // 2026-05-25 launch directive: ClickHouse and Iceberg are
+    // workload-specific analytics/table-format selections; no rogue analytics
+    // on OLTP Postgres, and no universal OLAP default for every workload.
     let manifests = discover_microservice_manifests()?;
     let mut records_scanned = 0usize;
     let mut violations = 0usize;

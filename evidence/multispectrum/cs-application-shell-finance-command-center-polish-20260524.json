@@ -1,0 +1,210 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-FINANCE-COMMAND-CENTER-POLISH-20260524",
+  "schema_version": "1.0.0",
+  "id": "CS-APPLICATION-SHELL-FINANCE-COMMAND-CENTER-POLISH-20260524",
+  "kind": "multispectrum-evidence",
+  "agent": "codex-oyatie-finance-command-center-polish",
+  "captured_at": "2026-05-25T02:44:04.417Z",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "user_regression": "Finance/commercial mockup was visually and functionally too sparse compared with /Users/jasonlee/Downloads/Bominal.",
+  "change_summary": [
+    "Added a dense Finance Close Command board inside the cohesive Finance/Commercial suite instead of adding a separate disconnected mockup.",
+    "Integrated close spine, cash pipeline, vendor risk queue, evidence lane, and cross-suite route matrix for Ledger, Vendors, Billing/Tax, Leave/Time, Workflow, Mail, Community, and Evidence.",
+    "Added visual-only local interactions for command actions and routes; no payroll, banking, tax, invoice, vendor, cloud, or backend write rail is wired."
+  ],
+  "bominal_alignment": {
+    "reference_sources": [
+      "/Users/jasonlee/Downloads/Bominal.zip",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png"
+    ],
+    "matched_patterns": [
+      "left navigation + top KPI bar + dense command cards",
+      "finance objects represented as operational rows and routeable controls",
+      "cross-product surfaces remain one cohesive shell rather than separate demos",
+      "Korea/payroll/tax/vendor context preserved while interactions remain local-only"
+    ],
+    "visual_verdict": {
+      "score": 92,
+      "verdict": "pass-for-finance-slice-not-full-dashboard-completion",
+      "category_match": true,
+      "differences": [
+        "Full dashboard still needs additional pass-by-pass parity outside this finance surface.",
+        "The route matrix is below the first viewport on a 1440x1200 capture because the finance suite now exposes substantially more content.",
+        "Prototype remains intentionally unwired and visual-only."
+      ],
+      "suggestions": [
+        "Continue the same density and route matrix treatment across remaining command-center gaps.",
+        "Consider lifting the finance command route matrix into a sticky suite rail if the user wants every route visible after panel switches."
+      ],
+      "reasoning": "The finance surface now has Bominal-style density, operational object semantics, multiple visible queues, and real local interaction state instead of a sparse ledger/table-only panel."
+    }
+  },
+  "browser_smoke": {
+    "capturedAt": "2026-05-25T02:44:04.417Z",
+    "viewport": "1440x1200",
+    "summary": {
+      "height": 1340,
+      "boardCount": 1,
+      "commandCards": 4,
+      "spineNodes": 6,
+      "cashRows": 4,
+      "riskRows": 3,
+      "evidenceItems": 3,
+      "routeButtons": 8,
+      "interactiveControls": 49,
+      "textSample": "MONEY · COMMERCIAL OPERATIONSFinance, ledger, vendor spend, billing, and leave-time Close dry-run recomputed: 7 objects, 18 receipts, 3 blockersReconcileExport pack Cash runway18.4 mo₩12.6B availableOpen invoices₩482M12 invoices · 2 overdueVendor risk3 highStripe · AWS · payroll bureauLeave liability₩53M49.5h this week FINANCE VIEWS Ledger close Vendors & spend Billing & tax Leave & time APRIL CLOSE73%Payroll, withholding, and vendor accruals are staged for 2-person review. LedgerVendorsBillingLeave & time LEDGER · CLOSE PACKAGELedger close cockpitEvery payroll, filing, vendor, and billing event resolves into one audit-ready close package. Bank feed match · 92%Payroll accrual · 86%Vendor accrual · 68%Tax evidence · 51%TimeAccountObjectAmountState09:18Payroll payableAPR payroll close₩894,000,000review09:42Withholding taxHomeTax draft₩118,400,000matched10:05Vendor accrualStripe invoice₩4,820,000blocking10:21Leave liabilityYoon Tae-min risk₩53,000,000advisory CLOSE COMMAND · OBJECT GRAPHApril commercial command centerA Bominal-grade operating surface: payroll, ledger, tax, vendors, billing, leave, workflow, messages, and evidence stay in one dense local workspace.Close dry-run recomputed: 7 objects, 18 receipts, 3 blockersRun close dry-runAttach proofCLOSE SPINEEvery commercial object joins the same package3 blockersPayroll₩894MreviewTax₩118MHomeTaxVendors₩69MStripe · AWSBilling₩4"
+    },
+    "interactions": {
+      "vendorsActive": true,
+      "billingActive": true,
+      "leaveActive": true,
+      "hubState": {
+        "visibleTop": 55,
+        "activeTab": "Mail",
+        "status": "Mail · 4 visible · all filter · local only"
+      },
+      "evidenceState": {
+        "visibleTop": 75,
+        "heading": "Operational intelligence console"
+      },
+      "statusAfterRun": {
+        "financeStatus": "Close dry-run recomputed: 7 objects, 18 receipts, 3 blockers",
+        "commandStatus": "Close dry-run recomputed: 7 objects, 18 receipts, 3 blockers",
+        "selectedCommand": "run-close"
+      }
+    },
+    "assertions": {
+      "hasOneCommandBoard": true,
+      "hasDenseCards": true,
+      "hasCloseSpine": true,
+      "hasCashPipeline": true,
+      "hasVendorRiskQueue": true,
+      "hasEvidenceLane": true,
+      "hasRouteMatrix": true,
+      "routesFinancePanels": true,
+      "routesMail": true,
+      "routesEvidence": true,
+      "runCloseStatus": true,
+      "noConsoleErrors": true,
+      "noFailedRequests": true
+    },
+    "errors": [],
+    "failed": [],
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-ledger-1440.png",
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-mail-route-1440.png",
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-vendors-route-1440.png"
+    ]
+  },
+  "pixel_diff": {
+    "capturedAt": "2026-05-25T02:44:27.967Z",
+    "comparisons": [
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-ledger-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/pixel-diff-ref-http-corporate-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 67278,
+        "mismatchRatio": 0.051912
+      },
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-ledger-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/pixel-diff-ref-http-workflow-studio-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 65851,
+        "mismatchRatio": 0.050811
+      },
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-ledger-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/pixel-diff-ref-http-employees-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 55735,
+        "mismatchRatio": 0.043005
+      }
+    ]
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "details": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "pass"
+    },
+    {
+      "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "pass",
+      "details": "SSR contains finance-command-board"
+    },
+    {
+      "command": "node /tmp/oya-finance-command-smoke.mjs",
+      "status": "pass",
+      "details": {
+        "hasOneCommandBoard": true,
+        "hasDenseCards": true,
+        "hasCloseSpine": true,
+        "hasCashPipeline": true,
+        "hasVendorRiskQueue": true,
+        "hasEvidenceLane": true,
+        "hasRouteMatrix": true,
+        "routesFinancePanels": true,
+        "routesMail": true,
+        "routesEvidence": true,
+        "runCloseStatus": true,
+        "noConsoleErrors": true,
+        "noFailedRequests": true
+      }
+    },
+    {
+      "command": "node /tmp/oya-finance-pixel-diff.mjs",
+      "status": "pass"
+    }
+  ],
+  "artifacts": {
+    "smoke": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/finance-command-smoke.json",
+    "pixel_diff_summary": ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/finance-command-pixel-diff-summary.json",
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-ledger-1440.png",
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-mail-route-1440.png",
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/screenshots/finance-command-vendors-route-1440.png"
+    ],
+    "pixel_diffs": [
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/pixel-diff-ref-http-corporate-1440.png",
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/pixel-diff-ref-http-workflow-studio-1440.png",
+      ".omx/artifacts/visual-ralph/oya-finance-command-center-polish/pixel-diff-ref-http-employees-1440.png"
+    ]
+  },
+  "known_limits": [
+    "This repairs one high-regression finance/commercial surface; it is not a claim that the entire Oyatie dashboard has reached Bominal feature parity.",
+    "All interactions mutate local visual state only; backend wiring remains intentionally absent."
+  ]
+}

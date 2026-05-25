@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-APPLICATION-SHELL-FULL-DASHBOARD-20260523",
+  "agent_id": "codex-oyatie-full-dashboard",
+  "created_at": "2026-05-23T11:55:00Z",
+  "scope": "Expand the mock-only Oyatie Cloud/Tenant Control Center Leptos prototype from scaffold into a full dashboard while preserving server-derived render-envelope constraints.",
+  "implemented_changes": [
+    "Added serializable tenant/role/accreditation-aware TenantRenderEnvelope data types and SSR/test-only mock envelope derivation.",
+    "Added an SSR-only mock server catalog sentinel and kept the full catalog behind cfg(feature = \"ssr\").",
+    "Reworked the app into an SSR-first shell with a selective Leptos/WASM dashboard island rooted at #oya-dashboard-island-root.",
+    "Added /api/render-envelope/<context-id> to return one permitted render envelope at a time for context switching.",
+    "Implemented full mock dashboard surfaces: metrics, daily tasks, schedule, messenger/mail, approvals, permitted modules, Workflow Studio canvas, ontology explanation, and advisory assistant.",
+    "Copied the generated Visual Ralph reference image into .omx/artifacts/visual-ralph/oya-full-dashboard/ and captured Playwright screenshots for the implemented route."
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "summary": "8 passed; 0 failed"
+    },
+    {
+      "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --release",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --no-default-features --features hydrate --lib --release",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+      "status": "pass"
+    },
+    {
+      "command": "strings target/wasm32-unknown-unknown/release/{crate artifacts} | grep -E 'SERVER_ONLY_CATALOG_SENTINEL_DO_NOT_SHIP_TO_BROWSER_WASM|Clinical Home|Patient Schedule|Care Workflows'",
+      "status": "pass_absent",
+      "summary": "Server-only sentinel and healthcare-only sample strings were absent from current browser/WASM release artifacts."
+    },
+    {
+      "command": "podman run docker.io/library/rust:1.95-bookworm cargo run --locked -p oya-application-shell-frontend-prototype --no-default-features --features ssr; curl route and envelope APIs",
+      "status": "pass",
+      "summary": "Root rendered #prototype-shell and #oya-dashboard-island-root; corporate-office envelope excluded Clinical Home; healthcare-clinician envelope included Clinical Home."
+    },
+    {
+      "command": "npx --yes playwright screenshot --browser=chromium --viewport-size=1440,1100 --full-page http://127.0.0.1:3000/ .omx/artifacts/visual-ralph/oya-full-dashboard/screenshots/current-dashboard-fullpage.png",
+      "status": "pass",
+      "summary": "Full-page visual evidence captured for the local SSR route."
+    }
+  ],
+  "artifacts": {
+    "visual_reference": ".omx/artifacts/visual-ralph/oya-full-dashboard/oya-full-dashboard-reference.png",
+    "visual_reference_metadata": ".omx/artifacts/visual-ralph/oya-full-dashboard/reference-metadata.json",
+    "screenshot_viewport": ".omx/artifacts/visual-ralph/oya-full-dashboard/screenshots/current-dashboard-viewport.png",
+    "screenshot_fullpage": ".omx/artifacts/visual-ralph/oya-full-dashboard/screenshots/current-dashboard-fullpage.png",
+    "client_manifest": "crates/oya-application-shell-frontend-prototype/client-manifest.json"
+  },
+  "non_claims": [
+    "No production readiness is claimed.",
+    "No real authentication, backend integration, PHI/PII handling, or workflow execution is implemented.",
+    "No full repository ./bin/oya verify --ci-required success is claimed; this evidence is scoped to the application shell frontend prototype slice.",
+    "The Visual Ralph reference is a working target artifact; pixel-perfect parity is not claimed."
+  ],
+  "facets": {
+    "F1_source_grounding": "Grounded in the user-provided frontend objective, Leptos/cargo metadata, current crate files, and generated Visual Ralph reference.",
+    "F2_tests_and_gates": "Package fmt, tests, WASM builds, hydrate build, SSR build, sentinel/string leak check, Podman smoke, API smoke, and Playwright screenshot capture passed.",
+    "F3_security_privacy": "Mock-only dashboard; no real auth/backend/PHI/PII; browser artifacts do not contain the server-only catalog sentinel or healthcare-only sample modules.",
+    "F4_architecture": "SSR/server derives permitted render envelopes; browser island fetches one permitted envelope by context instead of receiving and hiding the full catalog.",
+    "F5_operability": "Podman local server launches with docker.io/library/rust:1.95-bookworm and exposes root plus /api/render-envelope/<context-id>.",
+    "F6_rollback": "All changes are confined to the prototype crate, root workspace membership/dependency lock updates, registry catalog row, and visual evidence artifacts.",
+    "F7_user_impact": "Provides a serious cloud/tenant control center mock dashboard with no-code workflow and daily-work surfaces.",
+    "F8_observability": "Evidence captured through tests, smoke logs, screenshot artifacts, and this multispectrum JSON.",
+    "F9_dependency": "Adds serde/serde_json and wasm browser bindings needed for serializable envelopes and selective island fetches; no React/xyflow fallback.",
+    "F10_claim_honesty": "Claims are limited to the mock prototype; full repository verification and production readiness are explicitly nonclaimed.",
+    "F11_docs": "client-manifest.json documents the full dashboard, selective island model, dev commands, non-goals, and visual reference.",
+    "F12_reserved": "not_applicable",
+    "F13_followup": "If cargo-leptos is installed, run cargo leptos build --release from the prototype crate to produce the /pkg glue for hydrated browser interaction."
+  }
+}

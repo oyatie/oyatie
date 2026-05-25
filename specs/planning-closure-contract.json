@@ -112,6 +112,8 @@
         "contracts/openapi/**",
         "contracts/asyncapi/**",
         "contracts/**/*.proto",
+        "contracts/graphql/**",
+        "contracts/contract-source/**",
         "docs/standards/idempotency-keys-canonical.md"
       ],
       "hyperscaler_pattern_authority": "specs/hyperscaler-architecture-invariants.json",
@@ -161,6 +163,17 @@
         "idempotency_keys_for_state_changing_rest_operations",
         "semver_and_compatibility_policy_before_public_release"
       ],
+      "api_contract_single_source_of_truth": {
+        "required": true,
+        "authoring_model": "Rust-native TypeSpec-like shared contract source",
+        "forbidden_drift_mode": "manual parallel maintenance of REST/OpenAPI, gRPC/Protobuf, and GraphQL schemas",
+        "required_outputs": [
+          "REST/OpenAPI",
+          "gRPC/Protobuf",
+          "GraphQL SDL/resolver contracts"
+        ],
+        "graphql_policy": "GraphQL is first-class API support and must be generated or validated from the same shared source of truth as REST and gRPC."
+      },
       "required_hyperscaler_pattern_rules": [
         "slo_error_budget_gating",
         "progressive_delivery_and_rollback",
@@ -197,7 +210,52 @@
         "one_time_bootstrap_to_secured_hardened_cluster_member",
         "distroless_or_scratch_production_images_by_default"
       ],
-      "exit_rule": "FD-001 planning is closed only when flat microservice boundaries, independent horizontal scaling, clean architecture, API-first contracts, and hyperscaler pattern mappings are accepted before implementation ChangeSets begin."
+      "exit_rule": "FD-001 planning is closed only when flat microservice boundaries, independent horizontal scaling, clean architecture, API-first contracts, and hyperscaler pattern mappings are accepted before implementation ChangeSets begin.",
+      "cloud_control_plane_resource_model": {
+        "required": true,
+        "resource_hierarchy": [
+          "Organization",
+          "Account",
+          "Project",
+          "Region",
+          "Cell",
+          "Resource Group",
+          "Resource"
+        ],
+        "orn_format": "orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}",
+        "control_plane_flow": [
+          "API Gateway",
+          "Resource Registry",
+          "Operation Ledger",
+          "Workflow/Reconciler",
+          "OpenTofu/Operators/Argo"
+        ],
+        "operation_ledger_required_for_create_update_delete": true,
+        "quota_metering_billing_required_on_every_resource": true,
+        "developer_platform_core_provisioning_surface": [
+          "service",
+          "database",
+          "topic",
+          "bucket",
+          "secret",
+          "SLO",
+          "runbook",
+          "deploy pipeline",
+          "preview env"
+        ],
+        "cluster_api_gateway_api_openfeature_focus_opencost_progressive_delivery_required": true,
+        "stable_resource_required_facets": [
+          "lifecycle",
+          "identity",
+          "policy",
+          "quota",
+          "billing",
+          "audit",
+          "observability",
+          "rollback",
+          "reconciliation"
+        ]
+      }
     }
   },
   "hyperscaler_discipline": {
@@ -452,5 +510,83 @@
     "closure_rule": "A marker is closed only when the underlying decision or implementation-plan contract is complete; renaming or deleting the marker is not closure.",
     "claim_control_rule": "Every readiness or industry-leading claim must cite current gate evidence, source mapping, baseline diff, and explicit non-empty coverage. Empty green checks are false signals.",
     "regression_control_rule": "Every ChangeSet must include targeted regression coverage or an explicit reviewed evidence gap. Silent behavior, performance, policy, schema, API, tenant-isolation, observability, and auditability regressions block planning closure and implementation promotion."
+  },
+  "cloud_control_plane_resource_model_directive": {
+    "source": "user-directive-2026-05-25",
+    "required_before_launch_readiness_claim": true,
+    "canonical_resource_model": {
+      "hierarchy": [
+        "Organization",
+        "Account",
+        "Project",
+        "Region",
+        "Cell",
+        "Resource Group",
+        "Resource"
+      ],
+      "orn_format": "orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}",
+      "region_and_cell_first_class": true
+    },
+    "cloud_control_plane_required": {
+      "api_gateway": true,
+      "resource_registry": true,
+      "operation_ledger": true,
+      "workflow_reconciler": true,
+      "execution_mechanisms": [
+        "OpenTofu",
+        "Kubernetes Operators",
+        "Argo CD"
+      ],
+      "opentofu_and_argo_not_user_facing_control_plane": true
+    },
+    "every_resource_type_must_define": [
+      "quota_cost",
+      "billing_meters",
+      "audit_events",
+      "lifecycle_state",
+      "owner",
+      "tenant/account/project",
+      "region/cell",
+      "SLO tier",
+      "deletion/retention policy"
+    ],
+    "developer_platform_core_provisioning_surface": [
+      "service",
+      "database",
+      "topic",
+      "bucket",
+      "secret",
+      "SLO",
+      "runbook",
+      "deploy pipeline",
+      "preview env"
+    ],
+    "standards_required": {
+      "cluster_api_for_kubernetes_fleet_lifecycle": true,
+      "gateway_api_for_kubernetes_networking": true,
+      "openfeature_for_cloud_rollout_release_semantics": true,
+      "focus_for_billing_dataset_shape": true,
+      "opencost_for_kubernetes_cost_attribution": true,
+      "argo_rollouts_or_oya_native_equivalent_for_progressive_delivery": true
+    },
+    "non_claims": [
+      "Planning capture only; no runtime Cloud Control Plane, registry, ledger, quota, metering, billing, developer portal, Cluster API, Gateway API, OpenFeature, FOCUS/OpenCost, or progressive delivery implementation is claimed.",
+      "Does not weaken FD-001 product delivery as the master-plan product goal or convert OpenTofu/Argo into the public control-plane API."
+    ],
+    "stable_cloud_resource_contract": {
+      "required": true,
+      "required_facets": [
+        "lifecycle",
+        "identity",
+        "policy",
+        "quota",
+        "billing",
+        "audit",
+        "observability",
+        "rollback",
+        "reconciliation"
+      ],
+      "requirement": "Oya exposes stable cloud resources with lifecycle, identity, policy, quota, billing, audit, observability, rollback, and reconciliation as first-class control-plane facets."
+    }
   }
 }

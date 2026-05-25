@@ -52,6 +52,7 @@ pub struct TenantRenderEnvelope {
     pub tenant_class: String,
     pub accreditation: AccreditationState,
     pub server_derivation_note: String,
+    pub product_activity: ProductActivitySpine,
     pub metrics: Vec<MetricCard>,
     pub modules: Vec<ModuleCard>,
     pub daily_tasks: Vec<WorkItem>,
@@ -63,6 +64,25 @@ pub struct TenantRenderEnvelope {
     pub ontology: Vec<OntologyFact>,
     pub intelligence: Vec<IntelligenceSuggestion>,
     pub omitted_capability_note: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ProductActivitySpine {
+    pub active_route: String,
+    pub active_context: String,
+    pub status_label: String,
+    pub evidence_id: String,
+    pub steps: Vec<ProductActivityStep>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ProductActivityStep {
+    pub route_key: String,
+    pub label: String,
+    pub surface: String,
+    pub detail: String,
+    pub target: String,
+    pub state: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -200,23 +220,13 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
         server_derivation_note: s(
             "Server-derived envelope: admin can see tenant posture, cloud controls, approvals, service catalog, and workflow governance only.",
         ),
+        product_activity: product_activity_spine(DemoContext::TenantAdmin),
         metrics: vec![
-            metric("Tenant posture", "92%", "7 controls need owner attestation"),
-            metric(
-                "Monthly cloud run-rate",
-                "$48.2k",
-                "Forecast is 4% under committed budget",
-            ),
-            metric(
-                "Open approvals",
-                "14",
-                "3 high-risk changes require admin review",
-            ),
-            metric(
-                "Enabled modules",
-                "12",
-                "Healthcare omitted by accreditation policy",
-            ),
+            metric("Close progress", "73%", "+12 vs Mar · payroll run"),
+            metric("Cycle time", "5.4d", "+1.4d vs target"),
+            metric("Cost of delay", "₩2,180,000", "+₩410k"),
+            metric("Open approvals", "8", "2 overdue"),
+            metric("Compliance", "4/6", "2 review"),
         ],
         modules: vec![
             module(
@@ -258,18 +268,18 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
         ],
         daily_tasks: vec![
             work(
-                "Approve production network split",
-                "Needs residency and rollback confirmation",
+                "2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요",
+                "건강보험료 등급 상승(변동액 +₩47,200/월). 마감 전 확인 후 승인.",
                 "High",
             ),
             work(
-                "Assign owner for KR pack evidence",
-                "Compliance pack has two stale attestations",
+                "연차 사용 승인 — 김지영 (5/13 – 5/17, 5일)",
+                "$60 잔여 13.5일 → 8.5일. 팀 백업 확인됨.",
                 "Medium",
             ),
             work(
-                "Review new module request",
-                "Accounting team requested payroll workflow templates",
+                "원천징수이행상황신고서 — 2026-04 제출 준비 완료",
+                "118명 직원 검증 완료. 홈택스 전송 대기.",
                 "Medium",
             ),
         ],
@@ -318,19 +328,19 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
         ],
         approvals: vec![
             approval(
-                "Network hot split",
-                "Platform operations",
-                "Requires rollback and residency evidence",
+                "구매 승인 경로 단축 가능 — Stripe 청구서 (₩4,820,000)",
+                "Procurement",
+                "정책상 < ₩5M는 1단계 승인 가능. 현재 3단계로 라우팅 중.",
             ),
             approval(
-                "Enable payroll workflows",
+                "Payroll workflow template request",
                 "Corporate HR",
-                "No backend execution in prototype",
+                "No production execution; draft routes to Mail and Community.",
             ),
             approval(
                 "Increase compute quota",
                 "Factory systems",
-                "Budget owner review required",
+                "Budget owner review required before runtime tier change.",
             ),
         ],
         workflow: workflow(
@@ -390,19 +400,19 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
         ],
         intelligence: vec![
             suggestion(
-                "Explain the risk",
-                "Summarize why this network split needs rollback evidence.",
-                "Advisory only; no change execution.",
+                "병목: 공계 승인 단계 (2.1d)",
+                "과거 12회 사이클 평균 0.6d. 최유나 매니저에 위임 권한 자동 부여 시 1.4d 단축.",
+                "Read-only suggestion; never auto-executes.",
             ),
             suggestion(
-                "Draft approval note",
-                "Create a plain-English reviewer note for non-technical owners.",
-                "User must review before saving.",
+                "원천세 신고 자동 제출 가능",
+                "118명 검증 완료. 사업자등록번호 1건 확인 후 자동 전송.",
+                "User must review before HomeTax send.",
             ),
             suggestion(
-                "Find owner",
-                "Suggest likely control owners from visible tenant metadata.",
-                "Uses permitted envelope data only.",
+                "$53 위험: 윤태민",
+                "이번 주 49.5h 예상. 백업 가능 인력 2명 추천.",
+                "Uses permitted roster data only.",
             ),
         ],
         omitted_capability_note: s(
@@ -428,6 +438,7 @@ fn corporate_office_envelope() -> TenantRenderEnvelope {
         server_derivation_note: s(
             "Server-derived envelope: same corporate tenant, but the role receives daily work, approvals, mail, messenger, HR, and accounting modules.",
         ),
+        product_activity: product_activity_spine(DemoContext::CorporateOffice),
         metrics: vec![
             metric(
                 "Today’s work",
@@ -651,6 +662,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
         server_derivation_note: s(
             "Server-derived envelope: clinician receives care schedule, secure messages, patient-safe tasks, and healthcare workflow templates.",
         ),
+        product_activity: product_activity_spine(DemoContext::HealthcareClinician),
         metrics: vec![
             metric("Care tasks", "11", "4 due before noon"),
             metric("Patient schedule", "7", "Next visit in 18 minutes"),
@@ -877,6 +889,108 @@ fn workflow(name: &str, goal: &str, nodes: Vec<WorkflowNode>) -> WorkflowPreview
         goal: s(goal),
         nodes,
         edges,
+    }
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn product_activity_spine(context: DemoContext) -> ProductActivitySpine {
+    let (active_context, status_label) = match context {
+        DemoContext::TenantAdmin => (
+            "Tenant admin · Northwind · FD-001 finance close",
+            "FD-001 product graph active · Oyatie Cloud cell-us-east-2 · local visual state",
+        ),
+        DemoContext::CorporateOffice => (
+            "Corporate office · Accounting + HR · FD-001 daily work",
+            "Corporate work queue active · Workflow, Mail, Messenger, Community remain tenant workloads",
+        ),
+        DemoContext::HealthcareClinician => (
+            "Accredited healthcare · Harborview · care workflow preview",
+            "Healthcare-safe workflow lens active · no PHI/PII or chart write in this prototype",
+        ),
+    };
+
+    ProductActivitySpine {
+        active_route: s("fd001"),
+        active_context: s(active_context),
+        status_label: s(status_label),
+        evidence_id: s("REC-FD001-CLOUD-009"),
+        steps: vec![
+            activity_step(
+                "fd001",
+                "FD-001 graph",
+                "Product substrate",
+                "Canonical product graph, service catalog, and tenant workload coverage.",
+                "#service-catalog",
+                "active",
+            ),
+            activity_step(
+                "workflow",
+                "Workflow",
+                "Governed runbook",
+                "Payroll close DAG, visual rules, simulation overlays, and inspector state.",
+                "#workflow-studio",
+                "draft",
+            ),
+            activity_step(
+                "messenger",
+                "Messenger",
+                "Ops room",
+                "Operational thread extracts actions and links rollback evidence.",
+                "#work-hub",
+                "watch",
+            ),
+            activity_step(
+                "mail",
+                "Mail",
+                "Formal brief",
+                "Approval mail carries receipts, signoff checks, and delivery disabled state.",
+                "#work-hub",
+                "draft",
+            ),
+            activity_step(
+                "community",
+                "Community",
+                "Council post",
+                "Governance audience, policy moderation, and pinned digest stay visible.",
+                "#work-hub",
+                "ready",
+            ),
+            activity_step(
+                "cloud",
+                "Oyatie Cloud",
+                "Tenant cell",
+                "Cell topology, deployment gates, FinOps, residency, and rollback posture.",
+                "#cloud-ops-cockpit",
+                "guarded",
+            ),
+            activity_step(
+                "evidence",
+                "Evidence",
+                "Audit receipt",
+                "Immutable local receipt proves what changed without wiring external systems.",
+                "#audit-ledger",
+                "sealed",
+            ),
+        ],
+    }
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn activity_step(
+    route_key: &str,
+    label: &str,
+    surface: &str,
+    detail: &str,
+    target: &str,
+    state: &str,
+) -> ProductActivityStep {
+    ProductActivityStep {
+        route_key: s(route_key),
+        label: s(label),
+        surface: s(surface),
+        detail: s(detail),
+        target: s(target),
+        state: s(state),
     }
 }
 

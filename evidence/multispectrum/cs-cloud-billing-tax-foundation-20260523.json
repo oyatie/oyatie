@@ -1,0 +1,236 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-CLOUD-BILLING-TAX-001",
+  "agent_id": "codex-cloud-billing-tax-20260523",
+  "created_at": "2026-05-23T09:02:00Z",
+  "scope": "Phase 0 Cloud Billing + Tax local foundation only",
+  "claim": "Implemented metadata-only tenant class, paid billing component, demo-trial cap, metering/invoice/tax/audit evidence guardrails for Cloud Billing + Tax and truth-downed manifests/catalog records to code-backed local-foundation claims.",
+  "source_inspection": {
+    "actual_state_before_change": [
+      "oya-cloud-billing-domain already had billing account, cloud billing event, platform meter handoff, invoice arithmetic, regional tax pack, and tax registration invariants.",
+      "oya-metering-domain already had in-memory idempotent meter events and unit invariants.",
+      "oya-cloud-billing-tax-app already validated invoice API request metadata and regional-pack-to-tax-invoice-format labels.",
+      "microservices/cloud-billing and microservices/cloud-billing-tax manifests overclaimed layers, GA planning IPs, measured SLOs, DR, sharding, mesh, IaC, OSS runtimes, and audit-chain runtime emission without code-backed local evidence.",
+      "Catalog records for missing billing/adapter/application and platform-metering app/kernel crates implied runtime surfaces that do not exist in this checkout."
+    ],
+    "authoritative_next_slice_before_change": "tasks/plan.md identified Cloud Billing + Tax as the next Phase 0 slice after Cloud Compute; Cloud IaC was already closed for its local foundation surface."
+  },
+  "official_sources_used": [
+    {
+      "name": "FinOps FOCUS Specification",
+      "url": "https://focus.finops.org/focus-specification/",
+      "relevance": "FOCUS defines uniform cost and usage billing datasets, invoice reconciliation, allocation, recency, and completeness concerns; this slice records FOCUS export as a future runtime non-claim."
+    },
+    {
+      "name": "Stripe Idempotent Requests API reference",
+      "url": "https://docs.stripe.com/api/idempotent_requests",
+      "relevance": "Billing mutation retries should use non-sensitive idempotency keys and compare request parameters; this slice keeps idempotent metering local and rejects secret-like refs."
+    },
+    {
+      "name": "Stripe Billing Meter Event API reference",
+      "url": "https://docs.stripe.com/api/billing/meter-event/create",
+      "relevance": "Meter events are a common billing primitive; this slice keeps meter event handling metadata-only and does not claim live billing ingest."
+    },
+    {
+      "name": "European Commission VAT invoicing rules",
+      "url": "https://taxation-customs.ec.europa.eu/taxation/vat/vat-businesses/invoicing_en",
+      "relevance": "VAT invoicing can require electronic invoice formats and national rules; this slice validates tax invoice format labels only and does not claim statutory tax calculation/filing."
+    },
+    {
+      "name": "AWS Cost and Usage Reports line item details",
+      "url": "https://docs.aws.amazon.com/cur/latest/userguide/Lineitem-columns.html",
+      "relevance": "Cloud billing records need usage amount, rate, cost, account, tax type, and time window dimensions; this slice locks local evidence metadata but does not implement provider CUR export."
+    },
+    {
+      "name": "Google Cloud Billing export to BigQuery setup",
+      "url": "https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery-setup",
+      "relevance": "Provider billing exports require scoped billing/data permissions and dataset placement; this slice explicitly avoids claiming runtime billing exports."
+    },
+    {
+      "name": "Oracle Cloud Infrastructure Cost Reports",
+      "url": "https://docs.oracle.com/iaas/Content/Billing/Concepts/costusagereportsoverview.htm",
+      "relevance": "OCI cost reports include resource-level usage/cost and FOCUS cost reports; this slice records provider cost report integrations as future non-claims."
+    },
+    {
+      "name": "ZATCA E-Invoicing",
+      "url": "https://zatca.gov.sa/en/E-Invoicing/Pages/default.aspx",
+      "relevance": "E-invoicing often includes jurisdiction-specific structured invoice and clearance requirements; this slice maps tax invoice labels but does not implement government clearance."
+    }
+  ],
+  "implemented_files": [
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+    "crates/oya-metering-domain/src/lib.rs",
+    "microservices/cloud-billing/manifest.json",
+    "microservices/cloud-billing-tax/manifest.json",
+    "registry/catalog/oya-cloud-billing-domain.yaml",
+    "registry/catalog/oya-cloud-billing-kernel.yaml",
+    "registry/catalog/oya-cloud-billing-tax-app.yaml",
+    "registry/catalog/oya-cloud-billing-app.yaml",
+    "registry/catalog/oya-cloud-billing-application.yaml",
+    "registry/catalog/oya-cloud-billing-tax-application.yaml",
+    "registry/catalog/oya-cloud-billing-adapter-aws.yaml",
+    "registry/catalog/oya-cloud-billing-adapter-fake.yaml",
+    "registry/catalog/oya-metering-domain.yaml",
+    "registry/catalog/oya-metering-application.yaml",
+    "registry/catalog/oya-platform-metering-kernel.yaml",
+    "registry/catalog/oya-platform-metering-app.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "behavior_added": [
+    "TenantClass enum with demo_trial and paid labels.",
+    "BillingComponent enum with revenue_share, per_seat, and per_usage labels.",
+    "CloudBillingTenantGuardrail metadata object validates tenant id, region, billing account id, rate card ref, invoice id, billing period, regional pack and tax invoice format alignment.",
+    "Paid tenants require at least one unique paid billing component; demo_trial tenants cannot enable paid components and require demo-trial cap evidence.",
+    "Metering, invoice, tax, audit-chain, and demo-trial-cap evidence refs must use billing-owned prefixes, include tenant/region scope, avoid traversal/whitespace/control characters, avoid duplicate metering refs, and reject secret-like markers.",
+    "Shared metering domain tenant/id validation rejects uppercase/unsafe reference segments."
+  ],
+  "red_evidence": [
+    {
+      "command": "cargo test -p oya-cloud-billing-domain --test cloud_billing_foundation",
+      "result": "failed before implementation",
+      "failure_summary": "unresolved imports for BillingComponent, CloudBillingTenantGuardrail, CloudBillingTenantGuardrailCreate, TenantClass, and missing CloudBillingError policy variants"
+    }
+  ],
+  "green_evidence": [
+    {
+      "command": "cargo test -p oya-cloud-billing-domain --test cloud_billing_foundation",
+      "result": "PASS",
+      "summary": "5/5 new guardrail tests passed"
+    },
+    {
+      "command": "cargo test -p oya-cloud-billing-domain -p oya-metering-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app",
+      "result": "PASS",
+      "summary": "8 billing-domain unit tests, 5 billing-foundation tests, 7 billing-kernel tests, 6 tax-app integration tests, and 3 metering-domain tests passed"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-billing-domain -p oya-metering-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app --all-targets -- -D warnings",
+      "result": "PASS"
+    },
+    {
+      "command": "cargo check -p oya-cloud-billing-domain -p oya-metering-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app",
+      "result": "PASS"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "PASS"
+    },
+    {
+      "command": "custom cloud-billing-tax manifest/catalog coherence check",
+      "result": "PASS",
+      "summary": "no measured SLO, active-active DR, IaC, runtime OSS, or data-processing claims remain in billing/tax manifests; missing-crate catalogs are retired compatibility rows"
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "result": "PASS"
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "PASS"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --severity report-only",
+      "result": "PASS_REPORT_ONLY",
+      "summary": "0 blocking diagnostics"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root crates/oya-cloud-billing-domain --corpus-root crates/oya-metering-domain --corpus-root crates/oya-cloud-billing-kernel --corpus-root crates/oya-cloud-billing-tax-app --corpus-root microservices/cloud-billing --corpus-root microservices/cloud-billing-tax --corpus-root tasks/plan.md --corpus-root tasks/todo.md",
+      "result": "PASS"
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "repo_wide_gate_non_green": [
+    {
+      "command": "./bin/oya gate validate architecture-boundaries",
+      "result": "FAIL_PRE_EXISTING_UNRELATED",
+      "summary": "The repo-wide gate reports missing catalog records for tenancy, payments, and audit-chain crates outside this ChangeSet. No Cloud Billing + Tax catalog blocker from this slice was observed. This evidence does not claim architecture-boundaries green."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "FAIL_PRE_EXISTING_UNRELATED",
+      "summary": "The catalog validator stops on registry/catalog/oya-cloud-compute-functions-api.yaml InvalidSecurityReview, outside this ChangeSet. This evidence does not claim catalog validation green."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "NOT_RUN_NOT_CLAIMED",
+      "summary": "The broad repo-wide verify path is known non-green in the active objective and is not part of this local-foundation claim."
+    }
+  ],
+  "manifest_truth_down": {
+    "cloud_billing": [
+      "layers reduced to domain/kernel",
+      "SLO list emptied",
+      "audit-chain runtime emitter false",
+      "DR active-active false",
+      "runtime OSS/IaC/data-processing claims removed",
+      "explicit non-claims added for billing transport, metering outbox, settlement, payment, FOCUS export, tax authority integration, REST/SDK/worker, SLO, DR, sharding, mesh, IaC, capacity telemetry"
+    ],
+    "cloud_billing_tax": [
+      "layers reduced to app",
+      "SLO list emptied",
+      "audit-chain runtime emitter false",
+      "DR active-active false",
+      "runtime OSS/IaC/data-processing claims removed",
+      "explicit non-claims added for statutory tax calculation, rate catalog, filing, e-invoice clearance, authority adapter, REST/SDK/worker, SLO, DR, sharding, mesh, IaC, capacity telemetry"
+    ]
+  },
+  "catalog_truth_down": {
+    "code_backed_local_foundation": [
+      "registry/catalog/oya-cloud-billing-domain.yaml",
+      "registry/catalog/oya-cloud-billing-kernel.yaml",
+      "registry/catalog/oya-cloud-billing-tax-app.yaml",
+      "registry/catalog/oya-metering-domain.yaml"
+    ],
+    "retired_compatibility_no_crate": [
+      "registry/catalog/oya-cloud-billing-app.yaml",
+      "registry/catalog/oya-cloud-billing-application.yaml",
+      "registry/catalog/oya-cloud-billing-tax-application.yaml",
+      "registry/catalog/oya-cloud-billing-adapter-aws.yaml",
+      "registry/catalog/oya-cloud-billing-adapter-fake.yaml",
+      "registry/catalog/oya-metering-application.yaml",
+      "registry/catalog/oya-platform-metering-kernel.yaml",
+      "registry/catalog/oya-platform-metering-app.yaml"
+    ]
+  },
+  "known_gaps_and_non_claims": [
+    "No live usage ingest, billing REST/gRPC/API server, SDK, worker, message broker, metering outbox, persistent invoice ledger, payment processor, settlement rail, FOCUS export, provider cost report export, tax authority adapter, statutory tax calculation, e-invoice clearance, tax filing artifact generation, OpenTofu plan/apply, provider-live operation, measured SLO, capacity telemetry, DR, sharding, mesh runtime, or audit-chain persistence is implemented.",
+    "Legacy Markdown benchmark/parity/runbook/implementation-plan files under microservices/cloud-billing and microservices/cloud-billing-tax remain prose/planning artifacts and are not readiness evidence.",
+    "Cloud Capacity / Cell / DCOps / FinOps / Marketplace / FSH is the next sequential Phase 0 slice after CS-CLOUD-BILLING-TAX-001 closeout and must be claimed before write work."
+  ],
+  "code_review": {
+    "verdict": "APPROVE_LOCAL_FOUNDATION_SCOPE",
+    "review_notes": [
+      "Positive: guardrail is metadata-only and uses typed IDs/RegionCode/TaxInvoiceFormat rather than introducing runtime transport or provider credentials.",
+      "Positive: negative tests cover demo_trial vs paid policy, duplicate components, wrong evidence prefix, secret-like evidence refs, audit-chain ref lane, tax format drift, and strict tenant/account IDs.",
+      "Positive: manifests and catalogs now explicitly remove or retire false runtime/readiness claims.",
+      "Residual risk: tax jurisdiction rules are label-level only; statutory calculation/filing/clearance must be separate sourced ChangeSets with jurisdiction-specific tests and provider/government sandbox evidence."
+    ]
+  },
+  "promotion_status": "oya-vcs-promote-accepted-local-review",
+  "oya_vcs_lifecycle": [
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-cloud-billing-tax-20260523 --intent ...",
+      "result": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json work --agent codex-cloud-billing-tax-20260523 CS-CLOUD-BILLING-TAX-001",
+      "result": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json verify --agent codex-cloud-billing-tax-20260523 --evidence evidence/multispectrum/cs-cloud-billing-tax-foundation-20260523.json CS-CLOUD-BILLING-TAX-001",
+      "result": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json done --agent codex-cloud-billing-tax-20260523 --evidence evidence/multispectrum/cs-cloud-billing-tax-foundation-20260523.json --controller-promote CS-CLOUD-BILLING-TAX-001",
+      "result": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json promote --agent codex-cloud-billing-tax-20260523 --bundle CS-CLOUD-BILLING-TAX-001 --env local --evidence evidence/multispectrum/cs-cloud-billing-tax-foundation-20260523.json",
+      "result": "accepted"
+    }
+  ]
+}

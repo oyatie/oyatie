@@ -1,0 +1,290 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-provider-readiness",
+  "timestamp_iso": "2026-05-24T22:02:08Z",
+  "freshness_unix": 1779660128,
+  "git_sha": "a93fe797",
+  "scope": [
+    "crates/oya-dev-cli/src/cloud_iac_provider_readiness_gate.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/commands/gate/run_all.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "microservices/cloud-iac/manifest.json",
+    "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-provider-readiness-gate-20260524.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Make Cloud IaC provider-readiness a first-class fail-closed local Oya gate by binding each local module-catalog row to intended provider families, explicit provider source addresses, reusable-module minimum version constraints, and future lock/signature/provenance requirements while preserving provider HCL materialization, provider dependency lockfiles, provider installation, provider provenance, module signing, SLSA attestations, tofu test/plan/apply, and provider-resource-complete modules as explicit non-claims.",
+  "complementary_plan_reference": [
+    "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
+    "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
+    "plan/hyperscaler-grade-cloud-platform-quality-review.md"
+  ],
+  "best_practice_sources": [
+    {
+      "source": "OpenTofu Provider Requirements",
+      "url": "https://opentofu.org/docs/language/providers/requirements/",
+      "evidence_used": "Each future provider family uses an explicit provider source address and a minimum provider version constraint; reusable modules do not set maximum constraints in this inventory."
+    },
+    {
+      "source": "OpenTofu Dependency Lock File",
+      "url": "https://opentofu.org/docs/language/files/dependency-lock/",
+      "evidence_used": "Lockfiles are provider dependency evidence created/updated by init and should be reviewed/committed separately; this ChangeSet explicitly keeps provider lockfiles non-materialized."
+    },
+    {
+      "source": "OpenTofu providers lock command",
+      "url": "https://opentofu.org/docs/cli/commands/providers/lock/",
+      "evidence_used": "Future lock evidence should pre-populate platform checksums and requires signer review; this ChangeSet records future lock requirements only and does not run providers lock."
+    },
+    {
+      "source": "SLSA specification v1.2",
+      "url": "https://slsa.dev/spec/v1.2/",
+      "evidence_used": "SLSA provenance/verification summary remains a future supply-chain evidence slice; this ChangeSet does not emit SLSA attestations."
+    },
+    {
+      "source": "OpenTofu Registry OCI provider entry",
+      "url": "https://search.opentofu.org/provider/opentofu/oci/latest",
+      "evidence_used": "The OCI family inventory uses the current OpenTofu Registry public source address registry.opentofu.org/opentofu/oci while still refusing provider install, lock, or live OCI API claims."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "./bin/oya gate validate cloud-iac-provider-readiness --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --readiness microservices/cloud-iac/tofu/modules/provider-readiness.json",
+      "result": "FAIL before implementation",
+      "summary": "The command exited 2 because cloud-iac-provider-readiness was not wired in the gate dispatcher. Log: /tmp/cs-cloud-iac-provider-readiness-red.log."
+    },
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_provider_readiness_gate_ignores_non_provider_source_version_attributes -- --nocapture",
+      "result": "FAIL before scanner hardening",
+      "summary": "The new regression test exited 101 because the original scanner treated source/version attributes outside required_providers as provider materialization; this exposed an avoidable false-positive path before the HCL scan was narrowed to the required_providers block."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --all && cargo test -p oya-dev-cli cloud_iac_provider_readiness -- --nocapture",
+      "result": "PASS",
+      "summary": "8 focused tests passed, covering unknown flag rejection, valid fixture acceptance, missing catalog module, materialized provider lockfile, materialized provider HCL, non-provider source/version HCL ignored outside required_providers, non-minimum provider constraint, and run-all catalog membership."
+    },
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_provider_readiness_gate_ignores_non_provider_source_version_attributes -- --nocapture",
+      "result": "PASS",
+      "summary": "The HCL scanner hardening regression now passes: source/version attributes outside required_providers no longer create a provider-materialization false positive."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-provider-readiness --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --readiness microservices/cloud-iac/tofu/modules/provider-readiness.json",
+      "result": "PASS",
+      "summary": "Live provider-readiness gate passed: 6 modules and 12 provider families checked."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after adding cloud-iac-provider-readiness to AGGREGATED_VALIDATE_LANES."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-catalog && ./bin/oya gate validate cloud-iac-gitops-evidence && ./bin/oya gate validate cloud-iac-cell-topology && ./bin/oya gate validate cloud-iac-opentofu-validation && ./bin/oya gate validate cloud-iac-module-provenance",
+      "result": "PASS",
+      "summary": "Existing Cloud IaC regression gates remain green: module catalog, GitOps evidence, cell topology, OpenTofu validation, and module provenance."
+    },
+    {
+      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain && cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings && cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Scoped Rust check, clippy with warnings denied, and formatting check passed after scanner hardening."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json && python3 -m json.tool microservices/cloud-iac/tofu/modules/provider-readiness.json && python3 JSONL parse of evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Manifest, provider-readiness, evidence JSON, and audit-chain JSONL parse; audit-chain JSONL parsed 441 rows after lifecycle-promoted append."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure && ./bin/oya gate validate api-semver --contracts-dir contracts && ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Planning closure, API semver, and architecture-boundaries remain green."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root <claimed code/manifest/readiness/tasks>",
+      "result": "PASS",
+      "summary": "Scoped honest-claims gate passed across claimed code, manifest, provider-readiness, and task surfaces."
+    },
+    {
+      "command": "./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-provider-readiness-retired-vocab.<id>",
+      "result": "PASS",
+      "summary": "Scoped retired-vocabulary gate passed over temp corpus containing the new gate, manifest, provider-readiness, task files, and evidence file: 6 documents, 0 drift hits."
+    },
+    {
+      "command": "./bin/oya gate run-all",
+      "result": "PASS",
+      "summary": "Default aggregate gate run passed 87/87 lanes after scanner hardening, including cloud-iac-provider-readiness."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-provider-readiness-gate-20260524.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-provider-readiness-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam validation passed: 6 subchecks, 6 pass, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya vcs work --agent codex",
+      "result": "PASS",
+      "summary": "Oya VCS accepted work start for agent codex."
+    },
+    {
+      "command": "./bin/oya vcs verify --agent codex --evidence evidence/multispectrum/cs-cloud-iac-provider-readiness-gate-20260524.json",
+      "result": "PASS",
+      "summary": "Oya VCS accepted evidence verification for the provider-readiness ChangeSet."
+    },
+    {
+      "command": "./bin/oya vcs done --agent codex --evidence evidence/multispectrum/cs-cloud-iac-provider-readiness-gate-20260524.json",
+      "result": "PASS",
+      "summary": "Oya VCS accepted change-bundle emission for the provider-readiness ChangeSet."
+    },
+    {
+      "command": "./bin/oya vcs promote --agent codex --bundle CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001 --environment local-foundry",
+      "result": "PASS",
+      "summary": "Oya VCS accepted local-foundry promotion for CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001."
+    }
+  ],
+  "implemented_claims": [
+    "Added oya gate validate cloud-iac-provider-readiness with repo-local defaults for manifest, catalog, and provider-readiness paths.",
+    "Added microservices/cloud-iac/tofu/modules/provider-readiness.json binding all six catalog modules to intended provider families and future lock/signature/provenance requirements.",
+    "Manifest provider_readiness_scope now records catalog/readiness paths, status, module count/names, provider families, official sources consulted, enforced invariants, and non-claims.",
+    "Run-all catalog membership now includes cloud-iac-provider-readiness and focused tests cover the aggregate lane.",
+    "Hardened provider HCL scanning so the readiness-only non-claim blocks source/version assignments specifically inside required_providers while ignoring non-provider metadata attributes outside that block.",
+    "Appended audit-chain lifecycle promotion row cloud_iac_provider_readiness_gate_lifecycle_promoted for the Oya VCS closeout."
+  ],
+  "explicit_non_claims": [
+    "no OpenTofu required_providers HCL materialization",
+    "no provider dependency lockfile",
+    "no provider installation",
+    "no provider mirror verification",
+    "no provider provenance verification",
+    "no module signing or Sigstore execution",
+    "no SLSA attestation generation or verification summary",
+    "no tofu test/plan/apply evidence",
+    "no provider-resource-complete module bodies",
+    "no provider API, provider credentials, state backend, cloud resource provisioning, Argo CD/Kubernetes API, SLO, DR, or capacity telemetry claim"
+  ],
+  "false_green_findings_closed": [
+    "Provider family intent can no longer remain only prose while tasks mention provider-lock/signature gaps; it is now machine-checkable against the local module catalog.",
+    "Provider-readiness now fails closed if a catalog module is missing, if a provider family omits future lock/signature/provenance requirements, or if module source starts materializing provider source/version HCL before the lockfile evidence slice claims it.",
+    "Provider lockfiles under the local module tree now fail this readiness gate until a later provider-lock evidence ChangeSet intentionally claims and verifies them.",
+    "Avoided a false-positive gate failure mode: local skeleton modules may carry non-provider metadata named source/version, but only source/version assignments inside required_providers count as premature provider requirement materialization.",
+    "Provider-readiness closeout now includes Oya VCS work/verify/done/promote evidence rather than only command-local gates."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required remains known-red from the immediate Cloud IaC verifier attempt on unrelated/concurrent application-shell compile drift, app-shell evidence metadata/audit-chain admission gaps, and pre-existing ADR-0322..ADR-0349 shape diagnostics; this ChangeSet does not modify or claim those surfaces.",
+    "Cloud IaC still needs future slices for OpenTofu required_providers HCL materialization, .terraform.lock.hcl evidence, provider provenance, signed module release index, SLSA attestations, tofu tests, plan/apply evidence, private module registry API, and live GitOps/provider integration evidence.",
+    "Concurrent unrelated application-shell changes and many untracked evidence artifacts exist in the worktree; this ChangeSet does not claim or modify them."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Small local gate with no new dependency; it checks existing JSON/HCL filesystem state and refuses overclaims rather than adding provider abstractions."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Moves Cloud IaC supply-chain posture from local source digests toward provider-lock/signature readiness while refusing to overclaim provider lock, installation, signing, SLSA, or plan/apply."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests cover unknown lane RED, missing module, materialized lockfile, materialized provider HCL, and non-minimum constraints. Live run-all covers integration with existing Cloud IaC gates.",
+        "Additional RED/GREEN hardening covers the prior false positive where source/version attributes outside required_providers were mistakenly treated as provider materialization."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Command has live repo defaults and reports manifest/catalog/readiness paths plus module/provider-family counts."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests, live gate, Cloud IaC regressions, scoped check/clippy/fmt, JSON/audit parsing, planning/api/architecture gates, honest/retired vocabulary, run-all 87/87, and strict dependency-seam are recorded.",
+        "Post-hardening verification includes 8 focused tests, live provider-readiness, gate-catalog, Cloud IaC regressions, scoped check/clippy/fmt, planning/api/architecture, run-all 87/87, and strict dependency-seam."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Rejected fake provider lockfiles and fake signatures. Chose readiness inventory because generic skeleton modules cannot honestly materialize provider-specific HCL without provider-specific module/root design and lock evidence."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Gate rejects provider lockfile materialization, provider HCL materialization, missing future lock/signature/provenance flags, and provider resource overclaims in this no-credentials slice."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Bounded local filesystem scan of six modules and JSON metadata; no provider calls, network, or runtime hot path."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Explicit non-claims distinguish readiness inventory from SLSA attestation, provider lock/provenance, deployment, SLO, DR, or hyperscaler readiness evidence."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Existing Cloud IaC module-catalog, GitOps evidence, cell-topology, OpenTofu validation, and module-provenance gates remain green; run-all aggregate now passes 87/87."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Manifest provider_readiness_scope, tasks, evidence, and audit-chain record scope, official sources, verification, and non-claims; /plan remains complementary reference only."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reserved facet acknowledged; no reserved review needed."
+      ]
+    },
+    "F13_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Default run-all now includes the gate; diagnostics identify module-key drift, provider-source/constraint drift, lockfile materialization, and premature provider HCL materialization."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim used; no raw git/gh; shared Cloud IaC writes stayed sequential; evidence and audit-chain closeout prepared."
+      ]
+    },
+    "A2_authority_cohesion": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Root hub and docs/AGENTS contract followed; manifest and specs remain authoritative while /plan is complementary only."
+      ]
+    }
+  }
+}

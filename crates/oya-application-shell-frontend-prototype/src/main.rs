@@ -133,6 +133,8 @@ mod dev_server {
 
     fn root_html() -> String {
         let body = static_dashboard_html();
+        let wasm_package_available =
+            Path::new("target/site/pkg/oya_application_shell_frontend_prototype.js").exists();
         format!(
             r#"<!doctype html>
 <html lang="en">
@@ -147,13 +149,26 @@ mod dev_server {
     <noscript>This mock Leptos prototype needs WebAssembly enabled for hydration; the accessible shell scaffold remains visible.</noscript>
     {body}
     <script type="module">
-      import('/client/prototype-interactions.js').then((module) => module.mountShellChrome());
-      import('/pkg/oya_application_shell_frontend_prototype.js').then((wasm) => {{
-        return wasm.default().then(() => wasm.mount_dashboard_islands());
-      }}).catch(() => {{
-        import('/client/prototype-interactions.js').then((module) => module.mountDashboardFallback());
-        console.info('Oyatie prototype dashboard is visible before WASM hydration; cargo-leptos will replace the visual fallback with the WASM island bundle.');
-      }});
+      const interactions = import('/client/prototype-interactions.js');
+      const wasmPackageAvailable = {wasm_package_available};
+      interactions.then((module) => module.mountShellChrome());
+      async function mountDashboardIsland() {{
+        const fallback = await interactions;
+        const pkgUrl = '/pkg/oya_application_shell_frontend_prototype.js';
+        try {{
+          if (wasmPackageAvailable) {{
+            const wasm = await import(pkgUrl);
+            await wasm.default();
+            wasm.mount_dashboard_islands();
+            return;
+          }}
+        }} catch (_error) {{
+          // Fall through to the visual fallback; this prototype remains useful without cargo-leptos pkg assets.
+        }}
+        fallback.mountDashboardFallback();
+        console.info('Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg.');
+      }}
+      mountDashboardIsland();
     </script>
   </body>
 </html>

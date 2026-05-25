@@ -35,12 +35,30 @@
   "platform": {
     "name": "oyatie",
     "incorporation_jurisdiction": "US-DE",
-    "operating_jurisdictions": ["US", "EU", "KR", "JP", "KSA", "GB", "CA", "AU"],
+    "operating_jurisdictions": [
+      "US",
+      "EU",
+      "KR",
+      "JP",
+      "KSA",
+      "GB",
+      "CA",
+      "AU"
+    ],
     "tenancy": {
       "doctrine_summary": "oyatie operates its own platform as a first-class tenant of the platform. No internal carve-outs. Every workload is a principal under a tenant; oyatie is one tenant among many.",
       "canonical_org_tenant": "oyatie",
-      "reserved_namespaces": ["oyatie", "oya", "oyat", "oyati"],
-      "reserved_namespace_separators": [".", "-", "_"],
+      "reserved_namespaces": [
+        "oyatie",
+        "oya",
+        "oyat",
+        "oyati"
+      ],
+      "reserved_namespace_separators": [
+        ".",
+        "-",
+        "_"
+      ],
       "reserved_namespace_normalisation": "NFKC + lowercase + diacritic-strip + UTS#39 confusable removal",
       "reserved_namespace_enforcement_fragment": "policy-engine/fragments/baseline/reserved-tenant-namespace.cedar",
       "sub_scope_convention": "dotted-hierarchical",
@@ -48,8 +66,17 @@
       "max_sub_scope_depth": 4,
       "principal_carries_one_sub_scope": true,
       "cross_scope_action_requires": "assume-role flow",
-      "inherit_by_default": ["jurisdiction", "home_cell", "capability_flags", "cedar_policy"],
-      "rollup_by_default": ["audit_streams", "cost_attribution", "observability_metrics"],
+      "inherit_by_default": [
+        "jurisdiction",
+        "home_cell",
+        "capability_flags",
+        "cedar_policy"
+      ],
+      "rollup_by_default": [
+        "audit_streams",
+        "cost_attribution",
+        "observability_metrics"
+      ],
       "audience_types": [
         "PLATFORM_OWNER",
         "B2B_TENANT",
@@ -68,7 +95,11 @@
         "audience_type": "PLATFORM_OWNER",
         "parent_tenant_id": null,
         "jurisdiction_primary": "US-DE",
-        "data_residency_allowed": ["US", "EU", "KR"],
+        "data_residency_allowed": [
+          "US",
+          "EU",
+          "KR"
+        ],
         "sovereign_cloud_pack": null,
         "finops_cost_center": "oyatie-platform",
         "merchant_status": "platform_facilitator",
@@ -170,7 +201,13 @@
         "tombstoned"
       ],
       "fragment_lifecycle_transition_required_review": "multispectrum-review v2.4.0 facets F1, F2, F5, F6, F7, A1, A4, A6",
-      "scopes": ["baseline", "pack", "overlay", "reserved", "tenant"],
+      "scopes": [
+        "baseline",
+        "pack",
+        "overlay",
+        "reserved",
+        "tenant"
+      ],
       "scope_directory_layout": {
         "baseline": "microservices/policy-engine/fragments/baseline/*.cedar",
         "pack": "microservices/policy-engine/fragments/pack/<pack-id>/*.cedar",
@@ -197,7 +234,7 @@
         "deny_wins_ties": true,
         "not_applicable_default": "default-deny"
       },
-      "per_tenant_overlay_composition_formula": "effective_policy(T) = baseline ∪ overlay[jurisdiction(T)] ∪ overlay[secondary_jurisdictions(T)] ∪ ⋃ pack_fragments[pack ∈ active_packs(T)] ∪ tenant_fragments[T]",
+      "per_tenant_overlay_composition_formula": "effective_policy(T) = baseline \u222a overlay[jurisdiction(T)] \u222a overlay[secondary_jurisdictions(T)] \u222a \u22c3 pack_fragments[pack \u2208 active_packs(T)] \u222a tenant_fragments[T]",
       "tenant_fragment_restrictions": [
         "tenant may forbid actions baseline permits (more restrictive)",
         "tenant may permit baseline-permits conditional on attributes",
@@ -296,8 +333,21 @@
         "reserved-namespace registration refusal"
       ],
       "feature_flag_substrate_replaced_with_cedar": true,
-      "feature_flag_substrate_external_vendors_prohibited": ["LaunchDarkly", "Flagsmith", "Unleash"],
+      "feature_flag_substrate_external_vendors_prohibited": [
+        "LaunchDarkly",
+        "Flagsmith",
+        "Unleash"
+      ],
       "kyverno_remains_admission_tier_per_adr_0183": true,
+      "kubernetes_admission_policy": {
+        "default": "Kubewarden",
+        "first_class_adapters": [
+          "Kyverno"
+        ],
+        "directive_source": "user-directive-2026-05-25",
+        "non_claim": "This records launch substrate direction; concrete policies, controllers, and gates require future ChangeSets."
+      },
+      "kyverno_status_after_2026_05_25_directive": "first-class adapter; not the default admission substrate",
       "audit_emission_required_for_every_decision": true,
       "audit_emission_row_shape_ref": "/specs/cedar-fragment-schema.json#/audit_row",
       "schema_ref": "/specs/cedar-fragment-schema.json",
@@ -306,7 +356,12 @@
     },
     "microservice_taxonomy": {
       "doctrine_summary": "Every microservice declares a tier. Substrates are audience-neutral and capability-focused; products are tenant-scoped and surface-focused; service-cells are dedicated-function peer cells; reserved are non-deployed certification-gated placeholders.",
-      "tier_enum": ["substrate", "product", "service-cell", "reserved"],
+      "tier_enum": [
+        "substrate",
+        "product",
+        "service-cell",
+        "reserved"
+      ],
       "tier_subtype_enum": [
         "substrate-identity",
         "substrate-tenancy",
@@ -393,12 +448,37 @@
         "reserved MAY declare planned_dependencies only; no live deps until promotion"
       ],
       "substrate_dag_canonical_ordering": {
-        "S0_leaves": ["audit-chain", "observability", "cloud-secrets", "cloud-iac", "api-gateway"],
-        "S1": ["identity", "network", "cloud-k8s"],
-        "S2": ["tenancy", "cell", "comms-email"],
-        "S3": ["policy-engine", "ontology", "consent-graph"],
-        "S4": ["intelligence", "workflow-engine", "governance", "compliance"],
-        "S5_meta": ["foundry"]
+        "S0_leaves": [
+          "audit-chain",
+          "observability",
+          "cloud-secrets",
+          "cloud-iac",
+          "api-gateway"
+        ],
+        "S1": [
+          "identity",
+          "network",
+          "cloud-k8s"
+        ],
+        "S2": [
+          "tenancy",
+          "cell",
+          "comms-email"
+        ],
+        "S3": [
+          "policy-engine",
+          "ontology",
+          "consent-graph"
+        ],
+        "S4": [
+          "intelligence",
+          "workflow-engine",
+          "governance",
+          "compliance"
+        ],
+        "S5_meta": [
+          "foundry"
+        ]
       },
       "substrate_slo_floor": {
         "monthly_availability": 0.9999,
@@ -469,7 +549,12 @@
       "tiers": {
         "tier_0_external": {
           "description": "External substrate not under oyatie operational control",
-          "components": ["hardware", "DNS apex registrar", "git host (GitHub Enterprise)", "container registry"],
+          "components": [
+            "hardware",
+            "DNS apex registrar",
+            "git host (GitHub Enterprise)",
+            "container registry"
+          ],
           "trust_model": "vendor-attested",
           "bootstrap_role": "prerequisite to tier-1"
         },
@@ -490,9 +575,9 @@
           "lifetime": "until tier-2 handoff complete; then self-retires"
         },
         "tier_2_control_plane_cells": {
-          "description": "Control-plane cells host substrate µservices and orchestrate data-plane cells",
+          "description": "Control-plane cells host substrate \u00b5services and orchestrate data-plane cells",
           "components": [
-            "all substrate-tier µservices",
+            "all substrate-tier \u00b5services",
             "cell registry",
             "regional pack registry",
             "fleet management",
@@ -516,39 +601,82 @@
         "service_cells": [
           {
             "id": "service-cell-marketplace",
-            "hosts": ["marketplace ingestion", "indexing", "discovery", "ranking", "search backend"],
-            "peer_to": ["products"],
+            "hosts": [
+              "marketplace ingestion",
+              "indexing",
+              "discovery",
+              "ranking",
+              "search backend"
+            ],
+            "peer_to": [
+              "products"
+            ],
             "dr_tier_default": "T2"
           },
           {
             "id": "service-cell-dev-tools",
-            "hosts": ["SDK distribution", "CLI distribution", "code samples", "dev-docs aggregation"],
-            "peer_to": ["products"],
+            "hosts": [
+              "SDK distribution",
+              "CLI distribution",
+              "code samples",
+              "dev-docs aggregation"
+            ],
+            "peer_to": [
+              "products"
+            ],
             "dr_tier_default": "T3"
           },
           {
             "id": "service-cell-audit-aggregator",
-            "hosts": ["per-jurisdiction rollup", "regulator query interface", "evidence-bundle authoring"],
-            "peer_to": ["substrates"],
+            "hosts": [
+              "per-jurisdiction rollup",
+              "regulator query interface",
+              "evidence-bundle authoring"
+            ],
+            "peer_to": [
+              "substrates"
+            ],
             "dr_tier_default": "T1"
           },
           {
             "id": "service-cell-analytics",
-            "hosts": ["per-tenant aggregation", "per-cohort aggregation", "per-jurisdiction reporting"],
-            "peer_to": ["products"],
+            "hosts": [
+              "per-tenant aggregation",
+              "per-cohort aggregation",
+              "per-jurisdiction reporting"
+            ],
+            "peer_to": [
+              "products"
+            ],
             "dr_tier_default": "T3"
           },
           {
             "id": "service-cell-ops-console",
-            "hosts": ["incident graph ingestion", "on-call rotation state", "runbook execution state"],
-            "peer_to": ["products"],
+            "hosts": [
+              "incident graph ingestion",
+              "on-call rotation state",
+              "runbook execution state"
+            ],
+            "peer_to": [
+              "products"
+            ],
             "dr_tier_default": "T2"
           }
         ],
         "tier_4_reserved_financial_grade": {
           "description": "Certification-gated isolated cells for financial-grade workloads",
-          "components_when_promoted": ["payments", "tax-engine", "identity-verification", "breach-notification"],
-          "certification_required_before_deployment": ["PCI-DSS-v4.0", "KR-FSS", "EU-PSD2", "AML/KYC"],
+          "components_when_promoted": [
+            "payments",
+            "tax-engine",
+            "identity-verification",
+            "breach-notification"
+          ],
+          "certification_required_before_deployment": [
+            "PCI-DSS-v4.0",
+            "KR-FSS",
+            "EU-PSD2",
+            "AML/KYC"
+          ],
           "isolation_level": "physical + logical + per-pack-overlay",
           "dr_tier_default": "T1"
         }
@@ -622,7 +750,10 @@
           "framework": "SOC 2 Type II",
           "authority": "AICPA",
           "scope": "Trust Service Criteria CC1-CC9 + Privacy",
-          "applies_to_tenants": ["B2B_TENANT", "PLATFORM_OWNER"],
+          "applies_to_tenants": [
+            "B2B_TENANT",
+            "PLATFORM_OWNER"
+          ],
           "certification_required": true
         },
         {
@@ -630,7 +761,10 @@
           "framework": "ISO/IEC 27001:2022",
           "authority": "ISO",
           "scope": "Information security management system",
-          "applies_to_tenants": ["B2B_TENANT", "PLATFORM_OWNER"],
+          "applies_to_tenants": [
+            "B2B_TENANT",
+            "PLATFORM_OWNER"
+          ],
           "certification_required": true
         },
         {
@@ -638,7 +772,9 @@
           "framework": "ISO/IEC 27017:2015",
           "authority": "ISO",
           "scope": "Cloud-service-specific controls",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": false
         },
         {
@@ -646,7 +782,10 @@
           "framework": "ISO/IEC 27018:2019",
           "authority": "ISO",
           "scope": "PII protection in public clouds",
-          "applies_to_tenants": ["B2B_TENANT", "B2C_CONSUMER"],
+          "applies_to_tenants": [
+            "B2B_TENANT",
+            "B2C_CONSUMER"
+          ],
           "certification_required": false
         },
         {
@@ -654,7 +793,9 @@
           "framework": "ISO 22301:2019",
           "authority": "ISO",
           "scope": "Business continuity management",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -662,7 +803,10 @@
           "framework": "EU GDPR 2016/679",
           "authority": "EU Commission + per-state DPAs",
           "scope": "Personal data processing in EU + EEA",
-          "applies_to_tenants": ["B2B_TENANT", "B2C_CONSUMER"],
+          "applies_to_tenants": [
+            "B2B_TENANT",
+            "B2C_CONSUMER"
+          ],
           "certification_required": false,
           "dsar_response_sla_days": 30
         },
@@ -671,7 +815,9 @@
           "framework": "CCPA + CPRA (California)",
           "authority": "CPPA",
           "scope": "California consumer privacy",
-          "applies_to_tenants": ["B2C_CONSUMER"],
+          "applies_to_tenants": [
+            "B2C_CONSUMER"
+          ],
           "certification_required": false
         },
         {
@@ -679,7 +825,10 @@
           "framework": "KR PIPA + Personal Information Protection Act",
           "authority": "KR PIPC",
           "scope": "Personal information processing in KR",
-          "applies_to_tenants": ["B2C_CONSUMER", "B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2C_CONSUMER",
+            "B2B_TENANT"
+          ],
           "certification_required": false
         },
         {
@@ -687,7 +836,9 @@
           "framework": "CSAP v3.1 Level 1",
           "authority": "KR KISA",
           "scope": "Korean cloud security; general SaaS",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -695,15 +846,19 @@
           "framework": "CSAP v3.1 Level 2",
           "authority": "KR KISA",
           "scope": "Korean cloud security; sensitive workloads",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
           "id": "kr-fss",
-          "framework": "전자금융감독규정 (Electronic Financial Supervisory Regulations)",
+          "framework": "\uc804\uc790\uae08\uc735\uac10\ub3c5\uaddc\uc815 (Electronic Financial Supervisory Regulations)",
           "authority": "KR Financial Services Commission / FSS",
           "scope": "Electronic payment service providers in KR",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -711,7 +866,9 @@
           "framework": "HIPAA + HITECH + Omnibus Rule",
           "authority": "US HHS OCR",
           "scope": "Protected Health Information in the US",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": false,
           "baa_required": true
         },
@@ -720,7 +877,10 @@
           "framework": "PCI DSS v4.0",
           "authority": "PCI Security Standards Council",
           "scope": "Cardholder data environments",
-          "applies_to_tenants": ["B2B_TENANT", "PLATFORM_OWNER (post-cert)"],
+          "applies_to_tenants": [
+            "B2B_TENANT",
+            "PLATFORM_OWNER (post-cert)"
+          ],
           "certification_required": true,
           "level_1_threshold_transactions_per_year": 6000000
         },
@@ -729,7 +889,9 @@
           "framework": "FedRAMP Moderate",
           "authority": "US GSA + JAB",
           "scope": "US Federal cloud workloads",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -737,7 +899,9 @@
           "framework": "FedRAMP High",
           "authority": "US GSA + JAB",
           "scope": "US Federal cloud workloads with high impact",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -745,7 +909,9 @@
           "framework": "EU PSD2 + SCA",
           "authority": "EU EBA + per-state regulators",
           "scope": "European payment services + strong customer auth",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -753,7 +919,9 @@
           "framework": "NDMO Data Management Standards (Saudi Arabia)",
           "authority": "KSA SDAIA / NDMO",
           "scope": "KSA data residency + classification",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": true
         },
         {
@@ -761,7 +929,9 @@
           "framework": "GAIA-X Sovereign Cloud Catalogue",
           "authority": "GAIA-X AISBL",
           "scope": "EU sovereign cloud workloads",
-          "applies_to_tenants": ["B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2B_TENANT"
+          ],
           "certification_required": false
         },
         {
@@ -769,7 +939,10 @@
           "framework": "EU AI Act Regulation 2024/1689",
           "authority": "EU AI Office + per-state regulators",
           "scope": "AI systems with EU users; tier-based risk classification",
-          "applies_to_tenants": ["B2B_TENANT", "B2C_CONSUMER"],
+          "applies_to_tenants": [
+            "B2B_TENANT",
+            "B2C_CONSUMER"
+          ],
           "tier_model_ref": "ADR-0144"
         },
         {
@@ -777,7 +950,10 @@
           "framework": "UK GDPR + Data Protection Act 2018",
           "authority": "UK ICO",
           "scope": "UK personal data processing",
-          "applies_to_tenants": ["B2C_CONSUMER", "B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2C_CONSUMER",
+            "B2B_TENANT"
+          ],
           "certification_required": false
         },
         {
@@ -785,68 +961,132 @@
           "framework": "JP APPI (Act on the Protection of Personal Information)",
           "authority": "JP PPC",
           "scope": "Personal information in Japan",
-          "applies_to_tenants": ["B2C_CONSUMER", "B2B_TENANT"],
+          "applies_to_tenants": [
+            "B2C_CONSUMER",
+            "B2B_TENANT"
+          ],
           "certification_required": false
         }
       ],
       "cell_certification_levels": [
         {
           "level": "uncertified",
-          "applies_to": ["sandbox", "preview", "dev cells"],
+          "applies_to": [
+            "sandbox",
+            "preview",
+            "dev cells"
+          ],
           "permitted_packs": []
         },
         {
           "level": "general-purpose",
-          "applies_to": ["data-plane cells without sovereign-grade workloads"],
-          "permitted_packs": ["soc2-t2", "iso-27001", "iso-27017", "iso-27018", "gdpr", "uk-gdpr", "ccpa-cpra"]
+          "applies_to": [
+            "data-plane cells without sovereign-grade workloads"
+          ],
+          "permitted_packs": [
+            "soc2-t2",
+            "iso-27001",
+            "iso-27017",
+            "iso-27018",
+            "gdpr",
+            "uk-gdpr",
+            "ccpa-cpra"
+          ]
         },
         {
           "level": "sovereign-kr",
-          "applies_to": ["KR-pack cells"],
-          "permitted_packs": ["kr-pipa", "kr-csap-1", "kr-csap-2"],
+          "applies_to": [
+            "KR-pack cells"
+          ],
+          "permitted_packs": [
+            "kr-pipa",
+            "kr-csap-1",
+            "kr-csap-2"
+          ],
           "additional_packs_blockable_until": "kr-fss after PCI-DSS"
         },
         {
           "level": "sovereign-eu",
-          "applies_to": ["EU-pack cells"],
-          "permitted_packs": ["gdpr", "gaia-x-eu", "eu-ai-act"]
+          "applies_to": [
+            "EU-pack cells"
+          ],
+          "permitted_packs": [
+            "gdpr",
+            "gaia-x-eu",
+            "eu-ai-act"
+          ]
         },
         {
           "level": "sovereign-ksa",
-          "applies_to": ["KSA-pack cells"],
-          "permitted_packs": ["ndmo-ksa"]
+          "applies_to": [
+            "KSA-pack cells"
+          ],
+          "permitted_packs": [
+            "ndmo-ksa"
+          ]
         },
         {
           "level": "sovereign-jp",
-          "applies_to": ["JP-pack cells"],
-          "permitted_packs": ["jp-appi"]
+          "applies_to": [
+            "JP-pack cells"
+          ],
+          "permitted_packs": [
+            "jp-appi"
+          ]
         },
         {
           "level": "regulated-health",
-          "applies_to": ["HIPAA cells (post-pack)"],
-          "permitted_packs": ["hipaa", "soc2-t2", "iso-27001"],
+          "applies_to": [
+            "HIPAA cells (post-pack)"
+          ],
+          "permitted_packs": [
+            "hipaa",
+            "soc2-t2",
+            "iso-27001"
+          ],
           "baa_required": true
         },
         {
           "level": "regulated-financial",
-          "applies_to": ["PCI/PSD2/FSS cells (post-cert)"],
-          "permitted_packs": ["pci-dss-v4", "psd2", "kr-fss"]
+          "applies_to": [
+            "PCI/PSD2/FSS cells (post-cert)"
+          ],
+          "permitted_packs": [
+            "pci-dss-v4",
+            "psd2",
+            "kr-fss"
+          ]
         },
         {
           "level": "us-federal-moderate",
-          "applies_to": ["FedRAMP Moderate cells"],
-          "permitted_packs": ["fedramp-moderate", "soc2-t2", "iso-27001"]
+          "applies_to": [
+            "FedRAMP Moderate cells"
+          ],
+          "permitted_packs": [
+            "fedramp-moderate",
+            "soc2-t2",
+            "iso-27001"
+          ]
         },
         {
           "level": "us-federal-high",
-          "applies_to": ["FedRAMP High cells"],
-          "permitted_packs": ["fedramp-high", "soc2-t2", "iso-27001"]
+          "applies_to": [
+            "FedRAMP High cells"
+          ],
+          "permitted_packs": [
+            "fedramp-high",
+            "soc2-t2",
+            "iso-27001"
+          ]
         }
       ],
       "pack_activation_per_tenant_gate": "Cedar fragment evaluating KYB-verified + jurisdiction-match + DPIA-signed",
       "regulator_evidence_emission_cadence": {
         "default": "quarterly",
-        "annual_packs": ["sovereign-cloud-overlay-evidence", "DrBcQuarterlyEvidence-annual-rollup"]
+        "annual_packs": [
+          "sovereign-cloud-overlay-evidence",
+          "DrBcQuarterlyEvidence-annual-rollup"
+        ]
       }
     },
     "deployment_models": [
@@ -899,7 +1139,10 @@
     ],
     "intelligence_substrate": {
       "doctrine_summary": "Intelligence is a two-layer substrate. The AI Substrate is audience-neutral and serves all tenants; the Consumer Brand Surface layer is a product that wraps the substrate with consumer UX. BYOK everywhere.",
-      "layers": ["ai-substrate", "consumer-brand-surface"],
+      "layers": [
+        "ai-substrate",
+        "consumer-brand-surface"
+      ],
       "ai_substrate_bcs": [
         "inference-runtime",
         "model-registry",
@@ -930,8 +1173,22 @@
         "consumer-trust-and-safety-overlay"
       ],
       "byok_everywhere": true,
-      "byok_supported_kms": ["OpenBao", "AWS KMS", "GCP KMS", "Azure KeyVault", "Naver KMS", "tenant-HSM"],
-      "supported_modalities": ["text", "image", "audio", "video", "code", "multi-modal"],
+      "byok_supported_kms": [
+        "OpenBao",
+        "AWS KMS",
+        "GCP KMS",
+        "Azure KeyVault",
+        "Naver KMS",
+        "tenant-HSM"
+      ],
+      "supported_modalities": [
+        "text",
+        "image",
+        "audio",
+        "video",
+        "code",
+        "multi-modal"
+      ],
       "supported_provider_classes": [
         "in-house-models",
         "hyperscaler-hosted (Bedrock, Vertex, Azure OpenAI)",
@@ -941,24 +1198,42 @@
       ],
       "provider_routing_decision": "Cedar fragment based on data_class + tenant.jurisdiction + tenant.compliance_packs + cost-budget",
       "eu_ai_act_tier_classification_ref": "ADR-0144",
-      "agentic_autonomy_tier_enum": ["assist", "co-pilot", "autonomous-bounded", "autonomous-self-modifying"],
+      "agentic_autonomy_tier_enum": [
+        "assist",
+        "co-pilot",
+        "autonomous-bounded",
+        "autonomous-self-modifying"
+      ],
       "agentic_autonomy_default_tier": "co-pilot",
       "agentic_autonomy_escalation_via_cedar": true
     },
     "time_coordination": {
       "doctrine_summary": "Hybrid Logical Clock as default; TrueTime-class for high-precision-critical workloads; smear for leap seconds; causal consistency by default with stronger guarantees for substrates.",
       "default_clock": "HLC",
-      "default_clock_implementation": "Hybrid Logical Clock per Kulkarni et al. 2014; tolerance ±2s vs NTP-synced wall clock",
+      "default_clock_implementation": "Hybrid Logical Clock per Kulkarni et al. 2014; tolerance \u00b12s vs NTP-synced wall clock",
       "high_precision_clock": "TrueTime",
-      "high_precision_clock_implementation": "GPS+atomic-disciplined NTP fleet; per-region TrueTime API; tolerance ±10ms with explicit interval",
-      "high_precision_workloads": ["payments", "settlement", "audit-chain Merkle seal", "kr-fss-regulated", "pci-dss-regulated"],
+      "high_precision_clock_implementation": "GPS+atomic-disciplined NTP fleet; per-region TrueTime API; tolerance \u00b110ms with explicit interval",
+      "high_precision_workloads": [
+        "payments",
+        "settlement",
+        "audit-chain Merkle seal",
+        "kr-fss-regulated",
+        "pci-dss-regulated"
+      ],
       "leap_second_handling": "smear",
       "leap_second_smear_window_seconds": 86400,
       "leap_second_smear_reference": "Google smear (24h)",
       "idempotency_key_ttl_default_seconds": 86400,
       "idempotency_key_storage": "Valkey per-cell + Postgres write-through for durable mutations",
       "consistency_default": "causal",
-      "consistency_options": ["causal", "read-your-writes", "monotonic-reads", "monotonic-writes", "linearizable", "snapshot-isolation"],
+      "consistency_options": [
+        "causal",
+        "read-your-writes",
+        "monotonic-reads",
+        "monotonic-writes",
+        "linearizable",
+        "snapshot-isolation"
+      ],
       "consistency_per_substrate": {
         "audit-chain": "linearizable (Merkle-seal requires)",
         "policy-engine": "read-your-writes (publish -> evaluator-cache up to 5s)",
@@ -993,7 +1268,13 @@
       ],
       "workload_identity": "spiffe-spire",
       "workload_identity_id_format": "spiffe://oyatie.example/cell/<cell-id>/microservice/<ms>/workload/<workload-id>",
-      "workload_identity_attestation_methods": ["k8s-PSAT", "node-attestor", "AWS-IID", "GCP-IIT", "Azure-MSI"],
+      "workload_identity_attestation_methods": [
+        "k8s-PSAT",
+        "node-attestor",
+        "AWS-IID",
+        "GCP-IIT",
+        "Azure-MSI"
+      ],
       "tls_minimum": "1.3",
       "tls_cipher_policy": "Mozilla Modern + AEAD-only",
       "tls_certificate_authority": "internal CA via OpenBao PKI for east-west; public CA (Let's Encrypt + ACME) for north-south",
@@ -1003,7 +1284,10 @@
       "post_quantum_target_year_label": "Year 2 post-keystone (2028)",
       "post_quantum_hybrid_kem": "X25519MLKEM768",
       "post_quantum_hybrid_signature": "Ed25519+ML-DSA-65",
-      "http_versions_supported": ["HTTP/2", "HTTP/3"],
+      "http_versions_supported": [
+        "HTTP/2",
+        "HTTP/3"
+      ],
       "http3_supported": true,
       "http3_substrate": "Cloudflare Workers (north-south) + quiche/quinn (Rust QUIC) for self-operated cells",
       "ingress_substrate": "Envoy via cilium ingress",
@@ -1037,7 +1321,13 @@
         "pricing": "microservices/marketplace + reserved/tax-grade",
         "trust-safety": "microservices/intelligence (safety-filter BC) + governance"
       },
-      "surfaces": ["physical-goods", "c2c", "services", "subscriptions", "plugins"],
+      "surfaces": [
+        "physical-goods",
+        "c2c",
+        "services",
+        "subscriptions",
+        "plugins"
+      ],
       "surface_to_product_mapping": {
         "plugins": "microservices/plugin-app-store (product-developer-plugin-store)",
         "physical-goods": "future product (planned post-marketplace-cell GA)",
@@ -1091,7 +1381,12 @@
     },
     "self_modification": {
       "doctrine_summary": "oyatie operates and modifies itself. The autonomous masterplan executes via oyatie.foundry.* principals under Cedar gates. The platform builds, evaluates, and ships its own changes.",
-      "bootstrap_tier_0_components": ["hardware", "dns", "git", "container-registry"],
+      "bootstrap_tier_0_components": [
+        "hardware",
+        "dns",
+        "git",
+        "container-registry"
+      ],
       "bootstrap_stages": [
         {
           "stage": 0,
@@ -1188,10 +1483,30 @@
           "reserved_microservice": "microservices/payments/",
           "tier_subtype": "reserved-financial-grade",
           "certifications_required": [
-            {"authority": "PCI Security Standards Council", "framework": "PCI DSS v4.0", "scope": "Service Provider, Level 1 (>6M transactions/year)", "target_completion": "2027-Q2"},
-            {"authority": "KR Financial Services Commission / FSS", "framework": "전자금융감독규정", "scope": "Electronic Payment Service Provider designation", "target_completion": "2027-Q3"},
-            {"authority": "EU EBA + per-state regulators", "framework": "PSD2 + SCA", "scope": "European payment services", "target_completion": "2027-Q4"},
-            {"authority": "FinCEN + state-level MTL", "framework": "BSA + AML/KYC", "scope": "Money transmitter licensing per US state", "target_completion": "2027-Q4 (multi-state staggered)"}
+            {
+              "authority": "PCI Security Standards Council",
+              "framework": "PCI DSS v4.0",
+              "scope": "Service Provider, Level 1 (>6M transactions/year)",
+              "target_completion": "2027-Q2"
+            },
+            {
+              "authority": "KR Financial Services Commission / FSS",
+              "framework": "\uc804\uc790\uae08\uc735\uac10\ub3c5\uaddc\uc815",
+              "scope": "Electronic Payment Service Provider designation",
+              "target_completion": "2027-Q3"
+            },
+            {
+              "authority": "EU EBA + per-state regulators",
+              "framework": "PSD2 + SCA",
+              "scope": "European payment services",
+              "target_completion": "2027-Q4"
+            },
+            {
+              "authority": "FinCEN + state-level MTL",
+              "framework": "BSA + AML/KYC",
+              "scope": "Money transmitter licensing per US state",
+              "target_completion": "2027-Q4 (multi-state staggered)"
+            }
           ],
           "planned_launch_date": "2027-Q3",
           "promotion_target_tier": "service-cell",
@@ -1202,10 +1517,30 @@
           "reserved_microservice": "microservices/identity-verification/",
           "tier_subtype": "reserved-identity-verification-grade",
           "certifications_required": [
-            {"authority": "ISO/IEC", "framework": "ISO/IEC 18295-1:2023", "scope": "Customer contact centres + IDV operations", "target_completion": "2027-Q1"},
-            {"authority": "FinCEN", "framework": "CIP under USA PATRIOT Act", "scope": "Customer Identification Program", "target_completion": "2027-Q1"},
-            {"authority": "KR Financial Services Commission / FSS", "framework": "KR KYC", "scope": "KR financial-grade IDV", "target_completion": "2027-Q2"},
-            {"authority": "EU EBA", "framework": "EU AMLD6 + eIDAS 2.0", "scope": "EU IDV + electronic identification", "target_completion": "2027-Q2"}
+            {
+              "authority": "ISO/IEC",
+              "framework": "ISO/IEC 18295-1:2023",
+              "scope": "Customer contact centres + IDV operations",
+              "target_completion": "2027-Q1"
+            },
+            {
+              "authority": "FinCEN",
+              "framework": "CIP under USA PATRIOT Act",
+              "scope": "Customer Identification Program",
+              "target_completion": "2027-Q1"
+            },
+            {
+              "authority": "KR Financial Services Commission / FSS",
+              "framework": "KR KYC",
+              "scope": "KR financial-grade IDV",
+              "target_completion": "2027-Q2"
+            },
+            {
+              "authority": "EU EBA",
+              "framework": "EU AMLD6 + eIDAS 2.0",
+              "scope": "EU IDV + electronic identification",
+              "target_completion": "2027-Q2"
+            }
           ],
           "planned_launch_date": "2027-Q1",
           "promotion_target_tier": "substrate",
@@ -1216,10 +1551,30 @@
           "reserved_microservice": "microservices/tax-engine/",
           "tier_subtype": "reserved-tax-grade",
           "certifications_required": [
-            {"authority": "US SST (Streamlined Sales Tax Governing Board)", "framework": "SST CSP certification", "scope": "US sales tax certified service provider", "target_completion": "2027-Q2"},
-            {"authority": "EU per-state tax authorities", "framework": "VAT MOSS (Mini One-Stop Shop)", "scope": "EU VAT collection + remittance", "target_completion": "2027-Q2"},
-            {"authority": "KR NTS (National Tax Service)", "framework": "KR 부가세 + electronic tax invoice", "scope": "KR VAT + electronic invoicing", "target_completion": "2027-Q3"},
-            {"authority": "HMRC", "framework": "UK VAT MTD (Making Tax Digital)", "scope": "UK VAT digital filing", "target_completion": "2027-Q3"}
+            {
+              "authority": "US SST (Streamlined Sales Tax Governing Board)",
+              "framework": "SST CSP certification",
+              "scope": "US sales tax certified service provider",
+              "target_completion": "2027-Q2"
+            },
+            {
+              "authority": "EU per-state tax authorities",
+              "framework": "VAT MOSS (Mini One-Stop Shop)",
+              "scope": "EU VAT collection + remittance",
+              "target_completion": "2027-Q2"
+            },
+            {
+              "authority": "KR NTS (National Tax Service)",
+              "framework": "KR \ubd80\uac00\uc138 + electronic tax invoice",
+              "scope": "KR VAT + electronic invoicing",
+              "target_completion": "2027-Q3"
+            },
+            {
+              "authority": "HMRC",
+              "framework": "UK VAT MTD (Making Tax Digital)",
+              "scope": "UK VAT digital filing",
+              "target_completion": "2027-Q3"
+            }
           ],
           "planned_launch_date": "2027-Q2",
           "promotion_target_tier": "service-cell",
@@ -1230,8 +1585,18 @@
           "reserved_microservice": "microservices/deidentification/",
           "tier_subtype": "reserved-deidentification-grade",
           "certifications_required": [
-            {"authority": "US HHS OCR", "framework": "HIPAA Safe Harbor de-identification", "scope": "PHI de-identification expert determination", "target_completion": "2027-Q3"},
-            {"authority": "EU Commission + per-state DPAs", "framework": "GDPR pseudonymisation Art. 4(5) + recital 26", "scope": "GDPR-aligned pseudonymisation", "target_completion": "2027-Q3"}
+            {
+              "authority": "US HHS OCR",
+              "framework": "HIPAA Safe Harbor de-identification",
+              "scope": "PHI de-identification expert determination",
+              "target_completion": "2027-Q3"
+            },
+            {
+              "authority": "EU Commission + per-state DPAs",
+              "framework": "GDPR pseudonymisation Art. 4(5) + recital 26",
+              "scope": "GDPR-aligned pseudonymisation",
+              "target_completion": "2027-Q3"
+            }
           ],
           "planned_launch_date": "2027-Q3",
           "promotion_target_tier": "substrate",
@@ -1242,9 +1607,24 @@
           "reserved_microservice": "microservices/breach-notification/",
           "tier_subtype": "reserved-breach-notification-grade",
           "certifications_required": [
-            {"authority": "EU DPAs", "framework": "GDPR Article 33-34", "scope": "EU breach notification workflow", "target_completion": "2026-Q4"},
-            {"authority": "KR PIPC", "framework": "KR-PIPA Article 39-4", "scope": "KR breach notification workflow", "target_completion": "2026-Q4"},
-            {"authority": "US per-state regulators", "framework": "State breach notification laws (50 states)", "scope": "US per-state breach notification automation", "target_completion": "2026-Q4 (multi-state)"}
+            {
+              "authority": "EU DPAs",
+              "framework": "GDPR Article 33-34",
+              "scope": "EU breach notification workflow",
+              "target_completion": "2026-Q4"
+            },
+            {
+              "authority": "KR PIPC",
+              "framework": "KR-PIPA Article 39-4",
+              "scope": "KR breach notification workflow",
+              "target_completion": "2026-Q4"
+            },
+            {
+              "authority": "US per-state regulators",
+              "framework": "State breach notification laws (50 states)",
+              "scope": "US per-state breach notification automation",
+              "target_completion": "2026-Q4 (multi-state)"
+            }
           ],
           "planned_launch_date": "2026-Q4",
           "promotion_target_tier": "service-cell",
@@ -1255,9 +1635,24 @@
           "reserved_microservice": "microservices/encryption-substrate/",
           "tier_subtype": "reserved-encryption-substrate-grade",
           "certifications_required": [
-            {"authority": "NIST CMVP", "framework": "FIPS 140-3 Level 3", "scope": "HSM-backed cryptographic module", "target_completion": "2027-Q4"},
-            {"authority": "Common Criteria Recognition Arrangement", "framework": "Common Criteria EAL4+", "scope": "Cryptographic envelope evaluation", "target_completion": "2027-Q4"},
-            {"authority": "NIST", "framework": "Post-Quantum Cryptography Standards (FIPS 203/204/205)", "scope": "ML-KEM + ML-DSA + SLH-DSA primitives", "target_completion": "2028-Q1"}
+            {
+              "authority": "NIST CMVP",
+              "framework": "FIPS 140-3 Level 3",
+              "scope": "HSM-backed cryptographic module",
+              "target_completion": "2027-Q4"
+            },
+            {
+              "authority": "Common Criteria Recognition Arrangement",
+              "framework": "Common Criteria EAL4+",
+              "scope": "Cryptographic envelope evaluation",
+              "target_completion": "2027-Q4"
+            },
+            {
+              "authority": "NIST",
+              "framework": "Post-Quantum Cryptography Standards (FIPS 203/204/205)",
+              "scope": "ML-KEM + ML-DSA + SLH-DSA primitives",
+              "target_completion": "2028-Q1"
+            }
           ],
           "planned_launch_date": "2027-Q4",
           "promotion_target_tier": "substrate",
@@ -1268,9 +1663,24 @@
           "reserved_microservice": "microservices/consent/",
           "tier_subtype": "reserved-consent-grade",
           "certifications_required": [
-            {"authority": "EU DPAs", "framework": "GDPR Article 7 + EDPB consent guidelines", "scope": "EU consent recording compliance", "target_completion": "2027-Q1"},
-            {"authority": "KR PIPC", "framework": "KR-PIPA Article 22", "scope": "KR consent recording", "target_completion": "2027-Q1"},
-            {"authority": "US state regulators (CCPA + CPRA + state-level)", "framework": "US consent + opt-out", "scope": "US per-state consent recording", "target_completion": "2027-Q1"}
+            {
+              "authority": "EU DPAs",
+              "framework": "GDPR Article 7 + EDPB consent guidelines",
+              "scope": "EU consent recording compliance",
+              "target_completion": "2027-Q1"
+            },
+            {
+              "authority": "KR PIPC",
+              "framework": "KR-PIPA Article 22",
+              "scope": "KR consent recording",
+              "target_completion": "2027-Q1"
+            },
+            {
+              "authority": "US state regulators (CCPA + CPRA + state-level)",
+              "framework": "US consent + opt-out",
+              "scope": "US per-state consent recording",
+              "target_completion": "2027-Q1"
+            }
           ],
           "planned_launch_date": "2027-Q1",
           "promotion_target_tier": "substrate",
@@ -1292,7 +1702,14 @@
         "SPIFFE-ID issuance"
       ],
       "promotion_via": "multispectrum-reviewed promotion ADR (one per reserved microservice)",
-      "promotion_evidence_required": ["certification documents", "PRD", "threat model", "IaC authoring", "contract declarations", "Cedar fragment bundle"]
+      "promotion_evidence_required": [
+        "certification documents",
+        "PRD",
+        "threat model",
+        "IaC authoring",
+        "contract declarations",
+        "Cedar fragment bundle"
+      ]
     },
     "dr_business_continuity": {
       "doctrine_summary": "Four DR tiers per microservice with declared RTO/RPO, replication shape, drill cadence, and last-drill-evidence-id. Cross-tier coordination via brown-out signal.",
@@ -1304,7 +1721,15 @@
           "rpo_seconds": 0,
           "replication_shape": "active-active-multi-az-cross-region-warm",
           "drill_cadence": "quarterly + ad-hoc on every release",
-          "typical_microservices": ["audit-chain", "identity", "observability", "policy-engine", "tenancy", "ops-dashboard-control-center", "service-cell-audit-aggregator"]
+          "typical_microservices": [
+            "audit-chain",
+            "identity",
+            "observability",
+            "policy-engine",
+            "tenancy",
+            "ops-dashboard-control-center",
+            "service-cell-audit-aggregator"
+          ]
         },
         {
           "id": "T2",
@@ -1312,7 +1737,17 @@
           "rpo_seconds": 60,
           "replication_shape": "active-passive-cross-region-continuous",
           "drill_cadence": "quarterly",
-          "typical_microservices": ["workflow-engine", "ontology", "intelligence", "mail", "drive", "calendar", "meet", "messenger", "marketplace"]
+          "typical_microservices": [
+            "workflow-engine",
+            "ontology",
+            "intelligence",
+            "mail",
+            "drive",
+            "calendar",
+            "meet",
+            "messenger",
+            "marketplace"
+          ]
         },
         {
           "id": "T3",
@@ -1320,7 +1755,18 @@
           "rpo_seconds": 900,
           "replication_shape": "backup-restore-cross-region-warm",
           "drill_cadence": "semi-annual",
-          "typical_microservices": ["analytics", "sheets", "slides", "forms", "notes", "recordings", "social", "community", "shorts", "tasks"]
+          "typical_microservices": [
+            "analytics",
+            "sheets",
+            "slides",
+            "forms",
+            "notes",
+            "recordings",
+            "social",
+            "community",
+            "shorts",
+            "tasks"
+          ]
         },
         {
           "id": "T4",
@@ -1328,7 +1774,9 @@
           "rpo_seconds": 3600,
           "replication_shape": "backup-restore-cold",
           "drill_cadence": "semi-annual",
-          "typical_microservices": ["low-volume internal staff tools"]
+          "typical_microservices": [
+            "low-volume internal staff tools"
+          ]
         }
       ],
       "cross_tier_coordination": {
@@ -1352,48 +1800,202 @@
       "packs": [
         {
           "pack_id": "kr",
-          "primary_provider": {"id": "naver-cloud", "regions": ["kr-seoul", "kr-busan"], "certifications": ["CSAP-1.0", "K-ISMS-P"]},
-          "secondary_provider": {"id": "kt-cloud", "regions": ["kr-seoul-dr"], "certifications": ["CSAP-1.0"]},
-          "sovereign_data_classes": ["PII_KR", "HEALTH_RECORD_KR_TIER1", "GOV_DATA_KR"],
+          "primary_provider": {
+            "id": "naver-cloud",
+            "regions": [
+              "kr-seoul",
+              "kr-busan"
+            ],
+            "certifications": [
+              "CSAP-1.0",
+              "K-ISMS-P"
+            ]
+          },
+          "secondary_provider": {
+            "id": "kt-cloud",
+            "regions": [
+              "kr-seoul-dr"
+            ],
+            "certifications": [
+              "CSAP-1.0"
+            ]
+          },
+          "sovereign_data_classes": [
+            "PII_KR",
+            "HEALTH_RECORD_KR_TIER1",
+            "GOV_DATA_KR"
+          ],
           "prohibited_egress": [
-            {"data_class": "PII_KR", "to_provider": "aws"},
-            {"data_class": "GOV_DATA_KR", "to_provider": "*non-kr*"}
+            {
+              "data_class": "PII_KR",
+              "to_provider": "aws"
+            },
+            {
+              "data_class": "GOV_DATA_KR",
+              "to_provider": "*non-kr*"
+            }
           ]
         },
         {
           "pack_id": "eu",
-          "primary_provider": {"id": "ovh-cloud", "regions": ["eu-west-fra", "eu-west-par"], "certifications": ["GAIA-X", "ISO-27001"]},
-          "secondary_provider": {"id": "aws-eu", "regions": ["eu-west-1", "eu-central-1"], "certifications": ["ISO-27001", "C5"]},
-          "sovereign_data_classes": ["PII_EU", "HEALTH_RECORD_EU"],
-          "prohibited_egress": [{"data_class": "PII_EU", "to_provider": "*non-eu*"}]
+          "primary_provider": {
+            "id": "ovh-cloud",
+            "regions": [
+              "eu-west-fra",
+              "eu-west-par"
+            ],
+            "certifications": [
+              "GAIA-X",
+              "ISO-27001"
+            ]
+          },
+          "secondary_provider": {
+            "id": "aws-eu",
+            "regions": [
+              "eu-west-1",
+              "eu-central-1"
+            ],
+            "certifications": [
+              "ISO-27001",
+              "C5"
+            ]
+          },
+          "sovereign_data_classes": [
+            "PII_EU",
+            "HEALTH_RECORD_EU"
+          ],
+          "prohibited_egress": [
+            {
+              "data_class": "PII_EU",
+              "to_provider": "*non-eu*"
+            }
+          ]
         },
         {
           "pack_id": "ksa",
-          "primary_provider": {"id": "stc-cloud", "regions": ["ksa-riyadh"], "certifications": ["NDMO", "SDAIA-cloud-framework"]},
-          "secondary_provider": {"id": "mobily-cloud", "regions": ["ksa-jeddah"], "certifications": ["NDMO"]},
-          "sovereign_data_classes": ["PII_KSA", "GOV_DATA_KSA"],
-          "prohibited_egress": [{"data_class": "GOV_DATA_KSA", "to_provider": "*non-ksa*"}]
+          "primary_provider": {
+            "id": "stc-cloud",
+            "regions": [
+              "ksa-riyadh"
+            ],
+            "certifications": [
+              "NDMO",
+              "SDAIA-cloud-framework"
+            ]
+          },
+          "secondary_provider": {
+            "id": "mobily-cloud",
+            "regions": [
+              "ksa-jeddah"
+            ],
+            "certifications": [
+              "NDMO"
+            ]
+          },
+          "sovereign_data_classes": [
+            "PII_KSA",
+            "GOV_DATA_KSA"
+          ],
+          "prohibited_egress": [
+            {
+              "data_class": "GOV_DATA_KSA",
+              "to_provider": "*non-ksa*"
+            }
+          ]
         },
         {
           "pack_id": "us",
-          "primary_provider": {"id": "aws", "regions": ["us-east-1", "us-west-2"], "certifications": ["SOC2", "ISO-27001", "FedRAMP-Moderate"]},
-          "secondary_provider": {"id": "gcp", "regions": ["us-central1", "us-east4"], "certifications": ["SOC2", "ISO-27001"]},
+          "primary_provider": {
+            "id": "aws",
+            "regions": [
+              "us-east-1",
+              "us-west-2"
+            ],
+            "certifications": [
+              "SOC2",
+              "ISO-27001",
+              "FedRAMP-Moderate"
+            ]
+          },
+          "secondary_provider": {
+            "id": "gcp",
+            "regions": [
+              "us-central1",
+              "us-east4"
+            ],
+            "certifications": [
+              "SOC2",
+              "ISO-27001"
+            ]
+          },
           "sovereign_data_classes": [],
           "prohibited_egress": []
         },
         {
           "pack_id": "us-government",
-          "primary_provider": {"id": "aws-gov", "regions": ["us-gov-east-1", "us-gov-west-1"], "certifications": ["FedRAMP-High", "ITAR"]},
-          "secondary_provider": {"id": "azure-gov", "regions": ["usgovvirginia"], "certifications": ["FedRAMP-High", "DoD-IL5"]},
-          "sovereign_data_classes": ["GOV_DATA_US", "ITAR_DATA"],
-          "prohibited_egress": [{"data_class": "ITAR_DATA", "to_provider": "*non-itar*"}]
+          "primary_provider": {
+            "id": "aws-gov",
+            "regions": [
+              "us-gov-east-1",
+              "us-gov-west-1"
+            ],
+            "certifications": [
+              "FedRAMP-High",
+              "ITAR"
+            ]
+          },
+          "secondary_provider": {
+            "id": "azure-gov",
+            "regions": [
+              "usgovvirginia"
+            ],
+            "certifications": [
+              "FedRAMP-High",
+              "DoD-IL5"
+            ]
+          },
+          "sovereign_data_classes": [
+            "GOV_DATA_US",
+            "ITAR_DATA"
+          ],
+          "prohibited_egress": [
+            {
+              "data_class": "ITAR_DATA",
+              "to_provider": "*non-itar*"
+            }
+          ]
         },
         {
           "pack_id": "jp",
-          "primary_provider": {"id": "sakura-internet", "regions": ["jp-tokyo", "jp-osaka"], "certifications": ["METI-Cloud-Security-Mark"]},
-          "secondary_provider": {"id": "aws-jp", "regions": ["ap-northeast-1"], "certifications": ["ISO-27001"]},
-          "sovereign_data_classes": ["PII_JP", "FIN_DATA_JP"],
-          "prohibited_egress": [{"data_class": "FIN_DATA_JP", "to_provider": "*non-jp*"}]
+          "primary_provider": {
+            "id": "sakura-internet",
+            "regions": [
+              "jp-tokyo",
+              "jp-osaka"
+            ],
+            "certifications": [
+              "METI-Cloud-Security-Mark"
+            ]
+          },
+          "secondary_provider": {
+            "id": "aws-jp",
+            "regions": [
+              "ap-northeast-1"
+            ],
+            "certifications": [
+              "ISO-27001"
+            ]
+          },
+          "sovereign_data_classes": [
+            "PII_JP",
+            "FIN_DATA_JP"
+          ],
+          "prohibited_egress": [
+            {
+              "data_class": "FIN_DATA_JP",
+              "to_provider": "*non-jp*"
+            }
+          ]
         }
       ],
       "supported_iac_modules_per_provider": [
@@ -1420,7 +2022,12 @@
       "structured_log_format": "JSON with OTel semantic conventions",
       "slo_authoring_format": "OpenSLO v1.0",
       "slo_authoring_path": "microservices/<ms>/slos/*.openslo.yaml",
-      "per_microservice_required_slos": ["availability", "latency", "saturation", "error-rate"],
+      "per_microservice_required_slos": [
+        "availability",
+        "latency",
+        "saturation",
+        "error-rate"
+      ],
       "tenant_labels_required_on_all_metrics": true,
       "sub_scope_labels_required_on_all_metrics_for_oyatie": true,
       "audit_chain_observability_separation": "audit-chain emits to Merkle-sealed chain, not to logs substrate"
@@ -1444,15 +2051,78 @@
         "EVAL_CORPUS_INTERNAL",
         "ITAR_DATA"
       ],
-      "primary_oltp_store": "Postgres + Citus (sharded multi-tenant)",
+      "default_policy": {
+        "universal_data_substrate_default_forbidden": true,
+        "workload_selection_required": true,
+        "directive_source": "user-directive-2026-05-25",
+        "summary": "Citus, OpenSearch, Milvus, ClickHouse, and Iceberg are workload-specific selections, not universal defaults for every microservice or cell."
+      },
+      "primary_oltp_store": "workload-selected relational store; Postgres baseline, Citus only when tenant-sharded horizontal OLTP requires it",
       "primary_oltp_store_per_cell": true,
-      "search_substrate": "OpenSearch (per cell)",
-      "vector_store": "Milvus",
+      "search_substrate": "workload-selected search substrate; OpenSearch only when search or log-index workloads require it",
+      "vector_store": "workload-selected vector substrate; Milvus only when high-scale vector or RAG workloads require it",
       "object_store": "SeaweedFS (oyatie self-operated) + S3-compatible (R2 / GCS / managed)",
-      "queue_substrate": "Kafka (per ADR-0050 inheritance)",
+      "workload_specific_substrates": {
+        "citus": {
+          "name": "Citus",
+          "classification": "workload-specific-not-universal-default",
+          "universal_default": false,
+          "selection_required": true,
+          "allowed_when": [
+            "tenant-sharded horizontal OLTP is selected for the workload"
+          ]
+        },
+        "opensearch": {
+          "name": "OpenSearch",
+          "classification": "workload-specific-not-universal-default",
+          "universal_default": false,
+          "selection_required": true,
+          "allowed_when": [
+            "search or log-index workloads require OpenSearch"
+          ]
+        },
+        "milvus": {
+          "name": "Milvus",
+          "classification": "workload-specific-not-universal-default",
+          "universal_default": false,
+          "selection_required": true,
+          "allowed_when": [
+            "high-scale vector or RAG workloads require Milvus"
+          ]
+        },
+        "clickhouse": {
+          "name": "ClickHouse",
+          "classification": "workload-specific-not-universal-default",
+          "universal_default": false,
+          "selection_required": true,
+          "allowed_when": [
+            "OLAP serving or analytics workloads require ClickHouse"
+          ]
+        },
+        "iceberg": {
+          "name": "Iceberg",
+          "classification": "workload-specific-not-universal-default",
+          "universal_default": false,
+          "selection_required": true,
+          "allowed_when": [
+            "OLAP table format or lakehouse write path is selected for the workload"
+          ]
+        }
+      },
+      "queue_substrate": "Apache Pulsar (launch primary) with Apache Kafka, Redpanda, and RabbitMQ as first-class adapters",
+      "messaging_adapter_policy": {
+        "launch_primary": "Apache Pulsar",
+        "first_class_adapters": [
+          "Apache Kafka",
+          "Redpanda",
+          "RabbitMQ"
+        ],
+        "directive_source": "user-directive-2026-05-25",
+        "non_claim": "This records substrate direction; broker deployments, client adapters, compatibility tests, and production evidence require future ChangeSets."
+      },
       "cache_substrate": "Valkey (Redis fork)",
       "schema_evolution_policy": "schema-registry-canonical per /specs/schema-registry-canonical.json",
-      "tenant_scoped_data_isolation": "row-level via Citus shard key on tenant_id; per-tenant encryption keys via cloud-secrets BYOK"
+      "tenant_scoped_data_isolation": "workload-specific isolation plan selected per service; Citus tenant_id sharding applies only when Citus is selected, and per-tenant encryption keys flow through cloud-secrets BYOK"
     },
     "naming_conventions": {
       "doctrine_summary": "BNF v4.1 naming (ADR-0056). Crate names follow oya-<microservice>-<bounded-context>-<layer> pattern. Microservices flat under microservices/<ms>/ per ADR-0131.",
@@ -1462,7 +2132,12 @@
       "code_root_pattern": "microservices/<ms>/src/",
       "no_suite_microservices": true,
       "new_governance_lane_prefix": "oya-governance-*",
-      "reserved_namespaces_on_naming": ["oyatie", "oya", "oyat", "oyati"]
+      "reserved_namespaces_on_naming": [
+        "oyatie",
+        "oya",
+        "oyat",
+        "oyati"
+      ]
     },
     "agentic_pipeline": {
       "doctrine_summary": "The Foundry pipeline is the canonical agentic development pipeline. Layer-0 isolated worktree per agent; PR against dev enters the pipeline; merge queue admits via ADR-0111 projected merge state.",
@@ -1472,11 +2147,237 @@
       "merge_queue": "ADR-0111 projected-merge-state-fix-at-any-stage",
       "completion_gate": "reviewer-agent APPROVE + CI green + auto-merge",
       "multispectrum_review_version": "2.4.0",
-      "agentic_autonomy_tier_enum": ["assist", "co-pilot", "autonomous-bounded", "autonomous-self-modifying"],
+      "agentic_autonomy_tier_enum": [
+        "assist",
+        "co-pilot",
+        "autonomous-bounded",
+        "autonomous-self-modifying"
+      ],
       "agentic_autonomy_ceiling_per_microservice_declared_in_manifest": true,
       "agentic_decision_audit_chain_class": "AgenticDecisionEvidence",
       "in_flight_pr_cap_default": 12,
       "coordinator_locks_shared_crate": true
+    },
+    "resource_model": {
+      "directive_source": "user-directive-2026-05-25",
+      "doctrine_summary": "Oya cloud resources are addressed through a first-class hyperscaler-style hierarchy and ORN, not through IaC paths or Kubernetes object names alone.",
+      "hierarchy": [
+        "Organization",
+        "Account",
+        "Project",
+        "Region",
+        "Cell",
+        "Resource Group",
+        "Resource"
+      ],
+      "hierarchy_edges": [
+        "Organization owns Account",
+        "Account owns Project",
+        "Project selects Region",
+        "Region contains Cell",
+        "Cell contains Resource Group",
+        "Resource Group contains Resource"
+      ],
+      "first_class_scopes": [
+        "organization",
+        "account",
+        "project",
+        "region",
+        "cell",
+        "resource_group",
+        "resource"
+      ],
+      "region_and_cell_explicit_required": true,
+      "resource_group_required": true,
+      "resource_identity": {
+        "name": "Oya Resource Name",
+        "acronym": "ORN",
+        "format": "orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}",
+        "required_on_every_resource": true,
+        "uniqueness_scope": "global within Oya Cloud resource registry",
+        "parse_fields": [
+          "region",
+          "account",
+          "service",
+          "resource_type",
+          "resource_id"
+        ]
+      },
+      "invariants": [
+        "No cloud resource is valid without account, project, region, cell, owner, lifecycle_state, quota_cost, billing_meters, audit_events, SLO tier, and deletion/retention policy metadata.",
+        "Region and cell placement are explicit control-plane fields, not inferred from provider/IaC directory layout.",
+        "FD-001 microservices hosted on Oyatie Cloud are tenant workloads under the same hierarchy; internal workloads receive no carve-out.",
+        "Stable cloud resources expose lifecycle, identity, policy, quota, billing, audit, observability, rollback, and reconciliation facets through the Cloud Control Plane."
+      ]
+    },
+    "cloud_control_plane": {
+      "directive_source": "user-directive-2026-05-25",
+      "doctrine_summary": "The user-facing Cloud Control Plane owns resource intent, identity, operations, quota, metering, and reconciliation; OpenTofu, operators, and Argo are behind-the-plane implementation mechanisms.",
+      "user_facing_api_required": true,
+      "api_gateway_required": true,
+      "canonical_flow": [
+        "API Gateway",
+        "Resource Registry",
+        "Operation Ledger",
+        "Workflow/Reconciler",
+        "OpenTofu/Operators/Argo"
+      ],
+      "components": {
+        "api_gateway": {
+          "role": "Authenticate, authorize, validate idempotency, normalize API requests, and emit accepted/rejected audit events before resource mutations."
+        },
+        "resource_registry": {
+          "role": "Persist canonical resource identity, hierarchy placement, lifecycle_state, owner, quota/metering/billing metadata, and deletion/retention policy."
+        },
+        "operation_ledger": {
+          "role": "Persist durable long-running operation state for create/update/delete and expose operation status independently of backend reconciler execution.",
+          "required_for_operations": [
+            "create",
+            "update",
+            "delete"
+          ],
+          "async_operation_state_required": true
+        },
+        "workflow_reconciler": {
+          "role": "Convert accepted resource intent into reconciler work while preserving operation ledger state and audit trail."
+        },
+        "execution_adapters": {
+          "role": "Apply intent through OpenTofu, Kubernetes operators, Argo CD, or other provider adapters without becoming the public control-plane API.",
+          "mechanisms": [
+            "OpenTofu",
+            "Kubernetes Operators",
+            "Argo CD"
+          ]
+        }
+      },
+      "mechanism_boundary": {
+        "opentofu_is_implementation_mechanism_not_api": true,
+        "argo_is_implementation_mechanism_not_api": true,
+        "kubernetes_operators_are_implementation_mechanisms_not_api": true
+      },
+      "required_semantics": [
+        "contract-first REST/gRPC/GraphQL API projections from the shared Rust-native contract source",
+        "idempotency keys for mutating operations",
+        "durable operation ids for create/update/delete",
+        "resource registry write before backend execution claim",
+        "quota reservation/check before provisioning",
+        "metering/billing event emission points for lifecycle and usage",
+        "audit event emission for accepted, rejected, started, reconciled, failed, deleted, retained, and tombstoned transitions",
+        "stable resource contracts expose lifecycle, identity, policy, quota, billing, audit, observability, rollback, and reconciliation facets"
+      ],
+      "non_claim": "This records the target control-plane architecture only; runtime API, registry, ledger, reconciler, provider adapter, and production evidence require later ChangeSets."
+    },
+    "quota_metering_billing_mandatory_resource_contract": {
+      "directive_source": "user-directive-2026-05-25",
+      "mandatory_on_every_resource_type": true,
+      "quota_service_required": true,
+      "metering_billing_event_pipeline_required": true,
+      "required_fields": [
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "lifecycle_state",
+        "owner",
+        "tenant/account/project",
+        "region/cell",
+        "SLO tier",
+        "deletion/retention policy"
+      ],
+      "field_semantics": {
+        "quota_cost": "Cost units reserved or consumed from reliability quota before or during resource lifecycle transitions.",
+        "billing_meters": "Meter ids and dimensions that define billable usage and allocation events.",
+        "audit_events": "Event classes emitted for lifecycle, policy, quota, metering, ownership, and retention transitions.",
+        "lifecycle_state": "Control-plane resource state machine value visible to clients and operation ledger.",
+        "owner": "Human/service principal accountable for the resource.",
+        "tenant/account/project": "Tenant and commercial/project scope for isolation, policy, cost, and audit rollup.",
+        "region/cell": "Placement scope for residency, blast-radius, routing, quota pools, and cost attribution.",
+        "SLO tier": "Reliability class that drives rollout, quota, support, alerting, and incident response.",
+        "deletion/retention policy": "Deletion, tombstone, retention, legal hold, and recovery semantics."
+      },
+      "invariants": [
+        "Quota is reliability infrastructure and cannot be postponed to billing integration.",
+        "Billing/metering events are part of the resource contract from day one, not a later garnish.",
+        "Every new resource type must define its quota_cost, billing_meters, audit_events, lifecycle_state, owner, tenant/account/project, region/cell, SLO tier, and deletion/retention policy before implementation."
+      ],
+      "focus_dataset_shape_required": true,
+      "opencost_kubernetes_cost_attribution_required": true
+    },
+    "developer_platform_core": {
+      "directive_source": "user-directive-2026-05-25",
+      "doctrine_summary": "The developer platform is a core provisioning surface for Oya Cloud, not a documentation-only service catalog.",
+      "promoted_to_core": true,
+      "internal_console_must_provision": [
+        "service",
+        "database",
+        "topic",
+        "bucket",
+        "secret",
+        "SLO",
+        "runbook",
+        "deploy pipeline",
+        "preview env"
+      ],
+      "required_surface_semantics": [
+        "Each provisioned artifact creates or updates Resource Registry entries where applicable.",
+        "Each provisioned artifact emits Operation Ledger state for mutating operations.",
+        "Each provisioned artifact binds quota, metering, owner, region/cell, SLO, runbook, and retention metadata before activation.",
+        "Preview environments are tenant-scoped resources under the canonical hierarchy rather than informal deploys."
+      ],
+      "non_claim": "This records the developer-platform promotion requirement only; no console workflow, service catalog backend, or provisioning runtime is implemented here."
+    },
+    "kubernetes_fleet_and_rollout_standards": {
+      "directive_source": "user-directive-2026-05-25",
+      "cluster_api": {
+        "required": true,
+        "purpose": "Declarative multi-cluster provisioning, upgrades, and fleet lifecycle for Kubernetes cells."
+      },
+      "gateway_api": {
+        "required": true,
+        "purpose": "Standard Kubernetes networking API for north-south/gateway routing semantics."
+      },
+      "openfeature": {
+        "required": true,
+        "purpose": "Explicit cloud rollout and release semantics for feature flags and progressive exposure."
+      },
+      "focus_and_opencost": {
+        "focus_required_for_billing_dataset_shape": true,
+        "opencost_required_for_kubernetes_cost_attribution": true
+      },
+      "progressive_delivery": {
+        "required": true,
+        "preferred_default": "Argo Rollouts",
+        "allowed_alternative": "Oya-native equivalent with explicit canary, analysis, rollback, audit, and SLO/error-budget semantics"
+      },
+      "non_claim": "This records standards only; no Cluster API, Gateway API, OpenFeature, FOCUS/OpenCost, Argo Rollouts, or Oya-native rollout runtime is implemented by this ChangeSet."
+    },
+    "stable_cloud_resource_contract": {
+      "directive_source": "user-directive-2026-05-25",
+      "required": true,
+      "doctrine_summary": "Oya exposes stable cloud resources with lifecycle, identity, policy, quota, billing, audit, observability, rollback, and reconciliation as first-class control-plane facets.",
+      "required_facets": [
+        "lifecycle",
+        "identity",
+        "policy",
+        "quota",
+        "billing",
+        "audit",
+        "observability",
+        "rollback",
+        "reconciliation"
+      ],
+      "facet_semantics": {
+        "lifecycle": "Explicit create/update/delete/suspend/resume/drain/retire/tombstone state machine visible through the control plane and operation ledger.",
+        "identity": "Stable ORN plus owner, tenant/account/project, region/cell, resource group, service, resource type, resource id, workload identity, and actor identity references.",
+        "policy": "Cedar/admission/policy decisions, data-class/residency controls, and authorization outcomes attached to resource operations and transitions.",
+        "quota": "Reliability quota checks, reservations, usage deltas, limits, and backpressure semantics attached to resource operations.",
+        "billing": "Meter definitions, billable dimensions, FOCUS-shaped export mapping, and authoritative Oya billing event handoff points.",
+        "audit": "Immutable audit event classes for accepted, rejected, started, reconciled, failed, rolled back, deleted, retained, and tombstoned transitions.",
+        "observability": "Golden signals, traces, metrics, logs, SLO tier, resource health, operation progress, and cost/usage visibility.",
+        "rollback": "Supported rollback/undo/compensation semantics, rollback eligibility, rollback evidence, and failure-domain constraints.",
+        "reconciliation": "Desired-vs-observed state, reconciler ownership, backend adapter state, retry/backoff, drift detection, and terminal/nonterminal failure semantics."
+      },
+      "resource_launch_ready_rule": "A resource type is not considered stable or launch-ready unless all required facets are declared, validated, and exposed through the Cloud Control Plane contract.",
+      "non_claim": "This records the stable resource contract only; no resource API, controller, quota, billing, audit, observability, rollback, or reconciliation runtime is implemented by this ChangeSet."
     }
   },
   "constitutional_invariants": [

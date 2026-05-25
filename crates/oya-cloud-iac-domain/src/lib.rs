@@ -258,6 +258,34 @@ impl ModuleRegistry {
         Ok(())
     }
 
+    pub fn versions(
+        &self,
+        namespace: &str,
+        name: &str,
+        system: &str,
+    ) -> Result<Vec<&OpenTofuModuleRelease>, CloudIacError> {
+        validate_slug(namespace).map_err(|()| CloudIacError::InvalidNamespace)?;
+        validate_slug(name).map_err(|()| CloudIacError::InvalidModuleName)?;
+        validate_slug(system).map_err(|()| CloudIacError::InvalidModuleSystem)?;
+
+        let mut releases = self
+            .releases
+            .iter()
+            .filter_map(|(module_ref, release)| {
+                (module_ref.namespace() == namespace
+                    && module_ref.name() == name
+                    && module_ref.system() == system)
+                    .then_some(release)
+            })
+            .collect::<Vec<_>>();
+        releases.sort_by_key(|release| semver_sort_key(release.version()));
+        if releases.is_empty() {
+            Err(CloudIacError::ModuleVersionNotFound)
+        } else {
+            Ok(releases)
+        }
+    }
+
     pub fn resolve(
         &self,
         namespace: &str,
@@ -265,6 +293,11 @@ impl ModuleRegistry {
         system: &str,
         version: &str,
     ) -> Result<&OpenTofuModuleRelease, CloudIacError> {
+        validate_slug(namespace).map_err(|()| CloudIacError::InvalidNamespace)?;
+        validate_slug(name).map_err(|()| CloudIacError::InvalidModuleName)?;
+        validate_slug(system).map_err(|()| CloudIacError::InvalidModuleSystem)?;
+        validate_exact_semver(version)?;
+
         let module_ref = OpenTofuModuleRef {
             namespace: namespace.to_string(),
             name: name.to_string(),
@@ -283,6 +316,14 @@ impl ModuleRegistry {
     pub fn is_empty(&self) -> bool {
         self.releases.is_empty()
     }
+}
+
+fn semver_sort_key(version: &str) -> (u64, u64, u64) {
+    let mut parts = version.split('.');
+    let major = parts.next().and_then(|part| part.parse().ok()).unwrap_or(0);
+    let minor = parts.next().and_then(|part| part.parse().ok()).unwrap_or(0);
+    let patch = parts.next().and_then(|part| part.parse().ok()).unwrap_or(0);
+    (major, minor, patch)
 }
 
 impl LocalModuleReleaseStatus {
@@ -690,6 +731,12 @@ fn validate_source(source: &str, version: &str) -> Result<(), CloudIacError> {
     if looks_secret_like(source) {
         return Err(CloudIacError::SourceLooksSecretLike);
     }
+    if is_relative_archive_source(source, version) {
+        return Ok(());
+    }
+    if is_object_archive_source(source, version) {
+        return Ok(());
+    }
     let expected_ref = format!("v{version}");
     if has_exactly_one_source_ref(source, &expected_ref) {
         Ok(())
@@ -715,6 +762,67 @@ fn has_exactly_one_source_ref(source: &str, expected_ref: &str) -> bool {
         }
     }
     matching_ref_count == 1
+}
+
+fn is_relative_archive_source(source: &str, version: &str) -> bool {
+    const ARTIFACT_PREFIX: &str = "/artifacts/modules/";
+    let Some(file_name) = source.strip_prefix(ARTIFACT_PREFIX) else {
+        return false;
+    };
+    if file_name.is_empty()
+        || file_name.contains('/')
+        || file_name.contains('\\')
+        || file_name.contains('?')
+        || file_name.contains('#')
+        || file_name == "."
+        || file_name == ".."
+        || !file_name.ends_with(".zip")
+        || !file_name.ends_with(&format!("-{version}.zip"))
+    {
+        return false;
+    }
+    file_name
+        .chars()
+        .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || matches!(ch, '-' | '.'))
+}
+
+fn is_object_archive_source(source: &str, version: &str) -> bool {
+    let Some(location) = source
+        .strip_prefix("s3::https://")
+        .or_else(|| source.strip_prefix("gcs::https://"))
+    else {
+        return false;
+    };
+    if source.contains('@')
+        || source.contains('?')
+        || source.contains('#')
+        || source.contains('\\')
+        || source
+            .chars()
+            .any(|ch| ch.is_ascii_whitespace() || ch.is_control())
+    {
+        return false;
+    }
+    let Some((host, object_path)) = location.split_once('/') else {
+        return false;
+    };
+    if host.is_empty() || object_path.is_empty() || object_path.contains("//") {
+        return false;
+    }
+    let Some(file_name) = object_path.rsplit('/').next() else {
+        return false;
+    };
+    if file_name.is_empty()
+        || file_name == "."
+        || file_name == ".."
+        || !file_name.ends_with(".zip")
+        || !file_name.ends_with(&format!("-{version}.zip"))
+    {
+        return false;
+    }
+    file_name
+        .chars()
+        .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || matches!(ch, '-' | '.'))
 }
 
 fn validate_digest(digest: &str) -> Result<(), CloudIacError> {

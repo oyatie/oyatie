@@ -1,6 +1,6 @@
 microservice:
   id: cloud-iac
-  cargoPackage: oya-cloud-iac
+  cargoPackage: oya-cloud-iac-app
   tenantClass: contributor
 
 replicaCount: 2

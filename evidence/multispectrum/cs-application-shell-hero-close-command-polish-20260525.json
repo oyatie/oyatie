@@ -1,0 +1,94 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-HERO-CLOSE-COMMAND-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-hero-close-command-polish-20260525",
+  "agent": "codex-oyatie-hero-close-command-polish",
+  "created_at": "2026-05-25T02:25:44-04:00",
+  "slice": "Hero close command polish",
+  "intent": "Make the top-fold Close April CTA visibly functional and product-cohesive as an FD-001 close workload command on Oyatie Cloud.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added dynamic and SSR-static hero close proof strip tying April close to FD-001, Oyatie Cloud, REC-CLOSE-2026-04, cell-us-east-2, and local-only command state.",
+    "Converted the primary Close April CTA and new hero route buttons into data-bound local actions with selected-state feedback and visible hero status updates.",
+    "Hero actions route to Ledger Preview, Cloud Ops Cockpit, and Audit Ledger while preserving no-mutation boundaries.",
+    "Added responsive hero command layout and styling using existing command-surface tokens."
+  ],
+  "before_metrics": {
+    "buttonCount": 3,
+    "heroActionCount": 0,
+    "statusCount": 0,
+    "proofCount": 0,
+    "hasFD001": false,
+    "hasOyatieCloud": false,
+    "hasLocalBoundary": false,
+    "hasReceipt": false
+  },
+  "after_metrics": {
+    "buttonCount": 7,
+    "heroActionCount": 5,
+    "statusCount": 1,
+    "proofCount": 1,
+    "hasFD001": true,
+    "hasOyatieCloud": true,
+    "hasLocalBoundary": true,
+    "hasReceipt": true,
+    "hasCloudCell": true
+  },
+  "interaction_assertions": [
+    { "action": "close-april", "hash": "#ledger-preview", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-ledger", "hash": "#ledger-preview", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-cloud", "hash": "#cloud-ops-cockpit", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-evidence", "hash": "#audit-ledger", "selected": true, "status_changed": true, "passed": true }
+  ],
+  "ssr_curl_counts": {
+    "hero-close-strip": 1,
+    "data-hero-action": 5,
+    "data-hero-status": 1,
+    "FD-001 CLOSE COMMAND": 1,
+    "REC-CLOSE-2026-04": 1,
+    "Oyatie Cloud": 73,
+    "FD-001": 130,
+    "cell-us-east-2": 11,
+    "local command only": 1
+  },
+  "screenshots": {
+    "after": {
+      "hero": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-hero-close-command-polish/after/hero-close-command.png"
+    },
+    "audit_json": {
+      "playwright": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-hero-close-command-polish/after/playwright-hero-close-command-proof.json"
+    }
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Top-fold FD-001/Oyatie Cloud close command",
+    "reasoning": "The top-fold hero now makes the primary Close April CTA visibly functional and ties the first screen to FD-001 close workload proof on Oyatie Cloud with explicit receipt, cell, local-only state, and routes.",
+    "differences": [
+      "Close remains a local visual stage/route operation; no payroll, ledger, tax, workflow, mail, billing, deploy, or cloud mutation is wired."
+    ],
+    "suggestions": [
+      "Future production wiring can attach the same hero actions to real close-package orchestration APIs."
+    ]
+  },
+  "commands": [
+    { "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css", "status": "passed" },
+    { "cmd": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "summary": "8 lib tests passed; 0 main tests" },
+    { "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features", "status": "passed" },
+    { "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features", "status": "passed" },
+    { "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib", "status": "passed" },
+    { "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/", "status": "passed", "summary": "ready-after-5s; transient empty replies immediately after restart" },
+    { "cmd": "node /tmp/oya-hero-proof.cjs", "status": "passed" }
+  ],
+  "known_limits": [
+    "Visual prototype only; hero close actions do not execute payroll close, ledger posting, tax filing, workflow execution, mail sends, billing, deploy, or cloud/provider mutations.",
+    "This slice improves the top-fold hero CTA; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

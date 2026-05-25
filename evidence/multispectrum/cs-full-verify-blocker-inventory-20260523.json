@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-FULL-VERIFY-BLOCKER-INVENTORY-001",
+  "agent_id": "codex-full-verify-audit",
+  "created_at": "2026-05-23T09:45:00Z",
+  "scope": "Full ./bin/oya verify --ci-required blocker inventory after master-plan completion gate audit",
+  "claim": "Full verify remains non-green; this ChangeSet records current blockers and next repair ordering without claiming production or hyperscaler readiness.",
+  "source_inspection": {
+    "command": "./bin/oya verify --ci-required",
+    "exit_code": 1,
+    "overall_summary": "oya verify: FAIL (mandatory: 3/5, advisory: 1/2)",
+    "passed_stages": [
+      {
+        "stage": "D-1",
+        "name": "cargo fmt --check",
+        "summary": "PASS"
+      },
+      {
+        "stage": "D-2",
+        "name": "cargo check --workspace --all-targets",
+        "summary": "PASS"
+      },
+      {
+        "stage": "D-3",
+        "name": "cargo clippy --workspace --all-targets -- -D warnings",
+        "summary": "PASS"
+      },
+      {
+        "stage": "D-7",
+        "name": "oya lint adr-shape",
+        "summary": "PASS; no new ADRs in origin/dev...HEAD"
+      }
+    ],
+    "failed_stages": [
+      {
+        "stage": "D-4",
+        "name": "cargo nextest run --workspace",
+        "summary": "FAIL: 2000/4308 tests run before fail-fast; 6 failed, 1 skipped, 2302 not run.",
+        "root_failure": "Six oya-dev-cli::oya_verify_ci_mirror tests spawn child oya verify commands that inherit the recursive-invocation refusal context and fail with `oya verify: recursive invocation refused`.",
+        "failed_tests": [
+          "oya_verify_ci_required_runs_mandatory_mirror_and_advisory_steps",
+          "oya_verify_advisory_failure_does_not_fail_when_new_adr_lint_is_not_blocking",
+          "oya_verify_mandatory_failure_exits_one_after_running_later_steps",
+          "oya_verify_skip_flags_suppress_their_mandatory_steps",
+          "oya_verify_include_deferred_threads_to_gate_run_all",
+          "oya_verify_new_adr_shape_failure_blocks_exit_even_though_it_is_advisory_classified"
+        ]
+      },
+      {
+        "stage": "D-5",
+        "name": "oya gate run-all --ci-required",
+        "summary": "FAIL: 74/88 lanes passed; 14 lanes failed.",
+        "failed_lanes": [
+          {
+            "lane": "claim-ceiling",
+            "detail": "SecurityReviewAboveFoundation"
+          },
+          {
+            "lane": "data-class",
+            "detail": "UnknownUnannotatedField: crates/oya-audit-chain-emission-kernel/src/lib.rs ChainCoordinate.pack"
+          },
+          {
+            "lane": "doc-catalog",
+            "detail": "DocumentMissingMachineRow: docs/AGENTS-OPERATING-CONTRACT.md"
+          },
+          {
+            "lane": "adr-citation",
+            "detail": "DisallowedAdrCitation: docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md line 727 ADR-0399"
+          },
+          {
+            "lane": "design-spec-maturity-claims",
+            "detail": "81 required service surfaces missing across cloud/cell and other services"
+          },
+          {
+            "lane": "glossary-vocabulary",
+            "detail": "ForbiddenToken: docs/architecture/wave-3-retrospective-2026-05-20.md token MVP"
+          },
+          {
+            "lane": "placeholder-debt",
+            "detail": "DuplicateRecord for docs/standards/agentic-dev-team-optimization.md TBD verification row"
+          },
+          {
+            "lane": "dependency-seam",
+            "detail": "gate run-all reports 1 blocking diagnostic; direct standalone default/severity-error recheck reports 0 blocking diagnostics without supplied evidence"
+          },
+          {
+            "lane": "readme-doc-coverage",
+            "detail": "DocumentMissingCatalogRow: docs/AGENTS-OPERATING-CONTRACT.md"
+          },
+          {
+            "lane": "layered-architecture-discipline",
+            "detail": "16 MeshTierUnderclaimed manifest violations"
+          },
+          {
+            "lane": "cargo nextest run --workspace --no-fail-fast",
+            "detail": "4302 passed, 6 failed, 1 skipped; same oya_verify_ci_mirror recursion failures"
+          },
+          {
+            "lane": "oya-foundry-vcs-admission-gate-app",
+            "detail": "missing required provider proof tool: trivy"
+          },
+          {
+            "lane": "oya-foundry-vcs-provider-execution-gate-app",
+            "detail": "missing required provider proof tool: trivy"
+          },
+          {
+            "lane": "github-actions-required-secrets-check",
+            "detail": "required command not found: gh"
+          }
+        ]
+      },
+      {
+        "stage": "D-6",
+        "name": "oya doc adr-index --write",
+        "summary": "FAIL: ADR metadata Owner missing in docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md"
+      }
+    ],
+    "next_repair_ordering": [
+      "Fix oya-dev-cli oya_verify_ci_mirror recursive-invocation test harness failures because they are deterministic Rust test failures and appear in both D-4 and D-5 CI nextest mirrors.",
+      "Re-run ./bin/oya verify --ci-required after that fix to distinguish remaining true gate-run-all failures from cascading test failures.",
+      "Then address claim-ceiling/data-class/doc-catalog/readme/adr/glossary/placeholder/layered/tooling blockers in the updated evidence order."
+    ]
+  },
+  "implemented_changes": [
+    "Updated tasks/plan.md with a closed full-verify blocker inventory section and next executable repair slice.",
+    "Updated tasks/todo.md with RED/GREEN full-verify status and non-claims.",
+    "Created this multispectrum evidence file and appended audit-chain rows."
+  ],
+  "verification": [
+    {
+      "id": "F1",
+      "command": "./bin/oya verify --ci-required",
+      "status": "fail_expected_inventory",
+      "summary": "D-1/D-2/D-3 and D-7 pass; D-4/D-5/D-6 fail as inventoried; no full-CI success claim."
+    },
+    {
+      "id": "F2",
+      "command": "./bin/oya gate validate dependency-seam --severity error --emit-report /tmp/dependency-seam-report.json",
+      "status": "pass_standalone_diagnostic",
+      "summary": "Standalone dependency-seam validation passed with 0 blocking diagnostics; gate-run-all still recorded dependency-seam as failed, so this remains a discrepancy to re-check after next verify run."
+    },
+    {
+      "id": "F3",
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "id": "F4",
+      "command": "./bin/oya gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "pass",
+      "summary": "master-plan-completion validation passed: 80 phases, 172 implementation plans."
+    },
+    {
+      "id": "F5",
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root evidence/multispectrum/cs-full-verify-blocker-inventory-20260523.json",
+      "status": "pass",
+      "summary": "honest-claims validation passed: 3 documents, 1072 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "id": "F6",
+      "command": "./bin/oya git diff --check",
+      "status": "pass",
+      "summary": "No whitespace errors in diff."
+    }
+  ],
+  "code_review": {
+    "method": "local five-axis review for evidence/gate-truth-only change",
+    "critical": [],
+    "high": [],
+    "medium": [],
+    "low": [],
+    "architectural_status": "CLEAR for evidence/gate-truth-only scope; no source architecture or runtime behavior changed",
+    "recommendation": "APPROVE blocker-inventory scope"
+  },
+  "non_claims": [
+    "no full ./bin/oya verify --ci-required success claim",
+    "no production or hyperscaler readiness claim",
+    "no runtime/provider-live implementation claim",
+    "no SLO, DR, sharding, capacity, audit-chain persistence, or Phase 1 readiness claim",
+    "no claim that listed blockers are fixed"
+  ],
+  "known_remaining_blockers_not_fixed": [
+    "Six oya-dev-cli::oya_verify_ci_mirror tests fail under verify due recursive invocation refusal.",
+    "D-5 gate run-all has 14 failed lanes including catalog/doc/spec/layered/tooling blockers.",
+    "D-6 ADR index write fails on missing Owner metadata in ADR-0321.",
+    "hyperscaler-maturity-claims remains claim_status=blocked_until_required_evidence_is_green by design."
+  ],
+  "oya_vcs": {
+    "claim": "accepted before writes",
+    "work": "accepted before edits",
+    "verify": "accepted with evidence/multispectrum/cs-full-verify-blocker-inventory-20260523.json",
+    "done": "accepted with --controller-promote",
+    "promote": "accepted for bundle CS-FULL-VERIFY-BLOCKER-INVENTORY-001 in local env"
+  },
+  "updated_at": "2026-05-23T09:46:45Z"
+}

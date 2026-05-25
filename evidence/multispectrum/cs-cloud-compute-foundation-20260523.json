@@ -1,0 +1,257 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-COMPUTE-001",
+  "agent_id": "codex-cloud-compute-20260523",
+  "timestamp_iso": "2026-05-23T08:41:13Z",
+  "git_sha": "fe21ffac",
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-compute-domain/src/lib.rs",
+    "crates/oya-cloud-compute-domain/tests/cloud_compute_foundation.rs",
+    "crates/oya-cloud-compute-functions-api/src/lib.rs",
+    "crates/oya-cloud-compute-k8s-api/src/lib.rs",
+    "crates/oya-cloud-compute-vm-api/src/lib.rs",
+    "microservices/cloud-k8s/manifest.json",
+    "registry/catalog/oya-cloud-compute-domain.yaml",
+    "registry/catalog/oya-cloud-compute-functions-api.yaml",
+    "registry/catalog/oya-cloud-compute-k8s-api.yaml",
+    "registry/catalog/oya-cloud-compute-vm-api.yaml",
+    "registry/catalog/oya-cloud-compute-adapter-aws.yaml",
+    "registry/catalog/oya-cloud-compute-adapter-oci.yaml",
+    "registry/catalog/oya-cloud-compute-kernel.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Add a code-backed metadata-only Cloud Compute tenant/cell guardrail for VM, Kubernetes, and function workload identity, strong runtime isolation, Kubernetes private/restricted/scheduling posture, and non-secret audit/scheduling/identity evidence refs; reconcile the cloud-k8s manifest and compute registry catalogs to truthful local-foundation claims only.",
+  "best_practice_sources": [
+    {
+      "name": "Kubernetes Pod Security Standards",
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "takeaway": "The Restricted profile is aimed at current pod hardening best practices and lower-trust users; this slice requires restricted pod-security posture metadata but does not apply admission policy."
+    },
+    {
+      "name": "Kubernetes Service Accounts",
+      "url": "https://kubernetes.io/docs/concepts/security/service-accounts/",
+      "takeaway": "Service accounts provide distinct non-human identities bound to namespaces; this slice requires tenant/cell-scoped service-account refs without creating Kubernetes objects."
+    },
+    {
+      "name": "Kubernetes RuntimeClass",
+      "url": "https://kubernetes.io/docs/concepts/containers/runtime-class/",
+      "takeaway": "RuntimeClass can select runtime configurations to trade performance for stronger isolation such as hardware virtualization; this slice models allowed isolation labels without configuring CRI handlers."
+    },
+    {
+      "name": "Kubernetes Pod Topology Spread Constraints",
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+      "takeaway": "Topology spread constraints control placement across failure domains for availability and resource use; this slice requires scheduling evidence refs but does not schedule pods."
+    },
+    {
+      "name": "Kubernetes Auditing",
+      "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/",
+      "takeaway": "Kubernetes auditing creates security-relevant chronological records for API activity; this slice requires audit evidence refs but does not configure audit backends."
+    },
+    {
+      "name": "AWS Lambda best practices",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html",
+      "takeaway": "Lambda guidance recommends most-restrictive execution-role permissions and careful resource/concurrency limits; this slice models function workload identity and isolation metadata only."
+    },
+    {
+      "name": "AWS EC2 Instance Metadata Service IMDSv2",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html",
+      "takeaway": "IMDSv2 uses session tokens and can be required on instances; this slice avoids raw instance credentials and only stores non-secret identity evidence refs."
+    },
+    {
+      "name": "OCI instance principals",
+      "url": "https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/callingservicesfrominstances.htm",
+      "takeaway": "OCI instance principals let instances call OCI services without user credentials, while access to the instance inherits granted privileges; this slice requires role/identity metadata without OCI calls."
+    },
+    {
+      "name": "OCI Audit overview",
+      "url": "https://docs.oracle.com/en-us/iaas/Content/Audit/Concepts/auditoverview.htm",
+      "takeaway": "OCI Audit records supported public API calls as log events; this slice requires audit evidence refs but does not emit or retrieve OCI audit logs."
+    }
+  ],
+  "red_tests": [
+    "Initial RED: cargo test -p oya-cloud-compute-domain --test cloud_compute_foundation failed because ComputeTenantCellGuardrail/ComputeTenantCellGuardrailCreate/ComputeWorkloadIsolation and InvalidWorkloadIdentityPolicy/InvalidRuntimeIsolationPolicy/InvalidSchedulingPolicy/InvalidAuditEvidenceRef did not exist.",
+    "Package compile then failed until the functions/k8s/vm API error maps were updated exhaustively for the new CloudComputeError variants."
+  ],
+  "verification": {
+    "green_tests": [
+      "cargo test -p oya-cloud-compute-domain --test cloud_compute_foundation",
+      "cargo test -p oya-cloud-compute-domain -p oya-cloud-compute-functions-api -p oya-cloud-compute-k8s-api -p oya-cloud-compute-vm-api -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci"
+    ],
+    "static_checks": [
+      "cargo clippy -p oya-cloud-compute-domain -p oya-cloud-compute-functions-api -p oya-cloud-compute-k8s-api -p oya-cloud-compute-vm-api -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci --all-targets -- -D warnings",
+      "cargo check -p oya-cloud-compute-domain -p oya-cloud-compute-functions-api -p oya-cloud-compute-k8s-api -p oya-cloud-compute-vm-api -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci",
+      "cargo fmt --all -- --check",
+      "custom cloud-compute coherence check requiring truthful manifest, existing crates only, root OpenAPI contract status, F1-F10 evidence, and audit-chain row",
+      "./bin/oya git diff --check"
+    ],
+    "pending": [],
+    "review": {
+      "agent_id": "codex-cloud-compute-local-review-20260523",
+      "verdict": "APPROVE",
+      "architectural_status": "CLEAR",
+      "blockers": [],
+      "notes": [
+        "Reviewed guardrail domain model, tests, API error mappings, manifest truth-down, registry catalogs, tasks, and evidence.",
+        "No critical/high/medium blockers found for the stated local-foundation scope.",
+        "Subagent delegation was not used because explicit user authorization for sub-agents was not provided; review was performed locally under the code-review skill."
+      ]
+    },
+    "oya_vcs": {
+      "work": "accepted",
+      "verify": "accepted",
+      "done": "accepted-controller-promote",
+      "promote": "accepted-local"
+    },
+    "gates": [
+      "./bin/oya gate validate planning-closure",
+      "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog --self-test",
+      "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-cloud-compute-foundation-20260523.json --severity report-only",
+      "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root microservices/cloud-k8s --corpus-root crates/oya-cloud-compute-domain --corpus-root crates/oya-cloud-compute-functions-api --corpus-root crates/oya-cloud-compute-k8s-api --corpus-root crates/oya-cloud-compute-vm-api --corpus-root crates/oya-cloud-compute-adapter-aws --corpus-root crates/oya-cloud-compute-adapter-oci --corpus-root tasks"
+    ]
+  },
+  "implemented_claims": [
+    "ComputeTenantCellGuardrail validates tenant, region, primary cell, VM instance id, Kubernetes cluster id, function id, VM IAM role ref, Kubernetes service-account ref, function service-account ref, runtime isolation posture, private/restricted/scheduling booleans, and non-secret audit/scheduling/identity evidence refs.",
+    "Guardrail resource ids must match tenant, region, and expected kind labels (instance, k8s, function).",
+    "Weak runtime isolation labels SharedHost and HardenedNode are rejected for tenant workloads; HardwareVirtualizedVm, KataMicroVm, FirecrackerMicroVm, GvisorSandbox, and WasmSandbox are accepted metadata labels.",
+    "Kubernetes guardrail requires private control plane, restricted pod-security posture, and topology-spread evidence metadata.",
+    "Evidence refs reject whitespace/control/query/path-traversal/secret-like strings and require evidence/compute/{audit,scheduling,identity}/ prefixes.",
+    "Functions/K8s/VM API crates map the new guardrail errors exhaustively without wildcard masking.",
+    "cloud-k8s manifest and compute registry catalogs now claim only implemented domain/API/adapter local-foundation surfaces and retire the non-existent compute-kernel catalog row as compatibility metadata."
+  ],
+  "explicit_non_claims": [
+    "No live Kubernetes cluster bootstrap, kubeadm, EKS, OKE, EC2, OCI Compute, Lambda, function execution runtime, CNI, CSI, service mesh, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
+    "No raw cloud credential, kubeconfig, bearer token, private key, Lambda/EC2/OCI credential, service-account secret, or tenant workload payload is introduced or consumed.",
+    "The service-local cloud-k8s OpenAPI/AsyncAPI/proto files remain compatibility scaffolds; root contracts/openapi/cloud/cloud-compute-*-v1.yaml files are the code-tested API evidence for this slice.",
+    "This ChangeSet does not make Cloud Compute production-ready and does not make full repo ./bin/oya verify --ci-required green."
+  ],
+  "false_green_findings_closed": [
+    "Removed broad cloud-k8s app/kernel/rest/sdk/usecase/worker layer claims where no corresponding compute runtime crates are implemented.",
+    "Replaced manifest SLO, DR/RTO/RPO, active-active, sharding, audit-chain runtime, CNI/mesh, upstream OSS, and OpenTofu invocation claims with disabled/not-claimed blocks and explicit non-claims.",
+    "Stopped treating cloud-k8s benchmark/parity/runbook/IP Markdown as implementation readiness evidence.",
+    "Marked stale oya-cloud-compute-kernel catalog metadata as retired compatibility because no such crate exists."
+  ],
+  "known_gaps": [
+    "Cloud Billing + Tax is the next sequential Phase 0 slice after CS-CLOUD-COMPUTE-001 closeout and must be claimed before write work.",
+    "Runtime VM launch, Kubernetes cluster bootstrap, function execution, provider SDK calls, IAM policy attach/apply, RuntimeClass apply, Pod Security Admission apply, topology spread enforcement, measured SLO/DR evidence, and audit-chain persistence require later ChangeSets.",
+    "The broad repo-wide verify --ci-required path remains not green and is not part of the local-foundation claim."
+  ],
+  "change_class_id": "CC-2",
+  "freshness_unix": 1779525673,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice adds a narrow domain guardrail and manifest truth-down rather than a compute controller.",
+        "Provider adapters remain deterministic request-shaping only; live provider calls are explicit non-claims."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Workload identity, runtime isolation, private/restricted Kubernetes posture, topology spread, and audit evidence are locked as metadata invariants.",
+        "No hyperscaler/production readiness is claimed without live runtime, SLO, DR, provider, and audit evidence."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "tests reject public control planes, unrestricted pods, missing topology spread, weak runtime isolation, tenant/cell identity drift, secret-like evidence refs, and cross-tenant/region/kind resource drift",
+      "findings": [
+        "RED tests failed before implementation and GREEN tests pass after the guardrail implementation."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 10,
+      "findings": [
+        "Guardrail is a single create struct plus typed output in the existing domain crate.",
+        "Manifest now points to Rust files and tests rather than aspirational Markdown as readiness evidence."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Cloud Compute package tests pass: 6 new guardrail integration tests, 10 domain tests, 10 functions API tests, 11 K8s API tests, 12 VM API tests, 3 AWS adapter tests, and 3 OCI adapter tests.",
+        "Clippy with warnings denied, cargo check, and rustfmt check passed for the scoped compute packages.",
+        "Local code review APPROVE with architectural status CLEAR for local-foundation scope.",
+        "cloud-compute coherence PASS; planning-closure, api-semver, architecture-boundaries, dependency-seam report-only, scoped honest-claims, and diff-check passed.",
+        "Oya VCS work/verify/done/promote accepted for local-foundation scope."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Implement live VM/K8s/function runtime now",
+        "Only truth-down the manifest",
+        "Add a narrow metadata guardrail plus manifest truth-down"
+      ],
+      "selected_rationale": "The narrow metadata guardrail locks cross-surface compute invariants without faking live provider or scheduler readiness.",
+      "rejected_reasons": [
+        "Live runtime would touch provider credentials, IaC, networking, IAM, observability, and audit persistence too broadly for this sequential slice.",
+        "Manifest-only truth-down would not add code-backed workload identity/isolation/scheduling/audit controls."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "authorization/configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "Guardrail requires tenant/cell-scoped workload identity and rejects secret-like evidence refs.",
+        "No raw credentials, kubeconfigs, bearer tokens, private keys, or workload payloads are introduced."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "perf_budget_class": "cold-path",
+      "benchmark_attached": false,
+      "benchmark_id": null,
+      "regression_baseline": "not-applicable: metadata-only validation and manifest truth-down; no runtime compute request path or measured SLO introduced",
+      "findings": [
+        "No runtime scheduling, launch, or function execution path is introduced."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "packs_reviewed": [
+        "kr",
+        "eu",
+        "us",
+        "us-healthcare",
+        "jp",
+        "sg",
+        "au",
+        "in",
+        "br",
+        "ae",
+        "ksa",
+        "gdpr",
+        "hipaa",
+        "iso27001",
+        "soc2"
+      ],
+      "findings": [
+        "The guardrail stores metadata/evidence refs only and avoids tenant payload processing.",
+        "Manifest records explicit non-claims for audit persistence, DR, SLOs, and provider-live operations."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rollback_path": [
+        "Revert ComputeTenantCellGuardrail additions and tests",
+        "Revert API error-map additions",
+        "Restore previous cloud-k8s manifest/catalog rows if needed"
+      ],
+      "findings": [
+        "The ChangeSet is additive in Rust domain/API code and narrows manifest/catalog claims; no migrations or external state are introduced."
+      ]
+    }
+  }
+}

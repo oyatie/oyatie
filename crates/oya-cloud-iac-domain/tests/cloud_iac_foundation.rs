@@ -22,6 +22,21 @@ fn tenant_namespace_release() -> OpenTofuModuleRelease {
     .expect("valid metadata-only module release")
 }
 
+fn module_release(name: &str, version: &str, digest_hex: char) -> OpenTofuModuleRelease {
+    OpenTofuModuleRelease::new(
+        "oyatie",
+        name,
+        "opentofu",
+        version,
+        format!(
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/{name}?ref=v{version}"
+        ),
+        format!("sha256:{}", digest_hex.to_string().repeat(64)),
+        format!("evidence://cloud-iac/modules/{name}/{version}/local-foundation"),
+    )
+    .expect("valid local module release")
+}
+
 fn gitops_input(commit_sha: &str, evidence_ref: &str) -> GitOpsEvidenceInput {
     GitOpsEvidenceInput {
         controller: GitOpsController::ArgoCd,
@@ -175,6 +190,97 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
 }
 
 #[test]
+fn cloud_iac_module_registry_accepts_local_relative_archive_locations() {
+    let release = OpenTofuModuleRelease::new(
+        "oyatie",
+        "vpc",
+        "opentofu",
+        "0.1.0",
+        "/artifacts/modules/oyatie-vpc-opentofu-0.1.0.zip",
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence://cloud-iac/modules/vpc/0.1.0/local-foundation",
+    )
+    .expect("relative archive location is valid for registry download response");
+
+    assert_eq!(
+        release.source(),
+        "/artifacts/modules/oyatie-vpc-opentofu-0.1.0.zip"
+    );
+
+    assert_eq!(
+        OpenTofuModuleRelease::new(
+            "oyatie",
+            "vpc",
+            "opentofu",
+            "0.1.0",
+            "/artifacts/modules/oyatie-vpc-opentofu-latest.zip",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "evidence://cloud-iac/modules/vpc/0.1.0/local-foundation",
+        )
+        .unwrap_err(),
+        oya_cloud_iac_domain::CloudIacError::MissingSourceVersionPin
+    );
+
+    assert_eq!(
+        OpenTofuModuleRelease::new(
+            "oyatie",
+            "vpc",
+            "opentofu",
+            "0.1.0",
+            "/artifacts/modules/../secret.zip",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "evidence://cloud-iac/modules/vpc/0.1.0/local-foundation",
+        )
+        .unwrap_err(),
+        oya_cloud_iac_domain::CloudIacError::MissingSourceVersionPin
+    );
+}
+
+#[test]
+fn cloud_iac_module_registry_accepts_opentofu_s3_and_gcs_archive_source_locations() {
+    let s3 = OpenTofuModuleRelease::new(
+        "oyatie",
+        "vpc",
+        "opentofu",
+        "0.1.0",
+        "s3::https://s3.amazonaws.com/oyatie-cloud-iac-modules/oyatie/vpc/0.1.0/oyatie-vpc-opentofu-0.1.0.zip",
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence://cloud-iac/modules/vpc/0.1.0/object-source",
+    )
+    .expect("valid S3 archive object source");
+    assert_eq!(
+        s3.source(),
+        "s3::https://s3.amazonaws.com/oyatie-cloud-iac-modules/oyatie/vpc/0.1.0/oyatie-vpc-opentofu-0.1.0.zip"
+    );
+
+    let gcs = OpenTofuModuleRelease::new(
+        "oyatie",
+        "vpc",
+        "opentofu",
+        "0.1.0",
+        "gcs::https://www.googleapis.com/storage/v1/oyatie-cloud-iac-modules/oyatie/vpc/0.1.0/oyatie-vpc-opentofu-0.1.0.zip",
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence://cloud-iac/modules/vpc/0.1.0/object-source",
+    )
+    .expect("valid GCS archive object source");
+    assert!(gcs.source().starts_with("gcs::https://"));
+
+    assert_eq!(
+        OpenTofuModuleRelease::new(
+            "oyatie",
+            "vpc",
+            "opentofu",
+            "0.1.0",
+            "s3::https://s3.amazonaws.com/oyatie-cloud-iac-modules/oyatie/vpc/0.1.0/oyatie-vpc-opentofu-0.2.0.zip",
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "evidence://cloud-iac/modules/vpc/0.1.0/object-source",
+        )
+        .unwrap_err(),
+        oya_cloud_iac_domain::CloudIacError::MissingSourceVersionPin
+    );
+}
+
+#[test]
 fn cloud_iac_registry_rejects_duplicate_module_versions() {
     let release = tenant_namespace_release();
     let mut registry = ModuleRegistry::default();
@@ -191,6 +297,60 @@ fn cloud_iac_registry_rejects_duplicate_module_versions() {
         .resolve("oyatie", "tenant-namespace", "opentofu", "1.0.0")
         .expect("published module resolves");
     assert_eq!(resolved, &release);
+}
+
+#[test]
+fn cloud_iac_registry_lists_versions_with_path_validation() {
+    let mut registry = ModuleRegistry::default();
+    registry
+        .publish(module_release("vpc", "1.10.0", 'c'))
+        .expect("vpc 1.10.0 registers");
+    registry
+        .publish(module_release("vpc", "1.0.0", 'a'))
+        .expect("vpc 1.0.0 registers");
+    registry
+        .publish(module_release("vpc", "1.2.0", 'b'))
+        .expect("vpc 1.2.0 registers");
+    registry
+        .publish(module_release("dns", "1.0.0", 'd'))
+        .expect("dns registers");
+
+    let versions = registry
+        .versions("oyatie", "vpc", "opentofu")
+        .expect("vpc versions resolve");
+
+    assert_eq!(
+        versions
+            .iter()
+            .map(|release| release.version())
+            .collect::<Vec<_>>(),
+        vec!["1.0.0", "1.2.0", "1.10.0"]
+    );
+    assert_eq!(
+        registry
+            .versions("oyatie", "missing", "opentofu")
+            .unwrap_err(),
+        oya_cloud_iac_domain::CloudIacError::ModuleVersionNotFound
+    );
+    assert_eq!(
+        registry
+            .versions("oyatie", "../escape", "opentofu")
+            .unwrap_err(),
+        oya_cloud_iac_domain::CloudIacError::InvalidModuleName
+    );
+    assert_eq!(
+        registry
+            .resolve("oyatie", "vpc", "opentofu", "1.2.0")
+            .expect("specific vpc version resolves")
+            .digest(),
+        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    );
+    assert_eq!(
+        registry
+            .resolve("oyatie", "vpc", "opentofu", "latest")
+            .unwrap_err(),
+        oya_cloud_iac_domain::CloudIacError::InvalidSemanticVersion
+    );
 }
 
 #[test]

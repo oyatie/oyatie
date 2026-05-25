@@ -830,6 +830,346 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("cloud-iac-gitops-evidence")) => {
+            match crate::parse_cloud_iac_gitops_evidence_validate_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_gitops_evidence_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-gitops-evidence validation passed: {} contexts, {} templates checked; manifest {}; templates root {}",
+                            report.contexts_checked,
+                            report.templates_checked,
+                            report.manifest_path,
+                            report.templates_root
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-helm-chart-signed-image-wiring")) => {
+            match crate::parse_cloud_iac_helm_chart_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_helm_chart_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-helm-chart-signed-image-wiring validation passed: {} files, {} required lines checked; manifest {}; chart root {}",
+                            report.files_checked,
+                            report.required_lines_checked,
+                            report.manifest_path,
+                            report.chart_root_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-kubewarden-admission-policy")) => {
+            match crate::parse_cloud_iac_kubewarden_admission_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_kubewarden_admission_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-kubewarden-admission-policy validation passed: {} policy files, {} required markers checked; manifest {}; kubewarden root {}; kyverno policy {}",
+                            report.policy_files_checked,
+                            report.required_markers_checked,
+                            report.manifest_path,
+                            report.kubewarden_root_path,
+                            report.kyverno_policy_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-cell-topology")) => {
+            match crate::parse_cloud_iac_cell_topology_validate_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_cell_topology_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-cell-topology validation passed: {} contexts, {} cells, {} module refs, {} files checked; manifest {}; topology {}; catalog {}",
+                            report.contexts_checked,
+                            report.cells_checked,
+                            report.module_refs_checked,
+                            report.files_checked,
+                            report.manifest_path,
+                            report.topology_path,
+                            report.catalog_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-opentofu-validation")) => {
+            match crate::parse_cloud_iac_opentofu_validation_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_opentofu_validation_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-opentofu-validation validation passed: {} modules, {} init runs, {} validate runs; manifest {}; catalog {}; modules root {}",
+                            report.modules_checked,
+                            report.init_runs,
+                            report.validate_runs,
+                            report.manifest_path,
+                            report.catalog_path,
+                            report.modules_root
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-module-provenance")) => {
+            match crate::parse_cloud_iac_module_provenance_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_module_provenance_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-module-provenance validation passed: {} modules, {} files checked; manifest {}; catalog {}; provenance {}",
+                            report.modules_checked,
+                            report.files_checked,
+                            report.manifest_path,
+                            report.catalog_path,
+                            report.provenance_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-module-provider-requirements")) => {
+            match crate::parse_cloud_iac_module_provider_requirements_args(args.collect()) {
+                Ok(parsed) => {
+                    match crate::validate_cloud_iac_module_provider_requirements_gate(parsed) {
+                        Ok(report) => {
+                            println!(
+                                "cloud-iac-module-provider-requirements validation passed: {} modules, {} provider requirements checked; manifest {}; catalog {}; readiness {}",
+                                report.modules_checked,
+                                report.provider_requirements_checked,
+                                report.manifest_path,
+                                report.catalog_path,
+                                report.readiness_path
+                            );
+                            ExitCode::SUCCESS
+                        }
+                        Err(message) => {
+                            eprintln!("{message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-module-release-index")) => {
+            match crate::parse_cloud_iac_module_release_index_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_module_release_index_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-module-release-index validation passed: {} modules, {} files checked; manifest {}; catalog {}; provenance {}; release index {}; archive manifest {}",
+                            report.modules_checked,
+                            report.files_checked,
+                            report.manifest_path,
+                            report.catalog_path,
+                            report.provenance_path,
+                            report.release_index_path,
+                            report.archive_manifest_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-module-archive")) => {
+            match crate::parse_cloud_iac_module_archive_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_module_archive_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-module-archive validation passed: {} modules, {} archives built, {} files archived; manifest {}; catalog {}; provenance {}; release index {}; archive manifest {}; output root {}",
+                            report.modules_checked,
+                            report.archives_built,
+                            report.files_archived,
+                            report.manifest_path,
+                            report.catalog_path,
+                            report.provenance_path,
+                            report.release_index_path,
+                            report.archive_manifest_path,
+                            report.output_dir
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-module-registry-protocol")) => {
+            match crate::parse_cloud_iac_module_registry_protocol_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_module_registry_protocol_gate(parsed)
+                {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-module-registry-protocol validation passed: {} modules, {} versions responses, {} download responses checked; manifest {}; release index {}; archive manifest {}; protocol fixtures {}",
+                            report.modules_checked,
+                            report.versions_responses_checked,
+                            report.download_responses_checked,
+                            report.manifest_path,
+                            report.release_index_path,
+                            report.archive_manifest_path,
+                            report.protocol_fixtures_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-provider-readiness")) => {
+            match crate::parse_cloud_iac_provider_readiness_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_provider_readiness_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-provider-readiness validation passed: {} modules, {} provider families checked; manifest {}; catalog {}; readiness {}",
+                            report.modules_checked,
+                            report.provider_families_checked,
+                            report.manifest_path,
+                            report.catalog_path,
+                            report.readiness_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-provider-lockfile")) => {
+            match crate::parse_cloud_iac_provider_lockfile_args(args.collect()) {
+                Ok(parsed) => match crate::validate_cloud_iac_provider_lockfile_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "cloud-iac-provider-lockfile validation passed: {} providers, {} platforms checked; manifest {}; readiness {}; lock root {}",
+                            report.providers_checked,
+                            report.platforms_checked,
+                            report.manifest_path,
+                            report.readiness_path,
+                            report.lock_root_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("cloud-iac-provider-signature-review")) => {
+            match crate::parse_cloud_iac_provider_signature_review_args(args.collect()) {
+                Ok(parsed) => {
+                    match crate::validate_cloud_iac_provider_signature_review_gate(parsed) {
+                        Ok(report) => {
+                            println!(
+                                "cloud-iac-provider-signature-review validation passed: {} providers, {} signer keys, {} platforms checked; manifest {}; review {}; lock root {}",
+                                report.providers_checked,
+                                report.signer_keys_checked,
+                                report.platforms_checked,
+                                report.manifest_path,
+                                report.review_path,
+                                report.lock_root_path
+                            );
+                            ExitCode::SUCCESS
+                        }
+                        Err(message) => {
+                            eprintln!("{message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("a11y-discipline")) => {
             match crate::validate_a11y_discipline_gate(args.collect()) {
                 Ok(summary) => {
@@ -1386,6 +1726,29 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                         eprintln!(
                             "hyperscaler maturity claim governance validation failed: {message}"
                         );
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("platform-substrate-defaults")) => {
+            match crate::parse_platform_substrate_defaults_args(args.collect()) {
+                Ok(args) => match crate::validate_platform_substrate_defaults_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "platform-substrate-defaults validation passed: {} workload-specific substrate rows, {} universal-default fields checked; architecture {}",
+                            report.workload_specific_substrates_checked,
+                            report.universal_default_fields_checked,
+                            report.architecture_path
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("{message}");
                         ExitCode::FAILURE
                     }
                 },

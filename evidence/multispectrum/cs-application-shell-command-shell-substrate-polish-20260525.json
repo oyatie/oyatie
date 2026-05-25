@@ -1,0 +1,264 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-COMMAND-SHELL-SUBSTRATE-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-command-shell-substrate-polish-20260525",
+  "agent": "codex-command-shell-substrate",
+  "created_at": "2026-05-25T00:00:00-04:00",
+  "slice": "Lower-dashboard Command Shell Substrate polish",
+  "intent": "Make the below-the-fold dashboard panels feel like one cohesive, IDE-like Oyatie product instead of independent slices by adding a persistent lower command shell context ribbon synchronized with the Product Activity Spine.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "reference_inputs": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    ".omx/artifacts/visual-ralph/oya-command-shell-substrate/after/desktop-command-shell-viewport.png"
+  ],
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added a Command Shell Substrate ribbon below the top activity spine and metrics so lower panels inherit a single active route, target, status, and local-boundary state.",
+    "Added route controls for FD-001, Action Inbox, Workflow, Comms, Finance, Identity, Cloud, and Evidence.",
+    "Extended the shared local route dispatcher with Daily/Finance/Identity route copy and synchronization into the new command shell fields.",
+    "Added an IntersectionObserver-based lower-panel context observer that updates the command shell and global spine when major panels scroll into view.",
+    "Styled the ribbon using the same flat Bominal/corp-web-inspired operator grammar, with responsive tablet/mobile stacking and no horizontal page overflow."
+  ],
+  "before_metrics": {
+    "issue": "After the Product Activity Spine, the top-fold route model was cohesive, but lower-dashboard panels still lacked a persistent context header tying Finance, Identity, Cloud, Evidence, Work Hub, and Workflow into one operating shell.",
+    "prior_evidence": "evidence/multispectrum/cs-application-shell-cross-surface-action-spine-polish-20260525.json"
+  },
+  "after_metrics": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "logs": [],
+      "initial": {
+        "shell": {
+          "x": 239,
+          "y": 999,
+          "w": 1151,
+          "h": 100,
+          "visible": true
+        },
+        "route": "FD-001 graph",
+        "target": "#service-catalog",
+        "status": "FD-001 product graph active \u00b7 Oyatie Cloud dogfood cell-us-east-2 \u00b7 local visual route",
+        "selected": [
+          "fd001"
+        ],
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      },
+      "finance": {
+        "hash": "#finance-commercial-suite",
+        "route": "Finance",
+        "target": "#finance-commercial-suite",
+        "status": "Finance command active \u00b7 close and ledger panels inherit FD-001 context",
+        "selected": [
+          "finance"
+        ],
+        "financeTop": 68
+      },
+      "identity": {
+        "hash": "#identity-workforce-suite",
+        "route": "Identity",
+        "target": "#identity-workforce-suite",
+        "status": "Identity command active \u00b7 org/access panels inherit tenant context",
+        "selected": [
+          "identity"
+        ],
+        "identityTop": 68
+      },
+      "evidence": {
+        "hash": "#audit-ledger",
+        "route": "Evidence",
+        "target": "#audit-ledger",
+        "status": "Evidence panel in view \u00b7 lower command shell synchronized",
+        "selected": [
+          "evidence"
+        ],
+        "evidenceTop": 55
+      }
+    },
+    {
+      "name": "tablet",
+      "width": 1024,
+      "height": 900,
+      "logs": [],
+      "initial": {
+        "shell": {
+          "x": 26,
+          "y": 1257,
+          "w": 972,
+          "h": 210,
+          "visible": true
+        },
+        "route": "FD-001 graph",
+        "target": "#service-catalog",
+        "status": "FD-001 product graph active \u00b7 Oyatie Cloud dogfood cell-us-east-2 \u00b7 local visual route",
+        "selected": [
+          "fd001"
+        ],
+        "scrollWidth": 1024,
+        "innerWidth": 1024
+      },
+      "finance": {
+        "hash": "#finance-commercial-suite",
+        "route": "Finance",
+        "target": "#finance-commercial-suite",
+        "status": "Finance command active \u00b7 close and ledger panels inherit FD-001 context",
+        "selected": [
+          "finance"
+        ],
+        "financeTop": 69
+      },
+      "identity": {
+        "hash": "#identity-workforce-suite",
+        "route": "Identity",
+        "target": "#identity-workforce-suite",
+        "status": "Identity command active \u00b7 org/access panels inherit tenant context",
+        "selected": [
+          "identity"
+        ],
+        "identityTop": 69
+      },
+      "evidence": {
+        "hash": "#audit-ledger",
+        "route": "Evidence",
+        "target": "#audit-ledger",
+        "status": "Evidence spine active \u00b7 REC-FD001-CLOUD-009 \u00b7 review only",
+        "selected": [
+          "evidence"
+        ],
+        "evidenceTop": 55
+      }
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "logs": [],
+      "initial": {
+        "shell": {
+          "x": 13,
+          "y": 2056,
+          "w": 364,
+          "h": 363,
+          "visible": true
+        },
+        "route": "FD-001 graph",
+        "target": "#service-catalog",
+        "status": "FD-001 product graph active \u00b7 Oyatie Cloud dogfood cell-us-east-2 \u00b7 local visual route",
+        "selected": [
+          "fd001"
+        ],
+        "scrollWidth": 390,
+        "innerWidth": 390
+      },
+      "finance": {
+        "hash": "#finance-commercial-suite",
+        "route": "Finance",
+        "target": "#finance-commercial-suite",
+        "status": "Finance command active \u00b7 close and ledger panels inherit FD-001 context",
+        "selected": [
+          "finance"
+        ],
+        "financeTop": 69
+      },
+      "identity": {
+        "hash": "#identity-workforce-suite",
+        "route": "Identity",
+        "target": "#identity-workforce-suite",
+        "status": "Identity command active \u00b7 org/access panels inherit tenant context",
+        "selected": [
+          "identity"
+        ],
+        "identityTop": 68
+      },
+      "evidence": {
+        "hash": "#audit-ledger",
+        "route": "Evidence",
+        "target": "#audit-ledger",
+        "status": "Evidence spine active \u00b7 REC-FD001-CLOUD-009 \u00b7 review only",
+        "selected": [
+          "evidence"
+        ],
+        "evidenceTop": 55
+      }
+    }
+  ],
+  "interaction_assertions": [
+    "The SSR page contains #command-shell-substrate with FD-001 selected and #service-catalog as its default target.",
+    "Clicking Finance updates active route/status/target, selects Finance, routes to #finance-commercial-suite, and keeps the lower command shell synchronized.",
+    "Clicking Identity updates active route/status/target, selects Identity, routes to #identity-workforce-suite, and keeps the lower command shell synchronized.",
+    "Clicking Evidence updates active route/status/target, selects Evidence, and routes to the resource/audit console without backend mutation.",
+    "The scroll context observer updates the command shell when lower panels enter view."
+  ],
+  "responsive_assertions": [
+    "1440x1000: command shell renders and routes with no horizontal page overflow (scrollWidth == innerWidth == 1440).",
+    "1024x900: command shell stacks with no horizontal page overflow (scrollWidth == innerWidth == 1024).",
+    "390x844: command shell remains usable as a two-column route grid with no horizontal page overflow (scrollWidth == innerWidth == 390)."
+  ],
+  "screenshots": {
+    "after_desktop_full": ".omx/artifacts/visual-ralph/oya-command-shell-substrate/after/desktop.png",
+    "after_tablet_full": ".omx/artifacts/visual-ralph/oya-command-shell-substrate/after/tablet.png",
+    "after_mobile_full": ".omx/artifacts/visual-ralph/oya-command-shell-substrate/after/mobile.png",
+    "after_desktop_viewport": ".omx/artifacts/visual-ralph/oya-command-shell-substrate/after/desktop-viewport.png",
+    "after_command_shell_viewport": ".omx/artifacts/visual-ralph/oya-command-shell-substrate/after/desktop-command-shell-viewport.png"
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Professional operator command shell with cohesive lower-dashboard context, Bominal-like route/status discipline, and visual-only interactivity.",
+    "differences_remaining": [
+      "The page is still a broad full-dashboard mockup rather than a single compact IDE viewport; lower panels now share context but have not all been re-composed into one canvas.",
+      "Backend wiring remains intentionally absent."
+    ],
+    "reasoning": "The new lower command shell directly addresses below-the-fold fragmentation by syncing Finance, Identity, Cloud, Evidence, Action Inbox, Workflow, and Comms into the same route/status model as the top Product Activity Spine. It improves cohesion without copying Bominal or adding backend behavior."
+  },
+  "commands": [
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/src/render_envelope.rs crates/oya-application-shell-frontend-prototype/src/client_session_state.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "Playwright audit /tmp/oya-audit-command-shell.js at 1440x1000, 1024x900, 390x844",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live and curl http://127.0.0.1:3000/",
+      "status": "passed"
+    }
+  ],
+  "known_limits": [
+    "All interactions remain browser-local and visually functional only: no workflow execution, external mail/community send, IAM, billing, deploy, or cloud mutation.",
+    "Overall complete-mockup objective remains active and unproven; this is another verified polish slice toward that end state."
+  ]
+}

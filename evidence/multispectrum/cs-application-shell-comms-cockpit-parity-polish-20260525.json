@@ -1,0 +1,350 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-COMMS-COCKPIT-PARITY-POLISH-20260525",
+  "schema_version": "1.0.0",
+  "id": "CS-APPLICATION-SHELL-COMMS-COCKPIT-PARITY-POLISH-20260525",
+  "kind": "multispectrum-evidence",
+  "agent": "codex-oyatie-comms-cockpit-parity-polish",
+  "captured_at": "2026-05-25T03:52:48.326664Z",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-comms-cockpit-parity-polish-20260525.json"
+  ],
+  "goal_context": "Continue toward a complete Bominal-grade Oyatie mockup after the user rejected a prior regression. This slice closes the Work Hub communications gap; it does not claim the full dashboard objective is complete.",
+  "product_direction_applied": {
+    "user_directive": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+    "ui_interpretation": "Messenger, Mail, and Community now coordinate FD-001 microservice tenant-workload dogfooding on Oyatie Cloud instead of appearing as detached communication demos."
+  },
+  "reference_sources": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/tmp/bominal-reference/data-connect.js",
+    "/tmp/bominal-reference/connect.css",
+    "/tmp/bominal-reference/app.jsx",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+    ".omx/artifacts/visual-ralph/oya-current-gap-audit/screenshots/workhub-messenger-1440.png",
+    ".omx/artifacts/visual-ralph/oya-current-gap-audit/screenshots/workhub-mail-1440.png",
+    ".omx/artifacts/visual-ralph/oya-current-gap-audit/screenshots/workhub-community-1440.png"
+  ],
+  "change_summary": [
+    "Inserted a dynamic and SSR-safe communication product board below the Work Hub output routes so each built-in surface has its own command deck.",
+    "Upgraded Messenger into an ops-room thread with transcript, action extraction, participants, local escalation, Mail promotion, and cloud receipt attachment controls.",
+    "Upgraded Mail into a formal approval brief composer with envelope fields, draft body, FD-001 evidence chips, approval checks, preview, attachment, and send-preview controls.",
+    "Upgraded Community into a governance council publication surface with pinned post, voting/comment/save controls, audience matrix, moderation state, pin/poll/publish controls, and role-aware local-only semantics.",
+    "Added template-backed board swapping for SSR fallback plus selective hydration behavior; route tabs/buttons swap boards and keep visible status updates coherent.",
+    "Reworded the Work Hub route/status copy so Messenger/Mail/Community visibly dogfood FD-001 tenant workloads on Oyatie Cloud while remaining local-only/no external send."
+  ],
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "pass-for-comms-cockpit-slice-not-full-dashboard-completion",
+    "category_match": true,
+    "differences": [
+      "Bominal Connect is used as a reference language for density, three-pane comms, Mail formalism, and Community moderation/voting; the result stays embedded in the cohesive Oyatie dashboard instead of cloning a separate app.",
+      "The visual treatment is intentionally Oyatie-native and cloud/workload-oriented, with FD-001 tenant workload and Oyatie Cloud evidence language replacing Bominal company-specific data.",
+      "The full-dashboard goal remains active; this verdict only covers the Work Hub Messenger/Mail/Community regression gap."
+    ],
+    "suggestions": [
+      "Continue the same requirement-by-requirement audit across any remaining sparse dashboard panels before declaring the complete Oyatie mockup done.",
+      "If a future pass introduces a standalone Connect route, preserve this dashboard-integrated command board as the cross-product routing summary rather than replacing it."
+    ],
+    "reasoning": "Browser screenshots show three visually distinct, dense, functional command boards with local actions, route switching, status feedback, and product-language cohesion. The Work Hub now supports the explicit built-in Messenger, Mail, and Community requirement without becoming a separate mix of Bominal surfaces."
+  },
+  "browser_smoke": {
+    "capturedAt": "2026-05-25T03:49:23.128Z",
+    "viewport": {
+      "width": 1440,
+      "height": 1100
+    },
+    "url": "http://127.0.0.1:3000/#work-hub",
+    "pass": true,
+    "visibleCounts": {
+      "boards": 1,
+      "boardTemplates": 3,
+      "commsActions": 15,
+      "hubItems": 6,
+      "tabs": [
+        {
+          "text": "Messenger",
+          "selected": "true"
+        },
+        {
+          "text": "Mail",
+          "selected": "false"
+        },
+        {
+          "text": "Community",
+          "selected": "false"
+        }
+      ],
+      "routeStatus": "FD-001 workload dogfood \u00b7 REC-WF-7741 \u00b7 no backend send",
+      "status": "Local thread shell created for FD-001 workload dogfood"
+    },
+    "assertions": [
+      {
+        "name": "messenger command board rendered",
+        "pass": true,
+        "detail": "MESSENGER COMMAND\n\nOps room thread with FD-001 workload evidence\nFast operational chat for dogfooding FD-001 microservices on Oyatie Cloud, with evidence links and action extraction.\n2 unread\nEscalate\nPromote to Mail\nAtt"
+      },
+      {
+        "name": "messenger has command actions",
+        "pass": true,
+        "detail": ">= 3 board action buttons"
+      },
+      {
+        "name": "mail command board rendered",
+        "pass": true,
+        "detail": "MAIL COMMAND\n\nFormal approval brief composer\nStructured mail draft with recipients, subject, FD-001 workload evidence attachments, approvals, and send preview.\ndraft\nPreview\nAttach packet\nSend preview\n\nENVELOPE\n\nFROM\nFin"
+      },
+      {
+        "name": "mail status updated",
+        "pass": true,
+        "detail": "Mail workspace active \u00b7 FD-001 workload coordination \u00b7 4 visible \u00b7 all filter \u00b7 local only"
+      },
+      {
+        "name": "mail has command actions",
+        "pass": true,
+        "detail": ">= 3 board action buttons"
+      },
+      {
+        "name": "community command board rendered",
+        "pass": true,
+        "detail": "COMMUNITY COMMAND\n\nGovernance council publication\nRole-aware community post, voting, pinned context, and moderation state for tenant-workload coordination.\nrole-aware\nPin\nOpen poll\nPublish local\n\nPINNED POST\n\nGOVERNANCE "
+      },
+      {
+        "name": "community status updated",
+        "pass": true,
+        "detail": "Community workspace active \u00b7 FD-001 workload coordination \u00b7 5 visible \u00b7 all filter \u00b7 local only"
+      },
+      {
+        "name": "community has command actions",
+        "pass": true,
+        "detail": ">= 3 board action buttons"
+      },
+      {
+        "name": "thread-to-mail activates Mail board",
+        "pass": true,
+        "detail": "Messenger thread promoted to Mail approval draft locally"
+      },
+      {
+        "name": "community poll action is visibly interactive",
+        "pass": true,
+        "detail": "Community poll opened for workload readiness"
+      },
+      {
+        "name": "new-thread prepends a local FD-001 draft",
+        "pass": true,
+        "detail": "Local thread\nMessenger FD-001 workload coordination\n\nA new visual-only thread was staged for dogfooding a microservice tenant workload on Oyatie Cloud.\n\nDRAFT\nLocal draft \u00b7 no backend send"
+      }
+    ],
+    "errors": [],
+    "failedRequests": [],
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "screenshots": [
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-messenger-board-1440.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-mail-board-1440.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-community-board-1440.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-after-local-interactions-1440.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-messenger-viewport-1440x900.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-mail-viewport-1440x900.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-community-viewport-1440x900.png"
+    ]
+  },
+  "ssr_smoke": {
+    "command": "podman restart oya-frontend-prototype-live && curl -fsS http://127.0.0.1:3000/ >/tmp/oya-comms-live.html",
+    "status": "pass",
+    "counts": {
+      "comms-product-board": 8,
+      "MESSENGER COMMAND": 2,
+      "MAIL COMMAND": 1,
+      "COMMUNITY COMMAND": 1,
+      "FD-001 tenant-workload": 1,
+      "FD-001 workload dogfood": 1,
+      "data-comms-board-template": 3,
+      "Oyatie Cloud": 4
+    },
+    "note": "Initial curl attempts can return empty reply during container compile/restart; final ready response was HTTP-successful and contained SSR board/templates."
+  },
+  "pixel_diff": {
+    "capturedAt": "2026-05-25T03:51:13.134Z",
+    "summary": {
+      "generatedAt": "2026-05-25T03:51:13.134Z",
+      "tool": "pngjs + pixelmatch threshold=0.12 includeAA=false",
+      "purpose": "Secondary Visual Ralph debug evidence, not a replacement for browser smoke or product verdict.",
+      "comparisons": [
+        {
+          "name": "old-gap-vs-new-messenger-workhub",
+          "reference": ".omx/artifacts/visual-ralph/oya-current-gap-audit/screenshots/workhub-messenger-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-messenger-viewport-1440x900.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/old-gap-vs-new-messenger-workhub.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 900
+            }
+          },
+          "mismatchedPixels": 78148,
+          "totalPixels": 1296000,
+          "mismatchPercent": 6.03,
+          "note": "Regression-detection diff: old Work Hub Messenger baseline vs upgraded Messenger command board viewport."
+        },
+        {
+          "name": "old-gap-vs-new-mail-workhub",
+          "reference": ".omx/artifacts/visual-ralph/oya-current-gap-audit/screenshots/workhub-mail-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-mail-viewport-1440x900.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/old-gap-vs-new-mail-workhub.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 900
+            }
+          },
+          "mismatchedPixels": 73914,
+          "totalPixels": 1296000,
+          "mismatchPercent": 5.7,
+          "note": "Regression-detection diff: old Work Hub Mail baseline vs upgraded Mail command board viewport."
+        },
+        {
+          "name": "old-gap-vs-new-community-workhub",
+          "reference": ".omx/artifacts/visual-ralph/oya-current-gap-audit/screenshots/workhub-community-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-community-viewport-1440x900.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/old-gap-vs-new-community-workhub.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 900
+            }
+          },
+          "mismatchedPixels": 76085,
+          "totalPixels": 1296000,
+          "mismatchPercent": 5.87,
+          "note": "Regression-detection diff: old Work Hub Community baseline vs upgraded Community command board viewport."
+        },
+        {
+          "name": "bominal-corporate-vs-new-messenger-style-distance",
+          "reference": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-messenger-viewport-1440x900.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/bominal-corporate-vs-new-messenger-style-distance.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 900
+            }
+          },
+          "mismatchedPixels": 99510,
+          "totalPixels": 1296000,
+          "mismatchPercent": 7.68,
+          "note": "Style-distance diff only. Bominal is a reference language, not a clone target; high mismatch is expected because Oyatie integrates cloud/workload surfaces."
+        }
+      ],
+      "interpretation": {
+        "oldGapDiffs": "The large old-vs-new mismatches are expected and demonstrate that the former same-shaped Work Hub surfaces were materially replaced by distinct command boards.",
+        "bominalReferenceDiff": "Bominal remains a visual/product reference; exact pixel match would be wrong because the user asked for a cohesive improved Oyatie product rather than copying Bominal as-is."
+      }
+    },
+    "note": "Pixel diff is secondary evidence only. Old-vs-new diffs prove the same-shaped Work Hub panels were materially changed; Bominal diff is a style-distance check because exact cloning would violate the user instruction to improve and integrate."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "details": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "pass",
+      "details": "Selective hydration lib build passed."
+    },
+    {
+      "command": "node /tmp/oya-comms-cockpit-smoke.cjs",
+      "status": "pass",
+      "details": {
+        "assertions": 11,
+        "consoleErrors": 0,
+        "failedRequests": 0
+      }
+    },
+    {
+      "command": "node /tmp/oya-comms-viewport-capture.cjs",
+      "status": "pass",
+      "details": "Captured 1440x900 Messenger/Mail/Community viewport screenshots."
+    },
+    {
+      "command": "node /tmp/oya-comms-pixel-diff.cjs",
+      "status": "pass",
+      "details": {
+        "oldVsNewMismatchPercentRange": "5.70-6.03",
+        "bominalStyleDistancePercent": "7.68"
+      }
+    }
+  ],
+  "artifacts": {
+    "smoke": ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/comms-cockpit-smoke.json",
+    "pixel_diff_summary": ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/comms-cockpit-pixel-diff-summary.json",
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-messenger-board-1440.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-mail-board-1440.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-community-board-1440.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-after-local-interactions-1440.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-messenger-viewport-1440x900.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-mail-viewport-1440x900.png",
+      ".omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/screenshots/comms-community-viewport-1440x900.png"
+    ],
+    "pixel_diffs": [
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/old-gap-vs-new-messenger-workhub.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/old-gap-vs-new-mail-workhub.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/old-gap-vs-new-community-workhub.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-comms-cockpit-parity-polish/pixel-diffs/bominal-corporate-vs-new-messenger-style-distance.png"
+    ]
+  },
+  "known_limits": [
+    "This is a Work Hub communications parity slice; it does not prove the full Oyatie dashboard mockup objective is complete.",
+    "All Messenger, Mail, Community, route, draft, poll, receipt, preview, and publish controls remain local visual state with no backend, external send, or persistence wiring.",
+    "The browser console info about missing /pkg is expected for fallback smoke; the separate wasm32 hydration library build passed as the selective-hydration verification.",
+    "Pixel diff is not used as clone proof because the product target is cohesive Oyatie Cloud dogfooding, not a separate Bominal Connect copy."
+  ]
+}
