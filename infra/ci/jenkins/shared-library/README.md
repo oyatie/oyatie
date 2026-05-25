@@ -21,7 +21,7 @@ order (ADR-0361 §3). Mandatory stages block merge:
 | sign + provenance (trunk) | **cosign** + **in-toto/SLSA** | Apache-2.0 |
 
 Admission (**Kyverno verifyImages**) + CD (**Argo CD** + **Argo Rollouts**) run in the
-cluster, not the CI lane — see `infra/ci-farm/argocd/` and `infra/kyverno/`.
+cluster, not the CI lane — see `infra/ci/argocd/` and `infra/kyverno/`.
 
 ## Layout
 - `vars/oyaCiLane.groovy` — the lane definition.

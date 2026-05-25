@@ -4,7 +4,7 @@
 //
 // Apply via the script console (Manage Jenkins > Script Console) or:
 //   curl -s -b cookies -u admin:$PW -H "$CRUMB" \
-//        --data-urlencode "script@infra/ci-farm/jenkins/smoke-seed.groovy" \
+//        --data-urlencode "script@infra/ci/jenkins/smoke-seed.groovy" \
 //        http://localhost:8080/scriptText
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition

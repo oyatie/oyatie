@@ -1,4 +1,4 @@
-# infra/ci-farm/agent-image/Dockerfile
+# infra/ci/agent-image/Dockerfile
 # ============================================================================
 # O5 — Pinned, signed CI agent image (ADR-0360, part O5).
 #

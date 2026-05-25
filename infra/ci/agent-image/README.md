@@ -87,7 +87,7 @@ The local proof built + cosign-signed + verified this image (evidence in
 1. **Build + push by digest** to the real registry, capture the digest:
    `build-and-sign.sh` builds, pushes, and signs `registry.oyatie.dev/ci/rust-agent`
    BY DIGEST. Record the pushed `@sha256:...`.
-2. **Pin the agent pod template** (`infra/ci-farm/jenkins/values-local.yaml`
+2. **Pin the agent pod template** (`infra/ci/jenkins/values-local.yaml`
    `rust-build`/`rust-parallel` templates) to that digest in production overlays —
    local keeps stock `rust:1-bookworm` since the private registry isn't reachable here.
 3. **Key**: replace the demo public key in `kyverno-verify-agent-image.yaml` with the

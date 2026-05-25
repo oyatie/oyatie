@@ -1,4 +1,4 @@
-# infra/ci-farm/cache/cargo-config-sample.toml
+# infra/ci/cache/cargo-config-sample.toml
 # ============================================================================
 # O3 — SAMPLE cargo config: source-replacement to the Panamax sparse mirror.
 # (ADR-0360, part O3.)

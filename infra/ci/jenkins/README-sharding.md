@@ -2,7 +2,7 @@
 
 Realizes **ADR-0360 part O4**: fan a `cargo nextest run` across N ephemeral
 agents, each running a disjoint partition of the test set, then aggregate. The
-pipeline is `infra/ci-farm/jenkins/Jenkinsfile.sharded`.
+pipeline is `infra/ci/jenkins/Jenkinsfile.sharded`.
 
 ```
 cargo nextest run --partition slice:${SHARD}/${SHARDS}
@@ -68,7 +68,7 @@ O4 is purely a distribution layer over whichever scope it is given.
 
 - **Agent image**: locally the `oya-rust-build` template uses public
   `rust:1-bookworm` and installs sccache/nextest at runtime. Production uses the
-  cosign-signed, digest-pinned image from `infra/ci-farm/agent-image/` with the
+  cosign-signed, digest-pinned image from `infra/ci/agent-image/` with the
   toolchain + `cargo-nextest` + `sccache` **baked in** — no per-run install, no
   network fetch of binaries on the hot path.
 - **Shard count**: `SHARDS=4` is a single-node-friendly default, NOT a measured

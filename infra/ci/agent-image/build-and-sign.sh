@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# infra/ci-farm/agent-image/build-and-sign.sh
+# infra/ci/agent-image/build-and-sign.sh
 # ============================================================================
 # O5 — Build + cosign-sign the CI agent image BY DIGEST (ADR-0360, part O5).
 #
-# Builds infra/ci-farm/agent-image/Dockerfile, pushes it, captures the immutable
+# Builds infra/ci/agent-image/Dockerfile, pushes it, captures the immutable
 # DIGEST, and cosign-signs THAT digest (never a mutable tag). Signing by digest is
 # load-bearing: a tag can be re-pointed after signing, so a tag signature attests
 # nothing; a digest signature attests exact content. The scoped Kyverno policy

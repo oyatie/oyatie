@@ -1,4 +1,4 @@
-# infra/ci-farm/cache/panamax-mirror.yaml
+# infra/ci/cache/panamax-mirror.yaml
 # ============================================================================
 # O3 — Panamax sparse-registry crate-download mirror (ADR-0360, part O3).
 #

@@ -13,7 +13,7 @@ contract can be executed and observed. It is **not** the production farm.
 
 ```bash
 colima start --cpu 6 --memory 16 --disk 60 --kubernetes   # one-time
-./infra/ci-farm/deploy-local.sh
+./infra/ci/deploy-local.sh
 kubectl -n oya-ci-jenkins port-forward svc/oya-jenkins 8080:8080
 # open http://localhost:8080  (admin password printed by the deploy script)
 ```

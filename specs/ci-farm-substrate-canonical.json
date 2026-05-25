@@ -70,7 +70,7 @@
   },
   "local_realization": {
     "scope": "LOCAL dev cluster only (colima/k3s on a single host) — proves the controller/JCasC/agent-cloud/cache-wiring contract runs; does NOT satisfy the production non_claims below.",
-    "iac": "infra/ci-farm/ (jenkins/ controller+JCasC+seeds, seaweedfs/ S3 cache backend, argocd/ CD; deploy-local.sh; README local-vs-production deltas)",
+    "iac": "infra/ci/ (jenkins/ controller+JCasC+seeds, seaweedfs/ S3 cache backend, argocd/ CD; deploy-local.sh; README local-vs-production deltas)",
     "evidence": "evidence/ci-farm-local/ — smoke (build #5 SUCCESS, rustc/cargo on ephemeral agent); real build lane (oya-ci-build #1 SUCCESS: cargo check on clean checkout, sccache run1 populate -> run2 100% cache HIT served from SeaweedFS, bucket non-empty); SeaweedFS S3 + ArgoCD v3.4.2 7/7 pods running.",
     "realized": "Jenkins controller (JCasC, numExecutors=0, webSocket agents, non-root UID1000+drop-ALL), ephemeral k8s agents, real repo build lane, sccache->SeaweedFS remote cache (write+hit proven), ArgoCD control plane.",
     "production_deltas": "Kata runtime (ADR-0338), Karpenter autoscaling (ADR-0198), cosign-required digest-pinned agent image, SeaweedFS HA + OpenBao-bound creds, Argo Rollouts canary + metric-gated rollback remain unbuilt; no throughput/cache-hit-rate/deploy-SLO measurement."

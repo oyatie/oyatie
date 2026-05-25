@@ -1,4 +1,4 @@
-// infra/ci-farm/jenkins/Jenkinsfile.sharded
+// infra/ci/jenkins/Jenkinsfile.sharded
 // ============================================================================
 // O4 — Distributed test sharding (ADR-0360, part O4).
 //
@@ -31,7 +31,7 @@
 // LOCAL-vs-PRODUCTION deltas (honest):
 //   - Agent template: `oya-rust-build` here mounts the repo via hostPath (RO) and
 //     uses the public `rust:1-bookworm` image (local). Production uses the
-//     cosign-signed, digest-pinned agent image from infra/ci-farm/agent-image/
+//     cosign-signed, digest-pinned agent image from infra/ci/agent-image/
 //     with the toolchain + nextest + sccache BAKED IN (no per-run curl install).
 //   - SHARDS default of 4 is a local-node-friendly number. Production picks SHARDS
 //     from measured test-wall distribution (Karpenter-elastic agents, ADR-0198);

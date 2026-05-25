@@ -1,4 +1,4 @@
-# infra/ci-farm/agent-image/kyverno-verify-agent-image.yaml
+# infra/ci/agent-image/kyverno-verify-agent-image.yaml
 # ============================================================================
 # O5 — Scoped Kyverno verifyImages policy for the CI agent image (ADR-0360, O5).
 #
@@ -30,7 +30,7 @@
 #   - This policy is meant for the PRODUCTION farm cluster (Kyverno installed,
 #     enforce mode). The local k3s/colima profile intentionally does NOT install
 #     Kyverno or enforce signatures (it runs the public rust image) — see
-#     infra/ci-farm/README.md and values-local.yaml deltas. Apply this only where
+#     infra/ci/README.md and values-local.yaml deltas. Apply this only where
 #     the agent image is actually built+signed.
 #   - The cosign public key below is a PLACEHOLDER. Fill the real verification key
 #     (or switch to keyless) before applying; an empty/placeholder key fails closed.

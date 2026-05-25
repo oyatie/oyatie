@@ -58,7 +58,7 @@ pub(crate) fn is_full_build_trigger(file: &str) -> bool {
         // re-run everything.
         || file.starts_with(".github/workflows/")
         || base == "Jenkinsfile"
-        || file.starts_with("infra/ci-farm/jenkins/")
+        || file.starts_with("infra/ci/jenkins/")
         || file.starts_with("crates/oya-dev-cli/")
         || file == "bin/oya"
         || file.starts_with("scripts/")
@@ -334,7 +334,7 @@ mod tests {
     fn ci_config_change_forces_full() {
         assert_eq!(
             classify(
-                &["infra/ci-farm/jenkins/values-local.yaml".to_string()],
+                &["infra/ci/jenkins/values-local.yaml".to_string()],
                 &members(),
                 &rdeps()
             ),
