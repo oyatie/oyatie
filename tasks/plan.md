@@ -1037,6 +1037,26 @@ Verification:
 - `cargo test -p oya-shared-backbone-rest-runtime-adapter --lib`.
 - dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-STATELESS-SQL-WRITE-PLAN-JSON-BINDING-001 — Messenger/mail/social REST JSON binding to SQL write-plan/outbox seam
+Scope:
+- `crates/oya-shared-backbone-rest-runtime-adapter/**` optional stateless runtime state composition for messenger `POST /channels/{channel_id}/messages`, mail `POST /messages`, and social `POST /posts` through existing service-owned REST app write-plan entrypoints.
+- Task/evidence/audit tracking.
+- Substrate alignment: FD-001 product delivery remains the master-plan product goal; this gives messenger, mail, and social the same local REST-to-SQL/outbox recording seam that prepares later Oyatie Cloud tenant workload integration, without claiming a live database, broker, cluster, or cloud substrate exists.
+
+Acceptance:
+- Default messenger/mail/social routers remain the existing stateless JSON write bindings; SQL write-plan mode is opt-in through caller-supplied `BackboneSqlWriteState`.
+- SQL write-plan mode requires tenant/cell/shard/jurisdiction headers before building tenant-scoped SQL execution plans.
+- Messenger, mail, and social SQL write-plan responses identify `runtime_handler: sql_write_plan`, include ordered command names recorded by `RecordingSqlBatchExecutor`, include the transactional outbox statement, preserve policy/idempotency/audit identifiers, and expose application names for `oyatie-messenger`, `oyatie-mail`, and `oyatie-social`.
+- Route counts distinguish the stateless SQL write-plan binding (`sql_write_plan=1`, `json_write=0`, `typed_write_plan=0`) from the default stateless JSON mode.
+- Honest non-claim: this is a local SQL write-plan/outbox command binding with a recording executor. It does not execute a live Postgres/Citus database, drain/publish a live broker outbox, prove Kubernetes/Gateway/ArgoCD/OpenCost behavior, claim a live Oyatie Cloud substrate, or deploy a production tenant workload.
+
+Verification:
+- TDD red compile failure for missing `BackboneSqlWriteState`, `with_stateless_sql_write_state`, and stateless SQL route-count support before implementation.
+- TDD green focused cargo tests for messenger/mail/social SQL write-plan recorded command batches and required tenant SQL headers.
+- `cargo test -p oya-shared-backbone-rest-runtime-adapter --lib`.
+- `cargo fmt --check -p oya-shared-backbone-rest-runtime-adapter`, `cargo check -p oya-shared-backbone-rest-runtime-adapter`, and `cargo clippy -p oya-shared-backbone-rest-runtime-adapter --all-targets -- -D warnings`.
+- dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### CS-BACKBONE-MAIL-SENDING-DOMAIN-AUTH-GUARD-001 — Pure mail-domain sending-domain authentication guard
 Scope:
 - `crates/oya-connect-mail-domain/src/sending_domain_authentication.rs` pure domain guard for production-active outbound sending-domain posture.
@@ -1137,10 +1157,10 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, live DB-executing community vote/moderation HTTP binding beyond the local in-memory and recording SQL write-plan loopback seams, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, community SQL write-plan/outbox recording binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static topology-spread chart/snapshot constraints, static ServiceAccount token-automount hardening snapshots, static NetworkPolicy boundary snapshots, and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, live DB-executing HTTP bindings beyond the local in-memory and recording SQL write-plan loopback seams, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, community SQL write-plan/outbox recording binding, stateless messenger/mail/social SQL write-plan/outbox recording binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static topology-spread chart/snapshot constraints, static ServiceAccount token-automount hardening snapshots, static NetworkPolicy boundary snapshots, and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Production/cloud workload DB rollout, backup/restore drills, Citus rebalance/failover evidence, and production DB SLO evidence beyond generated write batches, execution contracts, the generic env-gated RLS/Citus harness, and the env-gated disposable Citus workload migration/RLS/outbox harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
 - Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.
-- Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-microservices-community-stateful-json-write-binding-20260525` plus PR closeout evidence.
+- Oya VCS verify/done/promote lifecycle closeout recorded for expanded ChangeBundles promoted through `cb-backbone-stateless-sql-write-plan-json-binding-20260525` plus PR closeout evidence.
 - Pull request against `dev` opened from the isolated worktree branch: https://github.com/jason931225/oyatie/pull/179.
