@@ -17,6 +17,7 @@
 //! a gate opts in, nothing changes — default behaviour is unaffected.
 
 use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
@@ -91,33 +92,53 @@ pub(crate) fn cache_decision(inputs: &GateInputs) -> CacheDecision {
     CacheDecision::Key(format!("{:x}", h.finalize()))
 }
 
-/// In-memory verdict cache. A filesystem/remote store can wrap the same
-/// `lookup`/`record` contract; the correctness lives here.
-#[derive(Clone, Debug, Default)]
-pub(crate) struct VerdictCache {
-    map: BTreeMap<String, Verdict>,
+/// Filesystem-backed verdict cache: one file per `verdict_key` containing
+/// `PASS`/`FAIL`, so verdicts persist across `oya gate run-all` invocations
+/// (the cross-run win). Wraps the same lookup/record contract; un-enumerable
+/// gates are never persisted, so they always re-run.
+pub(crate) struct FsVerdictCache {
+    dir: PathBuf,
 }
 
-impl VerdictCache {
-    pub(crate) fn new() -> Self {
-        Self::default()
+impl FsVerdictCache {
+    pub(crate) fn new(dir: impl Into<PathBuf>) -> Self {
+        Self { dir: dir.into() }
     }
 
-    /// Returns a cached verdict if the gate is cacheable AND a matching entry
-    /// exists. Un-enumerable gates always miss (so they always run).
     pub(crate) fn lookup(&self, inputs: &GateInputs) -> Option<Verdict> {
-        match cache_decision(inputs) {
-            CacheDecision::AlwaysRun => None,
-            CacheDecision::Key(key) => self.map.get(&key).copied(),
+        let key = match cache_decision(inputs) {
+            CacheDecision::AlwaysRun => return None,
+            CacheDecision::Key(key) => key,
+        };
+        match std::fs::read_to_string(self.path_for(&key)) {
+            Ok(s) if s.trim() == "PASS" => Some(Verdict::Pass),
+            Ok(s) if s.trim() == "FAIL" => Some(Verdict::Fail),
+            _ => None,
         }
     }
 
-    /// Records a verdict. Un-enumerable gates are never stored.
-    pub(crate) fn record(&mut self, inputs: &GateInputs, verdict: Verdict) {
-        if let CacheDecision::Key(key) = cache_decision(inputs) {
-            self.map.insert(key, verdict);
+    pub(crate) fn record(&self, inputs: &GateInputs, verdict: Verdict) {
+        let CacheDecision::Key(key) = cache_decision(inputs) else {
+            return; // un-enumerable: never persisted
+        };
+        if std::fs::create_dir_all(&self.dir).is_err() {
+            return; // cache is best-effort; never block the gate on a write error
         }
+        let value = match verdict {
+            Verdict::Pass => "PASS",
+            Verdict::Fail => "FAIL",
+        };
+        let _ = std::fs::write(self.path_for(&key), value);
     }
+
+    fn path_for(&self, key: &str) -> PathBuf {
+        self.dir.join(format!("{key}.verdict"))
+    }
+}
+
+/// Default on-disk cache directory under the workspace target dir.
+pub(crate) fn default_cache_dir(repo_root: &Path) -> PathBuf {
+    repo_root.join("target").join("oya-gate-cache")
 }
 
 #[cfg(test)]
@@ -137,12 +158,10 @@ mod tests {
     }
 
     #[test]
-    fn identical_inputs_hit() {
+    fn identical_inputs_share_a_key() {
         let a = declared(vec![("a.txt", "x"), ("b.txt", "y")], "1");
-        let mut cache = VerdictCache::new();
-        assert_eq!(cache.lookup(&a), None); // cold miss
-        cache.record(&a, Verdict::Pass);
-        assert_eq!(cache.lookup(&a), Some(Verdict::Pass)); // warm hit
+        let b = declared(vec![("a.txt", "x"), ("b.txt", "y")], "1");
+        assert_eq!(cache_decision(&a), cache_decision(&b));
     }
 
     #[test]
@@ -153,21 +172,17 @@ mod tests {
     }
 
     #[test]
-    fn changed_file_content_misses() {
+    fn changed_file_content_changes_key() {
         let a = declared(vec![("a.txt", "x")], "1");
         let b = declared(vec![("a.txt", "CHANGED")], "1");
-        let mut cache = VerdictCache::new();
-        cache.record(&a, Verdict::Pass);
-        assert_eq!(cache.lookup(&b), None); // content changed => recompute
+        assert_ne!(cache_decision(&a), cache_decision(&b)); // content => recompute
     }
 
     #[test]
-    fn changed_tool_version_misses() {
+    fn changed_tool_version_changes_key() {
         let a = declared(vec![("a.txt", "x")], "1");
         let b = declared(vec![("a.txt", "x")], "2");
-        let mut cache = VerdictCache::new();
-        cache.record(&a, Verdict::Pass);
-        assert_eq!(cache.lookup(&b), None); // version bump invalidates
+        assert_ne!(cache_decision(&a), cache_decision(&b)); // version bump invalidates
     }
 
     #[test]
@@ -190,12 +205,8 @@ mod tests {
     }
 
     #[test]
-    fn unenumerable_is_never_cached() {
-        let mut cache = VerdictCache::new();
-        // Even after recording a PASS, an un-enumerable gate always misses,
-        // so it always runs — no false PASS is possible.
-        cache.record(&GateInputs::Unenumerable, Verdict::Pass);
-        assert_eq!(cache.lookup(&GateInputs::Unenumerable), None);
+    fn unenumerable_is_never_cacheable() {
+        // No key => the lane always runs; no false PASS is possible.
         assert_eq!(
             cache_decision(&GateInputs::Unenumerable),
             CacheDecision::AlwaysRun
@@ -203,10 +214,34 @@ mod tests {
     }
 
     #[test]
-    fn recorded_fail_is_reused() {
+    fn fs_cache_persists_across_instances() {
+        let dir = std::env::temp_dir().join(format!("oya-gate-cache-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
         let a = declared(vec![("a.txt", "x")], "1");
-        let mut cache = VerdictCache::new();
-        cache.record(&a, Verdict::Fail);
-        assert_eq!(cache.lookup(&a), Some(Verdict::Fail));
+
+        let writer = FsVerdictCache::new(&dir);
+        assert_eq!(writer.lookup(&a), None); // cold
+        writer.record(&a, Verdict::Pass);
+
+        // a fresh instance (simulating a later `gate run-all` run) sees the hit
+        let reader = FsVerdictCache::new(&dir);
+        assert_eq!(reader.lookup(&a), Some(Verdict::Pass));
+
+        // content change misses
+        let b = declared(vec![("a.txt", "CHANGED")], "1");
+        assert_eq!(reader.lookup(&b), None);
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn fs_cache_never_persists_unenumerable() {
+        let dir =
+            std::env::temp_dir().join(format!("oya-gate-cache-unenum-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let fs = FsVerdictCache::new(&dir);
+        fs.record(&GateInputs::Unenumerable, Verdict::Pass);
+        assert_eq!(fs.lookup(&GateInputs::Unenumerable), None); // always re-runs
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

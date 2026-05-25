@@ -24,6 +24,7 @@
 //! `oya gate validate <name>` until follow-up ADRs port them into the
 //! native dispatcher.
 
+use std::path::Path;
 use std::process::{Command, ExitCode, Stdio};
 
 use oya_foundry_gate_catalog_domain::{
@@ -31,7 +32,20 @@ use oya_foundry_gate_catalog_domain::{
     CI_REQUIRED_PREFLIGHT_COMMANDS, DEPENDENCY_SEAM_EVIDENCE,
 };
 
+use super::result_cache::{FsVerdictCache, GateInputs, Verdict, default_cache_dir};
 use super::run as gate_dispatch;
+
+/// Declared inputs for a gate lane (ADR-0360 O7 content-addressed cache).
+///
+/// SAFETY: defaults to [`GateInputs::Unenumerable`] — a lane is cache-served
+/// only once its FULL input set is explicitly declared here. Until then every
+/// lane always runs (no false PASS). Declaring a lane is per-gate work: a lane
+/// may be declared only if it is deterministic and reads exactly the declared
+/// files; global/cross-corpus gates must declare the whole corpus.
+fn lane_gate_inputs(_lane: &str) -> GateInputs {
+    // No lane is declared cacheable yet; adoption is incremental + reviewed.
+    GateInputs::Unenumerable
+}
 
 /// Gates that the legacy `scripts/check.sh` ran but which the Rust
 /// aggregator deliberately defers (parameterized invocation,
@@ -94,11 +108,37 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
                 0
             },
     );
+    // O7 (ADR-0360): opt-in content-addressed verdict cache. Default OFF =>
+    // unchanged behaviour. With OYA_GATE_CACHE=1, a lane is cache-served only if
+    // lane_gate_inputs() declares ALL its inputs; the default is Unenumerable,
+    // so every lane still runs until a gate is explicitly, safely declared.
+    let cache = (std::env::var("OYA_GATE_CACHE").as_deref() == Ok("1"))
+        .then(|| FsVerdictCache::new(default_cache_dir(Path::new("."))));
+
     for lane in AGGREGATED_VALIDATE_LANES {
+        let inputs = lane_gate_inputs(lane);
+        if let Some(cache) = &cache
+            && let Some(verdict) = cache.lookup(&inputs)
+        {
+            let passed = matches!(verdict, Verdict::Pass);
+            println!(
+                "[gate run-all] {} {} (cached)",
+                if passed { "PASS" } else { "FAIL" },
+                lane
+            );
+            outcomes.push(LaneOutcome {
+                lane: (*lane).to_string(),
+                passed,
+            });
+            continue;
+        }
         println!("[gate run-all] starting: {lane}");
         let dispatch_args = dispatch_args_for_lane(lane);
         let exit = gate_dispatch(dispatch_args, usage);
         let passed = is_success(exit);
+        if let Some(cache) = &cache {
+            cache.record(&inputs, if passed { Verdict::Pass } else { Verdict::Fail });
+        }
         outcomes.push(LaneOutcome {
             lane: (*lane).to_string(),
             passed,
