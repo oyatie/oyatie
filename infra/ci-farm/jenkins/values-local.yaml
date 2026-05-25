@@ -98,6 +98,66 @@ controller:
                               limits:
                                 cpu: "2"
                                 memory: "4Gi"
+                  - name: "rust-build"
+                    namespace: "oya-ci-jenkins"
+                    label: "oya-rust-build"
+                    yamlMergeStrategy: "override"
+                    # Real build lane: hostPath-mounts the repo (RO) so the agent
+                    # clones a clean tree, and binds SeaweedFS S3 creds so sccache
+                    # uses the real remote cache. Bigger resources for cargo.
+                    yaml: |
+                      apiVersion: v1
+                      kind: Pod
+                      spec:
+                        securityContext:
+                          runAsNonRoot: true
+                          runAsUser: 1000
+                          fsGroup: 1000
+                        containers:
+                          - name: rust
+                            image: rust:1-bookworm
+                            command: ["sleep"]
+                            args: ["infinity"]
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities:
+                                drop: ["ALL"]
+                            env:
+                              - name: RUSTC_WRAPPER
+                                value: "sccache"
+                              - name: SCCACHE_BUCKET
+                                value: "oya-ci-sccache-shared-prod"
+                              - name: SCCACHE_ENDPOINT
+                                value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
+                              - name: SCCACHE_S3_USE_SSL
+                                value: "false"
+                              - name: SCCACHE_REGION
+                                value: "oya-local"
+                              - name: CARGO_INCREMENTAL
+                                value: "0"
+                              # S3 creds for sccache (local Secret; prod: OpenBao-bound)
+                              - name: AWS_ACCESS_KEY_ID
+                                valueFrom:
+                                  secretKeyRef: { name: seaweedfs-s3, key: access_key }
+                              - name: AWS_SECRET_ACCESS_KEY
+                                valueFrom:
+                                  secretKeyRef: { name: seaweedfs-s3, key: secret_key }
+                            volumeMounts:
+                              - name: repo-src
+                                mountPath: /workspace-src
+                                readOnly: true
+                            resources:
+                              requests:
+                                cpu: "2"
+                                memory: "4Gi"
+                              limits:
+                                cpu: "5"
+                                memory: "12Gi"
+                        volumes:
+                          - name: repo-src
+                            hostPath:
+                              path: /Users/jasonlee/Developer/source
+                              type: Directory
 
 persistence:
   enabled: true

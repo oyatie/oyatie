@@ -22,6 +22,18 @@ Validate end-to-end: seed `jenkins/smoke-seed.groovy` via the Script Console —
 schedules a pod from the `oya-rust-ci` template and runs the rust toolchain on the
 ephemeral agent. A captured green run is in `evidence/ci-farm-local/`.
 
+Components:
+- `jenkins/` — controller values + smoke + real build-lane seeds.
+- `seaweedfs/seaweedfs-local.yaml` — SeaweedFS S3, the sccache remote-cache backend
+  (`seaweedfs-s3:8333`, bucket `oya-ci-sccache-shared-prod`).
+- `argocd/README.md` — ArgoCD (CD half; progressive delivery per ADR-0349).
+
+Real build lane (`jenkins/build-lane-seed.groovy`, template `oya-rust-build`):
+clones a clean tree from the repo (hostPath, RO), installs sccache, and runs
+`cargo check` twice — proving the sccache→SeaweedFS cache (run 1 populates, run 2
+after `cargo clean` is a 100% cache hit served from SeaweedFS). See
+`evidence/ci-farm-local/abc-execution-evidence.txt`.
+
 Tear down: `helm -n oya-ci-jenkins uninstall oya-jenkins` (or `colima delete` to
 remove the whole cluster).
 
