@@ -71,17 +71,23 @@ spec:
             - count: 1
               entries:
                 # --- KEY attestor (fallback for colo/air-gapped) -----------------
-                # Replace with the REAL cosign public key that matches COSIGN_KEY
-                # used in build-and-sign.sh. Placeholder => fails closed.
+                # NOTE: the key below is the LOCAL DEMO key generated during the
+                # O5 build/sign proof (evidence/ci-farm-local/agent-image-cosign.pub;
+                # private half NOT committed). PRODUCTION replaces it with the
+                # OpenBao-held cosign key whose private half signs in build-and-sign.sh.
+                # Public keys are safe to commit; this makes the policy concrete +
+                # testable rather than a placeholder.
                 - keys:
                     publicKeys: |-
                       -----BEGIN PUBLIC KEY-----
-                      <PINNED_COSIGN_PUBLIC_KEY__REPLACE_ME>
+                      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbWNLlTO+if9mMVMLRl8E9rVkghWt
+                      RuvCHT+e1+XLq1zalHqlegfl6OfdGjEyKdVT7d062S8jKv4Xbuqw2n7HJA==
                       -----END PUBLIC KEY-----
-                    # If the keyed signature is logged to Rekor, point at it; for a
-                    # pure offline key, remove the rekor block.
-                    rekor:
-                      url: "https://rekor.sigstore.dev"
+                    # Demo key signs offline (no Rekor tlog entry); production
+                    # keyed/keyless signing logs to Rekor — re-add the rekor block
+                    # then. ctlog/tlog is disabled here to match the offline demo key.
+                    ctlog:
+                      ignoreTlog: true
                 # --- KEYLESS attestor (preferred; uncomment + fill, remove key) ---
                 # - keyless:
                 #     issuer: "https://token.actions.githubusercontent.com"

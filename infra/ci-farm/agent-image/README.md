@@ -78,3 +78,26 @@ None of these deltas change the *contract* (non-root agent, baked deterministic
 toolchain, signed-by-digest, scoped admission). They are the hardening layer the
 real farm provides. **No build time, image size, or signing latency is claimed** —
 these stay `blocked_until_required_evidence_is_green` per ADR-0360.
+
+## Production wiring (FB / ADR-0360 O5)
+
+The local proof built + cosign-signed + verified this image (evidence in
+`evidence/ci-farm-local/agent-image-build-sign.txt`). To go to production:
+
+1. **Build + push by digest** to the real registry, capture the digest:
+   `build-and-sign.sh` builds, pushes, and signs `registry.oyatie.dev/ci/rust-agent`
+   BY DIGEST. Record the pushed `@sha256:...`.
+2. **Pin the agent pod template** (`infra/ci-farm/jenkins/values-local.yaml`
+   `rust-build`/`rust-parallel` templates) to that digest in production overlays —
+   local keeps stock `rust:1-bookworm` since the private registry isn't reachable here.
+3. **Key**: replace the demo public key in `kyverno-verify-agent-image.yaml` with the
+   production cosign public key; the **private half is held in OpenBao** and injected
+   into `build-and-sign.sh` via external-secrets (never committed). Public keys are
+   safe to commit; the committed key here is the local demo key.
+4. **Admission**: apply `kyverno-verify-agent-image.yaml` (scoped to
+   `registry.oyatie.dev/ci/rust-agent*` in `oya-ci-jenkins`); unsigned/unknown images
+   fail closed (`required: true`, `mutateDigest: true`).
+
+Local-vs-prod delta: the demo signed against an offline key (no Rekor tlog;
+`ctlog.ignoreTlog: true`); production keyed/keyless signing logs to Rekor — re-enable
+tlog verification then.
