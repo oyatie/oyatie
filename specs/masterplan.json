@@ -5819,7 +5819,8 @@
       "ADR-0350",
       "ADR-0351",
       "ADR-0357",
-      "ADR-0358"
+      "ADR-0358",
+      "ADR-0359"
     ],
     "bound_specs": [
       "specs/ci-farm-substrate-canonical.json",
@@ -5854,7 +5855,9 @@
       "remote": "remote build execution + hermetic remote cache (sccache->SeaweedFS today; bazel RBE target)",
       "affected_targets": "bazel query rdeps for presubmit affected-target selection (Google TAP model)",
       "oya_role": "governance/verify orchestrator delegating build/test to bazel query/test; retires duplicated cargo-mirror verify/run-all",
-      "rejected": "Buck2 (Reindeer vendoring hostile to Git/code-review; less OSS-battle-tested)"
+      "rejected": "Buck2 (Reindeer vendoring hostile to Git/code-review; less OSS-battle-tested)",
+      "ci_orchestrator": "Jenkins LTS = sole CI (GitHub Actions completely replaced per ADR-0359); JCasC + ephemeral Kata K8s agents; Jenkins GitHub App reports PR commit statuses; ArgoCD = deploy substrate",
+      "github_actions": "retired \u2014 .github/workflows removed; branch-protection required checks switch to Jenkins-reported statuses (ADR-0359)"
     },
     "phases": [
       {
@@ -5873,10 +5876,37 @@
       },
       {
         "id": "P-TOOLCHAIN",
-        "title": "CI/CD + oya toolchain overhaul (Bazel rules_rust + oya overlay)",
+        "title": "CI/CD + oya toolchain overhaul \u2014 Jenkins replaces GitHub Actions; Bazel rules_rust build graph; oya governance overlay",
         "status": "proposed",
         "parallel": "yes",
-        "deliverable": "Adopt Bazel rules_rust build graph; RBE + remote cache; affected-target presubmit; merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (ArgoCD+Argo Rollouts, ADR-0343/0349); oya rebuilt as governance overlay. Per docs/ideas + ci-farm-substrate-canonical.json."
+        "deliverable": "Jenkins becomes the sole self-hostable CI (no GitHub Actions / no Actions-budget dependency); merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (ArgoCD+Argo Rollouts, ADR-0343/0349); Bazel rules_rust build graph + RBE; oya rebuilt as governance overlay. Local oya verify mirror (ADR-0346) gates throughout.",
+        "authoring_adrs": [
+          "ADR-0349",
+          "ADR-0358",
+          "ADR-0359"
+        ],
+        "sub_phases": [
+          {
+            "id": "P-TOOLCHAIN.1",
+            "step": "Stand up Jenkins controller + JCasC + ephemeral Kata K8s agents (OpenTofu/Helm per ci-farm-substrate-canonical.json)"
+          },
+          {
+            "id": "P-TOOLCHAIN.2",
+            "step": "Port the 36 .github/workflows lanes -> Jenkins declarative pipeline + oya-jenkins-shared library (per the enumerated parity mapping)"
+          },
+          {
+            "id": "P-TOOLCHAIN.3",
+            "step": "Wire Jenkins GitHub App -> PR commit statuses; switch branch-protection required checks (.github/branch-protection.yaml + infra/branch-protection/dev.json) to Jenkins status contexts"
+          },
+          {
+            "id": "P-TOOLCHAIN.4",
+            "step": "Retire .github/workflows; replace oya-governance-jenkins-github-actions-parity with oya-governance-jenkins-canonical-no-gha-residue"
+          },
+          {
+            "id": "P-TOOLCHAIN.5",
+            "step": "Layer remote build cache (sccache->SeaweedFS) + Bazel rules_rust affected-target selection; oya as governance overlay delegating build/test to bazel (ADR-0358)"
+          }
+        ]
       },
       {
         "id": "P-STRANGLE",
@@ -5924,6 +5954,11 @@
         "choice": "Valkey/Pulsar/Kubewarden/Cedar/OpenBao substrate",
         "verdict": "KEEP",
         "rationale": "license-clean, self-hostable, hyperscaler-pattern-aligned"
+      },
+      {
+        "choice": "GitHub Actions as primary CI (ADR-0349 augment stance)",
+        "verdict": "CHANGE -> Jenkins completely replaces GitHub Actions (ADR-0359)",
+        "rationale": "Actions-budget single point of failure (PR #180 block); air-gap/on-prem/colo have no GH runners; retires GH/Jenkins parity-drift tax; self-hostable"
       }
     ],
     "non_claims": [

@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 295
-- **Numbering:** ADR-0001..ADR-0358 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0359
-- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 296
+- **Numbering:** ADR-0001..ADR-0359 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0360
+- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 88, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -316,11 +316,12 @@ doc_status: published
 | ADR-0356 | Proposed | Amendment — Library-First Ontology Read-Path Clarification | council-architecture, council-product, council-privacy, council-security, ops-sre-reliability, ops-compliance, axis-ontology, axis-policy-engine, axis-workflow-engine, axis-audit-chain, axis-tenancy, axis-intelligence | [`ADR-0356-amendment-library-first-ontology-read-path.md`](decisions/ADR-0356-amendment-library-first-ontology-read-path.md) |
 | ADR-0357 | Proposed | Vertical-slice monorepo nesting (co-locate crate code under microservices/<ms>/crates/) | council-architecture | [`ADR-0357-vertical-slice-monorepo-nesting.md`](decisions/ADR-0357-vertical-slice-monorepo-nesting.md) |
 | ADR-0358 | Proposed | Ideal 0→100 production roadmap — strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first | council-architecture | [`ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md`](decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md) |
+| ADR-0359 | Proposed | Jenkins completely replaces GitHub Actions as the CI orchestrator | council-architecture | [`ADR-0359-jenkins-completely-replaces-github-actions.md`](decisions/ADR-0359-jenkins-completely-replaces-github-actions.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0359), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0360), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -347,6 +348,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 295 ADR files (sorted ascending)
+- `decisions/` directory listing — 296 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
