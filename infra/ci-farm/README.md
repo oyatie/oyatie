@@ -54,6 +54,14 @@ JCasC, ephemeral k8s agents, sccache→S3 env wiring) and intentionally omits th
 These deltas do not alter the controller/agent/JCasC contract — they are exactly
 the items the spec's `non_claims` keep unproven until measured on real capacity.
 
+## Measured evidence (`evidence/ci-farm-local/`)
+
+- `cross-agent-cache-measure.txt` — fresh agent: 100% cache hit (38/38) from SeaweedFS.
+- `farmwide-cache.txt` — 150-crate `oya-dev-cli` graph: 100% cross-agent hit.
+- `parallel-lanes.txt` — 3 lanes, peak 3 concurrent agents, ~3× over serial.
+- `argo-rollouts-canary.txt` — canary `25%→analysis→50%→75%→promote`.
+- `argocd-gitops-sync.txt` — ArgoCD synced from in-cluster git; self-heal in 6s.
+
 ## Honest status
 
 - **Claimed when green:** a real Jenkins controller runs on local k8s under the
