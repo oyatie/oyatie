@@ -42,9 +42,7 @@ pub(crate) fn parse_hyperscaler_maturity_claims_validate_args(
         // ADR-0361: the PR-review + CI-fix-loop closure is now the Jenkins-native
         // pipeline closure contract, not the retired GitHub Actions workflows.
         pr_review_workflow_path: PathBuf::from("infra/ci/jenkins/pipeline-closure-contract.md"),
-        ci_fix_loop_workflow_path: PathBuf::from(
-            "infra/ci/jenkins/pipeline-closure-contract.md",
-        ),
+        ci_fix_loop_workflow_path: PathBuf::from("infra/ci/jenkins/pipeline-closure-contract.md"),
         gitops_vcs_path: PathBuf::from("specs/gitops-vcs-replacement.json"),
         merge_queue_path: PathBuf::from("specs/merge-queue-parked-pr.json"),
         iterative_fix_loop_path: PathBuf::from("specs/iterative-fix-loop.json"),
@@ -380,7 +378,9 @@ fn require_order(contents: &str, first: &str, second: &str, context: &str) -> Re
     if a < b {
         Ok(())
     } else {
-        Err(format!("{context}: {first:?} must appear before {second:?}"))
+        Err(format!(
+            "{context}: {first:?} must appear before {second:?}"
+        ))
     }
 }
 
