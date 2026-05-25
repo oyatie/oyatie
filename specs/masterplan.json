@@ -5830,7 +5830,8 @@
       "specs/cloud-control-plane-canonical.json",
       "specs/api-contract-ssot-canonical.json",
       "specs/cloud-authorization-target.json",
-      "specs/cloud-observability-slo-target.json"
+      "specs/cloud-observability-slo-target.json",
+      "specs/cloud-resource-catalog-target.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -5888,14 +5889,15 @@
       {
         "id": "P-TARGET",
         "title": "Ideal target architecture + contracts spec",
-        "status": "in-progress (control-plane target spec landed; per-resource + contracts specs next)",
+        "status": "core-architecture-specified (control-plane + contracts + authz + observability + resource-catalog); per-resource detail + execution = P-STRANGLE",
         "parallel": "partial",
         "deliverable": "Vertical-slice nesting (ADR-0357); contracts SSOT (OpenAPI 3.2.0/AsyncAPI 3.1.0/proto3, CS-LAUNCH-API-CONTRACT-SSOT-001); Cedar policy; observability/SLO substrate; cloud-* substrate + tenant microservice target shapes.",
         "artifacts": [
           "specs/cloud-control-plane-canonical.json",
           "specs/api-contract-ssot-canonical.json",
           "specs/cloud-authorization-target.json",
-          "specs/cloud-observability-slo-target.json"
+          "specs/cloud-observability-slo-target.json",
+          "specs/cloud-resource-catalog-target.json"
         ]
       },
       {

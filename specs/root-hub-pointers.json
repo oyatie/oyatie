@@ -1050,6 +1050,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-target",
       "purpose": "Cloud observability+SLO target (P-TARGET): OpenTelemetry + measured SLOs + burn-rate + agentic SLO-gated promotion (ADR-0130/0340) for the cloud-* substrate. Target spec; no measured evidence claimed."
+    },
+    "cloud_resource_catalog_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-resource-catalog-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud resource catalog target (P-TARGET): per-resource-type architecture for all cloud-* services (IAM/KMS/Secrets/Compute/Storage/Network/Data/Billing/Capacity), each instantiating the control-plane per-resource contract (quota/billing/audit/lifecycle/slo/retention), Cedar-gated + OTel-instrumented + actuated via OpenTofu/operator/Argo. Target spec; metadata-only until P-STRANGLE."
     }
   },
   "by_kind": {
