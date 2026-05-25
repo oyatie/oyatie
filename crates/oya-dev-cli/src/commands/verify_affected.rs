@@ -32,6 +32,10 @@ pub(crate) enum BuildScope {
     Crates(Vec<String>),
 }
 
+/// Reverse-dependency graph: `Rdeps[c]` = the crates that depend on `c`
+/// (including dev + build edges).
+pub(crate) type Rdeps = BTreeMap<String, BTreeSet<String>>;
+
 /// A workspace member: package name + its manifest directory (repo-relative,
 /// forward-slashed, no trailing slash), e.g. `("oya-foo", "crates/oya-foo")`.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -82,10 +86,7 @@ fn owning_member<'a>(file: &str, members: &'a [Member]) -> Option<&'a str> {
 
 /// Transitive reverse-dependency closure of `seed` over `rdeps`
 /// (`rdeps[c]` = crates that depend on `c`). Includes the seed.
-fn rdeps_closure(
-    seed: &BTreeSet<String>,
-    rdeps: &BTreeMap<String, BTreeSet<String>>,
-) -> BTreeSet<String> {
+fn rdeps_closure(seed: &BTreeSet<String>, rdeps: &Rdeps) -> BTreeSet<String> {
     let mut seen: BTreeSet<String> = BTreeSet::new();
     let mut queue: VecDeque<String> = seed.iter().cloned().collect();
     while let Some(c) = queue.pop_front() {
@@ -108,11 +109,7 @@ fn rdeps_closure(
 /// `changed` are repo-relative, forward-slashed paths. `members` is the
 /// workspace member list. `rdeps` maps each crate to the crates that depend on
 /// it (already including dev + build edges).
-pub(crate) fn classify(
-    changed: &[String],
-    members: &[Member],
-    rdeps: &BTreeMap<String, BTreeSet<String>>,
-) -> BuildScope {
+pub(crate) fn classify(changed: &[String], members: &[Member], rdeps: &Rdeps) -> BuildScope {
     if changed.iter().any(|f| is_full_build_trigger(f)) {
         return BuildScope::Full;
     }
@@ -164,9 +161,7 @@ pub(crate) fn changed_files(repo_root: &Path, base: &str) -> Result<Vec<String>,
 
 /// Workspace members + the reverse-dependency graph (`rdeps[c]` = crates that
 /// depend on `c`, including dev + build edges), from `cargo metadata --no-deps`.
-pub(crate) fn workspace_graph(
-    repo_root: &Path,
-) -> Result<(Vec<Member>, BTreeMap<String, BTreeSet<String>>), String> {
+pub(crate) fn workspace_graph(repo_root: &Path) -> Result<(Vec<Member>, Rdeps), String> {
     let out = Command::new("cargo")
         .args(["metadata", "--no-deps", "--format-version", "1"])
         .current_dir(repo_root)
@@ -231,7 +226,7 @@ pub(crate) fn workspace_graph(
     }
 
     // invert forward -> rdeps
-    let mut rdeps: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut rdeps: Rdeps = BTreeMap::new();
     for (crate_name, deps) in &forward {
         for dep in deps {
             rdeps
