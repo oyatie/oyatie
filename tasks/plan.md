@@ -976,6 +976,28 @@ Verification:
 - `cargo test -p oya-shared-backbone-rest-runtime-adapter --lib`.
 - dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-MAIL-SENDING-DOMAIN-AUTH-GUARD-001 — Pure mail-domain sending-domain authentication guard
+Scope:
+- `crates/oya-connect-mail-domain/src/sending_domain_authentication.rs` pure domain guard for production-active outbound sending-domain posture.
+- `crates/oya-connect-mail-domain/src/lib.rs` module/export wiring.
+- Task/evidence/audit tracking.
+- Substrate alignment: FD-001 product delivery remains the master-plan product goal; this guard supports the future Oyatie Cloud dogfood path where FD-001 mail runs as a tenant workload on the hyperscaler-grade cloud substrate, without claiming that substrate is live.
+
+Acceptance:
+- Production-active mail sending domains allow only when tenant/domain isolation, authenticated principal evidence, verified domain status, SPF presence, enforcing DMARC policy, and current DKIM selector/key-version evidence are all present.
+- Missing SPF, missing DMARC, DMARC `p=none`, missing/expired/future-dated/stale DKIM, unsupported DKIM algorithm, tenant mismatch, sender/envelope-domain mismatch, normalized-empty domain evidence, DKIM tenant/domain mismatch, and unverified domain fail closed before SMTP delivery can be admitted.
+- Non-production quarantine/review modes return explicit `Quarantine` or `Review` actions for incomplete posture without pretending a production-active domain is deliverable.
+- Verdicts carry stable non-PII audit labels plus classified tenant/domain/request and DKIM selector/key-version/evidence references for downstream adapters.
+- Honest non-claim: this is a pure Rust domain admission guard only. No DNS lookup, live SPF/DMARC/DKIM validation, OpenBao key read, cryptographic signing, SMTP delivery, live deliverability score, or production tenant workload deployment is claimed.
+
+Verification:
+- TDD red/green focused cargo test for `sending_domain_authentication`.
+- `cargo test -p oya-connect-mail-domain --lib`.
+- `cargo check -p oya-connect-mail-domain`.
+- `cargo clippy -p oya-connect-mail-domain --all-targets -- -D warnings`.
+- `cargo fmt --check -p oya-connect-mail-domain`.
+- dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -986,7 +1008,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
