@@ -19,6 +19,7 @@ oya-messenger-message-stream-api = { path = "../oya-messenger-message-stream-api
 oya-messenger-message-stream-rest = { path = "../oya-messenger-message-stream-rest" }
 oya-social-post-composition-api = { path = "../oya-social-post-composition-api" }
 oya-social-post-composition-rest = { path = "../oya-social-post-composition-rest" }
+oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 serde_json.workspace = true
 tokio.workspace = true
 

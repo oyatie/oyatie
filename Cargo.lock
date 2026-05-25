@@ -4375,6 +4375,7 @@ dependencies = [
  "oya-mail-mailbox-store-rest",
  "oya-messenger-message-stream-api",
  "oya-messenger-message-stream-rest",
+ "oya-shared-postgres-command-kernel",
  "oya-social-post-composition-api",
  "oya-social-post-composition-rest",
  "serde_json",

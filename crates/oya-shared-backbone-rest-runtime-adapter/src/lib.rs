@@ -5,11 +5,11 @@
 //! Hyper runtime adapter can serve without this crate importing Hyper directly.
 //! It is intentionally honest about the current seam: probes, contract-only
 //! OpenAPI routes, and the stateless typed write routes are
-//! runtime-dispatchable; stateful write-plan routes remain explicit
-//! `501` seams until a backing read/write store is composed. The community
-//! vote/moderation routes can be bound to an explicitly supplied local
-//! in-memory state object for loopback tests; that path still makes no durable
-//! database, broker, cluster, or production deployment claim.
+//! runtime-dispatchable. The community create/vote/moderation routes can also
+//! be bound either to an explicitly supplied local in-memory state object or to
+//! the SQL write-plan/outbox command seam with a recording executor for
+//! loopback tests. Those paths still make no live database, broker, cluster,
+//! cloud substrate, or production deployment claim.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::{
@@ -31,6 +31,10 @@ use oya_mail_mailbox_store_api::{DmarcApiAction, MailApiEnvelope};
 use oya_mail_mailbox_store_rest as mail_rest;
 use oya_messenger_message_stream_api::MessengerApiEnvelope;
 use oya_messenger_message_stream_rest as messenger_rest;
+use oya_shared_postgres_command_kernel::{
+    RecordingSqlBatchExecutor, SqlBatchExecutor, SqlExecutionPlan, SqlExecutionReport,
+    TenantSqlContext,
+};
 use oya_social_post_composition_api::SocialApiArtifactKind;
 use oya_social_post_composition_rest as social_rest;
 use serde_json::Value;
@@ -81,6 +85,7 @@ pub enum RuntimeRouteHandlerKind {
     Probe,
     ContractOnly,
     JsonWrite,
+    SqlWritePlan,
     TypedWritePlan,
 }
 
@@ -95,6 +100,7 @@ pub struct BackboneRestRuntimeRoute {
 #[derive(Clone, Default)]
 pub struct BackboneRestRuntimeState {
     community: Option<BackboneCommunityJsonState>,
+    community_sql: Option<BackboneCommunitySqlWriteState>,
 }
 
 impl BackboneRestRuntimeState {
@@ -105,6 +111,14 @@ impl BackboneRestRuntimeState {
     pub fn with_community_state(community: BackboneCommunityJsonState) -> Self {
         Self {
             community: Some(community),
+            community_sql: None,
+        }
+    }
+
+    pub fn with_community_sql_write_state(community_sql: BackboneCommunitySqlWriteState) -> Self {
+        Self {
+            community: None,
+            community_sql: Some(community_sql),
         }
     }
 
@@ -112,12 +126,36 @@ impl BackboneRestRuntimeState {
         self.community.as_ref()
     }
 
+    fn community_sql_write_state(&self) -> Option<&BackboneCommunitySqlWriteState> {
+        self.community_sql.as_ref()
+    }
+
     fn handler_kind_for(&self, route: BackboneRestRuntimeRoute) -> RuntimeRouteHandlerKind {
-        if self.binds_stateful_community_route(route) {
+        if self.binds_community_sql_write_route(route) {
+            RuntimeRouteHandlerKind::SqlWritePlan
+        } else if self.binds_stateful_community_route(route) {
             RuntimeRouteHandlerKind::JsonWrite
         } else {
             route.handler_kind
         }
+    }
+
+    fn binds_community_sql_write_route(&self, route: BackboneRestRuntimeRoute) -> bool {
+        self.community_sql.is_some()
+            && route.microservice == BackboneRestMicroservice::Community
+            && matches!(
+                (route.method, route.path),
+                (
+                    community_rest::CREATE_POST_METHOD,
+                    community_rest::CREATE_POST_ROUTE
+                ) | (
+                    community_rest::CAST_VOTE_METHOD,
+                    community_rest::CAST_VOTE_ROUTE
+                ) | (
+                    community_rest::APPLY_MODERATION_ACTION_METHOD,
+                    community_rest::APPLY_MODERATION_ACTION_ROUTE
+                )
+            )
     }
 
     fn binds_stateful_community_route(&self, route: BackboneRestRuntimeRoute) -> bool {
@@ -190,6 +228,39 @@ impl BackboneCommunityJsonState {
     }
 }
 
+/// Local community state plus a recording SQL executor for loopback write-plan
+/// tests. The backing post/ledger store is still in-memory; the durable seam
+/// being exercised is the generated tenant-scoped SQL/outbox command plan, not
+/// a live Postgres connection.
+#[derive(Clone, Default)]
+pub struct BackboneCommunitySqlWriteState {
+    community: BackboneCommunityJsonState,
+    executor: Arc<Mutex<RecordingSqlBatchExecutor>>,
+}
+
+impl BackboneCommunitySqlWriteState {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn seed_post(&self, post: CommunityPost) -> Result<(), BackboneCommunityJsonStateError> {
+        self.community.seed_post(post)
+    }
+
+    pub fn post_count(&self) -> Result<usize, BackboneCommunityJsonStateError> {
+        self.community.post_count()
+    }
+
+    pub fn execution_reports(
+        &self,
+    ) -> Result<Vec<SqlExecutionReport>, BackboneCommunityJsonStateError> {
+        self.executor
+            .lock()
+            .map(|executor| executor.reports.clone())
+            .map_err(|_| BackboneCommunityJsonStateError::Poisoned)
+    }
+}
+
 /// A router plus the counts auditors need to understand what is really bound.
 pub struct BackboneRestRouter {
     pub microservice: BackboneRestMicroservice,
@@ -198,6 +269,7 @@ pub struct BackboneRestRouter {
     pub probe_route_count: usize,
     pub contract_only_route_count: usize,
     pub json_write_route_count: usize,
+    pub sql_write_plan_route_count: usize,
     pub typed_write_plan_route_count: usize,
     pub non_claim: &'static str,
 }
@@ -329,6 +401,7 @@ pub fn build_backbone_rest_router_with_state(
     let mut probe_route_count = 0;
     let mut contract_only_route_count = 0;
     let mut json_write_route_count = 0;
+    let mut sql_write_plan_route_count = 0;
     let mut typed_write_plan_route_count = 0;
 
     for route in routes.iter().copied() {
@@ -336,6 +409,7 @@ pub fn build_backbone_rest_router_with_state(
             RuntimeRouteHandlerKind::Probe => probe_route_count += 1,
             RuntimeRouteHandlerKind::ContractOnly => contract_only_route_count += 1,
             RuntimeRouteHandlerKind::JsonWrite => json_write_route_count += 1,
+            RuntimeRouteHandlerKind::SqlWritePlan => sql_write_plan_route_count += 1,
             RuntimeRouteHandlerKind::TypedWritePlan => typed_write_plan_route_count += 1,
         }
         let method =
@@ -361,8 +435,13 @@ pub fn build_backbone_rest_router_with_state(
         probe_route_count,
         contract_only_route_count,
         json_write_route_count,
+        sql_write_plan_route_count,
         typed_write_plan_route_count,
         non_claim: if microservice == BackboneRestMicroservice::Community
+            && runtime_state.community_sql_write_state().is_some()
+        {
+            "local Hyper loopback/runtime binding with community SQL write-plan recording executor; no live database, broker drain, production gateway, TLS, OpenCost, ArgoCD sync, cloud substrate, or live deployment claim"
+        } else if microservice == BackboneRestMicroservice::Community
             && runtime_state.community_state().is_some()
         {
             "local Hyper loopback/runtime binding with local in-memory community state only; no production gateway, TLS, durable database, broker, OpenCost, ArgoCD sync, or live deployment claim"
@@ -424,6 +503,9 @@ fn dispatch_runtime_route(
         RuntimeRouteHandlerKind::ContractOnly => contract_only_response(route, request),
         RuntimeRouteHandlerKind::JsonWrite => {
             dispatch_json_write_route(route, request, runtime_state)
+        }
+        RuntimeRouteHandlerKind::SqlWritePlan => {
+            dispatch_sql_write_plan_route(route, request, runtime_state)
         }
         RuntimeRouteHandlerKind::TypedWritePlan => typed_write_plan_response(route, request),
     }
@@ -542,12 +624,20 @@ enum JsonWriteBindingError {
     Handler {
         reason: String,
     },
+    SqlPlan {
+        reason: String,
+    },
+    SqlExecution {
+        reason: String,
+    },
 }
 
 impl JsonWriteBindingError {
     fn status_code(&self) -> u16 {
         match self {
             JsonWriteBindingError::Handler { .. } => 422,
+            JsonWriteBindingError::SqlPlan { .. } => 422,
+            JsonWriteBindingError::SqlExecution { .. } => 500,
             JsonWriteBindingError::StateUnavailable { .. } => 501,
             JsonWriteBindingError::StatePoisoned => 500,
             JsonWriteBindingError::NotFound { .. } => 404,
@@ -568,6 +658,8 @@ impl JsonWriteBindingError {
             JsonWriteBindingError::StatePoisoned => "state_poisoned",
             JsonWriteBindingError::NotFound { .. } => "not_found",
             JsonWriteBindingError::Handler { .. } => "handler_rejected",
+            JsonWriteBindingError::SqlPlan { .. } => "sql_plan_rejected",
+            JsonWriteBindingError::SqlExecution { .. } => "sql_execution_failed",
         }
     }
 
@@ -610,6 +702,12 @@ impl JsonWriteBindingError {
             JsonWriteBindingError::Handler { reason } => {
                 format!("typed REST handler rejected the request: {reason}")
             }
+            JsonWriteBindingError::SqlPlan { reason } => {
+                format!("SQL write-plan construction rejected the request: {reason}")
+            }
+            JsonWriteBindingError::SqlExecution { reason } => {
+                format!("SQL write-plan execution failed: {reason}")
+            }
         }
     }
 }
@@ -618,6 +716,16 @@ fn community_state_lock(
     state: &BackboneCommunityJsonState,
 ) -> Result<std::sync::MutexGuard<'_, BackboneCommunityJsonStateInner>, JsonWriteBindingError> {
     state
+        .inner
+        .lock()
+        .map_err(|_| JsonWriteBindingError::StatePoisoned)
+}
+
+fn community_sql_state_lock(
+    state: &BackboneCommunitySqlWriteState,
+) -> Result<std::sync::MutexGuard<'_, BackboneCommunityJsonStateInner>, JsonWriteBindingError> {
+    state
+        .community
         .inner
         .lock()
         .map_err(|_| JsonWriteBindingError::StatePoisoned)
@@ -637,6 +745,29 @@ fn dispatch_json_write_route(
         }
     }
     .unwrap_or_else(|error| json_write_error_response(route, request, error))
+}
+
+fn dispatch_sql_write_plan_route(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    runtime_state: &BackboneRestRuntimeState,
+) -> HttpResponse {
+    match route.microservice {
+        BackboneRestMicroservice::Community => {
+            let result = runtime_state
+                .community_sql_write_state()
+                .ok_or(JsonWriteBindingError::StateUnavailable { path: route.path })
+                .and_then(|state| dispatch_community_sql_write_plan(route, request, state));
+            result.unwrap_or_else(|error| sql_write_plan_error_response(route, request, error))
+        }
+        BackboneRestMicroservice::Messenger
+        | BackboneRestMicroservice::Mail
+        | BackboneRestMicroservice::Social => sql_write_plan_error_response(
+            route,
+            request,
+            JsonWriteBindingError::StateUnavailable { path: route.path },
+        ),
+    }
 }
 
 fn dispatch_messenger_json_write(
@@ -940,6 +1071,200 @@ fn dispatch_community_moderation_json_write(
     }))
 }
 
+fn dispatch_community_sql_write_plan(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    state: &BackboneCommunitySqlWriteState,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    match (route.method, route.path) {
+        (community_rest::CREATE_POST_METHOD, community_rest::CREATE_POST_ROUTE) => {
+            dispatch_community_create_post_sql_write_plan(route, request, state)
+        }
+        (community_rest::CAST_VOTE_METHOD, community_rest::CAST_VOTE_ROUTE) => {
+            dispatch_community_vote_sql_write_plan(route, request, state)
+        }
+        (
+            community_rest::APPLY_MODERATION_ACTION_METHOD,
+            community_rest::APPLY_MODERATION_ACTION_ROUTE,
+        ) => dispatch_community_moderation_sql_write_plan(route, request, state),
+        _ => Err(JsonWriteBindingError::StateUnavailable { path: route.path }),
+    }
+}
+
+fn dispatch_community_create_post_sql_write_plan(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    state: &BackboneCommunitySqlWriteState,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let space_id = path_capture(request, "space_id")?;
+    reject_path_body_drift(&body, "space_id", &space_id)?;
+    let context = community_context(request)?;
+    let tenant = community_tenant_context(request)?;
+    let rest_request = CreatePostRequest {
+        post_id: required_string(&body, "post_id")?,
+        thread_id: required_string(&body, "thread_id")?,
+        mode: community_mode(&required_string(&body, "mode")?)?,
+        routine_display_ref: required_string(&body, "routine_display_ref")?,
+        audit_author_ref: required_string(&body, "audit_author_ref")?,
+        disclosure_policy_ref: optional_string(&body, "disclosure_policy_ref")?,
+        body_ref: required_string(&body, "body_ref")?,
+        retention_policy_id: required_string(&body, "retention_policy_id")?,
+    };
+    let response = community_rest::create_post_write_plan_from_rest(
+        tenant,
+        context,
+        space_id.clone(),
+        rest_request,
+    )
+    .map_err(|error| JsonWriteBindingError::SqlPlan {
+        reason: format!("{error:?}"),
+    })?;
+    let report = execute_community_sql_write_plan(state, &response.body.sql_execution)?;
+    state
+        .seed_post(response.body.post.clone())
+        .map_err(|_| JsonWriteBindingError::StatePoisoned)?;
+
+    Ok(sql_write_plan_success_response(SqlWritePlanReceipt {
+        route,
+        status_code: response.status_code,
+        resource_field: "post_id",
+        resource_id: &response.body.receipt.post_id,
+        event_type: response.body.receipt.event_type,
+        audit_correlation_id: &response.body.receipt.audit_correlation_id,
+        idempotency_key: &response.body.receipt.idempotency_key,
+        policy_decision_ref: &response.body.receipt.policy_decision_ref,
+        extra: Some(("space_id", space_id.as_str())),
+        sql_report: &report,
+        non_claim: SQL_WRITE_PLAN_NON_CLAIM,
+    }))
+}
+
+fn dispatch_community_vote_sql_write_plan(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    state: &BackboneCommunitySqlWriteState,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let post_id = path_capture(request, "post_id")?;
+    reject_path_body_drift(&body, "post_id", &post_id)?;
+    let context = community_context(request)?;
+    let tenant = community_tenant_context(request)?;
+    let audit_correlation_id = context.request_id.clone();
+    let idempotency_key = context.idempotency_key.clone();
+    let rest_request = CastVoteRequest {
+        post_id: post_id.clone(),
+        voter_ref: required_string(&body, "voter_ref")?,
+        direction: vote_direction(&required_string(&body, "direction")?)?,
+    };
+    let response = {
+        let mut inner = community_sql_state_lock(state)?;
+        let post =
+            inner
+                .posts
+                .get(&post_id)
+                .cloned()
+                .ok_or_else(|| JsonWriteBindingError::NotFound {
+                    resource: "community post",
+                    id: post_id.clone(),
+                })?;
+        let ledger = inner
+            .vote_ledgers
+            .entry(post_id.clone())
+            .or_insert_with(|| VoteLedger::new(&post));
+        community_rest::cast_vote_write_plan_from_rest(tenant, context, &post, ledger, rest_request)
+    }
+    .map_err(|error| JsonWriteBindingError::SqlPlan {
+        reason: format!("{error:?}"),
+    })?;
+    let report = execute_community_sql_write_plan(state, &response.body.sql_execution)?;
+
+    Ok(sql_write_plan_success_response(SqlWritePlanReceipt {
+        route,
+        status_code: response.status_code,
+        resource_field: "post_id",
+        resource_id: &response.body.receipt.post_id,
+        event_type: response.body.receipt.event_type,
+        audit_correlation_id: &audit_correlation_id,
+        idempotency_key: &idempotency_key,
+        policy_decision_ref: &response.body.receipt.policy_decision_ref,
+        extra: Some(("vote_id", response.body.receipt.vote_id.as_str())),
+        sql_report: &report,
+        non_claim: SQL_WRITE_PLAN_NON_CLAIM,
+    }))
+}
+
+fn dispatch_community_moderation_sql_write_plan(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    state: &BackboneCommunitySqlWriteState,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let target_type = required_string(&body, "target_type")?;
+    if normalized_token(&target_type) != "post" {
+        return Err(JsonWriteBindingError::InvalidField {
+            name: "target_type",
+            expected: "post for the current local community read-state binding",
+        });
+    }
+    let post_id = match optional_string(&body, "post_id")? {
+        Some(post_id) => post_id,
+        None => required_string(&body, "target_id")?,
+    };
+    let context = community_context(request)?;
+    let tenant = community_tenant_context(request)?;
+    let audit_correlation_id = context.request_id.clone();
+    let idempotency_key = context.idempotency_key.clone();
+    let rest_request = ModeratePostRequest {
+        policy_ref: required_string(&body, "policy_ref")?,
+        evidence_ref: required_string(&body, "evidence_ref")?,
+        verb: moderation_verb(&required_string(&body, "verb")?)?,
+    };
+    let response =
+        {
+            let inner = community_sql_state_lock(state)?;
+            let post = inner.posts.get(&post_id).cloned().ok_or_else(|| {
+                JsonWriteBindingError::NotFound {
+                    resource: "community post",
+                    id: post_id.clone(),
+                }
+            })?;
+            community_rest::apply_moderation_action_write_plan(tenant, context, &post, rest_request)
+        }
+        .map_err(|error| JsonWriteBindingError::SqlPlan {
+            reason: format!("{error:?}"),
+        })?;
+    let report = execute_community_sql_write_plan(state, &response.body.sql_execution)?;
+
+    Ok(sql_write_plan_success_response(SqlWritePlanReceipt {
+        route,
+        status_code: response.status_code,
+        resource_field: "post_id",
+        resource_id: &response.body.receipt.post_id,
+        event_type: response.body.receipt.event_type,
+        audit_correlation_id: &audit_correlation_id,
+        idempotency_key: &idempotency_key,
+        policy_decision_ref: &response.body.receipt.policy_decision_ref,
+        extra: Some(("evidence_ref", response.body.receipt.evidence_ref.as_str())),
+        sql_report: &report,
+        non_claim: SQL_WRITE_PLAN_NON_CLAIM,
+    }))
+}
+
+fn execute_community_sql_write_plan(
+    state: &BackboneCommunitySqlWriteState,
+    plan: &SqlExecutionPlan,
+) -> Result<SqlExecutionReport, JsonWriteBindingError> {
+    state
+        .executor
+        .lock()
+        .map_err(|_| JsonWriteBindingError::StatePoisoned)?
+        .execute_batch(plan)
+        .map_err(|error| JsonWriteBindingError::SqlExecution {
+            reason: format!("{error:?}"),
+        })
+}
+
 struct JsonWriteReceipt<'a> {
     route: BackboneRestRuntimeRoute,
     status_code: u16,
@@ -953,9 +1278,24 @@ struct JsonWriteReceipt<'a> {
     non_claim: &'a str,
 }
 
+struct SqlWritePlanReceipt<'a> {
+    route: BackboneRestRuntimeRoute,
+    status_code: u16,
+    resource_field: &'a str,
+    resource_id: &'a str,
+    event_type: &'a str,
+    audit_correlation_id: &'a str,
+    idempotency_key: &'a str,
+    policy_decision_ref: &'a str,
+    extra: Option<(&'a str, &'a str)>,
+    sql_report: &'a SqlExecutionReport,
+    non_claim: &'a str,
+}
+
 const STATELESS_JSON_WRITE_NON_CLAIM: &str =
     "local stateless write handler only; no database, broker, or live deployment claim";
 const STATEFUL_COMMUNITY_JSON_WRITE_NON_CLAIM: &str = "local in-memory state handler only; no durable database, broker, cluster, OpenCost, ArgoCD sync, or live deployment claim";
+const SQL_WRITE_PLAN_NON_CLAIM: &str = "local SQL write-plan binding with recording executor only; no live database, broker drain, cluster, OpenCost, ArgoCD sync, cloud substrate, or live deployment claim";
 
 fn json_write_success_response(receipt: JsonWriteReceipt<'_>) -> HttpResponse {
     let mut body = format!(
@@ -983,6 +1323,36 @@ fn json_write_success_response(receipt: JsonWriteReceipt<'_>) -> HttpResponse {
     json_response(receipt.status_code, body)
 }
 
+fn sql_write_plan_success_response(receipt: SqlWritePlanReceipt<'_>) -> HttpResponse {
+    let mut body = format!(
+        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"runtime_handler\":\"sql_write_plan\",\"status_code\":{},\"{}\":\"{}\",\"event_type\":\"{}\",\"audit_correlation_id\":\"{}\",\"idempotency_key\":\"{}\",\"policy_decision_ref\":\"{}\",\"application_name\":\"{}\",\"sql_command_count\":{},\"executed_command_names\":{},\"transaction_committed\":{},\"outbox_statement\":\"insert_transactional_outbox_event\",\"non_claim\":\"{}\"",
+        receipt.route.microservice.slug(),
+        receipt.route.method,
+        receipt.route.path,
+        receipt.status_code,
+        json_string_escape(receipt.resource_field),
+        json_string_escape(receipt.resource_id),
+        json_string_escape(receipt.event_type),
+        json_string_escape(receipt.audit_correlation_id),
+        json_string_escape(receipt.idempotency_key),
+        json_string_escape(receipt.policy_decision_ref),
+        json_string_escape(&receipt.sql_report.application_name),
+        receipt.sql_report.executed_command_names.len(),
+        json_string_array(&receipt.sql_report.executed_command_names),
+        receipt.sql_report.transaction_committed,
+        json_string_escape(receipt.non_claim)
+    );
+    if let Some((name, value)) = receipt.extra {
+        body.push_str(&format!(
+            ",\"{}\":\"{}\"",
+            json_string_escape(name),
+            json_string_escape(value)
+        ));
+    }
+    body.push('}');
+    json_response(receipt.status_code, body)
+}
+
 fn json_write_error_response(
     route: BackboneRestRuntimeRoute,
     request: &HttpRequest,
@@ -991,6 +1361,25 @@ fn json_write_error_response(
     let status_code = error.status_code();
     let body = format!(
         "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"matched_template\":\"{}\",\"runtime_handler\":\"json_write\",\"status_code\":{},\"error_code\":\"{}\",\"reason\":\"{}\"}}",
+        route.microservice.slug(),
+        route.method,
+        route.path,
+        json_string_escape(request.matched_template.as_deref().unwrap_or(route.path)),
+        status_code,
+        error.code(),
+        json_string_escape(&error.detail())
+    );
+    json_response(status_code, body)
+}
+
+fn sql_write_plan_error_response(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    error: JsonWriteBindingError,
+) -> HttpResponse {
+    let status_code = error.status_code();
+    let body = format!(
+        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"matched_template\":\"{}\",\"runtime_handler\":\"sql_write_plan\",\"status_code\":{},\"error_code\":\"{}\",\"reason\":\"{}\"}}",
         route.microservice.slug(),
         route.method,
         route.path,
@@ -1273,6 +1662,20 @@ fn community_context(
     })
 }
 
+fn community_tenant_context(
+    request: &HttpRequest,
+) -> Result<TenantSqlContext, JsonWriteBindingError> {
+    TenantSqlContext::new(
+        scope_header(request)?,
+        required_header(request, &["x-oya-home-cell"])?,
+        required_header(request, &["x-oya-shard-key"])?,
+        required_header(request, &["x-oya-jurisdiction-code"])?,
+    )
+    .map_err(|error| JsonWriteBindingError::SqlPlan {
+        reason: format!("{error:?}"),
+    })
+}
+
 fn messenger_envelope(value: &Value) -> Result<MessengerApiEnvelope, JsonWriteBindingError> {
     let kind = required_string(value, "kind")?;
     match normalized_token(&kind).as_str() {
@@ -1402,6 +1805,15 @@ fn json_string_escape(input: &str) -> String {
         }
     }
     escaped
+}
+
+fn json_string_array(values: &[String]) -> String {
+    let rendered = values
+        .iter()
+        .map(|value| format!("\"{}\"", json_string_escape(value)))
+        .collect::<Vec<_>>()
+        .join(",");
+    format!("[{rendered}]")
 }
 
 fn route_registration_error(
@@ -1587,16 +1999,39 @@ mod tests {
         (built, state)
     }
 
+    fn community_sql_router() -> (BackboneRestRouter, BackboneCommunitySqlWriteState) {
+        let state = BackboneCommunitySqlWriteState::new();
+        let built = build_backbone_rest_router_with_state(
+            BackboneRestMicroservice::Community,
+            Vec::new(),
+            BackboneRestRuntimeState::with_community_sql_write_state(state.clone()),
+        )
+        .unwrap();
+        (built, state)
+    }
+
+    fn community_sql_json_request(method: HttpMethod, path: &str, body: &str) -> HttpRequest {
+        let mut request = json_request(method, path, body);
+        request.headers.extend([
+            ("x-oya-home-cell".to_string(), "cell-a".to_string()),
+            ("x-oya-shard-key".to_string(), "tenant:t#cell-a".to_string()),
+            ("x-oya-jurisdiction-code".to_string(), "US".to_string()),
+        ]);
+        request
+    }
+
     #[test]
     fn route_catalog_registers_every_openapi_route_with_honest_counts() {
         let expected = [
-            (BackboneRestMicroservice::Messenger, 26, 2, 23, 1, 0),
-            (BackboneRestMicroservice::Mail, 17, 2, 14, 1, 0),
-            (BackboneRestMicroservice::Social, 27, 2, 24, 1, 0),
-            (BackboneRestMicroservice::Community, 24, 2, 19, 1, 2),
+            (BackboneRestMicroservice::Messenger, 26, 2, 23, 1, 0, 0),
+            (BackboneRestMicroservice::Mail, 17, 2, 14, 1, 0, 0),
+            (BackboneRestMicroservice::Social, 27, 2, 24, 1, 0, 0),
+            (BackboneRestMicroservice::Community, 24, 2, 19, 1, 0, 2),
         ];
 
-        for (service, total, probes, contract_only, json_write, typed_write_plan) in expected {
+        for (service, total, probes, contract_only, json_write, sql_write_plan, typed_write_plan) in
+            expected
+        {
             let built = build_backbone_rest_router(service, Vec::new()).unwrap();
             assert_eq!(built.microservice, service);
             assert_eq!(built.router.count(), total);
@@ -1604,6 +2039,7 @@ mod tests {
             assert_eq!(built.probe_route_count, probes);
             assert_eq!(built.contract_only_route_count, contract_only);
             assert_eq!(built.json_write_route_count, json_write);
+            assert_eq!(built.sql_write_plan_route_count, sql_write_plan);
             assert_eq!(built.typed_write_plan_route_count, typed_write_plan);
             assert!(built.non_claim.contains("no production gateway"));
         }
@@ -1772,6 +2208,7 @@ mod tests {
         assert_eq!(built.probe_route_count, 2);
         assert_eq!(built.contract_only_route_count, 19);
         assert_eq!(built.json_write_route_count, 3);
+        assert_eq!(built.sql_write_plan_route_count, 0);
         assert_eq!(built.typed_write_plan_route_count, 0);
         assert!(built.non_claim.contains("local in-memory community state"));
     }
@@ -1839,6 +2276,112 @@ mod tests {
                 .unwrap()
                 .contains("local in-memory state")
         );
+    }
+
+    #[test]
+    fn community_sql_write_plan_json_routes_execute_recorded_sql_batches() {
+        let (built, state) = community_sql_router();
+        let chain = empty_middleware_chain();
+
+        assert_eq!(built.route_count, 24);
+        assert_eq!(built.json_write_route_count, 0);
+        assert_eq!(built.sql_write_plan_route_count, 3);
+        assert_eq!(built.typed_write_plan_route_count, 0);
+        assert!(
+            built
+                .non_claim
+                .contains("SQL write-plan recording executor")
+        );
+
+        let create = dispatch_backbone_rest_request(
+            community_sql_json_request(
+                HttpMethod::Post,
+                "/spaces/space-1/posts",
+                r#"{"post_id":"post-sql-1","thread_id":"thread:sql","mode":"teamblind","routine_display_ref":"anon:sql","audit_author_ref":"user:u","disclosure_policy_ref":"policy:disclosure","body_ref":"body:sql","retention_policy_id":"retention:community"}"#,
+            ),
+            &built.router,
+            &chain,
+        );
+        let create_body: Value = serde_json::from_slice(&create.body).unwrap();
+
+        assert_eq!(
+            create.status,
+            201,
+            "{}",
+            String::from_utf8_lossy(&create.body)
+        );
+        assert_eq!(create_body["runtime_handler"], "sql_write_plan");
+        assert_eq!(create_body["event_type"], "community.post.created");
+        assert_eq!(create_body["post_id"], "post-sql-1");
+        assert_eq!(create_body["sql_command_count"], 3);
+        assert_eq!(
+            create_body["executed_command_names"][1],
+            "insert_community_post"
+        );
+        assert_eq!(
+            create_body["outbox_statement"],
+            "insert_transactional_outbox_event"
+        );
+
+        let mut vote_request = community_sql_json_request(
+            HttpMethod::Post,
+            "/posts/post-sql-1/vote",
+            r#"{"post_id":"post-sql-1","voter_ref":"user:voter","direction":"up"}"#,
+        );
+        vote_request
+            .headers
+            .insert("x-oya-principal-ref".to_string(), "user:voter".to_string());
+        let vote = dispatch_backbone_rest_request(vote_request, &built.router, &chain);
+        let vote_body: Value = serde_json::from_slice(&vote.body).unwrap();
+
+        assert_eq!(vote.status, 200, "{}", String::from_utf8_lossy(&vote.body));
+        assert_eq!(vote_body["runtime_handler"], "sql_write_plan");
+        assert_eq!(vote_body["event_type"], "community.vote.cast");
+        assert_eq!(
+            vote_body["executed_command_names"][1],
+            "insert_community_vote"
+        );
+
+        let moderation = dispatch_backbone_rest_request(
+            community_sql_json_request(
+                HttpMethod::Post,
+                "/moderation/actions",
+                r#"{"target_id":"post-sql-1","target_type":"post","verb":"hide","policy_ref":"policy:moderation","evidence_ref":"flag:sql"}"#,
+            ),
+            &built.router,
+            &chain,
+        );
+        let moderation_body: Value = serde_json::from_slice(&moderation.body).unwrap();
+
+        assert_eq!(
+            moderation.status,
+            201,
+            "{}",
+            String::from_utf8_lossy(&moderation.body)
+        );
+        assert_eq!(moderation_body["runtime_handler"], "sql_write_plan");
+        assert_eq!(
+            moderation_body["event_type"],
+            "community.moderation.actioned"
+        );
+        assert_eq!(
+            moderation_body["executed_command_names"][1],
+            "insert_community_moderation_action"
+        );
+        assert!(
+            moderation_body["non_claim"]
+                .as_str()
+                .unwrap()
+                .contains("no live database")
+        );
+
+        let reports = state.execution_reports().unwrap();
+        assert_eq!(reports.len(), 3);
+        assert!(
+            reports.iter().all(|report| report.transaction_committed
+                && report.application_name == "oyatie-community")
+        );
+        assert_eq!(state.post_count().unwrap(), 1);
     }
 
     #[tokio::test]
