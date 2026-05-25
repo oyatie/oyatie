@@ -998,6 +998,28 @@ Verification:
 - `cargo fmt --check -p oya-connect-mail-domain`.
 - dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+
+### CS-BACKBONE-CLOUD-TOPOLOGY-SPREAD-001 — Static Kubernetes topology-spread constraints for FD-001 dogfood workloads
+Scope:
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/values.yaml` topology-spread default switch.
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/templates/deployment.yaml` source Helm Deployment templates.
+- `microservices/{messenger,mail,social,community}/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml` static rendered snapshots used by tenant-cost-label coverage.
+- `.github/workflows/backbone-microservices-ci.yml` governance-smoke static coverage.
+- Task/evidence/audit tracking.
+- Substrate alignment: FD-001 product delivery remains the master-plan product goal; these scheduling hints prepare the future Oyatie Cloud dogfood tenant workload posture without claiming live scheduler placement or multi-zone availability.
+
+Acceptance:
+- All four source Deployment templates declare default-enabled, values-controlled `topologySpreadConstraints` for zone (`topology.kubernetes.io/zone`) and node (`kubernetes.io/hostname`) failure-domain spread using the existing `app.kubernetes.io/name` selector label.
+- All four static rendered snapshots mirror the same zone/node spread constraints while retaining their explicit non-claim annotation, tenant/cost/regulatory/dogfood labels, probes, resources, runtime class, and security context.
+- Backbone governance smoke semantically fails if a rendered snapshot loses either zone/hostname topology constraint, `maxSkew: 1`, `whenUnsatisfiable: ScheduleAnyway`, or a matching `app.kubernetes.io/name` selector, and it block-checks the same topology selector shape in source Helm templates.
+- Honest non-claim: this is static chart/snapshot readiness only. No Kubernetes API admission, live scheduler placement, multi-zone availability, universal self-host portability, ArgoCD sync/health, OpenCost allocation, remote CI green, or production tenant workload deployment is claimed. Deployment models with different node-label conventions must override/validate topology-spread settings before live rollout.
+
+Verification:
+- TDD red/green Ruby static topology-spread verification across the four source templates and four rendered snapshots.
+- YAML parse/static governance-smoke check for the backbone CI argument list.
+- `./bin/oya gate validate tenant-cost-labels-coverage`.
+- dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -1008,7 +1030,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static topology-spread chart/snapshot constraints, and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.

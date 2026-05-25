@@ -13,6 +13,12 @@ workloadLabels:
 
 replicaCount: 2
 
+topologySpread:
+  # Enabled for FD-001 Oyatie Cloud dogfood static posture. Deployment models
+  # with different node-label conventions must override this explicitly before
+  # live rollout; this is not live scheduler placement evidence.
+  enabled: true
+
 podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
