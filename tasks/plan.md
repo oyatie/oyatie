@@ -923,6 +923,24 @@ Verification:
 - Backbone governance smoke Ruby command parses values, distinguishes HTTPRoute templates from Deployment templates, and asserts both static template classes.
 - tenant-cost-label static source checks, dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-RENDERED-TENANT-COST-LABEL-COVERAGE-001 — Static rendered tenant-cost-label coverage snapshots
+Scope:
+- `microservices/{messenger,mail,social,community}/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml` static rendered Deployment manifest snapshots generated from the current k8s Helm values/template defaults.
+- `.github/workflows/backbone-microservices-ci.yml` path filters and governance smoke coverage for the rendered snapshots.
+- Task/evidence/audit tracking.
+
+Acceptance:
+- The ADR-0199 tenant-cost-label advisory gate scans four FD-001 backbone rendered workload manifests and reports zero findings.
+- Each rendered Deployment snapshot carries the tenant/cost/regulatory label block, dogfood substrate/product-goal labels, probes, runtime class, resources, security context, and an explicit non-claim annotation.
+- CI path filters include the rendered snapshot directories, and governance smoke parses the rendered YAML while asserting the same Deployment label/probe/resource/security shape.
+- Honest non-claim: these are static rendered snapshot files only. No Helm controller, Kubernetes API server, admission webhook, OpenCost collector/report, ArgoCD sync/health result, branch-protection result, or production tenant workload deployment is claimed.
+
+Verification:
+- YAML parse and static required-string checks for the four rendered Deployment snapshots.
+- `./bin/oya gate validate tenant-cost-labels-coverage` reports four manifests scanned and zero findings.
+- Backbone governance smoke Ruby command parses and checks the rendered snapshots along with the chart templates.
+- dependency-seam, honest-claims, audit-chain replay, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -933,7 +951,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, stateful community vote/moderation HTTP binding, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, static Oyatie Cloud dogfood tenant workload labels, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, stateful community vote/moderation HTTP binding, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.

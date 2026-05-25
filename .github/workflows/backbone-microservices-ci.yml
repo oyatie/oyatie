@@ -37,6 +37,10 @@ on:
       - "microservices/mail/iac/k8s/helm/**"
       - "microservices/social/iac/k8s/helm/**"
       - "microservices/community/iac/k8s/helm/**"
+      - "microservices/messenger/iac/helm/**"
+      - "microservices/mail/iac/helm/**"
+      - "microservices/social/iac/helm/**"
+      - "microservices/community/iac/helm/**"
       - "microservices/messenger/ci/Jenkinsfile"
       - "microservices/mail/ci/Jenkinsfile"
       - "microservices/social/ci/Jenkinsfile"
@@ -85,6 +89,10 @@ on:
       - "microservices/mail/iac/k8s/helm/**"
       - "microservices/social/iac/k8s/helm/**"
       - "microservices/community/iac/k8s/helm/**"
+      - "microservices/messenger/iac/helm/**"
+      - "microservices/mail/iac/helm/**"
+      - "microservices/social/iac/helm/**"
+      - "microservices/community/iac/helm/**"
       - "microservices/messenger/ci/Jenkinsfile"
       - "microservices/mail/ci/Jenkinsfile"
       - "microservices/social/ci/Jenkinsfile"
@@ -327,6 +335,9 @@ jobs:
             "oyatie.com/dogfood-substrate:",
             "oyatie.com/product-goal:",
           ]
+          rendered_deployment_required = deployment_required + [
+            "oyatie.com/non-claim:",
+          ]
           ARGV.each do |path|
             text = File.read(path)
             if path.end_with?(".json")
@@ -339,6 +350,10 @@ jobs:
             elsif path.end_with?("/templates/deployment.yaml")
               missing = deployment_required.reject { |needle| text.include?(needle) }
               raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+            elsif path.include?("/rendered/") && path.end_with?(".yaml")
+              YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+              missing = rendered_deployment_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
             else
               YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
             end
@@ -349,6 +364,7 @@ jobs:
             evidence/multispectrum/backbone-microservices-proto-contracts-20260523.json \
             evidence/multispectrum/backbone-microservices-rest-hyper-runtime-20260525.json \
             evidence/multispectrum/backbone-microservices-cloud-tenant-workload-labels-20260525.json \
+            evidence/multispectrum/backbone-microservices-rendered-tenant-cost-label-coverage-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
@@ -366,6 +382,10 @@ jobs:
             microservices/mail/iac/k8s/helm/templates/deployment.yaml \
             microservices/social/iac/k8s/helm/templates/deployment.yaml \
             microservices/community/iac/k8s/helm/templates/deployment.yaml \
+            microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
+            microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
+            microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
+            microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml \
             registry/catalog/oya-shared-postgres-command-kernel.yaml \
             registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml \
             registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml \
