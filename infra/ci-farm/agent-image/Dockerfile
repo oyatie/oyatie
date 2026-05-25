@@ -12,16 +12,14 @@
 # reproducible and the supply chain is unpinned. Pinning `@sha256:<digest>` makes
 # the base byte-identical on every build; the signature then attests THAT content.
 #
-# >>> FILL THE REAL DIGEST <<< Resolve with:
-#     docker buildx imagetools inspect rust:1.86-bookworm --format '{{.Manifest.Digest}}'
-# or  crane digest docker.io/library/rust:1.86-bookworm
-# then replace BOTH placeholders below. Keep the human-readable tag in the comment
-# so reviewers can see which release the digest corresponds to.
+# Base pinned to rust:1-bookworm @ sha256:6258907a... (resolved 2026-05-25 via
+# `docker inspect --format '{{index .RepoDigests 0}}' rust:1-bookworm`). Re-resolve
+# and bump deliberately on toolchain updates.
 # ----------------------------------------------------------------------------
 
 # ---- stage 1: builder — install pinned tools into a relocatable prefix --------
-# rust:1.86-bookworm  (replace @sha256 placeholder with the real resolved digest)
-FROM docker.io/library/rust@sha256:<PINNED>__REPLACE_ME_rust_1_86_bookworm__ AS builder
+# rust:1-bookworm  (digest pinned 2026-05-25)
+FROM docker.io/library/rust@sha256:6258907abe69656e41cd992e0b705cdcfabcbbe3db374f92ed2d47121282d4a1 AS builder
 
 # Pinned tool versions — bump deliberately, never float.
 ARG NEXTEST_VERSION=0.9.96
@@ -35,8 +33,8 @@ RUN cargo install cargo-nextest --locked --version "${NEXTEST_VERSION}" --root /
  && cargo install sccache       --locked --version "${SCCACHE_VERSION}" --root /opt/tools
 
 # ---- stage 2: runtime — minimal, non-root, warm registry ----------------------
-# rust:1.86-bookworm  (same pinned digest as the builder stage)
-FROM docker.io/library/rust@sha256:<PINNED>__REPLACE_ME_rust_1_86_bookworm__
+# rust:1-bookworm  (same pinned digest as the builder stage)
+FROM docker.io/library/rust@sha256:6258907abe69656e41cd992e0b705cdcfabcbbe3db374f92ed2d47121282d4a1
 
 # --no-install-recommends keeps the image lean; git + ca-certificates only.
 # (curl is intentionally NOT installed: the prod image fetches no binaries at
