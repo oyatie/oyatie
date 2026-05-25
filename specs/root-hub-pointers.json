@@ -1064,6 +1064,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-prod",
       "purpose": "Cloud production quality kits target (P-PROD): seven harness-backed evidence gates (overload/fairness, shuffle-shard isolation, privacy/data-governance, canary+PRR, FOCUS cost, K8s PSS, abuse/fraud/DDoS) each with scenarios+evidence-format+feeding production_100_bar gate. Incorporated from plan/ quality review. Target spec; no harnesses/evidence implemented."
+    },
+    "cloud_strangler_migration_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-strangler-migration-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-strangle",
+      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Bazel affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed."
     }
   },
   "by_kind": {

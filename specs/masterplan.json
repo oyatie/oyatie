@@ -5832,7 +5832,8 @@
       "specs/cloud-authorization-target.json",
       "specs/cloud-observability-slo-target.json",
       "specs/cloud-resource-catalog-target.json",
-      "specs/cloud-production-quality-kits-target.json"
+      "specs/cloud-production-quality-kits-target.json",
+      "specs/cloud-strangler-migration-target.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -5954,9 +5955,12 @@
       {
         "id": "P-STRANGLE",
         "title": "Per-service strangler migration to ideal target",
-        "status": "proposed",
+        "status": "migration playbook specified (per-service pattern + parallel lanes + DoD + cutover); execution post-substrate",
         "parallel": "yes (one lane per microservice; ~21+ lanes, ~5-6 concurrent on one host, N on the CI farm)",
-        "deliverable": "Migrate each cloud-* substrate service + tenant microservice to the ideal target behind contracts; old->contract->new; cut over when green; trunk stays shippable."
+        "deliverable": "Migrate each cloud-* substrate service + tenant microservice to the ideal target behind contracts; old->contract->new; cut over when green; trunk stays shippable.",
+        "artifacts": [
+          "specs/cloud-strangler-migration-target.json"
+        ]
       },
       {
         "id": "P-PROD",
