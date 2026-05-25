@@ -68,8 +68,14 @@
     "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/Jenkinsfile and the JCasC agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
     "verify_mirror": "ADR-0346 oya verify --ci-required"
   },
+  "local_realization": {
+    "scope": "LOCAL dev cluster only (colima/k3s on a single host) — proves the controller/JCasC/agent-cloud/cache-wiring contract runs; does NOT satisfy the production non_claims below.",
+    "iac": "infra/ci-farm/ (values-local.yaml JCasC, deploy-local.sh, smoke-seed.groovy, README local-vs-production deltas)",
+    "evidence": "evidence/ci-farm-local/ (build #5 Finished: SUCCESS on ephemeral agent rust-ci-znj98; rustc/cargo + sccache env verified)",
+    "production_deltas": "Kata runtime (ADR-0338), Karpenter autoscaling (ADR-0198), cosign-required digest-pinned agent image, and SeaweedFS cache backend remain unbuilt; webSocket agents + non-root UID 1000 + drop-ALL caps are realized."
+  },
   "non_claims": [
-    "No live Jenkins controller, running agent pool, provisioned Kubernetes cluster, or populated remote cache is claimed.",
+    "No live PRODUCTION Jenkins controller, multi-node agent pool, production Kubernetes cluster, or populated remote cache is claimed (a single-host local-dev realization exists per local_realization).",
     "No measured build-farm throughput, cache hit-rate, agent autoscaling behaviour, or CI SLO is claimed; capacity figures are design targets pending measured evidence.",
     "No cosign/SLSA signing execution, ArgoCD live sync, or production deployment is performed by this foundation.",
     "Concurrency figures are design guidance; physical parallelism is bounded by real provisioned capacity, not asserted here."
