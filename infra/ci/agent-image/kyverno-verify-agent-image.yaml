@@ -72,7 +72,7 @@ spec:
               entries:
                 # --- KEY attestor (fallback for colo/air-gapped) -----------------
                 # NOTE: the key below is the LOCAL DEMO key generated during the
-                # O5 build/sign proof (evidence/ci-farm-local/agent-image-cosign.pub;
+                # O5 build/sign proof (evidence/ci/agent-image-cosign.pub;
                 # private half NOT committed). PRODUCTION replaces it with the
                 # OpenBao-held cosign key whose private half signs in build-and-sign.sh.
                 # Public keys are safe to commit; this makes the policy concrete +

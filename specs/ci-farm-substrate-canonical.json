@@ -68,17 +68,16 @@
     "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/Jenkinsfile and the JCasC agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
     "verify_mirror": "ADR-0346 oya verify --ci-required"
   },
-  "local_realization": {
-    "scope": "LOCAL dev cluster only (colima/k3s on a single host) — proves the controller/JCasC/agent-cloud/cache-wiring contract runs; does NOT satisfy the production non_claims below.",
-    "iac": "infra/ci/ (jenkins/ controller+JCasC+seeds, seaweedfs/ S3 cache backend, argocd/ CD; deploy-local.sh; README local-vs-production deltas)",
-    "evidence": "evidence/ci-farm-local/ — smoke (build #5 SUCCESS, rustc/cargo on ephemeral agent); real build lane (oya-ci-build #1 SUCCESS: cargo check on clean checkout, sccache run1 populate -> run2 100% cache HIT served from SeaweedFS, bucket non-empty); SeaweedFS S3 + ArgoCD v3.4.2 7/7 pods running.",
-    "realized": "Jenkins controller (JCasC, numExecutors=0, webSocket agents, non-root UID1000+drop-ALL), ephemeral k8s agents, real repo build lane, sccache->SeaweedFS remote cache (write+hit proven), ArgoCD control plane.",
-    "production_deltas": "Kata runtime (ADR-0338), Karpenter autoscaling (ADR-0198), cosign-required digest-pinned agent image, SeaweedFS HA + OpenBao-bound creds, Argo Rollouts canary + metric-gated rollback remain unbuilt; no throughput/cache-hit-rate/deploy-SLO measurement."
+  "deployment": {
+    "scope": "This IS the CI, deployed now on a single local node (colima/k3s). One CI, run locally for now — not a throwaway PoC, and not a separate 'local CI' distinct from production. The only gap to full production posture is SCALE/HA, not a different system.",
+    "iac": "infra/ci/ (jenkins/ controller+JCasC+seeds+shared-library, seaweedfs/ S3 cache backend, argocd/ CD + Rollouts, agent-image/ signed image, cache/ warm-cache; deploy-local.sh; README single-node-now vs at-scale deltas)",
+    "evidence": "evidence/ci/ — smoke build SUCCESS on ephemeral agent; real build lane (sccache populate -> 100% cross-agent HIT from SeaweedFS); codegen cold/warm measured; Argo Rollouts canary->analysis->promote; ArgoCD GitOps self-heal; SLSA/cosign/SBOM chain proven (syft SBOM + trivy scan + cosign sign + SLSA provenance + CycloneDX SBOM attestations; cosign verify-attestation PASSED).",
+    "realized": "Jenkins controller (JCasC, numExecutors=0, webSocket agents, non-root UID1000+drop-ALL), ephemeral k8s agents, real repo build lane, sccache->SeaweedFS remote cache (write+hit proven), ArgoCD + Argo Rollouts, cosign-verified SLSA provenance + CycloneDX SBOM.",
+    "scale_deltas": "Multi-node Karpenter elasticity (ADR-0198), Kata isolation (ADR-0338), SeaweedFS HA, OpenBao-bound prod creds, and a slim/distroless agent base (trivy found 250 HIGH/CRITICAL in the stock rust base) are the remaining SCALE + hardening deltas. The pipeline + supply-chain stages are identical at scale."
   },
   "non_claims": [
-    "No live PRODUCTION Jenkins controller, multi-node agent pool, production Kubernetes cluster, or populated remote cache is claimed (a single-host local-dev realization exists per local_realization).",
-    "No measured build-farm throughput, cache hit-rate, agent autoscaling behaviour, or CI SLO is claimed; capacity figures are design targets pending measured evidence.",
-    "No cosign/SLSA signing execution, ArgoCD live sync, or production deployment is performed by this foundation.",
-    "Concurrency figures are design guidance; physical parallelism is bounded by real provisioned capacity, not asserted here."
+    "No PRODUCTION-SCALE multi-node agent pool or HA is claimed; the CI runs on a single local node now. The CI itself is real and running — scale is the gap, not the system.",
+    "No measured FARM-WIDE throughput or CI SLO at scale is claimed; single-crate + local cache/build/codegen figures are measured, farm-wide-at-scale is pending.",
+    "Concurrency figures beyond the measured local runs are design guidance, bounded by real provisioned capacity."
   ]
 }

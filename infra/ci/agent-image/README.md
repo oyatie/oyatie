@@ -82,7 +82,7 @@ these stay `blocked_until_required_evidence_is_green` per ADR-0360.
 ## Production wiring (FB / ADR-0360 O5)
 
 The local proof built + cosign-signed + verified this image (evidence in
-`evidence/ci-farm-local/agent-image-build-sign.txt`). To go to production:
+`evidence/ci/agent-image-build-sign.txt`). To go to production:
 
 1. **Build + push by digest** to the real registry, capture the digest:
    `build-and-sign.sh` builds, pushes, and signs `registry.oyatie.dev/ci/rust-agent`

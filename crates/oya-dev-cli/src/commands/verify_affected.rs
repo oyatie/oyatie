@@ -296,7 +296,7 @@ mod tests {
         let changed = vec![
             "docs/decisions/ADR-0360.md".to_string(),
             "specs/masterplan.json".to_string(),
-            "evidence/ci-farm-local/x.txt".to_string(),
+            "evidence/ci/x.txt".to_string(),
             "registry/catalog/oya-foo.yaml".to_string(),
         ];
         assert_eq!(classify(&changed, &members(), &rdeps()), BuildScope::NoRust);

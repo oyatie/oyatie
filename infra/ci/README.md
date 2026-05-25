@@ -1,13 +1,16 @@
-# Oyatie CI farm — local k3s realization
+# Oyatie CI — the CI, deployed locally for now
 
-Local-cluster realization of `specs/ci-farm-substrate-canonical.json`
-(EXE-CI-FARM-SUBSTRATE-CANONICAL / ADR-0349): a Jenkins controller (JCasC-only,
-`numExecutors=0`) that runs every microservice lane on ephemeral Kubernetes
-agents.
+The Oyatie CI (`specs/ci-farm-substrate-canonical.json` / ADR-0349 / ADR-0361):
+a Jenkins controller (JCasC-only, `numExecutors=0`) that runs every microservice
+lane on ephemeral Kubernetes agents, with the full supply-chain stack
+(cargo-deny → SAST → secret-scan → tests → SBOM → Trivy → cosign/SLSA → Kyverno
+→ ArgoCD/Rollouts).
 
-This stands the substrate up on a **single-node local cluster** (colima
-`--kubernetes`, k3s) so the controller + JCasC + agent-cloud + cache-wiring
-contract can be executed and observed. It is **not** the production farm.
+**There is one CI, not a "local" one and a "production" one.** It runs now on a
+**single local node** (colima `--kubernetes`, k3s) — this *is* the CI, deployed
+locally; the only gap to full production posture is **scale/HA** (multi-node
+elasticity, Kata isolation, HA storage), not a different system. The pipeline and
+supply-chain stages are identical at scale.
 
 ## Run it
 
@@ -20,7 +23,7 @@ kubectl -n oya-ci-jenkins port-forward svc/oya-jenkins 8080:8080
 
 Validate end-to-end: seed `jenkins/smoke-seed.groovy` via the Script Console — it
 schedules a pod from the `oya-rust-ci` template and runs the rust toolchain on the
-ephemeral agent. A captured green run is in `evidence/ci-farm-local/`.
+ephemeral agent. A captured green run is in `evidence/ci/`.
 
 Components:
 - `jenkins/` — controller values + smoke + real build-lane seeds.
@@ -32,12 +35,12 @@ Real build lane (`jenkins/build-lane-seed.groovy`, template `oya-rust-build`):
 clones a clean tree from the repo (hostPath, RO), installs sccache, and runs
 `cargo check` twice — proving the sccache→SeaweedFS cache (run 1 populates, run 2
 after `cargo clean` is a 100% cache hit served from SeaweedFS). See
-`evidence/ci-farm-local/abc-execution-evidence.txt`.
+`evidence/ci/abc-execution-evidence.txt`.
 
 Tear down: `helm -n oya-ci-jenkins uninstall oya-jenkins` (or `colima delete` to
 remove the whole cluster).
 
-## Local-vs-production deltas
+## Single-node-now vs at-scale deltas (same CI, scale is the only gap)
 
 The local profile faithfully reproduces the **contract** (controller behavior,
 JCasC, ephemeral k8s agents, sccache→S3 env wiring) and intentionally omits the
@@ -54,7 +57,7 @@ JCasC, ephemeral k8s agents, sccache→S3 env wiring) and intentionally omits th
 These deltas do not alter the controller/agent/JCasC contract — they are exactly
 the items the spec's `non_claims` keep unproven until measured on real capacity.
 
-## Measured evidence (`evidence/ci-farm-local/`)
+## Measured evidence (`evidence/ci/`)
 
 - `cross-agent-cache-measure.txt` — fresh agent: 100% cache hit (38/38) from SeaweedFS.
 - `farmwide-cache.txt` — 150-crate `oya-dev-cli` graph: 100% cross-agent hit.

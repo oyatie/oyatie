@@ -34,7 +34,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
   application/applicationset controllers + repo-server + redis + dex).
 - **Demonstrated:** Argo Rollouts canary stepped `25% → analysis gate → 50% →
   75% → promote` on an image bump, with an `AnalysisRun` gating promotion
-  (`rollouts-demo.yaml`; evidence in `evidence/ci-farm-local/`).
+  (`rollouts-demo.yaml`; evidence in `evidence/ci/`).
 - **NOT claimed:** no ArgoCD git `Application` is synced (needs an in-cluster git
   remote — same seam as the build lane), the analysis metric is a job placeholder
   (not a real Prometheus SLO query), and no metric-triggered rollback or deploy

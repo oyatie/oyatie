@@ -2,4 +2,4 @@
 image: registry.oyatie.dev/ci/rust-agent:local (2.11GB); base pinned rust@sha256:6258907a...
 baked + verified: uid=10001(ciagent) non-root; cargo 1.95.0; sccache 0.8.2; cargo-nextest 0.9.96; git
 cosign: signed by digest sha256:ae598b8dfe66...; cosign verify => 'verified against the specified public key'
-pubkey: evidence/ci-farm-local/agent-image-cosign.pub (LOCAL demo key; production uses the OpenBao-held key in the Kyverno policy)
+pubkey: evidence/ci/agent-image-cosign.pub (LOCAL demo key; production uses the OpenBao-held key in the Kyverno policy)

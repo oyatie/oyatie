@@ -77,7 +77,7 @@ SCCACHE_BASEDIR="$CARGO_TARGET_DIR/.."     # or the per-agent checkout root
 
 Set it to each agent's checkout root so a build at `/home/a/repo` and one at
 `/workspace/repo` hash identically and share cache hits. (Local cross-agent hits
-in `evidence/ci-farm-local/cross-agent-cache-measure.txt` rely on consistent
+in `evidence/ci/cross-agent-cache-measure.txt` rely on consistent
 paths; `SCCACHE_BASEDIR` is what makes that robust when paths differ.)
 
 ## Download cache (Panamax)
@@ -102,5 +102,5 @@ baked in the agent image, cold-download cost on the build path approaches zero.
 The local profile proves the *wiring* (sccache→S3 hits, sparse mirror serving).
 **No cache hit-rate, download-latency, or build-speedup number is claimed** — all
 remain `blocked_until_required_evidence_is_green` per ADR-0360. The local measured
-cache evidence in `evidence/ci-farm-local/` is single-node and does not stand in
+cache evidence in `evidence/ci/` is single-node and does not stand in
 for farm-scale figures.
