@@ -590,6 +590,30 @@ Verification:
 - Env-gated disposable Postgres 16 run with setup role `postgres`, app role `oya_rls_app`, `OYA_BACKBONE_REQUIRE_CITUS=false`, and `OYA_BACKBONE_POSTGRES_REQUIRE_TLS=false`.
 - dependency-seam, honest-claims, diff hygiene, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-WORKLOAD-LIVE-CITUS-MIGRATION-HARNESS-001 — Env-gated workload Postgres/Citus migration harness
+Scope:
+- `crates/oya-foundry-backbone-workload-live-app/**` and `registry/catalog/oya-foundry-backbone-workload-live-app.yaml`
+- `Cargo.toml` workspace membership plus `Cargo.lock`
+- `crates/oya-shared-postgres-command-adapter-sqlx/Cargo.toml` (remove misplaced peer-service harness dev-deps)
+- `crates/oya-shared-transactional-outbox-adapter-sqlx/**`
+- `crates/oya-social-post-composition-adapter-postgres/src/lib.rs`
+- task/evidence tracking.
+
+Acceptance:
+- Env-gated harness is disabled by default and only runs when `OYA_BACKBONE_LIVE_WORKLOAD_POSTGRES=true` plus setup/admin URL `OYA_BACKBONE_WORKLOAD_POSTGRES_URL`, runtime app URL `OYA_BACKBONE_WORKLOAD_POSTGRES_APP_URL`, and `OYA_BACKBONE_WORKLOAD_POSTGRES_REQUIRE_TLS` are supplied.
+- Harness applies the existing messenger, mail, social, and community Postgres/Citus migration bundles to a disposable Citus/Postgres target, grants the runtime app role only schema usage plus table DML/select privileges, and refuses app roles that are superuser, have `BYPASSRLS`, or match the setup role.
+- Harness executes architecture-compliant app-style write plans for tenant A and tenant B—messenger send-message, mail submit-message, social publish feed-post, community create-post, community cast-vote, and community moderation-action—by composing the same API/usecase/adapter/outbox seams without adding adapter→peer-adapter dependencies. It then verifies per-table tenant A/tenant B/no-tenant RLS counts through the runtime app role.
+- Harness verifies each workload table is Citus-distributed by `tenant_id` via `pg_dist_partition`, and SQLx outbox drain claims pending protocol outbox rows under tenant RLS context for all four service outbox tables.
+- The social Postgres adapter casts timestamp bind parameters explicitly for `story_expires_at` and `purge_after`, preserving the existing app seam while making live SQL execution valid for timestamp columns.
+- Substrate alignment: FD-001 product delivery remains the master-plan product goal; this harness prepares messenger/mail/social/community to be dogfooded as future Oyatie Cloud tenant workloads without claiming the cloud substrate is live.
+- Honest non-claim: this is env-gated disposable workload migration and RLS/outbox evidence only. It does not claim a production database, production credentials, production tenant data, live Oyatie Cloud substrate, production tenant workload deployment, backup/restore, Citus rebalance/failover, Kubernetes admission, ArgoCD sync/health, OpenCost allocation, remote CI green, or production SLO evidence.
+
+Verification:
+- TDD red compile failure for missing workload harness config, table inventory, app-plan builder, and harness runner symbols before implementation.
+- `cargo test` / `cargo check` / `cargo clippy -D warnings` / `cargo fmt --check` for `oya-foundry-backbone-workload-live-app`, `oya-shared-postgres-command-adapter-sqlx`, `oya-shared-transactional-outbox-adapter-sqlx`, and `oya-social-post-composition-adapter-postgres`.
+- Env-gated disposable `docker.io/citusdata/citus:13.0` run on `127.0.0.1:55433` with setup role `postgres`, app role `oya_workload_app`, `OYA_BACKBONE_WORKLOAD_POSTGRES_REQUIRE_TLS=false`, and DSNs redacted in evidence.
+- dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### CS-BACKBONE-TRANSACTIONAL-OUTBOX-001 — Transactional outbox command seam
 Scope:
 - `crates/oya-shared-transactional-outbox-kernel/**`
@@ -1049,7 +1073,7 @@ Verification:
 
 Still pending before the full objective can honestly be called complete:
 - Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, durable DB-backed community vote/moderation HTTP binding beyond the local in-memory loopback state seam, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, local in-memory community vote/moderation JSON binding, pure mail-domain sending-domain authentication admission, static Oyatie Cloud dogfood tenant workload labels plus rendered tenant-cost-label snapshots, static topology-spread chart/snapshot constraints, and static ArgoCD FD-001 tenant metadata, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
-- Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
+- Production/cloud workload DB rollout, backup/restore drills, Citus rebalance/failover evidence, and production DB SLO evidence beyond generated write batches, execution contracts, the generic env-gated RLS/Citus harness, and the env-gated disposable Citus workload migration/RLS/outbox harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.
 - Live ArgoCD sync/health evidence, branch-protection live evidence, and full CI runtime-run evidence beyond static matrix definitions and static ApplicationSet manifests.

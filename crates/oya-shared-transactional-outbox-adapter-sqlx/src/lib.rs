@@ -7,6 +7,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
 use oya_shared_transactional_outbox_kernel::BackboneOutboxTable;
 pub use oya_shared_transactional_outbox_kernel::{
     OutboxClaimBatch, OutboxDispatchState, OutboxMutationReport, PendingOutboxEvent,
@@ -127,6 +128,7 @@ impl SqlxTransactionalOutboxDrain {
     ) -> Result<OutboxClaimBatch, SqlxOutboxDrainError> {
         request.validate(&self.config)?;
         let mut transaction = self.pool.begin().await?;
+        set_tenant_scope_for_rls(&mut transaction, &request.tenant_scope_ref).await?;
         let rows = sqlx::query(&claim_pending_sql(request.table))
             .bind(&request.tenant_scope_ref)
             .bind(i64::from(request.requested_limit))
@@ -198,11 +200,14 @@ async fn mutate_dispatch_state(
         OutboxDispatchState::Published => mark_published_sql(table),
         OutboxDispatchState::DeadLetter => mark_dead_letter_sql(table),
     };
+    let mut transaction = pool.begin().await?;
+    set_tenant_scope_for_rls(&mut transaction, tenant_scope_ref).await?;
     let result = sqlx::query(&sql)
         .bind(tenant_scope_ref)
         .bind(event_id)
-        .execute(pool)
+        .execute(&mut *transaction)
         .await?;
+    transaction.commit().await?;
     Ok(OutboxMutationReport {
         table,
         table_name: table.table_name(),
@@ -256,6 +261,17 @@ pub fn validate_claimed_events(
             });
         }
     }
+    Ok(())
+}
+
+async fn set_tenant_scope_for_rls(
+    transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    tenant_scope_ref: &str,
+) -> Result<(), SqlxOutboxDrainError> {
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind(tenant_scope_ref)
+        .execute(&mut **transaction)
+        .await?;
     Ok(())
 }
 

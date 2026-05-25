@@ -2897,6 +2897,32 @@ name = "oya-foundry-autonomy-ceiling-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-backbone-workload-live-app"
+version = "0.1.0"
+dependencies = [
+ "oya-community-post-store-adapter-postgres",
+ "oya-community-post-store-api",
+ "oya-community-post-store-domain",
+ "oya-community-post-store-usecase",
+ "oya-mail-mailbox-store-adapter-postgres",
+ "oya-mail-mailbox-store-api",
+ "oya-mail-mailbox-store-usecase",
+ "oya-messenger-message-stream-adapter-postgres",
+ "oya-messenger-message-stream-api",
+ "oya-messenger-message-stream-usecase",
+ "oya-shared-postgres-command-adapter-sqlx",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-parity-kernel",
+ "oya-shared-transactional-outbox-adapter-sqlx",
+ "oya-shared-transactional-outbox-kernel",
+ "oya-social-post-composition-adapter-postgres",
+ "oya-social-post-composition-api",
+ "oya-social-post-composition-usecase",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "oya-foundry-bypass-domain"
 version = "0.1.0"
 dependencies = [
@@ -4513,6 +4539,7 @@ version = "0.1.0"
 name = "oya-shared-transactional-outbox-adapter-sqlx"
 version = "0.1.0"
 dependencies = [
+ "oya-shared-postgres-command-kernel",
  "oya-shared-transactional-outbox-kernel",
  "sqlx",
 ]

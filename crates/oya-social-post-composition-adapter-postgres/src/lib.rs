@@ -30,7 +30,7 @@ INSERT INTO social_post_composition.posts (
   audit_correlation_id,
   story_expires_at
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::timestamptz
 )
 ON CONFLICT (tenant_id, post_id) DO NOTHING
 "#;
@@ -46,7 +46,7 @@ INSERT INTO social_post_composition.story_purge_targets (
   policy_decision_ref,
   audit_correlation_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9
+  $1, $2, $3, $4, $5, $6, $7::timestamptz, $8, $9
 )
 ON CONFLICT (tenant_id, post_id, purge_target) DO NOTHING
 "#;

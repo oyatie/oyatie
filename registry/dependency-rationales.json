@@ -202,10 +202,11 @@
       "version_pin": "0.8.6",
       "layer_seam": "adapter-only-postgres-runtime",
       "owner_team": "council-architecture + axis-data",
-      "rationale": "Async PostgreSQL client used only by SQLx adapter crates and the bounded transactional outbox worker composition root that accepts SQLx adapter types to execute tenant-scoped prepared statements and claim transactional outbox rows. Kernel/domain/usecase crates remain SQLx-free and expose typed command/outbox plans only.",
+      "rationale": "Async PostgreSQL client used only by SQLx adapter crates, the bounded transactional outbox worker composition root, and the env-gated foundry live workload harness app that proves tenant-scoped SQLx adapter behavior against disposable Postgres/Citus. Kernel/domain/usecase crates remain SQLx-free and expose typed command/outbox plans only.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, oya-shared-transactional-outbox-worker-app, and future *-adapter-postgres runtime crates only",
+      "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, oya-shared-transactional-outbox-worker-app, env-gated foundry live workload harness apps, and future *-adapter-postgres runtime crates only",
       "allowed_crates": [
+        "oya-foundry-backbone-workload-live-app",
         "oya-shared-postgres-command-adapter-sqlx",
         "oya-shared-transactional-outbox-adapter-sqlx",
         "oya-shared-transactional-outbox-worker-app"
@@ -232,10 +233,11 @@
       "version_pin": "1",
       "layer_seam": "adapter-only (current) + future async chain when ADR-0094 cancellation lands",
       "owner_team": "council-architecture",
-      "rationale": "Async runtime (rt-multi-thread + net + timers). No realistic alternative for async HTTP server and bounded worker delay wiring in Rust today. Adapter/runtime crates declare it; domain/kernel/usecase crates stay runtime-free.",
+      "rationale": "Async runtime (rt-multi-thread + net + timers). No realistic alternative for async HTTP server, bounded worker delay wiring, or env-gated live SQLx workload harness execution in Rust today. Adapter/runtime/harness crates declare it; domain/kernel/usecase crates stay runtime-free.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary), oya-shared-transactional-outbox-runtime-tokio-app for bounded outbox poller sleep, oya-shared-backbone-grpc-transport-adapter tests for local tonic loopback, oya-shared-backbone-rest-runtime-adapter tests/runtime listener helper for local Hyper REST loopback, oya-shared-postgres-command-adapter-sqlx tests for env-gated live Postgres/RLS harness, and cell-runtime main.rs entry",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary), oya-shared-transactional-outbox-runtime-tokio-app for bounded outbox poller sleep, oya-shared-backbone-grpc-transport-adapter tests for local tonic loopback, oya-shared-backbone-rest-runtime-adapter tests/runtime listener helper for local Hyper REST loopback, oya-shared-postgres-command-adapter-sqlx tests for env-gated live Postgres/RLS harness, oya-foundry-backbone-workload-live-app tests for FD-001 backbone workload migration/RLS execution, and cell-runtime main.rs entry",
       "allowed_crates": [
+        "oya-foundry-backbone-workload-live-app",
         "oya-foundry-claude-account-adapter",
         "oya-foundry-codex-account-adapter",
         "oya-foundry-gemini-account-adapter",

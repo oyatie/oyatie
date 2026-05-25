@@ -289,6 +289,7 @@ members = [
   "crates/oya-foundry-capability-domain",
   "crates/oya-foundry-cloud-mutation-domain",
   "crates/oya-foundry-policy-domain",
+  "crates/oya-foundry-backbone-workload-live-app",
   "crates/oya-check-raci-coverage",
   "crates/oya-check-readme-coverage",
   "crates/oya-connect-address-book-domain",
