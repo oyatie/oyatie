@@ -5818,7 +5818,8 @@
       "ADR-0349",
       "ADR-0350",
       "ADR-0351",
-      "ADR-0357"
+      "ADR-0357",
+      "ADR-0358"
     ],
     "bound_specs": [
       "specs/ci-farm-substrate-canonical.json",
@@ -5843,5 +5844,91 @@
       ],
       "status": "report-only-then-blocking"
     }
+  },
+  "ideal_production_roadmap": {
+    "_doc": "Ideal long-term 0->100 production roadmap for the Oyatie Cloud hyperscaler platform + tenant microservices. Authority: this section + ADR-0358. Strangler-fig migration; Bazel rules_rust build graph + oya governance overlay; production-100 bar defined collaboratively in P-DEFINE. Research-grounded (Google TAP/Bazel RBE, Amazon Apollo staged rollout, Microsoft rings, Oracle blue-green, Nygard ADR immutability). Honest: this is a roadmap-spec; no production/hyperscaler-maturity claim until P-DEFINE bar evidence is green.",
+    "authoring_adr": "ADR-0358",
+    "posture": "strangler-fig: spec ideal target + contracts first; build alongside; migrate service-by-service behind contracts; trunk always shippable; parallel lanes; cut over only when green",
+    "toolchain_target": {
+      "build_graph": "Bazel rules_rust (crate_universe; Cargo.toml stays dependency SSOT)",
+      "remote": "remote build execution + hermetic remote cache (sccache->SeaweedFS today; bazel RBE target)",
+      "affected_targets": "bazel query rdeps for presubmit affected-target selection (Google TAP model)",
+      "oya_role": "governance/verify orchestrator delegating build/test to bazel query/test; retires duplicated cargo-mirror verify/run-all",
+      "rejected": "Buck2 (Reindeer vendoring hostile to Git/code-review; less OSS-battle-tested)"
+    },
+    "phases": [
+      {
+        "id": "P-DEFINE",
+        "title": "Define production-100 exit bar",
+        "status": "open",
+        "parallel": "no (gates all)",
+        "deliverable": "Collaboratively define: scale targets, compliance packs, deployment model (ADR-0254), first production workload (FD-001 candidate), SLO/DR/security/cost exit gates. No production claim until green."
+      },
+      {
+        "id": "P-TARGET",
+        "title": "Ideal target architecture + contracts spec",
+        "status": "proposed",
+        "parallel": "partial",
+        "deliverable": "Vertical-slice nesting (ADR-0357); contracts SSOT (OpenAPI 3.2.0/AsyncAPI 3.1.0/proto3, CS-LAUNCH-API-CONTRACT-SSOT-001); Cedar policy; observability/SLO substrate; cloud-* substrate + tenant microservice target shapes."
+      },
+      {
+        "id": "P-TOOLCHAIN",
+        "title": "CI/CD + oya toolchain overhaul (Bazel rules_rust + oya overlay)",
+        "status": "proposed",
+        "parallel": "yes",
+        "deliverable": "Adopt Bazel rules_rust build graph; RBE + remote cache; affected-target presubmit; merge-queue speculative+batch (ADR-0111); progressive delivery canary/bake/auto-rollback (ArgoCD+Argo Rollouts, ADR-0343/0349); oya rebuilt as governance overlay. Per docs/ideas + ci-farm-substrate-canonical.json."
+      },
+      {
+        "id": "P-STRANGLE",
+        "title": "Per-service strangler migration to ideal target",
+        "status": "proposed",
+        "parallel": "yes (one lane per microservice; ~21+ lanes, ~5-6 concurrent on one host, N on the CI farm)",
+        "deliverable": "Migrate each cloud-* substrate service + tenant microservice to the ideal target behind contracts; old->contract->new; cut over when green; trunk stays shippable."
+      },
+      {
+        "id": "P-PROD",
+        "title": "Production hardening to the P-DEFINE bar",
+        "status": "proposed",
+        "parallel": "partial",
+        "deliverable": "Measured SLO/DR/rollback/security/compliance evidence to the production-100 exit bar; promote per ADR-0327 wave completion + agentic SLO-gated promotion."
+      }
+    ],
+    "parallel_lane_model": "Lanes = vertical slices (one per microservice); decoupled by the flat-microservice-catalog + workflow-ontology-adapter-layer invariants. Concurrency bounded by the CI farm (Karpenter-elastic agents), not a single host. See .omx/plans/parallel-lane-scoping.md.",
+    "reconsidered_choices": [
+      {
+        "choice": "flat crates/ layout",
+        "verdict": "CHANGE -> vertical-slice nesting microservices/<ms>/crates + libs/ (ADR-0357)",
+        "rationale": "hyperscaler vertical-slice locality; flat 750-crate dir is the navigability anti-pattern"
+      },
+      {
+        "choice": "bespoke oya verify full-local-CI-mirror (ADR-0346)",
+        "verdict": "CHANGE -> Bazel affected-targets + RBE; oya as governance overlay (ADR-0358)",
+        "rationale": "full-local-mirror does not scale; Google TAP runs affected targets only; dedup doubled cargo mirrors"
+      },
+      {
+        "choice": "big-bundle worktree consolidation",
+        "verdict": "CHANGE -> strangler-fig per-service migration behind contracts",
+        "rationale": "trunk-always-green, parallel, lower-risk than bundle merges"
+      },
+      {
+        "choice": "masterplan _meta.session_directives accretion",
+        "verdict": "CHANGE -> structured planning_authority + ideal_production_roadmap + planning-ssot-coverage gate",
+        "rationale": "avoid the constitution-with-amendments SSOT anti-pattern"
+      },
+      {
+        "choice": "tier system / suites",
+        "verdict": "KEEP retired (ADR-0329/0132)",
+        "rationale": "tenant-class + flat single-concern already aligns with hyperscaler service ownership"
+      },
+      {
+        "choice": "Valkey/Pulsar/Kubewarden/Cedar/OpenBao substrate",
+        "verdict": "KEEP",
+        "rationale": "license-clean, self-hostable, hyperscaler-pattern-aligned"
+      }
+    ],
+    "non_claims": [
+      "Roadmap-spec only; no production readiness, hyperscaler maturity, Bazel adoption, RBE, or measured SLO/DR is implemented or claimed here.",
+      "production-100 bar is intentionally undefined until P-DEFINE completes; no GA/production claim until its evidence is green."
+    ]
   }
 }
