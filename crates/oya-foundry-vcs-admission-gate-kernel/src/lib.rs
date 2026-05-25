@@ -30,8 +30,9 @@
 //!   5. Provider-evidence JSON referenced from (4)
 //!   6. Provider-execution-proof JSON referenced from (4)
 //!   7. `.github/branch-protection.yaml` (read as text)
-//!   8. `.github/workflows/pr-tests.yml` (read as text)
-//!   9. `.github/workflows/oya-foundry-fitness-supply-chain.yml` (read as text)
+//!   8. `infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy` (read as text;
+//!      the Jenkins-native pipeline that retired pr-tests.yml per ADR-0361)
+//!   9. same Jenkins pipeline source (retired oya-foundry-fitness-supply-chain.yml)
 //!  10. `cargo metadata --no-deps --format-version 1` output
 //!  11. `evidence/audit-chain.jsonl` (read as text)
 //!  12. Each JSON file under `evidence/multispectrum/`

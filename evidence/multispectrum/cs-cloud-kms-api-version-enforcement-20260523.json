@@ -1,0 +1,287 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-KMS-001",
+  "changeset_id": "CS-CLOUD-KMS-001",
+  "change_slug": "cs-cloud-kms-api-version-enforcement",
+  "change_class_id": "CC-1",
+  "git_sha_base": "41eb20fa618feced2af44ff9ed5dc03c9346a4c3",
+  "freshness_unix": 1779513451,
+  "timestamp_iso": "2026-05-23T05:17:31Z",
+  "agent_id": "codex-impl",
+  "scope": [
+    "crates/oya-cloud-kms-api/src/lib.rs",
+    "crates/oya-cloud-kms-api/tests/cloud_kms_api.rs",
+    "contracts/openapi/cloud/cloud-kms-v1.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-impl --intent cs-cloud-kms-001-api-version-enforcement crates/oya-cloud-kms-api/src/lib.rs crates/oya-cloud-kms-api/tests/cloud_kms_api.rs contracts/openapi/cloud/cloud-kms-v1.yaml tasks/plan.md tasks/todo.md evidence/audit-chain.jsonl evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json",
+      "status": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json work --agent codex-impl",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Enforce ADR-0342 public API date carrier handling on Cloud KMS encrypt/decrypt API paths before authorization, idempotency ledger mutation, or KMS receipt mutation. The API boundary now carries Oyatie-Version, rejects missing/unsupported versions, accepts the manifest N=3 supported versions, keys idempotency fingerprints by version, and the OpenAPI contract declares the required header.",
+  "baseline_diff": {
+    "before": "Cloud KMS manifest declared N=3 public versions, but the Cloud KMS API boundary and OpenAPI encrypt/decrypt operations had no Oyatie-Version carrier. Idempotency fingerprints could not distinguish request replay across public API versions.",
+    "after": "Cloud KMS API boundary includes oyatie_version, validates it against 2026-05-21/2026-02-21/2025-11-21 before auth/idempotency/domain mutation, includes it in encrypt/decrypt fingerprints, and OpenAPI declares Oyatie-Version on both operations."
+  },
+  "best_practice_research": {
+    "question": "How should a public Cloud KMS-style API bind API versions and key-management controls?",
+    "direct_recommendation": "Use an explicit request carrier for public API version selection, keep a documented supported-version window, require tests before upgrades, and keep KMS custody/use receipts metadata-only with key access controlled by tenant/authorization policy and HSM/residency evidence.",
+    "evidence_used": [
+      {
+        "source": "GitHub REST API versioning",
+        "url": "https://docs.github.com/rest/about-the-rest-api/api-versions/",
+        "establishes": "Date-based API versions can be selected through a request header; unsupported versions receive explicit errors; support/deprecation windows are documented."
+      },
+      {
+        "source": "Stripe API versioning",
+        "url": "https://docs.stripe.com/api/versioning",
+        "establishes": "Per-request API version override through a header is a mature production pattern, and upgrades should be tested before committing."
+      },
+      {
+        "source": "AWS KMS best practices",
+        "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/aws-kms-best-practices/introduction.html",
+        "establishes": "KMS design should address key management model, access management, multi-region architecture, detective controls, incident response, and auditability."
+      },
+      {
+        "source": "Google Cloud KMS CMEK best practices",
+        "url": "https://cloud.google.com/kms/docs/cmek-best-practices",
+        "establishes": "Key rings should align to locations, granularity and centralized key projects should be deliberate, and HSM/EKM choices follow custody requirements."
+      },
+      {
+        "source": "Azure Key Vault security guidance",
+        "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/security-features",
+        "establishes": "Key-management stores need isolation by application/region/environment, least privilege, and explicit architecture boundaries."
+      },
+      {
+        "source": "OpenAPI Specification v3.2.0",
+        "url": "https://spec.openapis.org/oas/v3.2.0.html",
+        "establishes": "Header parameters and enum-constrained schemas are first-class OpenAPI contract elements."
+      }
+    ],
+    "version_date_context": "External official sources checked on 2026-05-23; ADR-0342 dated 2026-05-21 remains the repo-local public API versioning authority.",
+    "repo_local_context": [
+      "microservices/cloud-kms/manifest.json declares supported versions 2026-05-21, 2026-02-21, and 2025-11-21 with default 2026-05-21.",
+      "contracts/openapi/cloud/cloud-kms-v1.yaml exposes public encrypt/decrypt paths.",
+      "crates/oya-cloud-kms-api/src/lib.rs owns API boundary validation and idempotency ledgers while the domain remains transport-version free."
+    ],
+    "boundaries_non_goals": [
+      "This slice does not implement api-gateway URL-prefix routing, proto3 carriers, SDK semver pinning, typed cell/region placement, or KMS manifest coherence cleanup.",
+      "This slice does not alter domain crypto receipt semantics or provider adapter command translation."
+    ],
+    "handoff": "CS-CLOUD-KMS-002 should add typed tenant/cell/region boundary metadata to KMS hot paths; CS-CLOUD-KMS-004 should narrow manifest claims to implemented evidence after receipt/placement work lands."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-kms-api kms_api_rejects_missing_or_unsupported_oyatie_version_before_ledger -- --nocapture",
+      "status": "failed-as-expected-red",
+      "evidence": "Initial RED compile failed because Cloud KMS API lacked public-version constants, oyatie_version boundary field, and Missing/Unsupported public-version error variants."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-api kms_api_rejects_missing_or_unsupported_oyatie_version_before_ledger -- --nocapture",
+      "status": "passed",
+      "evidence": "Targeted missing/unsupported Oyatie-Version test passed after implementation: 1 passed, 11 filtered."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-api kms_api_accepts_manifest_public_versions_and_keys_idempotency_by_version -- --nocapture",
+      "status": "passed",
+      "evidence": "Supported-version and idempotency version-drift test passed: 1 passed, 11 filtered."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-api",
+      "status": "passed",
+      "evidence": "Cloud KMS API tests passed: 12 passed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-domain -p oya-cloud-kms-api -p oya-cloud-kms-adapter-oci -p oya-cloud-kms-adapter-openbao",
+      "status": "passed",
+      "evidence": "Cloud KMS domain/api/adapters regression passed: adapter OCI 4, OpenBao 4, API 12, domain 26 tests."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-kms-domain -p oya-cloud-kms-api -p oya-cloud-kms-adapter-oci -p oya-cloud-kms-adapter-openbao --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Cloud KMS clippy completed with -D warnings."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "passed",
+      "evidence": "Rust formatting check exited 0 after applying rustfmt."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "status": "passed",
+      "evidence": "API semver validation passed: 41 contracts, 41 metadata records."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog --self-test",
+      "status": "passed",
+      "evidence": "architecture-boundaries self-test passed: 10 cases."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam",
+      "status": "passed",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 2 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya git diff --check -- crates/oya-cloud-kms-api/src/lib.rs crates/oya-cloud-kms-api/tests/cloud_kms_api.rs contracts/openapi/cloud/cloud-kms-v1.yaml tasks/plan.md tasks/todo.md evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json evidence/audit-chain.jsonl",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json >/tmp/cs-cloud-kms-001-evidence.pretty && tail -1 evidence/audit-chain.jsonl | python3 -m json.tool >/tmp/cs-cloud-kms-001-audit.pretty",
+      "status": "passed",
+      "evidence": "multispectrum evidence JSON and audit-chain JSONL row parse successfully"
+    },
+    {
+      "command": "./bin/oya vcs --format json verify --agent codex-impl --evidence evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json#verify",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS verify accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json done --agent codex-impl --controller-promote --evidence evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json#done ...",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS done accepted with controller-promote closeout"
+    },
+    {
+      "command": "./bin/oya vcs --format json promote --agent codex-impl --bundle cb-cs-cloud-kms-001 --environment local-review --evidence evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json#promote",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS promote accepted for local-review bundle cb-cs-cloud-kms-001"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Small boundary change: one new carrier field, two error variants, one validator, and fingerprint entries; no new abstractions or dependencies."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Matches hyperscaler API-version precedents by making public version selection explicit and testable; KMS custody/domain stays separated from transport versioning."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests clear auth scopes and assert no ledger/receipt mutation when version is missing/unsupported, proving validation precedes authorization/domain effects for covered paths."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "Shared constants expose default/supported versions to tests and future API adapters."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED/GREEN TDD, package regression, clippy, fmt, and Oya gates cover the claimed behavior."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Leave KMS unversioned until api-gateway lands",
+        "Add header to OpenAPI only",
+        "Enforce in API boundary now"
+      ],
+      "selected_rationale": "The current public API crate is the only implemented admission boundary for encrypt/decrypt, so carrier validation belongs here until api-gateway routing exists.",
+      "rejected_reasons": [
+        "Waiting preserves an unversioned public KMS hot path.",
+        "Contract-only headers would not stop unversioned authorization or idempotency mutation."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Invalid public version requests fail before auth/idempotency/domain mutations; no key/plaintext/ciphertext material added to version validation or evidence."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "Version validation is a constant-size slice membership check over N=3 supported versions; fingerprint adds one string component."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "audit_chain_emission_required": true,
+      "audit_chain_evidence_path": "evidence/audit-chain.jsonl",
+      "findings": [
+        "Evidence captures ADR-0342 carrier enforcement and official KMS custody/control sources."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "Carrier dates are centralized constants; future version windows can update the constants/tests/OpenAPI enum together."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "This slice names the version boundary but does not yet emit oyatie_version metrics/traces/audit labels; deferred to api-gateway/observability work."
+      ]
+    },
+    "F12_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Operators and SDK generators can now see exact supported KMS public versions in OpenAPI and tests."
+      ]
+    },
+    "F13_boundary": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Public API versioning is confined to oya-cloud-kms-api and OpenAPI; oya-cloud-kms-domain and provider adapters remain transport-version free."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-cloud-kms-api/src/lib.rs",
+    "crates/oya-cloud-kms-api/tests/cloud_kms_api.rs",
+    "contracts/openapi/cloud/cloud-kms-v1.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-kms-api-version-enforcement-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "remaining_risks": [
+    "ADR-0342's full carrier triplet (URL prefix and proto3 field) is not implemented in this API-only slice; api-gateway/proto work remains future scope.",
+    "Cloud KMS still lacks typed tenant/cell/region placement boundary metadata on API hot paths.",
+    "Cloud KMS manifest still overclaims some capability/SLO/DR surfaces and is explicitly deferred to CS-CLOUD-KMS-004."
+  ],
+  "lifecycle": {
+    "claim": "accepted",
+    "work": "accepted",
+    "verify": "accepted",
+    "done": "accepted",
+    "promote": "accepted"
+  }
+}

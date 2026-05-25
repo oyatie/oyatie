@@ -1,0 +1,19 @@
+[package]
+name = "oya-mail-mailbox-store-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-connect-mail-domain = { path = "../oya-connect-mail-domain" }
+oya-mail-mailbox-store-api = { path = "../oya-mail-mailbox-store-api" }
+
+[lib]
+name = "oya_mail_mailbox_store_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

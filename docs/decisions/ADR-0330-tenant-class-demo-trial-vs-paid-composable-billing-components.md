@@ -2,7 +2,9 @@
 id: ADR-0330
 title: Tenant Class — demo_trial vs paid with Composable Billing Components
 status: Accepted
+planning_impact: true
 date: 2026-05-21
+owner_team: council-architecture
 related:
   - ADR-0329
   - ADR-0331
@@ -107,7 +109,7 @@ billing_components composition.
 The companion retirement decisions are recorded in ADR-0329; this ADR
 provides the positive shape that the retired tier system is replaced with.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: tier feature gating fought oyatie's "everyone is shared" doctrine
 
@@ -266,7 +268,7 @@ tenant_class — not as sub-tiers of tenant_class. This compositional
 posture is what lets the binary enum stay closed without forcing every
 customer-specific behavior into a tenant-class branch.
 
-## B. Decision
+## Decision
 
 The decision is recorded as a numbered set of normative clauses. Every
 clause is a load-bearing commitment; downstream microservice work,
@@ -749,7 +751,7 @@ immutable once accepted.
     class-adoption-check` verifies dual-fixture coverage and rejects
     microservices with single-fixture tests.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Direct corpus impact
 

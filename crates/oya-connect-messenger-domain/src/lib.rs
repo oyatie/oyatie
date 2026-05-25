@@ -9,7 +9,9 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub mod delivery_class;
+pub mod governance;
 pub use delivery_class::{MessageDeliveryClass, MessengerChannelKind};
+pub use governance::*;
 
 use std::collections::BTreeSet;
 

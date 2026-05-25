@@ -182,7 +182,7 @@ Exit artifact: `bootcamp-page-04-adr-0245`.
 
 ## Page 05. ADR-0246 - ADR-0246 Amendment — Library-First / Network-Opt-In Clarification
 
-ADR source: [decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md).
+ADR source: [decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md).
 Doctrine summary: This is an **amendment** to ADR-0246 (Policy-Engine Substrate Promotion, 2026-05-20).
 Binding docs: [keystone synthesis](../architecture/keystone-bundle-2026-05-20-synthesis.md), [documentation rigor](../standards/documentation-rigor.md), and [glossary](../GLOSSARY.md).
 Why it matters: This decision prevents product teams from inventing a parallel identity, policy, workflow, ontology, audit, compliance, or extension grammar.
@@ -378,7 +378,7 @@ Exit artifact: `bootcamp-page-11-adr-0252`.
 
 ## Page 12. ADR-0253 - ADR-0253-amendment — HTTP/3 Fallback Chain, Strict TLS, `ECH`, `PQC` Hybrid
 
-ADR source: [decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md).
+ADR source: [decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md).
 Doctrine summary: Amends ADR-0253 §D-4 (TLS), §D-5 (protocol version), and §D-7 (observability) with binding operational parameters that were advisory in the original ADR.
 Binding docs: [keystone synthesis](../architecture/keystone-bundle-2026-05-20-synthesis.md), [documentation rigor](../standards/documentation-rigor.md), and [glossary](../GLOSSARY.md).
 Why it matters: This decision prevents product teams from inventing a parallel identity, policy, workflow, ontology, audit, compliance, or extension grammar.
@@ -434,7 +434,7 @@ Exit artifact: `bootcamp-page-13-adr-0254`.
 
 ## Page 14. ADR-0255 - ADR-0255 Amendment — Library-First / Network-Opt-In Clarification
 
-ADR source: [decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md).
+ADR source: [decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md).
 Doctrine summary: This is an **amendment** to ADR-0255 (Intelligence as Two-Layer AI Substrate, 2026-05-20).
 Binding docs: [keystone synthesis](../architecture/keystone-bundle-2026-05-20-synthesis.md), [documentation rigor](../standards/documentation-rigor.md), and [glossary](../GLOSSARY.md).
 Why it matters: This decision prevents product teams from inventing a parallel identity, policy, workflow, ontology, audit, compliance, or extension grammar.
@@ -462,7 +462,7 @@ Exit artifact: `bootcamp-page-14-adr-0255`.
 
 ## Page 15. ADR-0257 - ADR-0257 Amendment — Library-First Ontology Read-Path Clarification
 
-ADR source: [decisions/ADR-0257-amendment-library-first-ontology-read-path.md](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md).
+ADR source: [decisions/ADR-0356-amendment-library-first-ontology-read-path.md](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md).
 Doctrine summary: This is an **amendment** to ADR-0257 (Ontology Object Type Versioning & Deprecation Handshake, 2026-05-20).
 Binding docs: [keystone synthesis](../architecture/keystone-bundle-2026-05-20-synthesis.md), [documentation rigor](../standards/documentation-rigor.md), and [glossary](../GLOSSARY.md).
 Why it matters: This decision prevents product teams from inventing a parallel identity, policy, workflow, ontology, audit, compliance, or extension grammar.
@@ -914,17 +914,17 @@ Exit artifact: `bootcamp-page-30-adr-0317`.
 - Exit row 02: cite [ADR-0243](../decisions/ADR-0243-cedar-as-universal-gate.md), one glossary row, one binding doc, and one verification command.
 - Exit row 03: cite [ADR-0244](../decisions/ADR-0244-tenant-as-universal-scoping-primitive.md), one glossary row, one binding doc, and one verification command.
 - Exit row 04: cite [ADR-0245](../decisions/ADR-0245-substrate-vs-product-layering.md), one glossary row, one binding doc, and one verification command.
-- Exit row 05: cite [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md), one glossary row, one binding doc, and one verification command.
+- Exit row 05: cite [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md), one glossary row, one binding doc, and one verification command.
 - Exit row 06: cite [ADR-0247](../decisions/ADR-0247-self-hosting-self-modification-doctrine.md), one glossary row, one binding doc, and one verification command.
 - Exit row 07: cite [ADR-0248](../decisions/ADR-0248-amazon-shape-cellular-architecture.md), one glossary row, one binding doc, and one verification command.
 - Exit row 08: cite [ADR-0249](../decisions/ADR-0249-multi-category-marketplace-doctrine.md), one glossary row, one binding doc, and one verification command.
 - Exit row 09: cite [ADR-0250](../decisions/ADR-0250-build-ahead-of-certification-doctrine.md), one glossary row, one binding doc, and one verification command.
 - Exit row 10: cite [ADR-0251](../decisions/ADR-0251-compliance-pack-cell-certification-levels.md), one glossary row, one binding doc, and one verification command.
 - Exit row 11: cite [ADR-0252](../decisions/ADR-0252-time-coordination-distributed-consistency.md), one glossary row, one binding doc, and one verification command.
-- Exit row 12: cite [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), one glossary row, one binding doc, and one verification command.
+- Exit row 12: cite [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), one glossary row, one binding doc, and one verification command.
 - Exit row 13: cite [ADR-0254](../decisions/ADR-0254-deployment-model-spectrum.md), one glossary row, one binding doc, and one verification command.
-- Exit row 14: cite [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md), one glossary row, one binding doc, and one verification command.
-- Exit row 15: cite [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), one glossary row, one binding doc, and one verification command.
+- Exit row 14: cite [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md), one glossary row, one binding doc, and one verification command.
+- Exit row 15: cite [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), one glossary row, one binding doc, and one verification command.
 - Exit row 16: cite [ADR-0258](../decisions/ADR-0258-api-versioning-model.md), one glossary row, one binding doc, and one verification command.
 - Exit row 17: cite [ADR-0263](../decisions/ADR-0263-observability-emission-contract.md), one glossary row, one binding doc, and one verification command.
 - Exit row 18: cite [ADR-0273](../decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md), one glossary row, one binding doc, and one verification command.
@@ -963,7 +963,7 @@ Refusal signal: The note creates a product-local workflow grammar.
 
 ### Drill 04 - Ontology read path
 Prompt: Pick one read model and name the ontology object type, projection, and freshness floor.
-Artifact: A five-line note citing [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md), ontology glossary row, and spec path.
+Artifact: A five-line note citing [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md), ontology glossary row, and spec path.
 Refusal signal: The note invents a data shape without ontology binding.
 
 ### Drill 05 - Audit-chain proof
@@ -978,7 +978,7 @@ Refusal signal: The note treats compliance as later work.
 
 ### Drill 07 - Transport doctrine
 Prompt: Pick one public surface and name its HTTP/3, TLS, encrypted-client-hello, and post-quantum-cryptography posture.
-Artifact: A five-line note citing [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md), transport glossary rows, and contract path.
+Artifact: A five-line note citing [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md), transport glossary rows, and contract path.
 Refusal signal: The note allows insecure transport fallback.
 
 ### Drill 08 - Credential isolation

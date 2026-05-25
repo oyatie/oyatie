@@ -1,0 +1,18 @@
+[package]
+name = "oya-enterprise-suite-audit-chain-runtime-evidence"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-enterprise-suite-audit-chain-emission = { path = "../oya-enterprise-suite-audit-chain-emission" }
+
+[lib]
+name = "oya_enterprise_suite_audit_chain_runtime_evidence"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

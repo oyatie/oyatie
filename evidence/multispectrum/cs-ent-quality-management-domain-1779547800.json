@@ -1,0 +1,295 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-QUALITY-001",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:50:00Z",
+  "freshness_unix": 1779547800,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "Quality management domain foundation adds inspection-plan approval, inspection-lot usage-decision metadata, quality-certificate preparation metadata, quality-notification opening, and SAP QM parity-map linkage while explicitly refusing durable persistence, live inspection runtime, inventory mutation, certificate rendering, CAPA Workflow execution, supplier-network integration, cloud deployment, and runtime audit-chain claims.",
+  "scope": {
+    "files_added": [
+      "microservices/quality-management/crates/oya-quality-management-domain/Cargo.toml",
+      "microservices/quality-management/crates/oya-quality-management-domain/src/lib.rs",
+      "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs",
+      "specs/microservices/quality-management.json",
+      "registry/catalog/oya-quality-management-domain.yaml"
+    ],
+    "files_modified": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+      "tasks/enterprise-microservices-plan.md",
+      "tasks/enterprise-microservices-todo.md",
+      "evidence/audit-chain.jsonl"
+    ],
+    "crate": "oya-quality-management-domain",
+    "clean_architecture_layer": "domain",
+    "dependencies_added": [],
+    "workspace_member_added": "microservices/quality-management/crates/oya-quality-management-domain"
+  },
+  "non_claims": [
+    "no durable persistence",
+    "no live inspection runtime",
+    "no inventory blocking or release mutation",
+    "no laboratory instrument integration",
+    "no certificate PDF rendering",
+    "no email delivery",
+    "no supplier collaboration network call",
+    "no CAPA Workflow execution",
+    "no plant-maintenance notification",
+    "no statutory filing",
+    "no cloud deployment",
+    "no production QM parity claim",
+    "no runtime audit-chain emission"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice is additive and isolates quality-management domain invariants in a flat microservice crate rather than broadening Enterprise Suite into a monolith.",
+        "The public API is pure data-in/data-out with no I/O, durable state, network clients, or runtime side effects."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "claims_allowed": [
+        "bounded domain validation",
+        "flat microservice catalog/spec presence",
+        "ERP parity-map linkage for QM"
+      ],
+      "claims_refused": [
+        "production quality-management parity",
+        "cloud runtime readiness",
+        "inventory mutation",
+        "CAPA Workflow execution"
+      ],
+      "findings": [
+        "Independent scaling and deployment remain future adapter/runtime work; this slice only creates the pure domain foundation."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::inspection_plan_drives_quality_lot_certificate_and_notification",
+      "failing_fixture_id": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::quality_management_refuses_certificate_and_notification_overclaims",
+      "diagnostic_asserted": "Tests fail if missing plan approval, inconsistent inspection totals, certificate preparation on rejected lots, notification opening on accepted lots, invalid AQL, invalid dates, unsafe refs, or credential-shaped evidence refs are accepted.",
+      "findings": [
+        "Positive quality flow and negative guard rails are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 25,
+      "findings": [
+        "Types map to inspection plans, inspection lots, usage decisions, certificates, and quality notifications common to ERP quality-management systems."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused quality-management tests/clippy, ERP parity map tests/clippy, 30-package enterprise regression tests/clippy, fmt, JSON parse, data_class scan, quality-marker scan, and dependency-seam gate are recorded in verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "leave quality management as a parity gap",
+        "build live quality execution/CAPA/runtime now",
+        "add quality-management domain foundation first"
+      ],
+      "selected_rationale": "A flat domain foundation gives ERP QM parity a service-owned first write path while keeping inspection runtime, inventory mutation, certificate rendering, CAPA Workflow, supplier collaboration, durable state, and cloud adapters out of scope.",
+      "rejected_reasons": [
+        "Leaving QM as a gap weakens ERP parity after PP, warehouse, procurement, and treasury foundations landed.",
+        "Live quality execution and CAPA runtime require durable state, Workflow integration, equipment or lab integrations, inventory semantics, and operational SLO evidence beyond this slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "quality_management_evidence_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, external network calls, supplier portals, inventory/accounting mutations, or Workflow dispatches are introduced.",
+        "Source and audit refs reject traversal, whitespace/control, and credential-shaped strings."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-quality-management-domain-foundation",
+      "regression_baseline": "Pure string/date/quantity validation and small arithmetic only; no I/O or unbounded data access exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, equipment integration, scheduler runtime, or hot runtime path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "INTERNAL_ONLY quality identifiers/source/evidence refs",
+        "FINANCIAL characteristic/sample/inspection/defect quantities and AQL limits",
+        "PUBLIC non-claim capability flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-quality-management",
+        "quality-inspection-and-notification",
+        "sap-qm-parity"
+      ],
+      "official_sources_checked": [
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/d1e58be39d884a0dbf75a7526a9acbf4/e414e557b83a1070e10000000a44147b.html",
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/d1e58be39d884a0dbf75a7526a9acbf4/277f3490863c4d95b40404b625d90b34.html",
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/d1e58be39d884a0dbf75a7526a9acbf4/95bed3bd2c9d4c39ac02c615629dc3ae.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/26b/fauqm/inspection-plans.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/26b/fauqm/inline-inspections.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/26a/fauqm/overview-of-quality-issues-and-actions.html",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/quality-management-processes",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/quality-orders",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/advanced-quality-management-overview"
+      ],
+      "findings": [
+        "SAP/Oracle/Microsoft official materials inform quality-management coverage only; no exhaustive vendor parity or proprietary behavior clone is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one new crate/spec/catalog row and parity-map references; no migration or external resource is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence, task rows, and audit-chain rows document the change; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No production user or data migration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package name follows oya-quality-management-domain and flat microservice layout."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Machine-readable quality-management spec and existing task ledger capture the slice without creating root markdown sprawl."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New code is isolated to microservices/quality-management plus Enterprise Suite parity map references."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Clean architecture is preserved: domain crate depends only on data boundary kernel and std."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new third-party dependencies were added; Cargo.lock changed only for the new workspace package."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "specs/microservices/quality-management.json parses successfully and evidence follows prior multispectrum shape."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "AQL max-rejection calculation, pass/fail usage decision, certificate gating, and notification gating are deterministic arithmetic/boolean validation with no hidden state."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "challenge": "A QM row in the parity map could remain a planned gap until runtime integration exists.",
+      "resolution": "The additive domain foundation is lower risk than a runtime claim and establishes a service-owned boundary for future adapters."
+    },
+    "M2_independent_review": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "review_summary": "Self-review found no security, architecture, or quality blockers; only known full-verify blockers are unrelated pre-existing catalog/data-class lanes."
+    }
+  },
+  "verification": {
+    "passed": [
+      "cargo check -p oya-quality-management-domain",
+      "cargo test --locked -p oya-quality-management-domain",
+      "cargo clippy --locked -p oya-quality-management-domain --all-targets -- -D warnings",
+      "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+      "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+      "cargo test --locked -p oya-quality-management-domain -p oya-production-planning-domain -p oya-warehouse-inventory-domain -p oya-treasury-cash-domain -p oya-procurement-source-to-pay-domain -p oya-hr-employment-domain -p oya-hr-employment-app -p oya-hr-employment-api -p oya-hr-employment-runtime -p oya-hr-employment-storage-adapter-inmemory -p oya-payroll-run-domain -p oya-payroll-run-app -p oya-payroll-run-api -p oya-payroll-run-runtime -p oya-payroll-run-storage-adapter-inmemory -p oya-accounting-journal-domain -p oya-accounting-journal-app -p oya-accounting-journal-api -p oya-accounting-journal-runtime -p oya-accounting-journal-storage-adapter-inmemory -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory -p oya-enterprise-suite-workflow-adapter-inmemory -p oya-enterprise-suite-local-runtime-composition -p oya-enterprise-suite-local-inmemory-harness -p oya-enterprise-suite-erp-parity-map -p oya-enterprise-suite-cloud-readiness-gate",
+      "cargo clippy --locked -p oya-quality-management-domain -p oya-production-planning-domain -p oya-warehouse-inventory-domain -p oya-treasury-cash-domain -p oya-procurement-source-to-pay-domain -p oya-hr-employment-domain -p oya-hr-employment-app -p oya-hr-employment-api -p oya-hr-employment-runtime -p oya-hr-employment-storage-adapter-inmemory -p oya-payroll-run-domain -p oya-payroll-run-app -p oya-payroll-run-api -p oya-payroll-run-runtime -p oya-payroll-run-storage-adapter-inmemory -p oya-accounting-journal-domain -p oya-accounting-journal-app -p oya-accounting-journal-api -p oya-accounting-journal-runtime -p oya-accounting-journal-storage-adapter-inmemory -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory -p oya-enterprise-suite-workflow-adapter-inmemory -p oya-enterprise-suite-local-runtime-composition -p oya-enterprise-suite-local-inmemory-harness -p oya-enterprise-suite-erp-parity-map -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+      "cargo fmt --all -- --check",
+      "jq . specs/microservices/quality-management.json >/dev/null",
+      "quality-management data_class scan PASS (145 annotated public fields)",
+      "quality-management quality-marker scan PASS (0 findings)",
+      "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-quality-management-domain-1779547800.json --severity error"
+    ],
+    "blocked_global_not_rerun_as_success": [
+      "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog is still blocked by a pre-existing missing oya-tenancy-tenant-lifecycle-kernel catalog row",
+      "./bin/oya gate validate data-class --workspace Cargo.toml is still blocked by a pre-existing audit-chain ChainCoordinate.pack data_class finding"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 ---
 status: Proposed
+planning_impact: true
 deciders: council-foundry-vcs, council-architecture
 date: 2026-05-16
 owner: council-foundry-vcs

@@ -1,0 +1,270 @@
+{
+  "change_id": "backbone-microservices-rest-probe-readiness-20260524",
+  "change_class_id": "CC-1",
+  "summary": "Framework-free REST liveness/readiness probe dispatch and Kubernetes probe path alignment for messenger, mail, social, and community backbone services.",
+  "scope": [
+    "crates/oya-messenger-message-stream-rest/src/lib.rs",
+    "crates/oya-mail-mailbox-store-rest/src/lib.rs",
+    "crates/oya-social-post-composition-rest/src/lib.rs",
+    "crates/oya-community-post-store-rest/src/lib.rs",
+    "microservices/messenger/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/mail/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/social/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/community/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/mail/contracts/openapi/mail.yaml",
+    "microservices/community/contracts/openapi/community.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds framework-free REST probe dispatch for /health and /ready plus static Kubernetes probe path alignment. It does not bind Hyper, run Kubernetes, prove live ArgoCD health, execute downstream dependency checks, or claim production readiness.",
+  "best_practice_research": [
+    {
+      "source": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Dedicated minimal HTTP probe endpoints and readiness/liveness separation."
+    },
+    {
+      "source": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "HTTP probe status-code behavior and readiness failure semantics."
+    }
+  ],
+  "source_basis": [
+    {
+      "url": "repo://crates/oya-messenger-message-stream-rest/src/lib.rs",
+      "use": "Existing messenger REST route catalog, contract-only dispatcher, write-route dispatcher, and OpenAPI /health + /ready contract entries."
+    },
+    {
+      "url": "repo://crates/oya-mail-mailbox-store-rest/src/lib.rs",
+      "use": "Existing mail REST route catalog and write-route dispatcher now extended with probe routes."
+    },
+    {
+      "url": "repo://crates/oya-social-post-composition-rest/src/lib.rs",
+      "use": "Existing social REST route catalog, contract-only dispatcher, write-route dispatcher, and OpenAPI /health + /ready contract entries."
+    },
+    {
+      "url": "repo://crates/oya-community-post-store-rest/src/lib.rs",
+      "use": "Existing community REST route catalog and write-route dispatcher now extended with probe routes."
+    },
+    {
+      "url": "repo://microservices/*/iac/k8s/helm/templates/deployment.yaml",
+      "use": "Existing Helm readiness/liveness probes previously referenced undeclared /healthz and /livez paths."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Each REST crate gets small enum/struct probe dispatch without introducing a web framework, JSON parser, Kubernetes client, or provider SDK."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Kubernetes probe paths now match declared service REST probe routes, reducing later ArgoCD/Kubernetes deployment risk while keeping readiness dependency evidence explicit and caller-supplied."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests cover healthy liveness, ready and not-ready readiness, non-probe known-route refusal, and unknown-route refusal for all four services."
+      ],
+      "failing_fixture_added": false,
+      "not_applicable_reason": "Probe handlers are new bounded surfaces rather than a regression fix; tests cover liveness, ready, not-ready, non-probe known route, and unknown route behavior for each REST crate.",
+      "passing_fixture_id": "*_probe_dispatch_reports_liveness_and_readiness tests in four REST crates",
+      "diagnostic_asserted": "Readiness returns 503 when any caller-supplied dependency is not ready and 200 only when all are ready."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Future Hyper/Kubernetes runtime binding gets explicit /health and /ready entrypoints with small typed responses instead of inferring from business write-route dispatch."
+      ],
+      "new_contributor_minutes_estimate": 8
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused REST tests/check/clippy/fmt, OpenAPI YAML parsing, and static probe-path grep validate the slice."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Chose /health + /ready to match existing messenger/social contracts and Kubernetes readiness/liveness semantics instead of retaining undeclared /healthz and /livez Helm paths.",
+        "Chose caller-supplied dependency readiness evidence over fake live dependency checks while no Hyper/Kubernetes runtime exists."
+      ],
+      "alternatives_named": [
+        "Leave Helm paths as /healthz and /livez",
+        "Add fake live dependency checks in REST crates",
+        "Align contracts, REST catalogs, and Helm probes around /health and /ready"
+      ],
+      "selected_rationale": "The selected path aligns static deployment config with declared REST probe routes while preserving honest non-claims about live runtime evidence.",
+      "rejected_reasons": [
+        "Undeclared Helm paths would fail once bound to the current REST catalog.",
+        "Fake dependency checks would overclaim readiness without a runtime."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Probe responses contain service status metadata only; they do not expose tenant identifiers, request bodies, principals, secrets, or downstream connection strings."
+      ],
+      "owasp_class_review": "none_applicable",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Probe responses are minimal typed metadata and avoid dependency calls in liveness; readiness folds over caller-supplied dependency booleans only."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The change improves operational compliance posture by making Kubernetes readiness/liveness routes explicit, but does not claim live audit, branch-protection, certification, or SLO evidence.",
+        "Mail/community OpenAPI contracts now expose the same probe route shape as messenger/social."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reverting this slice removes probe handlers, OpenAPI additions for mail/community, and Helm path changes without touching API/usecase/app/persistence behavior."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Readiness dependency names provide low-cardinality status evidence for future metrics/log binding, but this slice does not emit telemetry."
+      ]
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Existing business REST write route behavior is unchanged; contract-only non-probe endpoints still return 501 through the existing dispatcher. Helm probe path changes are static and reversible."
+      ]
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Probe route constants use existing REST crate naming style and public routes match existing /health and /ready vocabulary."
+      ]
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "tasks/plan.md, tasks/todo.md, multispectrum evidence, and audit-chain evidence document scope, verification, and non-claims."
+      ]
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "REST boundary changes stay inside REST crates; Kubernetes path alignment stays inside microservice Helm deployment templates; OpenAPI additions stay in microservice contracts."
+      ]
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No domain/usecase/app/persistence layers import REST or Kubernetes concerns; probe dispatch remains framework-free at the REST boundary."
+      ]
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No dependencies were added or moved."
+      ]
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Readiness algorithm is deterministic all-dependencies-ready folding; liveness intentionally ignores dependencies and documents its non-claim."
+      ]
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Touched REST crates and Helm paths are covered by existing backbone CI/Jenkins path matrices; local focused checks passed while remote Actions remains budget-blocked."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest",
+      "result": "pass",
+      "evidence": "54 focused REST unit tests passed: messenger 13, mail 13, social 13, community 15."
+    },
+    {
+      "command": "cargo check -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo clippy -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest",
+      "result": "pass"
+    },
+    {
+      "command": "ruby YAML.load_file for microservices/{messenger,mail,social,community}/contracts/openapi/*.yaml",
+      "result": "pass",
+      "evidence": "All four OpenAPI YAML files parsed after mail/community probe route additions."
+    },
+    {
+      "command": "static grep for Helm probe paths",
+      "result": "pass",
+      "evidence": "All four backbone Helm deployments use readiness path /ready and liveness path /health; no /healthz or /livez references remain in those deployment templates."
+    },
+    {
+      "command": "python static validation for REST probe constants/functions, OpenAPI probe paths, and Helm probe paths",
+      "result": "pass",
+      "evidence": "rest-probe-static-check-ok services=4; all four Helm deployments use /ready and /health with no /healthz or /livez references."
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <scoped REST probe corpus>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 9 documents, 2770 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity error --evidence evidence/multispectrum/backbone-microservices-rest-probe-readiness-20260524.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    }
+  ],
+  "non_claims": [
+    "No Hyper/axum/tonic HTTP server binding, JSON serialization, Kubernetes pod execution, ArgoCD sync, or live cloud deployment is implemented by this slice.",
+    "Readiness dependency status is caller-supplied framework-free evidence; no live SQL, outbox, policy, OTel collector, broker, or service-mesh dependency was contacted.",
+    "No production readiness, SLO attainment, branch-protection success, compliance certification, or remote CI green status is claimed.",
+    "Contract-only business endpoints remain contract-only; this slice only implements liveness/readiness probe routes."
+  ],
+  "git_sha": "2693defff486",
+  "freshness_unix": 1779664551
+}

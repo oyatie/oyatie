@@ -871,7 +871,9 @@ fn cloud_storage_status_kind(error: &CloudStorageError) -> CloudStorageBlockApiS
         | CloudStorageError::AzRegionMismatch
         | CloudStorageError::InvalidSnapshotId
         | CloudStorageError::InvalidInitialState
-        | CloudStorageError::InvalidTimeOrder => CloudStorageBlockApiStatusKind::BadRequest,
+        | CloudStorageError::InvalidTimeOrder
+        | CloudStorageError::InvalidStorageNamespacePolicy
+        | CloudStorageError::InvalidEvidenceRef => CloudStorageBlockApiStatusKind::BadRequest,
     }
 }
 
@@ -934,6 +936,12 @@ fn cloud_storage_issue(error: &CloudStorageError) -> &'static str {
         CloudStorageError::InvalidSnapshotId => "snapshot id must use the snap_ prefix",
         CloudStorageError::InvalidInitialState => "create requests must start in Creating state",
         CloudStorageError::InvalidTimeOrder => "request timestamps must be monotonic",
+        CloudStorageError::InvalidStorageNamespacePolicy => {
+            "tenant/cell storage namespace policy must be canonical"
+        }
+        CloudStorageError::InvalidEvidenceRef => {
+            "evidence refs must be canonical and must not contain credentials"
+        }
         CloudStorageError::DuplicateBucket => "bucket resource id is already present",
         CloudStorageError::UnknownBucket => "bucket must exist before object creation",
         CloudStorageError::DuplicateObject => "object key is already present in the bucket",

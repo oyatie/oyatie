@@ -1,0 +1,9 @@
+[package]
+name = "oya-intelligence-credential-resolver-adapter"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2024"
+
+[dependencies]
+oya-intelligence-credential-resolver-domain = { path = "../oya-intelligence-credential-resolver-domain" }
+oya-intelligence-credential-resolver-usecase = { path = "../oya-intelligence-credential-resolver-usecase" }

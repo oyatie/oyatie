@@ -159,7 +159,7 @@ graph LR
 - [ADR-0243 Cedar as Universal Gate](../../decisions/ADR-0243-cedar-as-universal-gate.md)
 - [ADR-0244 Tenant as Universal Scoping Primitive](../../decisions/ADR-0244-tenant-as-universal-scoping-primitive.md)
 - [ADR-0255 Intelligence as Two-Layer AI Substrate](../../decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md)
-- [ADR-0255 Library-First Network Opt-In Clarification](../../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md)
+- [ADR-0255 Library-First Network Opt-In Clarification](../../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md)
 - [ADR-0263 Observability Emission Contract](../../decisions/ADR-0263-observability-emission-contract.md)
 - [ADR-0296 Library-First Credential Sidecar](../../decisions/ADR-0296-library-first-credential-sidecar.md)
 

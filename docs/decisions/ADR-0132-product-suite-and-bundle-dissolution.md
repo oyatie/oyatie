@@ -1,6 +1,7 @@
 ---
 id: ADR-0132
 status: Accepted
+planning_impact: true
 deciders: council-architecture, council-engineering, axis-foundry, axis-workspace, ops-sre-reliability
 date: 2026-05-17
 owner: council-architecture

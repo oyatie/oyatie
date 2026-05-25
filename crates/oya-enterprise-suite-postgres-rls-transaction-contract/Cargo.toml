@@ -1,0 +1,18 @@
+[package]
+name = "oya-enterprise-suite-postgres-rls-transaction-contract"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-enterprise-suite-postgres-rls-write-contract = { path = "../oya-enterprise-suite-postgres-rls-write-contract" }
+
+[lib]
+name = "oya_enterprise_suite_postgres_rls_transaction_contract"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

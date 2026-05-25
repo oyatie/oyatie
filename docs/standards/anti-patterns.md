@@ -115,7 +115,7 @@ ensureLines, which is the concrete script-based shallow-IP signal this
 catalogue forbids for human-authored canonical doctrine.
 
 The masterplan and planning-closure surfaces reject reduced-scope shortcuts:
-current scope posture is not MVP, not preview, and not reduced scope.
+current scope posture is not minimum viable product, not preview, and not reduced scope.
 
 Those incidents are cited again in §7.
 
@@ -583,7 +583,7 @@ true blocker.
 
 Required phrase when blocked: "blocked by X; completed Y; remaining Z."
 
-Anchor: specs/masterplan.json scope_posture not_mvp_not_preview_not_reduced_scope.
+Anchor: specs/masterplan.json scope_posture `not_mvp_not_preview_not_reduced_scope`.
 
 ### AP-A11 Conservative Re-Scoping
 
@@ -597,7 +597,7 @@ full version is large.
 Why it harms Oyatie: conservative scope feels safe locally but accumulates
 system-wide false readiness.
 
-Detection: "for now", "initial", "lightweight", "MVP", or "representative"
+Detection: "for now", "initial", "lightweight", "minimum viable product", or "representative"
 appears where the request asked for definitive coverage.
 
 CI candidate: not reliable; review-caught.
@@ -2704,7 +2704,7 @@ Source: specs/masterplan.json.
 
 Source: planning-closure references in root-hub-pointers.json.
 
-Oyatie's current execution posture rejects MVP, preview, reduced-scope,
+Oyatie's current execution posture rejects minimum viable product, preview, reduced-scope,
 placeholder, stub, thin scaffold, and deferred-scope claims for masterplan
 delivery.
 
@@ -2899,7 +2899,7 @@ ADR-0255 intelligence substrate and provider-BYOK:
 docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md.
 
 ADR-0255 amendment library-first:
-docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md.
+docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md.
 
 ADR-0263 observability emission contract:
 docs/decisions/ADR-0263-observability-emission-contract.md.

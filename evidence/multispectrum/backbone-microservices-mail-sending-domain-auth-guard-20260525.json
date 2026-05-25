@@ -1,0 +1,290 @@
+{
+  "change_id": "backbone-microservices-mail-sending-domain-auth-guard-20260525",
+  "change_class_id": "CC-1",
+  "summary": "The mail domain crate now exposes a pure sending-domain authentication admission guard that fails closed for production-active SMTP delivery unless tenant/domain isolation, non-empty normalized domain evidence, verified domain status, SPF, enforcing DMARC, and current non-future DKIM selector evidence are present.",
+  "scope": [
+    "crates/oya-connect-mail-domain/src/sending_domain_authentication.rs",
+    "crates/oya-connect-mail-domain/src/lib.rs",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice is pure mail-domain policy logic only. It does not perform DNS lookup, SPF/DMARC/DKIM verification against live DNS, OpenBao key retrieval, cryptographic signing, SMTP delivery, live deliverability scoring, Gateway/TLS rollout, ArgoCD sync, remote hosted CI, or production tenant workload deployment. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is treated here as the future dogfood substrate/proof point only, not as a live substrate claim.",
+  "best_practice_research": [
+    {
+      "source": "https://www.rfc-editor.org/info/rfc9989/",
+      "source_quality": "official RFC Editor / IETF DMARC Proposed Standard, May 2026",
+      "used_for": "Treat DMARC as the current domain-owner policy mechanism and avoid relying on obsoleted RFC 7489 wording for new guard semantics."
+    },
+    {
+      "source": "https://www.rfc-editor.org/info/rfc7208/",
+      "source_quality": "official RFC Editor / IETF SPF standard-track document",
+      "used_for": "Require an SPF posture signal before production-active outbound domain admission."
+    },
+    {
+      "source": "https://www.rfc-editor.org/info/rfc6376/",
+      "source_quality": "official RFC Editor / IETF DKIM Internet Standard",
+      "used_for": "Model DKIM signing-domain identity, selector/key-version provenance, and fail-closed malformed/missing signing evidence."
+    },
+    {
+      "source": "https://www.rfc-editor.org/info/rfc8463/",
+      "source_quality": "official RFC Editor / IETF DKIM Ed25519 update",
+      "used_for": "Recognize Ed25519-SHA256 as supported DKIM signing evidence while keeping RSA-SHA256 compatibility and rejecting legacy/unknown algorithms."
+    }
+  ],
+  "source_basis": [
+    {
+      "url": "repo://specs/microservices/mail.json#best_practices",
+      "use": "Mail spec states every active sending domain must have DMARC policy before production activation and DKIM rotation is required."
+    },
+    {
+      "url": "repo://microservices/mail/IP-007-outbound-smtp.md#intent",
+      "use": "Outbound SMTP IP requires DKIM signing, per-tenant deliverability posture, and no open relay/cross-tenant egress claims."
+    },
+    {
+      "url": "repo://microservices/mail/threat-model.md#T-S-02",
+      "use": "Threat model requires authenticated SMTP submission, DKIM signing on outbound messages, and cross-tenant sender-domain controls."
+    },
+    {
+      "url": "repo://crates/oya-connect-mail-domain/src/lib.rs",
+      "use": "Existing mail domain crate already owns pure mail invariants and classified field conventions."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Implemented the guard as a single pure function plus typed evidence/verdict structs; no adapter, DNS, crypto, or SMTP code was added.",
+        "The decision ladder is fail-closed for production-active domains and keeps quarantine/review behavior explicit for non-production modes."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The guard moves mail toward production-grade tenant-domain admission by requiring explicit evidence before a domain can be treated as production-active.",
+        "FD-001 product delivery remains the product goal; Oyatie Cloud is the hyperscaler-grade substrate intended to host these FD-001 microservices as real tenant workloads, and this guard is one domain invariant preparing mail for that dogfood path.",
+        "The slice remains honest for Oyatie Cloud dogfood: it proves domain logic only, not live DNS/OpenBao/SMTP substrate behavior."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests cover missing SPF, missing/enforcement-weak DMARC, missing/expired/stale DKIM, tenant/domain mismatch, unsupported DKIM algorithm, unverified domain, and redacted audit labels.",
+        "Incremental review added fail-closed handling for malformed dot-only domains after normalization and DKIM rotation timestamps that are in the future relative to the guard clock."
+      ],
+      "failing_fixture_added": true,
+      "failing_fixture_id": "cargo test -p oya-connect-mail-domain sending_domain_authentication --lib initially failed because the guard types/functions did not exist",
+      "passing_fixture_id": "cargo test -p oya-connect-mail-domain sending_domain_authentication --lib: 7 passed",
+      "diagnostic_asserted": "Removing the guard or weakening its fail-closed paths fails focused tests."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Public enums name activation modes, actions, reasons, DMARC policy, and DKIM algorithms directly so future adapters can map DNS/secret-manager evidence into the guard without stringly typed seams.",
+        "Deep review for this CC-1 slice found no new runtime dependency, API ergonomics, or performance cost beyond deterministic in-memory branch checks over supplied Classified<String> inputs."
+      ],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused and full mail-domain tests pass; cargo check, clippy -D warnings, and fmt check pass for the package."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Wait for live DNS/OpenBao/SMTP adapter implementation",
+        "Add a pure domain guard now with typed evidence inputs",
+        "Add fake DNS or signing adapters for tests"
+      ],
+      "selected_rationale": "A pure guard advances production posture without inventing live infrastructure evidence or coupling domain code to adapters.",
+      "rejected_reasons": [
+        "Waiting leaves a core FD-001 mail invariant unenforced in domain code.",
+        "Fake DNS/signing adapters would create false confidence and violate honest-claims discipline."
+      ],
+      "findings": []
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No secrets or cryptographic material are handled; DKIM key data is represented only by selector/key-version/evidence references.",
+        "Tenant/domain mismatch and unsupported algorithms hard-block regardless of activation mode.",
+        "Audit labels are stable reason tokens and do not include raw domains, tenants, addresses, subjects, bodies, or URLs."
+      ],
+      "owasp_class_review": "smtp_abuse_and_authentication_boundary",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The guard is O(1) over a fixed number of small string/evidence fields and performs no I/O or allocation-heavy parsing beyond domain normalization and audit-label construction.",
+        "Deep review for this CC-1 slice found the guard performs bounded string comparisons and epoch arithmetic only; no DNS/network/crypto/SMTP I/O or unbounded scans were introduced."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "SPF, DMARC, and DKIM standards are used as evidence requirements for production-active domain admission.",
+        "The guard supports DKIM rotation-age enforcement and preserves evidence references for downstream audit chains."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reverting removes one module, one lib export, task text, evidence, and audit rows without affecting existing mailbox/message domain behavior."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Verdicts include action, reason, audit_event_label, classified tenant/domain/request IDs, and DKIM selector/key-version/evidence refs for downstream adapter logging."
+      ]
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Existing mail-domain APIs remain additive; no existing structs, errors, or tests were changed except module export wiring."
+      ]
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "New identifiers use mail-domain, sending-domain, SPF/DMARC/DKIM, activation, action, and reason vocabulary from the mail spec/task evidence."
+      ]
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "tasks/plan.md and tasks/todo.md record the slice scope, acceptance criteria, verification, and non-claims."
+      ]
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The new logic stays in the connect-mail domain crate and depends only on the data-boundary kernel already used by the crate."
+      ]
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The module is clean-architecture domain logic; live DNS, key storage, crypto signing, and SMTP delivery are left to future adapters/runtime composition."
+      ]
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No new dependency was added; the module reuses the existing oya-data-boundary-kernel dependency."
+      ]
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "DKIM algorithm policy is explicit: Ed25519-SHA256 and RSA-SHA256 are accepted evidence algorithms; RSA-SHA1 and unknown algorithms reject."
+      ]
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No CI workflow was changed; local focused gates are recorded and full oya verify is required before submit."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-connect-mail-domain sending_domain_authentication --lib (before implementation)",
+      "result": "fail_expected_red",
+      "evidence": "Compilation failed because SendingDomainAuthenticationInput, DkimSigningEvidence, action/reason/policy/algorithm enums, classified_internal, and evaluate_sending_domain_authentication did not exist."
+    },
+    {
+      "command": "cargo test -p oya-connect-mail-domain sending_domain_authentication --lib",
+      "result": "pass",
+      "evidence": "7 passed; covers production allow, fail-closed SPF/DMARC/DKIM gaps including expired/future-dated/stale DKIM evidence, tenant/domain mismatch, normalized-empty domain evidence, unsupported cases, quarantine/review modes, and redacted labels."
+    },
+    {
+      "command": "cargo test -p oya-connect-mail-domain --lib",
+      "result": "pass",
+      "evidence": "27 passed; existing mail-domain tests remain green."
+    },
+    {
+      "command": "cargo check -p oya-connect-mail-domain",
+      "result": "pass",
+      "evidence": "Package check completed successfully."
+    },
+    {
+      "command": "cargo clippy -p oya-connect-mail-domain --all-targets -- -D warnings",
+      "result": "pass",
+      "evidence": "No clippy warnings for the package."
+    },
+    {
+      "command": "cargo fmt --check -p oya-connect-mail-domain",
+      "result": "pass",
+      "evidence": "Formatting check passed after cargo fmt."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity error --evidence evidence/multispectrum/backbone-microservices-mail-sending-domain-auth-guard-20260525.json",
+      "result": "pass",
+      "evidence": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics/blocking after multispectrum git_sha/freshness/rigor fields were finalized."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root evidence/multispectrum/backbone-microservices-mail-sending-domain-auth-guard-20260525.json",
+      "result": "pass",
+      "evidence": "3 documents, 1377 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "./bin/oya gate validate audit-chain-replay",
+      "result": "pass",
+      "evidence": "1 shard, 28 events replayed successfully after the mail auth evidence row was appended."
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "result": "pass",
+      "evidence": "No whitespace errors in the working diff."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "pass",
+      "evidence": "After incremental guard hardening, D-1 fmt PASS, D-2 workspace check PASS, D-3 clippy PASS, D-4 nextest 4552 passed / 1 skipped, D-5 gate run-all 88/88 lanes passed, D-6 adr-index write PASS, D-7 adr-shape PASS; overall mandatory 5/5 and advisory 2/2 passed."
+    }
+  ],
+  "non_claims": [
+    "No live DNS SPF/DMARC/DKIM lookup was performed.",
+    "No cryptographic DKIM signing or verification was implemented.",
+    "No OpenBao, SMTP, queue, broker, Kubernetes, ArgoCD, OpenCost, or production deployment behavior was exercised.",
+    "No remote hosted CI or branch-protection green claim is made.",
+    "No live Oyatie Cloud substrate, tenant workload deployment, ArgoCD sync, OpenCost, or production tenant hosting evidence is claimed for this slice; FD-001 remains the product goal and Cloud is the future dogfood substrate context."
+  ],
+  "external_source_date_context": "Sources checked 2026-05-25; RFC 9989/9990/9991 supersede older RFC 7489 for current DMARC references.",
+  "status": "focused-implementation-green-full-local-verify-pass",
+  "date_context": {
+    "notes": [
+      "2026-05-25 user clarification: FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate used to dogfood FD-001 microservices as tenant workloads."
+    ]
+  },
+  "git_sha": "4d0ef25d",
+  "freshness_unix": 1779685775
+}

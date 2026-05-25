@@ -1,0 +1,130 @@
+{
+  "change_id": "backbone-microservices-transactional-outbox-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Transactional outbox command seam appended to backbone write plans before live broker publisher integration.",
+  "scope": [
+    "crates/oya-shared-transactional-outbox-kernel/**",
+    "crates/oya-messenger-app/**",
+    "crates/oya-mail-mailbox-store-app/**",
+    "crates/oya-social-app/**",
+    "crates/oya-community-post-store-app/**",
+    "crates/oya-messenger-message-stream-rest/**",
+    "crates/oya-mail-mailbox-store-rest/**",
+    "crates/oya-social-post-composition-rest/**",
+    "crates/oya-community-post-store-rest/**",
+    "crates/oya-messenger-message-stream-adapter-postgres/**",
+    "crates/oya-mail-mailbox-store-adapter-postgres/**",
+    "crates/oya-social-post-composition-adapter-postgres/**",
+    "crates/oya-community-post-store-adapter-postgres/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-transactional-outbox-kernel.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Transactional outbox write seam only. This slice persists protocol dispatch metadata as parameterized SQL commands inside the same tenant-scoped SqlExecutionPlan as business rows. It does not implement a live outbox poller, broker publisher, gRPC server, retry worker, dead-letter processor, or exactly-once delivery proof.",
+  "facets": {
+    "F1_simplicity": "A small shared kernel appends one static service-specific outbox insert command to existing write batches instead of introducing a broker SDK or runtime worker dependency.",
+    "F2_hyperscaler": "Backbone write plans now preserve business-row and protocol-dispatch intent in one tenant-scoped transaction plan, reducing the future live publisher's coupling to REST/app handlers.",
+    "F3_adversarial": "Tests cover outbox command ordering after business statements, tenant/envelope scope-drift refusal, service-specific SQL selection, REST/app command-count updates, and migration distribution/RLS validation.",
+    "F5_quality": "Focused outbox/app/adapter tests plus the 36-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, dependency-seam, honest-claims, workflow/catalog parsing, Jenkins parsing, and diff hygiene are part of this run.",
+    "F7_security_privacy": "Outbox commands use SQL parameters for tenant, audit, policy, idempotency, AsyncAPI, and proto metadata and do not persist payload bodies or raw message/mail/post content.",
+    "F11_observability": "The outbox table captures dispatch_state, attempt_count, audit_correlation_id, policy_decision_ref, event_kind, aggregate_id, AsyncAPI metadata, and proto metadata for future publisher telemetry correlation."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p <outbox focused package set>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-transactional-outbox-kernel -p <4 app packages> -p <4 adapter-postgres packages>",
+      "result": "pass",
+      "evidence": "40 focused unit tests passed, including 4 shared outbox kernel tests and updated app/adapter migration tests."
+    },
+    {
+      "command": "cargo clippy -p <outbox focused package set> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <outbox focused package set>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <36 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <36 backbone package matrix>",
+      "result": "pass",
+      "evidence": "228 unit tests passed across backbone domain/API/usecase/REST/app/gRPC/adapter-postgres/shared-command/shared-sqlx/shared-outbox/shared-policy/shared-metrics/shared-protocol packages; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <36 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <36 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; duplicate/wildcard diagnostics remain non-blocking warnings under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 450 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "450 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing oya-audit-chain-emission-kernel::ChainCoordinate.pack annotation issue."
+    },
+    {
+      "command": "ruby -rjson -ryaml <workflow + catalog + Cargo.toml parse>",
+      "result": "pass",
+      "evidence": "Parsed .github/workflows/backbone-microservices-ci.yml, registry/catalog/oya-shared-transactional-outbox-kernel.yaml, and Cargo.toml."
+    },
+    {
+      "command": "Jenkinsfile package matrix parse for messenger/mail/social/community",
+      "result": "pass",
+      "evidence": "Each Jenkinsfile includes 15 backbone CI packages including oya-shared-transactional-outbox-kernel."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 242 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + outbox/app/adapter/rest/catalog/CI/evidence corpus>",
+      "result": "pass",
+      "evidence": "5 documents, 865 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No live outbox poller, broker publisher, gRPC server, retry worker, or dead-letter processor is implemented by this slice.",
+    "No live Postgres/Citus/RLS integration test, backup/restore drill, or Citus rebalance evidence is produced by this slice.",
+    "No exactly-once, at-least-once, ordering, latency, or durability delivery SLO is claimed.",
+    "No production deployment, live ArgoCD sync, or branch-protection evidence is claimed."
+  ]
+}

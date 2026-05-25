@@ -19,6 +19,18 @@ allow = [
 ]
 confidence-threshold = 0.8
 unused-allowed-license = "allow"
+# SQLx Postgres adapter review, 2026-05-23:
+# - foldhash@0.1.5 is Zlib-licensed and enters only through sqlx-core's
+#   hashlink/hashbrown cache path.
+# - webpki-roots is CDLA-Permissive-2.0-licensed trust-anchor data used by the
+#   rustls TLS path selected to avoid OpenSSL.
+# Keep these as exact per-crate exceptions, not global allows, so future version
+# bumps or broader license use re-open policy review.
+exceptions = [
+  { allow = ["Zlib"], crate = "foldhash@0.1.5" },
+  { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@0.26.11" },
+  { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@1.0.7" },
+]
 
 [advisories]
 version = 2

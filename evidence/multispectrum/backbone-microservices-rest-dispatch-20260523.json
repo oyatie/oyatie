@@ -1,0 +1,74 @@
+{
+  "change_id": "backbone-microservices-rest-dispatch-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Fail-closed REST dispatch for OpenAPI-declared contract-only routes in messenger, mail, social, and community REST crates.",
+  "scope": [
+    "crates/oya-messenger-message-stream-rest/**",
+    "crates/oya-mail-mailbox-store-rest/**",
+    "crates/oya-social-post-composition-rest/**",
+    "crates/oya-community-post-store-rest/**",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Contract-only dispatch guard only. This adds explicit 501 handling for unimplemented OpenAPI routes; it does not implement broader business handlers, AsyncAPI/proto parity handlers, persistence, runtime gateway binding, or production endpoint readiness.",
+  "facets": {
+    "F1_simplicity": "Each REST crate has a tiny dispatcher over its existing route catalog; no framework, async runtime, or gateway dependency was introduced.",
+    "F2_hyperscaler": "Honest non-claim: fail-closed dispatch avoids false-green route availability but does not satisfy full hyperscaler route/runtime/SLO/deployment readiness.",
+    "F3_adversarial": "Tests verify known contract-only routes return 501, implemented typed routes are refused by this dispatcher, and unknown routes are distinct errors.",
+    "F5_quality": "cargo test, clippy -D warnings, cargo fmt --check, dependency-seam, honest-claims, and diff hygiene are part of this evidence run.",
+    "F7_security_privacy": "Implemented write routes cannot bypass existing typed API/usecase policy seams through the generic contract-only dispatcher.",
+    "F11_observability": "The 501 response reason is explicit for future gateway telemetry and SLO exclusion; no runtime emission claim."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest",
+      "result": "pass",
+      "evidence": "37 unit tests passed across the 4 REST packages."
+    },
+    {
+      "command": "cargo test across 22 touched backbone packages",
+      "result": "pass",
+      "evidence": "153 unit tests passed across domain/API/usecase/REST/adapter-postgres/shared-command/shared-metrics packages."
+    },
+    {
+      "command": "cargo clippy -p <22 touched backbone packages> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo clippy -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-messenger-message-stream-rest -p oya-mail-mailbox-store-rest -p oya-social-post-composition-rest -p oya-community-post-store-rest",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "438 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence including rest-dispatch>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 110 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + touched REST/evidence corpus>",
+      "result": "pass",
+      "evidence": "3 documents, 299 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "ruby -rjson -ryaml parse of rest-dispatch evidence",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    }
+  ],
+  "non_claims": [
+    "No broader OpenAPI business handler is implemented by this slice.",
+    "No AsyncAPI/proto parity handler is implemented by this slice.",
+    "No runtime gateway/router, persistence executor, or deployed endpoint claim is made."
+  ]
+}

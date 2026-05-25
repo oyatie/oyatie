@@ -1,0 +1,18 @@
+[package]
+name = "oya-enterprise-suite-tenant-workload-runtime-evidence"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-enterprise-suite-tenant-workload-manifest = { path = "../oya-enterprise-suite-tenant-workload-manifest" }
+
+[lib]
+name = "oya_enterprise_suite_tenant_workload_runtime_evidence"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

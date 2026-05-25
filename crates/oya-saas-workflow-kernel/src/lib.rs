@@ -162,6 +162,8 @@ pub enum WorkflowEventKind {
     StepStarted,
     StepCompleted,
     StepFailed,
+    StepTimedOut,
+    StepRetryScheduled,
     RunCompleted,
     RunFailed,
     RunCancelled,

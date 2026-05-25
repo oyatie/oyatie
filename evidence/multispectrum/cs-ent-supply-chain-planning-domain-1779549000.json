@@ -1,0 +1,245 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-24T00:20:00Z",
+  "freshness_unix": 1779549000,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "Supply-chain planning domain foundation adds consensus demand-plan approval, supply-network plan proposal metadata, available-to-promise response metadata, distribution-lane plan metadata, and SAP SCM/APO parity-map linkage while explicitly refusing durable persistence, live planning solver execution, demand-sensing ML runtime, production order creation, procurement requisitions, inventory mutation, warehouse reservation, order-management rescheduling, carrier booking, Workflow execution, cloud deployment, and runtime audit-chain claims.",
+  "scope": {
+    "files_added": [
+      "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/Cargo.toml",
+      "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/src/lib.rs",
+      "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs",
+      "specs/microservices/supply-chain-planning.json",
+      "registry/catalog/oya-supply-chain-planning-domain.yaml"
+    ],
+    "files_modified": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+      "tasks/enterprise-microservices-plan.md",
+      "tasks/enterprise-microservices-todo.md",
+      "evidence/audit-chain.jsonl"
+    ],
+    "crate": "oya-supply-chain-planning-domain",
+    "clean_architecture_layer": "domain",
+    "dependencies_added": [],
+    "workspace_member_added": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain"
+  },
+  "non_claims": [
+    "no durable persistence",
+    "no live demand-sensing machine-learning runtime",
+    "no planning optimizer or finite scheduler runtime",
+    "no ATP or CTP runtime engine",
+    "no production order creation",
+    "no procurement requisition creation",
+    "no inventory mutation or warehouse reservation",
+    "no order-management rescheduling",
+    "no carrier booking or transportation execution",
+    "no Workflow execution",
+    "no statutory filing",
+    "no cloud deployment",
+    "no production SCM/APO parity claim",
+    "no runtime audit-chain emission"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice is additive and isolates supply-chain-planning domain invariants in a flat microservice crate rather than widening Enterprise Suite into an ERP/APO monolith.",
+        "The API remains pure data-in/data-out with no I/O, durable state, network clients, solver runtime, scheduler runtime, or execution-side mutations."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "claims_allowed": [
+        "bounded domain validation",
+        "flat microservice catalog/spec presence",
+        "ERP parity-map linkage for SAP SCM/APO"
+      ],
+      "claims_refused": [
+        "production SCM/APO parity",
+        "cloud runtime readiness",
+        "live solver or finite scheduling",
+        "inventory or order-management mutation",
+        "transportation execution",
+        "Workflow execution"
+      ],
+      "findings": [
+        "Independent scaling and deployment remain future adapter/runtime work; this slice only creates the pure domain foundation."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::demand_plan_drives_supply_network_and_atp_response",
+      "failing_fixture_id": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::supply_chain_planning_refuses_unapproved_and_unproposed_flow",
+      "diagnostic_asserted": "Tests fail if missing demand-plan approval, missing supply-plan proposal, unsafe refs, credential-shaped evidence refs, invalid dates, invalid horizons, invalid lead times, invalid priorities, zero quantities, insufficient lane capacity, or shortage overclaims are accepted.",
+      "findings": [
+        "Positive demand-to-supply-to-ATP-to-distribution flow and negative guard rails are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 25,
+      "findings": [
+        "Types map directly to demand plans, supply plans, available-to-promise responses, and distribution-lane plans common to ERP supply-chain-planning systems."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "verification": [
+        "cargo check -p oya-supply-chain-planning-domain",
+        "cargo test --locked -p oya-supply-chain-planning-domain",
+        "cargo clippy --locked -p oya-supply-chain-planning-domain --all-targets -- -D warnings",
+        "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+        "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+        "cargo test --locked over the 32-package enterprise regression group including oya-supply-chain-planning-domain",
+        "cargo clippy --locked over the 32-package enterprise regression group including oya-supply-chain-planning-domain --all-targets -- -D warnings",
+        "cargo fmt --all -- --check",
+        "jq . specs/microservices/supply-chain-planning.json",
+        "data_class scan: PASS with 163 annotated public fields",
+        "quality-marker scan: PASS across domain source/tests, spec, and catalog"
+      ],
+      "findings": [
+        "Focused supply-chain-planning tests/clippy, ERP parity map tests/clippy, 32-package enterprise regression tests/clippy, fmt, JSON parse, data_class scan, quality-marker scan over 4 paths, and dependency-seam gate are recorded in verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "leave SCM/APO as a parity gap",
+        "build live IBP/APO optimizer, ATP/CTP, and transportation runtime now",
+        "add supply-chain-planning domain foundation first"
+      ],
+      "selected_rationale": "A flat domain foundation gives SCM/APO parity a service-owned first write path while keeping planning solvers, finite scheduling, demand-sensing ML, order-management mutation, inventory/warehouse mutation, transportation execution, Workflow, durable state, and cloud adapters out of scope.",
+      "rejected_reasons": [
+        "Leaving SCM/APO as a gap weakens ERP parity after procurement, warehouse, production-planning, quality, and plant-maintenance foundations landed.",
+        "Live planning runtime requires durable planning data, optimization/scheduling engines, order/inventory integrations, transport execution, operational SLOs, and cloud evidence beyond this slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "supply_chain_planning_evidence_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, external network calls, planning engine calls, inventory mutations, order-management mutations, carrier bookings, or Workflow dispatches are introduced.",
+        "Source and audit refs reject traversal, whitespace/control, and credential-shaped strings."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-supply-chain-planning-domain-foundation",
+      "regression_baseline": "Pure string/date/quantity validation and bounded arithmetic only; no I/O or unbounded data access exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, optimizer, scheduler, ML runtime, carrier connector, or hot runtime path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "INTERNAL_ONLY demand/supply/ATP/distribution/source/evidence refs and dates",
+        "FINANCIAL forecast, order, inventory, capacity, lot size, promise, transfer, freight, and shortage quantities",
+        "PUBLIC non-claim capability flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-supply-chain-planning",
+        "sap-scm-apo-parity"
+      ],
+      "official_sources_checked": [
+        "https://help.sap.com/docs/SAP_INTEGRATED_BUSINESS_PLANNING?locale=en-US",
+        "https://help.sap.com/docs/SAP_INTEGRATED_BUSINESS_PLANNING/c1fb60cb1e9c49d99ada277ae57e9e6c/8891092a3fad4e499645cafcd5dc2c81.html",
+        "https://help.sap.com/docs/SAP_INTEGRATED_BUSINESS_PLANNING/c1fb60cb1e9c49d99ada277ae57e9e6c/66a038fcf40f4f779c6b4696aede83a6.html",
+        "https://help.sap.com/docs/SAP_INTEGRATED_BUSINESS_PLANNING/252c83bbf8184915a56d4cdd0917ef06/5f7839111b714c8f82d21dcbf677e6e3.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/25d/faips/scp-about-oracle-fusion-cloud-supply-chain-planning.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/24c/fasdm/overview-of-supply-chain-planning-plan-types.html",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/master-planning-home-page",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/master-plans",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/sales-marketing/delivery-dates-available-promise-calculations"
+      ],
+      "findings": [
+        "SAP, Oracle, and Microsoft official materials inform supply-chain-planning coverage only; no exhaustive vendor parity or proprietary behavior clone is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one new crate/spec/catalog row and parity-map references; no migration or external resource is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence, task rows, and audit-chain rows document the change; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No production user or data migration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package name follows oya-supply-chain-planning-domain and flat microservice layout."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Machine-readable supply-chain-planning spec and existing task ledger capture the slice without creating root markdown sprawl."
+      ]
+    },
+    "A3_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new domain crate depends only on oya-data-boundary-kernel and adds no third-party dependencies."
+      ]
+    }
+  }
+}

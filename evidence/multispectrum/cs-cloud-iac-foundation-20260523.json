@@ -1,0 +1,252 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-001",
+  "agent_id": "codex-cloud-iac-20260523",
+  "timestamp_iso": "2026-05-23T07:31:48Z",
+  "git_sha": "fe21ffac",
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-iac-domain/Cargo.toml",
+    "crates/oya-cloud-iac-domain/src/lib.rs",
+    "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs",
+    "registry/catalog/oya-cloud-iac-domain.yaml",
+    "microservices/cloud-iac/tofu/modules/catalog.json",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Implement the smallest truthful Cloud IaC local foundation: metadata-only OpenTofu module registry records, cell topology metadata, GitOps reconciliation evidence, and manifest truth-down with explicit non-claims.",
+  "best_practice_sources": [
+    {
+      "source": "OpenTofu Module Registry Protocol",
+      "url": "https://opentofu.org/docs/v1.8/internals/module-registry-protocol/",
+      "evidence_used": "Module addresses use namespace/name/system and versioned module records; registry endpoints list versions and return download locations."
+    },
+    {
+      "source": "OpenTofu Module Sources",
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "evidence_used": "A module registry is the native distribution mechanism for modules shared across configurations with module versioning."
+    },
+    {
+      "source": "OpenTofu Dependency Lock File",
+      "url": "https://opentofu.org/docs/language/files/dependency-lock/",
+      "evidence_used": "Provider lock files and checksums are committed/reviewed for dependency selection evidence; CS-CLOUD-IAC-001 records this as a non-claim because no provider lock evidence exists yet."
+    },
+    {
+      "source": "OpenGitOps Principles",
+      "url": "https://github.com/open-gitops/documents/blob/main/PRINCIPLES.md",
+      "evidence_used": "GitOps desired state must be declarative, versioned/immutable, pulled automatically, and continuously reconciled."
+    },
+    {
+      "source": "Argo CD Automated Sync Policy",
+      "url": "https://argo-cd.readthedocs.io/en/release-2.11/user-guide/auto_sync/",
+      "evidence_used": "Argo CD automated sync operates from OutOfSync status and self-heal is explicit; CS-CLOUD-IAC-001 records metadata only, not live controller evidence."
+    },
+    {
+      "source": "AWS Guidance for Cell-Based Architecture",
+      "url": "https://aws.amazon.com/solutions/guidance/cell-based-architecture-on-aws/",
+      "evidence_used": "Independent cell replicas reduce the impact of bugs, failed deployments, and overload; CS-CLOUD-IAC-001 encodes cell topology metadata and no default cross-cell traffic in the domain."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "cargo test -p oya-cloud-iac-domain cloud_iac -- --nocapture",
+      "result": "FAIL before implementation",
+      "summary": "Compilation failed because the new Cloud IaC domain types and invariants did not exist."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iac-domain",
+      "result": "PASS",
+      "summary": "4 Cloud IaC foundation tests passed."
+    },
+    {
+      "command": "cargo test -p oya-check-iac-tier-discipline",
+      "result": "PASS",
+      "summary": "7 existing IaC tier-discipline gate tests passed."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iac-domain -p oya-check-iac-tier-discipline --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped clippy passed with warnings denied."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Rust formatting check passed."
+    },
+    {
+      "command": "cargo check -p oya-cloud-iac-domain -p oya-check-iac-tier-discipline",
+      "result": "PASS",
+      "summary": "Scoped package check passed."
+    },
+    {
+      "command": "custom python cloud-iac manifest/catalog coherence check",
+      "result": "PASS",
+      "summary": "All manifest-claimed crates/files exist; no oya-cloud-iac-iac-* crates are claimed; SLO/DR/audit/runtime overclaims are explicit non-claims; catalog has 6 local skeleton modules with existing paths."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "result": "PASS",
+      "summary": "2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "PASS",
+      "summary": "41 contracts and 41 metadata records passed."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog --self-test",
+      "result": "PASS",
+      "summary": "Architecture-boundaries self-test passed 10 cases."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-cloud-iac-foundation-20260523.json --severity report-only",
+      "result": "PASS",
+      "summary": "Dependency-seam gate passed after CS-CLOUD-IAC-001 evidence existed."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root microservices/cloud-iac --corpus-root crates/oya-cloud-iac-domain --corpus-root tasks",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed for Cloud IaC/domain/tasks corpus."
+    }
+  ],
+  "implemented_claims": [
+    "New oya-cloud-iac-domain crate validates metadata-only OpenTofu module releases with exact semantic versions, version-pinned sources, sha256 digests, and evidence refs.",
+    "In-memory ModuleRegistry rejects duplicate module versions and resolves published releases.",
+    "CellDefinition and CellTopologyPlan validate tenant/cell/region boundaries, require module refs, reject duplicate cells, and forbid default cross-cell traffic in local metadata.",
+    "GitOpsEvidence records Argo CD reconciliation metadata against a 40-character commit SHA and rejects secret-like evidence refs.",
+    "Cloud IaC manifest now advertises only code-backed crates/capabilities and de-authorizes legacy markdown/IP false greens as implementation evidence.",
+    "Local OpenTofu module catalog indexes the six existing skeleton modules under microservices/cloud-iac/tofu/modules and explicitly marks provider resources/tests/signing/live registry as non-claims."
+  ],
+  "explicit_non_claims": [
+    "No live OpenTofu private module registry API exists.",
+    "No OpenTofu providers mirror, provider dependency lock evidence, tofu init/validate/test/plan/apply evidence, or drift detection runtime exists.",
+    "No REST, SDK, worker, provider adapter, Postgres registry adapter, rollback engine, or Argo CD API integration exists for Cloud IaC.",
+    "No measured Cloud IaC SLOs, error-budget burn rules, active-active DR, restore drill, sharding execution, live mesh enforcement, or capacity telemetry exist.",
+    "ADR-0339 canonical microservices/cloud-iac/modules/<context>/<primitive>/ path is not materialized by this ChangeSet; existing local module skeletons remain under microservices/cloud-iac/tofu/modules."
+  ],
+  "false_green_findings_closed": [
+    "Removed 47 missing oya-cloud-iac-iac-* crate claims from manifest bounded_contexts.",
+    "Removed unimplemented api/app/rest/sdk/worker layers from manifest claims.",
+    "Removed measured SLO list and replaced hyperscaler invariants with explicit non-claims.",
+    "Changed audit-chain, DR, sharding, module-library, and runtime claims to explicit non-claims backed by current source inspection."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required remains repo-wide and not claimed green by this slice.",
+    "Legacy Cloud IaC Markdown/IP/capability files still contain planning/GA-like language; this ChangeSet de-authorizes them through manifest non-claims but does not retire every stale prose file.",
+    "Downstream Cloud Network+DNS/Data/Storage/Compute/Billing/Capacity write fanout must remain sequentially blocked until future Cloud IaC live registry/runtime/deployment contracts are locked as needed."
+  ],
+  "change_class_id": "CC-2",
+  "freshness_unix": 1779521508,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice deletes broad manifest overclaims rather than preserving 47 missing crate claims; the new domain model is plain value validation with no speculative runtime adapters.",
+        "Review finding fixed: source version pins are parsed as exact ref query values instead of substring matches."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "OpenTofu module metadata follows namespace/name/system/version discipline and records explicit non-claims for live registry, provider locks, signing, and plan/apply evidence.",
+        "Cell metadata forbids default cross-cell traffic and remains a local foundation, not a production/shared-contract unlock claim."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "targeted tests reject missing/ambiguous/suffix source refs, leading-zero semver, pathlike tenant ids, invalid regions/cell ids, duplicate cells, default cross-cell traffic, bad commit SHA, and secret-like evidence refs",
+      "findings": [
+        "RED test initially failed to compile because Cloud IaC domain types were absent; GREEN tests now pass.",
+        "Subagent code review found source ref substring bypass and permissive metadata validation; both were fixed with negative tests."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 8,
+      "findings": [
+        "The manifest now points contributors at the small set of implemented crates/files and explicitly labels legacy Markdown/IP files as non-evidence for implementation readiness.",
+        "The local module catalog makes the six existing skeleton modules discoverable without pretending they are provider-complete releases."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Validated with cargo test for oya-cloud-iac-domain and oya-check-iac-tier-discipline, clippy with warnings denied, cargo check, rustfmt, JSON/coherence, planning-closure, api-semver, architecture-boundaries, dependency-seam, and scoped honest-claims.",
+        "Architect review cleared the local-foundation scope before Oya closeout, with an explicit caveat that this is not a broad shared-contract/fanout unlock."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Implement live OpenTofu registry/API/runtime now",
+        "Only truth-down the manifest without code",
+        "Land a narrow metadata/domain foundation plus manifest/catalog truth-down"
+      ],
+      "selected_rationale": "The narrow metadata/domain foundation moves the Phase 0 Cloud IaC bar forward without faking runtime/SLO/DR/GitOps/OpenTofu evidence or touching broad shared deployment contracts prematurely.",
+      "rejected_reasons": [
+        "A live registry/runtime slice would be too broad and would touch shared contracts before the local foundation was locked.",
+        "Manifest-only truth-down would leave no code-backed module/cell/GitOps invariants for downstream slices to build on."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "sensitive_data",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The domain crate rejects secret-like source/evidence strings containing token/password/secret/kubeconfig/private-key/API-key markers and stores metadata only.",
+        "No raw provider credentials, kubeconfigs, OpenTofu state, cluster-admin material, or secret payloads are introduced."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "perf_budget_class": "cold-path",
+      "benchmark_attached": false,
+      "benchmark_id": null,
+      "regression_baseline": "not-applicable: metadata-only validators and static catalogs; no runtime OpenTofu API, worker, hot path, or measured SLO claim introduced",
+      "findings": [
+        "The new crate performs cold-path metadata validation only; no request path, background worker, provider plan/apply loop, or scheduler hot path is introduced.",
+        "No performance/SLO claim is made; future runtime GitOps/OpenTofu controllers must add benchmarks or load evidence before claiming latency/throughput behavior."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "data_class_touched": [
+        "internal_only"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [],
+      "findings": [
+        "The slice adds internal control-plane metadata only and explicitly rejects secret-like evidence/source strings; no tenant payload, PHI, PCI, kubeconfig, provider credential, or OpenTofu state is introduced.",
+        "Auditability is present through this multispectrum evidence record plus the audit-chain pending/closeout lifecycle rows; regulatory pack updates are not required for this local foundation."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rollback_cost_class": "trivial",
+      "feature_flag_id": null,
+      "migration_rollback_script_path": null,
+      "blast_radius": "dev",
+      "findings": [
+        "Rollback is delete/restore only: remove the isolated domain crate, workspace/catalog rows, module catalog, and manifest/task truth-down edits; no database migration, live cluster, state backend, or provider apply is touched.",
+        "Blast radius is repository-local planning/governance evidence. Downstream runtime/shared-contract fanout remains explicitly blocked until later verified slices."
+      ]
+    }
+  },
+  "review_findings_fixed": [
+    "Exact source ref pin parsing replaces substring source validation and rejects suffix/duplicate ref bypasses.",
+    "Strict metadata validation rejects leading-zero SemVer, pathlike tenant ids, uppercase/invalid regions, and pathlike cell ids.",
+    "Sharding automation manifest block now represents autosharding as enabled=false/mode=not_claimed_runtime with intended_control_plane only as a future posture.",
+    "Evidence bundle now carries change_class_id, freshness_unix, and required CC-2 multispectrum facets F1-F10 for this local infrastructure foundation."
+  ]
+}

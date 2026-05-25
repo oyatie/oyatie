@@ -1,0 +1,7 @@
+# Codegen cold/warm cache measurement — 2026-05-25T17:31:44Z
+job oya-ci-codegen #1 SUCCESS; cargo BUILD -p oya-http-runtime-hyper-adapter (codegen, not check)
+COLD agent rust-build-58n4q: 38 cache misses, wall 10s (populated SeaweedFS)
+WARM agent rust-build-gmsgs (distinct pod): 38 cache HITS, 100.00% hit rate, wall 4s
+=> real codegen build: 10s -> 4s (~2.5x) via shared cache; vs cargo check 8s->7s.
+   Confirms the cache's wall-clock payoff is in CODEGEN, not check. Local single-crate
+   figures, not a farm-wide throughput SLO; absolute deltas grow with crate size.

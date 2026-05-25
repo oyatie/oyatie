@@ -257,7 +257,9 @@ fn public_data_class(data_class: DataClass) -> Result<PrivacyDataClass, Metering
 }
 
 fn validate_tenant_id(value: &str) -> Result<(), MeteringError> {
-    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
+    if let Some(segment) = value.strip_prefix(TENANT_ID_PREFIX)
+        && is_canonical_tenant_segment(segment)
+    {
         Ok(())
     } else {
         Err(MeteringError::InvalidTenantId)
@@ -265,11 +267,35 @@ fn validate_tenant_id(value: &str) -> Result<(), MeteringError> {
 }
 
 fn prefixed_id(value: String, prefix: &str, error: MeteringError) -> Result<String, MeteringError> {
-    if value.starts_with(prefix) && value.len() > prefix.len() {
+    if value.starts_with(prefix) && value.len() > prefix.len() && is_safe_reference(&value) {
         Ok(value)
     } else {
         Err(error)
     }
+}
+
+fn is_canonical_tenant_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && !segment.starts_with('-')
+        && !segment.ends_with('-')
+        && !segment.contains("--")
+        && segment.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'-'
+        })
+}
+
+fn is_safe_reference(value: &str) -> bool {
+    value == value.trim()
+        && !value.is_empty()
+        && !value.contains("//")
+        && !value.bytes().any(|byte| {
+            byte.is_ascii_control()
+                || byte.is_ascii_whitespace()
+                || matches!(byte, b'\\' | b'?' | b'#')
+        })
+        && value
+            .split('/')
+            .all(|segment| !segment.is_empty() && segment != "." && segment != "..")
 }
 
 fn public<T>(value: T) -> Classified<T> {

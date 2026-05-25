@@ -1,0 +1,1310 @@
+//! Payroll run domain foundation.
+//!
+//! This crate owns pure payroll-run invariants for trial close, group rollup,
+//! statutory-export evidence envelopes, payroll-to-accounting journal drafts,
+//! and rollback-first promotion decisions. It does not perform tax-rate
+//! calculation, disbursement, storage, regulator filing I/O, or workflow
+//! execution.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// panic assertions to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+#![forbid(unsafe_code)]
+
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+
+const RUN_ID_PREFIX: &str = "prun_";
+const GROUP_ROLLUP_ID_PREFIX: &str = "pgrp_";
+const TENANT_ID_PREFIX: &str = "ten_";
+const LEGAL_ENTITY_ID_PREFIX: &str = "le_";
+const PAYEE_ID_PREFIX: &str = "payee_";
+const WAGE_ENTRY_ID_PREFIX: &str = "wage_";
+const PERSON_REF_PREFIX: &str = "person/";
+const VENDOR_REF_PREFIX: &str = "vendor/";
+const TAX_PROFILE_REF_PREFIX: &str = "tax/";
+const RULEPACK_REF_PREFIX: &str = "rulepack/";
+const AUDIT_REF_PREFIX: &str = "audit/";
+const HASH_PREFIX: &str = "sha256:";
+const JOURNAL_ID_PREFIX: &str = "jrn_";
+const EMPLOYEE_ID_PREFIX: &str = "emp_";
+const LEAVE_REQUEST_ID_PREFIX: &str = "leave_";
+const HR_LEAVE_IMPACT_SOURCE_TOPIC: &str = "integration.hr.payroll.leave-impact";
+const HR_LEAVE_IMPACT_SCHEMA_VERSION: u32 = 1;
+const RULEPACK_SOURCE_REF_PREFIX: &str = "rulepack-source/";
+const STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PayrollRunId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct GroupPayrollRollupId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct TenantId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct LegalEntityId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PayeeId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct EmployeeId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct LeaveRequestId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct WageLedgerEntryId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PartyRef {
+    pub value: String, // data_class: PII_IDENTIFYING
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct TaxProfileRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct RulepackRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct RulepackEffectiveDate {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct EvidenceRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct EvidenceDigest {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct JournalId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum PayeeClass {
+    Employee,
+    Contractor,
+    StatutoryDirector,
+    Vendor,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum WageLineKind {
+    GrossEarnings,
+    TaxWithholding,
+    SocialInsurance,
+    EmployerContribution,
+    NetPay,
+    Reversal,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum PayrollRunState {
+    Draft,
+    TrialClosed,
+    EntityClosed,
+    GroupRolledUp,
+    ProductionClosed,
+    RollbackQuarantined,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum StatutoryExportKind {
+    KoreaHomeTaxWithholding,
+    KoreaFourInsurance,
+    KoreaYearEndSettlement,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum PayrollRulepackJurisdiction {
+    Korea,
+    UnitedStatesFederal,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum PayrollRulepackSourceKind {
+    EmployerTaxGuide,
+    WithholdingMethod,
+    WageRecordkeeping,
+    LaborStandards,
+    SocialInsurance,
+    YearEndSettlement,
+    StatutoryFilingSchema,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum RepairRoute {
+    HotfixPullRequest,
+    OpenTofuOpsConvergence,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HrLeaveImpactKind {
+    PaidLeave,
+    UnpaidLeaveDeduction,
+    AttendanceCorrection,
+    NoPayrollImpact,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MoneyAmount {
+    pub amount_minor: i64, // data_class: FINANCIAL
+    pub currency: String,  // data_class: FINANCIAL
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WageLedgerEntryInput {
+    pub entry_id: String,        // data_class: INTERNAL_ONLY
+    pub payee_id: String,        // data_class: INTERNAL_ONLY
+    pub line_kind: WageLineKind, // data_class: INTERNAL_ONLY
+    pub amount: MoneyAmount,     // data_class: FINANCIAL
+    pub source_ref: String,      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayeeInput {
+    pub payee_id: String,                       // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,                // data_class: INTERNAL_ONLY
+    pub payee_class: PayeeClass,                // data_class: INTERNAL_ONLY
+    pub person_or_vendor_ref: String,           // data_class: PII_IDENTIFYING
+    pub tax_profile_ref: String,                // data_class: INTERNAL_ONLY
+    pub wage_ledger: Vec<WageLedgerEntryInput>, // data_class: FINANCIAL
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollTrialCloseInput {
+    pub run_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,         // data_class: INTERNAL_ONLY
+    pub period: String,                  // data_class: INTERNAL_ONLY
+    pub rulepack_ref: String,            // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String, // data_class: INTERNAL_ONLY
+    pub evidence_digest: String,         // data_class: INTERNAL_ONLY
+    pub approval_evidence_ref: String,   // data_class: INTERNAL_ONLY
+    pub payees: Vec<PayeeInput>,         // data_class: PII_IDENTIFYING + FINANCIAL
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrLeaveImpactIntakeInput {
+    pub run_id: String,                      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,             // data_class: INTERNAL_ONLY
+    pub payroll_period: String,              // data_class: FINANCIAL
+    pub payee_id: String,                    // data_class: INTERNAL_ONLY
+    pub employee_id: String,                 // data_class: INTERNAL_ONLY
+    pub leave_request_id: String,            // data_class: INTERNAL_ONLY
+    pub impact_kind: HrLeaveImpactKind,      // data_class: FINANCIAL
+    pub source_topic: String,                // data_class: INTERNAL_ONLY
+    pub source_hr_idempotency_key: String,   // data_class: INTERNAL_ONLY
+    pub decision_evidence_ref: String,       // data_class: INTERNAL_ONLY
+    pub routing_evidence_ref: String,        // data_class: INTERNAL_ONLY
+    pub payroll_impact_evidence_ref: String, // data_class: FINANCIAL
+    pub payroll_intake_evidence_ref: String, // data_class: INTERNAL_ONLY
+    pub rulepack_ref: String,                // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String,     // data_class: INTERNAL_ONLY
+    pub received_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrLeaveImpactIntake {
+    pub run_id: Classified<PayrollRunId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,  // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub payroll_period: Classified<String>, // data_class: FINANCIAL
+    pub payee_id: Classified<PayeeId>,    // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub leave_request_id: Classified<LeaveRequestId>, // data_class: INTERNAL_ONLY
+    pub impact_kind: Classified<HrLeaveImpactKind>, // data_class: FINANCIAL
+    pub source_topic: Classified<String>, // data_class: INTERNAL_ONLY
+    pub source_hr_idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub decision_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub routing_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub payroll_impact_evidence_ref: Classified<EvidenceRef>, // data_class: FINANCIAL
+    pub payroll_intake_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub received_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,  // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WageLedgerEntry {
+    pub entry_id: Classified<WageLedgerEntryId>, // data_class: INTERNAL_ONLY
+    pub payee_id: Classified<PayeeId>,           // data_class: INTERNAL_ONLY
+    pub line_kind: Classified<WageLineKind>,     // data_class: INTERNAL_ONLY
+    pub amount: Classified<MoneyAmount>,         // data_class: FINANCIAL
+    pub source_ref: Classified<EvidenceRef>,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Payee {
+    pub payee_id: Classified<PayeeId>,   // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub payee_class: Classified<PayeeClass>, // data_class: INTERNAL_ONLY
+    pub person_or_vendor_ref: Classified<PartyRef>, // data_class: PII_IDENTIFYING
+    pub tax_profile_ref: Classified<TaxProfileRef>, // data_class: INTERNAL_ONLY
+    pub wage_ledger: Classified<Vec<WageLedgerEntry>>, // data_class: FINANCIAL
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollRun {
+    pub run_id: Classified<PayrollRunId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,  // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub period: Classified<String>,       // data_class: INTERNAL_ONLY
+    pub state: Classified<PayrollRunState>, // data_class: INTERNAL_ONLY
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub evidence_digest: Classified<EvidenceDigest>, // data_class: INTERNAL_ONLY
+    pub approval_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub payees: Classified<Vec<Payee>>,   // data_class: PII_IDENTIFYING + FINANCIAL
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,  // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EntityCloseSnapshot {
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,           // data_class: INTERNAL_ONLY
+    pub run_id: String,                    // data_class: INTERNAL_ONLY
+    pub state: PayrollRunState,            // data_class: INTERNAL_ONLY
+    pub evidence_digest: String,           // data_class: INTERNAL_ONLY
+    pub detachment_history_redacted: bool, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GroupPayrollRollup {
+    pub rollup_id: Classified<GroupPayrollRollupId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,             // data_class: INTERNAL_ONLY
+    pub state: Classified<PayrollRunState>,          // data_class: INTERNAL_ONLY
+    pub entity_closes: Classified<Vec<EntityCloseSnapshot>>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>,         // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StatutoryExportInput {
+    pub run_id: String,                   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,          // data_class: INTERNAL_ONLY
+    pub export_kind: StatutoryExportKind, // data_class: INTERNAL_ONLY
+    pub export_hash: String,              // data_class: INTERNAL_ONLY
+    pub receipt_ref: Option<String>,      // data_class: INTERNAL_ONLY
+    pub rejection_reason: Option<String>, // data_class: INTERNAL_ONLY
+    pub rollback_plan_ref: String,        // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StatutoryExportEvidence {
+    pub run_id: Classified<PayrollRunId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,  // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub export_kind: Classified<StatutoryExportKind>, // data_class: INTERNAL_ONLY
+    pub export_hash: Classified<EvidenceDigest>, // data_class: INTERNAL_ONLY
+    pub receipt_ref: Classified<Option<EvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub rejection_reason: Classified<Option<String>>, // data_class: INTERNAL_ONLY
+    pub rollback_plan_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollRulepackSourceInput {
+    pub source_kind: PayrollRulepackSourceKind, // data_class: INTERNAL_ONLY
+    pub source_ref: String,                     // data_class: INTERNAL_ONLY
+    pub official_url: String,                   // data_class: PUBLIC
+    pub version_label: String,                  // data_class: INTERNAL_ONLY
+    pub effective_date: String,                 // data_class: INTERNAL_ONLY
+    pub retrieved_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub evidence_ref: String,                   // data_class: INTERNAL_ONLY
+    pub digest: String,                         // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollStatutoryRulepackManifestInput {
+    pub rulepack_ref: String,                      // data_class: INTERNAL_ONLY
+    pub jurisdiction: PayrollRulepackJurisdiction, // data_class: INTERNAL_ONLY
+    pub payroll_period: String,                    // data_class: FINANCIAL
+    pub source_version: String,                    // data_class: INTERNAL_ONLY
+    pub effective_date: String,                    // data_class: INTERNAL_ONLY
+    pub approval_evidence_ref: String,             // data_class: INTERNAL_ONLY
+    pub sources: Vec<PayrollRulepackSourceInput>,  // data_class: INTERNAL_ONLY
+    pub calculation_engine_attached: bool,         // data_class: PUBLIC
+    pub filing_rail_attached: bool,                // data_class: PUBLIC
+    pub disbursement_rail_attached: bool,          // data_class: PUBLIC
+    pub cloud_deployment_attached: bool,           // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollRulepackSource {
+    pub source_kind: Classified<PayrollRulepackSourceKind>, // data_class: INTERNAL_ONLY
+    pub source_ref: Classified<String>,                     // data_class: INTERNAL_ONLY
+    pub official_url: Classified<String>,                   // data_class: PUBLIC
+    pub version_label: Classified<String>,                  // data_class: INTERNAL_ONLY
+    pub effective_date: Classified<RulepackEffectiveDate>,  // data_class: INTERNAL_ONLY
+    pub retrieved_at_epoch_seconds: Classified<u64>,        // data_class: INTERNAL_ONLY
+    pub evidence_ref: Classified<EvidenceRef>,              // data_class: INTERNAL_ONLY
+    pub digest: Classified<EvidenceDigest>,                 // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollStatutoryRulepackManifest {
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub jurisdiction: Classified<PayrollRulepackJurisdiction>, // data_class: INTERNAL_ONLY
+    pub payroll_period: Classified<String>,    // data_class: FINANCIAL
+    pub source_version: Classified<String>,    // data_class: INTERNAL_ONLY
+    pub effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub approval_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub sources: Classified<Vec<PayrollRulepackSource>>, // data_class: INTERNAL_ONLY
+    pub source_count: Classified<usize>,       // data_class: PUBLIC
+    pub calculation_engine_attached: Classified<bool>, // data_class: PUBLIC
+    pub filing_rail_attached: Classified<bool>, // data_class: PUBLIC
+    pub disbursement_rail_attached: Classified<bool>, // data_class: PUBLIC
+    pub cloud_deployment_attached: Classified<bool>, // data_class: PUBLIC
+    pub schema_version: Classified<u32>,       // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollJournalLineInput {
+    pub account_code: String, // data_class: INTERNAL_ONLY
+    pub debit_minor: i64,     // data_class: INTERNAL_ONLY
+    pub credit_minor: i64,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollJournalInput {
+    pub journal_id: String,                  // data_class: INTERNAL_ONLY
+    pub run_id: String,                      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,             // data_class: INTERNAL_ONLY
+    pub period: String,                      // data_class: INTERNAL_ONLY
+    pub source_payroll_digest: String,       // data_class: INTERNAL_ONLY
+    pub approval_evidence_ref: String,       // data_class: INTERNAL_ONLY
+    pub lines: Vec<PayrollJournalLineInput>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollJournalDraft {
+    pub journal_id: Classified<JournalId>, // data_class: INTERNAL_ONLY
+    pub run_id: Classified<PayrollRunId>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,   // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub source_payroll_digest: Classified<EvidenceDigest>, // data_class: INTERNAL_ONLY
+    pub approval_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub total_debit_minor: Classified<i64>, // data_class: INTERNAL_ONLY
+    pub total_credit_minor: Classified<i64>, // data_class: INTERNAL_ONLY
+    pub reversal_required_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloseHealthInput {
+    pub run_id: String,                          // data_class: INTERNAL_ONLY
+    pub canary_passed: bool,                     // data_class: INTERNAL_ONLY
+    pub evidence_gate_passed: bool,              // data_class: INTERNAL_ONLY
+    pub rollback_evidence_ref: Option<String>,   // data_class: INTERNAL_ONLY
+    pub quarantine_evidence_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub repair_route: Option<RepairRoute>,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ClosePromotionDecision {
+    Promote,
+    RollbackFirst {
+        rollback_evidence_ref: EvidenceRef,
+        quarantine_evidence_ref: EvidenceRef,
+        repair_route: RepairRoute,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PayrollDomainError {
+    InvalidRunId,
+    InvalidGroupRollupId,
+    InvalidTenantId,
+    InvalidLegalEntityId,
+    InvalidPayeeId,
+    InvalidWageEntryId,
+    InvalidPartyRef,
+    InvalidTaxProfileRef,
+    InvalidRulepackRef,
+    InvalidRulepackEffectiveDate,
+    InvalidRulepackSourceRef,
+    InvalidRulepackSourceVersion,
+    InvalidRulepackSourceUrl,
+    InvalidPeriod,
+    InvalidEvidenceRef,
+    InvalidEvidenceDigest,
+    InvalidJournalId,
+    InvalidAccountCode,
+    InvalidMoney,
+    InvalidEmployeeId,
+    InvalidLeaveRequestId,
+    InvalidHrLeaveImpactTopic,
+    InvalidIdempotencyKey,
+    InvalidReceivedAt,
+    TrialCloseRequiresPayees,
+    PayeeLegalEntityMismatch,
+    PayeeMissingWageLedger,
+    WageEntryPayeeMismatch,
+    EntityCloseIncomplete,
+    DetachmentHistoryNotRedacted,
+    MissingReceiptOrRejection,
+    RulepackSourcesRequired,
+    UnsupportedRulepackCapabilityClaim,
+    JournalLinesRequired,
+    UnbalancedJournal,
+    RollbackEvidenceRequired,
+}
+
+pub fn trial_close(input: PayrollTrialCloseInput) -> Result<PayrollRun, PayrollDomainError> {
+    validate_trial_close_input(&input)?;
+    let mut payees = Vec::with_capacity(input.payees.len());
+    for payee in input.payees {
+        payees.push(build_payee(
+            &input.tenant_id,
+            &input.legal_entity_id,
+            payee,
+        )?);
+    }
+    let idempotency_key = format!("{}:{}:trial", input.run_id, input.rulepack_effective_date);
+    Ok(PayrollRun {
+        run_id: internal(PayrollRunId {
+            value: input.run_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: input.legal_entity_id,
+        }),
+        period: internal(input.period),
+        state: internal(PayrollRunState::TrialClosed),
+        rulepack_ref: internal(RulepackRef {
+            value: input.rulepack_ref,
+        }),
+        rulepack_effective_date: internal(RulepackEffectiveDate {
+            value: input.rulepack_effective_date,
+        }),
+        evidence_digest: internal(EvidenceDigest {
+            value: input.evidence_digest,
+        }),
+        approval_evidence_ref: internal(EvidenceRef {
+            value: input.approval_evidence_ref,
+        }),
+        payees: Classified::new(payees, PrivacyDataClass::pii_identifying()),
+        idempotency_key: internal(idempotency_key),
+        schema_version: public(1),
+    })
+}
+
+pub fn ingest_hr_leave_impact(
+    input: HrLeaveImpactIntakeInput,
+) -> Result<HrLeaveImpactIntake, PayrollDomainError> {
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        PayrollDomainError::InvalidTenantId,
+    )?;
+    validate_identifier(
+        &input.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        PayrollDomainError::InvalidLegalEntityId,
+    )?;
+    validate_period(&input.payroll_period)?;
+    validate_identifier(
+        &input.payee_id,
+        PAYEE_ID_PREFIX,
+        PayrollDomainError::InvalidPayeeId,
+    )?;
+    validate_identifier(
+        &input.employee_id,
+        EMPLOYEE_ID_PREFIX,
+        PayrollDomainError::InvalidEmployeeId,
+    )?;
+    validate_identifier(
+        &input.leave_request_id,
+        LEAVE_REQUEST_ID_PREFIX,
+        PayrollDomainError::InvalidLeaveRequestId,
+    )?;
+    if input.source_topic != HR_LEAVE_IMPACT_SOURCE_TOPIC {
+        return Err(PayrollDomainError::InvalidHrLeaveImpactTopic);
+    }
+    validate_idempotency_key(&input.source_hr_idempotency_key)?;
+    validate_ref(
+        &input.decision_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    validate_ref(
+        &input.routing_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    validate_ref(
+        &input.payroll_impact_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    validate_ref(
+        &input.payroll_intake_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    validate_ref(
+        &input.rulepack_ref,
+        RULEPACK_REF_PREFIX,
+        PayrollDomainError::InvalidRulepackRef,
+    )?;
+    validate_iso_date(&input.rulepack_effective_date)?;
+    if input.received_at_epoch_seconds == 0 {
+        return Err(PayrollDomainError::InvalidReceivedAt);
+    }
+    let idempotency_key = format!(
+        "{}:{}:{}:{}:{:?}:{}",
+        input.run_id,
+        input.payee_id,
+        input.leave_request_id,
+        input.payroll_period,
+        input.impact_kind,
+        input.source_hr_idempotency_key
+    );
+    Ok(HrLeaveImpactIntake {
+        run_id: internal(PayrollRunId {
+            value: input.run_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: input.legal_entity_id,
+        }),
+        payroll_period: financial(input.payroll_period),
+        payee_id: internal(PayeeId {
+            value: input.payee_id,
+        }),
+        employee_id: internal(EmployeeId {
+            value: input.employee_id,
+        }),
+        leave_request_id: internal(LeaveRequestId {
+            value: input.leave_request_id,
+        }),
+        impact_kind: financial(input.impact_kind),
+        source_topic: internal(input.source_topic),
+        source_hr_idempotency_key: internal(input.source_hr_idempotency_key),
+        decision_evidence_ref: internal(EvidenceRef {
+            value: input.decision_evidence_ref,
+        }),
+        routing_evidence_ref: internal(EvidenceRef {
+            value: input.routing_evidence_ref,
+        }),
+        payroll_impact_evidence_ref: financial(EvidenceRef {
+            value: input.payroll_impact_evidence_ref,
+        }),
+        payroll_intake_evidence_ref: internal(EvidenceRef {
+            value: input.payroll_intake_evidence_ref,
+        }),
+        rulepack_ref: internal(RulepackRef {
+            value: input.rulepack_ref,
+        }),
+        rulepack_effective_date: internal(RulepackEffectiveDate {
+            value: input.rulepack_effective_date,
+        }),
+        idempotency_key: internal(idempotency_key),
+        received_at_epoch_seconds: internal(input.received_at_epoch_seconds),
+        schema_version: public(HR_LEAVE_IMPACT_SCHEMA_VERSION),
+    })
+}
+
+pub fn close_group_rollup(
+    rollup_id: &str,
+    tenant_id: &str,
+    entity_closes: Vec<EntityCloseSnapshot>,
+) -> Result<GroupPayrollRollup, PayrollDomainError> {
+    validate_identifier(
+        rollup_id,
+        GROUP_ROLLUP_ID_PREFIX,
+        PayrollDomainError::InvalidGroupRollupId,
+    )?;
+    validate_identifier(
+        tenant_id,
+        TENANT_ID_PREFIX,
+        PayrollDomainError::InvalidTenantId,
+    )?;
+    if entity_closes.is_empty() {
+        return Err(PayrollDomainError::EntityCloseIncomplete);
+    }
+    for close in &entity_closes {
+        validate_identifier(
+            &close.tenant_id,
+            TENANT_ID_PREFIX,
+            PayrollDomainError::InvalidTenantId,
+        )?;
+        validate_identifier(
+            &close.legal_entity_id,
+            LEGAL_ENTITY_ID_PREFIX,
+            PayrollDomainError::InvalidLegalEntityId,
+        )?;
+        validate_identifier(
+            &close.run_id,
+            RUN_ID_PREFIX,
+            PayrollDomainError::InvalidRunId,
+        )?;
+        validate_digest(&close.evidence_digest)?;
+        if close.tenant_id != tenant_id || close.state != PayrollRunState::EntityClosed {
+            return Err(PayrollDomainError::EntityCloseIncomplete);
+        }
+        if !close.detachment_history_redacted {
+            return Err(PayrollDomainError::DetachmentHistoryNotRedacted);
+        }
+    }
+    Ok(GroupPayrollRollup {
+        rollup_id: internal(GroupPayrollRollupId {
+            value: rollup_id.to_owned(),
+        }),
+        tenant_id: internal(TenantId {
+            value: tenant_id.to_owned(),
+        }),
+        state: internal(PayrollRunState::GroupRolledUp),
+        entity_closes: internal(entity_closes),
+        idempotency_key: internal(format!("{tenant_id}:{rollup_id}:group-rollup")),
+    })
+}
+
+pub fn statutory_export_evidence(
+    input: StatutoryExportInput,
+) -> Result<StatutoryExportEvidence, PayrollDomainError> {
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        PayrollDomainError::InvalidTenantId,
+    )?;
+    validate_identifier(
+        &input.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        PayrollDomainError::InvalidLegalEntityId,
+    )?;
+    validate_digest(&input.export_hash)?;
+    validate_ref(
+        &input.rollback_plan_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    let receipt_ref = input
+        .receipt_ref
+        .map(|receipt| {
+            validate_ref(
+                &receipt,
+                AUDIT_REF_PREFIX,
+                PayrollDomainError::InvalidEvidenceRef,
+            )?;
+            Ok(EvidenceRef { value: receipt })
+        })
+        .transpose()?;
+    let rejection_reason = input
+        .rejection_reason
+        .map(|reason| reason.trim().to_owned())
+        .filter(|reason| !reason.is_empty());
+    if receipt_ref.is_none() && rejection_reason.is_none() {
+        return Err(PayrollDomainError::MissingReceiptOrRejection);
+    }
+    Ok(StatutoryExportEvidence {
+        run_id: internal(PayrollRunId {
+            value: input.run_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: input.legal_entity_id,
+        }),
+        export_kind: internal(input.export_kind),
+        export_hash: internal(EvidenceDigest {
+            value: input.export_hash,
+        }),
+        receipt_ref: internal(receipt_ref),
+        rejection_reason: internal(rejection_reason),
+        rollback_plan_ref: internal(EvidenceRef {
+            value: input.rollback_plan_ref,
+        }),
+    })
+}
+
+pub fn build_statutory_rulepack_manifest(
+    input: PayrollStatutoryRulepackManifestInput,
+) -> Result<PayrollStatutoryRulepackManifest, PayrollDomainError> {
+    validate_ref(
+        &input.rulepack_ref,
+        RULEPACK_REF_PREFIX,
+        PayrollDomainError::InvalidRulepackRef,
+    )?;
+    validate_period(&input.payroll_period)?;
+    validate_source_version(&input.source_version)?;
+    validate_iso_date(&input.effective_date)?;
+    validate_ref(
+        &input.approval_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    if input.sources.is_empty() {
+        return Err(PayrollDomainError::RulepackSourcesRequired);
+    }
+    if input.calculation_engine_attached
+        || input.filing_rail_attached
+        || input.disbursement_rail_attached
+        || input.cloud_deployment_attached
+    {
+        return Err(PayrollDomainError::UnsupportedRulepackCapabilityClaim);
+    }
+
+    let source_count = input.sources.len();
+    let mut sources = Vec::with_capacity(source_count);
+    for source in input.sources {
+        sources.push(build_rulepack_source(source)?);
+    }
+
+    Ok(PayrollStatutoryRulepackManifest {
+        rulepack_ref: internal(RulepackRef {
+            value: input.rulepack_ref,
+        }),
+        jurisdiction: internal(input.jurisdiction),
+        payroll_period: financial(input.payroll_period),
+        source_version: internal(input.source_version),
+        effective_date: internal(RulepackEffectiveDate {
+            value: input.effective_date,
+        }),
+        approval_evidence_ref: internal(EvidenceRef {
+            value: input.approval_evidence_ref,
+        }),
+        sources: internal(sources),
+        source_count: public(source_count),
+        calculation_engine_attached: public(false),
+        filing_rail_attached: public(false),
+        disbursement_rail_attached: public(false),
+        cloud_deployment_attached: public(false),
+        schema_version: public(STATUTORY_RULEPACK_SCHEMA_VERSION),
+    })
+}
+
+pub fn build_payroll_journal(
+    input: PayrollJournalInput,
+) -> Result<PayrollJournalDraft, PayrollDomainError> {
+    validate_identifier(
+        &input.journal_id,
+        JOURNAL_ID_PREFIX,
+        PayrollDomainError::InvalidJournalId,
+    )?;
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        PayrollDomainError::InvalidTenantId,
+    )?;
+    validate_identifier(
+        &input.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        PayrollDomainError::InvalidLegalEntityId,
+    )?;
+    validate_period(&input.period)?;
+    validate_digest(&input.source_payroll_digest)?;
+    validate_ref(
+        &input.approval_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    if input.lines.is_empty() {
+        return Err(PayrollDomainError::JournalLinesRequired);
+    }
+    let mut debit = 0_i64;
+    let mut credit = 0_i64;
+    for line in &input.lines {
+        validate_account_code(&line.account_code)?;
+        let has_debit = line.debit_minor > 0;
+        let has_credit = line.credit_minor > 0;
+        if line.debit_minor < 0 || line.credit_minor < 0 || has_debit == has_credit {
+            return Err(PayrollDomainError::InvalidMoney);
+        }
+        debit += line.debit_minor;
+        credit += line.credit_minor;
+    }
+    if debit != credit {
+        return Err(PayrollDomainError::UnbalancedJournal);
+    }
+    let reversal_required_ref = format!(
+        "audit/{}/payroll/{}/reversal",
+        input.legal_entity_id, input.run_id
+    );
+    Ok(PayrollJournalDraft {
+        journal_id: internal(JournalId {
+            value: input.journal_id,
+        }),
+        run_id: internal(PayrollRunId {
+            value: input.run_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: input.legal_entity_id,
+        }),
+        source_payroll_digest: internal(EvidenceDigest {
+            value: input.source_payroll_digest,
+        }),
+        approval_evidence_ref: internal(EvidenceRef {
+            value: input.approval_evidence_ref,
+        }),
+        total_debit_minor: internal(debit),
+        total_credit_minor: internal(credit),
+        reversal_required_ref: internal(EvidenceRef {
+            value: reversal_required_ref,
+        }),
+    })
+}
+
+pub fn evaluate_close_promotion(
+    input: CloseHealthInput,
+) -> Result<ClosePromotionDecision, PayrollDomainError> {
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    if input.canary_passed && input.evidence_gate_passed {
+        return Ok(ClosePromotionDecision::Promote);
+    }
+    let Some(rollback_ref) = input.rollback_evidence_ref else {
+        return Err(PayrollDomainError::RollbackEvidenceRequired);
+    };
+    let Some(quarantine_ref) = input.quarantine_evidence_ref else {
+        return Err(PayrollDomainError::RollbackEvidenceRequired);
+    };
+    let Some(repair_route) = input.repair_route else {
+        return Err(PayrollDomainError::RollbackEvidenceRequired);
+    };
+    validate_ref(
+        &rollback_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    validate_ref(
+        &quarantine_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    Ok(ClosePromotionDecision::RollbackFirst {
+        rollback_evidence_ref: EvidenceRef {
+            value: rollback_ref,
+        },
+        quarantine_evidence_ref: EvidenceRef {
+            value: quarantine_ref,
+        },
+        repair_route,
+    })
+}
+
+fn build_rulepack_source(
+    source: PayrollRulepackSourceInput,
+) -> Result<PayrollRulepackSource, PayrollDomainError> {
+    validate_ref(
+        &source.source_ref,
+        RULEPACK_SOURCE_REF_PREFIX,
+        PayrollDomainError::InvalidRulepackSourceRef,
+    )?;
+    validate_official_source_url(&source.official_url)?;
+    validate_source_version(&source.version_label)?;
+    validate_iso_date(&source.effective_date)?;
+    if source.retrieved_at_epoch_seconds == 0 {
+        return Err(PayrollDomainError::InvalidReceivedAt);
+    }
+    validate_ref(
+        &source.evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    validate_digest(&source.digest)?;
+
+    Ok(PayrollRulepackSource {
+        source_kind: internal(source.source_kind),
+        source_ref: internal(source.source_ref),
+        official_url: public(source.official_url),
+        version_label: internal(source.version_label),
+        effective_date: internal(RulepackEffectiveDate {
+            value: source.effective_date,
+        }),
+        retrieved_at_epoch_seconds: internal(source.retrieved_at_epoch_seconds),
+        evidence_ref: internal(EvidenceRef {
+            value: source.evidence_ref,
+        }),
+        digest: internal(EvidenceDigest {
+            value: source.digest,
+        }),
+    })
+}
+
+fn validate_trial_close_input(input: &PayrollTrialCloseInput) -> Result<(), PayrollDomainError> {
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        PayrollDomainError::InvalidTenantId,
+    )?;
+    validate_identifier(
+        &input.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        PayrollDomainError::InvalidLegalEntityId,
+    )?;
+    validate_period(&input.period)?;
+    validate_ref(
+        &input.rulepack_ref,
+        RULEPACK_REF_PREFIX,
+        PayrollDomainError::InvalidRulepackRef,
+    )?;
+    validate_iso_date(&input.rulepack_effective_date)?;
+    validate_digest(&input.evidence_digest)?;
+    validate_ref(
+        &input.approval_evidence_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    if input.payees.is_empty() {
+        return Err(PayrollDomainError::TrialCloseRequiresPayees);
+    }
+    Ok(())
+}
+
+fn build_payee(
+    tenant_id: &str,
+    run_legal_entity_id: &str,
+    payee: PayeeInput,
+) -> Result<Payee, PayrollDomainError> {
+    validate_identifier(
+        &payee.payee_id,
+        PAYEE_ID_PREFIX,
+        PayrollDomainError::InvalidPayeeId,
+    )?;
+    validate_identifier(
+        &payee.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        PayrollDomainError::InvalidLegalEntityId,
+    )?;
+    if payee.legal_entity_id != run_legal_entity_id {
+        return Err(PayrollDomainError::PayeeLegalEntityMismatch);
+    }
+    let party_ref_prefix = if payee.person_or_vendor_ref.starts_with(PERSON_REF_PREFIX) {
+        PERSON_REF_PREFIX
+    } else if payee.person_or_vendor_ref.starts_with(VENDOR_REF_PREFIX) {
+        VENDOR_REF_PREFIX
+    } else {
+        return Err(PayrollDomainError::InvalidPartyRef);
+    };
+    validate_ref(
+        &payee.person_or_vendor_ref,
+        party_ref_prefix,
+        PayrollDomainError::InvalidPartyRef,
+    )?;
+    validate_ref(
+        &payee.tax_profile_ref,
+        TAX_PROFILE_REF_PREFIX,
+        PayrollDomainError::InvalidTaxProfileRef,
+    )?;
+    if payee.wage_ledger.is_empty() {
+        return Err(PayrollDomainError::PayeeMissingWageLedger);
+    }
+    let mut wage_ledger = Vec::with_capacity(payee.wage_ledger.len());
+    for entry in payee.wage_ledger {
+        wage_ledger.push(build_wage_entry(&payee.payee_id, entry)?);
+    }
+    Ok(Payee {
+        payee_id: internal(PayeeId {
+            value: payee.payee_id,
+        }),
+        tenant_id: internal(TenantId {
+            value: tenant_id.to_owned(),
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: payee.legal_entity_id,
+        }),
+        payee_class: internal(payee.payee_class),
+        person_or_vendor_ref: Classified::new(
+            PartyRef {
+                value: payee.person_or_vendor_ref,
+            },
+            PrivacyDataClass::pii_identifying(),
+        ),
+        tax_profile_ref: internal(TaxProfileRef {
+            value: payee.tax_profile_ref,
+        }),
+        wage_ledger: financial(wage_ledger),
+    })
+}
+
+fn build_wage_entry(
+    expected_payee_id: &str,
+    entry: WageLedgerEntryInput,
+) -> Result<WageLedgerEntry, PayrollDomainError> {
+    validate_identifier(
+        &entry.entry_id,
+        WAGE_ENTRY_ID_PREFIX,
+        PayrollDomainError::InvalidWageEntryId,
+    )?;
+    validate_identifier(
+        &entry.payee_id,
+        PAYEE_ID_PREFIX,
+        PayrollDomainError::InvalidPayeeId,
+    )?;
+    if entry.payee_id != expected_payee_id {
+        return Err(PayrollDomainError::WageEntryPayeeMismatch);
+    }
+    validate_money(&entry.amount)?;
+    validate_ref(
+        &entry.source_ref,
+        AUDIT_REF_PREFIX,
+        PayrollDomainError::InvalidEvidenceRef,
+    )?;
+    Ok(WageLedgerEntry {
+        entry_id: internal(WageLedgerEntryId {
+            value: entry.entry_id,
+        }),
+        payee_id: internal(PayeeId {
+            value: entry.payee_id,
+        }),
+        line_kind: internal(entry.line_kind),
+        amount: financial(entry.amount),
+        source_ref: internal(EvidenceRef {
+            value: entry.source_ref,
+        }),
+    })
+}
+
+fn validate_identifier(
+    value: &str,
+    prefix: &str,
+    error: PayrollDomainError,
+) -> Result<(), PayrollDomainError> {
+    let Some(suffix) = value.strip_prefix(prefix) else {
+        return Err(error);
+    };
+    if suffix.is_empty()
+        || has_unsafe_text(value)
+        || suffix.contains("..")
+        || !suffix
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
+    {
+        return Err(error);
+    }
+    Ok(())
+}
+
+fn validate_ref(
+    value: &str,
+    prefix: &str,
+    error: PayrollDomainError,
+) -> Result<(), PayrollDomainError> {
+    let Some(suffix) = value.strip_prefix(prefix) else {
+        return Err(error);
+    };
+    if suffix.is_empty() || has_unsafe_text(value) || value.contains('\\') {
+        return Err(error);
+    }
+    if value
+        .split('/')
+        .any(|segment| segment.is_empty() || segment == "." || segment == "..")
+    {
+        return Err(error);
+    }
+    if !value
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '/' | '_' | '-' | '.'))
+    {
+        return Err(error);
+    }
+    let lowered = value.to_ascii_lowercase();
+    if lowered.contains("token")
+        || lowered.contains("secret")
+        || lowered.contains("bearer")
+        || lowered.contains("password")
+    {
+        return Err(error);
+    }
+    Ok(())
+}
+
+fn validate_digest(value: &str) -> Result<(), PayrollDomainError> {
+    let Some(hex) = value.strip_prefix(HASH_PREFIX) else {
+        return Err(PayrollDomainError::InvalidEvidenceDigest);
+    };
+    if hex.len() != 64 || !hex.chars().all(|ch| ch.is_ascii_hexdigit()) {
+        return Err(PayrollDomainError::InvalidEvidenceDigest);
+    }
+    Ok(())
+}
+
+fn validate_period(value: &str) -> Result<(), PayrollDomainError> {
+    let bytes = value.as_bytes();
+    if bytes.len() != 7
+        || bytes[4] != b'-'
+        || !bytes
+            .iter()
+            .enumerate()
+            .all(|(idx, byte)| idx == 4 || byte.is_ascii_digit())
+    {
+        return Err(PayrollDomainError::InvalidPeriod);
+    }
+    let month = value[5..7]
+        .parse::<u8>()
+        .map_err(|_| PayrollDomainError::InvalidPeriod)?;
+    if !(1..=12).contains(&month) {
+        return Err(PayrollDomainError::InvalidPeriod);
+    }
+    Ok(())
+}
+
+fn validate_iso_date(value: &str) -> Result<(), PayrollDomainError> {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes
+            .iter()
+            .enumerate()
+            .all(|(idx, byte)| matches!(idx, 4 | 7) || byte.is_ascii_digit())
+    {
+        return Err(PayrollDomainError::InvalidRulepackEffectiveDate);
+    }
+    let month = value[5..7]
+        .parse::<u8>()
+        .map_err(|_| PayrollDomainError::InvalidRulepackEffectiveDate)?;
+    let day = value[8..10]
+        .parse::<u8>()
+        .map_err(|_| PayrollDomainError::InvalidRulepackEffectiveDate)?;
+    if !(1..=12).contains(&month) || !(1..=31).contains(&day) {
+        return Err(PayrollDomainError::InvalidRulepackEffectiveDate);
+    }
+    Ok(())
+}
+
+fn validate_source_version(value: &str) -> Result<(), PayrollDomainError> {
+    let trimmed = value.trim();
+    if trimmed.is_empty()
+        || trimmed.len() > 96
+        || has_unsafe_text(trimmed)
+        || trimmed.contains("..")
+        || !trimmed
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/'))
+    {
+        return Err(PayrollDomainError::InvalidRulepackSourceVersion);
+    }
+    Ok(())
+}
+
+fn validate_official_source_url(value: &str) -> Result<(), PayrollDomainError> {
+    if has_unsafe_text(value) || !value.starts_with("https://") {
+        return Err(PayrollDomainError::InvalidRulepackSourceUrl);
+    }
+    let allowed = [
+        "https://www.irs.gov/",
+        "https://www.dol.gov/",
+        "https://www.moel.go.kr/",
+        "https://law.go.kr/",
+    ];
+    if !allowed.iter().any(|prefix| value.starts_with(prefix)) {
+        return Err(PayrollDomainError::InvalidRulepackSourceUrl);
+    }
+    if value.contains("..") || value.contains('\\') {
+        return Err(PayrollDomainError::InvalidRulepackSourceUrl);
+    }
+    Ok(())
+}
+
+fn validate_money(amount: &MoneyAmount) -> Result<(), PayrollDomainError> {
+    if amount.amount_minor == 0 || amount.currency.len() != 3 || has_unsafe_text(&amount.currency) {
+        return Err(PayrollDomainError::InvalidMoney);
+    }
+    Ok(())
+}
+
+fn validate_account_code(value: &str) -> Result<(), PayrollDomainError> {
+    if value.is_empty()
+        || has_unsafe_text(value)
+        || !value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_')
+    {
+        return Err(PayrollDomainError::InvalidAccountCode);
+    }
+    Ok(())
+}
+
+fn validate_idempotency_key(value: &str) -> Result<(), PayrollDomainError> {
+    if value.is_empty()
+        || has_unsafe_text(value)
+        || value.contains("..")
+        || !value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, ':' | '_' | '-'))
+    {
+        return Err(PayrollDomainError::InvalidIdempotencyKey);
+    }
+    Ok(())
+}
+
+fn has_unsafe_text(value: &str) -> bool {
+    value.chars().any(char::is_whitespace) || value.chars().any(char::is_control)
+}
+
+fn internal<T>(value: T) -> Classified<T> {
+    Classified::new(value, PrivacyDataClass::internal_only())
+}
+
+fn public<T>(value: T) -> Classified<T> {
+    Classified::new(value, DataClass::Public)
+}
+
+fn financial<T>(value: T) -> Classified<T> {
+    Classified::new(value, DataClass::Financial)
+}

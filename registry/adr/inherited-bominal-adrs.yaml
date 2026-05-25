@@ -4,6 +4,7 @@
 # deleted/reserved gap IDs that active compatibility docs still cite while
 # replacements remain tracked in docs/ADR-LEGACY-REGRESSION-MAPPING.md.
 
+- id: ADR-0000 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0012 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0033 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0068 # deleted/reserved Oyatie gap or legacy compatibility citation
@@ -46,3 +47,54 @@
 - id: ADR-0224 # inherited Bominal ADR compatibility citation
 - id: ADR-0231 # inherited Bominal ADR compatibility citation
 - id: ADR-0232 # inherited Bominal ADR compatibility citation
+- id: ADR-0291 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0071 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0072 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0073 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0074 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0075 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0076 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0077 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0078 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0079 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0080 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0081 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0082 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0084 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0085 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0087 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0225 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0226 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0227 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0228 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0229 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0230 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0233 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0256 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0259 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0260 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0261 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0262 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0264 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0265 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0266 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0267 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0268 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0269 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0270 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0271 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0274 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0275 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0277 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0278 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0279 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0281 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0282 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0283 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0285 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0286 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0287 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0288 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0289 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0290 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0400 # deleted/reserved Oyatie gap or legacy compatibility citation

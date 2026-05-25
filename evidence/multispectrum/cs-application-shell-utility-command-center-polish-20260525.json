@@ -1,0 +1,121 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-UTILITY-COMMAND-CENTER-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-utility-command-center-polish-20260525",
+  "agent": "codex-oyatie-utility-command-center-polish",
+  "created_at": "2026-05-25T02:08:18-04:00",
+  "slice": "Utility command center polish",
+  "intent": "Polish Notifications and Settings drawers so they feel like cohesive FD-001/Oyatie Cloud command surfaces instead of prototype utility leftovers.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added dynamic and SSR-static utility backdrop so Notifications and Settings close like the command palette rather than floating as disconnected drawers.",
+    "Added Activity Center proof strip tying notifications to FD-001 close, filing, vendor, audit, Oyatie Cloud tenant workload previews, Work Hub, Evidence Spine, and Cloud Cells.",
+    "Added Settings proof strip tying preferences to FD-001, policy, identity, tenant catalog, and Oyatie Cloud posture with explicit no-mutation boundaries.",
+    "Added utility route actions and hydrated local feedback for Work Hub, evidence, cloud topology, identity, policy, and service catalog routes.",
+    "Styled proof strips and route buttons with existing dense command-surface tokens and responsive behavior."
+  ],
+  "before_metrics": {
+    "notifications": {
+      "buttonCount": 9,
+      "cardCount": 4,
+      "hasFD001": false,
+      "hasOyatieCloud": false,
+      "hasLocalBoundary": true,
+      "hasReceipt": true,
+      "hasBackdrop": false
+    },
+    "settings": {
+      "buttonCount": 10,
+      "cardCount": 11,
+      "hasFD001": false,
+      "hasOyatieCloud": false,
+      "hasLocalBoundary": true,
+      "hasReceipt": false,
+      "hasBackdrop": false
+    }
+  },
+  "after_metrics": {
+    "notifications": {
+      "buttonCount": 12,
+      "routeCount": 3,
+      "proofCards": 1,
+      "hasFD001": true,
+      "hasOyatieCloud": true,
+      "hasLocalBoundary": true,
+      "hasBackdrop": true,
+      "backdropVisible": true
+    },
+    "settings": {
+      "buttonCount": 13,
+      "routeCount": 3,
+      "proofCards": 1,
+      "hasFD001": true,
+      "hasOyatieCloud": true,
+      "hasLocalBoundary": true,
+      "hasBackdrop": true,
+      "backdropVisible": true
+    }
+  },
+  "interaction_assertions": [
+    { "action": "route-work-hub", "hash": "#work-hub", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-evidence", "hash": "#audit-ledger", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-cloud", "hash": "#cloud-ops-cockpit", "selected": true, "status_changed": true, "passed": true },
+    { "action": "utility-backdrop-close", "closed_all_panels": true, "passed": true },
+    { "action": "settings-tab-appearance", "active": true, "passed": true },
+    { "action": "settings-tab-integrations", "active": true, "passed": true },
+    { "action": "settings-tab-audit", "active": true, "passed": true },
+    { "action": "settings-density-compact", "density": "compact", "passed": true },
+    { "action": "route-identity", "hash": "#identity-workforce-suite", "selected": true, "status_changed": true, "passed": true }
+  ],
+  "ssr_curl_counts": {
+    "utility-panel-backdrop": 1,
+    "data-utility-route": 6,
+    "FD-001 OPERATIONS SIGNALS": 1,
+    "CONTROL PLANE SETTINGS": 1,
+    "Oyatie Cloud": 68,
+    "FD-001": 120,
+    "no auth": 1,
+    "cloud mutation": 17
+  },
+  "screenshots": {
+    "after": {
+      "notifications": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-utility-command-center-polish/after/utility-notifications.png",
+      "settings": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-utility-command-center-polish/after/utility-settings.png"
+    },
+    "audit_json": {
+      "playwright": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-utility-command-center-polish/after/playwright-utility-command-center-proof.json"
+    }
+  },
+  "visual_verdict": {
+    "score": 91,
+    "verdict": "PASS",
+    "category_match": "Cohesive FD-001/Oyatie Cloud utility command drawers",
+    "reasoning": "Notifications and Settings now read as utility command drawers in the same FD-001/Oyatie Cloud product system, with proof strips, route actions, local-only boundaries, and backdrop close parity.",
+    "differences": [
+      "Utility drawers remain local visual controls; no backend persistence or provider mutation is wired by design."
+    ],
+    "suggestions": [
+      "A future wiring pass can bind the drawer route actions to real tenant notification and preference APIs without altering the visual hierarchy."
+    ]
+  },
+  "commands": [
+    { "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css", "status": "passed" },
+    { "cmd": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "summary": "8 lib tests passed; 0 main tests" },
+    { "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features", "status": "passed" },
+    { "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features", "status": "passed" },
+    { "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib", "status": "passed" },
+    { "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/", "status": "passed", "summary": "ready-after-2s; one transient empty reply immediately after restart" },
+    { "cmd": "node /tmp/oya-utility-proof.cjs", "status": "passed" }
+  ],
+  "known_limits": [
+    "Visual prototype only; utility actions do not persist settings, send mail, mutate auth/IAM, change billing, call integrations, deploy resources, or mutate cloud/provider state.",
+    "This slice improves utility/header drawers; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

@@ -1,0 +1,469 @@
+{
+  "schema_version": 1,
+  "captured_at_iso": "2026-05-23T08:03:00Z",
+  "captured_by": "codex-enterprise-20260523",
+  "purpose": "Explicit local Oya VCS lifecycle transcript evidence for CS-ENT-HR-001, CS-ENT-PAYROLL-001, and CS-ENT-ACCOUNTING-001. This is command-output evidence; it does not assert registry/vcs/changeset-event-log.json persistence.",
+  "changesets": [
+    "CS-ENT-HR-001",
+    "CS-ENT-PAYROLL-001",
+    "CS-ENT-ACCOUNTING-001"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "status",
+        "--agent",
+        "codex-enterprise-20260523",
+        "CS-ENT-HR-001",
+        "CS-ENT-PAYROLL-001",
+        "CS-ENT-ACCOUNTING-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "status",
+            "action": "read-status",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-001",
+              "CS-ENT-PAYROLL-001",
+              "CS-ENT-ACCOUNTING-001"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "verify",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json",
+        "CS-ENT-HR-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "verify",
+            "action": "verify-evidence",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-001"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "done",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json",
+        "CS-ENT-HR-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "done",
+            "action": "emit-change-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-001"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": "legacy-grit-compatible-done",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "promote",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--bundle",
+        "CS-ENT-HR-001",
+        "--environment",
+        "dev",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "promote",
+            "action": "promote-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-domain-foundation-1779520348.json"
+            ],
+            "bundle_id": "CS-ENT-HR-001",
+            "environment": "dev",
+            "closeout_mode": "controller-promote",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "verify",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-payroll-run-domain-foundation-1779522600.json",
+        "CS-ENT-PAYROLL-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "verify",
+            "action": "verify-evidence",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-PAYROLL-001"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-payroll-run-domain-foundation-1779522600.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "done",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-payroll-run-domain-foundation-1779522600.json",
+        "CS-ENT-PAYROLL-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "done",
+            "action": "emit-change-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-PAYROLL-001"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-payroll-run-domain-foundation-1779522600.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": "legacy-grit-compatible-done",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "promote",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--bundle",
+        "CS-ENT-PAYROLL-001",
+        "--environment",
+        "dev",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-payroll-run-domain-foundation-1779522600.json"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "promote",
+            "action": "promote-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-payroll-run-domain-foundation-1779522600.json"
+            ],
+            "bundle_id": "CS-ENT-PAYROLL-001",
+            "environment": "dev",
+            "closeout_mode": "controller-promote",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "verify",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-accounting-journal-domain-foundation-1779522601.json",
+        "CS-ENT-ACCOUNTING-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "verify",
+            "action": "verify-evidence",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-ACCOUNTING-001"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-accounting-journal-domain-foundation-1779522601.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "done",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-accounting-journal-domain-foundation-1779522601.json",
+        "CS-ENT-ACCOUNTING-001"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "done",
+            "action": "emit-change-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-ACCOUNTING-001"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-accounting-journal-domain-foundation-1779522601.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": "legacy-grit-compatible-done",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "promote",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--bundle",
+        "CS-ENT-ACCOUNTING-001",
+        "--environment",
+        "dev",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-accounting-journal-domain-foundation-1779522601.json"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "promote",
+            "action": "promote-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-accounting-journal-domain-foundation-1779522601.json"
+            ],
+            "bundle_id": "CS-ENT-ACCOUNTING-001",
+            "environment": "dev",
+            "closeout_mode": "controller-promote",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    }
+  ],
+  "all_exit_zero": true,
+  "all_accepted": true,
+  "registry_event_log_persistence_asserted": false
+}

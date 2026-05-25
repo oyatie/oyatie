@@ -1,0 +1,158 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-BOMINAL-COMMAND-CENTER-REPAIR-20260524",
+  "evidence_id": "cs-application-shell-bominal-command-center-repair-20260524",
+  "created_at": "2026-05-24T00:00:00-04:00",
+  "agent": "codex-oyatie-bominal-command-center-repair",
+  "objective": "Repair the reported major Bominal regression by replacing the thin Evidence Spine/Object Graph/Copilot strip with a dense, cohesive, visually interactive operational intelligence console.",
+  "change_class_id": "CC-2",
+  "skills_used": [
+    "agent-skills:visual-ralph",
+    "agent-skills:frontend-ui-engineering"
+  ],
+  "reference_inputs": {
+    "bominal_zip": "/Users/jasonlee/Downloads/Bominal.zip",
+    "workflow_standalone_html": "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    "bominal_patterns_reviewed": [
+      "/tmp/bominal-ref/docs/bominal-corporate-platform/MODULE-MAP.md",
+      "/tmp/bominal-ref/docs/design-system/README.md",
+      "/tmp/bominal-ref/app-bizos.jsx command center, logic catalog, workflow detail, and cost/health density",
+      "/tmp/bominal-ref/bizos.css dense card/table/toolbar visual language"
+    ],
+    "reference_screenshots": [
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png"
+    ]
+  },
+  "gap_analysis": {
+    "source": "runtime screenshot inspection against Bominal corporate/workflow references after the user's regression report",
+    "findings_addressed": [
+      "The previous Evidence Spine was only four sparse cards and did not communicate Bominal-grade feature density or object-lineage depth.",
+      "Operational intelligence, object graph, evidence ledger, and governed copilot were visually separate concepts instead of one cohesive command product.",
+      "Evidence filtering, object-node selection, and copilot route actions were not visually functional enough to satisfy the 'fully interactive and functional, just not wired' constraint.",
+      "Native hidden semantics were being overridden by dense component display classes, so filtered rows could still measure as visible in browser QA."
+    ]
+  },
+  "implemented": [
+    "Replaced the sparse operator-intelligence card row with a full Evidence Spine/Object Graph operational intelligence console in the hydrated Leptos view.",
+    "Mirrored the same console in the SSR static render so the Bominal-grade surface exists before hydration and remains selective-island friendly.",
+    "Added a five-metric KPI strip, evidence search, evidence state filters, six evidence ledger rows with owner/source/SLA metadata, and selected-row visual state.",
+    "Added an eight-node selectable object graph linking Tenant, Workflow, Approval, Mail, Messenger, Community, Cloud cell, and Receipt with sidepeek metadata.",
+    "Added a governed Copilot rail with audit, workflow, mail, and community route actions plus a cross-module signal lineage board that ties Workflow to built-in Messenger/Mail/Community/Cloud/Audit surfaces.",
+    "Added local JavaScript for evidence filtering/search/actions, object-node selection/status, copilot route actions, Activity Center events, and #evidence-spine/#object-graph deep links.",
+    "Added Bominal-style low-radius, dense table/ledger/toolbar/object-graph CSS and restored global [hidden] semantics so filtered rows really disappear in the browser."
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "tests": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --no-default-features --features hydrate --release",
+      "status": "passed"
+    },
+    {
+      "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "observations": [
+        "live server reachable on 127.0.0.1:3000",
+        "SSR output contains evidence-intelligence-console, five evidence filters, eight data-object-node controls, and eight data-intel-action controls"
+      ]
+    },
+    {
+      "command": "Playwright smoke for #evidence-spine, evidence filters/search/open, object-node selection, Workflow route, Mail route, console/network health",
+      "status": "passed",
+      "artifact": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/browser-smoke-summary.json",
+      "observations": {
+        "counts": {
+          "evidenceEvents": 6,
+          "objectNodes": 8,
+          "intelActions": 8,
+          "kpis": 5
+        },
+        "blockingVisible": 1,
+        "blockingStatus": "1 visible · blocking state · local evidence only",
+        "objectStatus": "Workflow selected · side peek and lineage ready",
+        "activeHubAfterMailAction": "Mail",
+        "consoleEvents": [],
+        "failedRequests": []
+      }
+    },
+    {
+      "command": "pixelmatch secondary debug diffs against Bominal corporate and workflow-studio 1440px references cropped to shared viewport",
+      "status": "passed",
+      "artifact": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/intelligence-evidence-pixel-diff-summary.json",
+      "observations": {
+        "comparisons": [
+          {
+            "name": "evidence_console_vs_bominal_corporate",
+            "width": 1440,
+            "height": 900,
+            "mismatched": 106764,
+            "mismatchRatio": 0.0824,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/pixel-diff-corporate.png"
+          },
+          {
+            "name": "evidence_console_vs_bominal_workflow_studio",
+            "width": 1440,
+            "height": 900,
+            "mismatched": 103801,
+            "mismatchRatio": 0.0801,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/pixel-diff-workflow-studio.png"
+          }
+        ]
+      }
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    }
+  ],
+  "screenshots": {
+    "evidence_console": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/evidence-console-1440.png",
+    "workflow_route": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/intel-route-workflow-1440.png",
+    "mail_route": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/intel-route-mail-1440.png",
+    "diff_corporate": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/pixel-diff-corporate.png",
+    "diff_workflow_studio": ".omx/artifacts/visual-ralph/oya-bominal-command-center-repair/screenshots/pixel-diff-workflow-studio.png"
+  },
+  "visual_verdict": {
+    "score": 92,
+    "category_match": "Bominal-style operational command center plus evidence/object graph/cadence intelligence, integrated into the Oyatie shell",
+    "verdict": "The repaired slice now has Bominal-grade density: an evidence ledger, selectable object graph, governed copilot actions, lineage board, filters, search, sidepeek inspection, and cross-suite routes. It reads as one product surface rather than unrelated panels and addresses the largest visible feature-depth regression in the prior mockup.",
+    "improved_matches": [
+      "The console uses Bominal's flat, tactical, dense information architecture instead of generic AI cards.",
+      "Evidence, workflow, mail, messenger, community, cloud ops, and audit are connected in one visible lineage.",
+      "Controls are visually functional: filters hide rows, object nodes select, copilot buttons route to Workflow/Mail/Community/Audit, and Activity Center events are staged locally.",
+      "SSR and selective hydration both carry the surface, preserving the product's current rendering architecture."
+    ],
+    "remaining_differences": [
+      "No real evidence, approval, workflow, mail, community, or audit backend is wired; this is still a local visual prototype.",
+      "Bominal's full product has additional modal/detail drilldowns and typed APIs beyond this repaired slice.",
+      "The broader complete mockup objective still has more depth to add across remaining modules, so the active goal is not being marked complete."
+    ]
+  },
+  "non_claims": [
+    "No backend workflow execution, evidence write, mail send, community post, audit commit, entitlement change, or cloud action occurs.",
+    "All actions are browser-local visual state and route previews only.",
+    "This changes one high-impact regression slice and does not claim the full dashboard/mockup is complete."
+  ],
+  "touched_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-bominal-command-center-repair-20260524.json"
+  ]
+}

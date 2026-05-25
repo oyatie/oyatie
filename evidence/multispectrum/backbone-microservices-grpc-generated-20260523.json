@@ -1,0 +1,139 @@
+{
+  "change_id": "backbone-microservices-grpc-generated-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Compile-time tonic/prost generated bindings for backbone proto3 write-service contracts.",
+  "scope": [
+    "crates/oya-shared-backbone-grpc-generated-adapter/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-backbone-grpc-generated-adapter.yaml",
+    "registry/dependency-rationales.json",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Generated binding seam only. This slice compiles source-controlled proto3 contracts into tonic/prost Rust message and service modules at build time with vendored protoc. It proves local prost binary encode/decode round trips for generated request types. It does not start a gRPC server/client, open network connections, deploy a gateway, publish broker messages, integrate databases, or certify production interoperability.",
+  "source_basis": [
+    {
+      "url": "https://docs.rs/crate/tonic-build/latest",
+      "use": "Official tonic-build docs for using tonic-prost-build in build.rs, include_proto!, and the tonic/prost dependency shape."
+    },
+    {
+      "url": "https://docs.rs/crate/tonic-prost-build/0.14.5",
+      "use": "Official tonic-prost-build docs for compile_protos/configure usage and transport feature boundary. Local cargo info confirmed 0.14.6 was current before pinning."
+    },
+    {
+      "url": "https://docs.rs/crate/tonic/latest",
+      "use": "Official tonic docs for the current 0.14.x crate, purpose, feature surface, and latest version metadata."
+    },
+    {
+      "url": "https://docs.rs/crate/protoc-bin-vendored/3.2.0",
+      "use": "Official protoc-bin-vendored docs for using a packaged protoc binary instead of relying on mutable host installation."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "A single generated adapter crate owns tonic/prost bindings; existing domain/API/usecase/app crates remain framework-free and continue using typed internal requests and receipts.",
+    "F2_hyperscaler": "Vendored protoc and pinned generator/runtime dependencies make proto binding generation reproducible in local and CI environments before runtime service adapters are introduced.",
+    "F3_adversarial": "Tests encode and decode generated request messages for messenger, mail/DMARC, social/story/collab, and all community write RPC families to catch schema/codegen drift.",
+    "F4_api_contract": "The adapter exposes generated modules for oya.messenger.v1, oya.mail.v1, oya.social.v1, and oya.community.v1 plus stable fully qualified method constants for runtime adapters.",
+    "F5_quality": "Focused generated-adapter tests plus the 44-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "GitHub Actions and Jenkins matrices now include generated binding compilation so future proto contract changes fail before runtime deployment when generated stubs drift.",
+    "F7_security_privacy": "Generated types carry reference IDs and encrypted-envelope metadata only in tests; no raw content bodies, credentials, broker URLs, database URLs, or principal secrets are introduced.",
+    "F8_supply_chain": "New direct dependencies are pinned in workspace dependencies and documented in dependency-rationales as adapter/build-script-only seams: prost, tonic, tonic-prost, tonic-prost-build, and protoc-bin-vendored.",
+    "F9_testing": "Focused tests passed for 5 generated-adapter unit tests and the broad backbone matrix passed 279 unit tests plus the existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "Static CI definitions include the generated adapter in all four service package matrices; this does not claim remote CI execution.",
+    "F11_observability": "Fully qualified method constants preserve method names future gRPC interceptors and trace/metric labels must bind to.",
+    "F13_reversibility": "The generated binding seam is isolated to one adapter crate plus dependency/catalog/CI/task/evidence wiring; reverting removes codegen without changing business logic."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass",
+      "evidence": "5 focused unit tests passed, including generated package/method registry checks and prost encode/decode round trips for messenger, mail, social, and community create/vote/moderation request types."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-backbone-grpc-generated-adapter --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <44 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <44 backbone package matrix>",
+      "result": "pass",
+      "evidence": "279 unit tests passed across backbone domain/API/usecase/REST/app/gRPC/generated-adapter/adapter-postgres/shared-command/shared-sqlx/shared-protocol/shared-transport-retry/shared-proto-contract/shared-outbox/shared-policy/shared-metrics packages; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <44 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <44 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; duplicate/wildcard diagnostics remain non-blocking warnings under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 458 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 458 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "After fixing the new catalog row supply_chain to an accepted value, catalog validation reaches the pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "ruby parse/config validation for generated adapter crate, build script, workspace deps, rationales, workflow matrix/path filters, catalog, Jenkins, evidence JSON, and framework-dep isolation",
+      "result": "pass",
+      "evidence": "parse_config_validation=pass generated_adapter=present matrix_rows=4 rationales=5; workflow governance smoke parsed 19 evidence/proto/YAML files."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 353 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + generated adapter + dependency rationales + CI/Jenkins + catalog + evidence corpus>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 6 documents, 1464 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No live gRPC server or client was started.",
+    "No network connection, broker publish, database call, or service gateway was executed.",
+    "No production interoperability certification, load test, SLO, or delivery guarantee is claimed.",
+    "No generated code is checked into source; generation happens at build time from source-controlled proto files.",
+    "No domain/API/usecase crate depends on tonic/prost as part of this slice."
+  ]
+}

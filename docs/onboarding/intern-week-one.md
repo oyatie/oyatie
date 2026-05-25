@@ -97,7 +97,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-0-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 0 step 06
 Goal: Learn the laptop bring-up and safety rails path by tying `Audit-chain` to ADR-0247 and `docs/standards/doc-style.md`.
@@ -160,7 +160,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-0-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 0 step 13
 Goal: Learn the laptop bring-up and safety rails path by tying `Cedar permit` to ADR-0254 and `docs/AGENTS.md`.
@@ -178,7 +178,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-0-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 0 step 15
 Goal: Learn the laptop bring-up and safety rails path by tying `Ontology` to ADR-0257 and `docs/standards/doc-style.md`.
@@ -187,7 +187,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-0-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 0 step 16
 Goal: Learn the laptop bring-up and safety rails path by tying `Audit-chain` to ADR-0258 and `docs/AGENTS.md`.
@@ -367,7 +367,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-0-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 0 step 36
 Goal: Learn the laptop bring-up and safety rails path by tying `Audit-chain` to ADR-0247 and `docs/standards/doc-style.md`.
@@ -430,7 +430,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-0-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 0 step 43
 Goal: Learn the laptop bring-up and safety rails path by tying `Cedar permit` to ADR-0254 and `docs/AGENTS.md`.
@@ -448,7 +448,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-0-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 0 step 45
 Goal: Learn the laptop bring-up and safety rails path by tying `Ontology` to ADR-0257 and `docs/standards/doc-style.md`.
@@ -457,7 +457,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-0-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 0 step 46
 Goal: Learn the laptop bring-up and safety rails path by tying `Audit-chain` to ADR-0258 and `docs/AGENTS.md`.
@@ -549,7 +549,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-1-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 1 step 06
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Audit-chain` to ADR-0247 and `docs/architecture/keystone-bundle-2026-05-20-synthesis.md`.
@@ -612,7 +612,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-1-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 1 step 13
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Cedar permit` to ADR-0254 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -630,7 +630,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-1-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 1 step 15
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Ontology` to ADR-0257 and `docs/architecture/keystone-bundle-2026-05-20-synthesis.md`.
@@ -639,7 +639,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-1-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 1 step 16
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Audit-chain` to ADR-0258 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -819,7 +819,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-1-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 1 step 36
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Audit-chain` to ADR-0247 and `docs/architecture/keystone-bundle-2026-05-20-synthesis.md`.
@@ -882,7 +882,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-1-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 1 step 43
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Cedar permit` to ADR-0254 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -900,7 +900,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-1-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 1 step 45
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Ontology` to ADR-0257 and `docs/architecture/keystone-bundle-2026-05-20-synthesis.md`.
@@ -909,7 +909,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-1-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 1 step 46
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Audit-chain` to ADR-0258 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -1001,7 +1001,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-2-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 06
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0247 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
@@ -1064,7 +1064,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-2-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 2 step 13
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0254 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
@@ -1082,7 +1082,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-2-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 15
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0257 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
@@ -1091,7 +1091,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-2-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 2 step 16
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0258 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
@@ -1271,7 +1271,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-2-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 36
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0247 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
@@ -1334,7 +1334,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-2-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 2 step 43
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0254 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
@@ -1352,7 +1352,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-2-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 45
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0257 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
@@ -1361,7 +1361,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-2-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 2 step 46
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0258 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
@@ -1453,7 +1453,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-3-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 3 step 06
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Audit-chain` to ADR-0247 and `docs/architecture/day-in-the-life-coherent-ecosystem-2026-05-21.md`.
@@ -1516,7 +1516,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-3-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 3 step 13
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Cedar permit` to ADR-0254 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -1534,7 +1534,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-3-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 3 step 15
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Ontology` to ADR-0257 and `docs/architecture/day-in-the-life-coherent-ecosystem-2026-05-21.md`.
@@ -1543,7 +1543,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-3-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 3 step 16
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Audit-chain` to ADR-0258 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -1723,7 +1723,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-3-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 3 step 36
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Audit-chain` to ADR-0247 and `docs/architecture/day-in-the-life-coherent-ecosystem-2026-05-21.md`.
@@ -1786,7 +1786,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-3-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 3 step 43
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Cedar permit` to ADR-0254 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -1804,7 +1804,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-3-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 3 step 45
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Ontology` to ADR-0257 and `docs/architecture/day-in-the-life-coherent-ecosystem-2026-05-21.md`.
@@ -1813,7 +1813,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-3-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 3 step 46
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Audit-chain` to ADR-0258 and `docs/personas/MASTER-ROSTER-2026-05-21.md`.
@@ -1905,7 +1905,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-4-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 4 step 06
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Audit-chain` to ADR-0247 and `docs/onboarding/doctrine-bootcamp-2026-05-21.md`.
@@ -1968,7 +1968,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-4-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 4 step 13
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Cedar permit` to ADR-0254 and `docs/architecture/keystone-bundle-reading-order.md`.
@@ -1986,7 +1986,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-4-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 4 step 15
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Ontology` to ADR-0257 and `docs/onboarding/doctrine-bootcamp-2026-05-21.md`.
@@ -1995,7 +1995,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-4-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 4 step 16
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Audit-chain` to ADR-0258 and `docs/architecture/keystone-bundle-reading-order.md`.
@@ -2175,7 +2175,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-4-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 4 step 36
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Audit-chain` to ADR-0247 and `docs/onboarding/doctrine-bootcamp-2026-05-21.md`.
@@ -2238,7 +2238,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-4-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 4 step 43
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Cedar permit` to ADR-0254 and `docs/architecture/keystone-bundle-reading-order.md`.
@@ -2256,7 +2256,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-4-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 4 step 45
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Ontology` to ADR-0257 and `docs/onboarding/doctrine-bootcamp-2026-05-21.md`.
@@ -2265,7 +2265,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-4-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 4 step 46
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Audit-chain` to ADR-0258 and `docs/architecture/keystone-bundle-reading-order.md`.
@@ -2357,7 +2357,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-5-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 5 step 06
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Audit-chain` to ADR-0247 and `docs/GLOSSARY.md`.
@@ -2420,7 +2420,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-5-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 5 step 13
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Cedar permit` to ADR-0254 and `docs/AGENTS.md`.
@@ -2438,7 +2438,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-5-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 5 step 15
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Ontology` to ADR-0257 and `docs/GLOSSARY.md`.
@@ -2447,7 +2447,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-5-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 5 step 16
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Audit-chain` to ADR-0258 and `docs/AGENTS.md`.
@@ -2627,7 +2627,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-5-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 5 step 36
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Audit-chain` to ADR-0247 and `docs/GLOSSARY.md`.
@@ -2690,7 +2690,7 @@ Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one co
 Artifact: Commit-note draft `week-one-day-5-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 5 step 43
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Cedar permit` to ADR-0254 and `docs/AGENTS.md`.
@@ -2708,7 +2708,7 @@ Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-5-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 5 step 45
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Ontology` to ADR-0257 and `docs/GLOSSARY.md`.
@@ -2717,7 +2717,7 @@ Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one con
 Artifact: Commit-note draft `week-one-day-5-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0257-amendment-library-first-ontology-read-path.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 5 step 46
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Audit-chain` to ADR-0258 and `docs/AGENTS.md`.

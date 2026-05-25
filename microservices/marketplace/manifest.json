@@ -1,502 +1,247 @@
 {
   "schema_version": "1.0",
-  "microservice": "marketplace",
-  "version": "0.2.0",
-  "owner": "axis-marketplace",
-  "tier": "product",
-  "_tier_comment": "tier=product is the substrate-vs-product LAYER marker per feedback_substrate_vs_product_layering (ADR-0245). It is not a tenant entitlement axis. DO NOT delete this field.",
-  "doctrine": "universal deal-settlement substrate + multi-category marketplace (ADR-0249 KS#11)",
-  "primary_adr": "ADR-0314",
-  "related_adrs": [
-    "ADR-0105",
-    "ADR-0131",
-    "ADR-0243",
-    "ADR-0244",
-    "ADR-0249",
-    "ADR-0251",
-    "ADR-0263",
-    "ADR-0308",
-    "ADR-0314",
-    "ADR-0329",
-    "ADR-0330",
-    "ADR-0331",
-    "ADR-MKT-001"
+  "version": "0.1.0",
+  "status": "implemented-local-foundation-truth-down",
+  "change_set": "CS-CLOUD-OPS-FOUNDATION-001",
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
   ],
-  "tenant_class_adoption": {
-    "supported_classes": [
-      "demo_trial",
-      "paid"
-    ],
-    "binding": "binary (per ADR-0331)",
-    "published_tenant_class_claim_keys": [
-      "tenant_id",
-      "tenant_class",
-      "tenant_billing_components"
-    ],
-    "behavior_doc": "microservices/marketplace/REMEDIATION-NOTES-2026-05-21.md#tenant-class-behavior"
+  "lts_pins": {
+    "rust": "1.95.0"
   },
-  "billing_components": {
-    "components_owned_by_marketplace": [
-      "revenue_share"
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture BNF",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "DR RTO/RPO Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability FinOps Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+    },
+    {
+      "id": "ADR-0352",
+      "title": "Oyatie From-Scratch Architecture Handoff",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md"
+    }
+  ],
+  "slos": [],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "not_claimed_cs_cloud_ops_foundation_001_no_runtime_request_path",
+    "tenant_rate_limit": "not_claimed_cs_cloud_ops_foundation_001_no_live_api_or_quota_runtime",
+    "golden_signals": "not_claimed_cs_cloud_ops_foundation_001_no_measured_metrics_runtime",
+    "error_budget_burn": "not_claimed_cs_cloud_ops_foundation_001_slos_empty_until_runtime_sli_exists"
+  },
+  "audit_chain": {
+    "enabled": false,
+    "runtime_audit_emitter": false,
+    "seal_events": [],
+    "evidence_refs": [
+      "evidence/multispectrum/cs-cloud-ops-foundation-20260523.json"
     ],
-    "consumes_for_metering": [
-      "per_usage",
-      "per_seat"
-    ],
-    "revenue_share": {
-      "implementation_evidence_ip_range": "IP-007 + IP-031..IP-041",
-      "cross_µservice_chain": [
-        "marketplace.deal-offer-create",
-        "marketplace.escrow-reserve",
-        "marketplace.escrow-release",
-        "marketplace.revenue-share-accrue",
-        "marketplace.revenue-share-statement-emit",
-        "cloud-billing.invoice.create",
-        "marketplace.payout-dispatch",
-        "payments.payout.create",
-        "marketplace.revenue-share-reconcile",
-        "marketplace.revenue-share-clawback"
-      ],
-      "audit_chain_provenance_value_type": "RevenueShareProvenance (IP-035)"
+    "non_claim": "Metadata guardrail records audit/evidence reference shapes only; no audit-chain writer or seal persistence is implemented by CS-CLOUD-OPS-FOUNDATION-001."
+  },
+  "secrets_substrate": {
+    "provider": "openbao-future-reference-only",
+    "raw_secret_material": false,
+    "non_claim": "No raw credential, provider token, kubeconfig, marketplace secret, or OpenBao runtime call is introduced or consumed."
+  },
+  "runtime_dependencies": {
+    "implemented": false,
+    "oss_packages": [],
+    "non_claim": "No service runtime dependency graph is claimed for this local foundation."
+  },
+  "sharding_automation": {
+    "autosharding": false,
+    "auto_rebalance": {
+      "enabled": false,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "audit_chain_emit": false
     }
   },
-  "deployment_contexts": [
-    "oyatie-public-cloud",
-    "guest-on-aws",
-    "guest-on-oci",
-    "on-prem",
-    "colo",
-    "oyatie-as-cloud-provider"
+  "dr": {
+    "multi_region_active_active": false,
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "non_claim": "No DR runtime or drill evidence is implemented."
+  },
+  "mesh_layering": {
+    "runtime_mesh_enabled": false,
+    "non_claim": "No Istio/Cilium/Envoy runtime configuration is implemented by this slice."
+  },
+  "iac": {
+    "opentofu_plan_apply": false,
+    "provider_live_smoke": false,
+    "non_claim": "No infrastructure provisioning is executed or claimed."
+  },
+  "runtime_data_processing": false,
+  "cloud_ops_foundation": {
+    "schema_version": 1,
+    "evidence_guardrail": "CloudOpsFoundationGuardrail",
+    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
+    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+    "evidence_prefixes": {
+      "capacity": "evidence/cloud-ops/capacity/",
+      "cell": "evidence/cloud-ops/cell/",
+      "dcops": "evidence/cloud-ops/dcops/",
+      "finops": "evidence/cloud-ops/finops/",
+      "marketplace": "evidence/cloud-ops/marketplace/",
+      "fsh": "evidence/cloud-ops/fsh/",
+      "audit_chain": "audit-chain/cloud-ops/"
+    },
+    "runtime_claims": [],
+    "non_claim": "The guardrail proves tenant/region/cell-scoped metadata and capacity/rebalance bounds only; it does not run cloud operations workflows."
+  },
+  "source_guidance": [
+    {
+      "topic": "capacity_overload",
+      "source": "Google SRE Handling Overload",
+      "url": "https://sre.google/sre-book/handling-overload/",
+      "implication": "capacity is resource based, per-customer quota aware, and overload/retry claims require measured runtime evidence"
+    },
+    {
+      "topic": "node_autoscaling",
+      "source": "Kubernetes Node Autoscaling",
+      "url": "https://v1-32.docs.kubernetes.io/docs/concepts/cluster-administration/node-autoscaling/",
+      "implication": "node autoscaling is runtime infrastructure behavior and is not claimed by this local foundation"
+    },
+    {
+      "topic": "finops_focus",
+      "source": "FOCUS Specification",
+      "url": "https://focus.finops.org/focus-specification/",
+      "implication": "FOCUS exports need schema-backed data generation evidence and are not claimed as live exports here"
+    },
+    {
+      "topic": "opencost",
+      "source": "OpenCost Specification",
+      "url": "https://opencost.io/docs/specification/",
+      "implication": "Kubernetes cost allocation needs asset/resource allocation data; this slice keeps only domain/API metadata"
+    },
+    {
+      "topic": "dcops",
+      "source": "Uptime Institute Tier Classification",
+      "url": "https://uptimeinstitute.com/tiers",
+      "implication": "facility tier claims require site infrastructure evidence; this slice only validates pure DCOps domain records"
+    },
+    {
+      "topic": "marketplace",
+      "source": "AWS Marketplace SaaS products",
+      "url": "https://docs.aws.amazon.com/marketplace/latest/userguide/saas-products.html",
+      "implication": "SaaS marketplace sellers manage access/provisioning and integrate subscriptions/contracts; no live marketplace integration is claimed"
+    }
   ],
-  "demo_trial_default_profile": "oci-guest-always-free",
-  "artifact_bar": {
-    "pr_143_operating_bar_minimum": 100,
-    "generated_suite_target": "at-or-above-operating-bar"
-  },
-  "naming_justifications": {
-    "bnf_v4": "<service>.<bounded_context>.<action>.<resource> using marketplace",
-    "layer_enum": "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
-  },
+  "non_claims": [
+    "no live REST gRPC SDK worker database broker scheduler or dashboard runtime",
+    "no measured SLO SLI burn-rate Prometheus OpenSLO runtime evidence",
+    "no active-active DR failover drill backup restore or cross-region replication evidence",
+    "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
+    "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
+    "no runtime autoscaling autosharding migration workflow or tenant move execution",
+    "no settlement ledger escrow payout tax clearance or revenue-share runtime",
+    "no external marketplace adapter crate or provider API integration"
+  ],
+  "microservice": "marketplace",
+  "owner": "axis-marketplace",
   "bounded_contexts": [
     {
-      "name": "DealSet",
-      "primitive": "DealSet",
-      "secondary_primitive": "SettlementLedger",
-      "layers": [
-        "kernel",
-        "domain",
-        "usecase",
-        "app",
-        "adapter",
-        "infrastructure",
-        "rest",
-        "grpc",
-        "graphql",
-        "worker",
-        "cli",
-        "sdk",
-        "api"
+      "name": "cloud-marketplace-local-foundation",
+      "description": "Code-backed local foundation for seller onboarding, listing publication, private offers, entitlements, marketplace fee calculation, and kernel command shaping. No SaaS marketplace integration, seller portal runtime, settlement ledger, escrow, payout, revenue-share statement, external AWS/OCI marketplace adapter, measured SLO, active-active DR, or audit-chain persistence is claimed.",
+      "crates": [
+        "oya-cloud-marketplace-domain",
+        "oya-cloud-marketplace-kernel"
       ]
     }
   ],
-  "categories": {
-    "doctrine_anchor": "ADR-0249 KS#11 (multi-category marketplace)",
-    "registry": [
-      {
-        "name": "plugins",
-        "capability": "microservices/marketplace/capabilities/category-plugins.yaml",
-        "policy": "microservices/marketplace/policies/category-plugins.cedar",
-        "slo": "microservices/marketplace/slos/listing-plugins-availability.openslo.yaml",
-        "contract": "microservices/marketplace/contracts/listing-plugins-v1.yaml",
-        "default_revenue_share_basis_points": 1500,
-        "entitlement_binding_µservice": "foundry-plugin-registry"
-      },
-      {
-        "name": "apps",
-        "capability": "microservices/marketplace/capabilities/category-apps.yaml",
-        "policy": "microservices/marketplace/policies/category-apps.cedar",
-        "slo": "microservices/marketplace/slos/listing-apps-availability.openslo.yaml",
-        "contract": "microservices/marketplace/contracts/listing-apps-v1.yaml",
-        "default_revenue_share_basis_points": 2000,
-        "entitlement_binding_µservice": "cloud-cell"
-      },
-      {
-        "name": "workflows",
-        "capability": "microservices/marketplace/capabilities/category-workflows.yaml",
-        "policy": "microservices/marketplace/policies/category-workflows.cedar",
-        "slo": "microservices/marketplace/slos/listing-workflows-availability.openslo.yaml",
-        "contract": "microservices/marketplace/contracts/listing-workflows-v1.yaml",
-        "default_revenue_share_basis_points": 1500,
-        "entitlement_binding_µservice": "workflow-engine"
-      },
-      {
-        "name": "agents",
-        "capability": "microservices/marketplace/capabilities/category-agents.yaml",
-        "policy": "microservices/marketplace/policies/category-agents.cedar",
-        "slo": "microservices/marketplace/slos/listing-agents-availability.openslo.yaml",
-        "contract": "microservices/marketplace/contracts/listing-agents-v1.yaml",
-        "default_revenue_share_basis_points": 2000,
-        "entitlement_binding_µservice": "intelligence",
-        "eu_ai_act_classification_required": true
-      },
-      {
-        "name": "models",
-        "capability": "microservices/marketplace/capabilities/category-models.yaml",
-        "policy": "microservices/marketplace/policies/category-models.cedar",
-        "slo": "microservices/marketplace/slos/listing-models-availability.openslo.yaml",
-        "contract": "microservices/marketplace/contracts/listing-models-v1.yaml",
-        "default_revenue_share_basis_points": 2500,
-        "entitlement_binding_µservice": "model-registry",
-        "eu_ai_act_classification_required": true
-      },
-      {
-        "name": "datasets",
-        "capability": "microservices/marketplace/capabilities/category-datasets.yaml",
-        "policy": "microservices/marketplace/policies/category-datasets.cedar",
-        "slo": "microservices/marketplace/slos/listing-datasets-availability.openslo.yaml",
-        "contract": "microservices/marketplace/contracts/listing-datasets-v1.yaml",
-        "default_revenue_share_basis_points": 2000,
-        "entitlement_binding_µservice": "data-exchange"
-      }
-    ]
-  },
-  "superior_capabilities_preserved": [
-    "single cross-category SettlementLedger (one ledger powers all 6 categories)",
-    "single AsyncAPI event schema (DealSet envelope across all categories)",
-    "Cedar default-deny across the entire surface",
-    "BLAKE3 audit chain on every settlement / accrual / payout event",
-    "EU AI Act compliance pack readiness for agents + models + training datasets"
-  ],
-  "dependencies": [
-    "payments",
-    "treasury",
-    "finops-portal",
-    "ontology",
-    "workflow-engine",
-    "connect",
-    "identity",
-    "audit-chain",
-    "global-trade",
-    "cloud-billing",
-    "cloud-iam",
-    "cloud-cell",
-    "intelligence",
-    "model-registry",
-    "data-exchange",
-    "foundry-plugin-registry"
+  "layers": [
+    "domain",
+    "kernel"
   ],
   "contracts": {
     "openapi": [
-      "microservices/marketplace/contracts/openapi-v1.yaml",
-      "microservices/marketplace/contracts/listing-plugins-v1.yaml",
-      "microservices/marketplace/contracts/listing-apps-v1.yaml",
-      "microservices/marketplace/contracts/listing-workflows-v1.yaml",
-      "microservices/marketplace/contracts/listing-agents-v1.yaml",
-      "microservices/marketplace/contracts/listing-models-v1.yaml",
-      "microservices/marketplace/contracts/listing-datasets-v1.yaml"
+      "microservices/marketplace/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
       "microservices/marketplace/contracts/asyncapi-v1.yaml"
     ],
     "proto": [
       "microservices/marketplace/contracts/marketplace-v1.proto"
-    ]
+    ],
+    "contract_status": "service-local marketplace contracts are planning scaffolds; no REST/event/proto runtime is implemented"
   },
-  "journey_ips": [
-    {
-      "id": "j101",
-      "concept": "Deal Settlement Ledger",
-      "file": "microservices/marketplace/IP-journey-j101-deal-settlement-ledger.md"
-    },
-    {
-      "id": "j102",
-      "concept": "Deal Settlement Ledger",
-      "file": "microservices/marketplace/IP-journey-j102-deal-settlement-ledger.md"
-    },
-    {
-      "id": "j103",
-      "concept": "Deal Settlement Ledger",
-      "file": "microservices/marketplace/IP-journey-j103-deal-settlement-ledger.md"
-    },
-    {
-      "id": "j107",
-      "concept": "Deal Settlement Ledger",
-      "file": "microservices/marketplace/IP-journey-j107-deal-settlement-ledger.md"
-    },
-    {
-      "id": "j108",
-      "concept": "Deal Settlement Ledger",
-      "file": "microservices/marketplace/IP-journey-j108-deal-settlement-ledger.md"
-    },
-    {
-      "id": "j112",
-      "concept": "Deal Settlement Ledger",
-      "file": "microservices/marketplace/IP-journey-j112-deal-settlement-ledger.md"
-    },
-    {
-      "id": "j146",
-      "concept": "Seller Flow And Escrow",
-      "file": "microservices/marketplace/IP-journey-j146-seller-flow-and-escrow.md"
-    },
-    {
-      "id": "j23",
-      "concept": "Seller Listing",
-      "file": "microservices/marketplace/IP-journey-j23-seller-listing.md"
-    },
-    {
-      "id": "j24",
-      "concept": "Buyer Order",
-      "file": "microservices/marketplace/IP-journey-j24-buyer-order.md"
-    },
-    {
-      "id": "j29",
-      "concept": "Sale Event Emitter",
-      "file": "microservices/marketplace/IP-journey-j29-sale-event-emitter.md"
-    },
-    {
-      "id": "j52",
-      "concept": "Order Ledger",
-      "file": "microservices/marketplace/IP-journey-j52-order-ledger.md"
-    },
-    {
-      "id": "j55",
-      "concept": "Seller Buyer Mediation",
-      "file": "microservices/marketplace/IP-journey-j55-seller-buyer-mediation.md"
-    },
-    {
-      "id": "j65",
-      "concept": "Order Export",
-      "file": "microservices/marketplace/IP-journey-j65-order-export.md"
-    },
-    {
-      "id": "j69",
-      "concept": "Appointment And Service Commitments",
-      "file": "microservices/marketplace/IP-journey-j69-appointment-and-service-commitments.md"
-    },
-    {
-      "id": "j73",
-      "concept": "Revenue Share",
-      "file": "microservices/marketplace/IP-journey-j73-revenue-share.md"
-    }
-  ],
-  "implementation_plans": [
-    "microservices/marketplace/ip/IP-001-deal-set-kernel.md",
-    "microservices/marketplace/ip/IP-002-settlement-ledger-domain.md",
-    "microservices/marketplace/ip/IP-003-offer-command-usecase.md",
-    "microservices/marketplace/ip/IP-004-buyer-order-rest-api.md",
-    "microservices/marketplace/ip/IP-005-seller-listing-rest-api.md",
-    "microservices/marketplace/ip/IP-006-escrow-adapter.md",
-    "microservices/marketplace/ip/IP-007-revenue-share-worker.md",
-    "microservices/marketplace/ip/IP-008-mediation-case-domain.md",
-    "microservices/marketplace/ip/IP-009-order-export-worker.md",
-    "microservices/marketplace/ip/IP-010-appointment-commitment-domain.md",
-    "microservices/marketplace/ip/IP-011-tax-facilitator-adapter.md",
-    "microservices/marketplace/ip/IP-012-sanctions-screen-port.md",
-    "microservices/marketplace/ip/IP-013-ontology-projection-adapter.md",
-    "microservices/marketplace/ip/IP-014-workflow-approval-binding.md",
-    "microservices/marketplace/ip/IP-015-async-settlement-events.md",
-    "microservices/marketplace/ip/IP-016-grpc-settlement-reader.md",
-    "microservices/marketplace/ip/IP-017-cedar-default-deny-pack.md",
-    "microservices/marketplace/ip/IP-018-audit-chain-seal-usecase.md",
-    "microservices/marketplace/ip/IP-019-idempotency-key-kernel.md",
-    "microservices/marketplace/ip/IP-020-counterparty-grant-domain.md",
-    "microservices/marketplace/ip/IP-021-multi-region-replay.md",
-    "microservices/marketplace/ip/IP-022-sovereign-pack-overlay.md",
-    "microservices/marketplace/ip/IP-023-dashboard-and-slo-pack.md",
-    "microservices/marketplace/ip/IP-024-catalog-and-manifest-pack.md",
-    "microservices/marketplace/ip/IP-025-load-and-failure-fixtures.md",
-    "microservices/marketplace/ip/IP-031-marketplace-to-cloud-billing-ingestion-contract.md",
-    "microservices/marketplace/ip/IP-032-revenue-share-cohort-id-fk.md",
-    "microservices/marketplace/ip/IP-033-monthly-settlement-statement-event.md",
-    "microservices/marketplace/ip/IP-034-clawback-compensation-surface.md",
-    "microservices/marketplace/ip/IP-035-revenue-share-provenance-value-type.md",
-    "microservices/marketplace/ip/IP-036-payments-payout-create-binding.md",
-    "microservices/marketplace/ip/IP-037-tenant-class-paid-cedar-gate.md",
-    "microservices/marketplace/ip/IP-038-revenue-share-rate-basis-points-field.md",
-    "microservices/marketplace/ip/IP-039-positive-reconciliation-event.md",
-    "microservices/marketplace/ip/IP-040-fx-snapshot-handling.md",
-    "microservices/marketplace/ip/IP-041-demo-trial-denial-path.md"
-  ],
   "capabilities": [
-    "microservices/marketplace/capabilities/deal-offer-create.yaml",
-    "microservices/marketplace/capabilities/deal-accept.yaml",
-    "microservices/marketplace/capabilities/escrow-reserve.yaml",
-    "microservices/marketplace/capabilities/escrow-release.yaml",
-    "microservices/marketplace/capabilities/revenue-share-accrue.yaml",
-    "microservices/marketplace/capabilities/revenue-share-clawback.yaml",
-    "microservices/marketplace/capabilities/mediation-open.yaml",
-    "microservices/marketplace/capabilities/category-plugins.yaml",
-    "microservices/marketplace/capabilities/category-apps.yaml",
-    "microservices/marketplace/capabilities/category-workflows.yaml",
-    "microservices/marketplace/capabilities/category-agents.yaml",
-    "microservices/marketplace/capabilities/category-models.yaml",
-    "microservices/marketplace/capabilities/category-datasets.yaml"
-  ],
-  "slos": [
-    "microservices/marketplace/slos/deal-offer-availability.openslo.yaml",
-    "microservices/marketplace/slos/deal-accept-latency.openslo.yaml",
-    "microservices/marketplace/slos/escrow-reserve-availability.openslo.yaml",
-    "microservices/marketplace/slos/settlement-replay-fidelity.openslo.yaml",
-    "microservices/marketplace/slos/revenue-share-accuracy.openslo.yaml",
-    "microservices/marketplace/slos/revenue-share-clawback-accuracy.openslo.yaml",
-    "microservices/marketplace/slos/mediation-case-availability.openslo.yaml",
-    "microservices/marketplace/slos/listing-plugins-availability.openslo.yaml",
-    "microservices/marketplace/slos/listing-apps-availability.openslo.yaml",
-    "microservices/marketplace/slos/listing-workflows-availability.openslo.yaml",
-    "microservices/marketplace/slos/listing-agents-availability.openslo.yaml",
-    "microservices/marketplace/slos/listing-models-availability.openslo.yaml",
-    "microservices/marketplace/slos/listing-datasets-availability.openslo.yaml"
-  ],
-  "policies": [
-    "microservices/marketplace/policies/deal-offer-create.cedar",
-    "microservices/marketplace/policies/deal-accept.cedar",
-    "microservices/marketplace/policies/escrow-reserve.cedar",
-    "microservices/marketplace/policies/escrow-release.cedar",
-    "microservices/marketplace/policies/revenue-share-accrue.cedar",
-    "microservices/marketplace/policies/revenue-share-clawback.cedar",
-    "microservices/marketplace/policies/revenue-share-statement-emit.cedar",
-    "microservices/marketplace/policies/revenue-share-reconcile.cedar",
-    "microservices/marketplace/policies/revenue-share-rate-override.cedar",
-    "microservices/marketplace/policies/payout-dispatch.cedar",
-    "microservices/marketplace/policies/mediation-open.cedar",
-    "microservices/marketplace/policies/category-plugins.cedar",
-    "microservices/marketplace/policies/category-apps.cedar",
-    "microservices/marketplace/policies/category-workflows.cedar",
-    "microservices/marketplace/policies/category-agents.cedar",
-    "microservices/marketplace/policies/category-models.cedar",
-    "microservices/marketplace/policies/category-datasets.cedar"
-  ],
-  "remediation_log": [
-    "microservices/marketplace/REMEDIATION-NOTES-2026-05-21.md"
-  ],
-  "retired_artifacts": [
     {
-      "path": "microservices/marketplace/capability-tiers/tier-matrix.md",
-      "retired_on": "2026-05-21",
-      "retirement_wave": "15J",
-      "retirement_reason": "2026-05-20 legacy-entitlement retirement feedback — legacy entitlement scaffolding is canonically retired; behaviors collapsed into tenant_class binary (demo_trial|paid)"
+      "tier": "T2",
+      "name": "seller-listing-private-offer-entitlement-domain-invariants",
+      "file": "crates/oya-cloud-marketplace-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "marketplace-kernel-command-shaping",
+      "file": "crates/oya-cloud-marketplace-kernel/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "cloud-ops-marketplace-evidence-scope-guardrail",
+      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "risk_class": "high"
     }
   ],
-  "capacity_model": {
-    "baseline_cpu_per_tenant": 0.18,
-    "baseline_ram_per_tenant": 640,
-    "storage_per_tenant": 18,
-    "connections_per_tenant": {
-      "valkey": 6,
-      "postgres": 5,
-      "outbound_http": 12
-    },
-    "scaling_dimension": "per_request",
-    "cell_placement_class": "Tier-2",
-    "notes": "Listings, deal acceptance, escrow reservation, mediation, and settlement read paths are request driven."
-  },
-  "sharding_automation": {
-    "autosharding": "control_plane_driven",
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
+  "ips": [
+    {
+      "id": "CS-CLOUD-OPS-FOUNDATION-001",
+      "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
     }
-  },
-  "dr": {
-    "rto_p99_seconds": 3600,
-    "rpo_p99_seconds": 300,
-    "multi_region_active_active": false,
-    "backup_substrate": [
-      "postgres_wal_g",
-      "valkey",
-      "object_storage_versioned",
-      "audit_chain_merkle_seal"
-    ],
-    "failover_runbook": "runbooks/settlement-ledger-replay.md",
-    "dr_tier": "T2",
-    "replication_shape": "active-passive-cross-region-continuous"
-  },
-  "pod_runtime_tier": 2,
-  "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
-  "pod_runtime_tier_surface_evidence": [
-    "microservices/marketplace/ARCHITECTURE.md",
-    "microservices/marketplace/ip/IP-001-deal-set-kernel.md",
-    "microservices/marketplace/ip/IP-002-settlement-ledger-domain.md",
-    "microservices/marketplace/ip/IP-024-catalog-and-manifest-pack.md",
-    "microservices/marketplace/slos/settlement-replay-fidelity.openslo.yaml"
   ],
-  "tenant_version_pinning": {
-    "declared_versions": [
-      "2026-05-21"
-    ],
-    "default_version": "2026-05-21",
-    "supported_window_size": 3,
-    "supported_window_minimum_days": 180,
-    "supports_per_tenant_pinning": true,
-    "deprecation_calendar": [],
-    "public_surface_files": {
-      "openapi": {
-        "2026-05-21": "microservices/marketplace/contracts/openapi-v1.yaml"
-      },
-      "asyncapi": {
-        "2026-05-21": "microservices/marketplace/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/marketplace/contracts/marketplace-v1.proto"
-      }
-    }
-  },
-  "consumes_upstream_oss": [
-    "postgresql",
-    "valkey",
-    "cedar",
-    "opentofu",
-    "openbao",
-    "kafka",
-    "opentelemetry"
-  ],
-  "iac_module_invocations": [
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "tenant-namespace",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "per-cell-nodepool-runc",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "audit-chain-sink",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "on-prem",
-      "primitive": "postgres-service-database",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "on-prem",
-      "primitive": "valkey-cluster",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "aws-guest",
-      "primitive": "edge-waf",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    }
-  ]
+  "marketplace_integrations": {
+    "aws_marketplace_runtime": false,
+    "oci_marketplace_runtime": false,
+    "entitlement_service_runtime": false,
+    "metering_service_runtime": false,
+    "non_claim": "AWS Marketplace guidance informs entitlement/access boundaries, but no AWS/OCI Marketplace API integration is implemented."
+  }
 }

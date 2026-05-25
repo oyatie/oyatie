@@ -1,0 +1,171 @@
+{
+  "schema": "oyatie.vcs.lifecycle-transcript.v1",
+  "change_id": "CS-ENT-ACCOUNTING-004",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:01:00Z",
+  "evidence_ref": "evidence/multispectrum/cs-ent-accounting-statutory-rulepack-manifest-1779544800.json",
+  "commands": [
+    {
+      "step": "claim",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-ACCOUNTING-004 Accounting statutory tax rulepack source manifest",
+          "scopes": [
+            "microservices/accounting/crates/oya-accounting-journal-domain/src/lib.rs::AccountingStatutoryRulepackManifest",
+            "microservices/accounting/crates/oya-accounting-journal-domain/tests/rulepack_manifest.rs::accounting_statutory_rulepack_manifest_requires_official_sources_without_runtime_claims",
+            "registry/catalog/oya-accounting-journal-domain.yaml::CS-ENT-ACCOUNTING-004",
+            "specs/microservices/accounting.json::acceptance_criteria.AC-12",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-ACCOUNTING-004",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-ACCOUNTING-004",
+            "evidence/multispectrum/cs-ent-accounting-statutory-rulepack-manifest-1779544800.json::CS-ENT-ACCOUNTING-004",
+            "evidence/vcs/cs-ent-accounting-statutory-rulepack-manifest-oya-vcs-lifecycle-20260523.json::CS-ENT-ACCOUNTING-004",
+            "evidence/audit-chain.jsonl::CS-ENT-ACCOUNTING-004"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-ACCOUNTING-004"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-ACCOUNTING-004"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-accounting-statutory-rulepack-manifest-1779544800.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-ACCOUNTING-004"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-accounting-statutory-rulepack-manifest-1779544800.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-accounting-statutory-rulepack-manifest-1779544800.json"
+          ],
+          "bundle_id": "CS-ENT-ACCOUNTING-004",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

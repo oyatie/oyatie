@@ -1,0 +1,302 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-HEADER-ROUTE-STRIP-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-header-route-strip-polish-20260525",
+  "agent": "codex-oyatie-header-route-strip-polish",
+  "created_at": "2026-05-25T02:50:00-04:00",
+  "slice": "Responsive header route strip polish",
+  "intent": "Keep FD-001 product graph, Oyatie Cloud, built-in comms, and evidence routes available in the header when the persistent left rail is hidden at compact breakpoints.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added SSR-static and hydrated header quick-route strip with FD-001, Cloud, Comms, and Audit/Evidence routes.",
+    "Wired header routes to product graph/service catalog, cloud topology, Work Hub Community surface, and audit ledger with visible selected/status state.",
+    "Kept actions local-only: no workflow execution, messaging send, IAM/auth, billing, deployment, or cloud/provider mutation.",
+    "Adjusted compact grid rows and header responsive behavior so the route strip is visible when the left rail is hidden and does not create horizontal overflow at 1024px or 390px."
+  ],
+  "before_metrics": {
+    "headerRouteStrip": 0,
+    "headerRouteButtons": 0,
+    "responsiveGap": "At <=72rem the left rail is hidden, and the header had no replacement FD-001/Oyatie Cloud quick-route affordance."
+  },
+  "after_metrics": {
+    "desktop_1440x900": {
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "railDisplay": "flex",
+      "headerExists": true,
+      "stripExists": true,
+      "routeButtons": 4,
+      "hasFd001": true,
+      "hasCloud": true,
+      "hasComms": true,
+      "hasEvidence": true,
+      "status": "REC-WF-7741 \u00b7 local quick routes",
+      "stripVisibleInViewport": true,
+      "headerHeight": 42.25,
+      "stripBox": {
+        "top": 9.25,
+        "bottom": 32,
+        "left": 449.046875,
+        "right": 1015.609375,
+        "width": 566.5625,
+        "height": 22.75
+      }
+    },
+    "tablet_1024x900": {
+      "viewportWidth": 1024,
+      "documentWidth": 1024,
+      "horizontalOverflow": false,
+      "railDisplay": "none",
+      "headerExists": true,
+      "stripExists": true,
+      "routeButtons": 4,
+      "hasFd001": true,
+      "hasCloud": true,
+      "hasComms": true,
+      "hasEvidence": true,
+      "status": "REC-WF-7741 \u00b7 local quick routes",
+      "stripVisibleInViewport": true,
+      "headerHeight": 75.75,
+      "stripBox": {
+        "top": 40.625,
+        "bottom": 65,
+        "left": 13,
+        "right": 1011,
+        "width": 998,
+        "height": 24.375
+      }
+    },
+    "mobile_390x844": {
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "railDisplay": "none",
+      "headerExists": true,
+      "stripExists": true,
+      "routeButtons": 4,
+      "hasFd001": true,
+      "hasCloud": true,
+      "hasComms": true,
+      "hasEvidence": true,
+      "status": "REC-WF-7741 \u00b7 local quick routes",
+      "stripVisibleInViewport": true,
+      "headerHeight": 172.03125,
+      "stripBox": {
+        "top": 32.09375,
+        "bottom": 101.15625,
+        "left": 9.75,
+        "right": 380.25,
+        "width": 370.5,
+        "height": 69.0625
+      }
+    }
+  },
+  "interaction_assertions": [
+    {
+      "viewport": "desktop-1440x900",
+      "route": "fd001",
+      "hash": "#product-graph",
+      "selectedRoute": "fd001",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-1440x900",
+      "route": "cloud",
+      "hash": "#cloud-ops-cockpit",
+      "selectedRoute": "cloud",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-1440x900",
+      "route": "work-hub",
+      "hash": "#work-hub",
+      "selectedRoute": "work-hub",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-1440x900",
+      "route": "evidence",
+      "hash": "#audit-ledger",
+      "selectedRoute": "evidence",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "route": "fd001",
+      "hash": "#product-graph",
+      "selectedRoute": "fd001",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "route": "cloud",
+      "hash": "#cloud-ops-cockpit",
+      "selectedRoute": "cloud",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "route": "work-hub",
+      "hash": "#work-hub",
+      "selectedRoute": "work-hub",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "route": "evidence",
+      "hash": "#audit-ledger",
+      "selectedRoute": "evidence",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "route": "fd001",
+      "hash": "#product-graph",
+      "selectedRoute": "fd001",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "route": "cloud",
+      "hash": "#cloud-ops-cockpit",
+      "selectedRoute": "cloud",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "route": "work-hub",
+      "hash": "#work-hub",
+      "selectedRoute": "work-hub",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "route": "evidence",
+      "hash": "#audit-ledger",
+      "selectedRoute": "evidence",
+      "statusChanged": true,
+      "passed": true
+    }
+  ],
+  "responsive_assertions": {
+    "desktop-1440x900": {
+      "railDisplay": "flex",
+      "stripVisibleInViewport": true,
+      "horizontalOverflow": false,
+      "headerHeight": 42.25,
+      "routeButtons": 4,
+      "consoleErrors": []
+    },
+    "tablet-1024x900": {
+      "railDisplay": "none",
+      "stripVisibleInViewport": true,
+      "horizontalOverflow": false,
+      "headerHeight": 75.75,
+      "routeButtons": 4,
+      "consoleErrors": []
+    },
+    "mobile-390x844": {
+      "railDisplay": "none",
+      "stripVisibleInViewport": true,
+      "horizontalOverflow": false,
+      "headerHeight": 172.03125,
+      "routeButtons": 4,
+      "consoleErrors": []
+    }
+  },
+  "ssr_curl_counts": {
+    "header-route-strip": 1,
+    "data-header-route": 5,
+    "data-header-route-status": 1,
+    "FD-001": 134,
+    "Oyatie Cloud": 76,
+    "REC-WF-7741": 17,
+    "local quick routes": 1,
+    "Work hub": 4,
+    "Evidence": 86
+  },
+  "screenshots": {
+    "after": {
+      "desktop_1440x900": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-header-route-strip-polish/after/header-route-desktop-1440x900.png",
+      "tablet_1024x900": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-header-route-strip-polish/after/header-route-tablet-1024x900.png",
+      "mobile_390x844": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-header-route-strip-polish/after/header-route-mobile-390x844.png"
+    },
+    "audit_json": {
+      "playwright": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-header-route-strip-polish/after/header-route-audit.json"
+    }
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Responsive FD-001/Oyatie Cloud header navigation",
+    "reasoning": "The header now preserves the FD-001/Oyatie Cloud route graph at desktop, tablet, and mobile viewport checks. At 1024px and 390px the left rail is hidden, but the route strip remains visible, avoids horizontal overflow, and routes to product graph, cloud, Work Hub, and audit evidence with selected/status feedback.",
+    "differences": [
+      "Header quick routes are visual-only and deliberately do not execute workflows, send Messenger/Mail/Community messages, mutate IAM/auth, change billing, deploy resources, or mutate cloud/provider state."
+    ],
+    "suggestions": [
+      "A later mobile navigation pass can tune the hierarchy of the full dashboard below the header; this slice specifically closes the missing quick-route gap."
+    ]
+  },
+  "commands": [
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 lib tests passed; 0 main tests"
+    },
+    {
+      "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "summary": "ready-after-2s; transient empty reply immediately after restart"
+    },
+    {
+      "cmd": "Playwright header route audit at 1440x900, 1024x900, 390x844",
+      "status": "passed",
+      "summary": "No console errors; all 12 route interactions passed; no horizontal overflow at compact viewports."
+    }
+  ],
+  "known_limits": [
+    "Visual prototype only; header quick routes do not execute workflows, send messages/mail/community posts, mutate IAM/auth, change billing, deploy resources, or mutate cloud/provider state.",
+    "This slice improves responsive route accessibility; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

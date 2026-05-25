@@ -1,0 +1,173 @@
+{
+  "schema": "oyatie.vcs.lifecycle-transcript.v1",
+  "change_id": "CS-ENT-SUITE-012",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T13:21:00Z",
+  "evidence_ref": "evidence/multispectrum/cs-ent-suite-erp-parity-map-1779542400.json",
+  "commands": [
+    {
+      "step": "claim",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-SUITE-012 Executable ERP/SAP parity composition map",
+          "scopes": [
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/Cargo.toml::CS-ENT-SUITE-012",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs::enterprise_suite_erp_parity_map",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::erp_parity_map_covers_sap_modules_without_erp_suite_service",
+            "Cargo.toml::microservices.enterprise_suite.erp_parity_map",
+            "registry/catalog/oya-enterprise-suite-erp-parity-map.yaml::CS-ENT-SUITE-012",
+            "specs/microservices/enterprise-suite.json::acceptance_criteria.AC-14",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-SUITE-012",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-SUITE-012",
+            "evidence/multispectrum/cs-ent-suite-erp-parity-map-1779542400.json::CS-ENT-SUITE-012",
+            "evidence/vcs/cs-ent-suite-erp-parity-map-oya-vcs-lifecycle-20260523.json::CS-ENT-SUITE-012",
+            "evidence/audit-chain.jsonl::CS-ENT-SUITE-012"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-012"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-012"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-erp-parity-map-1779542400.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-012"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-erp-parity-map-1779542400.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-erp-parity-map-1779542400.json"
+          ],
+          "bundle_id": "CS-ENT-SUITE-012",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

@@ -1,9 +1,17 @@
 context: cloud
 role: api
-capability: finops-report
+capability: cloud-finops-report
 plane: analytics
-slo: stable-control-plane
-data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL_REGULATED_CREDIT]
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL]
+operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
+non_claims:
+  - no live FinOps REST server or public portal
+  - no FOCUS export or OpenCost ingestion endpoint
+  - no measured SLO or audit-chain persistence

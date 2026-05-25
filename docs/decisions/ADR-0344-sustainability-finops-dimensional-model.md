@@ -2,7 +2,16 @@
 id: ADR-0344
 title: Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongside every audit row; finops-portal dimensional rollup per tenant/product/capability/provider/cell/compliance-pack)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - council-legal
+  - ops-finops
+  - ops-sre-reliability
+  - axis-audit-chain
+  - axis-observability
+  - ops-compliance
 owners:
   - council-architecture
   - council-legal
@@ -164,7 +173,7 @@ The decision does not change the canonical audit-chain commit protocol per ADR-0
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: regulatory wall arriving 2025-2026 across three major jurisdictions
 
@@ -289,7 +298,7 @@ The fallback chain MUST be documented per emitting µservice. Audit rows carry a
 - **A.10.11** Does not introduce a new Cedar entity type for carbon-aware scheduling beyond what ADR-0243 + ADR-0150 already permit; the Cedar context input shape is `context.workload.carbon_budget_g_co2e_per_kwh` and `context.region.carbon_intensity_g_co2e_per_kwh`.
 - **A.10.12** Does not change the reactive vs proactive scheduling stance; both reactive (drop a request now) and proactive (defer to a low-carbon window) are supported via the same Cedar fragment shape.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -383,7 +392,7 @@ B2.039. The ADR is final on Acceptance. No exception clause is provided for any 
 
 B2.040. The ADR is announced in the realignment-wave findings aggregation, in the next ADR-0327 promotion gate report, and in the regulatory-readiness operator runbook.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

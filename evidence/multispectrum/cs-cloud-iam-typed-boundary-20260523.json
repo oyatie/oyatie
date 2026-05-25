@@ -1,0 +1,283 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAM-004",
+  "changeset_id": "CS-CLOUD-IAM-004",
+  "change_slug": "cs-cloud-iam-typed-placement-boundary",
+  "change_class_id": "CC-1",
+  "git_sha_base": "28d23433",
+  "freshness_unix": 1779511720,
+  "timestamp_iso": "2026-05-23T04:48:40Z",
+  "agent_id": "codex-impl",
+  "scope": [
+    "crates/oya-cloud-iam-domain/src/lib.rs",
+    "crates/oya-cloud-iam-app/src/lib.rs",
+    "crates/oya-cloud-iam-app/tests/cedar_policy_bind.rs",
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-impl --intent cs-cloud-iam-004-typed-placement-boundary crates/oya-cloud-iam-api/src/lib.rs crates/oya-cloud-iam-api/tests/cloud_iam_api.rs tasks/todo.md evidence/audit-chain.jsonl evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json",
+      "status": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-impl --intent cs-cloud-iam-004-typed-placement-boundary crates/oya-cloud-iam-app/src/lib.rs crates/oya-cloud-iam-app/tests/cedar_policy_bind.rs",
+      "status": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json work --agent codex-impl",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Implement CS-CLOUD-IAM-004: Cloud IAM hot-path API and Cedar bind use-case requests now carry a shared typed tenant/cell/region placement boundary, reject missing cell/region or tenant drift before authorization, idempotency ledger writes, or domain mutation, and include placement in mutation idempotency fingerprints.",
+  "baseline_diff": {
+    "before": "Cloud IAM API/app requests carried raw tenant strings but no typed cell/region execution boundary; placement lived only in manifest/runbook doctrine.",
+    "red_test": "cargo test -p oya-cloud-iam-api iam_api_rejects_missing_typed_cell_or_region_boundary_before_ledger -- --nocapture failed before implementation with unresolved typed boundary structs/fields and placement-specific API errors.",
+    "after": "Shared domain placement newtypes back API boundary contexts and the Cedar bind use-case request. Boundary validation rejects empty cell/region and tenant drift before auth/domain/idempotency work; idempotency fingerprints include typed placement metadata. Existing tenant mismatch tests keep placement and header tenant synchronized to prove downstream tenant binding remains intact."
+  },
+  "changed_files": [
+    "crates/oya-cloud-iam-domain/src/lib.rs",
+    "crates/oya-cloud-iam-app/src/lib.rs",
+    "crates/oya-cloud-iam-app/tests/cedar_policy_bind.rs",
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iam-api iam_api_rejects_missing_typed_cell_or_region_boundary_before_ledger -- --nocapture (pre-implementation)",
+      "status": "failed-before-fix",
+      "evidence": "compile failed for missing typed placement boundary structs, context fields, and placement-specific errors; this was the intentional RED step."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api iam_api_ -- --nocapture",
+      "status": "passed",
+      "evidence": "Focused typed-boundary API regressions passed: 3 passed; 0 failed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api -p oya-cloud-iam-app",
+      "status": "passed",
+      "evidence": "API suite passed 28 tests and app suite passed 4 tests after adding typed placement boundaries."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-domain -p oya-cloud-iam-app -p oya-cloud-iam-api -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "Cloud IAM scoped packages passed: domain 11, app 4, API 28, OCI adapter 2, self-hosted adapter 2; 0 failed."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-app -p oya-cloud-iam-api -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json --offline --severity error --emit-report /tmp/cs-cloud-iam-004-dependency-seam-report.json",
+      "status": "passed",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 1 skipped, 0 fail, 0 blocking."
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json && tail -1 evidence/audit-chain.jsonl | python3 -m json.tool",
+      "status": "passed",
+      "evidence": "multispectrum evidence and audit-chain JSONL row parse as JSON."
+    },
+    {
+      "command": "./bin/oya git diff --check -- crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-app/src/lib.rs crates/oya-cloud-iam-app/tests/cedar_policy_bind.rs crates/oya-cloud-iam-api/src/lib.rs crates/oya-cloud-iam-api/tests/cloud_iam_api.rs tasks/todo.md evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json evidence/audit-chain.jsonl",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0."
+    },
+    {
+      "command": "./bin/oya vcs --format json verify --agent codex-impl --evidence evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json#verify",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS verify accepted."
+    },
+    {
+      "command": "./bin/oya vcs --format json done --agent codex-impl --controller-promote --evidence evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json#done ...scopes...",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS done accepted with controller-promote closeout."
+    },
+    {
+      "command": "./bin/oya vcs --format json promote --agent codex-impl --bundle cb-cs-cloud-iam-004 --environment local-review --evidence evidence/multispectrum/cs-cloud-iam-typed-boundary-20260523.json#promote",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS promote accepted."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "A small shared domain boundary value object avoids duplicating tenant/cell/region structs between API and app seams."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "evidence_used": [
+        "https://aws.amazon.com/blogs/architecture/journey-to-cloud-native-architecture-series-7-using-containers-and-cell-based-design-for-higher-resiliency-and-efficiency/",
+        "https://aws.amazon.com/solutions/guidance/cell-based-architecture-for-amazon-eks/",
+        "https://learn.microsoft.com/en-us/azure/availability-zones/az-overview"
+      ],
+      "findings": [
+        "Placement metadata is explicit at the request boundary so blast-radius/cell routing cannot be an implicit ambient assumption."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "failing_fixture_added": true,
+      "findings": [
+        "Tests cover missing cell, missing region, placement tenant drift before authorization/domain mutation, and idempotency fingerprint drift on cell change."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests construct placement through a helper while production request structs keep explicit typed fields."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED/GREEN tests, scoped Cloud IAM package tests, clippy, and fmt passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Keep cell/region only in manifests",
+        "Duplicate API and app placement structs",
+        "Share typed placement newtypes from the domain crate"
+      ],
+      "selected_rationale": "Shared domain value objects keep clean dependency direction and make API/app use-case boundaries explicit.",
+      "rejected_reasons": [
+        "Manifest-only placement would not prevent hot-path execution without cell/region context.",
+        "Duplicate structs would drift across API and app seams."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tenant drift between header/request and typed placement is rejected before authorization decisions or IAM mutation."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Validation is trim/equality only; no I/O or registry lookup on hot paths."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "audit_chain_emission_required": true,
+      "audit_chain_evidence_path": "evidence/audit-chain.jsonl",
+      "findings": [
+        "Audit-chain row records the typed placement boundary implementation evidence."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Additive request boundary fields and tests are local to Cloud IAM domain/app/API crates."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "New stable API/app errors distinguish missing cell, missing region, and tenant placement drift."
+      ]
+    },
+    "F12_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Cell and region IDs now travel with request metadata and response metadata for the app bind seam."
+      ]
+    },
+    "F13_boundary": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "API/app validate boundary metadata before translating into IAM domain operations; domain business logic remains separate."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Clean architecture direction preserved: shared domain value objects, API/app validation at their request boundaries, no API dependency from app/domain."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "API and app regressions prove boundary metadata cannot be omitted or drift from tenant context before mutation."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence records RED/GREEN, scoped Cloud IAM verification, and hyperscaler cell-placement references."
+      ]
+    }
+  },
+  "best_practice_research": {
+    "question": "How should hyperscaler-style IAM hot paths carry tenant/cell/region placement context?",
+    "direct_recommendation": "Make tenant/cell/region explicit typed boundary metadata on hot-path requests and validate it before authorization or state mutation; do not rely on manifest-only or ambient routing context.",
+    "evidence_used": [
+      {
+        "source": "AWS Architecture Blog",
+        "url": "https://aws.amazon.com/blogs/architecture/journey-to-cloud-native-architecture-series-7-using-containers-and-cell-based-design-for-higher-resiliency-and-efficiency/",
+        "establishes": "cell boundaries and shuffle-sharding reduce blast radius when tenant/customer placement is explicit"
+      },
+      {
+        "source": "AWS EKS cell-based architecture guidance",
+        "url": "https://aws.amazon.com/solutions/guidance/cell-based-architecture-for-amazon-eks/",
+        "establishes": "cell-based architecture is an AWS resiliency pattern for bounded workload placement"
+      },
+      {
+        "source": "Microsoft Azure availability zones documentation",
+        "url": "https://learn.microsoft.com/en-us/azure/availability-zones/az-overview",
+        "establishes": "zone/region placement is a first-class resiliency boundary, not an implicit implementation detail"
+      }
+    ],
+    "repo_local_context": [
+      "ADR-0009 requires per-tenant per-region cells and request cell_id propagation.",
+      "ADR-0244 makes tenant the universal scoping primitive while retaining home_cell/dr_cell binding.",
+      "CS-CLOUD-IAM-004 requires typed tenant/cell/region boundary metadata for IAM hot paths."
+    ],
+    "boundaries_non_goals": [
+      "This slice does not implement cell routing or tenancy registry lookups.",
+      "This slice does not change OpenAPI wire carrier names; it hardens in-crate API/app request boundaries."
+    ],
+    "handoff": "CS-CLOUD-IAM-005 should update manifest/gate coherence only from implemented evidence and decide whether public wire contracts need explicit cell/region carriers."
+  },
+  "remaining_risks": [
+    "OpenAPI wire contracts were not changed in this slice; public carrier naming for cell/region should be handled in a contract/gateway slice if ADR routing requires headers or body fields.",
+    "Typed values validate presence and tenant equality only; canonical cell/region registry existence checks remain owned by tenancy/cell-routing slices."
+  ],
+  "git_sha": "28d23433",
+  "review_refresh_timestamp_iso": "2026-05-23T04:53:00Z"
+}

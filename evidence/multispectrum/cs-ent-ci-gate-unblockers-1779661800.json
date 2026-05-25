@@ -1,0 +1,265 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-CI-GATE-UNBLOCKERS-001",
+  "change_class_id": "CC-3",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779661800,
+  "timestamp_iso": "2026-05-24T07:50:00Z",
+  "scope": [
+    "registry/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml",
+    "registry/catalog/oya-tenancy-isolation-policy-kernel.yaml",
+    "registry/catalog/oya-tenancy-cell-assignment-kernel.yaml",
+    "registry/catalog/oya-tenancy-dsr-cascade-kernel.yaml",
+    "registry/catalog/oya-tenancy-sub-scope-registry-kernel.yaml",
+    "registry/catalog/oya-tenancy-lifecycle-locks-kernel.yaml",
+    "registry/catalog/oya-tenancy-reserved-namespace-usecase.yaml",
+    "registry/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml",
+    "registry/catalog/oya-tenancy-dr-pairing-usecase.yaml",
+    "registry/catalog/oya-tenancy-data-residency-enforcer-adapter.yaml",
+    "registry/catalog/oya-tenancy-per-tenant-quota-usecase.yaml",
+    "crates/oya-tenancy-tenant-lifecycle-kernel/src/lib.rs",
+    "crates/oya-tenancy-cell-assignment-kernel/src/lib.rs",
+    "crates/oya-tenancy-isolation-policy-kernel/src/lib.rs",
+    "crates/oya-tenancy-dsr-cascade-kernel/src/lib.rs",
+    "crates/oya-tenancy-sub-scope-registry-kernel/src/lib.rs",
+    "crates/oya-tenancy-lifecycle-locks-kernel/src/lib.rs",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "CS-ENT-CI-GATE-UNBLOCKERS-001 removes the current tenancy catalog/data-class blockers that were preventing honest broad CI evidence for the enterprise microservices worktree. It adds missing catalog rows for tenancy workspace crates and annotates tenancy lifecycle, cell assignment, isolation policy, DSR cascade, sub-scope registry, and lifecycle-lock kernel fields. Data-class validation now passes workspace-wide. Catalog validation advances past those tenancy rows and now blocks on the next unrelated pre-existing missing catalog record, oya-payments-adapter-adyen. No runtime tenancy behavior, Enterprise Suite cloud readiness, statutory filing, disbursement rail, or SLO evidence is claimed.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice is declarative gate hygiene only: catalog metadata plus field annotations, with no tenancy runtime logic or API behavior changes.",
+        "Public API shape is preserved; tuple/newtype and struct field types remain unchanged."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Broad CI verification must not be blocked by missing catalog rows or unclassified kernel fields before enterprise cloud claims can become honest.",
+        "Data-class now passes workspace-wide, improving privacy/isolation traceability for tenant routing and DSR metadata."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "The catalog gate advanced past missing tenancy records to the next unrelated payments missing record, proving the added rows are consumed by the validator.",
+        "The data-class gate passes workspace-wide after the tenancy field annotations."
+      ],
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "CLI gates prove catalog progression and workspace data-class pass; no product behavior fixture required for metadata-only gate cleanup."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Future enterprise slices no longer need to rediscover the same tenancy catalog/data-class blocker before running data-class evidence."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Affected tenancy packages test and clippy pass; fmt passes; data-class passes; dependency-seam passes for this evidence.",
+        "Catalog validation is not claimed green: it now blocks on the next unrelated missing record oya-payments-adapter-adyen."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Alternative rejected: ignore broad gates and keep only narrow package tests; that would weaken ADR-0346 CI mirror discipline.",
+        "Alternative rejected: add product behavior to tenancy kernels; the blocker only required catalog coverage and data classification."
+      ],
+      "alternatives_named": [
+        "ignore broad gates",
+        "edit catalog validator",
+        "add runtime tenancy behavior"
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Tenant identifiers, cell IDs, RLS expressions, DSR subjects, sub-scope paths, and lifecycle lock details are annotated INTERNAL_ONLY to avoid accidental public treatment."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No runtime code paths are added; changes are compile-time metadata/comments and catalog YAML rows."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "DSR, tenant isolation, residency, lifecycle lock, and sub-scope metadata are classified for downstream data-boundary enforcement evidence."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice is reversible by removing catalog rows and comments; no migrations, persisted data, or runtime effects exist."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Gate output now names the next catalog blocker and data-class reports a workspace pass count, improving CI triage signal."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No schema/runtime migration is performed; catalog/data-class metadata only."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Challenged assumption: fixing the first catalog blocker would make catalog validate pass. It advanced to a later payments blocker; evidence reports that boundary honestly."
+      ]
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice increases confidence in future Enterprise Suite/cloud integration evidence by reducing broad CI noise without broadening product claims."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Catalog filenames match crate package names; change id uses the enterprise CI gate unblocker pattern."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Plan/todo/evidence/audit rows record scope, verification, and remaining blockers."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Rows live in registry/catalog and annotations stay beside existing kernel field declarations."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new dependency edge or runtime layer is introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No third-party dependency is added."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Catalog rows use accepted role/plane/security-review vocabulary and include operational_classes_owned where current rows use it."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No algorithm changes; evaluate() and all ports retain existing behavior."
+      ]
+    }
+  },
+  "repo_authorities_used": [
+    "/specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "docs/AGENTS.md#ADR-0346 oya verify CI mirror discipline",
+    "tools/agent-skills/.claude/commands/{spec,plan,build,code-simplify,review,ship}.md"
+  ],
+  "commands": [
+    "cargo test --locked -p <affected tenancy package group>",
+    "cargo clippy --locked -p <affected tenancy package group> --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-ci-gate-unblockers-1779661800.json --severity error",
+    "strict uppercase quality-marker scan over current-slice files",
+    "jq . evidence/multispectrum/cs-ent-ci-gate-unblockers-1779661800.json",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-ci-gate-unblockers-1779661800.json --severity error --emit-report /tmp/cs-ent-ci-gate-unblockers-dep-seam-report-after.json",
+    "python3 - <<'PY' # audit-chain HEAD-prefix append-only check",
+    "./bin/oya vcs --format json status/verify/done/promote ... | tee evidence/vcs/cs-ent-ci-gate-unblockers-oya-vcs-lifecycle-20260524.json"
+  ],
+  "verification_results": {
+    "affected_tenancy_tests": "PASS: all affected packages compile/test; currently zero unit tests in scaffold crates",
+    "affected_tenancy_clippy": "PASS",
+    "cargo_fmt_check": "PASS",
+    "data_class_workspace": "PASS: data class fitness validation passed: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "catalog_validate": "BLOCKED_AFTER_PROGRESS: now fails on pre-existing MissingCrateRecord oya-payments-adapter-adyen",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 112 branch-appended rows after promotion row; last_change_id CS-ENT-CI-GATE-UNBLOCKERS-001",
+    "quality_marker_scan": "PASS: strict uppercase current-slice quality-marker scan found no markers",
+    "oya_vcs_lifecycle": "PASS: claim/status/verify/done/promote accepted locally; transcript evidence/vcs/cs-ent-ci-gate-unblockers-oya-vcs-lifecycle-20260524.json"
+  },
+  "known_gaps": [
+    "catalog validate still blocked by pre-existing MissingCrateRecord oya-payments-adapter-adyen",
+    "no tenancy runtime behavior changed",
+    "no runtime isolation enforcement evidence",
+    "no DSR execution evidence",
+    "no Enterprise Suite deployed listener evidence",
+    "no durable storage runtime",
+    "no live workflow/broker execution",
+    "no statutory filing or disbursement rail",
+    "no cloud deployment evidence",
+    "no production SLO evidence",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "does not claim full oya verify --ci-required passes",
+    "does not claim catalog validate passes workspace-wide",
+    "does not alter runtime behavior or persistent data",
+    "does not close Enterprise Suite cloud readiness blockers"
+  ],
+  "review_verdict": "local-gates-pass-with-catalog-progress-known-payments-catalog-blocker-and-oya-vcs-promoted"
+}

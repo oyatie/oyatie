@@ -3,7 +3,17 @@ id: ADR-0350
 adr_id: ADR-0350
 title: UUIDv7 canonical ID primitive across Oyatie
 status: Accepted
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - council-security
+  - axis-governance
+  - axis-audit-chain
+  - axis-workflow-engine
+  - axis-tenancy
+  - axis-identity
+  - axis-observability
 owners:
   - council-architecture
   - council-security

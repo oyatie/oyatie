@@ -1,0 +1,21 @@
+[package]
+name = "oya-accounting-journal-storage-adapter-inmemory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-accounting-journal-app = { path = "../oya-accounting-journal-app" }
+
+[dev-dependencies]
+oya-accounting-journal-domain = { path = "../oya-accounting-journal-domain" }
+
+[lib]
+name = "oya_accounting_journal_storage_adapter_inmemory"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

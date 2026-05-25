@@ -2,6 +2,12 @@ apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: require-signed-oyatie-images
+  labels:
+    oyatie.com/admission-adapter: kyverno
+    oyatie.com/default-admission: "false"
+  annotations:
+    oyatie.com/first-class-adapter: "true"
+    oyatie.com/change-id: CS-CLOUD-IAC-KUBEWARDEN-ADMISSION-POLICY-GATE-001
 spec:
   validationFailureAction: Enforce
   rules:

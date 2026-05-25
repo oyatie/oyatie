@@ -1,0 +1,281 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Treat disbursement systems as money-movement rails: require official network or authority refs, source rulepack or invoice evidence, payment-file schemas, payment digests, beneficiary account privacy boundaries, dual approval, and reconciliation receipts before runtime payment claims.",
+      "Keep bank credentials, bank connections, PSP connections, and payment execution outside the review-only contract until financial-institution onboarding, credentials, sanctions/fraud controls, and production reconciliation evidence exist.",
+      "Separate filing evidence from disbursement evidence so a statutory filing-readiness plan cannot imply tax payment, payroll deposit, social-insurance payment, vendor settlement, or funds movement.",
+      "Preserve legal-entity scope, segregation of duties, dual approval, rollback/reversal runbooks, and reconciliation as required corporate controls for payroll, tax, social-insurance, and vendor disbursements."
+    ],
+    "official_sources": [
+      "https://www.nacha.org/newrules",
+      "https://achdevguide.nacha.org/ach-file-overview",
+      "https://www.iso20022.org/sites/default/files/media/file/ISO20022_BusinessAreas.pdf",
+      "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-scheme-management",
+      "https://eng.kftc.or.kr/business",
+      "https://www.irs.gov/eftps",
+      "https://fiscal.treasury.gov/eftps/"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-DISBURSEMENT-EVIDENCE-001",
+  "commands": [
+    "cargo metadata --format-version=1 --no-deps",
+    "cargo check -p oya-enterprise-suite-disbursement-evidence",
+    "cargo test --locked -p oya-enterprise-suite-disbursement-evidence",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-disbursement-evidence --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "jq . specs/microservices/enterprise-suite.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "quality-marker scan for touched disbursement/readiness/spec/task/evidence rows",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-disbursement-evidence-1779666000.json --severity error"
+  ],
+  "created_at": "2026-05-24T09:00:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite disbursement-evidence naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The disbursement evidence contract stays in a dedicated control-plane crate and cloud-readiness consumes only validated plan fields and nonclaim capability flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No new external dependency is introduced; cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: requirement uniqueness, KR/US/EU and rail-kind coverage, official network URL allowlist, safe refs, required controls, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small typed contract and validator; it adds no bank client, no PSP client, no payment execution, no durable archive, and no cloud runtime."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Disbursement readiness now requires official network refs, payment-file schemas, digests, beneficiary account privacy boundaries, dual approval, reconciliation receipts, rollback/reversal runbooks, legal-entity isolation, and segregation of duties before cloud promotion can claim disbursement rails."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing requirements, duplicate requirement IDs, unofficial network URLs, secret-shaped refs, missing controls, and runtime overclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future bank-file, tax-payment, payroll-deposit, social-insurance, vendor, and cloud adapters get one typed evidence plan instead of discovering disbursement prerequisites from scattered prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The crate uses typed enums, explicit errors, no unsafe, no network calls, and no third-party dependencies."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: immediate bank/PSP integration, broad prose-only checklist, or a review-only typed evidence contract. The typed contract was selected because it is verifiable now and avoids money-movement/runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract references existing payroll/accounting/HR/procurement evidence and composes into cloud-readiness while leaving payment execution and disbursement rails as blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "Beneficiary account references are privacy-boundary aliases only; tests reject secret/password/private-key/api-key-shaped refs and runtime credential or bank connection attachment remains false."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is O(number of disbursement requirements) over four static requirement rows and adds no request-path, network, storage, or payment runtime work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New disbursement tests and cloud-readiness tests cover positive readiness, network coverage, nonclaims, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The contract strengthens compliance traceability for payroll, tax, social-insurance, and vendor disbursements while preserving production payment execution, bank credentials, bank connections, durable archives, and runtime audit evidence as explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog row, evidence, and audit-chain rows document the disbursement evidence plan and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/catalog row and cloud-readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The plan names payment digest and reconciliation receipt evidence refs, but does not claim runtime telemetry, payment events, or audit-chain emission."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No data/schema migration is performed; bank credentials, live bank/PSP connections, payment execution, durable archives, and cloud deployment remain future migrations."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779666000,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no bank credential attachment",
+    "no bank connection",
+    "no PSP connection",
+    "no runtime payment execution",
+    "no disbursement rail runtime",
+    "no tax payment execution",
+    "no durable payment archive",
+    "no production disbursement evidence",
+    "no cloud deployment evidence",
+    "no runtime audit-chain emission",
+    "no deployed listener runtime evidence",
+    "no durable business storage runtime attachment",
+    "no durable Workflow engine or broker execution",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only disbursement evidence contract foundation.",
+    "It does not prove payroll direct deposit execution, tax payment execution, social-insurance payment execution, vendor payment execution, bank credential onboarding, bank connectivity, durable payment archiving, runtime audit-chain emission, or cloud deployment readiness."
+  ],
+  "review_verdict": "local-gates-pass-with-disbursement-evidence-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-disbursement-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-disbursement-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-disbursement-evidence-oya-vcs-lifecycle-20260524.json"
+  ],
+  "summary": "Adds an Enterprise Suite disbursement evidence contract and composes it into cloud-readiness without claiming bank credentials, payment execution, disbursement rail runtime, tax-payment execution, archive, audit runtime, or cloud deployment.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 482 packages, 482 catalog records, 685 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 126 branch-appended rows after promotion audit row",
+    "cargo_check_disbursement": "PASS",
+    "cargo_fmt_check": "PASS",
+    "cargo_metadata": "PASS",
+    "catalog_validate": "PASS: 641 records",
+    "cloud_readiness_clippy": "PASS",
+    "cloud_readiness_tests": "PASS: 14 tests",
+    "data_class_workspace": "PASS: data class fitness validation passed: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "disbursement_clippy": "PASS",
+    "disbursement_tests": "PASS: 5 tests",
+    "enterprise_suite_spec_json": "PASS",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-disbursement-evidence-oya-vcs-lifecycle-20260524.json",
+    "quality_marker_scan": "PASS: no new uppercase quality markers in touched disbursement/readiness/spec/task/evidence diff",
+    "slo_coverage_gate": "PASS: 641 records"
+  }
+}

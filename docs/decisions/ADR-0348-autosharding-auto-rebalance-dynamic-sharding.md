@@ -2,7 +2,14 @@
 id: ADR-0348
 title: Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-sre-reliability
+  - axis-tenancy
+  - axis-observability
+  - axis-cloud-iac
 owners:
   - council-architecture
   - ops-sre-reliability
@@ -151,7 +158,7 @@ The decision does not author the actual cell-orchestrator Rust crate implementat
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: hyperscaler horizontal scalability requires within-cell + across-cell automation
 
@@ -271,7 +278,7 @@ The Oyatie three-mode shape is uniformly hyperscaler-typical. The doctrine bar i
 - **A.10.11** Does not introduce pipeline-level rebalance for batch/streaming workloads. That is a separate question explicitly OUT OF SCOPE; a follow-on ADR is authored if pipeline-rebalance automation is required.
 - **A.10.12** Does not change the Bominal parallel corpus. Bominal authors its sibling ADR independently per `feedback_bominal_inheritance_precedence`.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -371,7 +378,7 @@ B2.034. The 30-day sunset window starts on Wave-15-ZD-completion (not on this AD
 - This ADR does not introduce a new µservice; the cell-orchestrator is composed across tenancy + observability.
 - This ADR does not enable cross-jurisdiction migration without an explicit Cedar permit.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

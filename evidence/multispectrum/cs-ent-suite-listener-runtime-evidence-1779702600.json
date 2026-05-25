@@ -1,0 +1,290 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Preserve FD-001 product delivery as the master-plan product goal; treat Oyatie Cloud as the hyperscaler-grade substrate proof for hosting FD-001 microservices as real tenant workloads.",
+      "Require ClusterIP Service observation, Gateway HTTPRoute acceptance, TLS certificate binding, readiness and liveness probe success, synthetic health checks, route authorization enforcement, default-deny NetworkPolicy ingress denial, EndpointSlice readiness, graceful shutdown drain, access-log trace correlation, and deployment audit event evidence before any deployed listener claim.",
+      "Keep socket binding, Gateway controller attachment, load balancer provisioning, TLS certificate attachment, runtime auth middleware, NetworkPolicy application, runtime probe observation, production listener evidence, and runtime audit-chain emission outside the review-only contract until environment-backed evidence exists.",
+      "Tie listener runtime evidence back to the existing listener/gateway plan so later cloud integration cannot drift from route, service, probe, auth, and ingress boundaries."
+    ],
+    "official_sources": [
+      "https://kubernetes.io/docs/concepts/services-networking/service/",
+      "https://gateway-api.sigs.k8s.io/concepts/api-overview/",
+      "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/",
+      "https://opentelemetry.io/docs/specs/semconv/http/http-spans/",
+      "https://cloudevents.io/"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-LISTENER-RUNTIME-EVIDENCE-001",
+  "commands": [
+    "cargo check -p oya-enterprise-suite-listener-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-listener-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-listener-runtime-evidence --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "cargo metadata --format-version=1 --no-deps",
+    "jq . specs/microservices/enterprise-suite.json",
+    "jq . evidence/multispectrum/cs-ent-suite-listener-runtime-evidence-1779702600.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-listener-runtime-evidence-1779702600.json --severity error",
+    "quality-marker scan for touched listener-runtime-evidence/readiness/spec/task/evidence rows",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-LISTENER-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-listener-runtime-evidence-1779702600.json CS-ENT-SUITE-LISTENER-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-listener-runtime-evidence-1779702600.json CS-ENT-SUITE-LISTENER-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-LISTENER-RUNTIME-EVIDENCE-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-listener-runtime-evidence-1779702600.json",
+    "audit-chain HEAD-prefix append-only script for evidence/audit-chain.jsonl"
+  ],
+  "created_at": "2026-05-25T09:50:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite listener-runtime-evidence naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The listener runtime evidence contract imports and validates the existing listener/gateway plan, then exposes only review-only evidence requirements to cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No external dependency is introduced; the new evidence crate depends only on the existing listener/gateway workspace crate and cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: listener/gateway plan validation, required evidence-kind coverage, official doc URL allowlist, safe refs, required controls, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small typed contract and validator; it adds no socket binding, Kubernetes client, Gateway client, load balancer API, certificate manager integration, telemetry exporter, or audit sink."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "FD-001 Enterprise Suite listener promotion on Oyatie Cloud now requires service, Gateway, TLS, probe, authz, NetworkPolicy, EndpointSlice, graceful-drain, trace correlation, and audit evidence before any production traffic claim."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing requirements, duplicate IDs, unofficial doc URLs, unsafe refs, missing controls, and production listener overclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future Oyatie Cloud listener adapters get one typed evidence checklist rather than reverse-engineering listener promotion criteria from prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The code uses typed enums, explicit errors, no unsafe, no I/O, no network calls, and no third-party dependencies."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: bind a local listener now, attach a live Gateway controller, or add a review-only listener runtime evidence contract. The typed contract was selected because it is verifiable now, honors the FD-001 versus Oyatie Cloud distinction, and avoids runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract composes over listener/gateway and cloud-readiness while keeping live listener, Gateway, TLS, auth middleware, NetworkPolicy, production listener evidence, and audit emission blockers intact."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "The evidence plan requires TLS binding evidence, route authorization enforcement, default-deny NetworkPolicy ingress denial, tenant namespace refs, and safe evidence refs before production listener claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is O(number of static requirements) and adds no request-path, cluster, network, gateway, certificate, telemetry, or audit runtime work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New listener-runtime-evidence and cloud-readiness tests cover positive readiness, required evidence kinds, official docs, ref boundaries, nonclaims, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The contract strengthens production ingress traceability for the later Oyatie Cloud substrate while preserving live substrate, runtime audit, and production listener evidence as explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog row, evidence, and audit-chain rows document the listener runtime evidence plan and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/catalog row and cloud-readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The plan requires access-log trace correlation and listener deployment audit event evidence, but does not claim runtime telemetry export or runtime audit-chain emission."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No Service, Gateway, certificate, NetworkPolicy, EndpointSlice, or Pod state is applied; observations are evidence-contract entries only until a live cloud adapter lands."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779702600,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no socket binding",
+    "no deployed listener runtime",
+    "no Gateway controller attachment",
+    "no load balancer provisioning",
+    "no TLS certificate attachment",
+    "no runtime auth middleware",
+    "no NetworkPolicy application",
+    "no runtime probe observation",
+    "no production listener evidence",
+    "no runtime audit-chain emission",
+    "no identity provider verification",
+    "no durable storage runtime",
+    "no production Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only Enterprise Suite listener runtime evidence contract for later Oyatie Cloud substrate proof.",
+    "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves FD-001 microservices can run as tenant workloads.",
+    "It does not prove socket binding, Gateway controller attachment, load balancer provisioning, TLS certificate attachment, runtime auth middleware, NetworkPolicy application, runtime probe observation, production listener evidence, runtime telemetry, or runtime audit-chain emission."
+  ],
+  "review_verdict": "local-gates-pass-with-listener-runtime-evidence-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-listener-runtime-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-listener-runtime-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-listener-runtime-evidence-oya-vcs-lifecycle-20260525.json"
+  ],
+  "summary": "Adds a review-only Enterprise Suite listener runtime evidence contract for later Oyatie Cloud substrate proof and composes it into cloud-readiness without claiming socket binding, Gateway controller attachment, load balancer provisioning, TLS certificate attachment, runtime auth middleware, NetworkPolicy application, runtime probe observation, production listener evidence, or runtime audit-chain emission.",
+  "verification_results": {
+    "cargo_check_listener_runtime_evidence": "PASS",
+    "listener_runtime_evidence_tests": "PASS: 5 tests",
+    "cloud_readiness_tests": "PASS: 18 tests",
+    "listener_runtime_evidence_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-listener-runtime-evidence --all-targets -- -D warnings",
+    "cloud_readiness_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo_fmt_check": "PASS: cargo fmt --all -- --check",
+    "cargo_metadata": "PASS: cargo metadata --format-version=1 --no-deps",
+    "enterprise_suite_spec_json": "PASS: jq . specs/microservices/enterprise-suite.json",
+    "enterprise_suite_evidence_json": "PASS: jq . evidence/multispectrum/cs-ent-suite-listener-runtime-evidence-1779702600.json",
+    "slo_coverage_gate": "PASS: 645 records",
+    "catalog_validate": "PASS: 645 records",
+    "architecture_boundaries": "PASS: 486 packages, 486 catalog records, 693 dependency edges",
+    "data_class_workspace": "PASS: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "quality_marker_scan": "PASS: touched listener-runtime-evidence/readiness/spec/task/evidence rows and this slice audit-chain tail contain no blocked quality markers after closeout",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 134 branch-appended rows after promotion audit row",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-listener-runtime-evidence-oya-vcs-lifecycle-20260525.json"
+  }
+}

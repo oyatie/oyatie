@@ -371,5 +371,11 @@
       "primitive": "shard-cell",
       "version_pin": "v1"
     }
-  ]
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
 }

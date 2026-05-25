@@ -1,0 +1,174 @@
+{
+  "schema": "oyatie.vcs.lifecycle-transcript.v1",
+  "change_id": "CS-ENT-WAREHOUSE-001",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:31:00Z",
+  "evidence_ref": "evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json",
+  "commands": [
+    {
+      "step": "claim",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-WAREHOUSE-001 Warehouse inventory domain foundation",
+          "scopes": [
+            "microservices/warehouse/crates/oya-warehouse-inventory-domain/src/lib.rs::WarehouseInventoryDomain",
+            "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::goods_receipt_putaway_reservation_pick_and_cycle_count_flow",
+            "Cargo.toml::microservices.warehouse.inventory_domain",
+            "registry/catalog/oya-warehouse-inventory-domain.yaml::CS-ENT-WAREHOUSE-001",
+            "specs/microservices/warehouse.json::acceptance_criteria.AC-01",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs::SapModuleCode.Mm.Ewm.warehouse",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::materials_and_warehouse_rows_reference_warehouse_inventory_foundation",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-WAREHOUSE-001",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-WAREHOUSE-001",
+            "evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json::CS-ENT-WAREHOUSE-001",
+            "evidence/vcs/cs-ent-warehouse-inventory-domain-oya-vcs-lifecycle-20260523.json::CS-ENT-WAREHOUSE-001",
+            "evidence/audit-chain.jsonl::CS-ENT-WAREHOUSE-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-WAREHOUSE-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-WAREHOUSE-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-WAREHOUSE-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json"
+          ],
+          "bundle_id": "CS-ENT-WAREHOUSE-001",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "change_id": "CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-24T00:21:00Z",
+  "evidence_refs": [
+    "evidence/multispectrum/cs-ent-supply-chain-planning-domain-1779549000.json"
+  ],
+  "lifecycle": [
+    "claim",
+    "status",
+    "verify",
+    "done",
+    "promote"
+  ],
+  "status": "promote-accepted-local-review",
+  "registry_vcs_event_log_persistence_asserted": false,
+  "steps": [
+    {
+      "step": "claim",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-SUPPLY-CHAIN-PLANNING-001 Supply-chain planning domain foundation",
+          "scopes": [
+            "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/src/lib.rs::SupplyChainPlanningDomain",
+            "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::demand_plan_drives_supply_network_and_atp_response",
+            "Cargo.toml::microservices.supply_chain_planning.domain",
+            "registry/catalog/oya-supply-chain-planning-domain.yaml::CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+            "specs/microservices/supply-chain-planning.json::acceptance_criteria.AC-01",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs::SapModuleCode.ScmApo.supply_chain_planning",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::supply_chain_planning_row_references_domain_foundation",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+            "evidence/multispectrum/cs-ent-supply-chain-planning-domain-1779549000.json::CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+            "evidence/vcs/cs-ent-supply-chain-planning-domain-oya-vcs-lifecycle-20260524.json::CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+            "evidence/audit-chain.jsonl::CS-ENT-SUPPLY-CHAIN-PLANNING-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUPPLY-CHAIN-PLANNING-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUPPLY-CHAIN-PLANNING-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-supply-chain-planning-domain-1779549000.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUPPLY-CHAIN-PLANNING-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-supply-chain-planning-domain-1779549000.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-supply-chain-planning-domain-1779549000.json"
+          ],
+          "bundle_id": "CS-ENT-SUPPLY-CHAIN-PLANNING-001",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

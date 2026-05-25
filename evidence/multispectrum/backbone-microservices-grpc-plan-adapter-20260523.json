@@ -1,0 +1,129 @@
+{
+  "change_id": "backbone-microservices-grpc-plan-adapter-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Generated tonic/prost requests now bridge into existing backbone write-plan adapter boundaries without opening sockets.",
+  "scope": [
+    "crates/oya-shared-backbone-grpc-generated-adapter/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-backbone-grpc-generated-adapter.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Generated request-to-write-plan adapter seam only. This slice converts source-controlled tonic/prost generated messages for messenger, mail, social, and community write RPCs into the existing framework-free API/app write-plan entrypoints. It does not implement a tonic server, live gRPC client, listener, gateway, broker publisher, database executor, deployment pipeline run, SLO, or delivery guarantee.",
+  "source_basis": [
+    {
+      "url": "https://protobuf.dev/reference/protobuf/proto3-spec/",
+      "use": "Official Proto3 language specification used for the source-controlled request/response/enum/oneof contract shape consumed by the generated adapter."
+    },
+    {
+      "url": "https://docs.rs/crate/tonic-build/latest",
+      "use": "Official tonic-build documentation used for the generated module/include_proto pattern established in the prior generated-adapter slice."
+    },
+    {
+      "url": "https://docs.rs/crate/tonic/latest",
+      "use": "Official tonic documentation for the current generated service/message ecosystem and the boundary between generated bindings and transport runtime features."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "A single generated adapter crate owns generated-message conversion into already-existing gRPC write-plan functions; domain/API/usecase/app crates remain free of tonic/prost transport coupling.",
+    "F2_hyperscaler": "The seam makes the proto-generated edge testable before runtime listeners exist, preserving a small contract surface that can later be wrapped by independently scalable server/client adapters.",
+    "F3_adversarial": "Focused tests prove valid generated messenger/mail/social/community requests reach write-plan boundaries and invalid enum or missing oneof/context messages are rejected before app execution.",
+    "F4_api_contract": "Generated enum and oneof fields are mapped into typed API request/envelope enums for messenger, mail/DMARC, social artifact kinds, community modes, vote directions, and moderation verbs.",
+    "F5_quality": "Focused generated-adapter tests plus the 44-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "No operational service is started; the adapter is deliberately limited to deterministic in-process write-plan construction so future tonic transport can be added as a separate auditable slice.",
+    "F7_security_privacy": "Conversion preserves tenant/principal/idempotency/policy/audit reference fields and encrypted-envelope references only; no raw content, credentials, broker URLs, database URLs, or secret material are introduced.",
+    "F8_supply_chain": "No new third-party dependency is added in this slice; the generated adapter gains only internal workspace crate dependencies needed to call existing write-plan boundaries.",
+    "F9_testing": "Focused tests passed for 9 generated-adapter unit tests and the broad backbone matrix passed 283 unit tests plus the existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "Static CI/Jenkins matrices already include the generated adapter from the prior slice; this slice adds local evidence only and does not claim remote CI execution.",
+    "F11_observability": "Adapter responses continue to expose the fully qualified gRPC method metadata and receipt policy/audit/idempotency references that future interceptors and traces must bind to.",
+    "F13_reversibility": "The generated request conversion layer is isolated to one adapter crate plus catalog/task/evidence metadata; reverting it removes the bridge without changing business logic crates."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass",
+      "evidence": "9 focused unit tests passed, including generated package/method registry checks, prost encode/decode round trips, valid generated write-plan bridge tests for messenger/mail/social/community, and invalid enum/missing oneof rejection tests."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-backbone-grpc-generated-adapter --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-backbone-grpc-generated-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <44 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <44 backbone package matrix>",
+      "result": "pass",
+      "evidence": "283 unit tests passed across the backbone package matrix; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <44 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <44 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; duplicate/wildcard diagnostics remain non-blocking warnings under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 458 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 458 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing catalog coverage failure: MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing data-class failure: UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "python parse/config validation for generated write-plan adapter functions, internal dependency wiring, catalog capability, task markers, evidence JSON, and framework-dep isolation",
+      "result": "pass",
+      "evidence": "parse_config_validation=pass generated_write_plan_functions=6 internal_deps=15 catalog_capability=backbone-tonic-prost-generated-write-plan-adapter evidence_json=pass framework_dep_isolation=pass."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 364 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + generated adapter + CI/Jenkins + catalog + evidence corpus>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 5 documents, 1120 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No tonic server implementation, service listener, gateway, or live gRPC client is implemented.",
+    "No network connection, broker publish, database command execution, or service deployment is performed.",
+    "No production interoperability certification, load test, SLO, hyperscaler maturity certification, or delivery guarantee is claimed.",
+    "No new third-party dependency is added in this slice.",
+    "No domain/API/usecase crate depends on tonic/prost as part of this slice."
+  ]
+}

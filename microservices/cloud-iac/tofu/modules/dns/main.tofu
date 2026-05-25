@@ -4,11 +4,26 @@
 
 terraform {
   required_version = ">= 1.6"
+
+  required_providers {
+    aws = {
+      source  = "registry.opentofu.org/hashicorp/aws"
+      version = ">= 5.0.0"
+    }
+    oci = {
+      source  = "registry.opentofu.org/opentofu/oci"
+      version = ">= 6.0.0"
+    }
+    cloudflare = {
+      source  = "registry.opentofu.org/cloudflare/cloudflare"
+      version = ">= 4.0.0"
+    }
+  }
 }
 
 variable "account_id" { type = string }
-variable "zones"      { type = list(string) }
-variable "records"    {
+variable "zones" { type = list(string) }
+variable "records" {
   type = list(object({
     zone  = string
     name  = string

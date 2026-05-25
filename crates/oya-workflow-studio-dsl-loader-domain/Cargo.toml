@@ -1,0 +1,19 @@
+[package]
+name = "oya-workflow-studio-dsl-loader-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-workflow-studio-dsl-emitter-domain = { path = "../oya-workflow-studio-dsl-emitter-domain" }
+serde_json.workspace = true
+
+[lib]
+name = "oya_workflow_studio_dsl_loader_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

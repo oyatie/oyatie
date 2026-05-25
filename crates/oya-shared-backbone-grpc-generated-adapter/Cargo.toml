@@ -1,0 +1,39 @@
+[package]
+name = "oya-shared-backbone-grpc-generated-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+build = "build.rs"
+
+[dependencies]
+oya-social-app = { path = "../oya-social-app" }
+oya-messenger-app = { path = "../oya-messenger-app" }
+oya-mail-mailbox-store-app = { path = "../oya-mail-mailbox-store-app" }
+oya-community-post-store-app = { path = "../oya-community-post-store-app" }
+oya-community-post-store-api = { path = "../oya-community-post-store-api" }
+oya-community-post-store-domain = { path = "../oya-community-post-store-domain" }
+oya-community-post-store-grpc = { path = "../oya-community-post-store-grpc" }
+oya-mail-mailbox-store-api = { path = "../oya-mail-mailbox-store-api" }
+oya-mail-mailbox-store-grpc = { path = "../oya-mail-mailbox-store-grpc" }
+oya-messenger-message-stream-api = { path = "../oya-messenger-message-stream-api" }
+oya-messenger-message-stream-grpc = { path = "../oya-messenger-message-stream-grpc" }
+oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
+oya-social-post-composition-api = { path = "../oya-social-post-composition-api" }
+oya-social-post-composition-grpc = { path = "../oya-social-post-composition-grpc" }
+oya-shared-backbone-proto-contracts-kernel = { path = "../oya-shared-backbone-proto-contracts-kernel" }
+prost.workspace = true
+tonic.workspace = true
+tonic-prost.workspace = true
+
+[build-dependencies]
+protoc-bin-vendored.workspace = true
+tonic-prost-build.workspace = true
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

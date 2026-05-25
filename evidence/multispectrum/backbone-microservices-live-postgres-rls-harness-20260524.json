@@ -1,0 +1,127 @@
+{
+  "change_id": "backbone-microservices-live-postgres-rls-harness-20260524",
+  "change_class_id": "CC-1",
+  "summary": "Env-gated SQLx live PostgreSQL RLS probe harness with optional Citus distribution check.",
+  "scope": [
+    "crates/oya-shared-postgres-command-adapter-sqlx/Cargo.toml",
+    "crates/oya-shared-postgres-command-adapter-sqlx/src/lib.rs",
+    "registry/dependency-rationales.json",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds a compile-checked, environment-gated live database harness to the SQLx adapter. The default local/CI test run does not connect to a database; it verifies env gating, SQL plan generation, dependency isolation, and compiles the async probe. When explicitly enabled with a disposable database URL, the harness creates a probe schema/table, enables and forces PostgreSQL RLS, inserts tenant rows through SqlxPostgresBatchExecutor, checks tenant/no-tenant visibility, and optionally requires Citus create_distributed_table on tenant_id. It does not claim a live database was available in this run, backup/restore drills, Citus rebalance evidence, production migration rollout, live service data-plane SLOs, or hyperscaler certification.",
+  "source_basis": [
+    {
+      "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+      "use": "Official PostgreSQL 18 row security documentation for ENABLE/FORCE ROW LEVEL SECURITY, policy USING/WITH CHECK behavior, and default-deny/owner-bypass boundaries."
+    },
+    {
+      "url": "https://docs.citusdata.com/en/v9.3/develop/reference_ddl.html",
+      "use": "Official Citus DDL reference for create_distributed_table, distribution columns, colocate_with => 'none', and distribution-column constraint implications."
+    },
+    {
+      "url": "https://docs.rs/sqlx/latest/sqlx/type.PgPool.html",
+      "use": "Official SQLx PgPool docs for the Postgres pool alias used by the adapter and probe harness. Repo is pinned to sqlx 0.8.6."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "The harness lives in the existing SQLx adapter crate and reuses SqlxPostgresBatchExecutor instead of adding a new runtime binary, service, Docker wrapper, or provider-specific adapter.",
+    "F2_hyperscaler": "The data-plane path now has a reproducible live Postgres/RLS probe entrypoint that can be pointed at cloud or self-hosted Postgres/Citus later, while default evidence remains honest about not running a live database.",
+    "F3_adversarial": "Tests cover disabled env gating, enabled-but-missing URL, invalid booleans, non-TLS URL handling, generated tenant-scope-before-insert plans, and the env-gated async live probe path that skips unless explicitly enabled.",
+    "F4_api_contract": "Public harness config/report/error types expose only metadata refs, booleans, counts, and env-var names; production SQL execution APIs remain unchanged.",
+    "F5_quality": "Focused SQLx adapter tests plus the 46-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "Operators can enable the probe with OYA_BACKBONE_LIVE_POSTGRES and OYA_BACKBONE_POSTGRES_URL, set TLS posture, and require Citus; the harness cleans up its probe schema after execution.",
+    "F7_security_privacy": "The probe uses a disposable schema/table, tenant ref strings, row ids, payload refs, and count results only; it does not store credentials in code or evidence and keeps database URLs internal-only.",
+    "F8_supply_chain": "No new third-party crate is introduced. The existing workspace tokio dependency is added as a dev-dependency for the SQLx adapter test harness and the dependency rationale allowlist is updated for that adapter-only test seam.",
+    "F9_testing": "Focused tests passed for 9 SQLx adapter unit tests. The broad backbone matrix passed 298 unit tests across 46 packages plus one existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "The SQLx adapter is already in all four backbone GitHub Actions/Jenkins matrices; the live probe remains opt-in by environment variable and does not require CI secrets by default.",
+    "F11_observability": "LivePostgresRlsProbeReport records schema/table, tenant A/B/no-tenant visibility counts, whether Citus distribution was checked, and whether RLS policy was checked for later evidence ingestion.",
+    "F13_reversibility": "The change is isolated to one adapter crate, a dev-dependency/rationale row, and task/evidence metadata; reverting removes the harness without changing production service domain/API/usecase crates."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-postgres-command-adapter-sqlx",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-postgres-command-adapter-sqlx",
+      "result": "pass",
+      "evidence": "9 focused unit tests passed. The live Postgres test returned early because OYA_BACKBONE_LIVE_POSTGRES was not enabled in this environment; no live DB run is claimed."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-postgres-command-adapter-sqlx --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-postgres-command-adapter-sqlx",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <46 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <46 backbone package matrix>",
+      "result": "pass",
+      "evidence": "298 unit tests passed across the backbone package matrix; one existing metrics adapter doctest remains ignored. The live database probe was not enabled by environment."
+    },
+    {
+      "command": "cargo clippy -p <46 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <46 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; existing duplicate/wildcard diagnostics remain non-blocking under current policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 460 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 460 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing catalog coverage failure remains: MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing data-class failure remains: UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "python parse/config validation for live Postgres RLS harness, tokio dev-dependency, dependency rationale, task markers, and clean-boundary dependency isolation",
+      "result": "pass",
+      "evidence": "parse_config_validation=pass tokio_dev_dependency=true runtime_dependencies=[oya-shared-postgres-command-kernel,sqlx] tokio_rationale_allows_adapter=true boundary_crates_checked=12 errors=0."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/backbone-microservices-*.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 419 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root crates/oya-shared-postgres-command-adapter-sqlx --corpus-root registry/dependency-rationales.json --corpus-root evidence/multispectrum/backbone-microservices-live-postgres-rls-harness-20260524.json",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 4 documents, 1261 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No live database was available or contacted in this default evidence run.",
+    "No backup/restore drill, Citus rebalance drill, failover drill, or production RLS rollout is claimed.",
+    "No production credentials, database URL, tenant data, or service secrets are stored in code or evidence.",
+    "No remote CI execution, load test, data-plane SLO, or hyperscaler maturity certification is claimed."
+  ]
+}

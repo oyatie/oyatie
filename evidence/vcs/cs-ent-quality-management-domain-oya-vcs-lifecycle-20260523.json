@@ -1,0 +1,174 @@
+{
+  "change_id": "CS-ENT-QUALITY-001",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:51:00Z",
+  "evidence_refs": [
+    "evidence/multispectrum/cs-ent-quality-management-domain-1779547800.json"
+  ],
+  "lifecycle": [
+    "claim",
+    "status",
+    "verify",
+    "done",
+    "promote"
+  ],
+  "status": "promote-accepted-local-review",
+  "registry_vcs_event_log_persistence_asserted": false,
+  "steps": [
+    {
+      "step": "claim",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-QUALITY-001 Quality management domain foundation",
+          "scopes": [
+            "microservices/quality-management/crates/oya-quality-management-domain/src/lib.rs::QualityManagementDomain",
+            "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::inspection_plan_drives_quality_lot_certificate_and_notification",
+            "Cargo.toml::microservices.quality_management.domain",
+            "registry/catalog/oya-quality-management-domain.yaml::CS-ENT-QUALITY-001",
+            "specs/microservices/quality-management.json::acceptance_criteria.AC-01",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs::SapModuleCode.Qm.quality_management",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::quality_management_row_references_domain_foundation",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-QUALITY-001",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-QUALITY-001",
+            "evidence/multispectrum/cs-ent-quality-management-domain-1779547800.json::CS-ENT-QUALITY-001",
+            "evidence/vcs/cs-ent-quality-management-domain-oya-vcs-lifecycle-20260523.json::CS-ENT-QUALITY-001",
+            "evidence/audit-chain.jsonl::CS-ENT-QUALITY-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-QUALITY-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-QUALITY-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-quality-management-domain-1779547800.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-QUALITY-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-quality-management-domain-1779547800.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-quality-management-domain-1779547800.json"
+          ],
+          "bundle_id": "CS-ENT-QUALITY-001",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

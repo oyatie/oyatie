@@ -1,0 +1,23 @@
+[package]
+name = "oya-accounting-journal-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-accounting-journal-domain = { path = "../oya-accounting-journal-domain" }
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+oya-accounting-journal-app = { path = "../oya-accounting-journal-app" }
+serde_json = { workspace = true }
+
+[lib]
+name = "oya_accounting_journal_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

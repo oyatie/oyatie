@@ -1,0 +1,144 @@
+{
+  "claim": {
+    "command": "oya vcs",
+    "status": "accepted",
+    "schema_version": 1,
+    "ratchet": {
+      "accepted": true,
+      "warnings": [],
+      "blocking_errors": [],
+      "forbidden_uses": []
+    },
+    "plan": {
+      "kind": "claim",
+      "action": "claim-lock",
+      "agent_id": "codex-enterprise-20260523",
+      "intent": "CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001 add review-only FD-001 tenant cost allocation contract for Oyatie Cloud FinOps/showback guardrails",
+      "scopes": [
+        "crates/oya-enterprise-suite-tenant-cost-allocation-contract/src/lib.rs::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "crates/oya-enterprise-suite-tenant-cost-allocation-contract/tests/cost_allocation.rs::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "crates/oya-enterprise-suite-tenant-cost-allocation-contract/Cargo.toml::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "registry/catalog/oya-enterprise-suite-tenant-cost-allocation-contract.yaml::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "Cargo.toml::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "Cargo.lock::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "specs/microservices/enterprise-suite.json::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "tasks/enterprise-microservices-todo.md::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "evidence/multispectrum/cs-ent-suite-tenant-cost-allocation-contract-1779711000.json::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "evidence/vcs/cs-ent-suite-tenant-cost-allocation-contract-oya-vcs-lifecycle-20260525.json::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+        "evidence/audit-chain.jsonl::CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001"
+      ],
+      "evidence_refs": [],
+      "bundle_id": null,
+      "environment": null,
+      "closeout_mode": null,
+      "compatibility_alias": null
+    }
+  },
+  "status": {
+    "command": "oya vcs",
+    "status": "accepted",
+    "schema_version": 1,
+    "ratchet": {
+      "accepted": true,
+      "warnings": [],
+      "blocking_errors": [],
+      "forbidden_uses": []
+    },
+    "plan": {
+      "kind": "status",
+      "action": "read-status",
+      "agent_id": "codex-enterprise-20260523",
+      "intent": null,
+      "scopes": [
+        "CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001"
+      ],
+      "evidence_refs": [],
+      "bundle_id": null,
+      "environment": null,
+      "closeout_mode": null,
+      "compatibility_alias": null
+    }
+  },
+  "verify": {
+    "command": "oya vcs",
+    "status": "accepted",
+    "schema_version": 1,
+    "ratchet": {
+      "accepted": true,
+      "warnings": [],
+      "blocking_errors": [],
+      "forbidden_uses": []
+    },
+    "plan": {
+      "kind": "verify",
+      "action": "verify-evidence",
+      "agent_id": "codex-enterprise-20260523",
+      "intent": null,
+      "scopes": [
+        "CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001"
+      ],
+      "evidence_refs": [
+        "evidence/multispectrum/cs-ent-suite-tenant-cost-allocation-contract-1779711000.json"
+      ],
+      "bundle_id": null,
+      "environment": null,
+      "closeout_mode": null,
+      "compatibility_alias": null
+    }
+  },
+  "done": {
+    "command": "oya vcs",
+    "status": "accepted",
+    "schema_version": 1,
+    "ratchet": {
+      "accepted": true,
+      "warnings": [],
+      "blocking_errors": [],
+      "forbidden_uses": []
+    },
+    "plan": {
+      "kind": "done",
+      "action": "emit-change-bundle",
+      "agent_id": "codex-enterprise-20260523",
+      "intent": null,
+      "scopes": [
+        "CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001"
+      ],
+      "evidence_refs": [
+        "evidence/multispectrum/cs-ent-suite-tenant-cost-allocation-contract-1779711000.json"
+      ],
+      "bundle_id": null,
+      "environment": null,
+      "closeout_mode": "legacy-grit-compatible-done",
+      "compatibility_alias": null
+    }
+  },
+  "promote": {
+    "command": "oya vcs",
+    "status": "accepted",
+    "schema_version": 1,
+    "ratchet": {
+      "accepted": true,
+      "warnings": [],
+      "blocking_errors": [],
+      "forbidden_uses": []
+    },
+    "plan": {
+      "kind": "promote",
+      "action": "promote-bundle",
+      "agent_id": "codex-enterprise-20260523",
+      "intent": null,
+      "scopes": [],
+      "evidence_refs": [
+        "evidence/multispectrum/cs-ent-suite-tenant-cost-allocation-contract-1779711000.json"
+      ],
+      "bundle_id": "CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001",
+      "environment": "dev",
+      "closeout_mode": "controller-promote",
+      "compatibility_alias": null
+    }
+  }
+}

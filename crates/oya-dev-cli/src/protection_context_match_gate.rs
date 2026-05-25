@@ -46,6 +46,9 @@ pub(crate) struct ProtectionContextMatchValidateArgs {
     pub branch_name: String,
     pub applied_branch_protection_path: Option<PathBuf>,
     pub live_required_contexts_path: Option<PathBuf>,
+    /// ADR-0361: the Jenkins-reported status-context manifest. Producer source
+    /// when GitHub Actions workflows are retired (the dir may be absent).
+    pub reported_contexts_path: Option<PathBuf>,
 }
 
 impl Default for ProtectionContextMatchValidateArgs {
@@ -61,6 +64,9 @@ impl Default for ProtectionContextMatchValidateArgs {
             branch_name: "dev".to_string(),
             applied_branch_protection_path: Some(PathBuf::from("infra/branch-protection/dev.json")),
             live_required_contexts_path: None,
+            reported_contexts_path: Some(PathBuf::from(
+                "infra/ci/jenkins/reported-status-contexts.json",
+            )),
         }
     }
 }
@@ -104,6 +110,15 @@ pub(crate) fn parse_protection_context_match_validate_args(
                     return Err(USAGE.to_owned());
                 };
                 parsed.live_required_contexts_path = Some(PathBuf::from(value));
+            }
+            "--reported-contexts" => {
+                let Some(value) = iter.next() else {
+                    return Err(USAGE.to_owned());
+                };
+                parsed.reported_contexts_path = Some(PathBuf::from(value));
+            }
+            "--skip-reported-contexts" => {
+                parsed.reported_contexts_path = None;
             }
             _ => return Err(USAGE.to_owned()),
         }
@@ -153,31 +168,81 @@ pub(crate) fn validate_protection_context_match_gate(
     }
 
     let mut workflows: Vec<WorkflowJobNames> = Vec::new();
-    let entries = fs::read_dir(&args.workflows_dir).map_err(|error| {
-        format!(
-            "could not list workflows dir at {}: {error}",
-            args.workflows_dir.display()
-        )
-    })?;
-    for entry in entries {
-        let entry = entry.map_err(|error| format!("could not read workflow entry: {error}"))?;
-        let path = entry.path();
-        let Some(extension) = path.extension().and_then(|ext| ext.to_str()) else {
-            continue;
-        };
-        if extension != "yml" && extension != "yaml" {
-            continue;
+
+    // ADR-0361: the Jenkins-reported status-context manifest is a first-class
+    // producer source, so retiring `.github/workflows` does not strand the gate.
+    if let Some(reported_contexts_path) = &args.reported_contexts_path {
+        match fs::read_to_string(reported_contexts_path) {
+            Ok(text) => {
+                let job_names = parse_reported_status_contexts(&text)?;
+                workflows.push(WorkflowJobNames {
+                    workflow_path: reported_contexts_path.display().to_string(),
+                    job_names,
+                });
+            }
+            // Absent manifest (e.g. an isolated test cwd) is tolerated; other
+            // producer sources must then cover the required contexts.
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(format!(
+                    "could not read reported-status-contexts manifest at {}: {error}",
+                    reported_contexts_path.display()
+                ));
+            }
         }
-        let workflow_text = fs::read_to_string(&path)
-            .map_err(|error| format!("could not read workflow {}: {error}", path.display()))?;
-        let job_names = parse_workflow_job_names(&workflow_text);
-        workflows.push(WorkflowJobNames {
-            workflow_path: path.display().to_string(),
-            job_names,
-        });
+    }
+
+    // GitHub Actions workflows are an ADDITIONAL producer source only while they
+    // exist; a retired (absent) workflows dir is tolerated, not an error.
+    match fs::read_dir(&args.workflows_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                let entry =
+                    entry.map_err(|error| format!("could not read workflow entry: {error}"))?;
+                let path = entry.path();
+                let Some(extension) = path.extension().and_then(|ext| ext.to_str()) else {
+                    continue;
+                };
+                if extension != "yml" && extension != "yaml" {
+                    continue;
+                }
+                let workflow_text = fs::read_to_string(&path).map_err(|error| {
+                    format!("could not read workflow {}: {error}", path.display())
+                })?;
+                let job_names = parse_workflow_job_names(&workflow_text);
+                workflows.push(WorkflowJobNames {
+                    workflow_path: path.display().to_string(),
+                    job_names,
+                });
+            }
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            // Retired per ADR-0361 — the Jenkins manifest is the producer source.
+        }
+        Err(error) => {
+            return Err(format!(
+                "could not list workflows dir at {}: {error}",
+                args.workflows_dir.display()
+            ));
+        }
     }
 
     validate_protection_context_match(&contexts, &workflows).map_err(|error| error.to_string())
+}
+
+/// Parse the `reported_status_contexts` array from the Jenkins-reported
+/// status-context manifest (ADR-0361).
+fn parse_reported_status_contexts(text: &str) -> Result<Vec<String>, String> {
+    let value: serde_json::Value = serde_json::from_str(text)
+        .map_err(|error| format!("reported-status-contexts manifest is invalid JSON: {error}"))?;
+    let array = value
+        .get("reported_status_contexts")
+        .and_then(|v| v.as_array())
+        .ok_or("reported-status-contexts manifest missing `reported_status_contexts` array")?;
+    Ok(array
+        .iter()
+        .filter_map(|v| v.as_str().map(str::to_string))
+        .collect())
 }
 
 /// Extract the `required_status_checks` list for the specified branch

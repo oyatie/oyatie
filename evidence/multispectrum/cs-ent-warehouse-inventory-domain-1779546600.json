@@ -1,0 +1,317 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-WAREHOUSE-001",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:30:00Z",
+  "freshness_unix": 1779546600,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "Warehouse inventory domain foundation adds goods receipt, putaway stock positioning, inventory reservation, pick confirmation, cycle-count reconciliation metadata, and SAP MM/EWM parity-map linkage while explicitly refusing durable persistence, procurement three-way match, accounting ledger mutation, robotics/scanner runtime I/O, carrier calls, shipping-label generation, Workflow execution, cloud deployment, and runtime audit-chain claims.",
+  "scope": [
+    "microservices/warehouse/crates/oya-warehouse-inventory-domain/Cargo.toml",
+    "microservices/warehouse/crates/oya-warehouse-inventory-domain/src/lib.rs",
+    "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs",
+    "specs/microservices/warehouse.json",
+    "registry/catalog/oya-warehouse-inventory-domain.yaml",
+    "Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "non_claims": [
+    "durable persistence not attached",
+    "WMS runtime task engine not attached",
+    "procurement three-way match not attached",
+    "accounting ledger mutation not attached",
+    "robotics or scanner runtime I/O not attached",
+    "carrier network call not attached",
+    "shipping label generation not attached",
+    "Workflow engine execution not attached",
+    "statutory filing not attached",
+    "cloud deployment not attached",
+    "production warehouse parity not claimed",
+    "runtime audit-chain emission not implemented"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The implementation is a small pure-domain validation/calculation model, not a WMS runtime, robot integration, or ERP monolith clone.",
+        "Goods receipt, putaway, reservation, picking, and cycle-count calculations are deterministic guard-clause logic with no hidden side effects."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Flat warehouse microservice destination improves SAP MM/EWM parity without creating microservices/erp.",
+        "Capability flags and evidence rows keep cloud/runtime/carrier/scanner claims honest until adapters land."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::goods_receipt_putaway_reservation_pick_and_cycle_count_flow",
+      "failing_fixture_id": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_validates_refs_quantities_and_pick_counts",
+      "diagnostic_asserted": "Tests fail if missing receipts, inactive reservations, capacity shortages, over-reservation, pick quantity mismatches, out-of-tolerance cycle counts, unsafe refs, credential-shaped evidence refs, or invalid quantities/units are accepted.",
+      "findings": [
+        "Positive warehouse inventory flow and negative guard rails are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 25,
+      "findings": [
+        "Types map directly to goods receipt, putaway, stock position, reservation, pick confirmation, and cycle count concepts common to warehouse systems."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused warehouse tests/clippy, ERP parity map tests/clippy, 28-package enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan are recorded in verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "leave warehouse as a parity gap behind procurement",
+        "build WMS runtime/scanner/carrier integrations now",
+        "add warehouse inventory domain foundation first"
+      ],
+      "selected_rationale": "A flat domain foundation gives ERP MM/EWM parity a service-owned first write path while keeping WMS task engines, scanners, carrier calls, storage, Workflow, and cloud adapters out of scope.",
+      "rejected_reasons": [
+        "Keeping warehouse as a gap left procurement three-way match without an inventory-owned counterpart.",
+        "WMS/scanner/carrier runtime requires external devices, credentials, durable state, and operational SLOs beyond this slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "warehouse_inventory_evidence_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, external network calls, robot/scanner channels, carrier calls, or shipping label generation are introduced.",
+        "Source and audit refs reject traversal, whitespace/control, and credential-shaped strings."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-warehouse-inventory-domain-foundation",
+      "regression_baseline": "Pure string/quantity/unit validation and arithmetic only; no I/O or unbounded data access exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, device runtime, or hot runtime path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "INTERNAL_ONLY warehouse/source/evidence refs",
+        "FINANCIAL quantities, capacities, reservations, picks, variances, and tolerances",
+        "PUBLIC non-claim capability flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-warehouse",
+        "inventory-management",
+        "sap-mm-ewm-parity"
+      ],
+      "official_sources_checked": [
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/87f9b54f9c4f4e75aff0061860a6589a/b8e1242b86f5403f9c81a65e9a188f10.html",
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/87f9b54f9c4f4e75aff0061860a6589a/4938549c790d4e2cbeade042b59becd3.html",
+        "https://docs.oracle.com/en/cloud/saas/warehouse-management/26a/owmol/overview.html",
+        "https://docs.oracle.com/en/cloud/saas/warehouse-management/26b/owmwr/allocation.html",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/warehouse-management-overview"
+      ],
+      "findings": [
+        "SAP/Oracle/Microsoft official materials inform WMS coverage only; no exhaustive vendor parity or proprietary behavior clone is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one new crate/spec/catalog row and parity-map references; no migration or external resource is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence, task rows, and audit-chain rows document the change; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No production user or data migration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package name follows oya-warehouse-inventory-domain and flat microservice layout."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Machine-readable warehouse spec and existing task ledger capture the slice without creating root markdown sprawl."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New code is isolated to microservices/warehouse plus Enterprise Suite parity map references."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Clean architecture is preserved: domain crate depends only on data boundary kernel and std."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new third-party dependencies were added; Cargo.lock changed only for the new workspace package."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "specs/microservices/warehouse.json parses successfully and evidence follows prior multispectrum shape."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Warehouse receipt variance, bin-capacity, allocation, pick-match, and cycle-count tolerance arithmetic is deterministic with no hidden state."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Challenged whether warehouse should wait for procurement storage; creating a separate inventory domain is more aligned with ERP MM/EWM parity and procurement's explicit no-inventory-mutation boundary."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Complements HR/payroll/accounting/procurement/treasury foundations and improves ERP parity while keeping no microservices/erp monolith."
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo check -p oya-warehouse-inventory-domain",
+      "status": "pass",
+      "notes": "updated Cargo.lock for the new workspace package without adding third-party dependencies"
+    },
+    {
+      "command": "cargo test --locked -p oya-warehouse-inventory-domain",
+      "status": "pass",
+      "notes": "focused warehouse inventory domain tests passed; 4 integration tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-warehouse-inventory-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused warehouse inventory domain clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+      "status": "pass",
+      "notes": "ERP parity map tests passed with MM/EWM warehouse foundation coverage; 8 tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "ERP parity map clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked across warehouse + treasury + procurement + HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group",
+      "status": "pass",
+      "notes": "28 enterprise packages including warehouse inventory domain passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across warehouse + treasury + procurement + HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "28 enterprise packages including warehouse inventory domain passed clippy with -D warnings"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after warehouse inventory-domain addition"
+    },
+    {
+      "command": "jq . specs/microservices/warehouse.json >/dev/null",
+      "status": "pass",
+      "notes": "warehouse microservice spec parses as JSON"
+    },
+    {
+      "command": "Warehouse inventory domain public field data_class scan",
+      "status": "pass",
+      "notes": "warehouse domain src/lib.rs contains data_class annotations for new public fields"
+    },
+    {
+      "command": "Warehouse inventory quality-marker scan over CS-ENT-WAREHOUSE-001 code/catalog/spec paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in warehouse domain src/lib.rs, tests, catalog row, or warehouse spec"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json --severity error",
+      "status": "pass",
+      "notes": "dependency-seam evidence gate passed"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-warehouse-inventory-domain-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ]
+}

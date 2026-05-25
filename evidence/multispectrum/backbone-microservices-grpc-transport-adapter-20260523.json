@@ -1,0 +1,139 @@
+{
+  "change_id": "backbone-microservices-grpc-transport-adapter-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Local tonic transport server/client seam for generated backbone write RPCs.",
+  "scope": [
+    "crates/oya-shared-backbone-grpc-transport-adapter/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-backbone-grpc-transport-adapter.yaml",
+    "registry/dependency-rationales.json",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Local tonic transport seam only. This slice wraps generated messenger, mail, social, and community server traits around the existing generated request-to-write-plan adapters and exposes generated clients over tonic::transport::Channel. A loopback test exercises all implemented write RPC families over 127.0.0.1:0. It does not provide TLS/mTLS, service-gateway admission, production deployment, service discovery, database execution, broker publish, daemon supervision, SLO evidence, or hyperscaler certification.",
+  "source_basis": [
+    {
+      "url": "https://docs.rs/tonic/latest/tonic/transport/index.html",
+      "use": "Official tonic 0.14.6 transport docs for the server/client transport feature boundary and batteries-included HTTP/2 transport surface."
+    },
+    {
+      "url": "https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html",
+      "use": "Official tonic Server docs for builder/add_service/serve_with_incoming_shutdown runtime composition."
+    },
+    {
+      "url": "https://docs.rs/tonic/latest/tonic/transport/channel/struct.Endpoint.html",
+      "use": "Official tonic Endpoint docs for connecting transport Channels used by generated clients."
+    },
+    {
+      "url": "https://docs.rs/tonic/latest/tonic/transport/struct.Channel.html",
+      "use": "Official tonic Channel docs for the generated-client channel type used in client factories."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "One isolated transport adapter crate owns tonic Server/Channel composition; generated bindings stay in the generated adapter, and domain/API/usecase crates remain tonic/prost-free.",
+    "F2_hyperscaler": "The seam proves generated RPCs can cross a real local TCP tonic server boundary before production gateway, TLS, service discovery, and deployment slices are introduced separately.",
+    "F3_adversarial": "Tests exercise a real loopback server for messenger, mail, social, community create/vote/moderation plus negative paths for missing generated envelope and vote-before-post state.",
+    "F4_api_contract": "Generated server trait implementations preserve generated response types and map app/write-plan receipts into proto responses for all implemented write RPC families.",
+    "F5_quality": "Focused transport-adapter tests plus the 45-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "The public serve_backbone_grpc_until_shutdown function composes the six generated service servers over a caller-supplied TcpIncoming and shutdown future; operational supervision remains deliberately out of scope.",
+    "F7_security_privacy": "The adapter transports only reference IDs and write-plan receipts in tests; no raw message body, mail body, social media blob, credential, broker URL, database URL, or TLS key material is introduced.",
+    "F8_supply_chain": "No new direct third-party dependency name is introduced; existing tonic/tokio dependency rationales now explicitly allow the isolated transport adapter. Enabling tonic router/transport adds transitive lock entries such as axum 0.8.9, axum-core 0.5.6, hyper-timeout 0.5.2, matchit 0.8.4, try-lock 0.2.5, and want 0.3.1, all covered by cargo-deny license/source checks.",
+    "F9_testing": "Focused tests passed for 3 transport-adapter unit tests and the broad backbone matrix passed 286 unit tests plus the existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "GitHub Actions and Jenkins package matrices include the transport adapter in all four service lanes; this does not claim remote CI execution.",
+    "F11_observability": "Responses carry generated RPC receipt metadata, idempotency keys, policy refs, and audit correlation IDs where the proto response contracts define those fields; future interceptors can bind to the same generated services.",
+    "F13_reversibility": "The runtime transport seam is isolated to one adapter crate plus workspace/catalog/CI/task/rationale/evidence wiring; reverting it leaves generated bindings and write-plan adapters intact."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-backbone-grpc-transport-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-grpc-transport-adapter",
+      "result": "pass",
+      "evidence": "3 focused unit tests passed: local TCP loopback clients reached messenger, mail, social, community create, community vote, and community moderation services; missing generated messenger envelope mapped to INVALID_ARGUMENT; community vote before create-post state mapped to FAILED_PRECONDITION."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-backbone-grpc-transport-adapter --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-backbone-grpc-transport-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <45 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <45 backbone package matrix>",
+      "result": "pass",
+      "evidence": "286 unit tests passed across the backbone package matrix; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <45 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <45 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; duplicate/wildcard diagnostics, including new axum/matchit duplicate version warnings from tonic router/transport, remain non-blocking under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 459 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 459 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing catalog coverage failure: MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing data-class failure: UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "python parse/config validation for transport adapter crate, tonic features, service/client factories, catalog, CI/Jenkins, dependency rationales, task markers, and framework-dep isolation",
+      "result": "pass",
+      "evidence": "parse_config_validation=pass transport_crate=present tonic_features=router+transport service_impls=4 client_factories=6 loopback_tests=3 ci_rows=4 jenkins=4 rationales=2 framework_dep_isolation=pass."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 375 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + transport adapter + dependency rationales + CI/Jenkins + catalog + evidence corpus>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 6 documents, 1508 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No TLS, mTLS, identity-aware gateway, service mesh, or production ingress is implemented.",
+    "No database command is executed and no broker message is published by this adapter.",
+    "No production deployment, remote CI run, load test, SLO, autoscaling result, or hyperscaler maturity certification is claimed.",
+    "No service discovery, rolling restart, daemon supervision, OS signal handling, or long-running process manager is implemented.",
+    "No domain/API/usecase crate depends on tonic or prost as part of this slice."
+  ]
+}

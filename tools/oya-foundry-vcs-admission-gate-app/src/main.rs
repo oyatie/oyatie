@@ -32,8 +32,13 @@ const MASTER_PLAN_SEQUENCING: &str = "specs/master-plan-sequencing.json";
 const MULTISPECTRUM_REVIEW: &str = "specs/multispectrum-review.json";
 const GITOPS_VCS_REPLACEMENT: &str = "specs/gitops-vcs-replacement.json";
 const BRANCH_PROTECTION_YAML: &str = ".github/branch-protection.yaml";
-const PR_TESTS_WORKFLOW: &str = ".github/workflows/pr-tests.yml";
-const SUPPLY_CHAIN_WORKFLOW: &str = ".github/workflows/oya-foundry-fitness-supply-chain.yml";
+// ADR-0361: the retired GitHub Actions workflows (pr-tests.yml +
+// oya-foundry-fitness-supply-chain.yml) are superseded by the single
+// Jenkins-native pipeline lane. Both admission checks now read the
+// canonical pipeline source, which declares the oya-vcs-admission and
+// oya-vcs-provider-execution stages.
+const PR_TESTS_WORKFLOW: &str = "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy";
+const SUPPLY_CHAIN_WORKFLOW: &str = "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy";
 const AUDIT_CHAIN_JSONL: &str = "evidence/audit-chain.jsonl";
 const MULTISPECTRUM_EVIDENCE_DIR: &str = "evidence/multispectrum";
 const VCS_ADMISSION_EVIDENCE: &str =

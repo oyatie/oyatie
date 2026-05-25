@@ -8,18 +8,18 @@
 /// A tenant-bound table that MUST have RLS FORCE applied.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct TenantBoundTable {
-    pub schema: String,
-    pub table: String,
-    pub tenant_column: String,
+    pub schema: String,        // data_class: INTERNAL_ONLY
+    pub table: String,         // data_class: INTERNAL_ONLY
+    pub tenant_column: String, // data_class: INTERNAL_ONLY
 }
 
 /// Row-level-security policy specification.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RlsPolicy {
-    pub table: TenantBoundTable,
-    pub policy_name: String,
-    pub using_expr: String,
-    pub check_expr: String,
+    pub table: TenantBoundTable, // data_class: INTERNAL_ONLY
+    pub policy_name: String,     // data_class: INTERNAL_ONLY
+    pub using_expr: String,      // data_class: INTERNAL_ONLY
+    pub check_expr: String,      // data_class: INTERNAL_ONLY
 }
 
 /// Sealed port for installing / verifying / auditing RLS policies.

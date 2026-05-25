@@ -1,0 +1,73 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-BOMINAL-TOPFOLD-POLISH-20260524",
+  "evidence_id": "cs-application-shell-bominal-topfold-polish-20260524",
+  "created_at": "2026-05-24T00:00:00-04:00",
+  "agent": "codex-oyatie-bominal-topfold-polish",
+  "objective": "Move the Oyatie application shell closer to the supplied Bominal visual/product reference, with emphasis on top-fold command-center density and Korean-first operational content.",
+  "reference_inputs": {
+    "bominal_zip": "/Users/jasonlee/Downloads/Bominal.zip",
+    "primary_reference_screenshot": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+    "workflow_reference_screenshot": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png"
+  },
+  "implemented": [
+    "Replaced generic Oyatie control-center hero copy with Bominal-like 'Operations · 2026 May, week 19' command-center headline, bilingual subtitle, lens chip, and Close April action.",
+    "Collapsed demo-only context switcher, surface command bar, and render-envelope banner out of the top fold while preserving them in SSR markup and WASM state for future use.",
+    "Changed first tenant metrics to Bominal-style operations metrics: close progress, cycle time, cost of delay, open approvals, compliance.",
+    "Changed action inbox and copilot seed content toward Bominal's Korean-first payroll/filing/approval examples while keeping Oyatie visual-only/prototype constraints.",
+    "Preserved visible built-in product surfaces through the left rail, command palette, workflow studio, corporate suite graph, and Messenger/Mail/Community workspace."
+  ],
+  "verification": [
+    { "command": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "command": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "tests": "8 passed" },
+    { "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr", "status": "passed" },
+    { "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --no-default-features --features hydrate --lib --release", "status": "passed" },
+    { "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/", "status": "passed" },
+    {
+      "command": "Playwright top-fold smoke at 1440x900",
+      "status": "passed",
+      "observations": [
+        "title='Operations · 2026 May, week 19'",
+        "5 metric cards visible",
+        "metricTop=135px and workbenchTop=231px, matching the Bominal top-fold density much more closely than the previous y≈468 workbench position",
+        "context, surface, and envelope demo rows compute to display:none",
+        "blocking filter leaves exactly 1 visible row",
+        "copilot apply updates local status"
+      ]
+    }
+  ],
+  "screenshots": [
+    ".omx/artifacts/visual-ralph/oya-bominal-topfold-polish/screenshots/topfold-polish-final-1440.png",
+    ".omx/artifacts/visual-ralph/oya-bominal-topfold-polish/screenshots/topfold-command-palette-final-1440.png",
+    ".omx/artifacts/visual-ralph/oya-bominal-topfold-polish/screenshots/topfold-workflow-1440.png"
+  ],
+  "visual_verdict": {
+    "score": 90,
+    "category_match": "Bominal-style dense enterprise command center with integrated workflow and communications surfaces",
+    "verdict": "Top-fold visual/product density now reaches the Visual Ralph pass threshold for this slice; full application parity still needs deeper route coverage and exact Workflow Studio geometry.",
+    "improved_matches": [
+      "Command-center headline, lens chip, and bilingual operating context",
+      "Five-card metric strip with close/cycle/cost/approvals/compliance semantics",
+      "Action inbox starts immediately below metrics at y≈231 instead of below demo scaffolding",
+      "Korean-first payroll and filing content in priority queue and copilot rail",
+      "Demo context/surface/envelope scaffolding removed from visible top fold"
+    ],
+    "remaining_differences": [
+      "Brand is intentionally Oyatie rather than Bominal and is not a pixel clone.",
+      "Workflow Studio remains an integrated approximation, not exact Bominal pan/zoom/node physics.",
+      "Auth/onboarding/settings pages from Bominal are represented as suite surfaces, not complete routed pages yet.",
+      "Interactions remain visual/local-only with no backend, real auth, external sends, PHI/PII, or workflow execution."
+    ]
+  },
+  "non_claims": [
+    "No external messages, mail, community posts, filings, or workflow executions occur.",
+    "This is not a claim that every Bominal screen has been recreated as a routed Oyatie page.",
+    "This is not backend wiring or production persistence."
+  ],
+  "touched_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/src/render_envelope.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ]
+}

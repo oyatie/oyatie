@@ -1,0 +1,283 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAM-003",
+  "changeset_id": "CS-CLOUD-IAM-003",
+  "change_slug": "cs-cloud-iam-api-version-enforcement",
+  "change_class_id": "CC-1",
+  "git_sha_base": "1b19b92e",
+  "freshness_unix": 1779510613,
+  "timestamp_iso": "2026-05-23T04:30:13Z",
+  "agent_id": "codex-impl",
+  "scope": [
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    "contracts/openapi/cloud/cloud-iam-v1.yaml",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-impl --intent cs-cloud-iam-003-api-version-enforcement crates/oya-cloud-iam-api/src/lib.rs crates/oya-cloud-iam-api/tests/cloud_iam_api.rs contracts/openapi/cloud/cloud-iam-v1.yaml tasks/todo.md evidence/audit-chain.jsonl evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json",
+      "status": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json work --agent codex-impl",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Implement CS-CLOUD-IAM-003: Cloud IAM API boundary now requires the ADR-0342 `Oyatie-Version` public date carrier, accepts only the three Cloud IAM manifest-declared versions, rejects missing/unsupported carriers before authorization, idempotency ledger writes, or domain mutation, and declares the required header in the OpenAPI 3.2.0 contract.",
+  "baseline_diff": {
+    "before": "Cloud IAM API boundary carried request id, tenant id, and idempotency key but not the public API date version. The OpenAPI contract also lacked `Oyatie-Version` parameters.",
+    "red_test": "cargo test -p oya-cloud-iam-api identity_provider_mutation_api_rejects_missing_or_unsupported_oyatie_version_before_ledger -- --nocapture failed before implementation: missing default-version constant, boundary fields, and public-version error variants.",
+    "after": "CloudIamApiBoundaryContext and CloudIamApiReadBoundaryContext carry `oyatie_version`; validation rejects blank or unsupported versions with 400-class API errors before idempotency and domain calls. Identity-provider create/update/delete tests prove invalid version carriers leave ledgers empty and do not mutate the directory. OpenAPI declares `Oyatie-Version` as a required enum date header on the Cloud IAM public operations."
+  },
+  "best_practice_research": {
+    "question": "Public REST API version-carrier enforcement for Cloud IAM boundary handlers.",
+    "version_date_context": "Researched on 2026-05-23 against official/upstream sources and repo ADRs ADR-0258, ADR-0342, and ADR-0352.",
+    "official_upstream_sources": [
+      {
+        "url": "https://spec.openapis.org/oas/v3.2.0.html",
+        "establishes": "OpenAPI 3.2.0 is the authoritative contract format for HTTP APIs and supports header parameters in operation parameter lists."
+      },
+      {
+        "url": "https://docs.github.com/rest/about-the-rest-api/api-versions/",
+        "establishes": "GitHub REST API versions use date-based names selected by a request header and unsupported versions receive explicit failure responses."
+      },
+      {
+        "url": "https://docs.stripe.com/api/versioning?lang=curl",
+        "establishes": "Stripe supports request-time API version override with a version header while account defaults handle unpinned requests."
+      }
+    ],
+    "repo_authority": [
+      "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md B2.001-B2.004: YYYY-MM-DD public versions and `Oyatie-Version` header carrier.",
+      "docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md: public API versions are YYYY-MM-DD and carried by Oyatie-Version, URL date prefix, and oyatie_version.",
+      "microservices/cloud-iam/manifest.json tenant_version_pinning: 2026-05-21, 2026-02-21, 2025-11-21."
+    ],
+    "implementation_handoff": "Keep version negotiation at the API boundary. Domain logic receives typed business requests only; unsupported public-version carriers never enter IAM domain mutation or idempotency-ledger recording."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iam-api identity_provider_mutation_api_rejects_missing_or_unsupported_oyatie_version_before_ledger -- --nocapture (pre-implementation)",
+      "status": "failed-before-fix",
+      "evidence": "compile failed for missing `CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION`, `oyatie_version` boundary fields, and public-version error variants; this was the intentional RED step."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api identity_provider_mutation_api_rejects_missing_or_unsupported_oyatie_version_before_ledger -- --nocapture",
+      "status": "passed",
+      "evidence": "focused version-carrier regression passed: 1 passed; 0 failed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api",
+      "status": "passed",
+      "evidence": "API integration suite passed after supported-version/idempotency drift coverage was added: 25 passed; 0 failed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api (post-review hardening)",
+      "status": "passed",
+      "evidence": "Post-review API suite passed: 25 passed; 0 failed, including supported manifest version acceptance and version-carrier idempotency fingerprint drift."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-domain -p oya-cloud-iam-app -p oya-cloud-iam-api -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "Cloud IAM scoped package run passed after review hardening: domain 11, app 3, API 25, OCI adapter 2, self-hosted adapter 2 tests passed; 0 failed."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-app -p oya-cloud-iam-api -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied after review hardening."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0 after review hardening."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "status": "passed",
+      "evidence": "API semver validation passed: 41 contracts, 41 metadata records."
+    },
+    {
+      "command": "./bin/oya doc openapi --contracts-dir contracts --format json",
+      "status": "blocked-preexisting-runtime-binding",
+      "evidence": "OpenAPI documentation validation failed on MissingRuntimeBinding for createCloudIamIdentityProvider in contracts/openapi/cloud/cloud-iam-v1.yaml; the failure is a runtime-bindings inventory gap rather than YAML/API-semver failure."
+    },
+    {
+      "command": "./bin/oya git diff --check -- crates/oya-cloud-iam-api/src/lib.rs crates/oya-cloud-iam-api/tests/cloud_iam_api.rs contracts/openapi/cloud/cloud-iam-v1.yaml tasks/todo.md evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json evidence/audit-chain.jsonl",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json --offline --severity error --emit-report /tmp/cs-cloud-iam-003-dependency-seam-report.json",
+      "status": "passed",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json && tail -1 evidence/audit-chain.jsonl | python3 -m json.tool",
+      "status": "passed",
+      "evidence": "multispectrum evidence and audit-chain JSONL row parse as JSON."
+    },
+    {
+      "command": "./bin/oya vcs --format json verify --agent codex-impl --evidence evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json#verify",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS verify accepted."
+    },
+    {
+      "command": "./bin/oya vcs --format json done --agent codex-impl --controller-promote --evidence evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json#done crates/oya-cloud-iam-api/src/lib.rs crates/oya-cloud-iam-api/tests/cloud_iam_api.rs contracts/openapi/cloud/cloud-iam-v1.yaml tasks/todo.md evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json evidence/audit-chain.jsonl",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS done accepted with controller-promote closeout."
+    },
+    {
+      "command": "./bin/oya vcs --format json promote --agent codex-impl --bundle cb-cs-cloud-iam-003 --environment local-review --evidence evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json#promote",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS promote accepted."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "One shared boundary validator and constants avoid route-specific branching or duplicate domain rules."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "evidence_used": [
+        "https://docs.github.com/rest/about-the-rest-api/api-versions/",
+        "https://docs.stripe.com/api/versioning?lang=curl",
+        "https://spec.openapis.org/oas/v3.2.0.html"
+      ],
+      "findings": [
+        "The handler uses the repo-canonical date header model and contract-level required header declaration rather than implicit unversioned mutation behavior."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "failing_fixture_added": true,
+      "findings": [
+        "Regression covers missing and unsupported version carriers for create/update/delete, including empty-directory cases that would otherwise hit domain errors, proving boundary rejection precedes domain business rules."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Public constants expose default/supported versions to tests and future adapters without parsing the manifest at handler time."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused RED/GREEN test, full API package tests, Cloud IAM package tests, clippy, rustfmt, and API semver gate passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Accept unversioned requests and rely on tenant default later",
+        "Parse API versions in the domain layer",
+        "Validate `Oyatie-Version` at API boundary against Cloud IAM declared versions"
+      ],
+      "selected_rationale": "Boundary validation is the smallest clean-architecture implementation of ADR-0342 for this crate; domain stays free of public transport negotiation.",
+      "rejected_reasons": [
+        "Unversioned mutation paths contradict CS-CLOUD-IAM-003 acceptance.",
+        "Domain-layer parsing would leak transport/version negotiation into IAM business logic."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Invalid version requests fail before authorization/idempotency/domain side effects; existing authorization-gated and idempotency-keyed mutation tests remain green."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Version validation is a trim plus fixed small-slice membership check; no I/O, allocation-heavy parsing, or manifest read on hot paths."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "audit_chain_emission_required": true,
+      "audit_chain_evidence_path": "evidence/audit-chain.jsonl",
+      "findings": [
+        "Evidence bundle and audit-chain row cover the public API contract/version enforcement change."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Additive API request field/contract/test/evidence change; revert is local to Cloud IAM API boundary and contract."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Error responses expose stable error codes/details for missing and unsupported public API versions."
+      ]
+    },
+    "F12_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Supported versions mirror Cloud IAM manifest declarations and can be audited against OpenAPI enum carriers."
+      ]
+    },
+    "F13_boundary": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Business logic remains in oya-cloud-iam-domain; API crate owns request/header normalization and idempotency fingerprinting only."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Clean architecture direction preserved: API boundary validates public carrier before translating to domain input; domain crate unchanged."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "New regression plus existing create/update/delete authorization and idempotency tests cover the CS-CLOUD-IAM-003 acceptance criteria."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence records RED/GREEN, scoped Cloud IAM verification, API semver gate, and known OpenAPI runtime-binding gap."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    "contracts/openapi/cloud/cloud-iam-v1.yaml",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iam-api-version-enforcement-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "remaining_risks": [
+    "`./bin/oya doc openapi --contracts-dir contracts --format json` still fails on missing runtime binding inventory for createCloudIamIdentityProvider; API semver contract validation passes.",
+    "This slice enforces the header carrier. Full ADR-0342 URL-prefix `/v/<YYYY-MM-DD>/...` routing remains owned by api-gateway/future routing slices."
+  ],
+  "git_sha": "1b19b92e",
+  "review_refresh_timestamp_iso": "2026-05-23T05:06:00Z"
+}

@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-ADR-DUPLICATE-ID-REPAIR-001",
+  "agent_id": "codex-adr-duplicate-id-fix",
+  "created_at": "2026-05-23T10:35:45Z",
+  "scope": "Repair the D-6 ADR index duplicate-id blocker by giving amendment ADR files unique ids and regenerating the ADR index artifacts.",
+  "claim": "D-6 ADR index generation now passes after duplicate amendment ADR ids were renumbered to ADR-0353 through ADR-0356 and exact active-doc slug references were updated. Oya VCS verify/done/promote accepted this ChangeSet. Full ./bin/oya verify --ci-required remains non-green because D-5 gate run-all still fails eight lanes.",
+  "pre_repair_failures": [
+    {
+      "lane": "D-6 ADR index",
+      "command": "./bin/oya doc adr-index --write",
+      "before": "ADR index validation failed: ADR index invalid: DuplicateAdr { id: \"ADR-0246\" }",
+      "known_duplicate_sets": [
+        [
+          "docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md",
+          "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md"
+        ],
+        [
+          "docs/decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md",
+          "docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"
+        ],
+        [
+          "docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md",
+          "docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
+        ],
+        [
+          "docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md",
+          "docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md"
+        ]
+      ]
+    }
+  ],
+  "implemented_changes": [
+    "Moved ADR-0246 amendment to docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md and updated its frontmatter id and H1 to ADR-0353 while preserving its amends target ADR-0246.",
+    "Moved ADR-0253 amendment to docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md and updated its frontmatter id and H1 to ADR-0354 while preserving its amends target ADR-0253.",
+    "Moved ADR-0255 amendment to docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md and updated its frontmatter id and H1 to ADR-0355 while preserving its amends target ADR-0255.",
+    "Moved ADR-0257 amendment to docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md and updated its frontmatter id and H1 to ADR-0356 while preserving its amends target ADR-0257.",
+    "Updated exact old amendment slug references across active docs/specs/registry/tasks surfaces to the new ADR-0353 through ADR-0356 slugs.",
+    "Regenerated docs/ADR-INDEX.md and docs/machine-readable/decisions.json with ./bin/oya doc adr-index --write.",
+    "Renamed ADR-0354 section headings to the template-compatible Context, Decision, and Consequences names so adr-shape lint passes."
+  ],
+  "green_verification": [
+    {
+      "command": "./bin/oya doc adr-index --write",
+      "status": "pass",
+      "summary": "ADR index wrote 293 records; next=ADR-0357; status histogram Accepted:125, Accepted (amendment):1, Amended:1, Proposed:85, Proposed (target: Accepted upon PR #143 merge to dev):1, Superseded:4, accepted:39, deprecated:1, proposed:36."
+    },
+    {
+      "command": "./bin/oya doc adr-index",
+      "status": "pass",
+      "summary": "ADR index validated with the same 293-record / next=ADR-0357 summary."
+    },
+    {
+      "command": "python3 -m json.tool docs/machine-readable/decisions.json",
+      "status": "pass",
+      "summary": "JSON parsed; pretty output had 7141 lines."
+    },
+    {
+      "command": "./bin/oya gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions --inheritance-registry registry/adr/inherited-bominal-adrs.yaml",
+      "status": "pass",
+      "summary": "2156 documents, 276881 citations, 358 allowed ADRs."
+    },
+    {
+      "command": "./bin/oya gate validate readme-doc-coverage --docs-dir docs --catalog docs/machine-readable/catalog.json",
+      "status": "pass",
+      "summary": "41 documents."
+    },
+    {
+      "command": "./bin/oya gate validate doc-catalog --docs-dir docs --catalog docs/machine-readable/catalog.json",
+      "status": "pass",
+      "summary": "41 documents."
+    },
+    {
+      "command": "./bin/oya gate validate glossary-vocabulary --docs-dir docs --glossary docs/GLOSSARY.md --baseline registry/glossary-vocabulary/warning-baseline.tsv --ignored-uppercase-words registry/glossary-vocabulary/ignored-uppercase-words.tsv",
+      "status": "pass",
+      "summary": "2156 documents, 3210 casing warnings, 2529 uncited acronym warnings."
+    },
+    {
+      "command": "./bin/oya gate validate placeholder-debt --docs-dir docs --registry registry/placeholder-debt/registry.tsv",
+      "status": "pass",
+      "summary": "2156 documents, 987 open placeholders, 565 registry records."
+    },
+    {
+      "command": "mkdir -p /tmp/cs-adr-duplicate-id-repair-retired-vocab-corpus && cp evidence/multispectrum/cs-adr-duplicate-id-repair-20260523.json /tmp/cs-adr-duplicate-id-repair-retired-vocab-corpus/evidence.json && ./bin/oya gate validate retired-vocabulary --registry registry/vocabulary/retired.yaml --corpus-root docs --corpus-root tasks --corpus-root /tmp/cs-adr-duplicate-id-repair-retired-vocab-corpus",
+      "status": "pass",
+      "summary": "2303 documents checked across docs, tasks, and temporary evidence corpus; 6 retired terms enforced; 0 drift hits."
+    },
+    {
+      "command": "rg old ADR amendment slugs across docs/specs/registry/tasks",
+      "status": "pass",
+      "summary": "No active-doc hits for the four old amendment slugs ADR-0246-amendment, ADR-0253-amendment, ADR-0255-amendment, or ADR-0257-amendment."
+    },
+    {
+      "command": "./bin/oya lint adr-shape docs/decisions/ADR-0353-... through ADR-0356-...",
+      "status": "pass",
+      "summary": "All four renumbered amendment ADR files passed adr-shape lint."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "pass",
+      "summary": "2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "pass",
+      "summary": "80 phases, 172 implementation plans."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root evidence/multispectrum/cs-adr-duplicate-id-repair-20260523.json",
+      "status": "pass",
+      "summary": "3 documents, 1224 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "status": "pass",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "tail -n 5 evidence/audit-chain.jsonl JSON parse",
+      "status": "pass",
+      "summary": "The latest five audit-chain records parsed as JSON Lines."
+    },
+    {
+      "command": "./bin/oya vcs verify/done/promote --agent codex-adr-duplicate-id-fix --evidence evidence/multispectrum/cs-adr-duplicate-id-repair-20260523.json CS-ADR-DUPLICATE-ID-REPAIR-001",
+      "status": "pass",
+      "summary": "Oya VCS verify, done --controller-promote, and promote --env local returned accepted."
+    }
+  ],
+  "full_wrapper_result": {
+    "command": "./bin/oya verify --ci-required",
+    "status": "fail_expected_remaining_d5_blockers",
+    "mandatory": "4/5",
+    "advisory": "2/2",
+    "summary": "D-1 fmt, D-2 cargo check, D-3 clippy, D-4 workspace nextest, D-6 ADR index write, and D-7 ADR-shape lint passed; D-5 gate run-all failed.",
+    "d_steps": [
+      {
+        "step": "D-1",
+        "command": "cargo fmt --check",
+        "status": "pass",
+        "duration_seconds": 1.1
+      },
+      {
+        "step": "D-2",
+        "command": "cargo check --workspace --all-targets",
+        "status": "pass",
+        "duration_seconds": 34.0
+      },
+      {
+        "step": "D-3",
+        "command": "cargo clippy --workspace --all-targets -- -D warnings",
+        "status": "pass",
+        "duration_seconds": 59.8
+      },
+      {
+        "step": "D-4",
+        "command": "cargo nextest run --workspace",
+        "status": "pass",
+        "duration_seconds": 151.4,
+        "nextest_run_id": "7645fa7d-da06-4012-bac7-94a8ea614e57",
+        "tests_run": 4310,
+        "passed": 4310,
+        "skipped": 1
+      },
+      {
+        "step": "D-5",
+        "command": "./bin/oya gate run-all --ci-required",
+        "status": "fail",
+        "duration_seconds": 279.3,
+        "summary": "80/88 lanes passed; embedded ci nextest run id 77717c2d-adec-4dbf-84df-72f3a92370aa passed 4310 tests with 1 skipped."
+      },
+      {
+        "step": "D-6",
+        "command": "./bin/oya doc adr-index --write",
+        "status": "pass",
+        "duration_seconds": 0.8,
+        "summary": "293 records, next=ADR-0357."
+      },
+      {
+        "step": "D-7",
+        "command": "./bin/oya lint adr-shape",
+        "status": "pass",
+        "duration_seconds": 0.1,
+        "summary": "No new ADRs in origin/dev...HEAD; individually linted renumbered ADR-0353..ADR-0356 files also passed before wrapper."
+      }
+    ]
+  },
+  "remaining_blockers": {
+    "d5_gate_run_all": {
+      "command": "./bin/oya gate run-all --ci-required",
+      "status": "fail",
+      "summary": "80/88 lanes passed after D-6 repair. This ChangeSet does not repair D-5 lanes.",
+      "failed_lanes": [
+        "claim-ceiling \u2014 SecurityReviewAboveFoundation",
+        "design-spec-maturity-claims \u2014 81 missing service-surface maturity declarations",
+        "dependency-seam \u2014 one blocking diagnostic in run-all context",
+        "architecture-boundaries \u2014 oya-application-shell-frontend-prototype is a workspace package under microservices/application/src/crates and lacks registry/catalog/oya-application-shell-frontend-prototype.yaml",
+        "layered-architecture-discipline \u2014 16 MeshTierUnderclaimed manifest violations",
+        "cargo run -q -p oya-foundry-vcs-admission-gate-app \u2014 missing required provider proof tool trivy",
+        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json \u2014 missing required provider proof tool trivy",
+        "bash scripts/github-actions-required-secrets-check.sh \u2014 required command not found: gh"
+      ]
+    },
+    "full_verify": {
+      "status": "not_green_not_claimed",
+      "reason": "Top-level ./bin/oya verify --ci-required still exits 1 because D-5 is red. D-6 is now green."
+    }
+  },
+  "non_claims": [
+    "No full ./bin/oya verify --ci-required success is claimed.",
+    "No production readiness, hyperscaler readiness, live-provider proof, measured SLO, DR, sharding, or Phase 1 readiness is claimed.",
+    "No semantic supersession-policy decision is made beyond unique numeric ADR ids and amends metadata preservation.",
+    "No D-5 blocker repair is claimed for claim-ceiling, design-spec-maturity-claims, dependency-seam, architecture-boundaries, layered-architecture-discipline, provider proof tooling, or GitHub secrets tooling.",
+    "No installation or live proof of trivy or gh is claimed.",
+    "No historical evidence files were rewritten for old slugs; this repair updated active docs/specs/registry/tasks surfaces and regenerated active ADR index artifacts."
+  ],
+  "facets": {
+    "F1_source_grounding": "Claim is grounded in current ADR files, regenerated ADR index artifacts, exact slug search, and current verifier output.",
+    "F2_tests_and_gates": "D-6 and scoped ADR/doc gates pass; full wrapper remains red only because D-5 remains red.",
+    "F3_security_privacy": "No runtime/data flow or credential surface changed; amendment citations and metadata only.",
+    "F4_architecture": "Preserves amends relationships and records that D-5 architecture-boundaries remains a blocker for a separate ChangeSet.",
+    "F5_operability": "Improves verifier determinism by clearing D-6; does not bypass missing trivy/gh prerequisites.",
+    "F6_rollback": "File moves, slug reference edits, and generated index artifacts are revertible by diff; no migrations or runtime writes.",
+    "F7_user_impact": "No user-facing runtime behavior change.",
+    "F8_observability": "Evidence captured in multispectrum JSON, tasks ledgers, audit-chain rows, and /tmp/oya-verify-ci-required-cs-adr-duplicate-id-repair.log.",
+    "F9_dependency": "No dependency additions.",
+    "F10_claim_honesty": "Full verify and readiness claims are explicitly nonclaimed while D-5 remains red.",
+    "F11_docs": "docs/ADR-INDEX.md, docs/machine-readable/decisions.json, affected ADR citations, tasks/plan.md, and tasks/todo.md are updated.",
+    "F12_reserved": "not_applicable",
+    "F13_followup": "Next deterministic repair should claim one D-5 blocker lane, starting with architecture-boundaries or dependency-seam only after a fresh scoped claim."
+  }
+}

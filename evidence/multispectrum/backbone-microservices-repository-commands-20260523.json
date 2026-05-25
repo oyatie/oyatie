@@ -1,0 +1,98 @@
+{
+  "change_id": "backbone-microservices-repository-commands-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Tenant-scoped repository SQL command seams for messenger, mail, social, and community Postgres adapter foundations.",
+  "scope": [
+    "crates/oya-shared-postgres-command-kernel/**",
+    "crates/oya-messenger-message-stream-adapter-postgres/**",
+    "crates/oya-mail-mailbox-store-adapter-postgres/**",
+    "crates/oya-social-post-composition-adapter-postgres/**",
+    "crates/oya-community-post-store-adapter-postgres/**",
+    "Cargo.toml",
+    "registry/catalog/oya-shared-postgres-command-kernel.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Runtime-free repository command seams only. No sqlx pool/executor, no live database connection, no live RLS integration test, no backup/restore drill, no Citus rebalance execution, and no production persistence/SLO claim.",
+  "external_sources": [
+    {
+      "source": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+      "what_it_establishes": "PostgreSQL row security policies apply to normal row reads and writes; command seams therefore set tenant session context before RLS-protected statements."
+    },
+    {
+      "source": "https://docs.citusdata.com/en/stable/sharding/data_modeling.html",
+      "what_it_establishes": "Citus distributed-table modeling uses a distribution column, with tenant IDs fitting multi-tenant sharding patterns already encoded in the migration bundles."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "A small shared command kernel models tenant context, typed SQL parameters, and write batches without async runtime, DB client, connection pool, macros, or provider SDKs.",
+    "F2_hyperscaler": "Honest non-claim: these seams prepare runtime binding but do not prove production scale, live RLS, HA, backup/restore, rebalance, SLO, or deployment readiness.",
+    "F3_adversarial": "Tests reject missing tenant routing fields, empty command names/SQL, empty batches, blank optional fields, blank array entries, missing policy/audit fields, missing story purge expiry, missing voter, and missing moderation evidence.",
+    "F5_quality": "cargo test, clippy -D warnings, cargo fmt, cargo-prefix, dependency-seam, honest-claims, api-semver, and diff hygiene are part of this evidence run.",
+    "F7_security_privacy": "Every write batch starts with SELECT set_config('oyatie.tenant_id', $1, true); tenant, idempotency, policy decision, and audit correlation values remain parameters instead of SQL literals.",
+    "F11_observability": "Commands preserve policy_decision_ref, idempotency_key, audit_correlation_id, and audit-event-class-backed table targets for future audit-chain/OTel linkage; no runtime emission claim."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-shared-postgres-command-kernel -p oya-messenger-message-stream-adapter-postgres -p oya-mail-mailbox-store-adapter-postgres -p oya-social-post-composition-adapter-postgres -p oya-community-post-store-adapter-postgres",
+      "result": "pass",
+      "evidence": "32 unit tests passed across the shared command kernel and 4 adapter-postgres packages."
+    },
+    {
+      "command": "cargo test across 21 touched backbone packages",
+      "result": "pass",
+      "evidence": "128 unit tests passed across domain/API/usecase/REST/adapter-postgres/shared-command packages."
+    },
+    {
+      "command": "cargo clippy -p <21 touched backbone packages> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <21 touched backbone packages>",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "438 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <foundation,usecase,rest,policy,route,persistence,repository-commands>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 77 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <scoped corpus roots>",
+      "result": "pass",
+      "evidence": "3 documents, 294 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "pass",
+      "evidence": "41 contracts, 41 metadata records"
+    },
+    {
+      "command": "ruby -rjson -ryaml parse of repository-command evidence and new/touched catalog YAML",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-pre-existing-blocker",
+      "evidence": "Fails on MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }; no repository-command catalog row failures observed."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-pre-existing-blocker",
+      "evidence": "Fails on oya-audit-chain-emission-kernel::ChainCoordinate.pack; new shared kernel fields carry data_class comments."
+    }
+  ],
+  "non_claims": [
+    "No sqlx/tokio-postgres executor or database pool is introduced.",
+    "No live database, RLS integration, backup/restore, or Citus rebalance evidence is claimed.",
+    "No full persistence service, production readiness, or hyperscaler-grade runtime claim is made."
+  ]
+}

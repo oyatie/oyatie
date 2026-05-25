@@ -1,46 +1,205 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
   "schema_version": "1.0",
-  "microservice": "cell-rebalancer",
-  "title": "Cell Rebalancer",
   "version": "0.1.0",
-  "status": "wave-15-zd-scaffold",
-  "date": "2026-05-21",
+  "status": "implemented-local-foundation-truth-down",
+  "change_set": "CS-CLOUD-OPS-FOUNDATION-001",
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.95.0"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture BNF",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "DR RTO/RPO Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability FinOps Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+    },
+    {
+      "id": "ADR-0352",
+      "title": "Oyatie From-Scratch Architecture Handoff",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md"
+    }
+  ],
+  "slos": [],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "not_claimed_cs_cloud_ops_foundation_001_no_runtime_request_path",
+    "tenant_rate_limit": "not_claimed_cs_cloud_ops_foundation_001_no_live_api_or_quota_runtime",
+    "golden_signals": "not_claimed_cs_cloud_ops_foundation_001_no_measured_metrics_runtime",
+    "error_budget_burn": "not_claimed_cs_cloud_ops_foundation_001_slos_empty_until_runtime_sli_exists"
+  },
+  "audit_chain": {
+    "enabled": false,
+    "runtime_audit_emitter": false,
+    "seal_events": [],
+    "evidence_refs": [
+      "evidence/multispectrum/cs-cloud-ops-foundation-20260523.json"
+    ],
+    "non_claim": "Metadata guardrail records audit/evidence reference shapes only; no audit-chain writer or seal persistence is implemented by CS-CLOUD-OPS-FOUNDATION-001."
+  },
+  "secrets_substrate": {
+    "provider": "openbao-future-reference-only",
+    "raw_secret_material": false,
+    "non_claim": "No raw credential, provider token, kubeconfig, marketplace secret, or OpenBao runtime call is introduced or consumed."
+  },
+  "runtime_dependencies": {
+    "implemented": false,
+    "oss_packages": [],
+    "non_claim": "No service runtime dependency graph is claimed for this local foundation."
+  },
+  "sharding_automation": {
+    "autosharding": false,
+    "auto_rebalance": {
+      "enabled": false,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "audit_chain_emit": false
+    }
+  },
+  "dr": {
+    "multi_region_active_active": false,
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "non_claim": "No DR runtime or drill evidence is implemented."
+  },
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false,
+    "runtime_mesh_enabled": false,
+    "non_claim": "No Istio/Cilium/Envoy runtime configuration is implemented by this slice."
+  },
+  "iac": {
+    "opentofu_plan_apply": false,
+    "provider_live_smoke": false,
+    "non_claim": "No infrastructure provisioning is executed or claimed."
+  },
+  "runtime_data_processing": false,
+  "cloud_ops_foundation": {
+    "schema_version": 1,
+    "evidence_guardrail": "CloudOpsFoundationGuardrail",
+    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
+    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+    "evidence_prefixes": {
+      "capacity": "evidence/cloud-ops/capacity/",
+      "cell": "evidence/cloud-ops/cell/",
+      "dcops": "evidence/cloud-ops/dcops/",
+      "finops": "evidence/cloud-ops/finops/",
+      "marketplace": "evidence/cloud-ops/marketplace/",
+      "fsh": "evidence/cloud-ops/fsh/",
+      "audit_chain": "audit-chain/cloud-ops/"
+    },
+    "runtime_claims": [],
+    "non_claim": "The guardrail proves tenant/region/cell-scoped metadata and capacity/rebalance bounds only; it does not run cloud operations workflows."
+  },
+  "source_guidance": [
+    {
+      "topic": "capacity_overload",
+      "source": "Google SRE Handling Overload",
+      "url": "https://sre.google/sre-book/handling-overload/",
+      "implication": "capacity is resource based, per-customer quota aware, and overload/retry claims require measured runtime evidence"
+    },
+    {
+      "topic": "node_autoscaling",
+      "source": "Kubernetes Node Autoscaling",
+      "url": "https://v1-32.docs.kubernetes.io/docs/concepts/cluster-administration/node-autoscaling/",
+      "implication": "node autoscaling is runtime infrastructure behavior and is not claimed by this local foundation"
+    },
+    {
+      "topic": "finops_focus",
+      "source": "FOCUS Specification",
+      "url": "https://focus.finops.org/focus-specification/",
+      "implication": "FOCUS exports need schema-backed data generation evidence and are not claimed as live exports here"
+    },
+    {
+      "topic": "opencost",
+      "source": "OpenCost Specification",
+      "url": "https://opencost.io/docs/specification/",
+      "implication": "Kubernetes cost allocation needs asset/resource allocation data; this slice keeps only domain/API metadata"
+    },
+    {
+      "topic": "dcops",
+      "source": "Uptime Institute Tier Classification",
+      "url": "https://uptimeinstitute.com/tiers",
+      "implication": "facility tier claims require site infrastructure evidence; this slice only validates pure DCOps domain records"
+    },
+    {
+      "topic": "marketplace",
+      "source": "AWS Marketplace SaaS products",
+      "url": "https://docs.aws.amazon.com/marketplace/latest/userguide/saas-products.html",
+      "implication": "SaaS marketplace sellers manage access/provisioning and integrate subscriptions/contracts; no live marketplace integration is claimed"
+    }
+  ],
+  "non_claims": [
+    "no live REST gRPC SDK worker database broker scheduler or dashboard runtime",
+    "no measured SLO SLI burn-rate Prometheus OpenSLO runtime evidence",
+    "no active-active DR failover drill backup restore or cross-region replication evidence",
+    "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
+    "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
+    "no runtime autoscaling autosharding migration workflow or tenant move execution",
+    "no cell-rebalancer crate or tenant migration workflow exists",
+    "no cross-cell tenant move execution or data-plane drain automation"
+  ],
+  "microservice": "cell-rebalancer",
   "owner": "axis-platform-reliability",
-  "owner_team": "axis-platform-reliability + axis-tenancy + axis-governance",
-  "bounded_context": "tenant-migration-across-cells",
   "bounded_contexts": [
     {
-      "name": "tenant-migration-across-cells",
-      "description": "Durable workflow authority for moving already-placed tenants between eligible cells under auto-rebalance, manual ops, compliance-pack rotation, residency change, and cell-drain triggers.",
+      "name": "capacity-rebalance-plan-local-foundation",
+      "description": "Compatibility service manifest now points to the code-backed cloud capacity domain `RebalancePlan` and CloudOpsFoundationGuardrail. No cell-rebalancer crate, durable workflow, tenant migration executor, REST/gRPC API, worker, queue, database, policy engine adapter, or audit-chain emitter exists in this checkout.",
       "crates": [
-        "oya-cell-rebalancer-kernel",
-        "oya-cell-rebalancer-domain",
-        "oya-cell-rebalancer-usecase",
-        "oya-cell-rebalancer-api",
-        "oya-cell-rebalancer-rest",
-        "oya-cell-rebalancer-worker",
-        "oya-cell-rebalancer-adapter-postgres",
-        "oya-cell-rebalancer-adapter-valkey",
-        "oya-cell-rebalancer-adapter-tenancy",
-        "oya-cell-rebalancer-adapter-policy-engine",
-        "oya-cell-rebalancer-adapter-audit-chain",
-        "oya-cell-rebalancer-app"
+        "oya-cloud-capacity-domain",
+        "oya-cloud-capacity-kernel"
       ]
     }
   ],
   "layers": [
-    "kernel",
     "domain",
-    "usecase",
-    "api",
-    "rest",
-    "grpc",
-    "worker",
-    "adapter",
-    "infrastructure",
-    "app",
-    "sdk"
+    "kernel"
   ],
   "contracts": {
     "openapi": [
@@ -49,567 +208,35 @@
     "asyncapi": [
       "microservices/cell-rebalancer/contracts/asyncapi.yaml"
     ],
-    "proto": []
+    "proto": [],
+    "contract_status": "service-local contracts are retained as planning scaffolds; no transport implementation or broker runtime is code-backed"
   },
   "capabilities": [
     {
       "tier": "T1",
-      "name": "rebalance-job-create",
-      "file": "microservices/cell-rebalancer/capabilities/capability-catalog.md",
+      "name": "capacity-rebalance-plan-move-limit",
+      "file": "crates/oya-cloud-capacity-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
-      "name": "tenant-migration-execute",
-      "file": "microservices/cell-rebalancer/capabilities/capability-catalog.md",
-      "risk_class": "critical"
+      "name": "stable-headroom-and-cell-scoped-ops-guardrail",
+      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "risk_class": "high"
     },
     {
-      "tier": "T1",
-      "name": "compliance-pack-validate",
-      "file": "microservices/cell-rebalancer/capabilities/capability-catalog.md",
-      "risk_class": "critical"
-    },
-    {
-      "tier": "T0",
-      "name": "audit-evidence-emit",
-      "file": "microservices/cell-rebalancer/capabilities/capability-catalog.md",
-      "risk_class": "critical"
-    }
-  ],
-  "slos": [
-    {
-      "name": "api_p99_latency_ms.create",
-      "target": "<=200ms",
-      "sli": "histogram_quantile(0.99, http_request_duration_ms_bucket{operation=\"createRebalanceJobV20260521Tag8001\"})",
-      "file": "microservices/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
-    },
-    {
-      "name": "api_p99_latency_ms.status",
-      "target": "<=50ms",
-      "sli": "histogram_quantile(0.99, http_request_duration_ms_bucket{operation=~\"get|list\"})",
-      "file": "microservices/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
-    },
-    {
-      "name": "migration_duration_p99_seconds.intra_region",
-      "target": "<=600s",
-      "sli": "histogram_quantile(0.99, cell_rebalancer_migration_duration_seconds_bucket{migration_distance=\"intra_region\"})",
-      "file": "microservices/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
-    },
-    {
-      "name": "migration_duration_p99_seconds.cross_region",
-      "target": "<=3600s",
-      "sli": "histogram_quantile(0.99, cell_rebalancer_migration_duration_seconds_bucket{migration_distance=\"cross_region\"})",
-      "file": "microservices/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
-    },
-    {
-      "name": "migration_success_rate_percent",
-      "target": ">=99.9",
-      "sli": "success / total tenant migrations",
-      "file": "microservices/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
-    },
-    {
-      "name": "blast_radius_max_tenants_per_job",
-      "target": "<=100",
-      "sli": "max(cell_rebalancer_job_tenants_total)",
-      "file": "microservices/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
+      "tier": "T2",
+      "name": "capacity-kernel-command-shaping",
+      "file": "crates/oya-cloud-capacity-kernel/src/lib.rs",
+      "risk_class": "medium"
     }
   ],
   "ips": [
     {
-      "id": "IP-CR-001-bounded-context-and-state-machine",
-      "title": "Bounded Context And State Machine",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-001-bounded-context-and-state-machine.md"
-    },
-    {
-      "id": "IP-CR-002-api-surface-rest-grpc-http3",
-      "title": "API Surface REST gRPC HTTP3",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-002-api-surface-rest-grpc-http3.md"
-    },
-    {
-      "id": "IP-CR-003-tenant-migration-workflow-state-machine",
-      "title": "Tenant Migration Workflow State Machine",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-003-tenant-migration-workflow-state-machine.md"
-    },
-    {
-      "id": "IP-CR-004-residency-and-compliance-pack-validation",
-      "title": "Residency And Compliance Pack Validation",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-004-residency-and-compliance-pack-validation.md"
-    },
-    {
-      "id": "IP-CR-005-cedar-authorization",
-      "title": "Cedar Authorization",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-005-cedar-authorization.md"
-    },
-    {
-      "id": "IP-CR-006-audit-chain-evidence-emission",
-      "title": "Audit Chain Evidence Emission",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-006-audit-chain-evidence-emission.md"
-    },
-    {
-      "id": "IP-CR-007-slo-metrics-observability",
-      "title": "SLO Metrics Observability",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-007-slo-metrics-observability.md"
-    },
-    {
-      "id": "IP-CR-008-foundry-self-modification-boundary",
-      "title": "Foundry Self Modification Boundary",
-      "acceptance_status": "scaffolded",
-      "file": "microservices/cell-rebalancer/IPs/IP-CR-008-foundry-self-modification-boundary.md"
+      "id": "CS-CLOUD-OPS-FOUNDATION-001",
+      "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
     }
-  ],
-  "regulatory_packs": [
-    "eu",
-    "us",
-    "us-healthcare",
-    "kr",
-    "sg"
-  ],
-  "compliance_packs": [
-    "soc2",
-    "hipaa",
-    "gdpr",
-    "csap",
-    "pci"
-  ],
-  "tenant_class": [
-    "demo_trial",
-    "paid"
-  ],
-  "tenant_class_eligibility": [
-    "demo_trial",
-    "paid"
-  ],
-  "governance_lane_authority": [
-    "ADR-0276",
-    "ADR-0273",
-    "ADR-0266"
-  ],
-  "id_strategy": "uuidv7",
-  "id_strategy_authority_note": "Identifier authority is pending in this checkout; uuidv7 is retained for job_id and migration_id because ADR-0276 D-2 requires durable workflow ids and the implementation wave must bind the final identifier doctrine once it lands.",
-  "pod_runtime_tier": 1,
-  "pod_runtime_tier_justification": "cell-rebalancer is substrate control plane touching tenant data-plane placement and migration metadata, so it runs under Kata + Cloud Hypervisor as a Tier 1 workload.",
-  "pod_runtime_tier_surface_evidence": [
-    "microservices/cell-rebalancer/ARCH.md",
-    "microservices/cell-rebalancer/IPs/IP-CR-003-tenant-migration-workflow-state-machine.md",
-    "microservices/cell-rebalancer/IPs/IP-CR-006-audit-chain-evidence-emission.md"
-  ],
-  "cell_placement_class": 0,
-  "cell_placement_class_name": "Tier-0",
-  "capacity_model": {
-    "baseline_cpu_per_tenant": 0.25,
-    "baseline_ram_per_tenant": 384,
-    "storage_per_tenant": 2,
-    "connections_per_tenant": {
-      "valkey": 4,
-      "postgres": 4,
-      "outbound_http": 8
-    },
-    "scaling_dimension": "per_workflow_run",
-    "cell_placement_class": "Tier-0",
-    "tenant_class_deltas": {
-      "paid": {
-        "baseline_cpu_per_tenant": 0.25,
-        "baseline_ram_per_tenant": 384,
-        "storage_per_tenant": 2,
-        "connections_per_tenant": {
-          "valkey": 4,
-          "postgres": 4,
-          "outbound_http": 8
-        },
-        "scaling_dimension": "per_workflow_run",
-        "cell_placement_class": "Tier-0",
-        "notes": "Paid tenants may carry compliance-pack and support escalation floors."
-      },
-      "demo_trial": {
-        "baseline_cpu_per_tenant": 0.08,
-        "baseline_ram_per_tenant": 128,
-        "storage_per_tenant": 1,
-        "connections_per_tenant": {
-          "valkey": 2,
-          "postgres": 2,
-          "outbound_http": 4
-        },
-        "scaling_dimension": "per_workflow_run",
-        "cell_placement_class": "Tier-0",
-        "notes": "Demo trial tenants are eligible but rate limited and cost-attributed internally."
-      }
-    },
-    "per_tenant_class": {
-      "paid": {
-        "cpu_vcpu": 0.25,
-        "ram_mib": 384,
-        "workflow_storage_gb": 2,
-        "valkey_connections": 4,
-        "postgres_connections": 4,
-        "outbound_http_connections": 8
-      },
-      "demo_trial": {
-        "cpu_vcpu": 0.08,
-        "ram_mib": 128,
-        "workflow_storage_gb": 1,
-        "valkey_connections": 2,
-        "postgres_connections": 2,
-        "outbound_http_connections": 4
-      }
-    },
-    "notes": "Values model active migration workflows, not steady idle status reads; capacity is intentionally Tier-0 because a bad workflow can move tenants across cells."
-  },
-  "dr": {
-    "rto_p99_seconds": 300,
-    "rpo_p99_seconds": 60,
-    "rto_minutes": 5,
-    "rpo_minutes": 1,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "postgres_wal_g",
-      "valkey_cluster",
-      "audit_chain_merkle_seal"
-    ],
-    "failover_runbook": "runbooks/emergency-drain.md",
-    "dr_tier": "T1",
-    "replication_shape": "active-active-multi-az-cross-region-warm",
-    "per_pack_floors": {
-      "hipaa": {
-        "rto_minutes": 60,
-        "rpo_minutes": 5,
-        "multi_region_required": true
-      },
-      "gdpr": {
-        "rto_minutes": 60,
-        "rpo_minutes": 5,
-        "multi_region_required": true
-      },
-      "soc2": {
-        "rto_minutes": 240,
-        "rpo_minutes": 15,
-        "multi_region_required": false
-      },
-      "csap": {
-        "rto_minutes": 60,
-        "rpo_minutes": 15,
-        "multi_region_required": true
-      },
-      "pci": {
-        "rto_minutes": 1440,
-        "rpo_minutes": 60,
-        "multi_region_required": false
-      }
-    }
-  },
-  "sharding_automation": {
-    "autosharding": "control_plane_driven",
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
-  },
-  "supported_oses": [
-    "talos-1.9",
-    "rhel-9",
-    "oracle-linux-9",
-    "suse-15-sp6",
-    "ubuntu-24.04-lts",
-    "debian-12",
-    "rocky-9",
-    "almalinux-9",
-    "centos-stream-9",
-    "amazon-linux-2023",
-    "flatcar-stable",
-    "photon-os-5.0",
-    "macos-26-apple-silicon-m5-plus"
-  ],
-  "arch_matrix": [
-    "linux/amd64",
-    "linux/arm64",
-    "darwin/arm64",
-    "linux/ppc64le",
-    "linux/s390x"
-  ],
-  "consumes_upstream_oss": [
-    "uuid",
-    "tokio",
-    "hyper",
-    "h3",
-    "quinn",
-    "serde",
-    "opentelemetry",
-    "cedar",
-    "postgresql",
-    "valkey",
-    "cilium",
-    "istio"
-  ],
-  "consumes_upstream_oss_versions": {
-    "uuid": "v1.x with uuidv7 feature",
-    "tokio": "v1.x",
-    "hyper": "v1.x",
-    "h3": "v0.x aligned to hyper h3 support",
-    "quinn": "v0.x QUIC transport candidate",
-    "serde": "v1.x",
-    "opentelemetry": "v0.x / v1.x per repo pin",
-    "cedar": "v4.x policy surface",
-    "postgresql": "17.x",
-    "valkey": "8.x"
-  },
-  "lts_pins": {
-    "rust": "1.83",
-    "postgres": "17",
-    "valkey": "8.x",
-    "openapi": "3.2.0",
-    "asyncapi": "3.1.0",
-    "cedar": "4.x"
-  },
-  "adrs": [
-    {
-      "id": "ADR-0276",
-      "title": "ADR-0276",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0276-cell-rebalancer-and-cell-lifecycle-microservices.md"
-    },
-    {
-      "id": "ADR-0273",
-      "title": "ADR-0273",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0273-autosharding-auto-rebalance-dynamic-sharding.md"
-    },
-    {
-      "id": "ADR-0333",
-      "title": "ADR-0333",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md"
-    },
-    {
-      "id": "ADR-0099",
-      "title": "ADR-0099",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0099-per-microservice-flat-layout.md"
-    },
-    {
-      "id": "ADR-0266",
-      "title": "ADR-0266",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0266-cellular-promotion-gates-explicit-tier-criteria.md"
-    },
-    {
-      "id": "ADR-0207",
-      "title": "ADR-0207",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0207-compliance-pack-cell-certification-levels.md"
-    },
-    {
-      "id": "ADR-0203",
-      "title": "ADR-0203",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0203-self-hosting-self-modification-doctrine.md"
-    },
-    {
-      "id": "ADR-0217",
-      "title": "ADR-0217",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0217-observability-emission-contract.md"
-    },
-    {
-      "id": "ADR-0265",
-      "title": "ADR-0265",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0265-capacity-model-per-microservice-manifest.md"
-    },
-    {
-      "id": "ADR-0268",
-      "title": "ADR-0268",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0268-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
-    },
-    {
-      "id": "ADR-0267",
-      "title": "ADR-0267",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0267-api-versioning-hybrid-date-public-semver-sdk.md"
-    },
-    {
-      "id": "ADR-0209",
-      "title": "ADR-0209",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0209-network-topology-edge-service-mesh.md"
-    },
-    {
-      "id": "ADR-0079",
-      "title": "ADR-0079",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0079-13-layer-enum-and-check-family-patterns.md"
-    },
-    {
-      "id": "ADR-0269",
-      "title": "ADR-0269",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0269-sustainability-finops-dimensional-model.md"
-    },
-    {
-      "id": "ADR-0263",
-      "title": "ADR-0263",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0263-pod-runtime-tier-0-to-3.md"
-    },
-    {
-      "id": "ADR-0204",
-      "title": "ADR-0204",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0204-amazon-shape-cellular-architecture.md"
-    },
-    {
-      "id": "ADR-0198",
-      "title": "ADR-0198",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0198-cedar-as-universal-gate.md"
-    },
-    {
-      "id": "ADR-0199",
-      "title": "ADR-0199",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0199-tenant-as-universal-scoping-primitive.md"
-    },
-    {
-      "id": "ADR-0208",
-      "title": "ADR-0208",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0208-hlc-default-truetime-tier.md"
-    }
-  ],
-  "hyperscaler_inv_coverage": {
-    "blast_radius": "blast_radius_max_tenants_per_job <= 100",
-    "audit_chain": "every state change sealed",
-    "cedar": "every mutation pre-evaluated",
-    "residency": "cross-jurisdiction permit required",
-    "slo": "api and migration p99 targets declared"
-  },
-  "audit_chain": {
-    "enabled": true,
-    "seal_events": [
-      "cell-rebalancer.job.created",
-      "cell-rebalancer.job.validated",
-      "cell-rebalancer.job.started",
-      "cell-rebalancer.tenant.transitioned",
-      "cell-rebalancer.job.aborted",
-      "cell-rebalancer.tenant.rolled_back",
-      "cell-rebalancer.job.completed",
-      "cell-rebalancer.job.failed"
-    ]
-  },
-  "secrets_substrate": {
-    "provider": "openbao",
-    "format": "${openbao:secret/<path>}",
-    "paths": [
-      "secret/cell-rebalancer/postgres",
-      "secret/cell-rebalancer/valkey",
-      "secret/cell-rebalancer/audit-chain",
-      "secret/cell-rebalancer/policy-engine"
-    ]
-  },
-  "ontology_projections": [
-    {
-      "entity_name": "RebalanceJob",
-      "projection_target_table": "ontology_rebalance_jobs",
-      "projection_kind": "idempotent-rewrite",
-      "lag_budget_seconds": 30
-    },
-    {
-      "entity_name": "TenantMigration",
-      "projection_target_table": "ontology_tenant_migrations",
-      "projection_kind": "idempotent-rewrite",
-      "lag_budget_seconds": 30
-    }
-  ],
-  "mesh_layering": {
-    "cilium_l4": true,
-    "ambient_ztunnel": true,
-    "ambient_waypoint": true,
-    "north_south_only": false,
-    "http3_quic_default": true
-  },
-  "tenant_version_pinning": {
-    "declared_versions": [
-      "2026-05-21",
-      "2026-02-21",
-      "2025-11-21"
-    ],
-    "default_version": "2026-05-21",
-    "supported_window_size": 3,
-    "supported_window_minimum_days": 180,
-    "supports_per_tenant_pinning": true,
-    "public_surface_files": {
-      "openapi": {
-        "2026-05-21": "microservices/cell-rebalancer/contracts/openapi.yaml"
-      },
-      "asyncapi": {
-        "2026-05-21": "microservices/cell-rebalancer/contracts/asyncapi.yaml"
-      },
-      "proto": {}
-    }
-  },
-  "depends_on_microservices": [
-    "tenancy",
-    "cloud-iac",
-    "observability",
-    "audit-chain",
-    "policy-engine",
-    "api-gateway",
-    "finops-portal"
-  ],
-  "runtime_dependencies": [
-    "PostgreSQL 17",
-    "Valkey 8.x",
-    "Cedar PDP",
-    "OpenTelemetry",
-    "Cilium ambient mesh",
-    "SPIFFE/SPIRE"
-  ],
-  "foundry_boundary": {
-    "principal": "oyatie.foundry.cell-rebalancer",
-    "allowed_actions": [
-      "create auto-rebalance jobs with signed workflow identity",
-      "read eligible status",
-      "emit evidence"
-    ],
-    "forbidden_actions": [
-      "create cells",
-      "change cell identity",
-      "bypass compliance packs",
-      "exceed 100 tenants per job",
-      "mutate Cedar policies without self-modification gate"
-    ]
-  },
-  "finops": {
-    "cost_center": "platform-reliability-cell-rebalancer",
-    "dimensions": [
-      "tenant",
-      "trigger",
-      "source_cell",
-      "target_cell",
-      "provider",
-      "region",
-      "compliance_pack"
-    ],
-    "emits_cost_usd_minor_units": true,
-    "emits_co2_grams": true,
-    "emits_watt_hours": true
-  }
+  ]
 }

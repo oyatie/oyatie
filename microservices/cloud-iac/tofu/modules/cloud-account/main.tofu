@@ -3,8 +3,16 @@
 
 terraform {
   required_version = ">= 1.6"
+
   required_providers {
-    # OpenTofu provider registry references go here at wire time.
+    aws = {
+      source  = "registry.opentofu.org/hashicorp/aws"
+      version = ">= 5.0.0"
+    }
+    oci = {
+      source  = "registry.opentofu.org/opentofu/oci"
+      version = ">= 6.0.0"
+    }
   }
 }
 

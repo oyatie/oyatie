@@ -446,10 +446,330 @@ pub mod authz_engine {
     }
 }
 
+pub const BACKBONE_WRITE_POLICY_VERSION: &str = "1.0.0";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BackboneWriteOperation {
+    MessengerPostMessage,
+    MailSubmitMessage,
+    SocialPublishPost,
+    CommunityCreatePost,
+    CommunityCastVote,
+    CommunityApplyModerationAction,
+}
+
+impl BackboneWriteOperation {
+    pub const fn all() -> [Self; 6] {
+        [
+            Self::MessengerPostMessage,
+            Self::MailSubmitMessage,
+            Self::SocialPublishPost,
+            Self::CommunityCreatePost,
+            Self::CommunityCastVote,
+            Self::CommunityApplyModerationAction,
+        ]
+    }
+
+    pub const fn policy_id(self) -> &'static str {
+        match self {
+            Self::MessengerPostMessage => "pol_backbone_messenger_message_post",
+            Self::MailSubmitMessage => "pol_backbone_mail_message_submit",
+            Self::SocialPublishPost => "pol_backbone_social_post_publish",
+            Self::CommunityCreatePost => "pol_backbone_community_post_create",
+            Self::CommunityCastVote => "pol_backbone_community_vote_cast",
+            Self::CommunityApplyModerationAction => "pol_backbone_community_moderation_apply",
+        }
+    }
+
+    pub const fn action(self) -> &'static str {
+        match self {
+            Self::MessengerPostMessage => "messenger.message.post",
+            Self::MailSubmitMessage => "mail.message.submit",
+            Self::SocialPublishPost => "social.post.publish",
+            Self::CommunityCreatePost => "community.post.create",
+            Self::CommunityCastVote => "community.vote.cast",
+            Self::CommunityApplyModerationAction => "community.moderation.apply",
+        }
+    }
+
+    pub const fn principal_role(self) -> &'static str {
+        match self {
+            Self::MessengerPostMessage => "messenger-writer",
+            Self::MailSubmitMessage => "mail-sender",
+            Self::SocialPublishPost => "social-publisher",
+            Self::CommunityCreatePost => "community-author",
+            Self::CommunityCastVote => "community-voter",
+            Self::CommunityApplyModerationAction => "community-moderator",
+        }
+    }
+
+    pub const fn resource_type(self) -> &'static str {
+        match self {
+            Self::MessengerPostMessage => "messenger:channel",
+            Self::MailSubmitMessage => "mail:mailbox",
+            Self::SocialPublishPost => "social:profile",
+            Self::CommunityCreatePost => "community:space",
+            Self::CommunityCastVote | Self::CommunityApplyModerationAction => "community:post",
+        }
+    }
+
+    pub const fn resource_prefix(self) -> &'static str {
+        match self {
+            Self::MessengerPostMessage => "messenger:channel:",
+            Self::MailSubmitMessage => "mail:mailbox:",
+            Self::SocialPublishPost => "social:profile:",
+            Self::CommunityCreatePost => "community:space:",
+            Self::CommunityCastVote | Self::CommunityApplyModerationAction => "community:post:",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CedarRuntimeError {
+    MissingTenantId,
+    MissingAction,
+    MissingResourceType,
+    MissingAuditCorrelation,
+    InvalidRoleContext,
+    Policy(PolicyError),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CedarEvaluationLogEntry {
+    pub decision_ref: String,              // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub principal_id: Option<String>,      // data_class: INTERNAL_ONLY
+    pub action: String,                    // data_class: INTERNAL_ONLY
+    pub resource_type: String,             // data_class: INTERNAL_ONLY
+    pub resource_id: Option<String>,       // data_class: INTERNAL_ONLY
+    pub effect: PolicyEffect,              // data_class: INTERNAL_ONLY
+    pub determining_policies: Vec<String>, // data_class: INTERNAL_ONLY
+    pub audit_correlation_id: String,      // data_class: INTERNAL_ONLY
+    pub reason: String,                    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CedarRuntimeEvaluation {
+    pub decision_ref: String,                  // data_class: INTERNAL_ONLY
+    pub decision: authz_engine::AuthzDecision, // data_class: INTERNAL_ONLY
+    pub log_entry: CedarEvaluationLogEntry,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CedarRuntimeEvaluator {
+    policy_set: PolicySet,             // data_class: INTERNAL_ONLY
+    log: Vec<CedarEvaluationLogEntry>, // data_class: INTERNAL_ONLY
+    next_decision_sequence: u64,       // data_class: INTERNAL_ONLY
+}
+
+impl Default for CedarRuntimeEvaluator {
+    fn default() -> Self {
+        Self {
+            policy_set: PolicySet::default(),
+            log: Vec::new(),
+            next_decision_sequence: 1,
+        }
+    }
+}
+
+impl CedarRuntimeEvaluator {
+    pub fn from_policy_versions(
+        versions: impl IntoIterator<Item = PolicyVersion>,
+    ) -> Result<Self, CedarRuntimeError> {
+        let mut policy_set = PolicySet::default();
+        for version in versions {
+            policy_set
+                .publish(version)
+                .map_err(CedarRuntimeError::Policy)?;
+        }
+        Ok(Self {
+            policy_set,
+            log: Vec::new(),
+            next_decision_sequence: 1,
+        })
+    }
+
+    pub fn with_backbone_write_policies(
+        tenant_id: impl Into<String>,
+    ) -> Result<Self, CedarRuntimeError> {
+        Self::from_policy_versions(backbone_write_policy_versions(tenant_id))
+    }
+
+    pub fn evaluate(
+        &mut self,
+        request: authz_engine::AuthzRequest,
+        audit_correlation_id: impl Into<String>,
+    ) -> Result<CedarRuntimeEvaluation, CedarRuntimeError> {
+        validate_authz_request(&request)?;
+        let audit_correlation_id = audit_correlation_id.into();
+        if audit_correlation_id.trim().is_empty() {
+            return Err(CedarRuntimeError::MissingAuditCorrelation);
+        }
+        let query = authorization_query_from_authz_request(&request)?;
+        let authorization = self.policy_set.authorize(&query);
+        let decision = authz_decision_from_authorization(&authorization);
+        let decision_ref = self.next_decision_ref(&decision);
+        let log_entry = CedarEvaluationLogEntry {
+            decision_ref: decision_ref.clone(),
+            tenant_id: request.tenant_id,
+            principal_id: request.principal_id,
+            action: request.action,
+            resource_type: request.resource_type,
+            resource_id: request.resource_id,
+            effect: decision.effect,
+            determining_policies: decision.determining_policies.clone(),
+            audit_correlation_id,
+            reason: authorization.reason,
+        };
+        self.log.push(log_entry.clone());
+        Ok(CedarRuntimeEvaluation {
+            decision_ref,
+            decision,
+            log_entry,
+        })
+    }
+
+    pub fn eval_log(&self, filter: &authz_engine::EvalLogFilter) -> Vec<CedarEvaluationLogEntry> {
+        self.log
+            .iter()
+            .filter(|entry| {
+                filter
+                    .principal_id
+                    .as_ref()
+                    .is_none_or(|principal_id| entry.principal_id.as_ref() == Some(principal_id))
+                    && filter.effect.is_none_or(|effect| entry.effect == effect)
+                    && filter
+                        .resource_type
+                        .as_ref()
+                        .is_none_or(|resource_type| entry.resource_type == *resource_type)
+            })
+            .take(filter.limit as usize)
+            .cloned()
+            .collect()
+    }
+
+    pub fn log_len(&self) -> usize {
+        self.log.len()
+    }
+
+    fn next_decision_ref(&mut self, decision: &authz_engine::AuthzDecision) -> String {
+        let effect = match decision.effect {
+            PolicyEffect::Allow => "allow",
+            PolicyEffect::Deny => "deny",
+        };
+        let policy_ref = decision
+            .determining_policies
+            .first()
+            .map_or("default", String::as_str);
+        let sequence = self.next_decision_sequence;
+        self.next_decision_sequence += 1;
+        format!("cedar:{effect}:{policy_ref}:{sequence}")
+    }
+}
+
+pub fn backbone_write_policy_versions(tenant_id: impl Into<String>) -> Vec<PolicyVersion> {
+    let tenant_id = tenant_id.into();
+    BackboneWriteOperation::all()
+        .into_iter()
+        .map(|operation| PolicyVersion {
+            policy_id: operation.policy_id().to_string(),
+            version: BACKBONE_WRITE_POLICY_VERSION.to_string(),
+            scope: PolicyScope::Tenant(tenant_id.clone()),
+            supersedes: None,
+            rules: vec![PolicyRuleInput {
+                effect: PolicyEffect::Allow,
+                principal_role: operation.principal_role().to_string(),
+                action: operation.action().to_string(),
+                resource_prefix: operation.resource_prefix().to_string(),
+                required_attribute: Some(("data_plane".to_string(), "backbone".to_string())),
+            }],
+        })
+        .collect()
+}
+
+fn validate_authz_request(request: &authz_engine::AuthzRequest) -> Result<(), CedarRuntimeError> {
+    if request.tenant_id.trim().is_empty() {
+        return Err(CedarRuntimeError::MissingTenantId);
+    }
+    if request.action.trim().is_empty() {
+        return Err(CedarRuntimeError::MissingAction);
+    }
+    if request.resource_type.trim().is_empty() {
+        return Err(CedarRuntimeError::MissingResourceType);
+    }
+    Ok(())
+}
+
+fn authorization_query_from_authz_request(
+    request: &authz_engine::AuthzRequest,
+) -> Result<AuthorizationQuery, CedarRuntimeError> {
+    Ok(AuthorizationQuery {
+        subject: AuthorizationSubject {
+            tenant_id: request.tenant_id.clone(),
+            roles: roles_from_context(request)?,
+        },
+        action: request.action.clone(),
+        resource: resource_ref_from_request(request),
+        attributes: string_attributes_from_context(request),
+    })
+}
+
+fn roles_from_context(
+    request: &authz_engine::AuthzRequest,
+) -> Result<Vec<String>, CedarRuntimeError> {
+    let Some(value) = request.context.get("roles") else {
+        return Ok(vec![request.principal_type.as_cedar_str().to_string()]);
+    };
+    match value {
+        serde_json::Value::String(role) if !role.trim().is_empty() => Ok(vec![role.clone()]),
+        serde_json::Value::Array(values) => values
+            .iter()
+            .map(|value| match value {
+                serde_json::Value::String(role) if !role.trim().is_empty() => Ok(role.clone()),
+                _ => Err(CedarRuntimeError::InvalidRoleContext),
+            })
+            .collect(),
+        _ => Err(CedarRuntimeError::InvalidRoleContext),
+    }
+}
+
+fn resource_ref_from_request(request: &authz_engine::AuthzRequest) -> String {
+    match request.resource_id.as_ref() {
+        Some(resource_id) => format!("{}:{resource_id}", request.resource_type),
+        None => request.resource_type.clone(),
+    }
+}
+
+fn string_attributes_from_context(
+    request: &authz_engine::AuthzRequest,
+) -> BTreeMap<String, String> {
+    request
+        .context
+        .iter()
+        .filter_map(|(key, value)| match value {
+            serde_json::Value::String(value) => Some((key.clone(), value.clone())),
+            serde_json::Value::Bool(value) => Some((key.clone(), value.to_string())),
+            serde_json::Value::Number(value) => Some((key.clone(), value.to_string())),
+            _ => None,
+        })
+        .collect()
+}
+
+fn authz_decision_from_authorization(
+    authorization: &AuthorizationDecision,
+) -> authz_engine::AuthzDecision {
+    match (authorization.allowed, authorization.matched_policy.clone()) {
+        (true, Some(policy_id)) => authz_engine::AuthzDecision::allow(vec![policy_id]),
+        (false, Some(policy_id)) => authz_engine::AuthzDecision::explicit_deny(vec![policy_id]),
+        _ => authz_engine::AuthzDecision::default_deny(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use authz_engine::{AuthzDecision, AuthzRequest, EvalLogFilter, PrincipalType};
+    use serde_json::json;
 
     const POLICY_ID: &str = "pol_tenant_admin";
     const TEST_TENANT_ID: &str = "ten_alpha";
@@ -705,6 +1025,144 @@ mod tests {
         assert_eq!(from_partial.limit, 100);
     }
 
+    #[test]
+    fn backbone_write_policy_pack_allows_every_implemented_write_action() {
+        let mut evaluator =
+            CedarRuntimeEvaluator::with_backbone_write_policies(TEST_TENANT_ID).unwrap();
+
+        for operation in BackboneWriteOperation::all() {
+            let evaluation = evaluator
+                .evaluate(backbone_request(operation, TEST_TENANT_ID), "audit-cedar")
+                .unwrap();
+
+            assert!(evaluation.decision.is_allowed());
+            assert!(
+                evaluation
+                    .decision_ref
+                    .starts_with(&format!("cedar:allow:{}", operation.policy_id()))
+            );
+            assert_eq!(
+                evaluation.decision.determining_policies,
+                vec![operation.policy_id().to_string()]
+            );
+            assert_eq!(evaluation.log_entry.audit_correlation_id, "audit-cedar");
+        }
+
+        assert_eq!(evaluator.log_len(), BackboneWriteOperation::all().len());
+    }
+
+    #[test]
+    fn backbone_write_policy_pack_denies_wrong_tenant_by_default() {
+        let mut evaluator =
+            CedarRuntimeEvaluator::with_backbone_write_policies(TEST_TENANT_ID).unwrap();
+        let evaluation = evaluator
+            .evaluate(
+                backbone_request(BackboneWriteOperation::MessengerPostMessage, "ten_other"),
+                "audit-cedar",
+            )
+            .unwrap();
+
+        assert!(!evaluation.decision.is_allowed());
+        assert_eq!(evaluation.decision_ref, "cedar:deny:default:1");
+        assert!(evaluation.decision.determining_policies.is_empty());
+        assert_eq!(evaluation.log_entry.reason, "no matching allow policy");
+    }
+
+    #[test]
+    fn explicit_deny_policy_wins_over_backbone_allow() {
+        let operation = BackboneWriteOperation::MailSubmitMessage;
+        let mut versions = backbone_write_policy_versions(TEST_TENANT_ID);
+        versions.push(PolicyVersion {
+            policy_id: "pol_backbone_mail_submit_freeze".to_string(),
+            version: "1.0.0".to_string(),
+            scope: tenant_scope(),
+            supersedes: None,
+            rules: vec![PolicyRuleInput {
+                effect: PolicyEffect::Deny,
+                principal_role: operation.principal_role().to_string(),
+                action: operation.action().to_string(),
+                resource_prefix: operation.resource_prefix().to_string(),
+                required_attribute: Some(("data_plane".to_string(), "backbone".to_string())),
+            }],
+        });
+        let mut evaluator = CedarRuntimeEvaluator::from_policy_versions(versions).unwrap();
+
+        let evaluation = evaluator
+            .evaluate(backbone_request(operation, TEST_TENANT_ID), "audit-cedar")
+            .unwrap();
+
+        assert!(!evaluation.decision.is_allowed());
+        assert_eq!(
+            evaluation.decision.determining_policies,
+            vec!["pol_backbone_mail_submit_freeze".to_string()]
+        );
+        assert_eq!(evaluation.log_entry.reason, "explicit deny policy");
+    }
+
+    #[test]
+    fn eval_log_filter_selects_effect_principal_and_resource_type() {
+        let mut evaluator =
+            CedarRuntimeEvaluator::with_backbone_write_policies(TEST_TENANT_ID).unwrap();
+        evaluator
+            .evaluate(
+                backbone_request(BackboneWriteOperation::CommunityCreatePost, TEST_TENANT_ID),
+                "audit-1",
+            )
+            .unwrap();
+        evaluator
+            .evaluate(
+                backbone_request(BackboneWriteOperation::CommunityCastVote, "ten_other"),
+                "audit-2",
+            )
+            .unwrap();
+
+        let allow_filter = EvalLogFilter {
+            principal_id: Some("user:u".to_string()),
+            effect: Some(PolicyEffect::Allow),
+            resource_type: Some("community:space".to_string()),
+            limit: 10,
+        };
+        let allow_entries = evaluator.eval_log(&allow_filter);
+        assert_eq!(allow_entries.len(), 1);
+        assert_eq!(
+            allow_entries[0].determining_policies,
+            vec!["pol_backbone_community_post_create".to_string()]
+        );
+
+        let deny_filter = EvalLogFilter {
+            principal_id: None,
+            effect: Some(PolicyEffect::Deny),
+            resource_type: None,
+            limit: 1,
+        };
+        let deny_entries = evaluator.eval_log(&deny_filter);
+        assert_eq!(deny_entries.len(), 1);
+        assert_eq!(deny_entries[0].decision_ref, "cedar:deny:default:2");
+    }
+
+    #[test]
+    fn runtime_evaluator_rejects_missing_audit_and_invalid_role_context() {
+        let mut evaluator =
+            CedarRuntimeEvaluator::with_backbone_write_policies(TEST_TENANT_ID).unwrap();
+        assert_eq!(
+            evaluator.evaluate(
+                backbone_request(BackboneWriteOperation::MessengerPostMessage, TEST_TENANT_ID),
+                "",
+            ),
+            Err(CedarRuntimeError::MissingAuditCorrelation)
+        );
+
+        let mut request =
+            backbone_request(BackboneWriteOperation::MessengerPostMessage, TEST_TENANT_ID);
+        request
+            .context
+            .insert("roles".to_string(), json!({"not": "a-role"}));
+        assert_eq!(
+            evaluator.evaluate(request, "audit"),
+            Err(CedarRuntimeError::InvalidRoleContext)
+        );
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     fn tenant_scope() -> PolicyScope {
@@ -739,6 +1197,32 @@ mod tests {
                 resource_prefix: "tenant:".to_string(),
                 required_attribute: None,
             }],
+        }
+    }
+
+    fn backbone_request(operation: BackboneWriteOperation, tenant_id: &str) -> AuthzRequest {
+        let mut context = BTreeMap::new();
+        context.insert("roles".to_string(), json!([operation.principal_role()]));
+        context.insert("data_plane".to_string(), json!("backbone"));
+        AuthzRequest {
+            tenant_id: tenant_id.to_string(),
+            principal_type: PrincipalType::User,
+            principal_id: Some("user:u".to_string()),
+            action: operation.action().to_string(),
+            resource_type: operation.resource_type().to_string(),
+            resource_id: Some(sample_resource_id(operation).to_string()),
+            context,
+        }
+    }
+
+    fn sample_resource_id(operation: BackboneWriteOperation) -> &'static str {
+        match operation {
+            BackboneWriteOperation::MessengerPostMessage => "channel:c",
+            BackboneWriteOperation::MailSubmitMessage => "mailbox:b",
+            BackboneWriteOperation::SocialPublishPost => "profile:p",
+            BackboneWriteOperation::CommunityCreatePost => "space:s",
+            BackboneWriteOperation::CommunityCastVote
+            | BackboneWriteOperation::CommunityApplyModerationAction => "post:p",
         }
     }
 }

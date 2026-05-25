@@ -1,0 +1,263 @@
+{
+  "schema": "multispectrum-review/v2.4.0",
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-OBJECT-SOURCE-GATE-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-protocol-object-source-gate-20260525",
+  "timestamp_iso": "2026-05-25T07:59:42Z",
+  "freshness_unix": 1779695982,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-registry-protocol-object-source-gate-20260525.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Make the Cloud IaC module-registry protocol gate fail closed when release-index S3/GCS object-source rows are not mirrored by protocol download response locations.",
+  "complementary_plan_reference": {
+    "path": "/Users/jasonlee/Developer/source/plan",
+    "authority": "complementary-only-not-source-of-truth",
+    "use": "hyperscaler substrate roadmap context only"
+  },
+  "best_practice_sources": [
+    {
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "what_it_establishes": "The module registry download endpoint returns a JSON location value that OpenTofu uses as the module source location."
+    },
+    {
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "what_it_establishes": "OpenTofu module sources include registry, HTTP archive, S3 bucket, and GCS bucket source patterns, and may use ambient credentials outside the source metadata."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/versioning-workflows.html",
+      "what_it_establishes": "S3 object versions have version IDs; this ChangeSet uses local version-id metadata only and performs no S3 calls."
+    },
+    {
+      "url": "https://cloud.google.com/storage/docs/metadata",
+      "what_it_establishes": "Cloud Storage objects have generation metadata; this ChangeSet uses local generation metadata only and performs no GCS calls."
+    },
+    {
+      "url": "https://slsa.dev/spec/v1.2/verifying-artifacts",
+      "what_it_establishes": "Artifact verification requires explicit verification evidence; signing/SLSA/VSA verification remains non-claimed."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_module_registry_protocol_rejects_object_source_download_location_drift -- --nocapture",
+      "result": "FAIL_EXPECTED_RED",
+      "exit_code": 101,
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-red.log",
+      "summary": "The protocol gate accepted a release-index row with pinned S3 archive_source_location metadata while the protocol download fixture still returned a local /artifacts/modules path."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_module_registry_protocol -- --nocapture",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-focused-green.log",
+      "summary": "Focused protocol tests passed, including pinned S3/GCS object-source fixtures and object-source-to-local download drift rejection."
+    },
+    {
+      "command": "oya gate validate cloud-iac-module-registry-protocol; cloud-iac-module-release-index; cloud-iac-module-archive",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-live-cloud-iac-gates.log",
+      "summary": "Live repo-local protocol, release-index, and archive gates passed on the current local archive module set."
+    },
+    {
+      "command": "cargo fmt --all -- --check; cargo check -p oya-dev-cli --all-targets; cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-rust-quality.log",
+      "summary": "Rust formatting, scoped package check, and clippy warnings-as-errors passed for oya-dev-cli."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain; oya catalog validate; architecture-boundaries; api-semver; planning-closure; license-policy",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-governance-core.log",
+      "summary": "Gate catalog unit tests and core governance/admission gates passed."
+    },
+    {
+      "command": "scoped cloud-iac gate suite",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-cloud-iac-gates.log",
+      "summary": "All scoped Cloud IaC gates passed: module catalog, GitOps evidence, cell topology, module registry protocol, module archive, release-index, provenance, provider readiness, provider requirements, provider lockfile, provider signature review, and OpenTofu validation."
+    },
+    {
+      "command": "dependency-seam strict; scoped honest-claims; scoped retired-vocabulary temp corpus; evidence JSON parse; audit-chain JSONL parse; oya git diff --check",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-final-closeout-gates.log",
+      "summary": "Strict dependency-seam, scoped honest-claims, scoped retired-vocabulary, JSON/audit parsing, and whitespace diff checks passed."
+    },
+    {
+      "command": "oya vcs work; oya vcs verify; oya vcs done --controller-promote; oya vcs promote --environment local-foundry",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-oya-vcs-closeout.log",
+      "summary": "Oya VCS work, verify, done --controller-promote, and promote accepted for the ChangeSet."
+    },
+    {
+      "command": "post-promote dependency-seam strict; scoped honest-claims; scoped retired-vocabulary temp corpus; evidence JSON parse; audit-chain JSONL parse; oya git diff --check",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-module-registry-protocol-object-source-gate-post-promote-closeout-gates.log",
+      "summary": "Post-promote strict dependency-seam, scoped honest-claims, scoped retired-vocabulary, JSON/audit parsing, and whitespace diff checks passed after lifecycle evidence/audit updates."
+    }
+  ],
+  "implemented_claims": [
+    "The Cloud IaC module-registry protocol gate parses optional release-index archive_source_location, archive_source_integrity_sha256, archive_source_version_id, and archive_source_generation metadata.",
+    "Protocol download response locations can now be local /artifacts/modules paths or safe OpenTofu s3::https:// / gcs::https:// object-source values.",
+    "Local archive release-index rows continue to require protocol download response location to equal artifact_url_path.",
+    "Object-source release-index rows require protocol download response location to exactly mirror archive_source_location.",
+    "Object-source release-index rows require object-source fixture source_kind metadata and local integrity/provider pin metadata before protocol fixtures can pass.",
+    "Unsafe object-source text, orphan pins, missing provider pins, wrong-provider pins, and mismatched integrity fail closed in the protocol gate."
+  ],
+  "explicit_non_claims": [
+    "No live S3 or GCS read/write/list/head/precondition execution.",
+    "No object-store bucket provisioning, IAM policy enforcement, signed URL generation, CDN integration, or secret/credential management.",
+    "No deployed module registry endpoint, production auth/Cedar policy runtime, tenant identity, persistence, database adapter, TLS termination, measured SLO, DR, or capacity telemetry.",
+    "No signing, SLSA, VSA, provider runtime, tofu test/plan/apply, Argo CD/Kubernetes rollout, cloud provisioning, production readiness, or FD-001 tenant workload hosting.",
+    "No materialized production object-store release-index row; current live release-index and protocol fixtures remain local archive routes."
+  ],
+  "false_green_findings_closed": [
+    "The protocol fixture gate can no longer pass a release-index object-source row whose download response still returns the local artifact path instead of the release-index archive_source_location."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required is not claimed green.",
+    "Aggregate ./bin/oya gate run-all is not claimed green unless freshly rerun and proven.",
+    "Live object-store adapters, request precondition execution, signed module verification, production auth/Cedar, and deployment evidence remain future slices.",
+    "Repo-local release-index and protocol fixtures still use local archive routes; no production object-store release index has been materialized."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Kept the slice narrow: protocol fixture coherence only, no fake object-store endpoint or deployment."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Hardens the module distribution control plane by ensuring registry protocol fixtures mirror immutable object-source metadata before live adapters exist."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED fixture proved local-path drift passed before the fix; GREEN fixtures cover S3 and GCS object-source paths plus drift rejection."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Existing local archive fixtures remain compatible; object-source behavior activates only when archive_source_location is present."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused protocol tests, fmt/check/clippy, governance gates, and full scoped Cloud IaC gate suite passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Implement live S3/GCS adapter now",
+        "Leave protocol fixtures local-path-only",
+        "Add object-source protocol coherence gate now"
+      ],
+      "selected_rationale": "A local protocol coherence gate is the smallest honest step after release-index pinning and before credentials/buckets/adapters exist.",
+      "rejected_reasons": [
+        "Live adapters need real object storage, IAM, credentials, precondition calls, and deployment evidence outside this slice.",
+        "Local-path-only protocol fixtures create a false-green gap once release-index object-source rows appear."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "owasp_class_review": "software-supply-chain-integrity-and-credential-leakage",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "Object-source protocol metadata rejects credential-like text and must stay coherent with integrity/pin metadata before fixture validation can pass."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Parser/gate-only validation adds no live network or object-store I/O path."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Version/generation metadata is explicit and locally gated; compliance-grade retention/precondition evidence remains non-claimed."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Current repo-local /artifacts/modules fixtures remain valid because no live release-index row has archive_source_location."
+      ]
+    },
+    "F11_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Bad object-source protocol metadata fails during gate validation before any runtime module-registry serving claim."
+      ]
+    },
+    "F12_reserved": {
+      "considered": false,
+      "rigor": "not_applicable",
+      "findings": []
+    },
+    "F13_traceability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "ChangeSet is tied to Oya VCS claim, source/tests, manifest/tasks, multispectrum evidence, and audit-chain rows."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Used Oya VCS claim; avoided raw git/gh; read root hub and operating contract; kept /plan complementary-only; did not claim production/hyperscaler completion."
+      ]
+    },
+    "A2_dependency_seam": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "No new dependencies were introduced. Strict dependency-seam gate is run as closeout evidence."
+      ]
+    }
+  },
+  "review": {
+    "code_review_status": "self_review_passed_after_oya_vcs_promote",
+    "architectural_status": "CLEAR_FOR_LOCAL_PROTOCOL_GATE_SCOPE",
+    "ship_status": "NO_GO_FOR_PRODUCTION_DEPLOYMENT",
+    "ultraqa_status": "bounded_local_gate_qa_passed",
+    "review_findings": [
+      "No critical/high issues found for the local protocol fixture gate scope. Live object-store adapter/precondition verification remains an explicit gap.",
+      "Scoped retired-vocabulary used a temporary corpus containing the claimed files because the gate accepts directory corpus roots and broader oya-dev-cli directories contain unrelated pre-existing retired vocabulary drift."
+    ]
+  },
+  "lifecycle": {
+    "oya_vcs_claim": "accepted",
+    "oya_vcs_work": "accepted",
+    "oya_vcs_verify": "accepted",
+    "oya_vcs_done": "accepted-controller-promote",
+    "oya_vcs_promote": "accepted-local-foundry"
+  }
+}

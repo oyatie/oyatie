@@ -1,0 +1,116 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-DEPLOYMENT-GATES-SUBSTRATE-POLISH-20260525",
+  "schema_version": "1.0",
+  "evidence_id": "cs-application-shell-deployment-gates-substrate-polish-20260525",
+  "bundle": "CS-APPLICATION-SHELL-DEPLOYMENT-GATES-SUBSTRATE-POLISH-20260525",
+  "agent": "codex-oyatie-deployment-gates-substrate-polish",
+  "created_at": "2026-05-25T04:37:53.588Z",
+  "slice": "Deployment Gates substrate/admission command-board polish",
+  "product_direction": "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the hyperscaler-grade dogfood substrate that proves the platform can host real production tenants.",
+  "changed_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "before_audit": {
+    "deployment_gates": {
+      "direct_buttons": 4,
+      "gate_actions": 4,
+      "deployment_actions": 0,
+      "gate_cards": 4,
+      "proof_cards": 0,
+      "mentions_fd001": false,
+      "mentions_oyatie_cloud": false,
+      "status_nodes": 0,
+      "summary": "The anchor was a four-card static gate grid with attach-evidence buttons, no FD-001/Oyatie Cloud product language, no proof cards, no route/status surface."
+    }
+  },
+  "after_audit": {
+    "deployment_gates": {
+      "direct_buttons": 26,
+      "gate_actions": 12,
+      "deployment_gate_actions": 14,
+      "gate_cards": 4,
+      "proof_cards": 3,
+      "promotion_buttons": 4,
+      "status_initial": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud.",
+      "status_after_admit": "FD-001 tenant workload admission simulated locally",
+      "status_after_seal": "Release packet sealed visually \u00b7 no deploy mutation",
+      "evidence_route_visible": true,
+      "policy_route_activated": true,
+      "mentions_fd001": true,
+      "mentions_oyatie_cloud": true,
+      "mentions_unwired_local_state": true
+    },
+    "ssr_curl_counts": {
+      "deployment_gate_actions": 14,
+      "gate_actions": 12,
+      "deployment_status_nodes": 1,
+      "fd001_mentions": 41,
+      "oyatie_cloud_mentions": 18,
+      "deployment_proof_cards": 3,
+      "promotion_lanes": 1
+    }
+  },
+  "visual_evidence": {
+    "before_screenshots": [
+      ".omx/artifacts/visual-ralph/oya-deployment-gates-substrate-polish/before/screenshots/deployment-gates-before.png"
+    ],
+    "after_screenshots": [
+      ".omx/artifacts/visual-ralph/oya-deployment-gates-substrate-polish/after/screenshots/deployment-gates-after.png",
+      ".omx/artifacts/visual-ralph/oya-deployment-gates-substrate-polish/after/screenshots/deployment-gates-after-interacted.png"
+    ],
+    "diff_overlays": [
+      ".omx/artifacts/visual-ralph/oya-deployment-gates-substrate-polish/after/diffs/deployment-gates-before-after-diff.png"
+    ],
+    "pixel_diff": {
+      "before": {
+        "width": 1097,
+        "height": 230
+      },
+      "after": {
+        "width": 1097,
+        "height": 562
+      },
+      "compared": {
+        "width": 1097,
+        "height": 230
+      },
+      "mismatch": 26804,
+      "mismatchRatio": 0.106234
+    },
+    "visual_verdict": {
+      "score": 92,
+      "verdict": "pass",
+      "category_match": "enterprise deployment gate command surface",
+      "reasoning": "Deployment Gates moved from four static cards into a dense FD-001/Oyatie Cloud tenant-workload admission console with promotion lane, route actions, status feedback, and explicit local-only boundaries."
+    },
+    "browser_smoke_json": ".omx/artifacts/visual-ralph/oya-deployment-gates-substrate-polish/after/deployment-gates-smoke.json",
+    "before_audit_json": ".omx/artifacts/visual-ralph/oya-deployment-gates-substrate-polish/before/deployment-gates-before-audit.json"
+  },
+  "verification": {
+    "commands_passed": [
+      "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "cargo test -p oya-application-shell-frontend-prototype",
+      "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "node /tmp/oya_deployment_after.cjs"
+    ],
+    "browser_console": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "page_errors": [],
+    "request_failures": []
+  },
+  "known_limits": [
+    "This slice upgrades Deployment Gates only; it does not assert the full dashboard mockup is complete.",
+    "Interactions are intentionally local visual state and route activation; no backend, registry, DNS, deploy, billing, receipt vault, or cloud provider wiring was added.",
+    "Console info about missing /pkg is expected in fallback SSR smoke because the selective WASM island package is not served by the local container."
+  ]
+}

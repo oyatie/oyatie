@@ -61,6 +61,71 @@ pub enum SecretError {
     InvalidSecretHistory,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SecretProviderKind {
+    OpenBao,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SecretReference {
+    provider: SecretProviderKind,
+    tenant_id: String,     // data_class: INTERNAL_ONLY
+    region: String,        // data_class: PUBLIC
+    cell_id: String,       // data_class: PUBLIC
+    vault_path: VaultPath, // data_class: INTERNAL_ONLY
+    version_label: String, // data_class: INTERNAL_ONLY
+    evidence_ref: String,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SecretBootstrapRequest {
+    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
+    pub region: String,                       // data_class: PUBLIC
+    pub cell_id: String,                      // data_class: PUBLIC
+    pub external_secret_store_ready: bool,    // data_class: INTERNAL_ONLY
+    pub sealed_bootstrap_channel_ready: bool, // data_class: INTERNAL_ONLY
+    pub plaintext_env_present: bool,          // data_class: INTERNAL_ONLY
+    pub repo_secret_material_detected: bool,  // data_class: INTERNAL_ONLY
+    pub evidence_ref: String,                 // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SecretBootstrapStatus {
+    Allowed,
+}
+
+impl SecretBootstrapStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Allowed => "allowed",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SecretBootstrapReceipt {
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub region: String,    // data_class: PUBLIC
+    pub cell_id: String,   // data_class: PUBLIC
+    pub status: SecretBootstrapStatus,
+    pub evidence_ref: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SecretBootstrapError {
+    InvalidTenantId,
+    RegionEmpty,
+    CellIdEmpty,
+    InvalidVaultPath(VaultPathError),
+    PathTenantMismatch,
+    VersionLabelEmpty,
+    EvidenceRefMissing,
+    EvidenceRefLooksLikeSecret,
+    ExternalSecretStoreUnavailable,
+    SealedBootstrapChannelUnavailable,
+    SecretMaterialInBootstrap,
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct SecretVault {
     records: Vec<SecretVersion>,
@@ -88,6 +153,95 @@ impl SecretRef {
             name: Classified::new(name, OperationalDataClass::Secret),
         })
     }
+}
+
+impl SecretReference {
+    pub fn openbao(
+        tenant_id: impl Into<String>,
+        region: impl Into<String>,
+        cell_id: impl Into<String>,
+        vault_path: impl Into<String>,
+        version_label: impl Into<String>,
+        evidence_ref: impl Into<String>,
+    ) -> Result<Self, SecretBootstrapError> {
+        let tenant_id = tenant_id.into();
+        let region = region.into();
+        let cell_id = cell_id.into();
+        let vault_path = vault_path.into();
+        let version_label = version_label.into();
+        let evidence_ref = evidence_ref.into();
+        validate_cloud_secret_boundary(&tenant_id, &region, &cell_id)?;
+        if version_label.trim().is_empty() {
+            return Err(SecretBootstrapError::VersionLabelEmpty);
+        }
+        validate_evidence_ref(&evidence_ref)?;
+        let vault_path =
+            VaultPath::new(vault_path).map_err(SecretBootstrapError::InvalidVaultPath)?;
+        let tenant_root = format!("secret/data/t/{tenant_id}/");
+        if !vault_path.as_str().starts_with(&tenant_root) {
+            return Err(SecretBootstrapError::PathTenantMismatch);
+        }
+        Ok(Self {
+            provider: SecretProviderKind::OpenBao,
+            tenant_id,
+            region,
+            cell_id,
+            vault_path,
+            version_label,
+            evidence_ref,
+        })
+    }
+
+    pub const fn provider(&self) -> SecretProviderKind {
+        self.provider
+    }
+
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    pub fn region(&self) -> &str {
+        &self.region
+    }
+
+    pub fn cell_id(&self) -> &str {
+        &self.cell_id
+    }
+
+    pub fn vault_path(&self) -> &VaultPath {
+        &self.vault_path
+    }
+
+    pub fn version_label(&self) -> &str {
+        &self.version_label
+    }
+
+    pub fn evidence_ref(&self) -> &str {
+        &self.evidence_ref
+    }
+}
+
+pub fn evaluate_secret_bootstrap(
+    request: SecretBootstrapRequest,
+) -> Result<SecretBootstrapReceipt, SecretBootstrapError> {
+    validate_cloud_secret_boundary(&request.tenant_id, &request.region, &request.cell_id)?;
+    validate_evidence_ref(&request.evidence_ref)?;
+    if request.plaintext_env_present || request.repo_secret_material_detected {
+        return Err(SecretBootstrapError::SecretMaterialInBootstrap);
+    }
+    if !request.external_secret_store_ready {
+        return Err(SecretBootstrapError::ExternalSecretStoreUnavailable);
+    }
+    if !request.sealed_bootstrap_channel_ready {
+        return Err(SecretBootstrapError::SealedBootstrapChannelUnavailable);
+    }
+    Ok(SecretBootstrapReceipt {
+        tenant_id: request.tenant_id,
+        region: request.region,
+        cell_id: request.cell_id,
+        status: SecretBootstrapStatus::Allowed,
+        evidence_ref: request.evidence_ref,
+    })
 }
 
 impl SecretMaterial {
@@ -313,4 +467,40 @@ fn material_fingerprint(bytes: &[u8]) -> String {
         state = state.wrapping_mul(0x100000001b3);
     }
     format!("fnv1a64:{state:016x}")
+}
+
+fn validate_cloud_secret_boundary(
+    tenant_id: &str,
+    region: &str,
+    cell_id: &str,
+) -> Result<(), SecretBootstrapError> {
+    if !tenant_id.starts_with("ten_") {
+        return Err(SecretBootstrapError::InvalidTenantId);
+    }
+    if region.trim().is_empty() {
+        return Err(SecretBootstrapError::RegionEmpty);
+    }
+    if cell_id.trim().is_empty() {
+        return Err(SecretBootstrapError::CellIdEmpty);
+    }
+    Ok(())
+}
+
+fn validate_evidence_ref(evidence_ref: &str) -> Result<(), SecretBootstrapError> {
+    if evidence_ref.trim().is_empty() {
+        return Err(SecretBootstrapError::EvidenceRefMissing);
+    }
+    if looks_like_secret_material(evidence_ref) {
+        return Err(SecretBootstrapError::EvidenceRefLooksLikeSecret);
+    }
+    Ok(())
+}
+
+fn looks_like_secret_material(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    lower.contains("sk-")
+        || lower.contains("password=")
+        || lower.contains("token=")
+        || lower.contains("secret_material=")
+        || lower.contains("-----begin")
 }

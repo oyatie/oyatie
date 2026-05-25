@@ -1081,6 +1081,10 @@ fn cloud_compute_status_kind(error: &CloudComputeError) -> CloudComputeK8sApiSta
         | CloudComputeError::InvalidImageRef
         | CloudComputeError::InvalidKeyPairId
         | CloudComputeError::InvalidUserDataUri
+        | CloudComputeError::InvalidWorkloadIdentityPolicy
+        | CloudComputeError::InvalidRuntimeIsolationPolicy
+        | CloudComputeError::InvalidSchedulingPolicy
+        | CloudComputeError::InvalidAuditEvidenceRef
         | CloudComputeError::InvalidFlavor
         | CloudComputeError::InvalidQuota
         | CloudComputeError::InvalidInstanceState
@@ -1132,6 +1136,18 @@ fn cloud_compute_issue(error: &CloudComputeError) -> &'static str {
         CloudComputeError::InvalidImageRef => "image must be a supported digest-pinned image ref",
         CloudComputeError::InvalidKeyPairId => "key_pair must use the key_ prefix",
         CloudComputeError::InvalidUserDataUri => "user_data_uri must use the userdata/ prefix",
+        CloudComputeError::InvalidWorkloadIdentityPolicy => {
+            "workload identity refs must be tenant/cell scoped and non-secret"
+        }
+        CloudComputeError::InvalidRuntimeIsolationPolicy => {
+            "compute workloads require private and sandboxed runtime isolation"
+        }
+        CloudComputeError::InvalidSchedulingPolicy => {
+            "compute scheduling evidence must require topology spread"
+        }
+        CloudComputeError::InvalidAuditEvidenceRef => {
+            "compute audit evidence ref must be a non-secret evidence path"
+        }
         CloudComputeError::InvalidFlavor => {
             "flavor resources must be positive and class-consistent"
         }

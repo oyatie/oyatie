@@ -1,0 +1,32 @@
+[package]
+name = "oya-enterprise-suite-local-inmemory-harness"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-accounting-journal-app = { path = "../oya-accounting-journal-app" }
+oya-accounting-journal-storage-adapter-inmemory = { path = "../oya-accounting-journal-storage-adapter-inmemory" }
+oya-enterprise-suite-app = { path = "../oya-enterprise-suite-app" }
+oya-enterprise-suite-storage-adapter-inmemory = { path = "../oya-enterprise-suite-storage-adapter-inmemory" }
+oya-enterprise-suite-workflow-adapter-inmemory = { path = "../oya-enterprise-suite-workflow-adapter-inmemory" }
+oya-hr-employment-app = { path = "../oya-hr-employment-app" }
+oya-hr-employment-storage-adapter-inmemory = { path = "../oya-hr-employment-storage-adapter-inmemory" }
+oya-payroll-run-app = { path = "../oya-payroll-run-app" }
+oya-payroll-run-storage-adapter-inmemory = { path = "../oya-payroll-run-storage-adapter-inmemory" }
+
+[dev-dependencies]
+oya-accounting-journal-domain = { path = "../oya-accounting-journal-domain" }
+oya-enterprise-suite-domain = { path = "../oya-enterprise-suite-domain" }
+oya-hr-employment-domain = { path = "../oya-hr-employment-domain" }
+oya-payroll-run-domain = { path = "../oya-payroll-run-domain" }
+
+[lib]
+name = "oya_enterprise_suite_local_inmemory_harness"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

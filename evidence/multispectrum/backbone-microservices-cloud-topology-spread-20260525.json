@@ -1,0 +1,320 @@
+{
+  "change_id": "backbone-microservices-cloud-topology-spread-20260525",
+  "change_class_id": "CC-2",
+  "summary": "Default-enabled, values-controlled static Kubernetes topology-spread constraints for messenger, mail, social, and community FD-001 dogfood tenant workload charts and rendered snapshots.",
+  "created_at": "2026-05-25T05:18:46Z",
+  "git_sha": "7c6f2e45",
+  "agent_id": "codex-1779524019183",
+  "scope": [
+    "microservices/community/iac/k8s/helm/values.yaml",
+    "microservices/social/iac/k8s/helm/values.yaml",
+    "microservices/mail/iac/k8s/helm/values.yaml",
+    "microservices/messenger/iac/k8s/helm/values.yaml",
+    "microservices/messenger/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/mail/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/social/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/community/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    "microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    "microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    "microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds source-controlled Kubernetes topologySpreadConstraints to FD-001 backbone service Helm Deployment templates and static rendered snapshots, with a values-controlled default-enabled switch for target models that need explicit override before live rollout. It proves static chart/snapshot readiness and semantic CI-smoke regression coverage only; it does not claim Kubernetes API admission, live scheduler placement, multi-zone availability, universal self-host portability, ArgoCD sync/health, OpenCost allocation, branch-protection state, remote CI green, or production tenant workload deployment. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the future dogfood substrate/proof point.",
+  "best_practice_research": [
+    {
+      "source": "https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/",
+      "source_quality": "official Kubernetes documentation",
+      "retrieved_at": "2026-05-25",
+      "used_for": "Grounds use of topology spread constraints to spread Pods across failure domains such as zones and nodes for availability/resource-utilization posture."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+      "source_quality": "official Kubernetes documentation",
+      "retrieved_at": "2026-05-25",
+      "used_for": "Grounds maxSkew, topologyKey, labelSelector, and ScheduleAnyway semantics; ScheduleAnyway is treated as a best-effort skew-reduction preference, not a guarantee."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/",
+      "source_quality": "official Kubernetes documentation",
+      "retrieved_at": "2026-05-25",
+      "used_for": "Keeps this slice scoped to scheduling distribution while recognizing that high availability also needs disruption budgets; existing PDB templates remain separate static evidence."
+    }
+  ],
+  "repo_local_context": [
+    {
+      "url": "repo://microservices/{messenger,mail,social,community}/iac/k8s/helm/templates/deployment.yaml",
+      "use": "Existing FD-001 dogfood Deployment templates already carry probes, resources, securityContext, runtimeClassName, tenant/cost labels, and Cosign annotations but lacked topology spread hints."
+    },
+    {
+      "url": "repo://microservices/{messenger,mail,social,community}/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+      "use": "Static rendered snapshots are the current tenant-cost-label scan target and now mirror topology-spread posture without claiming cluster apply."
+    },
+    {
+      "url": "repo://.github/workflows/backbone-microservices-ci.yml#governance-smoke",
+      "use": "Existing backbone CI smoke parses source charts and rendered snapshots; this slice extends required string coverage."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Minimal YAML/static-smoke change; no new controller, generator, runtime dependency, or API surface.",
+        "The same two scheduler spread hints are repeated only where Kubernetes workloads consume them: source Helm templates and static rendered snapshots."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "FD-001 dogfood workload charts now declare zone and node topology-spread constraints so future scheduler placement can reduce single-failure-domain concentration.",
+        "The evidence remains static/source-controlled; it does not claim a live multi-AZ cluster, admitted Pods, or observed scheduler placement."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "A RED static check failed before the change because all eight chart/snapshot files lacked topologySpreadConstraints, zone/hostname topology keys, ScheduleAnyway, and maxSkew: 1.",
+        "The CI governance smoke now requires these strings for source templates and rendered snapshots to catch future regressions."
+      ],
+      "fixuptasks": []
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Uses standard Kubernetes pod spec topologySpreadConstraints with existing app.kubernetes.io/name selector labels; no custom abstraction for operators to learn."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The template and rendered snapshot shapes stay parseable YAML/Helm text and preserve existing probe/resource/security/non-claim checks."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Chose ScheduleAnyway constraints instead of DoNotSchedule/minDomains because this slice is a best-effort placement-preference contract for FD-001 dogfood charts, not a hard availability or universal portability guarantee.",
+        "The static charts assume target nodes expose the selected topology labels when operators want zone/hostname spreading; clusters with different label topology need explicit chart-policy follow-up rather than relying on this slice as proof of portability.",
+        "Did not add pod anti-affinity because topology spread expresses both node and zone failure-domain hints with less brittle scheduling behavior for the future Oyatie Cloud dogfood substrate."
+      ],
+      "fixuptasks": []
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No secret, credential, network policy, RBAC, auth, or container-permission changes are introduced. Existing restricted-style pod security contexts remain intact."
+      ],
+      "fixuptasks": []
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "ScheduleAnyway is treated here as a soft scheduler preference to reduce skew when the configured topology keys are available; this static slice does not claim live scheduler behavior for clusters with missing topology labels. No runtime hot path changes."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Maintains FD-001 tenant/cost/regulatory labels and explicit non-claim annotations on rendered snapshots; no live OpenCost or admission evidence is asserted."
+      ],
+      "fixuptasks": []
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Rollback is deleting the topologySpreadConstraints blocks and removing the CI required strings/evidence arg; no data or API migration."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The change strengthens static workload shape that future telemetry can correlate with topology/failure-domain placement, but emits no live telemetry itself."
+      ],
+      "fixuptasks": []
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No public API/schema compatibility impact.",
+        "Kubernetes portability is not claimed here: the source templates now carry values-controlled, default-enabled zone/hostname spread hints for the FD-001 dogfood posture, and deployment models with different node-label conventions need an explicit chart override/validation slice before live rollout."
+      ],
+      "fixuptasks": []
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Uses existing CS-BACKBONE slice naming and no new crates/packages."
+      ],
+      "fixuptasks": []
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Updates active task plan/todo and evidence only; no new root Markdown or retired path."
+      ],
+      "fixuptasks": []
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Keeps source Helm templates under microservices/*/iac/k8s/helm and static snapshots under existing iac/helm/oyatie-cloud-dogfood/rendered."
+      ],
+      "fixuptasks": []
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Infrastructure contract change only; no domain/app adapter boundary drift."
+      ],
+      "fixuptasks": []
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No dependency changes."
+      ],
+      "fixuptasks": []
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No schema or algorithm changes."
+      ],
+      "fixuptasks": []
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Backbone governance smoke now blocks topology-spread regression for all four FD-001 dogfood workload charts and snapshots."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "verification": [
+    {
+      "command": "ruby static topology-spread verification before implementation",
+      "status": "RED_EXPECTED_FAIL",
+      "evidence": "Failed on messenger source template: missing topologySpreadConstraints, topology.kubernetes.io/zone, kubernetes.io/hostname, whenUnsatisfiable: ScheduleAnyway, maxSkew: 1."
+    },
+    {
+      "command": "ruby static topology-spread verification after implementation",
+      "status": "PASS",
+      "evidence": "topology spread static verification passed for 8 manifests/templates"
+    },
+    {
+      "command": "ruby YAML parse/static governance-smoke subset for evidence, HTTPRoute, Deployment templates, and rendered snapshots",
+      "status": "PASS",
+      "evidence": "parsed 42 files with semantic topology-spread checks for four values files, four Helm Deployment templates, and four rendered snapshots"
+    },
+    {
+      "command": "./bin/oya gate validate tenant-cost-labels-coverage",
+      "status": "PASS",
+      "evidence": "tenant cost-labels coverage advisory: 4 manifests scanned; 0 findings"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root evidence/multispectrum/backbone-microservices-cloud-topology-spread-20260525.json",
+      "status": "PASS",
+      "evidence": "honest-claims validation passed: 3 documents, 1342 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "./bin/oya gate validate audit-chain-replay",
+      "status": "PASS",
+      "evidence": "audit chain replay validation passed: 1 shards, 28 events"
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "status": "PASS",
+      "evidence": "no whitespace diagnostics"
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "status": "PASS",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4552 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; D-7 ADR shape passed."
+    },
+    {
+      "command": "parallel code-review sidecars for topology-spread diff",
+      "status": "REQUEST_CHANGES_ADDRESSED",
+      "evidence": "Reviewer requested semantic topology checks and narrower portability claims; architect blocked overbroad ScheduleAnyway portability wording. Follow-up adds values-controlled topologySpread defaults, narrows non-claims, and strengthens governance smoke to inspect template blocks plus parsed rendered YAML constraints."
+    },
+    {
+      "command": "ruby extracted backbone governance-smoke script with full CI argument list",
+      "status": "PASS",
+      "evidence": "Syntax OK; parsed 42 files; semantic topology checks passed for values, templates, and rendered snapshots."
+    },
+    {
+      "command": "semantic topology-spread verification for values/templates/snapshots",
+      "status": "PASS",
+      "evidence": "semantic topology spread verification passed for 12 values/templates/snapshots"
+    },
+    {
+      "command": "ruby -ryaml workflow parse and extracted governance-smoke step after workflow regex fix",
+      "status": "PASS",
+      "evidence": "workflow yaml parse ok; extracted governance-smoke run block parsed 42 files with semantic topology-spread checks for values, templates, and rendered snapshots."
+    },
+    {
+      "command": "./bin/oya verify --ci-required after workflow/evidence re-review fixes",
+      "status": "PASS",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4552 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; D-6 ADR index write passed; D-7 ADR shape passed."
+    },
+    {
+      "command": "parallel code-review and architecture sidecar re-review after final fixes",
+      "status": "CLEAR",
+      "evidence": "Code-review sidecar returned CLEAR after workflow YAML parse, extracted smoke, scoped diff-check, semantic topology checks, and values/template/snapshot review. Architecture sidecar returned CLEAR with no blockers and confirmed ScheduleAnyway is bounded as a soft preference, not a live availability guarantee."
+    },
+    {
+      "command": "focused post-evidence gates after final evidence refresh",
+      "status": "PASS",
+      "evidence": "dependency-seam validation passed; scoped honest-claims validation passed; audit-chain replay validation passed; ./bin/oya git diff --check exited 0."
+    },
+    {
+      "command": "./bin/oya vcs verify/done/promote lifecycle",
+      "status": "PASS",
+      "evidence": "verify accepted: action=verify-evidence; done accepted: action=emit-change-bundle; promote accepted: action=promote-bundle for cb-backbone-microservices-cloud-topology-spread-20260525 to ci-preview."
+    },
+    {
+      "command": "./bin/oya verify --ci-required after final template image-line restore",
+      "status": "PASS",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4552 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; D-6 ADR index write passed; D-7 ADR shape passed."
+    }
+  ],
+  "non_claims": [
+    "No Kubernetes API server, scheduler, node, or multi-zone cluster was contacted.",
+    "No Helm release was installed and no ArgoCD sync/health state is claimed.",
+    "No OpenCost allocation report or production tenant workload deployment is claimed.",
+    "TopologySpreadConstraints are soft ScheduleAnyway placement preferences in this slice, not hard availability guarantees."
+  ],
+  "autopilot_handoff": {
+    "phase": "ultragoal",
+    "slice": "CS-BACKBONE-CLOUD-TOPOLOGY-SPREAD-001",
+    "fd001_cloud_alignment": "FD-001 remains the product goal; Oyatie Cloud remains the future dogfood substrate for these microservices."
+  },
+  "status": "ready-for-commit-and-submit",
+  "freshness_unix": 1779687823
+}

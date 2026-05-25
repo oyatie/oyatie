@@ -1,0 +1,248 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-module-provenance",
+  "timestamp_iso": "2026-05-24T21:24:44Z",
+  "freshness_unix": 1779657884,
+  "git_sha": "a93fe797",
+  "scope": [
+    "Cargo.lock",
+    "crates/oya-dev-cli/Cargo.toml",
+    "crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/commands/gate/run_all.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "microservices/cloud-iac/manifest.json",
+    "microservices/cloud-iac/tofu/modules/provenance.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-provenance-gate-20260524.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Make Cloud IaC local module provenance a first-class fail-closed Oya gate by binding the module catalog to SHA-256 digests of current repo-local main.tofu and README.md bytes while preserving signing, SLSA attestation, provider lock/provenance, private registry API, tofu test/plan/apply, and provider-resource-complete modules as explicit non-claims.",
+  "complementary_plan_reference": [
+    "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
+    "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
+    "plan/hyperscaler-grade-cloud-platform-quality-review.md"
+  ],
+  "best_practice_sources": [
+    {
+      "source": "OpenTofu Dependency Lock File",
+      "url": "https://opentofu.org/docs/language/files/dependency-lock/",
+      "evidence_used": "OpenTofu lockfile/checksum behavior informs the explicit non-claim that this local module-source SHA-256 manifest is not provider dependency lock/provenance evidence."
+    },
+    {
+      "source": "OpenTofu providers lock command",
+      "url": "https://opentofu.org/docs/cli/commands/providers/lock/",
+      "evidence_used": "Provider lock prepopulation remains a future slice; this gate does not run tofu providers lock or create .terraform.lock.hcl files."
+    },
+    {
+      "source": "OpenTofu Provider Requirements",
+      "url": "https://opentofu.org/docs/language/providers/requirements/",
+      "evidence_used": "Provider requirements remain distinct from this module provenance manifest; current skeleton modules do not claim provider-resource-complete bodies."
+    },
+    {
+      "source": "SLSA specification v1.2",
+      "url": "https://slsa.dev/spec/v1.2/",
+      "evidence_used": "SLSA provenance/attestation remains a non-claim; this changeset records local source digests only and does not issue provenance attestations."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-provenance --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --provenance microservices/cloud-iac/tofu/modules/provenance.json",
+      "result": "FAIL before implementation",
+      "summary": "The command exited 2 because cloud-iac-module-provenance was not wired in the gate dispatcher. Log: /tmp/cs-cloud-iac-module-provenance-red.log."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --all && cargo test -p oya-dev-cli cloud_iac_module_provenance -- --nocapture",
+      "result": "PASS",
+      "summary": "Focused dev-cli tests passed, covering argument parsing, valid fixture acceptance, digest drift, missing required file digest, manifest scope drift, and run-all catalog membership."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-provenance --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --provenance microservices/cloud-iac/tofu/modules/provenance.json",
+      "result": "PASS",
+      "summary": "Live Cloud IaC module provenance gate passed: 6 modules and 12 source-file digests checked."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after adding cloud-iac-module-provenance to AGGREGATED_VALIDATE_LANES."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-catalog --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json && ./bin/oya gate validate cloud-iac-gitops-evidence --repo-root . --manifest microservices/cloud-iac/manifest.json --templates-root microservices/cloud-iac/iac && ./bin/oya gate validate cloud-iac-cell-topology --repo-root . --manifest microservices/cloud-iac/manifest.json --topology microservices/cloud-iac/cell-topology/foundation.json --catalog microservices/cloud-iac/tofu/modules/catalog.json && ./bin/oya gate validate cloud-iac-opentofu-validation --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json --modules-root microservices/cloud-iac/tofu/modules",
+      "result": "PASS",
+      "summary": "Existing Cloud IaC regression gates remain green: module catalog, GitOps evidence, cell topology, and OpenTofu validation."
+    },
+    {
+      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain && cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings && cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Scoped Rust check, clippy with warnings denied, and formatting check passed."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json && python3 -m json.tool microservices/cloud-iac/tofu/modules/provenance.json && python3 JSONL parse of evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Manifest, provenance, and evidence JSON parse; audit-chain JSONL parsed 438 rows after evidence-attached append."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure && ./bin/oya gate validate api-semver --contracts-dir contracts && ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Planning closure, API semver, and architecture-boundaries remain green."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs --corpus-root crates/oya-dev-cli/src/lib.rs --corpus-root crates/oya-dev-cli/src/commands/gate/mod.rs --corpus-root crates/oya-dev-cli/src/commands/gate/run_all.rs --corpus-root crates/oya-foundry-gate-catalog-domain/src/lib.rs --corpus-root microservices/cloud-iac/manifest.json --corpus-root microservices/cloud-iac/tofu/modules/provenance.json --corpus-root tasks/plan.md --corpus-root tasks/todo.md",
+      "result": "PASS",
+      "summary": "Scoped honest-claims gate passed across claimed code, manifest, provenance, and task surfaces."
+    },
+    {
+      "command": "./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-module-provenance-retired-vocab.<id>",
+      "result": "PASS",
+      "summary": "Scoped retired-vocabulary gate passed over temp corpus containing the new gate, manifest, provenance, and task files: 5 documents, 0 drift hits."
+    },
+    {
+      "command": "./bin/oya gate run-all",
+      "result": "PASS",
+      "summary": "Default aggregate gate run passed 86/86 lanes, including cloud-iac-module-provenance."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-module-provenance-gate-20260524.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-module-provenance-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam validation passed: 6 subchecks, 6 pass, 0 diagnostics, 0 blocking."
+    }
+  ],
+  "implemented_claims": [
+    "Added oya gate validate cloud-iac-module-provenance with repo-local defaults for manifest, catalog, and provenance paths.",
+    "Added microservices/cloud-iac/tofu/modules/provenance.json binding all six catalog modules to SHA-256 digests for main.tofu and README.md.",
+    "Manifest module_provenance_scope now records catalog/provenance paths, digest algorithm, module count/names, official sources consulted, enforced invariants, and non-claims.",
+    "Run-all catalog membership now includes cloud-iac-module-provenance and the gate catalog tests cover the aggregate lane."
+  ],
+  "explicit_non_claims": [
+    "no cosign or Sigstore signing execution",
+    "no SLSA attestation generation or verification summary",
+    "no provider dependency lockfile or provider provenance evidence",
+    "no live private module registry API",
+    "no tofu test/plan/apply evidence",
+    "no provider-resource-complete module bodies",
+    "no provider API, provider credentials, state backend, cloud resource provisioning, Argo CD/Kubernetes API, SLO, DR, or capacity telemetry claim"
+  ],
+  "false_green_findings_closed": [
+    "Catalog rows can no longer silently drift from the checked-in module files without cloud-iac-module-provenance failing on digest mismatch or missing main.tofu/README.md digest.",
+    "Manifest and provenance metadata now fail closed when module names, counts, source catalog, source root, digest algorithm, changeset, runtime mode, or gate file drift.",
+    "Local-foundation-skeleton rows remain barred from claiming provider resources, materialized outputs, or tofu tests."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required remains known-red from the immediate Cloud IaC verifier attempt on unrelated/concurrent application-shell compile drift, app-shell evidence metadata/audit-chain admission gaps, and pre-existing ADR-0322..ADR-0349 shape diagnostics; this ChangeSet does not modify or claim those surfaces.",
+    "Cloud IaC still needs future slices for provider requirements and .terraform.lock.hcl evidence, provider provenance, signed module release index, SLSA attestations, tofu tests, plan/apply evidence, private module registry API, and live GitOps/provider integration evidence.",
+    "Concurrent unrelated application-shell changes and many untracked evidence artifacts exist in the worktree; this ChangeSet does not claim or modify them."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Small local gate with a single sha2 dependency and no runtime service abstraction; it checks file bytes directly and fails with concrete diagnostics."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Moves Cloud IaC from catalog-only skeleton rows toward supply-chain-shaped local provenance while refusing to overclaim signing, SLSA, provider locks, registry APIs, or plan/apply."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests and live gate cover unknown lane RED, digest drift, missing required digest, manifest scope drift, catalog/provenance key matching, path containment, and skeleton overclaim guards."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Command has live repo defaults and reports manifest/catalog/provenance paths plus module/file counts."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests, live gate, Cloud IaC regressions, scoped check/clippy/fmt, JSON/audit parsing, planning/api/architecture gates, honest/retired vocabulary, run-all 86/86, and strict dependency-seam are recorded."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Rejected fake signing/SLSA/provider-lock claims; chose local SHA-256 source provenance as the smallest honest next gate before provider-lock/signature slices."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Gate canonicalizes paths, rejects absolute/parent traversal for repo-relative paths, requires digest matches current bytes, and records that no secrets/provider credentials are used."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Bounded local filesystem scan of 12 small files; no provider calls, network, or runtime hot path."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Explicit non-claims distinguish local source digests from SLSA attestation, provider lock/provenance, deployment, SLO, DR, or hyperscaler readiness evidence."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Existing module-catalog, GitOps evidence, cell-topology, and OpenTofu validation gates remain green; run-all aggregate now passes 86/86."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Manifest module_provenance_scope, tasks, evidence, and audit-chain record scope, official sources, verification, and non-claims; /plan remains complementary reference only."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reserved facet acknowledged; no reserved review needed."
+      ]
+    },
+    "F13_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Default run-all now includes the gate; local failure diagnostics identify mismatched module keys, paths, digest drift, and manifest/provenance scope drift."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim/work used; Cargo.lock scope added after sha2 dependency; no raw git/gh; evidence and audit-chain closeout prepared."
+      ]
+    },
+    "A2_authority_cohesion": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Root hub and docs/AGENTS contract followed; manifest and specs remain authoritative while /plan is complementary only."
+      ]
+    }
+  }
+}

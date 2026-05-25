@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-APPLICATION-SHELL-WORKFLOW-COHESION-EVIDENCE-METADATA-001",
+  "change_class_id": "CC-7",
+  "agent_id": "codex-app-shell-evidence-metadata-fix",
+  "created_at": "2026-05-23T12:45:48Z",
+  "freshness_unix": 1779540348,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "scope": "Normalize current app-shell workflow-cohesion evidence metadata after run-all provider admission found a missing change_id.",
+  "claim": "The workflow-cohesion evidence now includes canonical multispectrum metadata and facets, audit-chain coverage includes the normalized change_id, provider admission passes, and ./bin/oya gate run-all --ci-required passes 88/88. No product/runtime claim is added by this metadata repair. Workflow-cohesion evidence metadata normalization now sits under a full ./bin/oya verify --ci-required PASS.",
+  "pre_repair_failures": [
+    {
+      "command": "./bin/oya gate run-all --ci-required",
+      "status": "fail",
+      "diagnostic": "Provider admission failed with MULTISPECTRUM_EVIDENCE_MISSING_CHANGE_ID for evidence/multispectrum/cs-application-shell-workflow-cohesion-20260523.json",
+      "evidence": "/tmp/cs-app-shell-serde-policy-run-all.log"
+    }
+  ],
+  "implemented_changes": [
+    "Added change_id/change_class_id/agent_id/created_at/freshness_unix/git_sha to the workflow-cohesion evidence.",
+    "Added F1-F9 multispectrum facets and explicit non-claims while preserving the original verification/provenance content.",
+    "Will add audit-chain coverage rows for both the normalized workflow evidence and this metadata repair."
+  ],
+  "changed_files": [
+    "evidence/multispectrum/cs-application-shell-workflow-cohesion-20260523.json",
+    "evidence/multispectrum/cs-application-shell-workflow-cohesion-evidence-metadata-20260523.json",
+    "evidence/audit-chain.jsonl",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "green_verification": [
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-application-shell-workflow-cohesion-20260523.json evidence/multispectrum/cs-application-shell-workflow-cohesion-evidence-metadata-20260523.json",
+      "status": "pass",
+      "summary": "Normalized workflow evidence and repair evidence parse as JSON."
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "pass",
+      "summary": "Provider admission metadata/authority checks, provider execution, cargo tests, and CLI smoke passed after evidence metadata normalization.",
+      "evidence": "/tmp/cs-workflow-cohesion-evidence-metadata-provider-admission.log"
+    },
+    {
+      "command": "./bin/oya gate run-all --ci-required",
+      "status": "pass",
+      "summary": "D-5 run-all passed 88/88 lanes; nextest summary 4318 passed, 1 skipped.",
+      "evidence": "/tmp/cs-workflow-cohesion-evidence-metadata-run-all.log"
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "status": "pass",
+      "summary": "Full verify passed: D-1 fmt, D-2 check, D-3 clippy, D-4 nextest (4318 passed, 1 skipped), D-5 run-all 88/88, D-6 ADR index write, D-7 ADR-shape lint.",
+      "evidence": "/tmp/cs-workflow-cohesion-evidence-metadata-full-verify.log"
+    }
+  ],
+  "remaining_blockers": [
+    "No known mandatory local verify blocker remains in the final observed run; future runs must still reverify because concurrent agents are active."
+  ],
+  "non_claims": [
+    "No product source change, backend integration, auth/authz, PHI/PII, production tenant data, live deployment, measured SLO/DR/sharding, provider-live proof, compliance certification, or hyperscaler readiness is claimed.",
+    "Full local verify passed in this run, but no production/runtime/hyperscaler readiness is claimed beyond the explicit local gates."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Small metadata-only repair; no source behavior changed."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Refuses hyperscaler/runtime readiness claims."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "MULTISPECTRUM_EVIDENCE_MISSING_CHANGE_ID",
+      "findings": [
+        "Run-all/provider admission captured the missing-change-id diagnostic."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "Canonical fields make the evidence searchable and auditable."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Original evidence content preserved; metadata added."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "scan",
+      "alternatives_named": [
+        "Delete evidence",
+        "Normalize evidence"
+      ],
+      "selected_rationale": "Normalize to preserve provenance and satisfy admission.",
+      "rejected_reasons": [
+        "Deleting evidence would hide provenance."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "scan",
+      "owasp_class_review": "none_applicable",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "Evidence-only metadata repair touched no secrets or tenant data."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No performance impact; no benchmark claim."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Audit-chain traceability repair only; no compliance certification."
+      ]
+    }
+  }
+}

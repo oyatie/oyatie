@@ -1,9 +1,17 @@
 context: cloud
 role: app
-capability: cell-bind
+capability: cloud-cell-bind
 plane: control
-slo: stable-control-plane
-data_classes_owned: [INTERNAL_ONLY]
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
+non_claims:
+  - no live cell lifecycle service runtime
+  - no tenant migration or rebalance executor
+  - no measured SLO or audit-chain persistence

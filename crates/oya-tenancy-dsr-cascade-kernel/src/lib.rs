@@ -6,7 +6,7 @@
 #![allow(dead_code)]
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct DsrRequestId(pub String);
+pub struct DsrRequestId(pub String); // data_class: INTERNAL_ONLY
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DsrKind {
@@ -18,24 +18,24 @@ pub enum DsrKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DsrRequest {
-    pub id: DsrRequestId,
-    pub tenant_id: String,
-    pub subject_id: String,
-    pub kind: DsrKind,
+    pub id: DsrRequestId,   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,  // data_class: INTERNAL_ONLY
+    pub subject_id: String, // data_class: INTERNAL_ONLY
+    pub kind: DsrKind,      // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ErasureReceipt {
-    pub request: DsrRequestId,
-    pub microservice: String,
-    pub merkle_leaf: [u8; 32],
+    pub request: DsrRequestId, // data_class: INTERNAL_ONLY
+    pub microservice: String,  // data_class: INTERNAL_ONLY
+    pub merkle_leaf: [u8; 32], // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProofOfErasure {
-    pub request: DsrRequestId,
-    pub merkle_root: [u8; 32],
-    pub receipts: Vec<ErasureReceipt>,
+    pub request: DsrRequestId,         // data_class: INTERNAL_ONLY
+    pub merkle_root: [u8; 32],         // data_class: INTERNAL_ONLY
+    pub receipts: Vec<ErasureReceipt>, // data_class: INTERNAL_ONLY
 }
 
 pub trait DsrRequestRepository {

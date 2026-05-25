@@ -1,0 +1,19 @@
+[package]
+name = "oya-messenger-message-stream-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-connect-messenger-domain = { path = "../oya-connect-messenger-domain" }
+oya-messenger-message-stream-api = { path = "../oya-messenger-message-stream-api" }
+
+[lib]
+name = "oya_messenger_message_stream_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

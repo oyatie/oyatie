@@ -20,6 +20,7 @@ use oya_metering_domain::{
 };
 
 const CAPACITY_SCHEMA_VERSION: u32 = 1;
+pub const CLOUD_OPS_FOUNDATION_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
 const SKU_ID_PREFIX: &str = "csku_";
 const RESERVATION_ID_PREFIX: &str = "cres_";
@@ -28,6 +29,13 @@ const SPOT_POOL_ID_PREFIX: &str = "spot_";
 const SPOT_ASSIGNMENT_ID_PREFIX: &str = "spota_";
 const REBALANCE_PLAN_ID_PREFIX: &str = "crb_";
 const APPROVAL_REF_PREFIX: &str = "approval/";
+pub const OPS_CAPACITY_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/capacity/";
+pub const OPS_CELL_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/cell/";
+pub const OPS_DCOPS_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/dcops/";
+pub const OPS_FINOPS_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/finops/";
+pub const OPS_MARKETPLACE_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/marketplace/";
+pub const OPS_FSH_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/fsh/";
+pub const OPS_AUDIT_CHAIN_PREFIX: &str = "audit-chain/cloud-ops/";
 const CAPACITY_METER_CAPABILITY_ID: &str = "cap.cloud.capacity.commercial";
 pub const REQUIRED_STABLE_HEADROOM_BPS: u16 = 3_000;
 pub const MIN_SPOT_INTERRUPTION_NOTICE_SECONDS: u32 = 120;
@@ -296,6 +304,45 @@ pub struct CapacityMeterCreate {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudOpsFoundationGuardrailCreate {
+    pub tenant_id: String,                              // data_class: INTERNAL_ONLY
+    pub region: String,                                 // data_class: PUBLIC
+    pub cell_id: String,                                // data_class: PUBLIC
+    pub stable_capacity_envelope: CellCapacityEnvelope, // data_class: INTERNAL_ONLY
+    pub stable_reservation_units: CapacityUnits,        // data_class: PUBLIC
+    pub rebalance_source_total: CapacityUnits,          // data_class: INTERNAL_ONLY
+    pub rebalance_move_units: CapacityUnits,            // data_class: PUBLIC
+    pub capacity_evidence_ref: String,                  // data_class: AUDIT
+    pub cell_lifecycle_evidence_ref: String,            // data_class: AUDIT
+    pub dcops_evidence_ref: String,                     // data_class: AUDIT
+    pub finops_evidence_ref: String,                    // data_class: AUDIT
+    pub marketplace_evidence_ref: String,               // data_class: AUDIT
+    pub filesystem_handoff_evidence_ref: String,        // data_class: AUDIT
+    pub audit_chain_ref: String,                        // data_class: AUDIT
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudOpsFoundationGuardrail {
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub region: Classified<RegionCode>, // data_class: PUBLIC
+    pub cell_id: Classified<CellId>,    // data_class: PUBLIC
+    pub stable_capacity_envelope: Classified<CellCapacityEnvelope>, // data_class: INTERNAL_ONLY
+    pub stable_reservation_units: Classified<CapacityUnits>, // data_class: PUBLIC
+    pub stable_headroom_bps: Classified<u16>, // data_class: INTERNAL_ONLY
+    pub rebalance_source_total: Classified<CapacityUnits>, // data_class: INTERNAL_ONLY
+    pub rebalance_move_units: Classified<CapacityUnits>, // data_class: PUBLIC
+    pub rebalance_move_bps: Classified<u16>, // data_class: INTERNAL_ONLY
+    pub capacity_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub cell_lifecycle_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub dcops_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub finops_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub marketplace_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub filesystem_handoff_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub audit_chain_ref: Classified<String>, // data_class: AUDIT
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudCapacityError {
     InvalidSkuId,
     InvalidReservationId,
@@ -319,6 +366,8 @@ pub enum CloudCapacityError {
     InvalidSpotCapacity,
     InvalidDataClass,
     InvalidRebalanceMove,
+    InvalidOpsEvidenceRef,
+    InvalidAuditChainRef,
     UnknownSku,
     UnknownSpotPool,
     DuplicateSku,
@@ -662,6 +711,98 @@ impl RebalancePlan {
     }
 }
 
+impl CloudOpsFoundationGuardrail {
+    pub fn new(input: CloudOpsFoundationGuardrailCreate) -> Result<Self, CloudCapacityError> {
+        validate_tenant_id(&input.tenant_id)?;
+        validate_units(input.stable_reservation_units)?;
+        validate_units(input.rebalance_source_total)?;
+        validate_units(input.rebalance_move_units)?;
+        let region =
+            RegionCode::new(input.region.clone()).map_err(|_| CloudCapacityError::InvalidRegion)?;
+        let cell_id =
+            CellId::new(input.cell_id.clone()).map_err(|_| CloudCapacityError::InvalidCellId)?;
+        validate_cell_region(&cell_id, &region)?;
+        validate_reservation_headroom(
+            input.stable_capacity_envelope,
+            input.stable_reservation_units,
+        )?;
+        let stable_headroom_bps = stable_headroom_after_reservation_bps(
+            input.stable_capacity_envelope,
+            input.stable_reservation_units,
+        )?;
+        let rebalance_move_bps =
+            max_capacity_ratio_bps(input.rebalance_move_units, input.rebalance_source_total)?;
+        if rebalance_move_bps > MAX_REBALANCE_MOVE_BPS {
+            return Err(CloudCapacityError::InvalidRebalanceMove);
+        }
+
+        let capacity_evidence_ref = validate_ops_evidence_ref(
+            &input.capacity_evidence_ref,
+            OPS_CAPACITY_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+        )?;
+        let cell_lifecycle_evidence_ref = validate_ops_evidence_ref(
+            &input.cell_lifecycle_evidence_ref,
+            OPS_CELL_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+        )?;
+        let dcops_evidence_ref = validate_ops_evidence_ref(
+            &input.dcops_evidence_ref,
+            OPS_DCOPS_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+        )?;
+        let finops_evidence_ref = validate_ops_evidence_ref(
+            &input.finops_evidence_ref,
+            OPS_FINOPS_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+        )?;
+        let marketplace_evidence_ref = validate_ops_evidence_ref(
+            &input.marketplace_evidence_ref,
+            OPS_MARKETPLACE_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+        )?;
+        let filesystem_handoff_evidence_ref = validate_ops_evidence_ref(
+            &input.filesystem_handoff_evidence_ref,
+            OPS_FSH_EVIDENCE_PREFIX,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+        )?;
+        let audit_chain_ref =
+            validate_audit_chain_ref(&input.audit_chain_ref, &input.tenant_id, &region, &cell_id)?;
+
+        Ok(Self {
+            tenant_id: internal(input.tenant_id),
+            region: public(region),
+            cell_id: public(cell_id),
+            stable_capacity_envelope: internal(input.stable_capacity_envelope),
+            stable_reservation_units: public(input.stable_reservation_units),
+            stable_headroom_bps: internal(stable_headroom_bps),
+            rebalance_source_total: internal(input.rebalance_source_total),
+            rebalance_move_units: public(input.rebalance_move_units),
+            rebalance_move_bps: internal(rebalance_move_bps),
+            capacity_evidence_ref: audit(capacity_evidence_ref),
+            cell_lifecycle_evidence_ref: audit(cell_lifecycle_evidence_ref),
+            dcops_evidence_ref: audit(dcops_evidence_ref),
+            finops_evidence_ref: audit(finops_evidence_ref),
+            marketplace_evidence_ref: audit(marketplace_evidence_ref),
+            filesystem_handoff_evidence_ref: audit(filesystem_handoff_evidence_ref),
+            audit_chain_ref: audit(audit_chain_ref),
+            schema_version: public(CLOUD_OPS_FOUNDATION_SCHEMA_VERSION),
+        })
+    }
+}
+
 impl CapacityRepo for CloudCapacityCatalog {
     fn register_sku(
         &mut self,
@@ -856,15 +997,22 @@ fn validate_reservation_headroom(
     envelope: CellCapacityEnvelope,
     reservation: CapacityUnits,
 ) -> Result<(), CloudCapacityError> {
-    let stable_used = add_units(envelope.allocated, envelope.reserved)?;
-    let reclaimable_used = add_units(stable_used, envelope.spot_assigned)?;
-    let used = add_units(reclaimable_used, reservation)?;
-    let headroom_bps = capacity_headroom_bps(envelope.total, used)?;
+    let headroom_bps = stable_headroom_after_reservation_bps(envelope, reservation)?;
     if headroom_bps < REQUIRED_STABLE_HEADROOM_BPS {
         Err(CloudCapacityError::InvalidHeadroom)
     } else {
         Ok(())
     }
+}
+
+fn stable_headroom_after_reservation_bps(
+    envelope: CellCapacityEnvelope,
+    reservation: CapacityUnits,
+) -> Result<u16, CloudCapacityError> {
+    let stable_used = add_units(envelope.allocated, envelope.reserved)?;
+    let reclaimable_used = add_units(stable_used, envelope.spot_assigned)?;
+    let used = add_units(reclaimable_used, reservation)?;
+    capacity_headroom_bps(envelope.total, used)
 }
 
 fn capacity_headroom_bps(
@@ -995,7 +1143,19 @@ fn validate_money(value: &Money) -> Result<(), CloudCapacityError> {
 }
 
 fn validate_tenant_id(value: &str) -> Result<(), CloudCapacityError> {
-    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
+    let Some(segment) = value.strip_prefix(TENANT_ID_PREFIX) else {
+        return Err(CloudCapacityError::InvalidTenantId);
+    };
+    if segment.is_empty()
+        || segment.starts_with('-')
+        || segment.ends_with('-')
+        || segment.contains("--")
+    {
+        return Err(CloudCapacityError::InvalidTenantId);
+    }
+    if segment.bytes().all(|byte| {
+        byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'-')
+    }) {
         Ok(())
     } else {
         Err(CloudCapacityError::InvalidTenantId)
@@ -1017,6 +1177,99 @@ fn validate_cell_region(cell_id: &CellId, region: &RegionCode) -> Result<(), Clo
     } else {
         Err(CloudCapacityError::InvalidCellId)
     }
+}
+
+fn validate_ops_evidence_ref(
+    value: &str,
+    prefix: &str,
+    tenant_id: &str,
+    region: &RegionCode,
+    cell_id: &CellId,
+) -> Result<String, CloudCapacityError> {
+    validate_scoped_ref(
+        value,
+        prefix,
+        tenant_id,
+        region,
+        cell_id,
+        CloudCapacityError::InvalidOpsEvidenceRef,
+    )
+}
+
+fn validate_audit_chain_ref(
+    value: &str,
+    tenant_id: &str,
+    region: &RegionCode,
+    cell_id: &CellId,
+) -> Result<String, CloudCapacityError> {
+    validate_scoped_ref(
+        value,
+        OPS_AUDIT_CHAIN_PREFIX,
+        tenant_id,
+        region,
+        cell_id,
+        CloudCapacityError::InvalidAuditChainRef,
+    )
+}
+
+fn validate_scoped_ref(
+    value: &str,
+    prefix: &str,
+    tenant_id: &str,
+    region: &RegionCode,
+    cell_id: &CellId,
+    error: CloudCapacityError,
+) -> Result<String, CloudCapacityError> {
+    if !value.starts_with(prefix) || has_unsafe_ref_bytes(value) || has_secret_marker(value) {
+        return Err(error);
+    }
+    let scoped = value.strip_prefix(prefix).ok_or_else(|| error.clone())?;
+    let segments = safe_ref_segments(scoped).map_err(|_| error.clone())?;
+    if segments.len() < 4
+        || segments[0] != tenant_id
+        || segments[1] != region.value.as_str()
+        || segments[2] != cell_id.value.as_str()
+    {
+        return Err(error);
+    }
+    Ok(value.to_string())
+}
+
+fn has_unsafe_ref_bytes(value: &str) -> bool {
+    value
+        .chars()
+        .any(|ch| ch.is_control() || ch.is_whitespace() || matches!(ch, '\\' | '?' | '#'))
+}
+
+fn has_secret_marker(value: &str) -> bool {
+    const SECRET_MARKERS: [&str; 11] = [
+        "secret",
+        "password",
+        "private_key",
+        "api_key",
+        "apikey",
+        "access_token",
+        "token=",
+        "bearer",
+        "credential",
+        "kubeconfig",
+        "openbao",
+    ];
+    let lowercase = value.to_ascii_lowercase();
+    SECRET_MARKERS
+        .iter()
+        .any(|marker| lowercase.contains(marker))
+}
+
+fn safe_ref_segments(value: &str) -> Result<Vec<&str>, ()> {
+    let mut segments = Vec::new();
+    for segment in value.split('/') {
+        if segment.is_empty() || matches!(segment, "." | "..") {
+            return Err(());
+        }
+        segments.push(segment);
+    }
+    Ok(segments)
 }
 
 fn prefixed(
@@ -1082,6 +1335,9 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 fn financial<T>(value: T) -> Classified<T> {
     Classified::new(value, DataClass::Financial)
+}
+fn audit<T>(value: T) -> Classified<T> {
+    Classified::new(value, DataClass::Audit)
 }
 
 #[cfg(test)]

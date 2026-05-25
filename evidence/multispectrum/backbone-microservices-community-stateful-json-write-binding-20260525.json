@@ -1,0 +1,284 @@
+{
+  "change_id": "backbone-microservices-community-stateful-json-write-binding-20260525",
+  "change_class_id": "CC-1",
+  "summary": "Community vote and moderation JSON write routes can now bind to explicitly supplied local in-memory state in the shared REST runtime adapter while default no-state routing remains an honest 501 seam.",
+  "scope": [
+    "crates/oya-shared-backbone-rest-runtime-adapter/Cargo.toml",
+    "crates/oya-shared-backbone-rest-runtime-adapter/src/lib.rs",
+    "Cargo.lock",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice proves local in-memory loopback state composition for community vote/moderation JSON write routes only. It does not claim durable Postgres/Citus persistence, transactional outbox or broker publish, Kubernetes Gateway/TLS, OpenCost allocation, ArgoCD sync/health, remote hosted CI green, branch protection, or production tenant workload deployment.",
+  "best_practice_research": [
+    {
+      "source": "repo://crates/oya-community-post-store-rest/src/lib.rs#cast_vote_from_rest",
+      "source_quality": "repo-local service-owned REST boundary",
+      "used_for": "Reused existing typed vote and moderation REST handlers rather than duplicating business rules in the shared runtime adapter."
+    },
+    {
+      "source": "repo://crates/oya-community-post-store-domain/src/lib.rs#VoteLedger",
+      "source_quality": "repo-local domain model",
+      "used_for": "Grounded the local in-memory state shape in the existing CommunityPost and VoteLedger domain types."
+    },
+    {
+      "source": "repo://crates/oya-shared-backbone-rest-runtime-adapter/src/lib.rs#typed_write_plan_response",
+      "source_quality": "repo-local runtime adapter seam",
+      "used_for": "Preserved default no-state typed-write-plan 501 semantics while adding an explicit composed-state path."
+    }
+  ],
+  "source_basis": [
+    {
+      "url": "repo://crates/oya-community-post-store-api/src/lib.rs#CastVoteRequest",
+      "use": "Defines vote direction, moderation verb, and receipt envelope types used by service-owned handlers."
+    },
+    {
+      "url": "repo://crates/oya-community-post-store-usecase/src/lib.rs#cast_vote",
+      "use": "Existing usecase enforces tenant/principal/post matching, duplicate votes, and idempotency-key vote IDs."
+    },
+    {
+      "url": "repo://microservices/community/contracts/openapi/community.yaml#/paths/~1posts~1{post_id}~1vote",
+      "use": "Route contract for community vote JSON binding."
+    },
+    {
+      "url": "repo://microservices/community/contracts/openapi/community.yaml#/paths/~1moderation~1actions",
+      "use": "Route contract for community moderation JSON binding."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The default route catalog behavior stays simple: community vote/moderation remain typed-write-plan 501 seams unless the caller explicitly composes local state.",
+        "The state-composed path reuses existing service-owned REST typed handlers and domain vote ledger rules rather than reimplementing vote/moderation business logic in the shared runtime adapter.",
+        "The in-memory state object is explicit and caller-owned; there is no hidden global mutable state."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The slice proves the FD-001 community workload can execute vote/moderation write semantics through the shared REST runtime when a backing state seam is supplied.",
+        "The claim boundary remains compatible with Oyatie Cloud dogfood goals because local loopback state is not represented as production tenancy, cluster admission, OpenCost, or durable persistence evidence."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "A regression test preserves the no-state 501 response for stateful community routes.",
+        "Positive tests require explicit seeded state for vote and moderation, and a duplicate vote proves the mutable ledger path is actually consulted.",
+        "Path/body drift checks still run before vote dispatch for /posts/{post_id}/vote."
+      ],
+      "failing_fixture_added": true,
+      "failing_fixture_id": "community_stateful_json_write_routes_bind_when_in_memory_state_is_composed initially failed before BackboneCommunityJsonState/build_backbone_rest_router_with_state existed",
+      "passing_fixture_id": "cargo test -p oya-shared-backbone-rest-runtime-adapter community_ --lib: 3 passed",
+      "diagnostic_asserted": "Removing the explicit runtime state composition would return 501 or fail the json_write route-count assertions."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Callers can seed local community posts with BackboneCommunityJsonState and reuse the same router dispatch helper used by Hyper loopback tests.",
+        "Route-count fields show reviewers whether the router is default stateless or state-composed."
+      ],
+      "new_contributor_minutes_estimate": 12
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests cover default 501 behavior, state-composed route counts, vote success, vote duplicate rejection, and moderation success.",
+        "cargo check, unit tests, clippy -D warnings, and fmt check pass for the shared REST runtime adapter crate."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Keep vote/moderation permanently 501 until Postgres is wired",
+        "Add hidden global in-memory state to the shared router",
+        "Add an explicit caller-supplied local state seam for community vote/moderation"
+      ],
+      "selected_rationale": "The explicit local state seam proves generic JSON route binding without pretending to provide durable persistence or adding global mutable state.",
+      "rejected_reasons": [
+        "Leaving the routes 501 blocks useful FD-001 loopback tenant-workload proof despite service-owned handlers already existing.",
+        "Hidden global state would make tests order-dependent and would blur the non-production claim boundary."
+      ],
+      "findings": []
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No secrets, credentials, tokens, network endpoints, tenant records, or live infrastructure identifiers were added.",
+        "Vote and moderation requests still require explicit tenant/principal/idempotency/policy/request headers via the existing fail-closed context helpers.",
+        "The non-claim string explicitly rejects durable database, broker, cluster, OpenCost, ArgoCD sync, and live deployment claims."
+      ],
+      "owasp_class_review": "access_control_and_state_confusion_prevention",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Local state uses BTreeMap lookups behind a std Mutex and is intended for loopback tests only, not production throughput.",
+        "Default stateless router path has no additional state lookup for services other than community state-composed routes."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The slice touches only synthetic local test state and code; no regulated tenant data or retention policy enforcement claim is introduced.",
+        "Existing policy_decision_ref and audit/request identifiers continue to appear in JSON receipts for correlation."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reverting removes the optional state structs, one internal path dependency, focused tests, task text, evidence, and audit rows while preserving the earlier default router behavior."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Responses keep audit_correlation_id, idempotency_key, policy_decision_ref, runtime_handler, status_code, and non_claim fields for loopback diagnostics."
+      ]
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "The existing build_backbone_rest_router and serve_backbone_rest_microservice_listener APIs preserve default no-state semantics and existing tests.",
+        "The new build_backbone_rest_router_with_state API is additive."
+      ]
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "New identifiers use existing BackboneRest* and community JSON/write vocabulary already present in the runtime adapter."
+      ]
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "tasks/plan.md, tasks/todo.md, evidence, and audit-chain rows document scope and non-claims for the local state seam."
+      ]
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The change remains inside the shared REST runtime adapter crate plus task/evidence artifacts; service-owned domain/usecase/REST crates are reused but not modified."
+      ]
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The runtime adapter composes state at the adapter edge and delegates business rules to community REST/usecase/domain handlers, preserving domain boundary ownership."
+      ]
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The only dependency addition is an internal workspace path dependency on oya-community-post-store-domain so the adapter can hold the typed post and vote ledger required by the existing REST vote handler.",
+        "No third-party crate was added."
+      ]
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "JSON parsing remains explicit and field-by-field; no new serde-derived API boundary or untyped domain mutation was introduced.",
+        "Moderation target_type must be post for the current local state binding."
+      ]
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No workflow or deployment automation was changed in this slice; local focused verification is recorded, with full local oya verify planned before submit."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-shared-backbone-rest-runtime-adapter community_stateful_json_write_routes_bind_when_in_memory_state_is_composed --lib (before implementation)",
+      "result": "fail_expected_red",
+      "evidence": "Compilation failed because BackboneCommunityJsonState, BackboneRestRuntimeState, and build_backbone_rest_router_with_state did not exist yet."
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-rest-runtime-adapter community_stateful_json_write_routes_bind_when_in_memory_state_is_composed --lib",
+      "result": "pass",
+      "evidence": "1 passed; state-composed community router reports json_write=3 and typed_write_plan=0."
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-rest-runtime-adapter community_ --lib",
+      "result": "pass",
+      "evidence": "3 passed; covers state-composed route counts, vote success+duplicate rejection, and moderation success."
+    },
+    {
+      "command": "cargo test -p oya-shared-backbone-rest-runtime-adapter --lib",
+      "result": "pass",
+      "evidence": "13 passed; preserves default stateful_write_plan_route_remains_honest_501 and existing TCP loopback/stateless JSON tests."
+    },
+    {
+      "command": "cargo check -p oya-shared-backbone-rest-runtime-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "cargo clippy -p oya-shared-backbone-rest-runtime-adapter --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-backbone-rest-runtime-adapter",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity error --evidence evidence/multispectrum/backbone-microservices-community-stateful-json-write-binding-20260525.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root <5 scoped files>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 3 documents, 1348 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "./bin/oya gate validate audit-chain-replay",
+      "result": "pass",
+      "evidence": "audit chain replay validation passed: 1 shards, 28 events"
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "pass",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4545 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; D-7 adr-shape passed (rerun after final code formatting cleanup)."
+    }
+  ],
+  "non_claims": [
+    "No durable Postgres/Citus state is created or queried.",
+    "No transactional outbox, broker publish, or worker execution is performed.",
+    "No live Kubernetes Gateway/TLS/DNS, ArgoCD sync/health, OpenCost report, admission result, hosted CI green result, branch-protection state, or production tenant workload deployment is claimed.",
+    "Default router construction remains no-state and returns 501 for community vote/moderation stateful write routes."
+  ],
+  "git_sha": "72037c27",
+  "freshness_unix": 1779684174
+}

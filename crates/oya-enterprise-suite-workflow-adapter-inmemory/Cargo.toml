@@ -1,0 +1,19 @@
+[package]
+name = "oya-enterprise-suite-workflow-adapter-inmemory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-enterprise-suite-app = { path = "../oya-enterprise-suite-app" }
+oya-enterprise-suite-domain = { path = "../oya-enterprise-suite-domain" }
+
+[lib]
+name = "oya_enterprise_suite_workflow_adapter_inmemory"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

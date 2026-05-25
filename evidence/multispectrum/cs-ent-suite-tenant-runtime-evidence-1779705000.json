@@ -1,0 +1,290 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "official_sources": [
+      "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/security/service-accounts/",
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+      "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes",
+      "https://gateway-api.sigs.k8s.io/docs/introduction/",
+      "https://opentelemetry.io/docs/specs/semconv/resource/service/"
+    ],
+    "handoff_constraints": [
+      "Preserve FD-001 product delivery as the master-plan product goal; treat Oyatie Cloud as the hyperscaler-grade substrate proof for hosting FD-001 microservices as real tenant workloads.",
+      "Require namespace observation, ResourceQuota usage, default-deny NetworkPolicy behavior, ServiceAccount boundary evidence, Pod security context, workload scheduling, resource requests and limits, readiness and liveness probes, Gateway HTTPRoute acceptance, tenant-claim propagation, OpenTelemetry resource identity, rollout recovery, and workload audit event evidence before any tenant workload runtime claim.",
+      "Keep production tenant, Kubernetes runtime attachment, workload runtime deployment, Gateway controller attachment, cloud-substrate runtime attachment, production workload evidence, and runtime audit-chain emission outside the review-only contract until environment-backed evidence exists.",
+      "Tie tenant workload runtime evidence back to the existing FD-001 tenant-workload manifest so later cloud integration cannot drift from workload count, namespace, cell, residency, tenant claim, and source refs."
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-TENANT-RUNTIME-EVIDENCE-001",
+  "created_at": "2026-05-25T10:30:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "freshness_unix": 1779705000,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "scope": [
+    "crates/oya-enterprise-suite-tenant-workload-runtime-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-tenant-workload-runtime-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-tenant-runtime-evidence-oya-vcs-lifecycle-20260525.json"
+  ],
+  "summary": "Adds a review-only FD-001 tenant workload runtime evidence contract for later Oyatie Cloud substrate proof and composes it into cloud-readiness without claiming production tenant, Kubernetes runtime attachment, workload runtime deployment, Gateway controller attachment, cloud-substrate runtime, production workload evidence, or runtime audit-chain emission.",
+  "nonclaims": [
+    "This slice is a review-only FD-001 tenant workload runtime evidence contract for later Oyatie Cloud substrate proof.",
+    "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves FD-001 microservices can run as tenant workloads.",
+    "It does not prove production tenant, Kubernetes runtime attachment, workload runtime deployment, Gateway controller attachment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission."
+  ],
+  "known_gaps": [
+    "no production tenant",
+    "no Kubernetes runtime attachment",
+    "no workload runtime deployment",
+    "no Gateway controller attachment",
+    "no cloud-substrate runtime attachment",
+    "no production workload evidence",
+    "no runtime audit-chain emission",
+    "no deployed listener runtime",
+    "no durable storage runtime",
+    "no production Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "commands": [
+    "cargo check -p oya-enterprise-suite-tenant-workload-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-tenant-workload-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-tenant-workload-runtime-evidence --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "cargo metadata --format-version=1 --no-deps",
+    "jq . specs/microservices/enterprise-suite.json",
+    "jq . evidence/multispectrum/cs-ent-suite-tenant-runtime-evidence-1779705000.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-tenant-runtime-evidence-1779705000.json --severity error",
+    "quality-marker scan for touched tenant-runtime-evidence/readiness/spec/task/evidence rows",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-TENANT-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-runtime-evidence-1779705000.json CS-ENT-SUITE-TENANT-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-runtime-evidence-1779705000.json CS-ENT-SUITE-TENANT-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-TENANT-RUNTIME-EVIDENCE-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-tenant-runtime-evidence-1779705000.json",
+    "audit-chain HEAD-prefix append-only script for evidence/audit-chain.jsonl"
+  ],
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite tenant-workload-runtime-evidence naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The tenant workload runtime evidence contract imports and validates the existing FD-001 tenant-workload manifest, then exposes only review-only runtime evidence requirements to cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No external dependency is introduced; the new evidence crate depends only on the existing tenant-workload manifest workspace crate and cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: manifest validation, required evidence-kind coverage, official doc URL allowlist, safe refs, required controls, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small typed contract and validator; it adds no production tenant, Kubernetes runtime, workload deployer, Gateway controller, cloud-substrate runtime, or audit runtime."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "FD-001 tenant workload promotion on Oyatie Cloud now requires namespace, quota, network, service-account, Pod-security, scheduling, resource, probe, Gateway, tenant-claim, OTel, rollout, and audit evidence before production workload claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing requirements, duplicate IDs, unofficial doc URLs, unsafe refs, missing controls, and runtime workload overclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future Oyatie Cloud workload adapters get one typed evidence checklist rather than reverse-engineering tenant workload promotion criteria from prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The code uses typed enums, explicit errors, no unsafe, no I/O, no network calls, and no third-party dependencies."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: attach a live Kubernetes runtime now, deploy tenant workloads now, or add a review-only tenant runtime evidence contract. The typed contract was selected because it is verifiable now, honors the FD-001 versus Oyatie Cloud distinction, and avoids runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract composes over the tenant-workload manifest and cloud-readiness while keeping production tenant, Kubernetes runtime, workload deployment, Gateway controller, cloud-substrate runtime, production evidence, and runtime audit emission blockers intact."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "The evidence plan requires namespace isolation, ResourceQuota usage, default-deny NetworkPolicy, ServiceAccount boundaries, Pod security, tenant claims, and audit events before production tenant workload claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is O(number of static requirements) and adds no request-path, Kubernetes API, Gateway, telemetry, or audit runtime work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New tenant-workload-runtime-evidence and cloud-readiness tests cover positive readiness, required evidence kinds, official docs, ref boundaries, nonclaims, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The contract strengthens production tenant workload traceability for the later Oyatie Cloud substrate while preserving live runtime and production evidence as explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog row, evidence, and audit-chain rows document the tenant workload runtime evidence plan and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/catalog row and cloud-readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The plan requires OpenTelemetry resource identity and workload audit event evidence, but does not claim runtime telemetry export or runtime audit-chain emission."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No production tenant, Kubernetes runtime, workload deployer, Gateway controller, cloud-substrate runtime, or audit runtime migration is applied; observations are evidence-contract entries only until a live cloud adapter lands."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "verification_results": {
+    "cargo_check_tenant_workload_runtime_evidence": "PASS",
+    "tenant_workload_runtime_evidence_tests": "PASS: 5 tests",
+    "cloud_readiness_tests": "PASS: 22 tests",
+    "tenant_workload_runtime_evidence_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-tenant-workload-runtime-evidence --all-targets -- -D warnings",
+    "cloud_readiness_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo_fmt_check": "PASS: cargo fmt --all -- --check",
+    "cargo_metadata": "PASS: cargo metadata --format-version=1 --no-deps",
+    "enterprise_suite_spec_json": "PASS: jq . specs/microservices/enterprise-suite.json",
+    "enterprise_suite_evidence_json": "PASS: jq . evidence/multispectrum/cs-ent-suite-tenant-runtime-evidence-1779705000.json",
+    "slo_coverage_gate": "PASS: 649 records",
+    "catalog_validate": "PASS: 649 records",
+    "architecture_boundaries": "PASS: 490 packages, 490 catalog records, 701 dependency edges",
+    "data_class_workspace": "PASS: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "quality_marker_scan": "PASS: touched tenant-runtime-evidence/readiness/spec/task/evidence rows and this slice audit-chain tail contain no blocked quality markers after closeout",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 142 branch-appended rows after promotion audit row",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-tenant-runtime-evidence-oya-vcs-lifecycle-20260525.json"
+  },
+  "review_verdict": "local-gates-pass-with-tenant-runtime-evidence-contract-and-oya-vcs-promoted"
+}

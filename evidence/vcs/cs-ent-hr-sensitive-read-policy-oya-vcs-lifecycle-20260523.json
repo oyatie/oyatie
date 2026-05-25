@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "captured_at_iso": "2026-05-23T10:51:30Z",
+  "captured_by": "codex-enterprise-20260523",
+  "purpose": "Explicit local Oya VCS lifecycle transcript evidence for CS-ENT-HR-003 after HR sensitive-read policy evidence. This is command-output evidence; it does not assert registry/vcs/changeset-event-log.json persistence.",
+  "changesets": [
+    "CS-ENT-HR-003"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "claim",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--intent",
+        "CS-ENT-HR-003 HR sensitive-read purpose-bound policy foundation",
+        "microservices/hr/crates/oya-hr-employment-domain/src/lib.rs::SensitiveHrReadPolicy",
+        "microservices/hr/crates/oya-hr-employment-domain/tests/privacy.rs::test_sensitive_hr_read_requires_basis",
+        "microservices/hr/crates/oya-hr-employment-app/src/lib.rs::SensitiveHrReadEnvelope",
+        "microservices/hr/crates/oya-hr-employment-app/tests/privacy.rs::sensitive_read_envelope",
+        "specs/microservices/hr.json::acceptance_criteria.AC-05",
+        "tasks/enterprise-microservices-plan.md::CS-ENT-HR-003",
+        "tasks/enterprise-microservices-todo.md::CS-ENT-HR-003",
+        "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json::CS-ENT-HR-003",
+        "evidence/vcs/cs-ent-hr-sensitive-read-policy-oya-vcs-lifecycle-20260523.json::CS-ENT-HR-003",
+        "evidence/audit-chain.jsonl::CS-ENT-HR-003"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "claim",
+            "action": "claim-lock",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": "CS-ENT-HR-003 HR sensitive-read purpose-bound policy foundation",
+            "scopes": [
+              "microservices/hr/crates/oya-hr-employment-domain/src/lib.rs::SensitiveHrReadPolicy",
+              "microservices/hr/crates/oya-hr-employment-domain/tests/privacy.rs::test_sensitive_hr_read_requires_basis",
+              "microservices/hr/crates/oya-hr-employment-app/src/lib.rs::SensitiveHrReadEnvelope",
+              "microservices/hr/crates/oya-hr-employment-app/tests/privacy.rs::sensitive_read_envelope",
+              "specs/microservices/hr.json::acceptance_criteria.AC-05",
+              "tasks/enterprise-microservices-plan.md::CS-ENT-HR-003",
+              "tasks/enterprise-microservices-todo.md::CS-ENT-HR-003",
+              "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json::CS-ENT-HR-003",
+              "evidence/vcs/cs-ent-hr-sensitive-read-policy-oya-vcs-lifecycle-20260523.json::CS-ENT-HR-003",
+              "evidence/audit-chain.jsonl::CS-ENT-HR-003"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "status",
+        "--agent",
+        "codex-enterprise-20260523",
+        "CS-ENT-HR-003"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "status",
+            "action": "read-status",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-003"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "verify",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json",
+        "CS-ENT-HR-003"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "verify",
+            "action": "verify-evidence",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-003"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "done",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json",
+        "CS-ENT-HR-003"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "done",
+            "action": "emit-change-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-003"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": "legacy-grit-compatible-done",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "promote",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--bundle",
+        "CS-ENT-HR-003",
+        "--environment",
+        "dev",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "promote",
+            "action": "promote-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json"
+            ],
+            "bundle_id": "CS-ENT-HR-003",
+            "environment": "dev",
+            "closeout_mode": "controller-promote",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    }
+  ],
+  "non_claims": [
+    "registry/vcs event-log persistence not asserted",
+    "remote CI execution not asserted",
+    "runtime authorization enforcement not asserted",
+    "sensitive HR data retrieval not asserted"
+  ]
+}

@@ -29,3 +29,4 @@ evidence/oci-readiness/a1-capacity-retry.log
 .omc/state/sessions/
 .omc/state/last-tool-error.json
 .omc/state/hud-stdin-cache.json
+test-results/

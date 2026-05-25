@@ -12,9 +12,9 @@ pub struct ProducerSurface(pub String);
 /// Pack-local chain coordinate: `(pack, tenant_partition, period)`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ChainCoordinate {
-    pub pack: String,
-    pub tenant_partition: String,
-    pub period: String,
+    pub pack: String,             // data_class: INTERNAL_ONLY
+    pub tenant_partition: String, // data_class: INTERNAL_ONLY
+    pub period: String,           // data_class: INTERNAL_ONLY
 }
 
 /// Port for emitting an audit envelope. Implementations live in

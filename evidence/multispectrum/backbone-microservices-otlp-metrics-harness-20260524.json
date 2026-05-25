@@ -1,0 +1,130 @@
+{
+  "change_id": "backbone-microservices-otlp-metrics-harness-20260524",
+  "change_class_id": "CC-1",
+  "summary": "Env-gated OpenTelemetry OTLP/HTTP metrics exporter harness for the shared hyperscaler metrics port.",
+  "scope": [
+    "crates/oya-shared-hyperscaler-metrics-adapter-otlp/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-hyperscaler-metrics-adapter-otlp.yaml",
+    "registry/dependency-rationales.json",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds a separate OTLP/HTTP adapter crate that implements the existing HyperscalerMetrics trait with OpenTelemetry SDK counters/gauges and an OTLP MetricExporter configured only when OYA_BACKBONE_OTLP_METRICS is enabled and an OTLP endpoint is provided. Default local/CI runs do not contact a collector. It does not claim a live collector deployment, live OTLP export, Alertmanager/Prometheus alert firing, production SLO burn evidence, or production backpressure/circuit-breaker drill.",
+  "source_basis": [
+    {
+      "url": "https://docs.rs/opentelemetry-otlp/latest/opentelemetry_otlp/",
+      "use": "Official opentelemetry-otlp 0.32.0 docs for MetricExporter::builder, HTTP/protobuf transport, endpoint/timeout configuration, and SdkMeterProvider::with_periodic_exporter."
+    },
+    {
+      "url": "https://docs.rs/opentelemetry/latest/opentelemetry/metrics/struct.Meter.html",
+      "use": "Official OpenTelemetry Rust metrics API docs for Meter counter/gauge construction and Counter::add / Gauge::record usage."
+    },
+    {
+      "url": "https://opentelemetry.io/docs/specs/otel/metrics/api/",
+      "use": "Official OpenTelemetry metrics API specification for counter and gauge instrument semantics."
+    }
+  ],
+  "facets": {
+    "F1_simplicity": "The OTLP integration is a separate adapter crate and reuses the existing HyperscalerMetrics port, avoiding OpenTelemetry dependencies in kernel/domain/usecase crates.",
+    "F2_hyperscaler": "Backbone services now have a compile-checked OTLP/HTTP exporter path that can point at cloud or self-hosted collectors later, with explicit environment gating and honest non-claims for live deployment.",
+    "F3_adversarial": "Tests cover disabled export, enabled-without-endpoint failure, endpoint precedence, TLS-required rejection for http endpoints, invalid booleans, invalid timeout windows, disabled builder behavior, and runtime outcome recording without a collector.",
+    "F4_api_contract": "No existing metrics kernel trait changes were required; the new public API is config/error/summary types plus build_otlp_hyperscaler_metrics for composition roots.",
+    "F5_quality": "Focused OTLP adapter tests plus the 47-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F6_operations": "Operators must set OYA_BACKBONE_OTLP_METRICS and a metrics-specific or generic OTLP endpoint; OYA_BACKBONE_OTLP_REQUIRE_TLS enforces https endpoints, and OYA_BACKBONE_OTLP_TIMEOUT_MS bounds exporter timeout.",
+    "F7_security_privacy": "The adapter emits low-cardinality INTERNAL_ONLY labels only: microservice, capability_id, state, and tenant_id for 429 counters. It never stores credentials or request bodies in code/evidence.",
+    "F8_supply_chain": "New third-party dependencies are isolated to oya-shared-hyperscaler-metrics-adapter-otlp and documented in dependency rationales for opentelemetry, opentelemetry-otlp, and opentelemetry_sdk.",
+    "F9_testing": "Focused OTLP adapter tests passed for 6 unit tests. The broad backbone matrix passed 304 unit tests across 47 packages plus one existing ignored metrics adapter doctest.",
+    "F10_ci_cd": "GitHub Actions and all four Jenkins package matrices include the OTLP adapter package; static workflow/catalog parsing is covered locally, but no remote CI run is claimed.",
+    "F11_observability": "The adapter maps canonical request/capability metric families to OpenTelemetry synchronous counters and gauges and configures an OTLP MetricExporter with HTTP/protobuf transport when enabled.",
+    "F13_reversibility": "The change is isolated to one adapter crate, matrix/catalog/rationale entries, and task/evidence metadata; removing the crate and matrix entries reverts the integration without touching service business logic."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-shared-hyperscaler-metrics-adapter-otlp",
+      "result": "pass",
+      "evidence": "6 focused unit tests passed; no live collector was contacted."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-hyperscaler-metrics-adapter-otlp --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-hyperscaler-metrics-adapter-otlp",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <47 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <47 backbone package matrix>",
+      "result": "pass",
+      "evidence": "304 unit tests passed across the backbone package matrix; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <47 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <47 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; existing duplicate/wildcard diagnostics remain non-blocking under current policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 461 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 461 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing catalog coverage failure remains: MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing data-class failure remains: UnknownUnannotatedField { path: \"crates/oya-audit-chain-emission-kernel/src/lib.rs\", struct_name: \"ChainCoordinate\", field_name: \"pack\" }."
+    },
+    {
+      "command": "python parse/config validation for OTLP adapter workspace membership, env-gated harness tokens, dependency rationales, CI/Jenkins matrix inclusion, catalog YAML, task markers, and diff hygiene",
+      "result": "pass",
+      "evidence": "workflow_otlp_mentions=7 jenkins_files_checked=4 rationale_entries_checked=3 errors=0."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/backbone-microservices-*.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 2 pass, 3 report-only, 1 skipped, 0 fail, 434 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root crates/oya-shared-hyperscaler-metrics-adapter-otlp --corpus-root registry/dependency-rationales.json --corpus-root .github/workflows/backbone-microservices-ci.yml --corpus-root microservices/messenger/ci/Jenkinsfile --corpus-root microservices/mail/ci/Jenkinsfile --corpus-root microservices/social/ci/Jenkinsfile --corpus-root microservices/community/ci/Jenkinsfile --corpus-root evidence/multispectrum/backbone-microservices-otlp-metrics-harness-20260524.json",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 5 documents, 1631 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No live OpenTelemetry Collector was deployed or contacted in this default evidence run.",
+    "No production OTLP export, alert firing, dashboard, SLO burn, or load/backpressure drill is claimed.",
+    "No production credentials, collector auth headers, tenant data, request bodies, or service secrets are stored in code or evidence.",
+    "No remote CI execution, branch-protection rollout, hyperscaler maturity certification, or production gateway rollout is claimed."
+  ]
+}

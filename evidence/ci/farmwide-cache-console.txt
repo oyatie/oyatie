@@ -1,0 +1,25 @@
+watching oya-ci-farmwide #1
+12:09:10 building... pods=2
+=== RESULT ===
+{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowRun","result":"SUCCESS"}
+[Pipeline] { (cold (agent 1 — compile oya-dev-cli graph, populate SeaweedFS))
++ echo FARMWIDE agent=rust-build-vz964 wall_seconds=8
+FARMWIDE agent=rust-build-vz964 wall_seconds=8
+Compile requests                    193
+Compile requests executed           151
+Cache hits                            0
+Cache misses                        150
+Cache misses (Rust)                 150
+Cache hits rate                    0.00 %
+Cache hits rate (Rust)             0.00 %
+[Pipeline] { (warm (agent 2 — fresh pod, cross-agent cache reuse over the graph))
++ echo FARMWIDE agent=rust-build-5bk28 wall_seconds=7
+FARMWIDE agent=rust-build-5bk28 wall_seconds=7
+Compile requests                     193
+Compile requests executed            151
+Cache hits                           150
+Cache hits (Rust)                    150
+Cache misses                           0
+Cache hits rate                   100.00 %
+Cache hits rate (Rust)            100.00 %
+Finished: SUCCESS

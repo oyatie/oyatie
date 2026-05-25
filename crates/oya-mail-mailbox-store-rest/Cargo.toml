@@ -1,0 +1,22 @@
+[package]
+name = "oya-mail-mailbox-store-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-mail-mailbox-store-app = { path = "../oya-mail-mailbox-store-app" }
+oya-mail-mailbox-store-api = { path = "../oya-mail-mailbox-store-api" }
+oya-mail-mailbox-store-usecase = { path = "../oya-mail-mailbox-store-usecase" }
+oya-shared-hyperscaler-metrics-kernel = { path = "../oya-shared-hyperscaler-metrics-kernel" }
+oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
+
+[lib]
+name = "oya_mail_mailbox_store_rest"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

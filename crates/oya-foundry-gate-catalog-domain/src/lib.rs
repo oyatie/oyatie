@@ -74,6 +74,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "design-spec-maturity-claims",
     "hyperscaler-arch-invariants",
     "hyperscaler-maturity-claims",
+    "platform-substrate-defaults",
     "loop-recovery-patterns",
     "foundation-bypass",
     "audit-chain-replay",
@@ -135,6 +136,20 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "olap-tier-discipline",
     "wasm-runtime-discipline",
     "iac-tier-discipline",
+    "cloud-iac-module-catalog",
+    "cloud-iac-gitops-evidence",
+    "cloud-iac-helm-chart-signed-image-wiring",
+    "cloud-iac-kubewarden-admission-policy",
+    "cloud-iac-cell-topology",
+    "cloud-iac-opentofu-validation",
+    "cloud-iac-module-provenance",
+    "cloud-iac-module-provider-requirements",
+    "cloud-iac-module-release-index",
+    "cloud-iac-module-archive",
+    "cloud-iac-module-registry-protocol",
+    "cloud-iac-provider-readiness",
+    "cloud-iac-provider-lockfile",
+    "cloud-iac-provider-signature-review",
     "a11y-discipline",
     "i18n-coverage",
     "compliance-evidence-coverage",
@@ -532,6 +547,14 @@ mod tests {
         assert!(
             rendered.contains("cargo run -p oya-dev-cli -- gate validate architecture-boundaries")
         );
+    }
+
+    #[test]
+    fn rendered_form_contains_cloud_iac_kubewarden_admission_policy_lane() {
+        let rendered = all_canonical_commands_rendered();
+        assert!(rendered.contains(
+            "cargo run -p oya-dev-cli -- gate validate cloud-iac-kubewarden-admission-policy"
+        ));
     }
 
     #[test]

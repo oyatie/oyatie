@@ -1,0 +1,298 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-SUBSTRATE-PROOF-TOPFOLD-POLISH-20260525",
+  "schema_version": "1.0.0",
+  "id": "CS-APPLICATION-SHELL-SUBSTRATE-PROOF-TOPFOLD-POLISH-20260525",
+  "kind": "multispectrum-evidence",
+  "agent": "codex-oyatie-substrate-proof-topfold-polish",
+  "captured_at": "2026-05-25T04:12:33.177918Z",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-substrate-proof-topfold-polish-20260525.json"
+  ],
+  "goal_context": "Continue toward a complete Bominal-grade Oyatie mockup. This slice addresses a current-state audit finding: the topfold still led with generic operations/payroll metrics instead of the user-defined FD-001-on-Oyatie-Cloud product thesis.",
+  "current_state_audit": {
+    "artifact": ".omx/artifacts/visual-ralph/oya-current-after-ontology-audit/current-audit.json",
+    "counts_before_slice": {
+      "fd001": 10,
+      "oyatieCloud": 3,
+      "tenantWorkload": 5,
+      "sections": 29,
+      "buttons": 590
+    },
+    "finding": "After prior slices, the dashboard contained FD-001/Oyatie Cloud language deeper in Work Hub and Ontology, but the first viewport still lacked a cohesive topfold substrate proof command board."
+  },
+  "product_direction_applied": {
+    "user_directive": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+    "ui_interpretation": "The first command-center viewport now states that FD-001 remains the product goal and Oyatie Cloud is the substrate proof, then maps FD-001 workloads to cloud cells, deployment gates, policy, and evidence routes."
+  },
+  "reference_sources": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/tmp/bominal-reference/Bominal Corporate.html",
+    "/tmp/bominal-reference/app.jsx",
+    "/tmp/bominal-reference/Bominal Corporate \u00b7 Canvas.html",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+    ".omx/artifacts/visual-ralph/oya-current-after-ontology-audit/screenshots/topfold-1440.png"
+  ],
+  "change_summary": [
+    "Inserted a new topfold Substrate Proof command board immediately after core metrics and before the Action Inbox, making FD-001 tenant workload dogfooding on Oyatie Cloud visible before operational queues.",
+    "Added four proof cards for product goal, substrate, tenant lens, and readiness, with real product language instead of generic dashboard copy.",
+    "Added a two-column workload-to-cloud-cell map: Workflow, Messenger, Mail, and Community on the FD-001 side; cell-us-east-2, kr-seoul-1, GitOps promotion, and Evidence Spine on the Oyatie Cloud side.",
+    "Added local interactive routes from the proof board into Cloud Ops, Workflow, Evidence, Messenger, Mail, Community, FinOps, Deployment Gates, Finance, Identity, and Catalog.",
+    "Added SSR/static rendering and CSS for a Bominal-grade dense command surface while preserving local-only/no-backend semantics."
+  ],
+  "visual_verdict": {
+    "score": 93,
+    "verdict": "pass-for-substrate-proof-topfold-slice-not-full-dashboard-completion",
+    "category_match": true,
+    "differences": [
+      "Bominal corporate command center remains a reference for density, grid rhythm, and operational command language; this topfold is not a clone because it carries Oyatie Cloud and FD-001 dogfood semantics.",
+      "The first viewport is now more product-thesis heavy than Bominal because the user explicitly re-centered the mockup around hyperscaler-grade substrate proof.",
+      "The full mockup goal remains active; this verdict covers the topfold cohesion/product-direction gap only."
+    ],
+    "suggestions": [
+      "Continue a final holistic audit for any remaining mismatched labels or stale generic payroll-only language before declaring the complete mockup done.",
+      "Consider later making the Substrate Proof board collapsible if vertical density becomes too high, but keep it expanded for mockup/product demo fidelity."
+    ],
+    "reasoning": "Browser evidence shows the topfold now starts with metrics followed immediately by a dense, interactive product thesis board. The board connects FD-001 workloads, Oyatie Cloud cells, GitOps deployment gates, and evidence receipts, and interactions route to the correct local product surfaces."
+  },
+  "ssr_smoke": {
+    "command": "podman restart oya-frontend-prototype-live && curl -fsS http://127.0.0.1:3000/ >/tmp/oya-substrate-live.html",
+    "status": "pass",
+    "counts": {
+      "substrate-proof-command": 1,
+      "OYATIE CLOUD \u00b7 FD-001 DOGFOOD SUBSTRATE": 1,
+      "FD-001 delivery": 1,
+      "data-substrate-action": 14,
+      "REC-FD001-CLOUD-009": 1,
+      "tenant workload": 9,
+      "Oyatie Cloud": 10
+    },
+    "note": "Initial empty replies can occur during container compile/restart; final response contained the SSR substrate proof markup."
+  },
+  "browser_smoke": {
+    "capturedAt": "2026-05-25T04:10:13.734Z",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "url": "http://127.0.0.1:3000/#substrate-proof",
+    "pass": true,
+    "counts": {
+      "sections": 1,
+      "actions": 14,
+      "cards": 4,
+      "mapButtons": 8,
+      "text": "OYATIE CLOUD \u00b7 FD-001 DOGFOOD SUBSTRATE\n\nProve production tenancy by running FD-001 as real tenant workloads\n\nFD-001 remains the product delivery goal. Oyatie Cloud is the hyperscaler-grade substrate proving those microservices can host production tenants before any external claim.\n\n12 workloads \u00b7 3 cells \u00b7 0 external writes\nCloud cells\nWorkflow proof\nEvidence\n\nPRODUCT GOAL\n\nFD-001 delivery\nCore, workflow, messenger, mail, community, finance, identity, intelligence, and ontology run as tenant workload previews.\n\nSUBSTRATE\n\nOyatie Cloud\nCellular runtime, policy, FinOps, resource inventory, deployment gates, and rollback evidence.\n\nTENANT LENS\n\nNorthwind Industrial Group\nCloud owner / tenant admin \u00b7 server-derived envelope \u00b7 local dogfood only\n\nREADINESS\n\n84% proof\n3 blockers: payroll delta, cloud rollback receipt, PIPA review.\n\nFD-001 WORKLOADS\n\nWorkflow\napproval engine \u00b7 no-code studio\nMessenger\nops room thread \u00b7 evidence extraction\nMail\nformal approval brief\nCommunity\ngovernance council post\nTENANT WORKLOAD\nCELL RUNTIME\nEVIDENCE RECEIPT\n\nOYATIE CLOUD CELLS\n\ncell-us-east-2\nprimary \u00b7 workload dogfood\nkr-seoul-1\nlocalization pack \u00b7 FinOps watch\ngitops promotion\nJenkins \u00b7 ArgoCD \u00b7 cosign \u00b7 audit\nevidence spine\nREC-FD001-CLOUD-009\nProof loop: tenant workload \u2192 Oyatie Cloud cell \u2192 policy gate \u2192 human route \u2192 evidence receipt\nFinance close\nIdentity policy\nService catalog"
+    },
+    "assertions": [
+      {
+        "name": "substrate proof rendered once",
+        "pass": true,
+        "detail": {
+          "sections": 1,
+          "actions": 14,
+          "cards": 4,
+          "mapButtons": 8,
+          "text": "OYATIE CLOUD \u00b7 FD-001 DOGFOOD SUBSTRATE\n\nProve production tenancy by running FD-001 as real tenant workloads\n\nFD-001 remains the product delivery goal. Oyatie Cloud is the hyperscaler-grade substrate proving those microservices can host production tenants before any external claim.\n\n12 workloads \u00b7 3 cells \u00b7 0 external writes\nCloud cells\nWorkflow proof\nEvidence\n\nPRODUCT GOAL\n\nFD-001 delivery\nCore, workflow, messenger, mail, community, finance, identity, intelligence, and ontology run as tenant workload previews.\n\nSUBSTRATE\n\nOyatie Cloud\nCellular runtime, policy, FinOps, resource inventory, deployment gates, and rollback evidence.\n\nTENANT LENS\n\nNorthwind Industrial Group\nCloud owner / tenant admin \u00b7 server-derived envelope \u00b7 local dogfood only\n\nREADINESS\n\n84% proof\n3 blockers: payroll delta, cloud rollback receipt, PIPA review.\n\nFD-001 WORKLOADS\n\nWorkflow\napproval engine \u00b7 no-code studio\nMessenger\nops room thread \u00b7 evidence extraction\nMail\nformal approval brief\nCommunity\ngovernance council post\nTENANT WORKLOAD\nCELL RUNTIME\nEVIDENCE RECEIPT\n\nOYATIE CLOUD CELLS\n\ncell-us-east-2\nprimary \u00b7 workload dogfood\nkr-seoul-1\nlocalization pack \u00b7 FinOps watch\ngitops promotion\nJenkins \u00b7 ArgoCD \u00b7 cosign \u00b7 audit\nevidence spine\nREC-FD001-CLOUD-009\nProof loop: tenant workload \u2192 Oyatie Cloud cell \u2192 policy gate \u2192 human route \u2192 evidence receipt\nFinance close\nIdentity policy\nService catalog"
+        }
+      },
+      {
+        "name": "substrate proof has dense interactive controls",
+        "pass": true,
+        "detail": {
+          "sections": 1,
+          "actions": 14,
+          "cards": 4,
+          "mapButtons": 8,
+          "text": "OYATIE CLOUD \u00b7 FD-001 DOGFOOD SUBSTRATE\n\nProve production tenancy by running FD-001 as real tenant workloads\n\nFD-001 remains the product delivery goal. Oyatie Cloud is the hyperscaler-grade substrate proving those microservices can host production tenants before any external claim.\n\n12 workloads \u00b7 3 cells \u00b7 0 external writes\nCloud cells\nWorkflow proof\nEvidence\n\nPRODUCT GOAL\n\nFD-001 delivery\nCore, workflow, messenger, mail, community, finance, identity, intelligence, and ontology run as tenant workload previews.\n\nSUBSTRATE\n\nOyatie Cloud\nCellular runtime, policy, FinOps, resource inventory, deployment gates, and rollback evidence.\n\nTENANT LENS\n\nNorthwind Industrial Group\nCloud owner / tenant admin \u00b7 server-derived envelope \u00b7 local dogfood only\n\nREADINESS\n\n84% proof\n3 blockers: payroll delta, cloud rollback receipt, PIPA review.\n\nFD-001 WORKLOADS\n\nWorkflow\napproval engine \u00b7 no-code studio\nMessenger\nops room thread \u00b7 evidence extraction\nMail\nformal approval brief\nCommunity\ngovernance council post\nTENANT WORKLOAD\nCELL RUNTIME\nEVIDENCE RECEIPT\n\nOYATIE CLOUD CELLS\n\ncell-us-east-2\nprimary \u00b7 workload dogfood\nkr-seoul-1\nlocalization pack \u00b7 FinOps watch\ngitops promotion\nJenkins \u00b7 ArgoCD \u00b7 cosign \u00b7 audit\nevidence spine\nREC-FD001-CLOUD-009\nProof loop: tenant workload \u2192 Oyatie Cloud cell \u2192 policy gate \u2192 human route \u2192 evidence receipt\nFinance close\nIdentity policy\nService catalog"
+        }
+      },
+      {
+        "name": "product direction is explicit",
+        "pass": true,
+        "detail": "OYATIE CLOUD \u00b7 FD-001 DOGFOOD SUBSTRATE\n\nProve production tenancy by running FD-001 as real tenant workloads\n\nFD-001 remains the product delivery goal. Oyatie Cloud is the hyperscaler-grade substrate proving those microservices can host production tenants before any external claim.\n\n12 workloads \u00b7 3 cells \u00b7 0 external writes\nCloud cells\nWorkflow proof\nEvidence\n\nPRODUCT GOAL\n\nFD-001 delivery\nCore, workflow, messenger, mail, community, finance, identity, intelligence, and ontology run as tenant workload previews.\n\nSUBSTRATE\n\nOyatie Cloud\nCellular runtime, policy, FinOps, resource inventory, deployment gates, and rollback evidence.\n\nTENANT LENS\n\nNorthwind Industrial Group\nCloud owner / tenant a"
+      },
+      {
+        "name": "workflow action updates proof status",
+        "pass": true,
+        "detail": "Workflow proof route opened \u00b7 FD-001 delivery remains product goal"
+      },
+      {
+        "name": "workflow action can route to studio",
+        "pass": true,
+        "detail": "workflow studio visible after route"
+      },
+      {
+        "name": "mail action activates Mail work hub",
+        "pass": true,
+        "detail": "Mail \u00b7 Mail approval workload route opened locally"
+      },
+      {
+        "name": "deployment action activates deployment gates",
+        "pass": true,
+        "detail": "gates \u00b7 Deployment gates opened \u00b7 Jenkins/ArgoCD/cosign proof path"
+      },
+      {
+        "name": "evidence action opens evidence spine",
+        "pass": true,
+        "detail": "6 visible \u00b7 all state \u00b7 local evidence only \u00b7 Evidence spine opened \u00b7 tenant workload proof packet staged"
+      }
+    ],
+    "errors": [],
+    "failedRequests": [],
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "screenshots": [
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/substrate-proof-topfold-1440.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/substrate-proof-interacted-1440.png",
+      ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/topfold-after-substrate-1440.png"
+    ]
+  },
+  "pixel_diff": {
+    "capturedAt": "2026-05-25T04:10:58.279Z",
+    "summary": {
+      "generatedAt": "2026-05-25T04:10:58.279Z",
+      "tool": "pngjs + pixelmatch threshold=0.12 includeAA=false",
+      "purpose": "Secondary Visual Ralph debug evidence for substrate proof topfold polish.",
+      "comparisons": [
+        {
+          "name": "before-vs-after-topfold-substrate-proof",
+          "reference": ".omx/artifacts/visual-ralph/oya-current-after-ontology-audit/screenshots/topfold-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/topfold-after-substrate-1440.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/pixel-diffs/before-vs-after-topfold-substrate-proof.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 1000,
+            "reference": {
+              "width": 1440,
+              "height": 1000
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 1000
+            }
+          },
+          "mismatchedPixels": 78664,
+          "totalPixels": 1440000,
+          "mismatchPercent": 5.46,
+          "note": "Regression-detection diff: previous generic operations topfold vs new FD-001/Oyatie Cloud substrate proof board."
+        },
+        {
+          "name": "bominal-corporate-vs-substrate-topfold-style-distance",
+          "reference": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/topfold-after-substrate-1440.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/pixel-diffs/bominal-corporate-vs-substrate-topfold-style-distance.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 1000
+            }
+          },
+          "mismatchedPixels": 101932,
+          "totalPixels": 1296000,
+          "mismatchPercent": 7.87,
+          "note": "Style-distance only: Bominal corporate density and command-center layout are reference language, not a clone target."
+        }
+      ],
+      "interpretation": {
+        "beforeAfter": "Mismatch demonstrates the topfold gained a material product-thesis command surface instead of preserving generic operations-only framing.",
+        "bominal": "Exact pixel match is not desired because Oyatie must express FD-001 tenant workload dogfooding on Oyatie Cloud."
+      }
+    },
+    "note": "Secondary evidence only. Before/after topfold diff proves material insertion of the product-thesis command board; Bominal diff remains style-distance rather than clone proof."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "details": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "pass",
+      "details": "Selective hydration lib build passed."
+    },
+    {
+      "command": "node /tmp/oya-current-audit-top.cjs",
+      "status": "pass",
+      "details": {
+        "fd001": 10,
+        "oyatieCloud": 3,
+        "tenantWorkload": 5,
+        "sections": 29,
+        "buttons": 590
+      }
+    },
+    {
+      "command": "node /tmp/oya-substrate-proof-smoke.cjs",
+      "status": "pass",
+      "details": {
+        "assertions": 8,
+        "errors": 0,
+        "failedRequests": 0
+      }
+    },
+    {
+      "command": "node /tmp/oya-substrate-after-top.cjs",
+      "status": "pass",
+      "details": "Captured topfold-after-substrate-1440.png"
+    },
+    {
+      "command": "node /tmp/oya-substrate-pixel-diff.cjs",
+      "status": "pass",
+      "details": {
+        "beforeAfterMismatchPercent": 5.46,
+        "bominalStyleDistancePercent": 7.87
+      }
+    }
+  ],
+  "artifacts": {
+    "current_audit": ".omx/artifacts/visual-ralph/oya-current-after-ontology-audit/current-audit.json",
+    "smoke": ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/substrate-proof-smoke.json",
+    "pixel_diff_summary": ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/substrate-proof-pixel-diff-summary.json",
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-current-after-ontology-audit/screenshots/topfold-1440.png",
+      ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/topfold-after-substrate-1440.png",
+      ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/substrate-proof-topfold-1440.png",
+      ".omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/screenshots/substrate-proof-interacted-1440.png"
+    ],
+    "pixel_diffs": [
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/pixel-diffs/before-vs-after-topfold-substrate-proof.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-substrate-proof-topfold-polish/pixel-diffs/bominal-corporate-vs-substrate-topfold-style-distance.png"
+    ]
+  },
+  "known_limits": [
+    "This is a Substrate Proof topfold polish slice; it does not prove the full complete-dashboard mockup goal is achieved.",
+    "All substrate proof routes, cloud cells, workload status, deployment gates, evidence, Mail, Community, Finance, Identity, and Catalog actions remain local visual state with no backend writes.",
+    "The browser console info about missing /pkg is expected for fallback smoke; a separate wasm32 hydration library build passed.",
+    "During this turn, workspace cargo commands were temporarily blocked by an unrelated missing cloud-iac runtime workspace member; the external state resolved before final verification, and no cloud-iac files were modified by this slice."
+  ]
+}

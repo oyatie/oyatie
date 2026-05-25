@@ -2,7 +2,14 @@
 id: ADR-0342
 title: API versioning HYBRID model — date-based (YYYY-MM-DD) for public APIs (OpenAPI 3.2.0 endpoints, AsyncAPI 3.1.0 channels, proto3 services) + semver (major.minor.patch) for SDK packages (TS / Python / Go / Java / Kotlin / Swift / Rust / .NET-C# / C / C++); N=3 supported public versions; ≥180-day post-deprecation window; per-tenant version pinning
 status: Proposed
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - axis-developer-sdk
+  - axis-api-gateway
+  - ops-platform
+  - council-security
 owners:
   - council-architecture
   - axis-developer-sdk
@@ -151,7 +158,7 @@ The decision does not delete any existing public-contract content. The decision 
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: Oyatie has no canonical public-API versioning shape today
 
@@ -311,7 +318,7 @@ Every hyperscaler-grade precedent operates a date-version-on-the-boundary + semv
 - **A.11.9** Does not assert a single SDK release cadence. Per-package release cadence is per-language idiomatic (npm: per-feature; Maven Central: per-quarter; crates.io: per-feature). The discovery surface tracks which SDK semver pins which date.
 - **A.11.10** Does not author actual `Oyatie-Version` headers / URL routes / proto fields across the ~25 public-facing µservice contracts. That authoring is sequenced as Wave 15V-API-Versioning-Adoption.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -477,7 +484,7 @@ B2.050. The ADR's enforcement and sunset run in coordination with the developer-
 - This ADR does not change the canonical OpenAPI / AsyncAPI / proto3 spec pins.
 - This ADR does not change the internal mesh proto3 evolution rules from ADR-0145.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

@@ -1,0 +1,298 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAM-002",
+  "changeset_id": "CS-CLOUD-IAM-002",
+  "change_slug": "cs-cloud-iam-idp-registry-evidence-event",
+  "change_class_id": "CC-1",
+  "git_sha_base": "4069a04a",
+  "git_sha": "4069a04a",
+  "freshness_unix": 1779509835,
+  "timestamp_iso": "2026-05-23T04:17:15Z",
+  "review_refresh_timestamp_iso": "2026-05-23T04:18:12Z",
+  "agent_id": "codex-impl",
+  "scope": [
+    "crates/oya-cloud-iam-domain/src/lib.rs",
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-impl --intent cs-cloud-iam-002-idp-registry-evidence-event crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-api/src/lib.rs tasks/todo.md evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Implement CS-CLOUD-IAM-002: a pure-domain immutable metadata-only Cloud IAM IdP registry evidence event and receipt conversion from provider sync receipts, with tenant/provider binding, allowlisted evidence refs, schema validation, and API error mapping for provider mismatch.",
+  "baseline_diff": {
+    "before": "CS-CLOUD-IAM-001 persisted metadata-only IdP registry snapshots, but provider sync receipts did not yet convert to a dedicated Cloud IAM evidence event/receipt shape.",
+    "after": "Cloud IAM domain exposes IdentityProviderRegistryEvidenceEvent and IdentityProviderRegistryEvidenceReceipt. Event fields are private with read-only accessors, carry tenant/actor/provider/operation/status/evidence/idempotency/schema metadata, and reject tenant mismatch, provider mismatch, missing or token-shaped evidence refs, and receipt schema drift."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iam-domain idp_registry_sync_receipt_converts_to_metadata_only_evidence_event -- --nocapture",
+      "status": "passed",
+      "evidence": "focused CS-CLOUD-IAM-002 evidence-event regression passed"
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-domain",
+      "status": "passed",
+      "evidence": "11 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-app -p oya-cloud-iam-api -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "OCI adapter 2 passed; self-hosted adapter 2 passed; API integration 23 passed; app cedar bind 3 passed; 0 failed"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-api -p oya-cloud-iam-app -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "git diff --check -- crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-api/src/lib.rs tasks/todo.md",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0 for touched tracked files before evidence creation"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json && tail -1 evidence/audit-chain.jsonl | python3 -m json.tool",
+      "status": "passed",
+      "evidence": "CS-CLOUD-IAM-002 multispectrum evidence and audit-chain JSONL row parse as JSON"
+    },
+    {
+      "command": "git diff --check -- crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-api/src/lib.rs tasks/todo.md evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json evidence/audit-chain.jsonl",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0 after evidence creation"
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: blocker_count=0"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json --offline --severity error --emit-report /tmp/cs-cloud-iam-002-dependency-seam-report.json",
+      "status": "passed",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya vcs --format json work --agent codex-impl --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#work",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS work accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json verify --agent codex-impl --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#verify",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS verify accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json done --agent codex-impl --controller-promote --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#done crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-api/src/lib.rs tasks/todo.md evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json evidence/audit-chain.jsonl",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS done accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json promote --agent codex-impl --bundle cb-cs-cloud-iam-002 --environment local-review --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#promote",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS promote accepted"
+    }
+  ],
+  "best_practice_research": {
+    "question": "Hyperscaler IAM evidence-event pattern for IdP federation receipt metadata.",
+    "version_date_context": "Reused official/upstream research validated 2026-05-23 in CS-CLOUD-IAM-001 evidence.",
+    "official_upstream_sources": [
+      {
+        "url": "https://docs.aws.amazon.com/en_us/IAM/latest/UserGuide/best-practices.html",
+        "establishes": "Federation, temporary credentials, MFA, least privilege, and periodic review are IAM baselines."
+      },
+      {
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html",
+        "establishes": "Temporary credentials are short-lived and should avoid embedded/distributed long-term secrets."
+      },
+      {
+        "url": "https://docs.cloud.google.com/iam/docs/best-practices-for-using-workload-identity-federation",
+        "establishes": "External identity impersonation should be specific and least-privilege."
+      },
+      {
+        "url": "https://docs.oracle.com/en-us/iaas/Content/Identity/domains/overview.htm",
+        "establishes": "Identity domains include SSO, SAML/OAuth IdP administration, MFA/security settings, and administrative isolation."
+      },
+      {
+        "url": "https://sre.google/sre-book/service-level-objectives/",
+        "establishes": "Evidence-based reliability/rollout decisions should use measured SLIs/SLOs and avoid absolute promises."
+      }
+    ],
+    "implementation_handoff": "Evidence events must carry references and decision metadata only, never provider documents, credentials, assertions, or STS material."
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The change adds one immutable value event and receipt conversion; no storage adapter, network, filesystem, clock, or provider SDK dependency is introduced."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "evidence_used": [
+        "https://docs.aws.amazon.com/en_us/IAM/latest/UserGuide/best-practices.html",
+        "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html",
+        "https://docs.cloud.google.com/iam/docs/best-practices-for-using-workload-identity-federation",
+        "https://docs.oracle.com/en-us/iaas/Content/Identity/domains/overview.htm",
+        "https://sre.google/sre-book/service-level-objectives/"
+      ],
+      "findings": [
+        "Event creation preserves external IdP federation evidence references and short-lived credential boundaries without storing token material."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "failing_fixture_added": true,
+      "findings": [
+        "Regression test rejects tenant mismatch, provider mismatch, missing evidence refs, token-shaped evidence refs, and receipt schema drift."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Read-only accessors make event contents explicit while preventing external field mutation."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Targeted and package Cloud IAM tests passed; API error mapping remains exhaustive after adding ProviderMismatch."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Emit directly to audit-chain domain now",
+        "Add concrete event repository/adapter",
+        "Add pure metadata event and receipt conversion first"
+      ],
+      "selected_rationale": "Pure conversion is the smallest clean-architecture slice; audit-chain app/adapter wiring can follow without leaking provider material into outer storage decisions."
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Evidence refs must use allowlisted opaque schemes; token-shaped evidence material is rejected; event type has no raw provider, credential, assertion, or STS material fields."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Event creation is deterministic string/value validation over one receipt; no I/O or allocation-heavy collection scans."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "data_class_touched": [
+        "INTERNAL_ONLY metadata",
+        "PUBLIC enum/status metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_evidence_path": "evidence/audit-chain.jsonl",
+      "audit_chain_coverage_change_id": "CS-CLOUD-IAM-002",
+      "findings": [
+        "Evidence bundle includes matching audit-chain JSONL coverage row for this ChangeSet id."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Additive domain/API/todo/evidence change; revert removes event conversion without migration or external state."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Evidence event carries event id, tenant, provider request id, evidence ref, idempotency key, status, and occurred timestamp for later audit-chain binding."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No public wire contract or database migration is introduced; API mapping updated only for new domain error exhaustiveness."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A1_naming": {
+      "considered": true,
+      "findings": [
+        "New types follow IdentityProviderRegistry* naming from CS-CLOUD-IAM-001."
+      ]
+    },
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Domain remains pure; API maps errors only."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Focused evidence-event regression plus Cloud IAM package tests passed."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Multispectrum evidence and audit-chain JSONL coverage are created for CS-CLOUD-IAM-002."
+      ]
+    }
+  },
+  "remaining_risks": [
+    "Concrete audit-chain emitter/app adapter wiring remains future work; this slice only creates the pure domain evidence event/receipt conversion.",
+    "Full repo verify is not rerun for this small follow-up because CS-CLOUD-IAM-001 already documented repo-wide global failures unrelated to Cloud IAM scoped tests."
+  ],
+  "changed_files": [
+    "crates/oya-cloud-iam-domain/src/lib.rs",
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "oya_vcs_lifecycle": [
+    {
+      "step": "claim",
+      "status": "accepted",
+      "command": "./bin/oya vcs --format json claim --agent codex-impl --intent cs-cloud-iam-002-idp-registry-evidence-event crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-api/src/lib.rs tasks/todo.md evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json"
+    },
+    {
+      "step": "work",
+      "status": "accepted",
+      "command": "./bin/oya vcs --format json work --agent codex-impl --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#work"
+    },
+    {
+      "step": "verify",
+      "status": "accepted",
+      "command": "./bin/oya vcs --format json verify --agent codex-impl --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#verify"
+    },
+    {
+      "step": "done",
+      "status": "accepted",
+      "command": "./bin/oya vcs --format json done --agent codex-impl --controller-promote --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#done crates/oya-cloud-iam-domain/src/lib.rs crates/oya-cloud-iam-api/src/lib.rs tasks/todo.md evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json evidence/audit-chain.jsonl"
+    },
+    {
+      "step": "promote",
+      "status": "accepted",
+      "command": "./bin/oya vcs --format json promote --agent codex-impl --bundle cb-cs-cloud-iam-002 --environment local-review --evidence evidence/multispectrum/cs-cloud-iam-idp-registry-evidence-event-1779510000.json#promote"
+    }
+  ]
+}

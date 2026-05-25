@@ -1,0 +1,319 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-PRODUCTION-PLANNING-001",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:40:00Z",
+  "freshness_unix": 1779547200,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "Production planning domain foundation adds approved work definitions, MRP planned-order proposal metadata, production-release preparation metadata, and SAP PP parity-map linkage while explicitly refusing durable persistence, live MRP runtime, finite scheduling, shop-floor execution, inventory mutation, procurement purchase orders, accounting posting, Workflow execution, cloud deployment, and runtime audit-chain claims.",
+  "scope": [
+    "microservices/production-planning/crates/oya-production-planning-domain/Cargo.toml",
+    "microservices/production-planning/crates/oya-production-planning-domain/src/lib.rs",
+    "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs",
+    "specs/microservices/production-planning.json",
+    "registry/catalog/oya-production-planning-domain.yaml",
+    "Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "non_claims": [
+    "durable persistence not attached",
+    "live MRP engine not attached",
+    "finite scheduler not attached",
+    "shop-floor execution not attached",
+    "inventory mutation not attached",
+    "procurement purchase-order creation not attached",
+    "accounting posting not attached",
+    "Workflow engine execution not attached",
+    "statutory filing not attached",
+    "cloud deployment not attached",
+    "production PP parity not claimed",
+    "runtime audit-chain emission not implemented"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The implementation is a small pure-domain validation/calculation model, not a live MRP/scheduler/MES or ERP monolith clone.",
+        "Work definition, MRP netting, lot sizing, material availability, and capacity checks are deterministic guard-clause logic with no hidden side effects."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Flat production-planning microservice destination improves SAP PP parity without creating microservices/erp.",
+        "Capability flags and evidence rows keep runtime/shop-floor/inventory/cloud claims honest until adapters land."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::work_definition_drives_mrp_and_release_plan",
+      "failing_fixture_id": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::production_planning_refuses_material_or_capacity_shortage",
+      "diagnostic_asserted": "Tests fail if missing work-definition approval, missing planned-order proposal, material shortage, capacity shortage, invalid dates, unsafe refs, credential-shaped evidence refs, invalid horizons, or zero quantities are accepted.",
+      "findings": [
+        "Positive plan-to-produce flow and negative guard rails are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 25,
+      "findings": [
+        "Types map directly to work definitions, BOM/route/work-center approval, MRP planned orders, and production-release preparation concepts common to production-planning systems."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused production-planning tests/clippy, ERP parity map tests/clippy, 29-package enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan are recorded in verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "leave production planning as a parity gap",
+        "build live MRP/MES/shop-floor runtime now",
+        "add production-planning domain foundation first"
+      ],
+      "selected_rationale": "A flat domain foundation gives ERP PP parity a service-owned first write path while keeping MRP runtime, schedulers, shop-floor execution, storage, inventory movement, Workflow, and cloud adapters out of scope.",
+      "rejected_reasons": [
+        "Leaving PP as a gap weakens ERP parity after procurement and warehouse foundations landed.",
+        "Live MRP/MES/runtime requires durable state, job orchestration, shop-floor integrations, and operational SLOs beyond this slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "production_planning_evidence_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, external network calls, shop-floor channels, procurement calls, or inventory/accounting mutations are introduced.",
+        "Source and audit refs reject traversal, whitespace/control, and credential-shaped strings."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-production-planning-domain-foundation",
+      "regression_baseline": "Pure string/date/quantity validation and arithmetic only; no I/O or unbounded data access exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, scheduler runtime, or hot runtime path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "INTERNAL_ONLY production-planning/source/evidence refs",
+        "FINANCIAL component counts, run minutes, demand, stock, planned order, material, and capacity quantities",
+        "PUBLIC non-claim capability flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-production-planning",
+        "plan-to-produce",
+        "sap-pp-parity"
+      ],
+      "official_sources_checked": [
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/2bba750d1e124e1ea2a039bb1cd9b6c5?locale=en-US&state=PRODUCTION&version=2602.500",
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/2bba750d1e124e1ea2a039bb1cd9b6c5/e8c6bd131b9d471698716f65e5852e97.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/25c/faumf/overview-of-work-orders.html",
+        "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/24b/faumf/overview-of-production-process-design.html",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/production-control/bill-of-material-bom",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/production-control/routes-operations",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/production-control/production-process-overview"
+      ],
+      "findings": [
+        "SAP/Oracle/Microsoft official materials inform production-planning coverage only; no exhaustive vendor parity or proprietary behavior clone is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one new crate/spec/catalog row and parity-map references; no migration or external resource is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence, task rows, and audit-chain rows document the change; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No production user or data migration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package name follows oya-production-planning-domain and flat microservice layout."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Machine-readable production-planning spec and existing task ledger capture the slice without creating root markdown sprawl."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New code is isolated to microservices/production-planning plus Enterprise Suite parity map references."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Clean architecture is preserved: domain crate depends only on data boundary kernel and std."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new third-party dependencies were added; Cargo.lock changed only for the new workspace package."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "specs/microservices/production-planning.json parses successfully and evidence follows prior multispectrum shape."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "MRP net requirement, lot-size rounding, material availability, and capacity checks are deterministic arithmetic with no hidden state."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Challenged whether production planning should wait for live inventory storage; creating a separate PP domain is more aligned with ERP parity and keeps inventory mutation in warehouse boundaries."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Complements HR/payroll/accounting/procurement/treasury/warehouse foundations and improves ERP parity while keeping no microservices/erp monolith."
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo check -p oya-production-planning-domain",
+      "status": "pass",
+      "notes": "updated Cargo.lock for the new workspace package without adding third-party dependencies"
+    },
+    {
+      "command": "cargo test --locked -p oya-production-planning-domain",
+      "status": "pass",
+      "notes": "focused production-planning domain tests passed; 4 integration tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-production-planning-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused production-planning domain clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+      "status": "pass",
+      "notes": "ERP parity map tests passed with PP production-planning foundation coverage; 9 tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "ERP parity map clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked across production-planning + warehouse + treasury + procurement + HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group",
+      "status": "pass",
+      "notes": "29 enterprise packages including production-planning domain passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across production-planning + warehouse + treasury + procurement + HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "29 enterprise packages including production-planning domain passed clippy with -D warnings"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after production-planning domain addition"
+    },
+    {
+      "command": "jq . specs/microservices/production-planning.json >/dev/null",
+      "status": "pass",
+      "notes": "production-planning microservice spec parses as JSON"
+    },
+    {
+      "command": "Production-planning domain public field data_class scan",
+      "status": "pass",
+      "notes": "production-planning domain src/lib.rs contains data_class annotations for new public fields; file contains 126 data_class markers"
+    },
+    {
+      "command": "Production-planning quality-marker scan over CS-ENT-PRODUCTION-PLANNING-001 code/catalog/spec paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in production-planning domain src/lib.rs, tests, catalog row, or production-planning spec"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-production-planning-domain-1779547200.json --severity error",
+      "status": "pass",
+      "notes": "dependency-seam evidence gate passed"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-production-planning-domain-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ]
+}

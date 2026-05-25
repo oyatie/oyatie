@@ -1,0 +1,302 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-002",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac",
+  "freshness_unix": 1779529800,
+  "timestamp_iso": "2026-05-23T09:50:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/workflow.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-app/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/workflow.rs",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-04 cross-product Workflow deterministic-gate foundation for HR, Payroll, and Accounting composition.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The domain function does one narrow job: validate Workflow ownership, Object Graph ownership, child product coverage, deterministic gate evidence, and gate closure authority.",
+        "The app function only converts an already-validated plan into a metadata envelope, avoiding hidden runtime behavior."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Workflow-owned routing and Object Graph-owned relationship refs create a control-plane boundary for cross-service ERP flows before runtime adapters exist.",
+        "The deterministic gate set keeps AI advice from closing approval, evidence, rollback, or legal-entity boundary checks."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/workflow.rs::test_cross_product_workflow_uses_deterministic_gates and oya-enterprise-suite-app/tests/workflow.rs::workflow_envelope_routes_to_workflow_without_executing_it",
+      "failing_fixture_id": "direct child routing refusal, Object Graph bypass refusal, AI close-authority refusal, and missing rollback gate evidence refusal",
+      "diagnostic_asserted": "Tests fail if routing is child-owned, relationship typing is child-owned, an AI suggestion closes the gate set, or required gate evidence is absent.",
+      "findings": [
+        "AC-04 now has direct positive and negative test coverage in the flat microservice crate path.",
+        "The app envelope test confirms the validated metadata remains a Workflow dispatch envelope, not a direct child-service call."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Types mirror the acceptance wording: WorkflowRoutingOwner, ObjectGraphRelationshipOwner, DeterministicGate, and GateClosureAuthority.",
+        "The test names match the enterprise-suite AC-04 spec ref and document the refusal cases future adapters must preserve."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "cargo fmt, locked suite tests, and locked suite clippy passed locally before evidence closeout.",
+        "No dependency, catalog, lockfile, or runtime adapter was added in this slice."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "let child services route cross-product workflows directly",
+        "allow AI suggestions to close deterministic gates with evidence",
+        "model the AC-04 boundary as pure suite domain/app metadata now"
+      ],
+      "selected_rationale": "Pure suite domain/app metadata satisfies AC-04 without introducing runtime Workflow clients, Object Graph persistence, or child-service coupling.",
+      "rejected_reasons": [
+        "Direct child routing violates the spec's Workflow ownership requirement and creates cross-service coupling.",
+        "AI close authority contradicts the deterministic-gate requirement and would weaken approval and rollback controls."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "authorization_boundary_and_ai_assisted_workflow_control",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The plan requires tenant id, Workflow ref, Object Graph relationship ref, HR/Payroll/Accounting child coverage, gate evidence refs, and idempotency key.",
+        "AI suggestion refs are allowed only as advisory metadata and are refused as deterministic close authority."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "pure-domain-linear",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-workflow-metadata-foundation",
+      "regression_baseline": "No deployed runtime path exists; validation scans small explicit child and gate vectors and performs no I/O.",
+      "findings": [
+        {
+          "summary": "Deterministic gate validation is bounded by the supplied gate evidence vector and fixed required gate list."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "kr-labor",
+        "kr-payroll",
+        "financial-controls"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/microservices/enterprise-suite.json",
+        "repo specs/microservices/connect-suite.json"
+      ],
+      "findings": [
+        "Public fields carry data_class annotations and output metadata is wrapped in Classified values.",
+        "The slice records evidence refs and metadata envelopes only; it does not claim durable audit emission, compliance certification, or runtime Workflow execution."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive inside existing suite crates and can be reverted without data migration or external resource teardown."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The app envelope carries a Workflow dispatch topic and gate evidence refs for later adapters, but emits no runtime log, metric, trace, or audit row itself.",
+        "Audit-chain JSONL rows record local evidence attachment and local Oya VCS closeout."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The Enterprise Suite AC-04 test_ref moved from a stale root-crate path to implemented flat microservice test paths."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A Workflow gate can be implemented ahead of runtime integration only if it stays metadata-only and refuses direct child routing.",
+      "premise_evidence_ref": "specs/microservices/enterprise-suite.json AC-04 and specs/microservices/connect-suite.json cross_product_routing_policy",
+      "do_nothing_consequence": "AC-04 would remain a spec statement while runtime work could later add direct child coupling or AI close authority by accident.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Waiting for Workflow runtime integration would mix deterministic policy design with adapters, persistence, and dispatch concerns."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This slice deepens ERP composition by making suite governance span HR, Payroll, and Accounting through Workflow/Object Graph seams rather than direct service calls."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New names use Enterprise Suite, Workflow, Object Graph, and deterministic gate vocabulary already present in the spec."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Plan, todo, spec AC-04, and decision log now document the Workflow gate foundation and non-claims."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Domain validation remains in the suite domain crate and metadata-envelope preparation remains in the suite app crate."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No runtime Workflow client, Object Graph repository, child service client, HTTP router, storage adapter, or cloud deployment artifact was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice adds no third-party dependencies and no workspace dependency changes."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "AC-04 now has concrete test refs and typed metadata structures with schema_version fields."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Required child and gate checks are deterministic set-membership checks over small explicit vectors."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after adding workflow gate code and tests"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app",
+      "status": "pass",
+      "notes": "12 suite integration tests passed across policy, group, ops, and workflow surfaces"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "clippy completed without warnings for both suite crates"
+    },
+    {
+      "command": "cargo test --locked and cargo clippy --locked across HR/payroll/accounting/suite package group",
+      "status": "pass",
+      "notes": "11 enterprise packages passed targeted regression tests and clippy with -D warnings after workflow gate slice landed"
+    },
+    {
+      "command": "public field data_class annotation scan for suite domain/app src",
+      "status": "pass",
+      "notes": "suite domain/app public fields carry data_class annotations"
+    },
+    {
+      "command": "quality-marker scan over CS-ENT-SUITE-002 paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in workflow gate slice paths"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-workflow-gates-1779529800.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-suite-workflow-gates-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "remaining_risks": [
+    "No Workflow execution, Object Graph persistence, child service call, REST adapter, storage, incident runtime, ArgoCD, Helm, cloud adapter, or SLO evidence is claimed.",
+    "Enterprise Suite AC-05 incident rollback remains a pending slice.",
+    "Full ./bin/oya verify --ci-required remains intentionally unclaimed because broad repo catalog/data-class gates have unrelated pre-existing blockers already documented in tasks/enterprise-microservices-todo.md."
+  ],
+  "verdict": "READY-FOR-LOCAL-PROMOTION",
+  "artifacts_attached": {
+    "repo_authority": [
+      "specs/root-hub-pointers.json",
+      "docs/AGENTS.md",
+      "specs/microservices/enterprise-suite.json",
+      "specs/microservices/connect-suite.json"
+    ],
+    "tests": [
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/workflow.rs",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/workflow.rs"
+    ],
+    "oya_vcs_lifecycle_transcript": "evidence/vcs/cs-ent-suite-workflow-gates-oya-vcs-lifecycle-20260523.json"
+  }
+}

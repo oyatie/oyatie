@@ -1,0 +1,298 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-POSTGRES-RLS-STORAGE-001",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779552600,
+  "timestamp_iso": "2026-05-24T01:20:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-postgres-rls-storage/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-postgres-rls-storage/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-postgres-rls-storage/tests/storage_plan.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-enterprise-suite-postgres-rls-storage.yaml",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-18 adds a review-only Postgres/RLS durable-storage schema foundation for later Oyatie cloud database integration. The plan validates tenant-scoped tables for policy admissions, group close rollups, cross-product Workflow plans, incident rollback plans, and ops commands; tenant/idempotency primary keys; required payload/audit evidence columns; ENABLE and FORCE ROW LEVEL SECURITY; restrictive current_setting-based tenant policies; no-delete append-only semantics; and cloud-readiness-gate composition while keeping runtime database attachment, migration execution, live RLS verification, and durable storage readiness as non-claims.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate is a small declarative storage plan and SQL renderer with no database connection, migration runner, or persistence side effect.",
+        "Validation requires tenant/idempotency keys, RLS enable+force flags, restrictive policy names, and no-delete append-only semantics."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice narrows broad durable-storage/Postgres-RLS blockers into a tested schema/RLS plan plus remaining runtime attachment and live verification blockers.",
+        "Cloud readiness remains false; the plan only adds reviewable pre-cloud persistence policy."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-postgres-rls-storage/tests/storage_plan.rs::postgres_rls_storage_plan_covers_suite_tables_with_tenant_rls",
+      "failing_fixture_id": "postgres_rls_storage_plan_rejects_missing_force_rls_or_tenant_column",
+      "diagnostic_asserted": "Tests fail if tenant columns, idempotency scope, force RLS, no-delete policy, runtime overclaim guards, duplicate table detection, or rendered RLS SQL are weakened.",
+      "findings": [
+        "Positive plan coverage and negative RLS/idempotency/runtime-overclaim paths are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Developers can call enterprise_postgres_rls_storage_plan(), validate_enterprise_postgres_rls_storage_plan(), and render_enterprise_postgres_rls_migration() to inspect the durable-storage boundary."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Targeted Postgres/RLS storage check/test/clippy, cloud-readiness test/clippy, 38-package enterprise regression test/clippy, fmt, jq, data_class scan, quality-marker scan, dependency-seam gate, Oya VCS lifecycle, and audit-chain append-only checks are required for closeout."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "wire a live Postgres adapter now",
+        "extend the existing in-memory adapter with Postgres-shaped flags",
+        "add a review-only schema/RLS plan before runtime database attachment"
+      ],
+      "selected_rationale": "The schema/RLS plan makes tenant isolation, idempotency, and migration SQL reviewable before claiming live database behavior.",
+      "rejected_reasons": [
+        "A live adapter would be premature without secrets, connection management, migration execution, and runtime RLS evidence.",
+        "Adding flags to the in-memory adapter would not validate table/RLS policy structure."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "tenant_data_isolation_storage_foundation",
+      "severity_max": "high",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The rendered SQL enables row-level security and forces RLS on all planned Enterprise Suite tables.",
+        "Restrictive policies bind USING and WITH CHECK to tenant_id = current_setting('app.tenant_id', true).",
+        "The plan forbids BYPASSRLS-shaped identifiers, delete policy enablement, applied migration claims, and runtime DB attachment overclaims."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_static_schema_plan_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-enterprise-suite-postgres-rls-storage-plan",
+      "regression_baseline": "Validation checks five in-memory table specs and renders static SQL; no DB, network, cryptography, or hot request path exists.",
+      "findings": [
+        {
+          "summary": "The plan adds no runtime cost until a future adapter/migration slice attaches it."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "PUBLIC storage-plan metadata",
+        "INTERNAL_ONLY tenant/idempotency/payload/audit metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a-no-credentials-or-connection-strings-added",
+      "regulatory_packs_impacted": [
+        "enterprise-suite-governance",
+        "hr-sensitive-data-access",
+        "payroll-financial-access",
+        "accounting-financial-access",
+        "cloud-readiness",
+        "tenant-isolation"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+        "https://www.postgresql.org/docs/current/sql-createpolicy.html",
+        "https://www.postgresql.org/docs/current/config-setting.html",
+        "https://www.postgresql.org/docs/current/sql-createtable.html"
+      ],
+      "findings": [
+        "All new public struct fields in changed source carry data_class annotations.",
+        "The design follows official PostgreSQL row security guidance by requiring row-level security enablement, FORCE ROW LEVEL SECURITY, CREATE POLICY USING/WITH CHECK expressions, and session setting access via current_setting."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one crate, one catalog row, spec/task/evidence updates, and readiness-gate composition. No database, migration, credential, or external resource is created."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The readiness report now exposes postgres_rls_storage_plan_ready and evidence refs for later dashboards.",
+        "Runtime migration application, live RLS evidence, and runtime audit-chain emission remain explicit non-claims."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-18 records the staged migration boundary from in-memory storage seams to review-only Postgres/RLS schema plan and later live adapter/runtime verification.",
+        "AC-15 cloud-readiness blockers now distinguish storage/RLS runtime attachment from schema plan readiness."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A review-only Postgres/RLS plan improves cloud readiness only if it refuses to claim applied migrations, live RLS verification, durable storage, or cloud database attachment.",
+      "premise_evidence_ref": "postgres_rls_storage_plan_rejects_delete_policy_and_runtime_overclaims and cloud_readiness_gate_includes_postgres_rls_storage_plan_without_database_claim",
+      "do_nothing_consequence": "Later storage work would need to infer tenant/RLS/idempotency requirements from prose and in-memory storage behavior rather than a typed schema plan.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "The existing in-memory store owns local test storage; a separate Postgres/RLS storage-plan crate preserves no-runtime-DB claims while establishing durable schema policy."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This is the next cloud-integration step after auth runtime: persistence isolation and idempotency are now typed before a live database adapter is attached."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use postgres-rls-storage-plan/foundation vocabulary and avoid durable adapter or live database readiness claims."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, plan, task list, catalog, multispectrum evidence, VCS evidence, and audit-chain references are part of the closeout set."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate sits under microservices/enterprise-suite/crates with a storage-governance catalog row and no new external database adapter layer."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No listener, route-handler mutation, durable store adapter, SQL client, migration runner, provider SDK, Workflow engine/broker, statutory rail, or runtime audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new Postgres/RLS storage-plan crate has no third-party dependencies; the readiness gate adds only a local workspace dependency on it."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No external wire API schema changes; the addition is a Rust control-plane/storage-plan struct set plus Enterprise Suite AC-18 metadata."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation and SQL rendering are deterministic checks over five fixed table plans with no clock, randomness, I/O, network, or database calls."
+      ]
+    }
+  },
+  "verification": {
+    "completed": [
+      "cargo check -p oya-enterprise-suite-postgres-rls-storage",
+      "cargo test --locked -p oya-enterprise-suite-postgres-rls-storage",
+      "cargo clippy --locked -p oya-enterprise-suite-postgres-rls-storage --all-targets -- -D warnings",
+      "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+      "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+      "38-package enterprise regression: cargo test --locked for HR/payroll/accounting/enterprise-suite/procurement/treasury/warehouse/production-planning/quality-management/plant-maintenance/supply-chain-planning/crm/global-trade/real-estate packages",
+      "38-package enterprise regression: cargo clippy --locked --all-targets -- -D warnings for same package set",
+      "cargo fmt --all -- --check",
+      "jq . specs/microservices/enterprise-suite.json",
+      "jq . evidence/multispectrum/cs-ent-suite-postgres-rls-storage-1779552600.json",
+      "data_class scan across Postgres/RLS storage plan and readiness source fields",
+      "quality-marker scan across Postgres/RLS storage/readiness/spec/catalog files",
+      "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-postgres-rls-storage-1779552600.json --severity error"
+    ],
+    "known_pre_existing_blockers": [
+      "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog is blocked by missing pre-existing oya-tenancy-tenant-lifecycle-kernel catalog row",
+      "./bin/oya gate validate data-class --workspace Cargo.toml is blocked by pre-existing crates/oya-audit-chain-emission-kernel/src/lib.rs::ChainCoordinate.pack",
+      "Full ./bin/oya verify --ci-required remains blocked by the two pre-existing issues above"
+    ]
+  },
+  "non_claims": [
+    "No PostgreSQL connection is opened.",
+    "No migration is applied to a database.",
+    "No live RLS behavior is verified against a database session.",
+    "No durable storage runtime or runtime write path is attached.",
+    "No cloud database, secret, credential, connection string, backup, WAL, or replication path is introduced.",
+    "No existing in-memory storage port is replaced.",
+    "No runtime audit-chain emission, cloud deployment evidence, or production SLO evidence is claimed."
+  ],
+  "open_cloud_blockers": [
+    "deployed listener missing",
+    "external identity-provider verification missing",
+    "durable storage runtime missing",
+    "live Postgres/RLS runtime verification missing",
+    "Workflow/broker missing",
+    "statutory filing rails missing",
+    "disbursement rails missing",
+    "runtime audit-chain emission missing",
+    "cloud deployment evidence missing",
+    "production SLO evidence missing",
+    "runtime credential/secret path missing"
+  ]
+}

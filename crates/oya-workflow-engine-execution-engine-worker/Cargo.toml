@@ -1,0 +1,21 @@
+[package]
+name = "oya-workflow-engine-execution-engine-worker"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-workflow-engine-execution-engine-usecase = { path = "../oya-workflow-engine-execution-engine-usecase" }
+
+[dev-dependencies]
+oya-workflow-engine-execution-engine-adapter = { path = "../oya-workflow-engine-execution-engine-adapter" }
+
+[lib]
+name = "oya_workflow_engine_execution_engine_worker"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

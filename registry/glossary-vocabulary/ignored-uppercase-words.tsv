@@ -1,5 +1,7 @@
 # Oyatie glossary vocabulary ignored uppercase prose words. Format: <token>\t<rationale>
 # Use only for ordinary uppercase words, table/status values, or repository artifact names that are not acronyms.
+AB	company-name component in journey prose (for example AB Facility), not a glossary acronym
+ABC	company-name component in interpreter journey prose (ABC Linguistic Services), not a glossary acronym
 AFTER	emphatic ordinary prose sequencing word, not an acronym
 AGENTS	repository artifact basename AGENTS.md, not an acronym
 ALL	emphatic ordinary prose word, not an acronym

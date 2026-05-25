@@ -8,6 +8,12 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     oyatie.com/adr-0349: argocd-managed
     oyatie.com/cargo-package: {{ .Values.microservice.cargoPackage | quote }}
+    oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+    oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+    oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+    oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+    oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+    oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -20,6 +26,12 @@ spec:
         app.kubernetes.io/part-of: oyatie-microservices
         istio.io/dataplane-mode: ambient
         oyatie.com/tenant-class: {{ .Values.microservice.tenantClass | quote }}
+        oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+        oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+        oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+        oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+        oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+        oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
       annotations:
         cosign.sigstore.dev/required: {{ .Values.image.cosign.required | quote }}
         oyatie.com/image-digest: {{ .Values.image.digest | quote }}
@@ -28,10 +40,26 @@ spec:
     spec:
       runtimeClassName: {{ .Values.podRuntime.runtimeClassName | quote }}
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      {{ if .Values.topologySpread.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+      {{ end }}
       containers:
         - name: app
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}{{- if .Values.image.digest }}@{{ .Values.image.digest }}{{- else }}:{{ .Values.image.tag }}{{- end }}"
@@ -50,13 +78,13 @@ spec:
               value: {{ .Values.config.imagePromotionPolicy | quote }}
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /ready
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /health
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20

@@ -1,0 +1,117 @@
+{
+  "change_id": "backbone-microservices-outbox-dispatch-app-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Runtime-neutral transactional outbox dispatch app seam over claimed protocol outbox rows.",
+  "scope": [
+    "crates/oya-shared-transactional-outbox-dispatch-app/**",
+    "crates/oya-shared-transactional-outbox-kernel/src/lib.rs",
+    "crates/oya-shared-transactional-outbox-adapter-sqlx/src/lib.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-shared-transactional-outbox-dispatch-app.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Runtime-neutral dispatch seam only. This slice maps already-claimed outbox rows into dynamic broker publish and gRPC unary transport plans, validates table/tenant/service/event metadata, runs an injected recording executor, and recommends Published only after transport invariant checks pass. It does not run a background poller, publish to a live broker, call a live gRPC server, mark SQL rows, retry failures, dead-letter rows, or prove delivery guarantees/SLOs.",
+  "architecture_note": "Reusable PendingOutboxEvent, OutboxClaimBatch, OutboxDispatchState, and OutboxMutationReport types now live in the transactional outbox kernel. The SQLx adapter re-exports them for compatibility, while the dispatch app depends only on the kernel and therefore stays SQLx-free.",
+  "facets": {
+    "F1_simplicity": "A small dispatch app maps claimed outbox metadata to transport plans and a recording executor trait instead of introducing a broker SDK, gRPC client, scheduler, or async worker loop in this slice.",
+    "F2_hyperscaler": "The seam prepares horizontally scalable publisher workers by separating queue claim, dispatch planning, transport execution, and SQL state mutation boundaries while preserving tenant/audit/policy/idempotency metadata end to end.",
+    "F3_adversarial": "Tests cover event table drift, tenant drift, event-id drift, service-id drift, missing audit metadata, zero deadline, payload-budget overrun, transport invariant drift, deterministic ack refs, and Published recommendation only after executor success.",
+    "F5_quality": "Focused outbox kernel/SQLx adapter/dispatch app tests plus the 38-package backbone check/test/clippy/fmt matrix, cargo-deny, license-policy, cargo-prefix, catalog/data-class known-blocker probes, parse/config validation, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F7_security_privacy": "The dispatch app uses metadata already persisted by the outbox command seam, validates tenant/audit/policy/idempotency fields before dispatch, and adds no payload bodies or raw message/mail/post content.",
+    "F11_observability": "OutboxTransportAck and OutboxDispatchBatchReport expose deterministic sequence, broker/gRPC ack refs, tenant, audit, policy, idempotency, worker, event IDs, and recommended state for future publisher telemetry correlation."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-transactional-outbox-kernel -p oya-shared-transactional-outbox-adapter-sqlx -p oya-shared-transactional-outbox-dispatch-app",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-transactional-outbox-kernel -p oya-shared-transactional-outbox-adapter-sqlx -p oya-shared-transactional-outbox-dispatch-app",
+      "result": "pass",
+      "evidence": "16 focused unit tests passed: 4 outbox kernel, 6 SQLx drain adapter, and 6 dispatch app tests."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-transactional-outbox-kernel -p oya-shared-transactional-outbox-adapter-sqlx -p oya-shared-transactional-outbox-dispatch-app --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-transactional-outbox-kernel -p oya-shared-transactional-outbox-adapter-sqlx -p oya-shared-transactional-outbox-dispatch-app",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <38 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <38 backbone package matrix>",
+      "result": "pass",
+      "evidence": "240 unit tests passed across backbone domain/API/usecase/REST/app/gRPC/adapter-postgres/shared-command/shared-sqlx/shared-outbox/shared-dispatch/shared-policy/shared-metrics/shared-protocol packages; one existing metrics adapter doctest remains ignored."
+    },
+    {
+      "command": "cargo clippy -p <38 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <38 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok; duplicate/wildcard diagnostics remain non-blocking warnings under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 452 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed for 452 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing oya-audit-chain-emission-kernel::ChainCoordinate.pack annotation issue."
+    },
+    {
+      "command": "ruby/python parse validation for workflow, catalog, workspace, Jenkins, evidence",
+      "result": "pass",
+      "evidence": "Verified workflow matrix/path trigger, catalog role/capability, Cargo workspace member, messenger/mail/social/community Jenkins inclusion, and evidence JSON."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 264 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + outbox kernel/adapter/dispatch + registry/CI/Jenkins/evidence corpus>",
+      "result": "pass",
+      "evidence": "5 documents, 901 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "non_claims": [
+    "No background outbox poller loop or scheduler is implemented by this slice.",
+    "No live broker publisher, live gRPC call, SQL row mutation, retry worker, or dead-letter processor is implemented by this slice.",
+    "No exactly-once, at-least-once, ordering, latency, durability, or delivery SLO is claimed.",
+    "No live Postgres/Citus/RLS integration test, backup/restore drill, or Citus rebalance evidence is produced by this slice.",
+    "No live ArgoCD sync, production deployment, branch-protection, or full remote CI runtime evidence is claimed."
+  ]
+}

@@ -8,6 +8,10 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub use oya_cloud_iam_domain::{
+    CloudIamBoundaryCellId, CloudIamBoundaryRegionId, CloudIamBoundaryTenantId,
+    CloudIamPlacementBoundary as CloudIamUseCaseBoundary,
+};
 use oya_cloud_iam_domain::{CloudIamError, IamDirectory, IamRole, IamRoleCreate};
 use oya_policy_cedar_domain::{
     PolicyError, PolicyScope, PolicySet, PolicyVersion, PublishedPolicy,
@@ -18,10 +22,11 @@ pub const CLOUD_IAM_CEDAR_POLICY_BIND_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamCedarPolicyBindRequest {
-    pub request_id: String,    // data_class: INTERNAL_ONLY
-    pub tenant_id: String,     // data_class: INTERNAL_ONLY
-    pub policy: PolicyVersion, // data_class: INTERNAL_ONLY
-    pub role: IamRoleCreate,   // data_class: INTERNAL_ONLY
+    pub request_id: String,                // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub boundary: CloudIamUseCaseBoundary, // data_class: INTERNAL_ONLY
+    pub policy: PolicyVersion,             // data_class: INTERNAL_ONLY
+    pub role: IamRoleCreate,               // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -35,6 +40,8 @@ pub struct CloudIamCedarPolicyBindSuccessResponse {
 pub struct CloudIamCedarPolicyBindMetadata {
     pub request_id: String,     // data_class: INTERNAL_ONLY
     pub tenant_id: String,      // data_class: INTERNAL_ONLY
+    pub cell_id: String,        // data_class: INTERNAL_ONLY
+    pub region_id: String,      // data_class: PUBLIC
     pub policy_id: String,      // data_class: INTERNAL_ONLY
     pub policy_version: String, // data_class: INTERNAL_ONLY
     pub role_id: String,        // data_class: INTERNAL_ONLY
@@ -45,6 +52,12 @@ pub struct CloudIamCedarPolicyBindMetadata {
 pub enum CloudIamCedarPolicyBindError {
     EmptyRequestId,
     EmptyTenantId,
+    EmptyBoundaryCell,
+    EmptyBoundaryRegion,
+    BoundaryTenantMismatch {
+        request_tenant_id: String,
+        boundary_tenant_id: String,
+    },
     RequestTenantRoleMismatch {
         request_tenant_id: String,
         role_tenant_id: String,
@@ -95,6 +108,8 @@ pub fn bind_cedar_policy(
         metadata: CloudIamCedarPolicyBindMetadata {
             request_id: request.request_id,
             tenant_id: request.tenant_id,
+            cell_id: request.boundary.cell_id.value,
+            region_id: request.boundary.region_id.value,
             policy_id: request.policy.policy_id,
             policy_version: request.policy.version,
             role_id: request.role.id,
@@ -112,6 +127,7 @@ fn validate_bind_request(
     if request.tenant_id.trim().is_empty() {
         return Err(CloudIamCedarPolicyBindError::EmptyTenantId);
     }
+    validate_use_case_boundary(&request.tenant_id, &request.boundary)?;
     if request.tenant_id != request.role.tenant_id {
         return Err(CloudIamCedarPolicyBindError::RequestTenantRoleMismatch {
             request_tenant_id: request.tenant_id.clone(),
@@ -140,5 +156,27 @@ fn validate_bind_request(
         );
     }
 
+    Ok(())
+}
+
+fn validate_use_case_boundary(
+    tenant_id: &str,
+    boundary: &CloudIamUseCaseBoundary,
+) -> Result<(), CloudIamCedarPolicyBindError> {
+    if boundary.tenant_id.value.trim().is_empty() {
+        return Err(CloudIamCedarPolicyBindError::EmptyTenantId);
+    }
+    if boundary.tenant_id.value != tenant_id {
+        return Err(CloudIamCedarPolicyBindError::BoundaryTenantMismatch {
+            request_tenant_id: tenant_id.to_string(),
+            boundary_tenant_id: boundary.tenant_id.value.clone(),
+        });
+    }
+    if boundary.cell_id.value.trim().is_empty() {
+        return Err(CloudIamCedarPolicyBindError::EmptyBoundaryCell);
+    }
+    if boundary.region_id.value.trim().is_empty() {
+        return Err(CloudIamCedarPolicyBindError::EmptyBoundaryRegion);
+    }
     Ok(())
 }

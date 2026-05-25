@@ -39,8 +39,10 @@ pub(crate) fn parse_hyperscaler_maturity_claims_validate_args(
         workflow_path: PathBuf::from("specs/microservices/workflow.json"),
         workspace_hygiene_path: PathBuf::from("specs/workspace-hygiene.json"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
-        pr_review_workflow_path: PathBuf::from(".github/workflows/pr-review.yml"),
-        ci_fix_loop_workflow_path: PathBuf::from(".github/workflows/ci-failure-fix-loop.yml"),
+        // ADR-0361: the PR-review + CI-fix-loop closure is now the Jenkins-native
+        // pipeline closure contract, not the retired GitHub Actions workflows.
+        pr_review_workflow_path: PathBuf::from("infra/ci/jenkins/pipeline-closure-contract.md"),
+        ci_fix_loop_workflow_path: PathBuf::from("infra/ci/jenkins/pipeline-closure-contract.md"),
         gitops_vcs_path: PathBuf::from("specs/gitops-vcs-replacement.json"),
         merge_queue_path: PathBuf::from("specs/merge-queue-parked-pr.json"),
         iterative_fix_loop_path: PathBuf::from("specs/iterative-fix-loop.json"),
@@ -330,38 +332,56 @@ fn validate_pr_review_pipeline(
         return Err("branch protection must document automated agent review authority".into());
     }
 
-    let workflow = parse_workflow_contract(pr_review_workflow, "oya-pr-review")?;
-    if workflow.name.as_deref() != Some("oya-foundry-fitness-pr-review") {
-        return Err("PR review workflow must have the expected workflow name".into());
-    }
-    if !workflow.job_present {
-        return Err("PR review workflow must expose an oya-pr-review job".into());
-    }
-    if workflow.job_display_name.as_deref() != Some("oya-pr-review") {
-        return Err("PR review job display name must match branch protection".into());
-    }
-    workflow.require_command(
+    // ADR-0361: the PR-review command contract is asserted against the Jenkins
+    // pipeline closure contract (`infra/ci/jenkins/pipeline-closure-contract.md`),
+    // not a GitHub Actions workflow YAML. Same semantic assertions: the agent review
+    // runtime + dispatcher commands, deterministic-mock, fail-on-pending, and the
+    // runtime-before-dispatcher order.
+    let contract = pr_review_workflow;
+    require_contains(
+        contract,
         "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out",
-        "PR review workflow must run the agent review runtime",
+        "Jenkins PR-review closure must run the agent review runtime",
     )?;
-    workflow.require_command(
+    require_contains(
+        contract,
         "cargo run -q -p oya-foundry-pr-review-dispatcher-app",
-        "PR review workflow must run the dispatcher after runtime fan-out",
+        "Jenkins PR-review closure must run the dispatcher after runtime fan-out",
     )?;
-    workflow.require_command(
+    require_contains(
+        contract,
         "--mode deterministic-mock",
-        "PR review workflow must use deterministic agent runtime in CI",
+        "Jenkins PR-review closure must use the deterministic agent runtime in CI",
     )?;
-    workflow.require_command(
+    require_contains(
+        contract,
         "runtime still pending",
-        "PR review workflow must fail when subagent_runtime_pending remains true",
+        "Jenkins PR-review closure must fail when the agent runtime stays pending",
     )?;
-    workflow.require_command_order(
+    require_order(
+        contract,
         "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out",
         "cargo run -q -p oya-foundry-pr-review-dispatcher-app",
-        "PR review workflow must run agent runtime before dispatcher",
+        "Jenkins PR-review closure must run the agent runtime before the dispatcher",
     )?;
     Ok(())
+}
+
+/// Assert `first` appears before `second` in `contents` (order contract).
+fn require_order(contents: &str, first: &str, second: &str, context: &str) -> Result<(), String> {
+    let a = contents
+        .find(first)
+        .ok_or_else(|| format!("{context}: missing {first:?}"))?;
+    let b = contents
+        .find(second)
+        .ok_or_else(|| format!("{context}: missing {second:?}"))?;
+    if a < b {
+        Ok(())
+    } else {
+        Err(format!(
+            "{context}: {first:?} must appear before {second:?}"
+        ))
+    }
 }
 
 fn validate_pipeline_closure(
@@ -415,10 +435,14 @@ fn validate_pr_review_fix_loop(pr_review_workflow: &str) -> Result<(), String> {
 }
 
 fn validate_ci_fix_loop(ci_fix_loop_workflow: &str) -> Result<(), String> {
+    // ADR-0361: Jenkins-native triggers replace the GitHub Actions
+    // `workflow_run:` / `repository_dispatch:` keys; the fix-loop semantics are
+    // identical (upstream build + webhook dispatch, surface-all-failures,
+    // automated remediation only).
     for expected in [
-        "name: ci-failure-fix-loop",
-        "workflow_run:",
-        "repository_dispatch:",
+        "ci-failure-fix-loop",
+        "upstream oya-verify build completion",
+        "webhook repository-dispatch",
         "pr-review-fix-requested",
         "oya-foundry-vcs-ci-fix-loop-dispatcher-app",
         "Surface-all-failures",

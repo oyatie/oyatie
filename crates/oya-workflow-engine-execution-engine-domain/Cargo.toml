@@ -1,0 +1,18 @@
+[package]
+name = "oya-workflow-engine-execution-engine-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-workflow-engine-execution-engine-kernel = { path = "../oya-workflow-engine-execution-engine-kernel" }
+
+[lib]
+name = "oya_workflow_engine_execution_engine_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

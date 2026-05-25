@@ -1,0 +1,10 @@
+context: payroll
+role: api
+capability: run
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING, FINANCIAL]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

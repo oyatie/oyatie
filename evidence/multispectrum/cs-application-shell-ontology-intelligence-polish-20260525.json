@@ -1,0 +1,322 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-ONTOLOGY-INTELLIGENCE-POLISH-20260525",
+  "schema_version": "1.0.0",
+  "id": "CS-APPLICATION-SHELL-ONTOLOGY-INTELLIGENCE-POLISH-20260525",
+  "kind": "multispectrum-evidence",
+  "agent": "codex-oyatie-ontology-intelligence-polish",
+  "captured_at": "2026-05-25T04:03:56.079437Z",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-ontology-intelligence-polish-20260525.json"
+  ],
+  "goal_context": "Continue toward a complete Bominal-grade Oyatie mockup. This slice targets the remaining sparse Ontology and Intelligence panels after prior slices improved Workflow, Governance, Finance, Comms, Cloud, Identity, Daily execution, and Catalog surfaces.",
+  "product_direction_applied": {
+    "user_directive": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+    "ui_interpretation": "Ontology now shows FD-001 microservices as tenant workloads running on Oyatie Cloud; Intelligence now stays human-gated and routes recommendations into Workflow, Mail, Community, and Evidence rather than implying auto-execution."
+  },
+  "before_audit": {
+    "ontologyItems": 3,
+    "suggestionItems": 3,
+    "ontologyButtons": 0,
+    "intelligenceButtons": 0,
+    "ontologyText": "Tenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.",
+    "suggestionText": "\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only."
+  },
+  "reference_sources": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/tmp/bominal-reference/Bominal Workflow Studio.html",
+    "/tmp/bominal-reference/workflow-app.jsx",
+    "/tmp/bominal-reference/workflow.css",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+    ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/before/studio-ontology-intelligence-before-1440.png"
+  ],
+  "change_summary": [
+    "Replaced the old three-item ontology list presentation with a full-width typed tenant workload graph showing Tenant, FD-001 Workloads, Oyatie Cloud, Workflow, built-in Comms, Evidence, and Policy nodes.",
+    "Added ontology fact cards, substrate-proof rail, role/data-class visibility explanation, node selection, sidepeek inspection, policy/evidence/workflow actions, and local status feedback.",
+    "Replaced the old plain advisory suggestion list with a governed AI command console: evaluation score strip, routed recommendation cards, guardrail harness, route grid, dismissal, preview, and local workflow/mail/community/evidence routing.",
+    "Changed the studio layout so Workflow, Ontology, and Intelligence are readable command surfaces rather than skinny side rails.",
+    "Updated SSR/static rendering paths so the dense consoles are present before hydration, and added fallback JS interaction handlers for the same local-only behavior."
+  ],
+  "visual_verdict": {
+    "score": 91,
+    "verdict": "pass-for-ontology-intelligence-slice-not-full-dashboard-completion",
+    "category_match": true,
+    "differences": [
+      "The implementation is Oyatie-native rather than a direct Bominal clone; Bominal Workflow Studio supplies density, command chrome, and graph language only.",
+      "The graph and AI panels emphasize FD-001 tenant workload dogfooding on Oyatie Cloud, which is newer product direction beyond the supplied Bominal references.",
+      "The full mockup goal remains active; this evidence proves only the Ontology/Intelligence regression slice."
+    ],
+    "suggestions": [
+      "Continue requirement-by-requirement final audit across the entire dashboard before claiming complete mockup status.",
+      "Consider adding a single global FD-001/Oyatie Cloud narrative banner or first-run walkthrough after all major surfaces reach parity."
+    ],
+    "reasoning": "Before audit showed Ontology and Intelligence had only three text rows each and zero local controls. Browser smoke now proves dense graph nodes, fact cards, AI cards, guardrail route actions, status changes, and cross-surface routing with no console errors or failed requests."
+  },
+  "ssr_smoke": {
+    "command": "podman restart oya-frontend-prototype-live && curl -fsS http://127.0.0.1:3000/ >/tmp/oya-ontology-intel-live.html",
+    "status": "pass",
+    "counts": {
+      "ontology-command-console": 2,
+      "intelligence-command-console": 2,
+      "FD-001 TENANT WORKLOAD MAP": 1,
+      "GOVERNED AI": 1,
+      "data-ontology-node": 7,
+      "data-intelligence-action": 16,
+      "FD-001 runs as tenant workloads": 1,
+      "Oyatie Cloud": 7
+    },
+    "note": "Initial empty replies can occur during container compile/restart; final ready response contained the SSR console markup."
+  },
+  "browser_smoke": {
+    "capturedAt": "2026-05-25T04:02:02.948Z",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "url": "http://127.0.0.1:3000/#ontology-command-console",
+    "pass": true,
+    "counts": {
+      "ontologyConsoles": 1,
+      "ontologyNodes": 7,
+      "ontologyFacts": 3,
+      "ontologyActions": 9,
+      "intelligenceConsoles": 1,
+      "intelligenceCards": 3,
+      "intelligenceActions": 16,
+      "text": "ONTOLOGY\n\nTenant workload graph\n\nONTOLOGY \u00b7 FD-001 TENANT WORKLOAD MAP\n\nWhat exists, who can see it, and where it runs\nTyped entities connect FD-001 product delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.\n3 facts \u00b7 7 workload nodes \u00b7 local graph\nTrace lineage\nPolicy view\nEvidence\nTENANT\nTenant Admin\nowns envelope\nFD-001\nMicroservice workloads\nproduct goal\nCLOUD\nCell substrate\nhosts tenants\nFLOW\nWorkflow\norchestrates\nCOMMS\nMessenger \u00b7 Mail \u00b7 Community\noutputs\nAUDIT\nEvidence spine\nproves\nPOLICY\nAccess envelope\npermits\nFACT-01\nTenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nInspect\nWorkflow\nFACT-02\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nInspect\nWorkflow\nFACT-03\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.\n\nInspect\nWorkflow\n\nSUBSTRATE PROOF\n\nFD-001 runs as tenant workloads before product claim\nCloud cells, policy envelopes, and evidence receipts prove the platform can host real production tenants.\n\nVISIBILITY\n\nRole + data-class gates\nTenant admin can inspect posture; hidden modules remain server-derived, not client hidden.\n\nGRAPH STATUS\n\nTenant selected \u00b7 workload lineage visible\nClick nodes or facts to stage local graph state.\nINTELLIGENCE\n\nGoverned AI command\n\nGOVERNED AI \u00b7 DOGFOOD ADVISOR\n\nRecommendations that can explain, route, and prove themselves\nAI suggestions stay read-only until a human routes them to Workflow, Mail, Community, or Evidence.\n3 suggestions \u00b7 human gated\nRun eval\nExplain\nEvidence\n0.86\nDECISION CONFIDENCE\n14\nPOLICY CHECKS\n0\nAUTO-EXECUTIONS\n3\nFD-001 ROUTES\nAI-WF-217\n\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\nPreview\nRoute\nDismiss\nAI-TAX-118\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\nPreview\nRoute\nDismiss\nAI-HR-053\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only.\nPreview\nRoute\nDismiss\n\nEVAL HARNESS\n\nBefore any tenant actionPolicy, data-class, autonomy ceiling, residency, and evidence checks must pass.\npass\nNo backend execution\nT1 advisory only\npass\nHuman approval required\nCFO / reviewer gate\nreview\nTenant workload impact\nFD-001 cloud dogfood\nsealed\nEvidence receipt ready\nREC-AI-GUARD-009\nWorkflow\nMail\nCommunity\nEvidence"
+    },
+    "assertions": [
+      {
+        "name": "ontology console rendered",
+        "pass": true,
+        "detail": {
+          "ontologyConsoles": 1,
+          "ontologyNodes": 7,
+          "ontologyFacts": 3,
+          "ontologyActions": 9,
+          "intelligenceConsoles": 1,
+          "intelligenceCards": 3,
+          "intelligenceActions": 16,
+          "text": "ONTOLOGY\n\nTenant workload graph\n\nONTOLOGY \u00b7 FD-001 TENANT WORKLOAD MAP\n\nWhat exists, who can see it, and where it runs\nTyped entities connect FD-001 product delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.\n3 facts \u00b7 7 workload nodes \u00b7 local graph\nTrace lineage\nPolicy view\nEvidence\nTENANT\nTenant Admin\nowns envelope\nFD-001\nMicroservice workloads\nproduct goal\nCLOUD\nCell substrate\nhosts tenants\nFLOW\nWorkflow\norchestrates\nCOMMS\nMessenger \u00b7 Mail \u00b7 Community\noutputs\nAUDIT\nEvidence spine\nproves\nPOLICY\nAccess envelope\npermits\nFACT-01\nTenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nInspect\nWorkflow\nFACT-02\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nInspect\nWorkflow\nFACT-03\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.\n\nInspect\nWorkflow\n\nSUBSTRATE PROOF\n\nFD-001 runs as tenant workloads before product claim\nCloud cells, policy envelopes, and evidence receipts prove the platform can host real production tenants.\n\nVISIBILITY\n\nRole + data-class gates\nTenant admin can inspect posture; hidden modules remain server-derived, not client hidden.\n\nGRAPH STATUS\n\nTenant selected \u00b7 workload lineage visible\nClick nodes or facts to stage local graph state.\nINTELLIGENCE\n\nGoverned AI command\n\nGOVERNED AI \u00b7 DOGFOOD ADVISOR\n\nRecommendations that can explain, route, and prove themselves\nAI suggestions stay read-only until a human routes them to Workflow, Mail, Community, or Evidence.\n3 suggestions \u00b7 human gated\nRun eval\nExplain\nEvidence\n0.86\nDECISION CONFIDENCE\n14\nPOLICY CHECKS\n0\nAUTO-EXECUTIONS\n3\nFD-001 ROUTES\nAI-WF-217\n\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\nPreview\nRoute\nDismiss\nAI-TAX-118\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\nPreview\nRoute\nDismiss\nAI-HR-053\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only.\nPreview\nRoute\nDismiss\n\nEVAL HARNESS\n\nBefore any tenant actionPolicy, data-class, autonomy ceiling, residency, and evidence checks must pass.\npass\nNo backend execution\nT1 advisory only\npass\nHuman approval required\nCFO / reviewer gate\nreview\nTenant workload impact\nFD-001 cloud dogfood\nsealed\nEvidence receipt ready\nREC-AI-GUARD-009\nWorkflow\nMail\nCommunity\nEvidence"
+        }
+      },
+      {
+        "name": "ontology has dense workload graph nodes",
+        "pass": true,
+        "detail": {
+          "ontologyConsoles": 1,
+          "ontologyNodes": 7,
+          "ontologyFacts": 3,
+          "ontologyActions": 9,
+          "intelligenceConsoles": 1,
+          "intelligenceCards": 3,
+          "intelligenceActions": 16,
+          "text": "ONTOLOGY\n\nTenant workload graph\n\nONTOLOGY \u00b7 FD-001 TENANT WORKLOAD MAP\n\nWhat exists, who can see it, and where it runs\nTyped entities connect FD-001 product delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.\n3 facts \u00b7 7 workload nodes \u00b7 local graph\nTrace lineage\nPolicy view\nEvidence\nTENANT\nTenant Admin\nowns envelope\nFD-001\nMicroservice workloads\nproduct goal\nCLOUD\nCell substrate\nhosts tenants\nFLOW\nWorkflow\norchestrates\nCOMMS\nMessenger \u00b7 Mail \u00b7 Community\noutputs\nAUDIT\nEvidence spine\nproves\nPOLICY\nAccess envelope\npermits\nFACT-01\nTenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nInspect\nWorkflow\nFACT-02\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nInspect\nWorkflow\nFACT-03\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.\n\nInspect\nWorkflow\n\nSUBSTRATE PROOF\n\nFD-001 runs as tenant workloads before product claim\nCloud cells, policy envelopes, and evidence receipts prove the platform can host real production tenants.\n\nVISIBILITY\n\nRole + data-class gates\nTenant admin can inspect posture; hidden modules remain server-derived, not client hidden.\n\nGRAPH STATUS\n\nTenant selected \u00b7 workload lineage visible\nClick nodes or facts to stage local graph state.\nINTELLIGENCE\n\nGoverned AI command\n\nGOVERNED AI \u00b7 DOGFOOD ADVISOR\n\nRecommendations that can explain, route, and prove themselves\nAI suggestions stay read-only until a human routes them to Workflow, Mail, Community, or Evidence.\n3 suggestions \u00b7 human gated\nRun eval\nExplain\nEvidence\n0.86\nDECISION CONFIDENCE\n14\nPOLICY CHECKS\n0\nAUTO-EXECUTIONS\n3\nFD-001 ROUTES\nAI-WF-217\n\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\nPreview\nRoute\nDismiss\nAI-TAX-118\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\nPreview\nRoute\nDismiss\nAI-HR-053\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only.\nPreview\nRoute\nDismiss\n\nEVAL HARNESS\n\nBefore any tenant actionPolicy, data-class, autonomy ceiling, residency, and evidence checks must pass.\npass\nNo backend execution\nT1 advisory only\npass\nHuman approval required\nCFO / reviewer gate\nreview\nTenant workload impact\nFD-001 cloud dogfood\nsealed\nEvidence receipt ready\nREC-AI-GUARD-009\nWorkflow\nMail\nCommunity\nEvidence"
+        }
+      },
+      {
+        "name": "ontology contains FD-001 and Oyatie Cloud product language",
+        "pass": true,
+        "detail": "ONTOLOGY\n\nTenant workload graph\n\nONTOLOGY \u00b7 FD-001 TENANT WORKLOAD MAP\n\nWhat exists, who can see it, and where it runs\nTyped entities connect FD-001 product delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.\n3 facts \u00b7 7 workload nodes \u00b7 local graph\nTrace lineage\nPolicy view\nEvidence\nTENANT\nTenant Admin\nowns envelope\nFD-001\nMicroservice workloads\nproduct goal\nCLOUD\nCell substrate\nhosts tenants\nFLOW\nWorkflow\norchestrates\nCOMMS\nMessenger \u00b7 Mail \u00b7 Community\nou"
+      },
+      {
+        "name": "intelligence console rendered",
+        "pass": true,
+        "detail": {
+          "ontologyConsoles": 1,
+          "ontologyNodes": 7,
+          "ontologyFacts": 3,
+          "ontologyActions": 9,
+          "intelligenceConsoles": 1,
+          "intelligenceCards": 3,
+          "intelligenceActions": 16,
+          "text": "ONTOLOGY\n\nTenant workload graph\n\nONTOLOGY \u00b7 FD-001 TENANT WORKLOAD MAP\n\nWhat exists, who can see it, and where it runs\nTyped entities connect FD-001 product delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.\n3 facts \u00b7 7 workload nodes \u00b7 local graph\nTrace lineage\nPolicy view\nEvidence\nTENANT\nTenant Admin\nowns envelope\nFD-001\nMicroservice workloads\nproduct goal\nCLOUD\nCell substrate\nhosts tenants\nFLOW\nWorkflow\norchestrates\nCOMMS\nMessenger \u00b7 Mail \u00b7 Community\noutputs\nAUDIT\nEvidence spine\nproves\nPOLICY\nAccess envelope\npermits\nFACT-01\nTenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nInspect\nWorkflow\nFACT-02\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nInspect\nWorkflow\nFACT-03\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.\n\nInspect\nWorkflow\n\nSUBSTRATE PROOF\n\nFD-001 runs as tenant workloads before product claim\nCloud cells, policy envelopes, and evidence receipts prove the platform can host real production tenants.\n\nVISIBILITY\n\nRole + data-class gates\nTenant admin can inspect posture; hidden modules remain server-derived, not client hidden.\n\nGRAPH STATUS\n\nTenant selected \u00b7 workload lineage visible\nClick nodes or facts to stage local graph state.\nINTELLIGENCE\n\nGoverned AI command\n\nGOVERNED AI \u00b7 DOGFOOD ADVISOR\n\nRecommendations that can explain, route, and prove themselves\nAI suggestions stay read-only until a human routes them to Workflow, Mail, Community, or Evidence.\n3 suggestions \u00b7 human gated\nRun eval\nExplain\nEvidence\n0.86\nDECISION CONFIDENCE\n14\nPOLICY CHECKS\n0\nAUTO-EXECUTIONS\n3\nFD-001 ROUTES\nAI-WF-217\n\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\nPreview\nRoute\nDismiss\nAI-TAX-118\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\nPreview\nRoute\nDismiss\nAI-HR-053\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only.\nPreview\nRoute\nDismiss\n\nEVAL HARNESS\n\nBefore any tenant actionPolicy, data-class, autonomy ceiling, residency, and evidence checks must pass.\npass\nNo backend execution\nT1 advisory only\npass\nHuman approval required\nCFO / reviewer gate\nreview\nTenant workload impact\nFD-001 cloud dogfood\nsealed\nEvidence receipt ready\nREC-AI-GUARD-009\nWorkflow\nMail\nCommunity\nEvidence"
+        }
+      },
+      {
+        "name": "intelligence has routed suggestions and guardrails",
+        "pass": true,
+        "detail": {
+          "ontologyConsoles": 1,
+          "ontologyNodes": 7,
+          "ontologyFacts": 3,
+          "ontologyActions": 9,
+          "intelligenceConsoles": 1,
+          "intelligenceCards": 3,
+          "intelligenceActions": 16,
+          "text": "ONTOLOGY\n\nTenant workload graph\n\nONTOLOGY \u00b7 FD-001 TENANT WORKLOAD MAP\n\nWhat exists, who can see it, and where it runs\nTyped entities connect FD-001 product delivery to Oyatie Cloud cells, policy envelopes, workflow outputs, and evidence receipts.\n3 facts \u00b7 7 workload nodes \u00b7 local graph\nTrace lineage\nPolicy view\nEvidence\nTENANT\nTenant Admin\nowns envelope\nFD-001\nMicroservice workloads\nproduct goal\nCLOUD\nCell substrate\nhosts tenants\nFLOW\nWorkflow\norchestrates\nCOMMS\nMessenger \u00b7 Mail \u00b7 Community\noutputs\nAUDIT\nEvidence spine\nproves\nPOLICY\nAccess envelope\npermits\nFACT-01\nTenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nInspect\nWorkflow\nFACT-02\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nInspect\nWorkflow\nFACT-03\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.\n\nInspect\nWorkflow\n\nSUBSTRATE PROOF\n\nFD-001 runs as tenant workloads before product claim\nCloud cells, policy envelopes, and evidence receipts prove the platform can host real production tenants.\n\nVISIBILITY\n\nRole + data-class gates\nTenant admin can inspect posture; hidden modules remain server-derived, not client hidden.\n\nGRAPH STATUS\n\nTenant selected \u00b7 workload lineage visible\nClick nodes or facts to stage local graph state.\nINTELLIGENCE\n\nGoverned AI command\n\nGOVERNED AI \u00b7 DOGFOOD ADVISOR\n\nRecommendations that can explain, route, and prove themselves\nAI suggestions stay read-only until a human routes them to Workflow, Mail, Community, or Evidence.\n3 suggestions \u00b7 human gated\nRun eval\nExplain\nEvidence\n0.86\nDECISION CONFIDENCE\n14\nPOLICY CHECKS\n0\nAUTO-EXECUTIONS\n3\nFD-001 ROUTES\nAI-WF-217\n\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\nPreview\nRoute\nDismiss\nAI-TAX-118\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\nPreview\nRoute\nDismiss\nAI-HR-053\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only.\nPreview\nRoute\nDismiss\n\nEVAL HARNESS\n\nBefore any tenant actionPolicy, data-class, autonomy ceiling, residency, and evidence checks must pass.\npass\nNo backend execution\nT1 advisory only\npass\nHuman approval required\nCFO / reviewer gate\nreview\nTenant workload impact\nFD-001 cloud dogfood\nsealed\nEvidence receipt ready\nREC-AI-GUARD-009\nWorkflow\nMail\nCommunity\nEvidence"
+        }
+      },
+      {
+        "name": "ontology node updates status",
+        "pass": true,
+        "detail": "Oyatie Cloud selected \u00b7 FD-001 workload graph \u00b7 local only"
+      },
+      {
+        "name": "ontology evidence action opens evidence spine",
+        "pass": true,
+        "detail": "Object graph opened from shell navigation"
+      },
+      {
+        "name": "intelligence evaluate visibly updates status",
+        "pass": true,
+        "detail": "AI evaluation harness ran locally \u00b7 14 guardrails checked"
+      },
+      {
+        "name": "intelligence route can activate Mail work hub",
+        "pass": true,
+        "detail": "Mail"
+      }
+    ],
+    "errors": [],
+    "failedRequests": [],
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "screenshots": [
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/screenshots/ontology-intelligence-console-1440.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/screenshots/ontology-intelligence-interacted-1440.png"
+    ]
+  },
+  "pixel_diff": {
+    "capturedAt": "2026-05-25T04:02:33.303Z",
+    "summary": {
+      "generatedAt": "2026-05-25T04:02:33.303Z",
+      "tool": "pngjs + pixelmatch threshold=0.12 includeAA=false",
+      "purpose": "Secondary Visual Ralph debug evidence for Ontology/Intelligence polish.",
+      "comparisons": [
+        {
+          "name": "before-vs-after-ontology-intelligence",
+          "reference": ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/before/studio-ontology-intelligence-before-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/screenshots/ontology-intelligence-console-1440.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/pixel-diffs/before-vs-after-ontology-intelligence.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 1000
+            }
+          },
+          "mismatchedPixels": 90655,
+          "totalPixels": 1296000,
+          "mismatchPercent": 6.99,
+          "note": "Regression-detection diff: old sparse ontology/suggestion lists vs upgraded full-width command consoles."
+        },
+        {
+          "name": "bominal-workflow-vs-ontology-intelligence-style-distance",
+          "reference": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+          "candidate": ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/screenshots/ontology-intelligence-console-1440.png",
+          "diff": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/pixel-diffs/bominal-workflow-vs-ontology-intelligence-style-distance.png",
+          "dimensions": {
+            "width": 1440,
+            "height": 900,
+            "reference": {
+              "width": 1440,
+              "height": 900
+            },
+            "candidate": {
+              "width": 1440,
+              "height": 1000
+            }
+          },
+          "mismatchedPixels": 94520,
+          "totalPixels": 1296000,
+          "mismatchPercent": 7.29,
+          "note": "Style-distance only: Bominal workflow density/command language is the reference, not an exact clone target."
+        }
+      ],
+      "interpretation": {
+        "beforeAfter": "Mismatch proves the former sparse list panels were materially replaced by dense graph and AI command consoles.",
+        "bominal": "The Bominal screenshot remains a density/visual-language reference; exact pixel parity is not desired because the Oyatie UI carries FD-001 and Oyatie Cloud substrate semantics."
+      }
+    },
+    "note": "Secondary evidence only. Before/after diff confirms material replacement of sparse panels; Bominal diff is style-distance, not clone parity."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "details": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "pass",
+      "details": "Selective hydration lib build passed."
+    },
+    {
+      "command": "node /tmp/oya-ontology-intel-before.cjs",
+      "status": "pass",
+      "details": {
+        "ontologyItems": 3,
+        "suggestionItems": 3,
+        "ontologyButtons": 0,
+        "intelligenceButtons": 0,
+        "ontologyText": "Tenant\nowns enabled module set\n\nAdmin role can inspect module posture.\n\nChangeRequest\nrequires approval\n\nHigh-risk changes route to authorized reviewers.\n\nBudget\nconstrains cloud action\n\nFinOps module is visible to tenant admins.",
+        "suggestionText": "\ubcd1\ubaa9: \uacf5\uacc4 \uc2b9\uc778 \ub2e8\uacc4 (2.1d)\n\n\uacfc\uac70 12\ud68c \uc0ac\uc774\ud074 \ud3c9\uade0 0.6d. \ucd5c\uc720\ub098 \ub9e4\ub2c8\uc800\uc5d0 \uc704\uc784 \uad8c\ud55c \uc790\ub3d9 \ubd80\uc5ec \uc2dc 1.4d \ub2e8\ucd95.\n\nRead-only suggestion; never auto-executes.\n\uc6d0\ucc9c\uc138 \uc2e0\uace0 \uc790\ub3d9 \uc81c\ucd9c \uac00\ub2a5\n\n118\uba85 \uac80\uc99d \uc644\ub8cc. \uc0ac\uc5c5\uc790\ub4f1\ub85d\ubc88\ud638 1\uac74 \ud655\uc778 \ud6c4 \uc790\ub3d9 \uc804\uc1a1.\n\nUser must review before HomeTax send.\n$53 \uc704\ud5d8: \uc724\ud0dc\ubbfc\n\n\uc774\ubc88 \uc8fc 49.5h \uc608\uc0c1. \ubc31\uc5c5 \uac00\ub2a5 \uc778\ub825 2\uba85 \ucd94\ucc9c.\n\nUses permitted roster data only."
+      }
+    },
+    {
+      "command": "node /tmp/oya-ontology-intel-smoke.cjs",
+      "status": "pass",
+      "details": {
+        "assertions": 9,
+        "errors": 0,
+        "failedRequests": 0
+      }
+    },
+    {
+      "command": "node /tmp/oya-ontology-intel-pixel-diff.cjs",
+      "status": "pass",
+      "details": {
+        "beforeAfterMismatchPercent": 6.99,
+        "bominalStyleDistancePercent": 7.29
+      }
+    }
+  ],
+  "artifacts": {
+    "before_audit": ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/before/before-audit.json",
+    "smoke": ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/ontology-intelligence-smoke.json",
+    "pixel_diff_summary": ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/ontology-intelligence-pixel-diff-summary.json",
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/before/studio-ontology-intelligence-before-1440.png",
+      ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/screenshots/ontology-intelligence-console-1440.png",
+      ".omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/screenshots/ontology-intelligence-interacted-1440.png"
+    ],
+    "pixel_diffs": [
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/pixel-diffs/before-vs-after-ontology-intelligence.png",
+      "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-ontology-intelligence-polish/pixel-diffs/bominal-workflow-vs-ontology-intelligence-style-distance.png"
+    ]
+  },
+  "known_limits": [
+    "This is an Ontology/Intelligence polish slice; it does not prove the full complete-dashboard mockup goal is achieved.",
+    "All graph node selection, AI evaluation, preview, route, dismiss, evidence, policy, and workflow actions remain local visual state with no backend graph writes or model execution.",
+    "The browser console info about missing /pkg is expected for fallback smoke; a separate wasm32 hydration library build passed.",
+    "The old static_ontology/static_suggestion helpers remain as compatibility code but the active SSR dashboard now renders the command-console replacements."
+  ]
+}

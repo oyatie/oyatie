@@ -2,7 +2,15 @@
 id: ADR-0343
 title: DR + RTO/RPO matrix per-µservice + per-compliance-pack (effective tenant RTO/RPO = max(µservice declared, all-applicable-pack floors))
 status: Proposed
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - council-security
+  - council-legal
+  - ops-sre-reliability
+  - ops-compliance
+  - axis-observability
 owners:
   - council-architecture
   - council-security
@@ -151,7 +159,7 @@ This ADR does not change Cedar evaluation from ADR-0243. DR decisions are admiss
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: ADR-0241 portfolio is one-dimensional; compliance reality is two-dimensional
 
@@ -260,7 +268,7 @@ The dashboard manifest is `microservices/compliance/dashboards/per-pack-dr-floor
 - **A.9.9** Does not change incident-response classification from ADR-0338. Pod runtime tier and DR tier are independent axes.
 - **A.9.10** Does not constrain which cells host DR-tested workloads. Cell placement is a separate decision under ADR-0240 + ADR-0248.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -401,7 +409,7 @@ B2.055. The canonical-primitives cheat sheet at `tools/hooks/_canonical-primitiv
 - This ADR does not change the four-tier T1..T4 ergonomic shorthand from ADR-0241; that shorthand is preserved and reconciled to the numeric fields per §D-8.
 - This ADR does not introduce new compliance packs; the eight initial packs already exist in `/specs/compliance-pack-schema.json` examples.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

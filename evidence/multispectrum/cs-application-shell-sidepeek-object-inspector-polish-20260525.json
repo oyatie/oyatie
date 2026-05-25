@@ -1,0 +1,98 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-SIDEPEEK-OBJECT-INSPECTOR-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-sidepeek-object-inspector-polish-20260525",
+  "agent": "codex-oyatie-sidepeek-object-inspector-polish",
+  "created_at": "2026-05-25T02:14:23-04:00",
+  "slice": "SidePeek object inspector polish",
+  "intent": "Polish the object quick-view drawer so it reads as a cohesive FD-001/Oyatie Cloud object inspector rather than a generic prototype side panel.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added dynamic and SSR-static object proof strip to SidePeek, tying selected objects to FD-001 workload evidence, Oyatie Cloud cell-us-east-2, REC-WF-7741, and local-only state.",
+    "Upgraded the evidence trail copy to include FD-001 workload, Oyatie Cloud rollback, and REC-WF-7741 receipt context.",
+    "Converted generic SidePeek buttons into data-bound local actions for owner assignment, Messenger note drafting, and evidence review.",
+    "Added object proof route buttons for workload graph, cloud cell, and evidence receipt with selected state, hash routing, activity feed feedback, and visible status updates.",
+    "Added reusable CSS for the proof card, route grid, selected action states, and responsive SidePeek behavior using existing command-surface tokens."
+  ],
+  "before_metrics": {
+    "open": true,
+    "buttonCount": 4,
+    "actionDataCount": 0,
+    "routeCount": 0,
+    "hasFD001": false,
+    "hasOyatieCloud": false,
+    "hasLocalBoundary": true,
+    "hasReceipt": false
+  },
+  "after_metrics": {
+    "open": true,
+    "buttonCount": 7,
+    "actionDataCount": 3,
+    "routeCount": 3,
+    "proofCards": 1,
+    "hasFD001": true,
+    "hasOyatieCloud": true,
+    "hasLocalBoundary": true,
+    "hasReceipt": true,
+    "hasCloudCell": true
+  },
+  "interaction_assertions": [
+    { "action": "route-workload", "hash": "#object-graph", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-cloud", "hash": "#cloud-ops-cockpit", "selected": true, "status_changed": true, "passed": true },
+    { "action": "route-evidence", "hash": "#audit-ledger", "selected": true, "status_changed": true, "passed": true },
+    { "action": "assign-owner", "selected": true, "status_changed": true, "passed": true },
+    { "action": "draft-note", "selected": true, "status_changed": true, "passed": true },
+    { "action": "review-evidence", "hash": "#audit-ledger", "selected": true, "status_changed": true, "passed": true },
+    { "action": "escape-close", "closed": true, "passed": true }
+  ],
+  "ssr_curl_counts": {
+    "side-peek-proof": 1,
+    "data-sidepeek-route": 3,
+    "data-sidepeek-action": 3,
+    "OBJECT PROOF": 1,
+    "FD-001": 124,
+    "Oyatie Cloud": 70,
+    "REC-WF-7741": 13,
+    "cell-us-east-2": 9
+  },
+  "screenshots": {
+    "after": {
+      "sidepeek": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-sidepeek-object-inspector-polish/after/sidepeek-object-inspector.png"
+    },
+    "audit_json": {
+      "playwright": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-sidepeek-object-inspector-polish/after/playwright-sidepeek-object-inspector-proof.json"
+    }
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Cohesive FD-001/Oyatie Cloud object inspector drawer",
+    "reasoning": "The object quick view now reads as a product-grade FD-001/Oyatie Cloud inspector with explicit object proof, evidence receipt, cloud cell, local-only boundary, and interactive routes/actions.",
+    "differences": [
+      "The drawer remains visual-only and does not assign owners, send messages, execute workflows, or mutate cloud state by design."
+    ],
+    "suggestions": [
+      "Future wiring can bind SidePeek actions to real object graph, owner assignment, messenger draft, and evidence review APIs."
+    ]
+  },
+  "commands": [
+    { "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css", "status": "passed" },
+    { "cmd": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "summary": "8 lib tests passed; 0 main tests" },
+    { "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features", "status": "passed" },
+    { "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features", "status": "passed" },
+    { "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib", "status": "passed" },
+    { "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/", "status": "passed", "summary": "ready-after-4s; transient empty replies immediately after restart" },
+    { "cmd": "node /tmp/oya-sidepeek-proof.cjs", "status": "passed" }
+  ],
+  "known_limits": [
+    "Visual prototype only; object inspector actions do not persist owner assignment, send messages, execute workflows, mutate audit receipts, or mutate cloud/provider state.",
+    "This slice improves the SidePeek object inspector; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

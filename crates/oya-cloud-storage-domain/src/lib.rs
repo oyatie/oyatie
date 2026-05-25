@@ -27,6 +27,9 @@ use oya_residency_domain::residency_class_allows_home_region_label;
 const STORAGE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
 const SNAPSHOT_ID_PREFIX: &str = "snap_";
+const REF_EVIDENCE_PREFIX: &str = "evidence/";
+const REF_SNAPSHOT_EVIDENCE_PREFIX: &str = "snapshot-evidence/";
+const REF_MOUNT_POLICY_PREFIX: &str = "mount-policy/";
 const MAX_BUCKET_NAME_LEN: usize = 63;
 const MAX_OBJECT_KEY_LEN: usize = 1024;
 
@@ -526,6 +529,47 @@ pub struct VolumeSnapshot {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageTenantCellGuardrailCreate {
+    pub tenant_id: String,                     // data_class: INTERNAL_ONLY
+    pub region: String,                        // data_class: PUBLIC
+    pub primary_cell_id: String,               // data_class: PUBLIC
+    pub bucket_id: String,                     // data_class: INTERNAL_ONLY
+    pub object_key_prefix: String,             // data_class: INTERNAL_ONLY
+    pub object_versioning_enabled: bool,       // data_class: INTERNAL_ONLY
+    pub object_lock_enabled: bool,             // data_class: INTERNAL_ONLY
+    pub default_object_lock: ObjectLockPolicy, // data_class: INTERNAL_ONLY
+    pub volume_id: String,                     // data_class: INTERNAL_ONLY
+    pub volume_tier: VolumeTier,               // data_class: PUBLIC
+    pub snapshot_required: bool,               // data_class: INTERNAL_ONLY
+    pub snapshot_evidence_ref: String,         // data_class: INTERNAL_ONLY
+    pub filesystem_id: String,                 // data_class: INTERNAL_ONLY
+    pub filesystem_tier: FilesystemTier,       // data_class: PUBLIC
+    pub filesystem_mount_policy_ref: String,   // data_class: INTERNAL_ONLY
+    pub provider_evidence_refs: Vec<String>,   // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageTenantCellGuardrail {
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub region: Classified<RegionCode>, // data_class: PUBLIC
+    pub primary_cell_id: Classified<CellId>, // data_class: PUBLIC
+    pub bucket_id: Classified<ResourceId>, // data_class: INTERNAL_ONLY
+    pub object_key_prefix: Classified<ObjectKey>, // data_class: INTERNAL_ONLY
+    pub object_versioning_enabled: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub object_lock_enabled: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub default_object_lock: Classified<ObjectLockPolicy>, // data_class: INTERNAL_ONLY
+    pub volume_id: Classified<ResourceId>, // data_class: INTERNAL_ONLY
+    pub volume_tier: Classified<VolumeTier>, // data_class: PUBLIC
+    pub snapshot_required: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub snapshot_evidence_ref: Classified<String>, // data_class: INTERNAL_ONLY
+    pub filesystem_id: Classified<ResourceId>, // data_class: INTERNAL_ONLY
+    pub filesystem_tier: Classified<FilesystemTier>, // data_class: PUBLIC
+    pub filesystem_mount_policy_ref: Classified<String>, // data_class: INTERNAL_ONLY
+    pub provider_evidence_refs: Classified<Vec<String>>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudStorageError {
     InvalidTenantId,
     InvalidResourceId,
@@ -564,6 +608,8 @@ pub enum CloudStorageError {
     InvalidSnapshotId,
     InvalidInitialState,
     InvalidTimeOrder,
+    InvalidStorageNamespacePolicy,
+    InvalidEvidenceRef,
     DuplicateBucket,
     UnknownBucket,
     DuplicateObject,
@@ -1298,6 +1344,88 @@ impl VolumeSnapshot {
     }
 }
 
+impl StorageTenantCellGuardrail {
+    pub fn new(input: StorageTenantCellGuardrailCreate) -> Result<Self, CloudStorageError> {
+        let StorageTenantCellGuardrailCreate {
+            tenant_id,
+            region,
+            primary_cell_id,
+            bucket_id,
+            object_key_prefix,
+            object_versioning_enabled,
+            object_lock_enabled,
+            default_object_lock,
+            volume_id,
+            volume_tier,
+            snapshot_required,
+            snapshot_evidence_ref,
+            filesystem_id,
+            filesystem_tier,
+            filesystem_mount_policy_ref,
+            provider_evidence_refs,
+        } = input;
+
+        validate_tenant_id(&tenant_id)?;
+        let region = RegionCode::new(region).map_err(|_| CloudStorageError::InvalidResourceId)?;
+        let primary_cell_id =
+            CellId::new(primary_cell_id).map_err(|_| CloudStorageError::InvalidCellId)?;
+        validate_cell_location(&primary_cell_id, &region, None)?;
+
+        let bucket_id = resource_id_for_kind_label(&bucket_id, &tenant_id, &region, "bucket")?;
+        let volume_id = resource_id_for(
+            &volume_id,
+            &tenant_id,
+            &region,
+            ResourceKind::Volume(volume_tier),
+        )?;
+        let filesystem_id = resource_id_for(
+            &filesystem_id,
+            &tenant_id,
+            &region,
+            ResourceKind::Filesystem(filesystem_tier),
+        )?;
+
+        let object_key_prefix = ObjectKey::new(object_key_prefix)?;
+        validate_object_key_prefix(&object_key_prefix, &tenant_id, &primary_cell_id)?;
+        if !object_versioning_enabled {
+            return Err(CloudStorageError::InvalidStorageNamespacePolicy);
+        }
+        if !object_lock_enabled {
+            return Err(CloudStorageError::InvalidObjectLockPolicy);
+        }
+        validate_object_lock(Some(default_object_lock))?;
+        if !snapshot_required {
+            return Err(CloudStorageError::InvalidStorageNamespacePolicy);
+        }
+        let snapshot_evidence_ref =
+            validate_metadata_ref(snapshot_evidence_ref, REF_SNAPSHOT_EVIDENCE_PREFIX)?;
+        let filesystem_mount_policy_ref =
+            validate_metadata_ref(filesystem_mount_policy_ref, REF_MOUNT_POLICY_PREFIX)?;
+        let provider_evidence_refs =
+            validate_metadata_refs(provider_evidence_refs, REF_EVIDENCE_PREFIX)?;
+
+        Ok(Self {
+            tenant_id: internal(tenant_id),
+            region: public(region),
+            primary_cell_id: public(primary_cell_id),
+            bucket_id: internal(bucket_id),
+            object_key_prefix: internal(object_key_prefix),
+            object_versioning_enabled: internal(object_versioning_enabled),
+            object_lock_enabled: internal(object_lock_enabled),
+            default_object_lock: internal(default_object_lock),
+            volume_id: internal(volume_id),
+            volume_tier: public(volume_tier),
+            snapshot_required: internal(snapshot_required),
+            snapshot_evidence_ref: internal(snapshot_evidence_ref),
+            filesystem_id: internal(filesystem_id),
+            filesystem_tier: public(filesystem_tier),
+            filesystem_mount_policy_ref: internal(filesystem_mount_policy_ref),
+            provider_evidence_refs: internal(provider_evidence_refs),
+            schema_version: public(STORAGE_SCHEMA_VERSION),
+        })
+    }
+}
+
 impl StorageRepo for CloudStorageCatalog {
     fn create_bucket(&mut self, input: BucketCreate) -> Result<Bucket, CloudStorageError> {
         let bucket = Bucket::new(input)?;
@@ -1438,6 +1566,25 @@ fn resource_id_for(
     Ok(id)
 }
 
+fn resource_id_for_kind_label(
+    value: &str,
+    tenant_id: &str,
+    region: &RegionCode,
+    kind_label: &str,
+) -> Result<ResourceId, CloudStorageError> {
+    let id = ResourceId::new(value.to_string()).map_err(map_resource_error)?;
+    if id.tenant_id().map_err(map_resource_error)? != tenant_id {
+        return Err(CloudStorageError::ResourceTenantMismatch);
+    }
+    if id.region().map_err(map_resource_error)? != *region {
+        return Err(CloudStorageError::ResourceRegionMismatch);
+    }
+    if id.kind_label().map_err(map_resource_error)? != kind_label {
+        return Err(CloudStorageError::ResourceKindMismatch);
+    }
+    Ok(id)
+}
+
 fn replication_policy(
     input: ReplicationPolicyCreate,
     residency: &ResidencyClass,
@@ -1551,11 +1698,20 @@ fn validate_residency_allows_region(
 }
 
 fn validate_tenant_id(value: &str) -> Result<(), CloudStorageError> {
-    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
-        Ok(())
-    } else {
-        Err(CloudStorageError::InvalidTenantId)
+    let Some(suffix) = value.strip_prefix(TENANT_ID_PREFIX) else {
+        return Err(CloudStorageError::InvalidTenantId);
+    };
+    if suffix.is_empty()
+        || suffix.starts_with('-')
+        || suffix.ends_with('-')
+        || suffix.contains("--")
+        || !suffix.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
+    {
+        return Err(CloudStorageError::InvalidTenantId);
     }
+    Ok(())
 }
 
 fn validate_bucket_resource(value: &str, tenant_id: &str) -> Result<ResourceId, CloudStorageError> {
@@ -1567,6 +1723,77 @@ fn validate_bucket_resource(value: &str, tenant_id: &str) -> Result<ResourceId, 
         return Err(CloudStorageError::ResourceKindMismatch);
     }
     Ok(bucket_id)
+}
+
+fn validate_object_key_prefix(
+    prefix: &ObjectKey,
+    tenant_id: &str,
+    cell_id: &CellId,
+) -> Result<(), CloudStorageError> {
+    let expected_prefix = format!("{}/{}/", tenant_id, cell_id.value);
+    if prefix.value != expected_prefix && !prefix.value.starts_with(&expected_prefix) {
+        return Err(CloudStorageError::InvalidStorageNamespacePolicy);
+    }
+    if prefix.value.contains("//") {
+        return Err(CloudStorageError::InvalidStorageNamespacePolicy);
+    }
+    Ok(())
+}
+
+fn validate_metadata_refs(
+    values: Vec<String>,
+    prefix: &str,
+) -> Result<Vec<String>, CloudStorageError> {
+    if values.is_empty() {
+        return Err(CloudStorageError::InvalidEvidenceRef);
+    }
+    let mut seen = BTreeSet::new();
+    let mut refs = Vec::with_capacity(values.len());
+    for value in values {
+        let value = validate_metadata_ref(value, prefix)?;
+        if !seen.insert(value.clone()) {
+            return Err(CloudStorageError::InvalidEvidenceRef);
+        }
+        refs.push(value);
+    }
+    Ok(refs)
+}
+
+fn validate_metadata_ref(value: String, prefix: &str) -> Result<String, CloudStorageError> {
+    let trimmed = value.trim();
+    if trimmed != value {
+        return Err(CloudStorageError::InvalidEvidenceRef);
+    }
+    if !value.starts_with(prefix)
+        || value.len() <= prefix.len()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        return Err(CloudStorageError::InvalidEvidenceRef);
+    }
+    if looks_secret_like(&value) {
+        return Err(CloudStorageError::InvalidEvidenceRef);
+    }
+    Ok(value)
+}
+
+fn looks_secret_like(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    [
+        "token=",
+        "password",
+        "secret",
+        "credential",
+        "private_key",
+        "private-key",
+        "api_key",
+        "apikey",
+        "-----begin",
+        "sk-live",
+    ]
+    .iter()
+    .any(|marker| lower.contains(marker))
 }
 
 fn validate_provider_ref(

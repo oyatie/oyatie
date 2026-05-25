@@ -1,0 +1,18 @@
+[package]
+name = "oya-workflow-engine-trigger-orchestrator-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-workflow-engine-trigger-orchestrator-usecase = { path = "../oya-workflow-engine-trigger-orchestrator-usecase" }
+
+[lib]
+name = "oya_workflow_engine_trigger_orchestrator_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

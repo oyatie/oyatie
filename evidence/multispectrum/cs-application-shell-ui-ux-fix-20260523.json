@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "id": "cs-application-shell-ui-ux-fix-20260523",
+  "change_id": "CS-APPLICATION-SHELL-UI-UX-FIX-20260523",
+  "change_class_id": "CC-1",
+  "timestamp": "2026-05-23T09:35:00-04:00",
+  "created_at": "2026-05-23T13:35:00Z",
+  "freshness_unix": 1779543300,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "agent": "codex-oyatie-ui-ux-fix",
+  "agent_id": "codex-oyatie-ui-ux-fix",
+  "scope": "Repair application-shell UI/UX regression by moving from a generic mock dashboard to a Bominal-informed cohesive professional operator shell.",
+  "user_direction": [
+    "Fix the UI/UX using visual-ralph and frontend-ui-engineering.",
+    "Current mockup was nowhere close to /Users/jasonlee/Downloads/Bominal in visual, feature, or functionality and was a major regression.",
+    "Use Bominal and Workflow Editor references without copying them verbatim; improve and integrate into a cohesive product."
+  ],
+  "reference_artifacts": {
+    "bominal_zip": "/Users/jasonlee/Downloads/Bominal.zip",
+    "workflow_editor_standalone": "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    "extracted_reference_subset": ".omx/artifacts/visual-ralph/bominal-reference/",
+    "reference_screenshot_workflow_editor": ".omx/artifacts/visual-ralph/bominal-reference/screenshots/workflow-editor-standalone-800.png",
+    "reference_screenshot_workflow_studio": ".omx/artifacts/visual-ralph/bominal-reference/screenshots/bominal-workflow-studio-800.png"
+  },
+  "implemented": [
+    "Reframed the prototype as a professional operator shell with Bominal-style left product rail, sticky top command bar, breadcrumb, command palette trigger, workspace switcher, compact density, hairline borders, ink-blue accent, and flat surfaces.",
+    "Replaced oversized hero/card spacing with a dense command-center information architecture: context switcher, product surface tabs, active context banner, KPI strip, action inbox, calendar, full-width Work Hub, service catalog, Workflow Studio, object graph, and copilot/advisory rail.",
+    "Expanded visual/functionality parity for built-in Messenger/Mail/Community through integrated Work Hub tabs, thread list, item detail, local composer, local draft queueing, and static fallback behavior with no backend sends.",
+    "Moved Workflow Studio closer to the supplied workflow references: top run/status bar, palette, mode switcher, node canvas with ports/edges/minimap, inspector, status bar, local add-block and simulation-preview controls.",
+    "Added a shell command palette surface opened by the top search trigger or Cmd/Ctrl+K in the static fallback script.",
+    "Stabilized SSR dev server responsiveness by handling each TCP request on its own thread with read/write timeouts so idle gvproxy/Podman connections no longer make port 3000 appear dead.",
+    "Preserved prototype non-goals: no backend integration, no real auth/authz, no PHI/PII, no external mail/message/community send, no real workflow execution."
+  ],
+  "verification": [
+    { "command": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "command": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "details": "8 passed" },
+    { "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr", "status": "passed" },
+    { "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --no-default-features --features hydrate --lib --release", "status": "passed" },
+    { "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "command": "curl -fsS --max-time 5 http://127.0.0.1:3000/", "status": "passed", "details": "HTML contains app-rail, command-palette, Workflow Studio, Messenger · Mail, and Selective WASM islands." },
+    { "command": "curl -fsS --max-time 5 http://127.0.0.1:3000/api/render-envelope/corporate-office", "status": "passed", "details": "context=corporate-office; messages=3; community=3; modules=5" },
+    { "command": "podman restart oya-frontend-prototype-live; curl http://127.0.0.1:3000/", "status": "passed", "details": "Port 3000 ready after restart; container oya-frontend-prototype-live remains Up with 0.0.0.0:3000->3000/tcp." },
+    { "command": "npx --yes playwright screenshot --browser=chromium --viewport-size=1280,900 http://127.0.0.1:3000/", "status": "passed", "artifact": ".omx/artifacts/visual-ralph/oya-ui-ux-fix/screenshots/oyatie-bominal-integration-top.png" },
+    { "command": "npx --yes playwright screenshot --browser=chromium --viewport-size=1280,900 http://127.0.0.1:3000/#work-hub", "status": "passed", "artifact": ".omx/artifacts/visual-ralph/oya-ui-ux-fix/screenshots/oyatie-bominal-integration-workhub.png" },
+    { "command": "npx --yes playwright screenshot --browser=chromium --viewport-size=1280,900 http://127.0.0.1:3000/#workflow-studio", "status": "passed", "artifact": ".omx/artifacts/visual-ralph/oya-ui-ux-fix/screenshots/oyatie-bominal-integration-workflow-v2.png" }
+  ],
+  "visual_verdict": {
+    "score": 91,
+    "verdict": "pass_after_regression_repair",
+    "category_match": "Bominal-style professional operator shell rather than generic demo dashboard",
+    "differences_remaining": [
+      "This remains an Oyatie Leptos/Rust prototype and intentionally does not copy Bominal's React source, exact data model, or exact product labels.",
+      "Some advanced Bominal interactions such as real drag-to-connect workflow edges, deep command search filtering, and persisted side-peek history are visual/local-only or deferred."
+    ],
+    "reasoning": "Final screenshots show the major Bominal patterns now present: left rail, command bar, dense KPI/action layout, integrated Work Hub, and workflow editor chrome with palette/canvas/inspector/status. Remaining differences are intentional prototype boundaries."
+  },
+  "non_claims": [
+    "No backend integration, real authentication/authorization, real tenant data, PHI/PII, external message/mail/community send, or real workflow execution is claimed.",
+    "No production readiness, measured SLO, DR, compliance certification, provider-live operation, or hyperscaler readiness is claimed.",
+    "Bominal assets were used as reference evidence; the implementation uses repo-native Rust/Leptos/CSS/JS instead of copying the supplied React app as-is."
+  ],
+  "facets": {
+    "F1_linus": { "considered": true, "rigor": "deep", "findings": ["Reduced generic AI-dashboard feel by introducing a real product shell and dense operator IA.", "Kept the scope bounded to the application-shell prototype instead of scattering Bominal code across the repo."] },
+    "F2_hyperscaler": { "considered": true, "rigor": "standard", "findings": ["No hyperscaler readiness claim; Podman smoke is local dev-server evidence only."] },
+    "F3_adversarial": { "considered": true, "rigor": "deep", "failing_fixture_added": false, "findings": ["User-identified regression was accepted as a failed visual pass and corrected by inspecting Bominal.zip directly.", "Anchor overlay/sticky issues were repaired with static command bar and scroll-margin offsets."] },
+    "F4_ergonomic": { "considered": true, "rigor": "deep", "new_contributor_minutes_estimate": 15, "findings": ["Left rail, breadcrumb, command palette, surface tabs, and denser panels make navigation and scanning closer to the reference."] },
+    "F5_quality": { "considered": true, "rigor": "deep", "findings": ["Rust fmt/test/SSR/hydrate builds passed; JS syntax check passed; browser screenshots captured."] },
+    "F6_alternatives": { "considered": true, "rigor": "standard", "alternatives_named": ["Keep polishing generic stacked dashboard", "Copy Bominal React app as-is", "Translate Bominal patterns into repo-native Leptos/CSS shell"], "selected_rationale": "Repo-native translation respects the user's 'reference, not as-is' instruction while materially improving visual/functionality parity." },
+    "F7_security": { "considered": true, "rigor": "standard", "secrets_touched": false, "tenant_data_touched": false, "findings": ["No secrets, auth, PHI/PII, or backend mutation paths were introduced."] },
+    "F8_performance": { "considered": true, "rigor": "standard", "findings": ["Flat borders/no glass align with Bominal performance/ergonomics guidance; dev server now avoids single-connection blocking."] },
+    "F9_compliance": { "considered": true, "rigor": "standard", "findings": ["Prototype notice and non-claims remain explicit; healthcare modules remain gated by render envelope policy tests."] },
+    "F10_observability": { "considered": true, "rigor": "standard", "findings": ["Local evidence includes screenshot artifacts, curl checks, API checks, and Podman container status."] },
+    "F11_docs": { "considered": true, "rigor": "standard", "findings": ["This evidence file records reference paths, decisions, verification, and non-goals for future agents."] },
+    "F12_reserved": { "considered": false, "rigor": "not_applicable", "findings": [] },
+    "F13_policy_adherence": { "considered": true, "rigor": "deep", "findings": ["Oya VCS claim was taken for the application-shell prototype and evidence path.", "Root hub and docs/AGENTS operating contract were read before changes."] }
+  }
+}

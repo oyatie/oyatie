@@ -1,0 +1,287 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "official_sources": [
+      "https://cloudevents.io/",
+      "https://www.w3.org/TR/trace-context/",
+      "https://opentelemetry.io/docs/specs/otel/logs/data-model/",
+      "https://opentelemetry.io/docs/specs/semconv/general/events/",
+      "https://www.asyncapi.com/docs/reference/specification/v3.0.0",
+      "https://www.rfc-editor.org/rfc/rfc8785",
+      "https://www.rfc-editor.org/rfc/rfc9162"
+    ],
+    "handoff_constraints": [
+      "Preserve FD-001 product delivery as the master-plan product goal; treat Oyatie Cloud as the hyperscaler-grade substrate proof for hosting FD-001 microservices as real tenant workloads.",
+      "Require CloudEvents envelope observation, W3C trace context propagation, OpenTelemetry log record mapping, tenant partition evidence, idempotency deduplication, payload digest verification, sensitive payload redaction, WAL append acknowledgement, outbox publish confirmation, broker acknowledgement, Merkle leaf inclusion, Merkle root sealing, sink ingestion, replay recovery, and failure-path audit evidence before any runtime audit-chain emission claim.",
+      "Keep runtime emitter, write-ahead log runtime, broker publish runtime, Merkle sealer runtime, cloud audit sink, production audit emission evidence, and runtime audit-chain emission outside the review-only contract until environment-backed evidence exists.",
+      "Tie audit-chain runtime evidence back to the existing Enterprise Suite audit-chain emission plan so later cloud integration cannot drift from event schema count, topic, context attributes, extension attributes, tenant, trace, payload, seal, and nonclaim boundaries."
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-AUDIT-RUNTIME-EVIDENCE-001",
+  "created_at": "2026-05-25T10:20:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "freshness_unix": 1779704400,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "scope": [
+    "crates/oya-enterprise-suite-audit-chain-runtime-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-audit-chain-runtime-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-audit-runtime-evidence-oya-vcs-lifecycle-20260525.json"
+  ],
+  "summary": "Adds a review-only Enterprise Suite audit-chain runtime evidence contract for later Oyatie Cloud substrate proof and composes it into cloud-readiness without claiming runtime emitter, WAL runtime, broker publish runtime, Merkle sealer runtime, cloud audit sink, production audit emission evidence, or runtime audit-chain emission.",
+  "nonclaims": [
+    "This slice is a review-only Enterprise Suite audit-chain runtime evidence contract for later Oyatie Cloud substrate proof.",
+    "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves FD-001 microservices can run as tenant workloads.",
+    "It does not prove runtime emitter, write-ahead log runtime, broker publish runtime, Merkle sealer runtime, cloud audit sink, production audit emission evidence, or runtime audit-chain emission."
+  ],
+  "known_gaps": [
+    "no runtime emitter",
+    "no write-ahead log runtime",
+    "no broker publish runtime",
+    "no Merkle sealer runtime",
+    "no cloud audit sink",
+    "no production audit emission evidence",
+    "no runtime audit-chain emission",
+    "no deployed listener runtime",
+    "no durable storage runtime",
+    "no production Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "commands": [
+    "cargo check -p oya-enterprise-suite-audit-chain-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-audit-chain-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-audit-chain-runtime-evidence --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "cargo metadata --format-version=1 --no-deps",
+    "jq . specs/microservices/enterprise-suite.json",
+    "jq . evidence/multispectrum/cs-ent-suite-audit-runtime-evidence-1779704400.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-audit-runtime-evidence-1779704400.json --severity error",
+    "quality-marker scan for touched audit-runtime-evidence/readiness/spec/task/evidence rows",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-AUDIT-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-audit-runtime-evidence-1779704400.json CS-ENT-SUITE-AUDIT-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-audit-runtime-evidence-1779704400.json CS-ENT-SUITE-AUDIT-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-AUDIT-RUNTIME-EVIDENCE-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-audit-runtime-evidence-1779704400.json",
+    "audit-chain HEAD-prefix append-only script for evidence/audit-chain.jsonl"
+  ],
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite audit-chain-runtime-evidence naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The audit-chain runtime evidence contract imports and validates the existing Enterprise Suite audit-chain emission plan, then exposes only review-only evidence requirements to cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No external dependency is introduced; the new evidence crate depends only on the existing audit-chain emission workspace crate and cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: audit-chain emission plan validation, required evidence-kind coverage, official doc URL allowlist, safe refs, required controls, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small typed contract and validator; it adds no runtime emitter, WAL runtime, broker publisher, Merkle sealer, cloud audit sink, production evidence, or audit runtime."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "FD-001 Enterprise Suite audit-chain promotion on Oyatie Cloud now requires envelope, trace, OTel log, tenant, idempotency, payload digest, redaction, WAL, outbox, broker ack, Merkle, sink, replay, and failure-path evidence before production audit claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing requirements, duplicate IDs, unofficial doc URLs, unsafe refs, missing controls, and runtime audit overclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future Oyatie Cloud audit adapters get one typed evidence checklist rather than reverse-engineering runtime audit emission promotion criteria from prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The code uses typed enums, explicit errors, no unsafe, no I/O, no network calls, and no third-party dependencies."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: attach a live audit runtime now, publish to a broker now, or add a review-only runtime audit evidence contract. The typed contract was selected because it is verifiable now, honors the FD-001 versus Oyatie Cloud distinction, and avoids audit runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract composes over audit-chain emission and cloud-readiness while keeping runtime emitter, WAL runtime, broker publish, Merkle sealer, cloud sink, production evidence, and runtime audit emission blockers intact."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "The evidence plan requires tenant partitioning, idempotency dedupe, payload digest verification, sensitive payload redaction, Merkle inclusion/sealing, and failure-path audit evidence before production audit claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is O(number of static requirements) and adds no request-path, WAL, broker, Merkle, telemetry, sink, or audit runtime work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New audit-chain-runtime-evidence and cloud-readiness tests cover positive readiness, required evidence kinds, official docs, ref boundaries, nonclaims, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The contract strengthens production audit traceability for the later Oyatie Cloud substrate while preserving live audit runtime, runtime audit emission, and production evidence as explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog row, evidence, and audit-chain rows document the audit-chain runtime evidence plan and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/catalog row and cloud-readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The plan requires W3C trace context, OpenTelemetry log mapping, sink ingestion, replay, and failure-path evidence, but does not claim runtime telemetry export or runtime audit-chain emission."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No runtime emitter, WAL runtime, broker publisher, Merkle sealer, cloud audit sink, or audit runtime migration is applied; observations are evidence-contract entries only until a live cloud adapter lands."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "verification_results": {
+    "cargo_check_audit_chain_runtime_evidence": "PASS",
+    "audit_chain_runtime_evidence_tests": "PASS: 5 tests",
+    "cloud_readiness_tests": "PASS: 21 tests",
+    "audit_chain_runtime_evidence_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-audit-chain-runtime-evidence --all-targets -- -D warnings",
+    "cloud_readiness_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo_fmt_check": "PASS: cargo fmt --all -- --check",
+    "cargo_metadata": "PASS: cargo metadata --format-version=1 --no-deps",
+    "enterprise_suite_spec_json": "PASS: jq . specs/microservices/enterprise-suite.json",
+    "enterprise_suite_evidence_json": "PASS: jq . evidence/multispectrum/cs-ent-suite-audit-runtime-evidence-1779704400.json",
+    "slo_coverage_gate": "PASS: 648 records",
+    "catalog_validate": "PASS: 648 records",
+    "architecture_boundaries": "PASS: 489 packages, 489 catalog records, 699 dependency edges",
+    "data_class_workspace": "PASS: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "quality_marker_scan": "PASS: touched audit-runtime-evidence/readiness/spec/task/evidence rows and this slice audit-chain tail contain no blocked quality markers after closeout",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 140 branch-appended rows after promotion audit row",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-audit-runtime-evidence-oya-vcs-lifecycle-20260525.json"
+  },
+  "review_verdict": "local-gates-pass-with-audit-runtime-evidence-contract-and-oya-vcs-promoted"
+}

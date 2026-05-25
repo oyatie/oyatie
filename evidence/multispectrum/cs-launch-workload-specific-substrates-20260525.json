@@ -1,0 +1,222 @@
+{
+  "schema": "/specs/multispectrum-review.json",
+  "schema_version": "2.4.0",
+  "change_id": "CS-LAUNCH-WORKLOAD-SPECIFIC-SUBSTRATES-20260525",
+  "change_class_id": "CC-3",
+  "agent_id": "codex-launch-workload-specific-substrates-20260525",
+  "timestamp_iso": "2026-05-25T09:25:01Z",
+  "freshness_unix": 1779701101,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "crates/oya-dev-cli/src/platform_substrate_defaults_gate.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/commands/gate/run_all.rs",
+    "crates/oya-dev-cli/src/governance_advisory_lanes.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "specs/platform-architecture.json::platform.data_substrate",
+    "specs/masterplan.json::_meta.session_directives_2026_05_25",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "objective": "Enforce the user directive that Citus, OpenSearch, Milvus, ClickHouse, and Iceberg are workload-specific substrate selections rather than universal defaults.",
+  "implemented_claims": [
+    "Added first-class `oya gate validate platform-substrate-defaults` with default path specs/platform-architecture.json.",
+    "The gate requires Citus, OpenSearch, Milvus, ClickHouse, and Iceberg rows to be classified as workload-specific-not-universal-default with universal_default=false and selection_required=true.",
+    "The gate rejects old universal-default field values for Citus, OpenSearch, and Milvus and requires workload-selected/workload-specific wording.",
+    "Platform architecture now records workload-selection policy and workload-specific substrate rows for Citus, OpenSearch, Milvus, ClickHouse, and Iceberg.",
+    "Existing vector-store and OLAP advisory lane comments no longer call Milvus/ClickHouse universal canonical defaults.",
+    "Masterplan and task projections record the directive for future ChangeSets."
+  ],
+  "explicit_non_claims": [
+    "No database, search, vector, OLAP, lakehouse, object-store, or workload runtime is deployed or migrated by this ChangeSet.",
+    "No workload selection engine, microservice manifest migration, schema migration, data-plane benchmark, production SLO, or live tenant evidence is claimed.",
+    "This does not undo workload-specific existing uses of Citus, OpenSearch, Milvus, ClickHouse, or Iceberg where a service explicitly selects one.",
+    "Full ./bin/oya verify --ci-required is not claimed green."
+  ],
+  "red_tests": [
+    {
+      "command": "./bin/oya gate validate platform-substrate-defaults --architecture specs/platform-architecture.json",
+      "log": "/tmp/cs-launch-workload-specific-substrates-red.log",
+      "expected_failure": "lane absent/unknown before implementation"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli platform_substrate_defaults -- --nocapture",
+      "expected_failure": "initial missing-substrate fixture mutation did not remove the Iceberg row; test failed and was corrected before green evidence",
+      "log": "terminal session before /tmp/cs-launch-workload-specific-substrates-focused-green.log"
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-dev-cli platform_substrate_defaults -- --nocapture",
+      "log": "/tmp/cs-launch-workload-specific-substrates-focused-green.log",
+      "status": "passed"
+    },
+    {
+      "command": "./bin/oya gate validate platform-substrate-defaults --architecture specs/platform-architecture.json",
+      "log": "/tmp/cs-launch-workload-specific-substrates-live-gate.log and /tmp/cs-launch-workload-specific-substrates-json-planning-live.log",
+      "status": "passed"
+    },
+    {
+      "command": "cargo fmt --all -- --check && cargo check -p oya-dev-cli --all-targets && cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
+      "log": "/tmp/cs-launch-workload-specific-substrates-rust-quality.log",
+      "status": "passed"
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain && ./bin/oya gate validate planning-closure && JSON parsing",
+      "log": "/tmp/cs-launch-workload-specific-substrates-catalog-planning-json.log and /tmp/cs-launch-workload-specific-substrates-json-planning-live.log",
+      "status": "passed"
+    },
+    {
+      "command": "retired-vocabulary/honest-claims scoped corpus plus ./bin/oya git diff --check",
+      "log": "/tmp/cs-launch-workload-specific-substrates-retired-scoped-honest-diff.log",
+      "status": "passed"
+    },
+    {
+      "command": "broader retired-vocabulary corpus including pre-existing catalog/dispatcher comments",
+      "log": "/tmp/cs-launch-workload-specific-substrates-retired-honest-diff.log",
+      "status": "failed-on-pre-existing-retired-token-comments; not used as green evidence"
+    }
+  ],
+  "false_green_findings_closed": [
+    "Platform architecture previously retained universal-looking defaults for Postgres+Citus, OpenSearch, and Milvus; the new gate fails closed on those old exact values.",
+    "ClickHouse and Iceberg are now explicitly represented as workload-specific analytics/table-format selections rather than universal OLAP/lakehouse defaults.",
+    "Existing advisory lane comments that called Milvus/ClickHouse canonical were corrected to workload-specific language.",
+    "A broad retired-vocabulary closeout failed on pre-existing comments in catalog/dispatcher files; scoped retired-vocabulary over changed-new policy text passed and the broad failure was not claimed green."
+  ],
+  "known_gaps": [
+    "Repo-wide occurrences may still describe workload-specific service choices such as tenancy/sheets/analytics; this ChangeSet intentionally does not rewrite those service-local decisions unless they claim universal default status.",
+    "Future ChangeSets still need API contract SSOT implementation, Kubewarden policy materialization, and Cloud IaC live render/admission/sync/plan/apply evidence.",
+    "Full ./bin/oya verify --ci-required remains unclaimed."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Small deterministic JSON/text gate enforces the directive without adding runtime abstractions or dependencies."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Prevents accidental fleet-wide substrate lock-in by requiring explicit workload selection for specialized stores and analytics engines."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Negative tests reject the old universal Citus default and missing Iceberg workload-specific row."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "CLI defaults to specs/platform-architecture.json and reports row/field counts for quick remediation."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests, live gate, catalog tests, fmt/check/clippy, JSON/planning, scoped honest/retired/diff checks pass."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "standard",
+      "alternatives_named": [
+        "Chat-only directive",
+        "Spec-only wording change",
+        "Spec plus deterministic gate"
+      ],
+      "selected_rationale": "Spec plus deterministic gate keeps future agents from reverting to universal defaults.",
+      "rejected_reasons": [
+        "Chat/spec-only records are easier to miss and do not fail closed."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "standard",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No secrets or tenant data touched; directive reduces blast radius from accidental universal data substrate coupling."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No runtime path affected; gate is bounded JSON/text validation."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Workload-specific substrate selection supports residency/compliance by preventing global store assumptions."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Existing service-local choices remain allowed when explicitly selected; the directive only forbids universal default framing."
+      ]
+    },
+    "F11_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Run-all catalog includes the gate so future source-of-truth drift is visible."
+      ]
+    },
+    "F12_reserved": {
+      "considered": false,
+      "rigor": "not_applicable",
+      "findings": []
+    },
+    "F13_traceability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim, RED/GREEN logs, task projections, evidence, and audit-chain rows bind the change to the user directive."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Used Oya VCS claim before edits, avoided raw git/gh, and retained non-claims."
+      ]
+    },
+    "A2_dependency_seam": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No new dependencies introduced."
+      ]
+    }
+  },
+  "review": {
+    "code_review_status": "self_review_passed",
+    "architectural_status": "CLEAR_FOR_SOURCE_OF_TRUTH_GATE_SCOPE",
+    "ship_status": "NO_GO_FOR_RUNTIME_SUBSTRATE_MIGRATION",
+    "review_findings": [
+      "No critical/high issue found for source-of-truth gate scope; runtime substrate implementation remains future work."
+    ]
+  },
+  "lifecycle": {
+    "oya_vcs_claim": "accepted",
+    "oya_vcs_work": "accepted",
+    "oya_vcs_verify": "accepted",
+    "oya_vcs_done": "accepted_controller_promote",
+    "oya_vcs_promote": "accepted_local_foundry",
+    "audit_chain_event": "lifecycle_promoted_recorded"
+  }
+}

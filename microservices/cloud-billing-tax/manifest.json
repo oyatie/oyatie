@@ -6,58 +6,53 @@
   "bounded_contexts": [
     {
       "name": "cloud-billing-tax",
-      "description": "Bounded context 'cloud-billing-tax' for tax calculation, rate-card catalog, exemption certificate checks, filing artifact generation.",
+      "description": "Code-backed Cloud Billing Tax local foundation for invoice API request validation and regional-pack-to-tax-invoice-format policy metadata. No live tax calculation engine, rate catalog, exemption certificate check, filing artifact generation, tax authority adapter, database, measured SLO, active-active DR, OpenTofu plan/apply, provider-live smoke, or audit-chain persistence is claimed by CS-CLOUD-BILLING-TAX-001.",
       "crates": [
         "oya-cloud-billing-tax-app"
       ]
     }
   ],
   "layers": [
-    "adapter",
-    "api",
-    "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "app"
   ],
   "contracts": {
     "openapi": [
-      "microservices/cloud-billing-tax/contracts/openapi/cloud-billing-tax.yaml"
+      "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml"
     ],
     "asyncapi": [],
-    "proto": []
+    "proto": [],
+    "service_local_contract_scaffolds": [
+      "microservices/cloud-billing-tax/contracts/openapi/cloud-billing-tax.yaml"
+    ],
+    "contract_status": "root invoice OpenAPI request/response shape is code-tested in oya-cloud-billing-tax-app; service-local tax OpenAPI file is scaffold/planning metadata and is not runtime-readiness evidence"
   },
   "capabilities": [
     {
-      "name": "tax-calculation",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md",
+      "tier": "T2",
+      "name": "invoice-api-request-response-validation-and-status-mapping",
+      "file": "crates/oya-cloud-billing-tax-app/src/lib.rs",
       "risk_class": "high"
     },
     {
-      "name": "tax-catalog",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-billing-tax/feature-parity-matrix-2026-05-20.md",
-      "risk_class": "limited"
-    }
-  ],
-  "slos": [
+      "tier": "T2",
+      "name": "regional-pack-tax-invoice-format-policy",
+      "file": "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+      "risk_class": "high"
+    },
     {
-      "name": "oya-cloud-billing-tax-cloud-billing-tax-calculate-p99",
-      "target": "0.99",
-      "sli": "service_manifest_reference{microservice=\"cloud-billing-tax\",slo=\"cloud-billing-tax-calculate-p99\"}",
-      "file": "microservices/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md"
+      "tier": "T2",
+      "name": "shared-billing-tenant-class-tax-evidence-guardrail-metadata",
+      "file": "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+      "risk_class": "high"
     }
   ],
+  "slos": [],
   "ips": [
     {
-      "id": "IP-001-wave-d-tax-baseline",
-      "title": "Wave-D tax baseline from feature and performance matrices",
-      "acceptance_status": "ga",
-      "file": "microservices/cloud-billing-tax/feature-parity-matrix-2026-05-20.md"
+      "id": "CS-CLOUD-BILLING-TAX-001",
+      "title": "Regional tax invoice format policy plus Cloud Billing/Tax manifest truth-down",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
     }
   ],
   "regulatory_packs": [
@@ -74,11 +69,21 @@
     "ksa"
   ],
   "lts_pins": {
-    "rust": "1.83",
-    "postgres": "17.x",
-    "valkey": "8.x"
+    "rust": "1.95.0"
   },
   "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
     {
       "id": "ADR-0337",
       "title": "Iceberg Canonical Olap Write Path",
@@ -92,22 +97,10 @@
       "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
     },
     {
-      "id": "ADR-0339",
-      "title": "Shared Iac Module Library",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
-    },
-    {
       "id": "ADR-0340",
       "title": "Capacity Model Per Microservice Manifest",
       "scope": "repo",
       "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
-    },
-    {
-      "id": "ADR-0341",
-      "title": "Cellular Promotion Gates Explicit Tier Criteria",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
     },
     {
       "id": "ADR-0342",
@@ -128,57 +121,124 @@
       "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
     },
     {
-      "id": "ADR-0345",
-      "title": "Oss Stewardship Class Policy And Cve Response Sla",
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+    },
+    {
+      "id": "ADR-0349",
+      "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
+    "circuit_breaker": "not_claimed_cs_cloud_billing_tax_001: no implemented Cloud Billing Tax runtime circuit-breaker, bulkhead, retry, worker, or provider operation evidence",
+    "tenant_rate_limit": "not_claimed_cs_cloud_billing_tax_001: no implemented per-tenant runtime API quota/rate-limit enforcement beyond local metadata guardrails",
+    "golden_signals": "not_claimed_cs_cloud_billing_tax_001: no implemented metrics/OpenSLO/golden-signal emission evidence",
+    "error_budget_burn": "not_claimed_cs_cloud_billing_tax_001: SLO list is empty because no measured Cloud Billing Tax SLI or burn-rate rule is implemented yet"
   },
   "audit_chain": {
-    "enabled": true,
-    "seal_events": [
-      "oya.cloud-billing-tax.doctrine-declared",
-      "oya.cloud-billing-tax.dr-failover"
-    ]
+    "runtime_audit_emitter": false,
+    "evidence_refs": [
+      "evidence/multispectrum/cs-cloud-billing-tax-foundation-20260523.json"
+    ],
+    "non_claim": "CS-CLOUD-BILLING-TAX-001 records a multispectrum evidence bundle and audit-chain row only; it does not implement Cloud Billing Tax runtime audit emission, Merkle sealing, or persistence."
   },
   "secrets_substrate": {
     "provider": "openbao",
-    "format": "${openbao:secret/<path>}"
+    "format": "SecretReference-only future integration",
+    "non_claim": "No raw tax authority credential, API key, bearer token, certificate private key, provider credential, or tenant tax payload is introduced or consumed by this local foundation."
   },
   "ontology_projections": [],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
-    "north_south_only": false
+    "north_south_only": false,
+    "runtime_policy_apply": false,
+    "non_claim": "No live Cloud Billing Tax pod, service mesh policy, tax authority network path, or e-invoicing clearance endpoint is deployed by CS-CLOUD-BILLING-TAX-001."
   },
+  "tax_foundation": {
+    "regional_pack_tax_invoice_format_policy": true,
+    "supported_regional_pack_labels": [
+      "oya-pack-kr",
+      "oya-pack-jp",
+      "oya-pack-eu",
+      "oya-pack-in",
+      "oya-pack-br",
+      "oya-pack-ksa",
+      "oya-pack-uae"
+    ],
+    "domain_tax_format_pack_labels": [
+      "oya-pack-electronic-tax",
+      "oya-pack-qualified-tax",
+      "oya-pack-country-tax",
+      "oya-pack-market-tax",
+      "oya-pack-trade-tax",
+      "oya-pack-vat-tax",
+      "oya-pack-gst-tax",
+      "oya-pack-fiscal-tax",
+      "oya-pack-clearance-tax",
+      "oya-pack-registration-tax"
+    ],
+    "external_tax_authority_adapter": false,
+    "runtime_tax_calculation_engine": false,
+    "runtime_tax_rate_catalog": false,
+    "runtime_exemption_certificate_check": false,
+    "runtime_filing_artifact_generation": false,
+    "non_claim": "Rust app/domain surfaces validate request metadata and expected tax invoice format labels only. They do not calculate statutory tax, file returns, clear invoices, call government APIs, or persist tax ledgers."
+  },
+  "data_classification": "PUBLIC metadata, INTERNAL_ONLY control-plane metadata, FINANCIAL value metadata, AUDIT evidence; no customer PII, raw tax credential, certificate material, tax filing payload, or live invoice persistence is implemented by this ChangeSet",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "iso27001",
+    "soc2"
+  ],
+  "depends_on_microservices": [
+    "tenancy",
+    "identity",
+    "audit-chain",
+    "observability",
+    "cloud-billing"
+  ],
+  "failure_domain": "cloud-billing-tax-local-foundation",
+  "criticality_tier": "T2",
+  "layer": "app",
+  "doc_class": "Machine-Readable-Spec",
   "capacity_model": {
-    "baseline_cpu_per_tenant": 0.08,
-    "baseline_ram_per_tenant": 192,
-    "storage_per_tenant": 2,
-    "connections_per_tenant": {
-      "valkey": 2,
-      "postgres": 2,
-      "outbound_http": 6
-    },
-    "scaling_dimension": "per_request",
-    "cell_placement_class": "Tier-3",
-    "notes": "In-process Cedar tax engine and hot catalog cache scale by tax-calculation requests; batch and filing paths are bounded by paid tenant workload tiers."
+    "baseline_cpu_per_tenant": 0.0,
+    "baseline_ram_per_tenant": 0,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {},
+    "scaling_dimension": "not_claimed_runtime",
+    "cell_placement_class": "Tier-2-intended-future",
+    "notes": "CS-CLOUD-BILLING-TAX-001 is metadata/app validation only. Runtime tax calculation, government clearance, databases, capacity telemetry, autoscaling, and SLOs remain explicit non-claims."
   },
   "sharding_automation": {
-    "autosharding": "control_plane_driven",
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
     "auto_rebalance": {
       "enabled": false,
       "trigger_load_skew_threshold_percent": 30,
       "honors_residency": true,
       "honors_compliance_packs": true,
-      "audit_chain_emit": true
+      "audit_chain_emit": false
     },
     "dynamic_sharding": {
       "enabled": false,
@@ -186,82 +246,54 @@
       "hot_split_utilization_threshold_percent": 80,
       "cold_merge_utilization_threshold_percent": 20,
       "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
+      "audit_chain_emit": false
+    },
+    "non_claim": "No ledger shard split, billing/tax worker migration, tenant migration, or audit-chain persistence is implemented by CS-CLOUD-BILLING-TAX-001."
   },
   "dr": {
-    "rto_p99_seconds": 300,
-    "rpo_p99_seconds": 60,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "postgres_wal_g",
-      "object_storage_versioned",
-      "audit_chain_merkle_seal"
-    ],
-    "failover_runbook": "runbooks/tax-catalog-failover.md",
-    "dr_tier": "T2",
-    "replication_shape": "active-active-multi-az-cross-region-warm"
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "dr_tier": "not_claimed_runtime",
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No live billing ledger replication, tax catalog replication, warm standby, failover, restore drill, or DR measurement evidence is implemented by CS-CLOUD-BILLING-TAX-001."
   },
   "pod_runtime_tier": 2,
-  "pod_runtime_tier_justification": "First-party tax application service: it evaluates Oyatie-owned tax rules and rate catalogs for billing flows, with no tenant-customer code execution and no direct foundation substrate ownership.",
+  "pod_runtime_tier_justification": "Cloud Billing Tax is intended Tier-2 first-party financial/compliance application workload. CS-CLOUD-BILLING-TAX-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/cloud-billing-tax/README.md",
-    "microservices/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md",
-    "microservices/cloud-billing-tax/feature-parity-matrix-2026-05-20.md"
+    "crates/oya-cloud-billing-tax-app/src/lib.rs",
+    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
   ],
   "tenant_version_pinning": {
-    "declared_versions": [
-      "2026-05-21",
-      "2026-02-21",
-      "2025-11-21"
-    ],
-    "default_version": "2026-05-21",
-    "supported_window_size": 3,
-    "supported_window_minimum_days": 180,
-    "supports_per_tenant_pinning": true,
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 0,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
     "deprecation_calendar": [],
     "public_surface_files": {
-      "openapi": {
-        "2026-05-21": "microservices/cloud-billing-tax/contracts/openapi/cloud-billing-tax.yaml",
-        "2026-02-21": "microservices/cloud-billing-tax/contracts/openapi/cloud-billing-tax.yaml",
-        "2025-11-21": "microservices/cloud-billing-tax/contracts/openapi/cloud-billing-tax.yaml"
-      }
-    }
+      "openapi": [
+        "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml"
+      ]
+    },
+    "non_claim": "Root invoice OpenAPI is code-tested for current app boundary behavior, but no per-tenant API version pinning runtime is implemented by CS-CLOUD-BILLING-TAX-001."
   },
-  "consumes_upstream_oss": [
-    "postgresql",
-    "valkey",
-    "cedar"
-  ],
+  "consumes_upstream_oss": [],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [
-    {
-      "context": "aws-guest",
-      "primitive": "rds-postgres",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "aws-guest",
-      "primitive": "kms-key",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "oci-guest",
-      "primitive": "autonomous-db",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "cell-audit-chain-shard",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    }
+  "iac_module_invocations": [],
+  "data_classes_processed": [],
+  "implemented_source_files": [
+    "crates/oya-cloud-billing-tax-app/src/lib.rs",
+    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
   ],
-  "data_classes_processed": [
-    "FINANCIAL",
-    "AUDIT"
+  "explicit_non_claims": [
+    "No live tax calculation engine, statutory rate catalog, tax authority integration, e-invoice clearance, exemption certificate validation, filing artifact generation, database, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
+    "Legacy Markdown benchmark/parity/runbook files under microservices/cloud-billing-tax remain planning/prose and are not readiness evidence for CS-CLOUD-BILLING-TAX-001."
   ]
 }

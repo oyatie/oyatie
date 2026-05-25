@@ -1,0 +1,300 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-HR-003",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779533400,
+  "timestamp_iso": "2026-05-23T10:50:00Z",
+  "scope": [
+    "microservices/hr/crates/oya-hr-employment-domain/src/lib.rs",
+    "microservices/hr/crates/oya-hr-employment-domain/tests/privacy.rs",
+    "microservices/hr/crates/oya-hr-employment-app/src/lib.rs",
+    "microservices/hr/crates/oya-hr-employment-app/tests/privacy.rs",
+    "specs/microservices/hr.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "HR AC-05 sensitive-read purpose/legal-basis policy foundation with pure domain validation and metadata-only sensitive-read audit app envelope.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The domain function does one thing: validate purpose-bound sensitive HR read metadata and return a classified decision.",
+        "The app function only projects a validated decision into an audit envelope and performs no authorization middleware, data retrieval, storage, network I/O, or audit-chain emission."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice establishes a policy/audit seam suitable for later centralized authorization and audit adapters without coupling HR domain code to runtime infrastructure.",
+        "Purpose, legal basis, policy ref, basis/request/read-log evidence, and consent evidence are explicit, deterministic fields."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/hr/crates/oya-hr-employment-domain/tests/privacy.rs::test_sensitive_hr_read_requires_basis and microservices/hr/crates/oya-hr-employment-app/tests/privacy.rs::sensitive_read_envelope_is_metadata_only",
+      "failing_fixture_id": "general browsing, missing legal basis, missing consent evidence, token-shaped read-log evidence, and invalid policy-ref prefix refusal tests",
+      "diagnostic_asserted": "Tests fail if sensitive HR reads can be allowed without purpose binding, legal basis, consent evidence for consent basis, safe read logging evidence, or the sensitive-read policy prefix.",
+      "findings": [
+        "AC-05 now has direct positive/negative domain coverage plus app-envelope handoff coverage."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Types mirror the acceptance wording: SensitiveHrDataKind, SensitiveReadPurpose, SensitiveReadLegalBasis, SensitiveHrReadInput, and SensitiveHrReadDecision.",
+        "Test names match the HR AC-05 spec ref and demonstrate required purpose/legal-basis/evidence fields."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "cargo fmt, focused HR domain/app tests, focused HR domain/app clippy, and 12-package enterprise regression tests/clippy passed locally.",
+        "No dependencies, catalog rows, lockfile changes, runtime adapters, storage, or transport contracts were added in this slice."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "add runtime authorization middleware now",
+        "add API/OpenAPI endpoint first",
+        "add pure HR sensitive-read policy metadata now"
+      ],
+      "selected_rationale": "Metadata-first domain/app work satisfies AC-05 without premature runtime auth, data retrieval, or transport implementation.",
+      "rejected_reasons": [
+        "Runtime authorization middleware would overclaim deployed enforcement before adapters exist.",
+        "API/OpenAPI-first work would risk transport-led policy design before core invariants are expressed."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "purpose_bound_access_control_metadata_and_sensitive_read_audit_integrity",
+      "severity_max": "high",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "Evidence refs reuse token/secret/bearer/password guards and path-safety validation.",
+        "General browsing and missing legal basis are refused before a decision can be returned."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "pure-domain-constant",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-sensitive-read-policy-metadata-foundation",
+      "regression_baseline": "No deployed runtime path exists; validation performs bounded enum/string/evidence checks and no I/O.",
+      "findings": [
+        {
+          "summary": "Policy decision construction is O(1) over fixed fields."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only",
+        "sensitive_pipa_article23",
+        "phi",
+        "financial-through-classification-helper",
+        "pii_identifying-through-government-identifier-classification",
+        "public_schema_version"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "hr-privacy",
+        "consent",
+        "kr-labor",
+        "us-hr",
+        "eu-hr"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/microservices/hr.json",
+        "existing HR domain/app validation and envelope patterns"
+      ],
+      "findings": [
+        "Public fields carry data_class annotations and sensitive data kind is classified as SensitivePipaArticle23 while app payload classification maps medical/accommodation to PHI.",
+        "The slice records policy and evidence refs only; it does not claim legal advice, data retrieval, runtime authorization, or runtime audit emission."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive inside existing HR domain/app crates and can be reverted without data migration or external resource teardown."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The app envelope carries a stable sensitive-read audit topic plus policy, basis, consent, request, and read-log evidence refs for future adapters.",
+        "Audit-chain JSONL rows record local evidence and Oya VCS closeout; no runtime logs, metrics, traces, or audit events are emitted."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "HR AC-05 test_ref moved from pending to implemented domain/app flat microservice test paths, and D-05/D-11 clarify runtime authorization remains out of scope."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "HR can implement purpose-bound sensitive-read metadata ahead of cloud authorization only if it avoids runtime enforcement claims and carries explicit evidence refs.",
+      "premise_evidence_ref": "specs/microservices/hr.json AC-05 and existing metadata-only HR app envelope patterns",
+      "do_nothing_consequence": "AC-05 remains pending and future HR authorization adapters lack a deterministic policy/audit handoff seam.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Runtime authorization, API endpoints, and data retrieval are downstream slices; this slice defines the safe domain/app contract first."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This slice strengthens ERP-grade HR privacy posture by making sensitive-read policy and audit metadata explicit before cloud integration."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use HR sensitive-read, purpose, legal basis, policy, consent evidence, and read-log vocabulary from the HR spec."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Plan, todo, spec AC-05, and decision log document the implemented foundation and non-claims."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Pure validation remains in HR domain; metadata-envelope projection remains in HR app."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No authorization middleware, data retrieval layer, storage repository, HTTP router, audit emitter, or cloud deployment artifact was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice adds no third-party dependencies and no workspace dependency changes."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New domain/app outputs include schema_version fields and data_class annotations."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation uses explicit prefix, enum, evidence, and timestamp checks over fixed fields."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed"
+    },
+    {
+      "command": "cargo test --locked -p oya-hr-employment-domain -p oya-hr-employment-app",
+      "status": "pass",
+      "notes": "HR domain/app tests passed including 6 domain sensitive-read tests and 1 app sensitive-read envelope test"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-hr-employment-domain -p oya-hr-employment-app --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused HR domain/app clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked and cargo clippy --locked across HR/payroll/accounting/suite package group",
+      "status": "pass",
+      "notes": "12 enterprise packages passed targeted regression tests and clippy with -D warnings after HR sensitive-read slice landed"
+    },
+    {
+      "command": "public field data_class annotation scan for touched HR domain/app src",
+      "status": "pass",
+      "notes": "HR domain/app public fields carry data_class annotations; 198 annotated public fields checked"
+    },
+    {
+      "command": "quality-marker scan over CS-ENT-HR-003 paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in HR sensitive-read slice paths"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-sensitive-read-policy-1779533400.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-hr-sensitive-read-policy-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "remaining_risks": [
+    "HR API DTO and OpenAPI sensitive-read endpoints remain a future slice.",
+    "No runtime authorization middleware, data retrieval, storage, audit-chain emission, HTTP adapter, or cloud runtime exists in this slice.",
+    "Full ./bin/oya verify --ci-required remains gated by unrelated pre-existing catalog/data-class blockers documented in the task list."
+  ],
+  "verdict": "PASS",
+  "artifacts_attached": [
+    "microservices/hr/crates/oya-hr-employment-domain/tests/privacy.rs",
+    "microservices/hr/crates/oya-hr-employment-app/tests/privacy.rs",
+    "evidence/vcs/cs-ent-hr-sensitive-read-policy-oya-vcs-lifecycle-20260523.json"
+  ]
+}

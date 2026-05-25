@@ -207,13 +207,20 @@ fn read_crate_names(crates_dir: &Path) -> Result<BTreeSet<String>, String> {
 }
 
 fn read_workflow_contexts(workflows_dir: &Path) -> Result<BTreeSet<String>, String> {
-    let entries = fs::read_dir(workflows_dir).map_err(|error| {
-        format!(
-            "aspirational-enforcement workflows dir unreadable {}: {error}",
-            workflows_dir.display()
-        )
-    })?;
     let mut contexts = BTreeSet::new();
+    // ADR-0361: Jenkins is the CI. The Jenkins-reported status contexts are the
+    // authoritative job/context source; an absent .github/workflows dir is tolerated.
+    seed_jenkins_reported_contexts(&mut contexts);
+    let entries = match fs::read_dir(workflows_dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(contexts),
+        Err(error) => {
+            return Err(format!(
+                "aspirational-enforcement workflows dir unreadable {}: {error}",
+                workflows_dir.display()
+            ));
+        }
+    };
     for entry in entries {
         let entry = entry.map_err(|error| {
             format!("aspirational-enforcement workflow entry unreadable: {error}")
@@ -237,6 +244,28 @@ fn read_workflow_contexts(workflows_dir: &Path) -> Result<BTreeSet<String>, Stri
         collect_workflow_contexts(&contents, &mut contexts);
     }
     Ok(contexts)
+}
+
+/// ADR-0361: seed the valid job/context set from the Jenkins-reported status
+/// contexts manifest, so binding claims that reference CI contexts resolve once
+/// the GitHub Actions workflows are retired. Best-effort; absent manifest = no-op.
+fn seed_jenkins_reported_contexts(contexts: &mut BTreeSet<String>) {
+    let Ok(text) = fs::read_to_string("infra/ci/jenkins/reported-status-contexts.json") else {
+        return;
+    };
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return;
+    };
+    if let Some(arr) = value
+        .get("reported_status_contexts")
+        .and_then(|v| v.as_array())
+    {
+        for c in arr {
+            if let Some(s) = c.as_str() {
+                contexts.insert(s.to_string());
+            }
+        }
+    }
 }
 
 fn collect_workflow_contexts(contents: &str, contexts: &mut BTreeSet<String>) {

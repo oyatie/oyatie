@@ -1,9 +1,10 @@
 context: cloud
 role: api
-capability: network-vpc
+capability: network-vpc-api
 plane: control
 slo: stable-control-plane
-data_classes_owned: [PUBLIC, INTERNAL_ONLY, PII_IDENTIFYING, PII_QUASI_IDENTIFIER, PHI, PCI, FINANCIAL_REGULATED_CREDIT, BEHAVIORAL_TENANT_PRODUCT, BEHAVIORAL_ADS, DECLARED_PREFERENCE, SEARCH_QUERY, SENSITIVE_PIPA_ART23]
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+operational_classes_owned: [AUDIT]

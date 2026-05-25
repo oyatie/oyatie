@@ -1,0 +1,277 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-IDP-VERIFICATION-001",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779553800,
+  "timestamp_iso": "2026-05-24T01:40:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-identity-provider-verification/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-identity-provider-verification/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-identity-provider-verification/tests/identity_provider.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-enterprise-suite-identity-provider-verification.yaml",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-20 adds a review-only identity-provider verification foundation for later Oyatie cloud IdP integration. The plan composes the auth runtime issuer/audience into an OIDC Discovery, JWKS, and JWT-claim verification contract with TLS, issuer/audience, exp/nbf/iat, nonce, kid, tenant, subject, MFA/assurance, route-scope, asymmetric-algorithm, JWKS cache, and key-rotation requirements while keeping discovery fetch, JWKS fetch, OIDC signature verification, external IdP attachment, token introspection, durable session storage, runtime auth middleware, cloud gateway enforcement, and runtime audit-chain emission as non-claims/blockers.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate is a deterministic declarative plan and checklist renderer with no HTTP client, JWKS cache, crypto verifier, token parser, session store, or gateway middleware side effect.",
+        "Validation rejects URL downgrades, claim drift, duplicate claims/algorithms, symmetric algorithms, disabled security controls, cache-policy drift, and runtime attachment overclaims."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice narrows the broad external identity-provider blocker into a tested OIDC/JWKS/JWT preflight contract plus remaining runtime verification evidence blocker.",
+        "The plan explicitly requires issuer/audience, TLS, JWKS, key id, asymmetric algorithms, tenant claim, MFA/assurance claims, and route-scope alignment before future cloud gateway enforcement."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Positive OIDC/JWKS/claim coverage and negative issuer/audience/algorithm/claim/security/runtime-overclaim paths are covered."
+      ],
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-identity-provider-verification/tests/identity_provider.rs::identity_provider_verification_plan_covers_oidc_discovery_jwks_and_claims",
+      "failing_fixture_id": "identity_provider_verification_plan_rejects_security_control_gaps_and_runtime_overclaims",
+      "diagnostic_asserted": "Tests fail if OIDC/JWKS URLs, required claims, algorithm policy, runtime-overclaim guards, security controls, or cache/rotation bounds are weakened."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Developers can call enterprise_suite_identity_provider_verification_plan(), validate_enterprise_suite_identity_provider_verification_plan(), and render_identity_provider_verification_checklist() to inspect IdP preconditions without credentials or network access."
+      ],
+      "new_contributor_minutes_estimate": 20
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Targeted identity-provider verification check/test/clippy, cloud-readiness test/clippy, 40-package enterprise regression test/clippy, fmt, jq, data_class scan, quality-marker scan, dependency-seam gate, Oya VCS lifecycle, and audit-chain append-only checks are required for closeout."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [],
+      "alternatives_named": [
+        "attach a live OIDC/JWKS verifier now",
+        "extend the existing auth runtime with provider flags only",
+        "add a typed review-only identity-provider verification plan first"
+      ],
+      "selected_rationale": "The typed plan makes OIDC discovery, JWKS, JWT claims, algorithm policy, tenant isolation, and route-scope alignment mechanically testable before claiming runtime crypto/provider behavior.",
+      "rejected_reasons": [
+        "A live verifier would require network fetch, key cache behavior, token parsing/crypto dependencies, provider configuration, and runtime evidence not yet present.",
+        "Flags in the auth runtime would not separately validate discovery/JWKS URL shape, claim set, algorithm policy, cache/rotation bounds, or non-claims."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The plan requires TLS-only discovery/JWKS endpoints, issuer/audience matching, exp/nbf/iat/nonce checks, kid/JWKS validation, and tenant_id claim enforcement.",
+        "The plan forbids alg=none and symmetric signing algorithms in this enterprise gateway context.",
+        "Discovery fetch, JWKS fetch, signature verification, token introspection, durable sessions, runtime middleware, cloud gateway enforcement, and audit emission remain explicit non-claims."
+      ],
+      "owasp_class_review": "identity_provider_token_validation_foundation",
+      "severity_max": "high",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        {
+          "summary": "The plan adds no runtime request cost until a future verifier/gateway middleware slice attaches it."
+        }
+      ],
+      "perf_budget_class": "bounded_static_identity_provider_plan_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-enterprise-suite-idp-verification-plan",
+      "regression_baseline": "Validation checks fixed in-memory OIDC/JWKS/JWT metadata and auth route scopes; no network, crypto, token parsing, cache, or hot request path exists."
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "All new public struct fields in changed source carry data_class annotations.",
+        "The design follows official OpenID Connect Discovery/Core and RFC 7517/7519 guidance by planning discovery metadata, JWKS, issuer/audience/expiry/nonce claims, key id, and JWT registered claim checks without pretending runtime verification exists."
+      ],
+      "data_class_touched": [
+        "PUBLIC verification-plan metadata",
+        "INTERNAL_ONLY issuer/audience/endpoint/claim metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a-no-client-secrets-passwords-api-keys-or-provider-credentials-added",
+      "regulatory_packs_impacted": [
+        "enterprise-suite-governance",
+        "cloud-readiness",
+        "tenant-isolation",
+        "identity-provider-verification",
+        "edge-authorization"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "https://openid.net/specs/openid-connect-discovery-1_0-final.html",
+        "https://openid.net/specs/openid-connect-core-1_0-final.html",
+        "https://www.rfc-editor.org/rfc/rfc7517",
+        "https://datatracker.ietf.org/doc/html/rfc7519"
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one crate, one catalog row, workspace/dependency wiring, spec/task/evidence updates, and readiness-gate composition. No IdP, credential, JWKS fetch, crypto verifier, session store, gateway policy, or external resource is created."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The readiness report now exposes identity_provider_verification_plan_ready, identity_provider_verification_plan_attached, oidc_discovery_plan_attached, jwks_validation_plan_attached, oidc_signature_verification_attached, and jwks_provider_attached for later dashboards.",
+        "Cloud deployment readiness remains false while identity_provider_verification_missing continues to represent missing runtime/provider evidence."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-20 records the staged migration boundary from local auth policy to review-only OIDC/JWKS/JWT verification plan and later runtime provider verification.",
+        "AC-15 cloud-readiness composition now includes identity-provider verification plan readiness while still refusing cloud deployment claims."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [],
+      "premise_stated": "An identity-provider plan improves cloud readiness only if it refuses to claim discovery fetch, JWKS fetch, signature verification, external provider attachment, token introspection, durable session storage, runtime middleware, cloud gateway enforcement, or runtime audit emission.",
+      "premise_evidence_ref": "identity_provider_verification_plan_rejects_security_control_gaps_and_runtime_overclaims and cloud_readiness_gate_includes_identity_provider_verification_plan_without_runtime_claim",
+      "do_nothing_consequence": "Later cloud auth work would need to infer OIDC/JWKS/JWT/tenant/MFA requirements from route policy and prose rather than a typed contract.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "The existing auth runtime owns local authorization decisions; a separate identity-provider verification plan preserves no-runtime-provider claims while establishing external IdP verification requirements."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This is the next cloud-integration step after auth runtime and listener/gateway planning: external identity verification is now typed before any provider or runtime verifier is attached."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use identity-provider-verification-plan/foundation vocabulary and avoid live IdP, signature verification, or cloud-ready claims."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, plan, task list, catalog, multispectrum evidence, VCS evidence, and audit-chain references are part of the closeout set."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate sits under microservices/enterprise-suite/crates with an infrastructure/control catalog row and only a local auth-runtime workspace dependency."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No HTTP client, OIDC provider SDK, crypto/JWT dependency, JWKS cache, session store, gateway middleware, listener, Kubernetes client, Workflow engine/broker, statutory rail, or runtime audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new identity-provider verification crate adds no third-party dependencies; it composes only the local Enterprise Suite auth runtime policy."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No external wire API schema changes; the addition is a Rust control-plane/identity-provider verification plan plus Enterprise Suite AC-20 metadata."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation and checklist rendering are deterministic checks over fixed auth/identity metadata with no clock, randomness, network, I/O, token parsing, or cryptographic verification."
+      ]
+    }
+  },
+  "verification": {
+    "completed": [
+      "cargo check -p oya-enterprise-suite-identity-provider-verification",
+      "cargo test --locked -p oya-enterprise-suite-identity-provider-verification",
+      "cargo clippy --locked -p oya-enterprise-suite-identity-provider-verification --all-targets -- -D warnings",
+      "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+      "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+      "40-package enterprise regression: cargo test --locked for HR/payroll/accounting/enterprise-suite/procurement/treasury/warehouse/production-planning/quality-management/plant-maintenance/supply-chain-planning/crm/global-trade/real-estate packages including oya-enterprise-suite-identity-provider-verification",
+      "40-package enterprise regression: cargo clippy --locked --all-targets -- -D warnings for same package set",
+      "cargo fmt --all -- --check",
+      "jq . specs/microservices/enterprise-suite.json",
+      "jq . evidence/multispectrum/cs-ent-suite-idp-verification-1779553800.json",
+      "data_class scan across identity-provider verification plan and readiness source fields",
+      "quality-marker scan across identity-provider verification/readiness/spec/catalog files",
+      "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-idp-verification-1779553800.json --severity error"
+    ],
+    "known_pre_existing_blockers": [
+      "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog currently fails before this slice on pre-existing registry/catalog/oya-enterprise-suite-postgres-rls-storage.yaml: InvalidRole",
+      "./bin/oya gate validate data-class --workspace Cargo.toml is blocked by pre-existing crates/oya-audit-chain-emission-kernel/src/lib.rs::ChainCoordinate.pack",
+      "Full ./bin/oya verify --ci-required remains blocked by the pre-existing catalog/data-class issues above"
+    ]
+  }
+}

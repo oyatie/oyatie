@@ -1,0 +1,267 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-FINANCE-COMMERCIAL-SUBROUTE-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-finance-commercial-subroute-polish-20260525",
+  "agent": "codex-oyatie-finance-commercial-subroute-polish",
+  "created_at": "2026-05-25T00:00:00-04:00",
+  "slice": "Finance commercial subroute polish: Vendors, Billing/Tax, Leave/Time",
+  "intent": "Continue the Bominal-grade cohesive Oyatie dashboard by upgrading sparse finance subroutes into interactive FD-001 product workload and Oyatie Cloud substrate proof surfaces with SSR parity.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added dynamic and SSR-static finance anchor boards for Vendors & spend, Billing & tax, and Leave & time.",
+    "Each board carries FD-001 workload framing, Oyatie Cloud tenant/substrate proof framing, local-only/no-mutation boundaries, three proof cards, status text, and 10 interactive finance anchor actions.",
+    "Added fallback JS interactions for finance anchor actions, including routes to ledger/vendors/billing/leave, Workflow, Oyatie Cloud FinOps, policy, audit ledger, evidence spine, Mail, Messenger, and Community without backend mutation.",
+    "Added responsive finance anchor CSS matching the existing workforce/onboarding/identity proof-card design system."
+  ],
+  "before_metrics": {
+    "captured_at": "2026-05-25T05:06:49.626Z",
+    "viewport": {
+      "width": 1440,
+      "height": 1300
+    },
+    "panels": {
+      "vendors": {
+        "id": "vendors-spend",
+        "text": "PROCUREMENT · VENDORS\n\nVendors & spend control\n\nContracts, approvals, owners, and cost-of-delay are tied to the same object graph as workflow and mail.\n\n⌕\n+ Vendor\nVENDOR\tOWNER\tMONTHLY\tRENEWAL\tRISK\tACTION\n\nStripe\nPayments · invoice INV-4281\n\tFinance\t₩4.82M\t2026-05-31\tHigh\tReview\n\nAWS Korea\nCloud platform · reserved capacity\n\tSRE\t₩63.4M\t2026-06-12\tMedium\tOptimize\n\nShinhan Bank\nPayroll and withholding transport\n\tCFO\t₩1.2M\t2027-01-10\tLow\tInspect",
+        "directButtons": 4,
+        "financeAnchorActions": 0,
+        "statusNodes": 0,
+        "cards": 0,
+        "mentionsFd001": false,
+        "mentionsOyatieCloud": false
+      },
+      "billing": {
+        "id": "billing-tax",
+        "text": "BILLING · TAX\n\nBilling, plans, and filings\n\nCustomer invoices, plan changes, HomeTax filing readiness, and payment evidence stay visible next to operations.\n\nREVENUE\n\n₩2.31B\nARR mock · 42 active contracts\nStage invoice\n\nTAX FILING\n\n64%\nHomeTax transport awaiting reviewer\nDraft brief\n\nPLAN CHANGES\n\n7\n2 require billing owner review\nOpen queue",
+        "directButtons": 3,
+        "financeAnchorActions": 0,
+        "statusNodes": 0,
+        "cards": 3,
+        "mentionsFd001": false,
+        "mentionsOyatieCloud": false
+      },
+      "leave": {
+        "id": "leave-time",
+        "text": "PEOPLE COST · LEAVE\n\nLeave & time liability\n\nLeave approvals are connected to workforce, payroll, schedule, and financial liability before close.\n\nMay 13–17\n김지영 leave request\n5 days · backup confirmed\nApprove locally\nThis week\n윤태민 overtime risk\n49.5h projected · 2 backup engineers recommended\nReassign\nMay 22\nPayroll cutoff\nTimesheets lock 3 days before payout\nPreview lock\nMon\nTue\nWed\nThu\nFri",
+        "directButtons": 3,
+        "financeAnchorActions": 0,
+        "statusNodes": 0,
+        "cards": 0,
+        "mentionsFd001": false,
+        "mentionsOyatieCloud": false
+      }
+    },
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "pageErrors": []
+  },
+  "after_metrics": {
+    "vendors": {
+      "id": "vendors-spend",
+      "directButtons": 14,
+      "financeAnchorActions": 10,
+      "statusNodes": 1,
+      "cards": 3,
+      "mentionsFd001": true,
+      "mentionsOyatieCloud": true,
+      "mentionsLocalOnly": true,
+      "mentionsNoMutationBoundary": true,
+      "textSample": "PROCUREMENT · VENDORSVendors & spend controlContracts, approvals, owners, and cost-of-delay are tied to the same object graph as workflow and mail. ⌕+ Vendor VendorOwnerMonthlyRenewalRiskActionStripePayments · invoice INV-4281Finance₩4.82M2026-05-31HighReviewAWS KoreaCloud platform · reserved capacitySRE₩63.4M2026-06-1"
+    },
+    "billing": {
+      "id": "billing-tax",
+      "directButtons": 13,
+      "financeAnchorActions": 10,
+      "statusNodes": 1,
+      "cards": 3,
+      "mentionsFd001": true,
+      "mentionsOyatieCloud": true,
+      "mentionsLocalOnly": true,
+      "mentionsNoMutationBoundary": true,
+      "textSample": "BILLING · TAXBilling, plans, and filingsCustomer invoices, plan changes, HomeTax filing readiness, and payment evidence stay visible next to operations. REVENUE₩2.31BARR mock · 42 active contractsStage invoiceTAX FILING64%HomeTax transport awaiting reviewerDraft briefPLAN CHANGES72 require billing owner reviewOpen queu"
+    },
+    "leave": {
+      "id": "leave-time",
+      "directButtons": 13,
+      "financeAnchorActions": 10,
+      "statusNodes": 1,
+      "cards": 3,
+      "mentionsFd001": true,
+      "mentionsOyatieCloud": true,
+      "mentionsLocalOnly": true,
+      "mentionsNoMutationBoundary": true,
+      "textSample": "PEOPLE COST · LEAVELeave & time liabilityLeave approvals are connected to workforce, payroll, schedule, and financial liability before close. May 13–17김지영 leave request5 days · backup confirmedApprove locallyThis week윤태민 overtime risk49.5h projected · 2 backup engineers recommendedReassignMay 22Payroll cutoffTimesheets"
+    }
+  },
+  "interaction_assertions": {
+    "policyRoute": {
+      "hash": "#policy-access",
+      "policyActive": true,
+      "status": "Policy board ready · FD-001 workloads dogfood Oyatie Cloud as tenant surfaces."
+    },
+    "evidenceRoute": {
+      "hash": "#evidence-spine",
+      "evidenceVisible": true,
+      "evidenceStatus": "6 visible · all states · local evidence only"
+    },
+    "mailRoute": {
+      "hash": "#work-hub",
+      "activeHub": "Mail",
+      "workHubVisible": true
+    }
+  },
+  "ssr_curl_counts": {
+    "data-finance-anchor-action": 30,
+    "data-finance-anchor-status": 3,
+    "finance-anchor-card": 18,
+    "FD-001": 69,
+    "Oyatie Cloud": 36,
+    "no bank/payroll/tax/billing boundary phrase": 2
+  },
+  "screenshots": {
+    "before": {
+      "vendors": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/before/screenshots/vendors-spend-before.png",
+      "billing": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/before/screenshots/billing-tax-before.png",
+      "leave": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/before/screenshots/leave-time-before.png"
+    },
+    "after": {
+      "policyRoute": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/vendors-route-policy-after.png",
+      "evidenceRoute": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/billing-route-evidence-after.png",
+      "mailRoute": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/leave-route-mail-after.png",
+      "vendors": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/vendors-spend-after.png",
+      "billing": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/billing-tax-after.png",
+      "leave": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/leave-time-after.png"
+    },
+    "diff": {
+      "vendors": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/diff/vendors-before-after-diff.png",
+      "billing": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/diff/billing-before-after-diff.png",
+      "leave": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/diff/leave-before-after-diff.png"
+    }
+  },
+  "pixel_diff": {
+    "vendors": {
+      "before": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/before/screenshots/vendors-spend-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/vendors-spend-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/diff/vendors-before-after-diff.png",
+      "beforeSize": {
+        "width": 759,
+        "height": 327
+      },
+      "afterSize": {
+        "width": 759,
+        "height": 592
+      },
+      "comparedSize": {
+        "width": 759,
+        "height": 592
+      },
+      "mismatches": 18248,
+      "mismatchRatio": 0.0406
+    },
+    "billing": {
+      "before": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/before/screenshots/billing-tax-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/billing-tax-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/diff/billing-before-after-diff.png",
+      "beforeSize": {
+        "width": 759,
+        "height": 261
+      },
+      "afterSize": {
+        "width": 759,
+        "height": 526
+      },
+      "comparedSize": {
+        "width": 759,
+        "height": 526
+      },
+      "mismatches": 18279,
+      "mismatchRatio": 0.0458
+    },
+    "leave": {
+      "before": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/before/screenshots/leave-time-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/after/screenshots/leave-time-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-finance-commercial-subroute-polish/diff/leave-before-after-diff.png",
+      "beforeSize": {
+        "width": 759,
+        "height": 283
+      },
+      "afterSize": {
+        "width": 759,
+        "height": 548
+      },
+      "comparedSize": {
+        "width": 759,
+        "height": 548
+      },
+      "mismatches": 19883,
+      "mismatchRatio": 0.0478
+    }
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Cohesive product dashboard finance subroutes with Bominal-grade dense controls",
+    "reasoning": "The prior sparse finance panels now have consistent proof-card density, explicit FD-001/Oyatie Cloud framing, local-only boundaries, and visually functional routes into policy, evidence, and built-in communications. The cards inherit existing product design tokens instead of creating a separate visual language.",
+    "differences": [
+      "The panels are still a prototype and are intentionally not wired to real banking, payroll, tax, billing, vendor, HRIS, or cloud backends.",
+      "Pixel diffs primarily reflect added content height and new proof cards rather than unintended layout drift."
+    ],
+    "suggestions": [
+      "Continue applying this anchor-board pattern to any remaining sparse subroutes until the full dashboard is uniformly dense.",
+      "Consider a future route-state helper shared across shell and fallback scopes once the Oya VCS slice permits deeper JS consolidation."
+    ]
+  },
+  "commands": [
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 lib tests passed; 0 main tests"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "summary": "ready-after-4s; first empty replies after restart were transient"
+    },
+    {
+      "cmd": "node /tmp/oya-finance-commercial-smoke.cjs",
+      "status": "passed"
+    },
+    {
+      "cmd": "node /tmp/oya-finance-commercial-diff.cjs",
+      "status": "passed"
+    }
+  ],
+  "known_limits": [
+    "Visual prototype only; backend services remain deliberately disconnected.",
+    "This slice improves finance commercial subroutes; it does not claim the entire dashboard/mockup is complete."
+  ]
+}

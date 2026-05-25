@@ -1,0 +1,306 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-DAILY-EXECUTION-ANCHOR-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-daily-execution-anchor-polish-20260525",
+  "agent": "codex-oyatie-daily-execution-anchor-polish",
+  "created_at": "2026-05-25T00:00:00-04:00",
+  "slice": "Daily Work + Action Inbox anchor polish",
+  "intent": "Continue the Bominal-grade cohesive Oyatie dashboard by upgrading Daily Work, Execution Queue, Schedule, and Action Inbox into FD-001/Oyatie Cloud execution command proof surfaces with SSR parity.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added dynamic and SSR-static proof boards for Daily Work and Action Inbox using the existing proof-card design language.",
+    "Added Execution Queue and Schedule subroute footers so direct anchors carry FD-001, Oyatie Cloud, and local-only/no-mutation proof copy.",
+    "Added data-daily-proof-action interactions for routes to Action Inbox, Daily Execution, Schedule, Workflow, Oyatie Cloud, Policy, Audit, Evidence, Mail, Messenger, and Community, plus local packet staging.",
+    "Added responsive daily-proof CSS and active/selected visual states without introducing a new design-system layer."
+  ],
+  "before_metrics": {
+    "daily": {
+      "id": "daily-execution",
+      "buttons": 65,
+      "dailyProofActions": 0,
+      "dailyProofCards": 0,
+      "dailyProofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": true,
+      "textSample": "DAILY WORK · PERSONAL OPERATIONSTasks, approvals, schedule, and evidence for todayA single operator queue connects calendar pressure, approval risk, workflow routes, Mail/Messenger drafts, and receipt evidence.local command surface3tasks3approvals3calendar hol"
+    },
+    "tasks": {
+      "id": "tasks-title",
+      "buttons": 55,
+      "dailyProofActions": 0,
+      "dailyProofCards": 0,
+      "dailyProofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": false,
+      "textSample": "EXECUTION QUEUEOne list for personal operationsblocking2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요건강보험료 등급 상승(변동액 +₩47,200/월). 마감 전 확인 후 승인.KindtaskOwnerCloud owner / tenant adminDuetoday 18:00FlowMailEvidenceStagetask연차 사용 승인 — 김지영 (5/13 – 5/17, 5일)$60 잔여 13.5일 → 8."
+    },
+    "schedule": {
+      "id": "schedule-title",
+      "buttons": 4,
+      "dailyProofActions": 0,
+      "dailyProofCards": 0,
+      "dailyProofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": false,
+      "textSample": "CALENDARToday’s schedule pressure09:30Cloud spend reviewFinOps + accounting owners11:00Access recertificationQuarterly admin control15:30Workflow change boardReview no-code automation draftsClose work · 73%Approvals · 64%Context switching · 41%WorkflowMail bri"
+    },
+    "inbox": {
+      "id": "command-center-workbench",
+      "buttons": 40,
+      "dailyProofActions": 0,
+      "dailyProofCards": 0,
+      "dailyProofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": false,
+      "textSample": "ACTION INBOXPriority queue 8AllMineBlocking3blocking5owned by you4.0hSLA pressure12evidence links0 selectedApproveDeferMail briefAttach evidenceNo items selected · local inbox onlyACT-7841High2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요건강보험료 등급 상승(변동액 +₩47,200/월). 마감 "
+    }
+  },
+  "after_metrics": {
+    "daily": {
+      "id": "daily-execution",
+      "buttons": 81,
+      "dailyProofActions": 16,
+      "dailyProofCards": 3,
+      "dailyProofStatuses": 3,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "textSample": "DAILY WORK · PERSONAL OPERATIONSTasks, approvals, schedule, and evidence for todayA single operator queue connects calendar pressure, approval risk, workflow routes, Mail/Messenger drafts, and receipt evidence.local command surface3tasks3approvals3calendar holds3blocking2evidence links⌕AllBlockingTasksApprovalsSchedule"
+    },
+    "tasks": {
+      "id": "tasks-title",
+      "buttons": 58,
+      "dailyProofActions": 3,
+      "dailyProofCards": 0,
+      "dailyProofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "textSample": "EXECUTION QUEUEOne list for personal operationsblocking2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요건강보험료 등급 상승(변동액 +₩47,200/월). 마감 전 확인 후 승인.KindtaskOwnerCloud owner / tenant adminDuetoday 18:00FlowMailEvidenceStagetask연차 사용 승인 — 김지영 (5/13 – 5/17, 5일)$60 잔여 13.5일 → 8.5일. 팀 백업 확인됨.KindtaskOwnerCloud owner / tenant adminDuetoday"
+    },
+    "schedule": {
+      "id": "schedule-title",
+      "buttons": 7,
+      "dailyProofActions": 3,
+      "dailyProofCards": 0,
+      "dailyProofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "textSample": "CALENDARToday’s schedule pressure09:30Cloud spend reviewFinOps + accounting owners11:00Access recertificationQuarterly admin control15:30Workflow change boardReview no-code automation draftsClose work · 73%Approvals · 64%Context switching · 41%WorkflowMail briefMessengerAudit evidenceSchedule pressure ready · FD-001 ca"
+    },
+    "inbox": {
+      "id": "command-center-workbench",
+      "buttons": 49,
+      "dailyProofActions": 9,
+      "dailyProofCards": 3,
+      "dailyProofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "textSample": "ACTION INBOXPriority queue 8AllMineBlocking3blocking5owned by you4.0hSLA pressure12evidence linksFD-001 ACTION INBOXPriority queue is the product control planeBlocking payroll, vendor, policy, Workflow, Mail, Messenger, Community, and evidence items stay inside the FD-001 tenant workload graph.Daily queueWorkflow gateO"
+    }
+  },
+  "interaction_assertions": {
+    "policyRoute": {
+      "hash": "#policy-access",
+      "policyActive": true,
+      "status": "Policy envelope route opened"
+    },
+    "inboxRoute": {
+      "hash": "#command-center-workbench",
+      "inboxVisible": true
+    },
+    "mailRoute": {
+      "hash": "#work-hub",
+      "activeHub": "Mail",
+      "inboxStatus": "Reviewer Mail route opened"
+    },
+    "stagePacket": {
+      "inboxStatus": "FD-001 execution packet staged locally · no workflow, approval, mail, payroll, billing, or cloud mutation",
+      "localProofStatus": "FD-001 execution packet staged locally · no workflow, approval, mail, payroll, billing, or cloud mutation",
+      "activeAction": "stage-packet"
+    }
+  },
+  "ssr_curl_counts": {
+    "data-daily-proof-action": 25,
+    "data-daily-proof-status": 4,
+    "data-daily-proof-card": 6,
+    "daily-subroute-proof": 2,
+    "FD-001 DAILY WORKLOAD": 1,
+    "FD-001 ACTION INBOX": 1,
+    "Oyatie Cloud": 44
+  },
+  "screenshots": {
+    "before": {
+      "daily": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/daily-before.png",
+      "tasks": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/tasks-before.png",
+      "schedule": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/schedule-before.png",
+      "inbox": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/inbox-before.png"
+    },
+    "after": {
+      "daily": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/daily-after.png",
+      "tasks": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/tasks-after.png",
+      "schedule": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/schedule-after.png",
+      "inbox": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/inbox-after.png",
+      "policyRoute": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/daily-route-policy-after.png",
+      "inboxRoute": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/daily-route-inbox-after.png",
+      "mailRoute": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/inbox-route-mail-after.png"
+    },
+    "diff": {
+      "daily": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/daily-before-after-diff.png",
+      "tasks": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/tasks-before-after-diff.png",
+      "schedule": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/schedule-before-after-diff.png",
+      "inbox": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/inbox-before-after-diff.png"
+    }
+  },
+  "pixel_diff": {
+    "daily": {
+      "before": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/daily-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/daily-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/daily-before-after-diff.png",
+      "beforeSize": {
+        "width": 1151,
+        "height": 1097
+      },
+      "afterSize": {
+        "width": 1151,
+        "height": 1382
+      },
+      "comparedSize": {
+        "width": 1151,
+        "height": 1382
+      },
+      "mismatches": 146136,
+      "mismatchRatio": 0.0919
+    },
+    "tasks": {
+      "before": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/tasks-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/tasks-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/tasks-before-after-diff.png",
+      "beforeSize": {
+        "width": 833,
+        "height": 912
+      },
+      "afterSize": {
+        "width": 833,
+        "height": 955
+      },
+      "comparedSize": {
+        "width": 833,
+        "height": 955
+      },
+      "mismatches": 8510,
+      "mismatchRatio": 0.0107
+    },
+    "schedule": {
+      "before": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/schedule-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/schedule-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/schedule-before-after-diff.png",
+      "beforeSize": {
+        "width": 317,
+        "height": 912
+      },
+      "afterSize": {
+        "width": 317,
+        "height": 955
+      },
+      "comparedSize": {
+        "width": 317,
+        "height": 955
+      },
+      "mismatches": 5212,
+      "mismatchRatio": 0.0172
+    },
+    "inbox": {
+      "before": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/before/screenshots/inbox-before.png",
+      "after": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/after/screenshots/inbox-after.png",
+      "diff": ".omx/artifacts/visual-ralph/oya-daily-execution-anchor-polish/diff/inbox-before-after-diff.png",
+      "beforeSize": {
+        "width": 1151,
+        "height": 574
+      },
+      "afterSize": {
+        "width": 1151,
+        "height": 851
+      },
+      "comparedSize": {
+        "width": 1151,
+        "height": 851
+      },
+      "mismatches": 73809,
+      "mismatchRatio": 0.0754
+    }
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Cohesive FD-001/Oyatie Cloud execution command dashboard",
+    "reasoning": "Daily Work and Action Inbox no longer read as generic task widgets. They now explain why tasks, approvals, schedule pressure, built-in comms, workflow routes, and evidence are FD-001 tenant workload proof, and they visibly route into the substrate/policy/audit surfaces while preserving local-only constraints.",
+    "differences": [
+      "The added proof boards increase vertical height; pixel diffs are expected content additions rather than regressions.",
+      "Backend services remain intentionally disconnected because this is a visual prototype."
+    ],
+    "suggestions": [
+      "Continue with remaining sparse direct anchors such as FinOps, resource inventory, and evidence ledger.",
+      "Eventually consolidate repeated proof-board CSS once all sections converge on the same reusable pattern."
+    ]
+  },
+  "commands": [
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 lib tests passed; 0 main tests"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "summary": "ready-after-3s; transient empty replies after restart"
+    },
+    {
+      "cmd": "node /tmp/oya-daily-execution-before.cjs",
+      "status": "passed"
+    },
+    {
+      "cmd": "node /tmp/oya-daily-execution-after.cjs",
+      "status": "passed"
+    },
+    {
+      "cmd": "node /tmp/oya-daily-execution-diff.cjs",
+      "status": "passed"
+    }
+  ],
+  "known_limits": [
+    "Visual prototype only; no backend writes, auth changes, workflow execution, mail sends, payroll, billing, policy, or cloud mutations are wired.",
+    "This slice improves Daily Work and Action Inbox; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

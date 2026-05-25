@@ -1,0 +1,6 @@
+# Farm-wide shared-cache evidence — 2026-05-25T16:10:51Z
+job oya-ci-farmwide #1 SUCCESS; target: cargo check -p oya-dev-cli --tests (verify-toolchain graph)
+COLD agent rust-build-vz964: 151 compiles executed, 150 cache MISSES, wall 8s (populated SeaweedFS)
+WARM agent rust-build-5bk28 (fresh pod): 151 requests, 150 cache HITS, 100.00% hit rate, wall 7s
+=> 150-crate transitive graph compiled once, 100% reused across a fresh lane agent.
+caveat: cargo CHECK is cheap (metadata) so wall delta is small; cache wall-clock payoff is large for full codegen build/release (not run here). Hit-rate is the measured headline, not a throughput SLO.

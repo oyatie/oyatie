@@ -93,40 +93,42 @@ Related sections: [§1 Architecture](#section-1-architecture), [§2 Decisions](#
 3. [ADR-LEGACY-REGRESSION-MAPPING.md](ADR-LEGACY-REGRESSION-MAPPING.md) - ADR Legacy Regression Mapping: canonical navigation target for this shelf.
 4. [AGENT-INSTRUCTION-SOURCES.md](AGENT-INSTRUCTION-SOURCES.md) - Agent Instruction Sources: canonical navigation target for this shelf.
 5. [AGENTS.md](AGENTS.md) - Agents: canonical navigation target for this shelf.
-6. [CHANGELOG.md](CHANGELOG.md) - Changelog: canonical navigation target for this shelf.
-7. [COMPETITIVE-GAP-ANALYSIS.md](COMPETITIVE-GAP-ANALYSIS.md) - Competitive Gap Analysis: canonical navigation target for this shelf.
-8. [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md) - Compliance Matrix: canonical navigation target for this shelf.
-9. [CONTRADICTION-LEDGER.md](CONTRADICTION-LEDGER.md) - Contradiction Ledger: canonical navigation target for this shelf.
-10. [DESIGN.md](DESIGN.md) - Design: canonical navigation target for this shelf.
-11. [DOC-CATALOG.md](DOC-CATALOG.md) - Doc Catalog: canonical navigation target for this shelf.
-12. [DOC-COVERAGE.md](DOC-COVERAGE.md) - Doc Coverage: canonical navigation target for this shelf.
-13. [DOC-UPDATE-PROTOCOL.md](DOC-UPDATE-PROTOCOL.md) - Doc Update Protocol: canonical navigation target for this shelf.
-14. [DOCUMENTATION.md](DOCUMENTATION.md) - Documentation: canonical navigation target for this shelf.
-15. [FINOPS-PLAN.md](FINOPS-PLAN.md) - Finops Plan: canonical navigation target for this shelf.
-16. [GLOSSARY.md](GLOSSARY.md) - Glossary: canonical navigation target for this shelf.
-17. [GTM-PLAN.md](GTM-PLAN.md) - Gtm Plan: canonical navigation target for this shelf.
-18. [HIRING-CAPACITY-PLAN.md](HIRING-CAPACITY-PLAN.md) - Hiring Capacity Plan: canonical navigation target for this shelf.
-19. [INCIDENT-MANAGEMENT.md](INCIDENT-MANAGEMENT.md) - Incident Management: canonical navigation target for this shelf.
-20. [INTERNATIONALIZATION.md](INTERNATIONALIZATION.md) - Internationalization: canonical navigation target for this shelf.
-21. [LEGAL-IP-LEDGER.md](LEGAL-IP-LEDGER.md) - Legal Ip Ledger: canonical navigation target for this shelf.
-22. [MASTERPLAN.md](MASTERPLAN.md) - Masterplan: canonical navigation target for this shelf.
-23. [MISTAKES-LEDGER.md](MISTAKES-LEDGER.md) - Mistakes Ledger: canonical navigation target for this shelf.
-24. [PRD.md](PRD.md) - PRD: canonical navigation target for this shelf.
-25. [PRIVACY-PROGRAM.md](PRIVACY-PROGRAM.md) - Privacy Program: canonical navigation target for this shelf.
-26. [QA-TEST-STRATEGY.md](QA-TEST-STRATEGY.md) - Qa Test Strategy: canonical navigation target for this shelf.
-27. [RACI-OWNERSHIP.md](RACI-OWNERSHIP.md) - Raci Ownership: canonical navigation target for this shelf.
-28. [README.md](README.md) - Docs: canonical navigation target for this shelf.
-29. [RELEASE-MANAGEMENT.md](RELEASE-MANAGEMENT.md) - Release Management: canonical navigation target for this shelf.
-30. [RISK-REGISTER.md](RISK-REGISTER.md) - Risk Register: canonical navigation target for this shelf.
-31. [ROADMAP.md](ROADMAP.md) - Roadmap: canonical navigation target for this shelf.
-32. [RUNBOOKS-INDEX.md](RUNBOOKS-INDEX.md) - Runbooks Index: canonical navigation target for this shelf.
-33. [SECURITY-PROGRAM.md](SECURITY-PROGRAM.md) - Security Program: canonical navigation target for this shelf.
-34. [SLO-CATALOG.md](SLO-CATALOG.md) - SLO Catalog: canonical navigation target for this shelf.
-35. [SPEC.md](SPEC.md) - Spec: canonical navigation target for this shelf.
-36. [STANDARDS-AND-TEMPLATES.md](STANDARDS-AND-TEMPLATES.md) - Standards And Templates: canonical navigation target for this shelf.
-37. [TOOLCHAIN.md](TOOLCHAIN.md) - Toolchain: canonical navigation target for this shelf.
-38. [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) - Vendor Partner Ledger: canonical navigation target for this shelf.
-39. [bootstrap.md](bootstrap.md) - Bootstrap: canonical navigation target for this shelf.
+6. [AGENTS-OPERATING-CONTRACT.md](AGENTS-OPERATING-CONTRACT.md) - Agents Operating Contract Doctrine References: canonical navigation target for this shelf.
+7. [CHANGELOG.md](CHANGELOG.md) - Changelog: canonical navigation target for this shelf.
+8. [COMPETITIVE-GAP-ANALYSIS.md](COMPETITIVE-GAP-ANALYSIS.md) - Competitive Gap Analysis: canonical navigation target for this shelf.
+9. [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md) - Compliance Matrix: canonical navigation target for this shelf.
+10. [CONTRADICTION-LEDGER.md](CONTRADICTION-LEDGER.md) - Contradiction Ledger: canonical navigation target for this shelf.
+11. [DESIGN.md](DESIGN.md) - Design: canonical navigation target for this shelf.
+12. [DOC-CATALOG.md](DOC-CATALOG.md) - Doc Catalog: canonical navigation target for this shelf.
+13. [DOC-COVERAGE.md](DOC-COVERAGE.md) - Doc Coverage: canonical navigation target for this shelf.
+14. [DOC-UPDATE-PROTOCOL.md](DOC-UPDATE-PROTOCOL.md) - Doc Update Protocol: canonical navigation target for this shelf.
+15. [DOCUMENTATION.md](DOCUMENTATION.md) - Documentation: canonical navigation target for this shelf.
+16. [FINOPS-PLAN.md](FINOPS-PLAN.md) - Finops Plan: canonical navigation target for this shelf.
+17. [GLOSSARY.md](GLOSSARY.md) - Glossary: canonical navigation target for this shelf.
+18. [GTM-PLAN.md](GTM-PLAN.md) - Gtm Plan: canonical navigation target for this shelf.
+19. [HIRING-CAPACITY-PLAN.md](HIRING-CAPACITY-PLAN.md) - Hiring Capacity Plan: canonical navigation target for this shelf.
+20. [INCIDENT-MANAGEMENT.md](INCIDENT-MANAGEMENT.md) - Incident Management: canonical navigation target for this shelf.
+21. [INTERNATIONALIZATION.md](INTERNATIONALIZATION.md) - Internationalization: canonical navigation target for this shelf.
+22. [LEGAL-IP-LEDGER.md](LEGAL-IP-LEDGER.md) - Legal Ip Ledger: canonical navigation target for this shelf.
+23. [MASTERPLAN.md](MASTERPLAN.md) - Masterplan: canonical navigation target for this shelf.
+24. [MISTAKES-LEDGER.md](MISTAKES-LEDGER.md) - Mistakes Ledger: canonical navigation target for this shelf.
+25. [PRD-OYATIE-FROM-SCRATCH-CANONICAL.md](PRD-OYATIE-FROM-SCRATCH-CANONICAL.md) - Oyatie From-Scratch Canonical PRD: canonical navigation target for this shelf.
+26. [PRD.md](PRD.md) - PRD: canonical navigation target for this shelf.
+27. [PRIVACY-PROGRAM.md](PRIVACY-PROGRAM.md) - Privacy Program: canonical navigation target for this shelf.
+28. [QA-TEST-STRATEGY.md](QA-TEST-STRATEGY.md) - Qa Test Strategy: canonical navigation target for this shelf.
+29. [RACI-OWNERSHIP.md](RACI-OWNERSHIP.md) - Raci Ownership: canonical navigation target for this shelf.
+30. [README.md](README.md) - Docs: canonical navigation target for this shelf.
+31. [RELEASE-MANAGEMENT.md](RELEASE-MANAGEMENT.md) - Release Management: canonical navigation target for this shelf.
+32. [RISK-REGISTER.md](RISK-REGISTER.md) - Risk Register: canonical navigation target for this shelf.
+33. [ROADMAP.md](ROADMAP.md) - Roadmap: canonical navigation target for this shelf.
+34. [RUNBOOKS-INDEX.md](RUNBOOKS-INDEX.md) - Runbooks Index: canonical navigation target for this shelf.
+35. [SECURITY-PROGRAM.md](SECURITY-PROGRAM.md) - Security Program: canonical navigation target for this shelf.
+36. [SLO-CATALOG.md](SLO-CATALOG.md) - SLO Catalog: canonical navigation target for this shelf.
+37. [SPEC.md](SPEC.md) - Spec: canonical navigation target for this shelf.
+38. [STANDARDS-AND-TEMPLATES.md](STANDARDS-AND-TEMPLATES.md) - Standards And Templates: canonical navigation target for this shelf.
+39. [TOOLCHAIN.md](TOOLCHAIN.md) - Toolchain: canonical navigation target for this shelf.
+40. [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) - Vendor Partner Ledger: canonical navigation target for this shelf.
+41. [bootstrap.md](bootstrap.md) - Bootstrap: canonical navigation target for this shelf.
 
 ### Machine-Readable Root Specs Shelf
 
@@ -309,7 +311,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#
 2. [ADR-0243-cedar-as-universal-gate.md](decisions/ADR-0243-cedar-as-universal-gate.md) - ADR 0243 Cedar As Universal Gate: decision record; read for why this primitive or policy exists before changing dependent specs.
 3. [ADR-0244-tenant-as-universal-scoping-primitive.md](decisions/ADR-0244-tenant-as-universal-scoping-primitive.md) - ADR 0244 Tenant As Universal Scoping Primitive: decision record; read for why this primitive or policy exists before changing dependent specs.
 4. [ADR-0245-substrate-vs-product-layering.md](decisions/ADR-0245-substrate-vs-product-layering.md) - ADR 0245 Substrate Vs Product Layering: decision record; read for why this primitive or policy exists before changing dependent specs.
-5. [ADR-0246-amendment-library-first-network-opt-in-clarification.md](decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md) - ADR 0246 Amendment Library First Network Opt In Clarification: decision record; read for why this primitive or policy exists before changing dependent specs.
+5. [ADR-0353-amendment-library-first-network-opt-in-clarification.md](decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) - ADR 0246 Amendment Library First Network Opt In Clarification: decision record; read for why this primitive or policy exists before changing dependent specs.
 6. [ADR-0246-policy-engine-substrate-promotion.md](decisions/ADR-0246-policy-engine-substrate-promotion.md) - ADR 0246 Policy Engine Substrate Promotion: decision record; read for why this primitive or policy exists before changing dependent specs.
 7. [ADR-0247-self-hosting-self-modification-doctrine.md](decisions/ADR-0247-self-hosting-self-modification-doctrine.md) - ADR 0247 Self Hosting Self Modification Doctrine: decision record; read for why this primitive or policy exists before changing dependent specs.
 8. [ADR-0248-amazon-shape-cellular-architecture.md](decisions/ADR-0248-amazon-shape-cellular-architecture.md) - ADR 0248 Amazon Shape Cellular Architecture: decision record; read for why this primitive or policy exists before changing dependent specs.
@@ -317,12 +319,12 @@ Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#
 10. [ADR-0250-build-ahead-of-certification-doctrine.md](decisions/ADR-0250-build-ahead-of-certification-doctrine.md) - ADR 0250 Build Ahead Of Certification Doctrine: decision record; read for why this primitive or policy exists before changing dependent specs.
 11. [ADR-0251-compliance-pack-cell-certification-levels.md](decisions/ADR-0251-compliance-pack-cell-certification-levels.md) - ADR 0251 Compliance Pack Cell Certification Levels: decision record; read for why this primitive or policy exists before changing dependent specs.
 12. [ADR-0252-time-coordination-distributed-consistency.md](decisions/ADR-0252-time-coordination-distributed-consistency.md) - ADR 0252 Time Coordination Distributed Consistency: decision record; read for why this primitive or policy exists before changing dependent specs.
-13. [ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md](decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md) - ADR 0253 Amendment Http3 Fallback Strict Tls Ech Pqc: decision record; read for why this primitive or policy exists before changing dependent specs.
+13. [ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md](decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) - ADR 0253 Amendment Http3 Fallback Strict Tls Ech Pqc: decision record; read for why this primitive or policy exists before changing dependent specs.
 14. [ADR-0253-network-topology-edge-service-mesh.md](decisions/ADR-0253-network-topology-edge-service-mesh.md) - ADR 0253 Network Topology Edge Service Mesh: decision record; read for why this primitive or policy exists before changing dependent specs.
 15. [ADR-0254-deployment-model-spectrum.md](decisions/ADR-0254-deployment-model-spectrum.md) - ADR 0254 Deployment Model Spectrum: decision record; read for why this primitive or policy exists before changing dependent specs.
-16. [ADR-0255-amendment-library-first-network-opt-in-clarification.md](decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md) - ADR 0255 Amendment Library First Network Opt In Clarification: decision record; read for why this primitive or policy exists before changing dependent specs.
+16. [ADR-0355-amendment-library-first-network-opt-in-clarification.md](decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) - ADR 0255 Amendment Library First Network Opt In Clarification: decision record; read for why this primitive or policy exists before changing dependent specs.
 17. [ADR-0255-intelligence-as-two-layer-ai-substrate.md](decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md) - ADR 0255 Intelligence As Two Layer AI Substrate: decision record; read for why this primitive or policy exists before changing dependent specs.
-18. [ADR-0257-amendment-library-first-ontology-read-path.md](decisions/ADR-0257-amendment-library-first-ontology-read-path.md) - ADR 0257 Amendment Library First Ontology Read Path: decision record; read for why this primitive or policy exists before changing dependent specs.
+18. [ADR-0356-amendment-library-first-ontology-read-path.md](decisions/ADR-0356-amendment-library-first-ontology-read-path.md) - ADR 0257 Amendment Library First Ontology Read Path: decision record; read for why this primitive or policy exists before changing dependent specs.
 19. [ADR-0257-ontology-object-type-versioning-deprecation-handshake.md](decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md) - ADR 0257 Ontology Object Type Versioning Deprecation Handshake: decision record; read for why this primitive or policy exists before changing dependent specs.
 20. [ADR-0258-api-versioning-model.md](decisions/ADR-0258-api-versioning-model.md) - ADR 0258 API Versioning Model: decision record; read for why this primitive or policy exists before changing dependent specs.
 

@@ -1,0 +1,101 @@
+{
+  "change_id": "backbone-microservices-runtime-observability-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Runtime request-outcome metric emitter, deterministic SLO burn exercise model, and Prometheus adapter coverage for backbone microservices observability/backpressure drills.",
+  "scope": [
+    "crates/oya-shared-hyperscaler-metrics-kernel/**",
+    "crates/oya-shared-hyperscaler-metrics-adapter-prometheus/**",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "In-process runtime metrics exercise and Prometheus reference adapter coverage only. This slice emits canonical counters/gauges through the existing HyperscalerMetrics trait and computes deterministic SLO burn-rate exercise reports. It does not add a Rust OpenTelemetry SDK/OTLP exporter, deploy an OpenTelemetry Collector, fire live Prometheus/Alertmanager alerts, or prove production backpressure behavior under load.",
+  "facets": {
+    "F1_simplicity": "A default trait method maps one RequestTelemetryOutcome into existing canonical metric families, avoiding per-service counter fan-out logic.",
+    "F2_hyperscaler": "The slice adds pre-prod drill evidence for success, 429 backpressure, 5xx, circuit-open, retry-budget exhaustion, and integer SLO burn-rate thresholds before live cloud integration.",
+    "F3_adversarial": "Tests cover invalid status codes, empty tenant/capability labels, zero-traffic SLO math, fast/slow burn triggering, Prometheus counter/gauge values, and CI package-matrix consistency.",
+    "F5_quality": "Focused metrics tests, broad 34-package backbone cargo check/test/clippy/fmt, Jenkins matrix validation, governance gates, dependency-seam, honest-claims, and diff hygiene are part of this run.",
+    "F7_security_privacy": "Metric labels stay low-cardinality: microservice is bound at adapter construction, tenant_id is only used for 429 counters, and request bodies/principals/raw paths are never added to metric names.",
+    "F11_observability": "Runtime outcomes now produce request_total, request_success_total, responses_total, responses_429_total, responses_5xx_total, capability_circuit_state, and capability_retry_budget_exhausted_total observations in the Prometheus reference adapter. Live OpenTelemetry export remains pending."
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-shared-hyperscaler-metrics-kernel -p oya-shared-hyperscaler-metrics-adapter-prometheus",
+      "result": "pass",
+      "evidence": "21 unit tests passed across the metrics kernel and Prometheus adapter, including runtime-outcome, backpressure, and SLO burn exercise tests."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-hyperscaler-metrics-kernel -p oya-shared-hyperscaler-metrics-adapter-prometheus --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-hyperscaler-metrics-kernel -p oya-shared-hyperscaler-metrics-adapter-prometheus",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <34 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <34 backbone package matrix>",
+      "result": "pass",
+      "evidence": "216 unit tests passed across backbone domain/API/usecase/REST/app/gRPC/adapter-postgres/policy/shared-command/shared-metrics/shared-protocol packages."
+    },
+    {
+      "command": "cargo clippy -p <34 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <34 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "static Jenkins package validation against cargo metadata",
+      "result": "pass",
+      "evidence": "community, mail, messenger, and social Jenkins package matrices each contain 13 existing workspace packages including oya-shared-hyperscaler-metrics-adapter-prometheus."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "448 workspace members"
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "pre-existing oya-audit-chain-emission-kernel::ChainCoordinate.pack annotation issue."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "ruby -rjson -ryaml <workflow + runtime-observability evidence + metrics catalog rows>",
+      "result": "pass",
+      "evidence": "parsed 4 files"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "6 subchecks: 3 pass, 2 report-only, 1 skipped, 0 fail, 2 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + metrics/adapters + CI/evidence corpus>",
+      "result": "pass",
+      "evidence": "4 documents, 736 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    }
+  ],
+  "non_claims": [
+    "No OpenTelemetry SDK, OTLP exporter, collector deployment, or distributed-tracing propagation enforcement is implemented by this slice.",
+    "No live PrometheusRule/Alertmanager firing evidence, dashboard, production SLO, or load-test evidence is claimed.",
+    "No live gateway, broker, gRPC server, sqlx pool, or production circuit-breaker implementation is introduced by this slice."
+  ]
+}

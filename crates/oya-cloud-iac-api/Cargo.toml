@@ -1,0 +1,18 @@
+[package]
+name = "oya-cloud-iac-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-iac-domain = { path = "../oya-cloud-iac-domain" }
+
+[lib]
+name = "oya_cloud_iac_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

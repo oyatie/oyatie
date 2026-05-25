@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_at": "2026-05-19",
-  "manifest_count": 33,
+  "manifest_count": 32,
   "microservices": [
     {
       "name": "application",
@@ -69,6 +69,15 @@
       "retirement_marker": "microservices/foundry/RETIRED.md",
       "do_not_treat_as_active": true,
       "manifest": "microservices/foundry/manifest.json"
+    },
+    {
+      "name": "intelligence",
+      "manifest": "microservices/intelligence/manifest.json",
+      "prd": "specs/microservices/intelligence.json",
+      "fd001_material": true,
+      "absorbs_retired": [
+        "foundry"
+      ]
     },
     {
       "name": "forms",

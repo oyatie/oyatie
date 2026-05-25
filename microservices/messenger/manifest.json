@@ -20,6 +20,8 @@
         "oya-messenger-message-stream-adapter-postgres",
         "oya-messenger-message-stream-adapter-valkey-streams",
         "oya-messenger-message-stream-kernel",
+        "oya-messenger-message-stream-api",
+        "oya-messenger-message-stream-usecase",
         "oya-messenger-message-stream-rest",
         "oya-messenger-presence-adapter-livekit",
         "oya-messenger-presence-adapter-valkey",
@@ -29,6 +31,7 @@
   ],
   "layers": [
     "adapter",
+    "api",
     "app",
     "domain",
     "kernel",
@@ -137,7 +140,7 @@
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
-      "title": "IP-002: Cargo workspace bootstrap (per-µservice flat layout)",
+      "title": "IP-002: Cargo workspace bootstrap (per-\u00b5service flat layout)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-002-cargo-workspace-bootstrap.md"
     },
@@ -209,7 +212,7 @@
     },
     {
       "id": "IP-014-huddles-livekit-signaling",
-      "title": "IP-014: huddles BC — LiveKit signaling + WebRTC media (voice/video/screen-share)",
+      "title": "IP-014: huddles BC \u2014 LiveKit signaling + WebRTC media (voice/video/screen-share)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-014-huddles-livekit-signaling.md"
     },
@@ -221,7 +224,7 @@
     },
     {
       "id": "IP-NEW-hyperscaler-metric-emission",
-      "title": "IP-NEW: messenger µservice — wire HyperscalerMetrics trait at every canonical emission site",
+      "title": "IP-NEW: messenger \u00b5service \u2014 wire HyperscalerMetrics trait at every canonical emission site",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-NEW-hyperscaler-metric-emission.md"
     }
@@ -306,10 +309,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -385,7 +388,7 @@
     "NIS2",
     "cn-pipl-2021"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-messenger",
   "tenant_class_eligibility": [
     "demo_trial",

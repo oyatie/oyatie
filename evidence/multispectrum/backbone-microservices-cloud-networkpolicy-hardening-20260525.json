@@ -1,0 +1,273 @@
+{
+  "change_id": "backbone-microservices-cloud-networkpolicy-hardening-20260525",
+  "change_class_id": "CC-2",
+  "summary": "Static Kubernetes NetworkPolicy templates and rendered snapshots for messenger, mail, social, and community FD-001 dogfood tenant workload charts, defaulting app Pod ingress to the Oyatie gateway namespace and egress to DNS plus OTLP namespace seams only.",
+  "created_at": "2026-05-25T07:50:00Z",
+  "git_sha": "4d0e38a1",
+  "agent_id": "codex-1779524019183",
+  "scope": [
+    "microservices/messenger/iac/k8s/helm/values.yaml",
+    "microservices/messenger/iac/k8s/helm/templates/networkpolicy.yaml",
+    "microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml",
+    "microservices/mail/iac/k8s/helm/values.yaml",
+    "microservices/mail/iac/k8s/helm/templates/networkpolicy.yaml",
+    "microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml",
+    "microservices/social/iac/k8s/helm/values.yaml",
+    "microservices/social/iac/k8s/helm/templates/networkpolicy.yaml",
+    "microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml",
+    "microservices/community/iac/k8s/helm/values.yaml",
+    "microservices/community/iac/k8s/helm/templates/networkpolicy.yaml",
+    "microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/networkpolicy.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds source-controlled Kubernetes NetworkPolicy templates/snapshots and values defaults for FD-001 backbone dogfood workload charts. It proves static chart/snapshot network-boundary intent and CI-smoke regression coverage only; it does not claim Kubernetes API admission, live CNI installation/enforcement, namespace-label admission, actual traffic isolation, service mesh authorization, Gateway reachability, DNS/OTLP availability, ArgoCD sync/health, branch-protection state, remote CI green, or production tenant workload deployment. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the future dogfood substrate/proof point.",
+  "best_practice_research": [
+    {
+      "source": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "source_quality": "official Kubernetes documentation",
+      "retrieved_at": "2026-05-25",
+      "used_for": "Grounds additive NetworkPolicy behavior, pod/namespace selectors, ingress/egress policy types, and the need for a CNI plugin to enforce policies."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/security/multi-tenancy/",
+      "source_quality": "official Kubernetes documentation",
+      "retrieved_at": "2026-05-25",
+      "used_for": "Grounds network isolation as one component of Kubernetes tenant isolation alongside RBAC, quotas, and admission controls without claiming a live cluster."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "source_quality": "official Kubernetes documentation",
+      "retrieved_at": "2026-05-25",
+      "used_for": "Confirms this slice composes with existing restricted-style Pod posture while staying focused on L3/L4 policy intent."
+    }
+  ],
+  "repo_local_context": [
+    {
+      "url": "repo://microservices/{messenger,mail,social,community}/iac/k8s/helm",
+      "use": "Current FD-001 dogfood charts had Deployments, Services, disabled-by-default HTTPRoutes, ServiceAccounts, labels, resources, probes, runtimeClassName, topology spread, and token automount hardening, but no NetworkPolicy template/snapshot in this chart surface."
+    },
+    {
+      "url": "repo://microservices/{messenger,mail,social,community}/iac/helm/*/templates/networkpolicy.yaml",
+      "use": "Older/non-dogfood chart surfaces already model default-deny/allowlist network policy patterns, supporting network policy as an expected microservice hardening artifact."
+    },
+    {
+      "url": "repo://.github/workflows/backbone-microservices-ci.yml#governance-smoke",
+      "use": "Backbone CI smoke parses FD-001 dogfood chart seams and now blocks missing NetworkPolicy templates/snapshots and missing tenant/cost labels/non-claim posture."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Small chart/snapshot hardening with no new controller, runtime dependency, service code path, API schema, or data migration.",
+        "Uses values-controlled namespace names for gateway, DNS, and OTLP seams rather than embedding a live-cluster claim."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Static app NetworkPolicies make future FD-001 tenant workload boundaries explicit for ingress/egress review.",
+        "The claim remains static/source-controlled; no live CNI enforcement, namespace-label admission, or traffic isolation proof is asserted."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "A RED static check failed before implementation for every service: missing networkPolicy values, missing NetworkPolicy templates, and missing rendered NetworkPolicy snapshots.",
+        "Governance smoke now semantically parses rendered NetworkPolicies and fails if policy types, app selectors, gateway ingress, DNS/OTLP egress, labels, or non-claim annotations are missing."
+      ],
+      "fixuptasks": []
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Operators can find the static network-boundary knobs under networkPolicy values with safe default-enabled posture for the dogfood chart surface."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Source templates and rendered snapshots remain parseable YAML/Helm text and preserve tenant/cost labels plus explicit static-only non-claim annotations.",
+        "CI smoke parses 60 files after adding NetworkPolicy templates and rendered snapshots."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Rejected claiming namespace-wide default deny because this chart does not prove release namespace ownership or live namespace admission; app-Pod selector is safer for static dogfood charts.",
+        "Rejected broad 0.0.0.0/0 egress defaults; future DB, broker, object-store, or vendor egress must be explicitly added with live evidence.",
+        "Rejected service-mesh authorization changes here because L7 identity/policy enforcement is a separate live substrate slice."
+      ],
+      "fixuptasks": []
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No secrets, credentials, cloud identities, or tenant data are added.",
+        "Rendered policy defaults ingress to the oya-gateway namespace and egress to kube-system DNS plus observability OTLP namespace seams only.",
+        "NetworkPolicy labels and non-claim annotations reduce the chance static manifests are misread as live CNI enforcement evidence."
+      ],
+      "severity_max": "low_static_hardening",
+      "secrets_touched": false,
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No Rust runtime, SQL, broker, gRPC, REST, or hot-path code changes. Kubernetes metadata only."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "NetworkPolicy templates and snapshots carry existing tenant, cost-center, workload-class, regulatory-pack, dogfood-substrate, and product-goal labels for future audit/cost/policy correlation."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Rollback removes the NetworkPolicy templates/snapshots, values block, and CI smoke checks without data migration or public API impact."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Default egress keeps an OTLP namespace seam visible, but no live telemetry is emitted by this static slice."
+      ]
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No Deployment selectors, Service selectors, image references, or runtime ports change.",
+        "Live rollout that requires DB, broker, object storage, SMTP, or vendor egress must add explicit allow rules and evidence rather than relying on ambient egress."
+      ]
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Uses existing CS-BACKBONE slice naming and <service>-network-boundary resource names."
+      ]
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Updates task plan/todo and multispectrum evidence only; no new root Markdown or retired external coordination surface."
+      ]
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Network boundary posture lives in per-service Kubernetes Helm chart directories and static rendered dogfood snapshots."
+      ]
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Infrastructure chart contract only; no domain/usecase/adapter boundary drift."
+      ]
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No Cargo, npm, Helm dependency, container, or provider dependency changes."
+      ]
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No data schema or algorithm changes. New values are under networkPolicy."
+      ]
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Backbone governance smoke now blocks missing NetworkPolicy templates/snapshots and rendered policy regressions for all four FD-001 dogfood workloads."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "ruby static network-policy verification before implementation",
+      "status": "RED_EXPECTED_FAIL",
+      "evidence": "Failed for all four services: values missing networkPolicy.enabled/nonClaim, NetworkPolicy templates missing, and rendered NetworkPolicy snapshots missing."
+    },
+    {
+      "command": "ruby static network-policy verification after implementation",
+      "status": "PASS",
+      "evidence": "network policy static verification passed for 4 services"
+    },
+    {
+      "command": "ruby -ryaml workflow parse and extracted backbone governance-smoke run block",
+      "status": "PASS",
+      "evidence": "workflow yaml ok; extracted governance-smoke run block parsed 60 files"
+    },
+    {
+      "command": "./bin/oya gate validate tenant-cost-labels-coverage",
+      "status": "PASS",
+      "evidence": "12 manifests scanned; 0 findings after adding four rendered NetworkPolicy snapshots with tenant/cost labels."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity error --evidence evidence/multispectrum/backbone-microservices-cloud-networkpolicy-hardening-20260525.json",
+      "status": "PASS",
+      "evidence": "Dependency-seam validation passed for this static Helm/chart evidence slice; no dependency changes were introduced."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root evidence/multispectrum/backbone-microservices-cloud-networkpolicy-hardening-20260525.json",
+      "status": "PASS",
+      "evidence": "Scoped honest-claims validation passed with the static-only boundary and explicit live CNI/traffic-isolation non-claims."
+    },
+    {
+      "command": "./bin/oya gate validate audit-chain-replay",
+      "status": "PASS",
+      "evidence": "Audit-chain replay passed with 1 shard and 28 events after appending the evidence_emit row for this change."
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "status": "PASS",
+      "evidence": "Working diff has no whitespace errors."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "status": "PASS",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4559 tests run: 4559 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; D-6 ADR index write passed; D-7 ADR shape passed."
+    },
+    {
+      "command": "./bin/oya vcs work/verify/done/promote lifecycle",
+      "status": "PASS",
+      "evidence": "work accepted: action=start-work; verify accepted: action=verify-evidence; done accepted: action=emit-change-bundle; promote accepted: action=promote-bundle for cb-backbone-microservices-cloud-networkpolicy-hardening-20260525 to ci-preview."
+    }
+  ],
+  "non_claims": [
+    "No live Kubernetes API admission or object creation.",
+    "No live CNI plugin installation/enforcement or traffic isolation proof.",
+    "No namespace-label admission, Gateway reachability, DNS/OTLP availability, service mesh authorization, ArgoCD sync, remote CI green, or production tenant workload deployment claim."
+  ],
+  "autopilot_handoff": "Next slices should continue closing live substrate evidence gaps: namespace/admission proofs, CNI enforcement traffic tests, service mesh/PDP authorization, live ArgoCD sync/health, and tenant workload rollout evidence.",
+  "status": "ready-for-commit-and-submit",
+  "freshness_unix": 1779695738
+}

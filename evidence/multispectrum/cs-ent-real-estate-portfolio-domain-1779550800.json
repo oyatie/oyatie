@@ -1,0 +1,258 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-REAL-ESTATE-001",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-24T00:50:00Z",
+  "freshness_unix": 1779550800,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "Real-estate portfolio domain foundation adds property/rental-object registration metadata, lease-contract registration metadata, lease cash-flow projection metadata, space-occupancy planning metadata, facility-maintenance linkage metadata, and SAP RE-FX parity-map linkage while explicitly refusing durable real-estate persistence, SAP RE-FX or SAP Cloud for Real Estate integration, lease-accounting engines, GL/AP/AR posting, payment execution, plant-maintenance work orders, workspace/team synchronization, document archives, Workflow execution, cloud deployment, and runtime audit-chain claims.",
+  "scope": {
+    "files_added": [
+      "microservices/real-estate/crates/oya-real-estate-portfolio-domain/Cargo.toml",
+      "microservices/real-estate/crates/oya-real-estate-portfolio-domain/src/lib.rs",
+      "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs",
+      "specs/microservices/real-estate.json",
+      "registry/catalog/oya-real-estate-portfolio-domain.yaml"
+    ],
+    "files_modified": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+      "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+      "tasks/enterprise-microservices-plan.md",
+      "tasks/enterprise-microservices-todo.md",
+      "evidence/audit-chain.jsonl"
+    ],
+    "crate": "oya-real-estate-portfolio-domain",
+    "clean_architecture_layer": "domain",
+    "dependencies_added": [],
+    "workspace_member_added": "microservices/real-estate/crates/oya-real-estate-portfolio-domain"
+  },
+  "non_claims": [
+    "no durable real-estate persistence",
+    "no SAP RE-FX backend integration",
+    "no SAP Cloud for Real Estate integration",
+    "no Oracle Lease Accounting integration",
+    "no Microsoft Dynamics 365 Asset leasing integration",
+    "no lease-accounting engine",
+    "no general-ledger posting",
+    "no accounts payable or accounts receivable posting",
+    "no payment execution",
+    "no fixed-asset capitalization",
+    "no plant-maintenance work-order creation",
+    "no workspace runtime",
+    "no team directory synchronization",
+    "no reservation mutation",
+    "no document archive runtime",
+    "no Workflow execution",
+    "no statutory filing or IFRS/ASC certification",
+    "no cloud deployment",
+    "no production SAP RE-FX parity claim",
+    "no runtime audit-chain emission"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice is additive and isolates real-estate portfolio invariants in a flat microservice crate rather than widening Enterprise Suite into a RE-FX/ERP monolith.",
+        "The API remains pure data-in/data-out with no I/O, durable state, lease-accounting engine, GL/AP/AR posting, plant-maintenance work orders, workspace sync, Workflow execution, or cloud runtime."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "claims_allowed": [
+        "bounded domain validation",
+        "flat microservice catalog/spec presence",
+        "ERP parity-map linkage for SAP RE-FX"
+      ],
+      "claims_refused": [
+        "production SAP RE-FX parity",
+        "cloud runtime readiness",
+        "live SAP/Oracle/Microsoft lease-management integration",
+        "lease-accounting calculations beyond metadata projection",
+        "GL/AP/AR posting or payment execution",
+        "plant-maintenance work-order creation",
+        "workspace/team synchronization",
+        "Workflow execution"
+      ],
+      "findings": [
+        "Independent scaling and deployment remain future adapter/runtime work; this slice only creates the pure domain foundation."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::property_drives_lease_cash_flow_space_and_facility_linkage",
+      "failing_fixture_id": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::real_estate_refuses_missing_prerequisites",
+      "diagnostic_asserted": "Tests fail if missing property registration, missing lease registration, unsafe refs, credential-shaped evidence refs, invalid dates, invalid areas, capacity shortage, invalid terms, zero amounts, invalid periods, or invalid maintenance windows are accepted.",
+      "findings": [
+        "Positive property-to-lease-to-cash-flow-to-space-to-facility flow and negative guard rails are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 25,
+      "findings": [
+        "Types map directly to properties, rental objects, lease contracts, cash flows, occupancy plans, and facility linkage common to RE-FX and lease-management systems."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "verification": [
+        "cargo check -p oya-real-estate-portfolio-domain",
+        "cargo test --locked -p oya-real-estate-portfolio-domain",
+        "cargo clippy --locked -p oya-real-estate-portfolio-domain --all-targets -- -D warnings",
+        "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+        "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+        "cargo test --locked over the 35-package enterprise regression group including oya-real-estate-portfolio-domain",
+        "cargo clippy --locked over the 35-package enterprise regression group including oya-real-estate-portfolio-domain --all-targets -- -D warnings",
+        "cargo fmt --all -- --check",
+        "jq . specs/microservices/real-estate.json",
+        "data_class scan: PASS with real-estate public fields annotated",
+        "quality-marker scan: PASS across domain source/tests, spec, and catalog"
+      ],
+      "findings": [
+        "Focused real-estate tests/clippy, ERP parity map tests/clippy, 35-package enterprise regression tests/clippy, fmt, JSON parse, data_class scan, quality-marker scan, and dependency-seam gate are recorded in verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "leave RE-FX as a parity gap",
+        "build live RE-FX/cloud lease-accounting runtime now",
+        "add real-estate portfolio domain foundation first"
+      ],
+      "selected_rationale": "A flat domain foundation gives SAP RE-FX parity a service-owned first write path while keeping SAP/Oracle/Microsoft integrations, lease-accounting engines, GL/AP/AR/payment posting, PM work orders, workspace/team sync, document archives, Workflow, and cloud adapters out of scope.",
+      "rejected_reasons": [
+        "Leaving RE-FX as a gap keeps the ERP parity map with a flat-service-required row after GTS, CRM, SCM/APO, PM, QM, PP, warehouse, procurement, and treasury foundations landed.",
+        "Live real-estate/lease-management runtime requires durable property stores, accounting integrations, payment rails, plant-maintenance adapters, document archives, operational SLOs, and cloud evidence beyond this slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "real_estate_portfolio_evidence_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, external network calls, SAP/Oracle/Microsoft integrations, accounting postings, payment executions, work-order creations, workspace reservations, or Workflow dispatches are introduced.",
+        "Team, maintenance-asset, source, and audit refs reject traversal, whitespace/control, and credential-shaped strings."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-real-estate-portfolio-domain-foundation",
+      "regression_baseline": "Pure string/date/area/amount validation and bounded arithmetic only; no I/O or unbounded data access exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, lease-accounting engine, property-management runtime, workspace runtime, PM work-order runtime, or hot runtime path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "INTERNAL_ONLY property/lease/occupancy/facility/source/evidence refs, dates, object types, usage kinds, and classifications",
+        "FINANCIAL area, capacity, term, rent, deposit, period, and cash-flow values",
+        "PUBLIC non-claim capability flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-real-estate",
+        "sap-re-fx-parity"
+      ],
+      "official_sources_checked": [
+        "https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE/3683a11901b74d8fa71f35d86abaaae1?locale=en-US&state=PRODUCTION&version=2023.latest",
+        "https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE/8535c9616b3d4e208f456cdc4c24b4a6/095fd0531d8b4208e10000000a174cb4.html?locale=en-US&state=PRODUCTION&version=2025.001",
+        "https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE/3683a11901b74d8fa71f35d86abaaae1/e35ad0531d8b4208e10000000a174cb4.html",
+        "https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE/3683a11901b74d8fa71f35d86abaaae1/245dd0531d8b4208e10000000a174cb4.html",
+        "https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE/3683a11901b74d8fa71f35d86abaaae1/10f834e550d54cfaa50d2ef0d834731a.html",
+        "https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE/3683a11901b74d8fa71f35d86abaaae1/7360d0531d8b4208e10000000a174cb4.html",
+        "https://help.sap.com/docs/SAP_CLOUD_FOR_REAL_ESTATE",
+        "https://help.sap.com/docs/SAP_CLOUD_FOR_REAL_ESTATE/8943f4abbbb04c61bd41fc8bede87915/1076fe276527448ba6882acc3b3dc6a6.html?locale=en-US&state=PRODUCTION&version=2",
+        "https://docs.oracle.com/en/cloud/saas/financials/25c/faula/overview-of-lease-accounting.html",
+        "https://docs.oracle.com/en/cloud/saas/financials/25b/faula/create-leases.html",
+        "https://docs.oracle.com/en/cloud/saas/financials/25c/faula/overview-of-lease-creation.html",
+        "https://docs.oracle.com/en/cloud/saas/financials/25c/faula/process-lease-payments.html",
+        "https://learn.microsoft.com/en-us/dynamics365/finance/asset-leasing/asset-leasing-quick-start",
+        "https://learn.microsoft.com/en-us/dynamics365/finance/asset-leasing/add-lease"
+      ],
+      "findings": [
+        "SAP, Oracle, and Microsoft official materials inform real-estate/lease coverage only; no exhaustive vendor parity, statutory certification, legal advice, or proprietary behavior clone is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one new crate/spec/catalog row and parity-map references; no migration or external resource is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence, task rows, and audit-chain rows document the change; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No production user or data migration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package name follows oya-real-estate-portfolio-domain and flat microservice layout."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Machine-readable real-estate spec and existing task ledger capture the slice without creating root markdown sprawl."
+      ]
+    },
+    "A3_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new domain crate depends only on oya-data-boundary-kernel and adds no third-party dependencies."
+      ]
+    }
+  }
+}

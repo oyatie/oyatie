@@ -1,0 +1,319 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-008",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779538200,
+  "timestamp_iso": "2026-05-23T12:10:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-storage-adapter-inmemory/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-storage-adapter-inmemory/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-storage-adapter-inmemory/tests/storage.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-enterprise-suite-storage-adapter-inmemory.yaml",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-10 in-memory storage seam reference adapter records suite metadata with idempotency validation and duplicate-write refusal while explicitly avoiding durable storage/runtime-write claims.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The adapter is a small BTreeMap/BTreeSet reference implementation with no provider configuration or hidden I/O.",
+        "Duplicate idempotency keys and malformed keys fail deterministically."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Separates storage seam behavior from durable provider wiring, matching repo port/adapter patterns.",
+        "Capability flags keep Postgres/RLS, cloud object store, runtime write path, and Workflow execution false until real adapters land."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-storage-adapter-inmemory/tests/storage.rs::enterprise_suite_storage_records_metadata_without_durable_backend_claim",
+      "failing_fixture_id": "duplicate idempotency and malformed key tests",
+      "diagnostic_asserted": "Tests fail if duplicate writes are accepted, malformed keys reserve, or capability flags imply durable storage/runtime writes.",
+      "findings": [
+        "Positive storage of all suite metadata record kinds and negative duplicate/key-shape tests are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "The crate exposes a named storage port trait, in-memory store, stored-record shape, capability descriptor, and group rollup key helper."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Storage adapter tests, suite package-group tests/clippy, 17-package enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "wire Postgres/RLS now",
+        "reuse cloud object storage provider adapters directly",
+        "add an in-memory storage seam reference first"
+      ],
+      "selected_rationale": "In-memory reference pins idempotency and metadata record contracts without overclaiming durable storage or provider integration.",
+      "rejected_reasons": [
+        "Postgres/RLS requires schema migrations, tenancy, rollback, and SLO evidence not present in this slice.",
+        "Cloud object storage is not the right primary metadata store for suite control-plane records."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "metadata_persistence_idempotency_boundary",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No secrets/provider credentials are introduced.",
+        "Idempotency key validation rejects empty, whitespace, path traversal, and duplicate keys."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "in_memory_reference_map",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-enterprise-suite-storage-inmemory-reference",
+      "regression_baseline": "No durable backend exists; tests exercise fixed-size in-memory metadata records.",
+      "findings": [
+        {
+          "summary": "Operations are bounded by BTreeMap/BTreeSet key operations over in-process metadata; no network, filesystem, or database I/O is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only",
+        "financial",
+        "public_capability_metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-suite-governance",
+        "kr-legal-entity-close",
+        "workflow-gate-controls",
+        "incident-rollback-controls"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "repo storage port/adapter patterns",
+        "specs/microservices/enterprise-suite.json"
+      ],
+      "findings": [
+        "Stored-record and capability public fields carry data_class annotations.",
+        "Capability response explicitly marks durable backend, Postgres/RLS, cloud object store, runtime write path, and Workflow execution false."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one in-memory adapter crate, catalog row, workspace membership, spec/tasks/evidence updates, and no migrations or external resources."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Stored records carry topic, primary ref, idempotency key, schema version, payload data class, and backend label for future audit/telemetry labels."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-10 and D-07 record the storage seam while durable storage, runtime write path, Postgres/RLS, cloud provider, and SLO evidence remain future slices."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A storage seam reference can land before durable storage if it is explicitly volatile and capability flags keep all provider/runtime write claims false.",
+      "premise_evidence_ref": "specs/microservices/enterprise-suite.json AC-10 and storage capability tests",
+      "do_nothing_consequence": "Future durable adapters would lack a tested idempotency and record-shape contract for suite metadata.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Shared cloud storage providers exist, but this missing seam is Enterprise Suite metadata repository behavior rather than provider object storage."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This advances the Enterprise Suite beyond DTO/OpenAPI/runtime route foundations toward later cloud integration without pretending durable storage exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names follow Enterprise Suite storage adapter, in-memory, idempotency, and metadata record vocabulary."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, plan, todo, evidence, catalog, and audit-chain references were updated."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Storage-specific code lives in a new Enterprise Suite adapter crate; runtime/API/app/domain behavior remains unchanged."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No database migration, provider SDK, HTTP framework, runtime write integration, Workflow client, OpenTofu executor, child-service client, cloud adapter, or audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new third-party dependencies were added; the crate depends only on existing Enterprise Suite app/domain crates plus a test-only data-boundary kernel."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Stored records include schema_version and stable topic/idempotency fields; no wire API schema is changed."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Persistence helpers deterministically map existing domain/app envelopes into record views and then enforce key validation/duplicate checks before insert."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after Enterprise Suite in-memory storage adapter addition"
+    },
+    {
+      "command": "cargo test --offline -p oya-enterprise-suite-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "initial offline lockfile refresh for new workspace member passed; 3 storage tests passed"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "Enterprise Suite storage adapter tests passed under locked Cargo.lock"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-storage-adapter-inmemory --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused Enterprise Suite storage adapter clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "Enterprise Suite package group tests passed after storage adapter addition"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "Enterprise Suite package group clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked across HR(+runtime)/payroll(+runtime)/accounting(+runtime)/suite(+runtime+storage) package group",
+      "status": "pass",
+      "notes": "17 enterprise packages including HR, payroll, accounting, Enterprise Suite runtime, and Enterprise Suite storage adapter passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across HR(+runtime)/payroll(+runtime)/accounting(+runtime)/suite(+runtime+storage) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "17 enterprise packages including Enterprise Suite storage adapter passed clippy with -D warnings"
+    },
+    {
+      "command": "Enterprise Suite storage public field data_class scan",
+      "status": "pass",
+      "notes": "storage record/capability public fields carry data_class annotations"
+    },
+    {
+      "command": "Enterprise Suite storage quality-marker scan over CS-ENT-SUITE-008 code/catalog paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in Enterprise Suite storage adapter crate or catalog row"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-storage-adapter-inmemory-1779538200.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-suite-storage-adapter-inmemory-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "non_claims": [
+    "durable storage backend not attached",
+    "Postgres/RLS not attached",
+    "cloud object store not attached",
+    "runtime write path not attached",
+    "Workflow execution not attached",
+    "OpenTofu execution not attached",
+    "incident rollback execution not attached",
+    "child-service network calls not implemented",
+    "runtime audit-chain emission not implemented",
+    "cloud deployment/SLO evidence not asserted"
+  ]
+}

@@ -5,14 +5,24 @@
 
 terraform {
   required_version = ">= 1.6"
+
+  required_providers {
+    kubernetes = {
+      source  = "registry.opentofu.org/hashicorp/kubernetes"
+      version = ">= 2.30.0"
+    }
+  }
 }
 
-variable "cluster_id"          { type = string }
-variable "namespace"           { type = string }
-variable "owner_team"          { type = string }
+variable "cluster_id" { type = string }
+variable "namespace" { type = string }
+variable "owner_team" { type = string }
 variable "argocd_project_name" { type = string }
-variable "tags"                { type = map(string), default = {} }
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
 
-output "namespace_name"       { value = var.namespace }
+output "namespace_name" { value = var.namespace }
 output "service_account_name" { value = "" }
-output "argocd_project_name"  { value = var.argocd_project_name }
+output "argocd_project_name" { value = var.argocd_project_name }

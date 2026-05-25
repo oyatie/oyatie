@@ -309,14 +309,14 @@
   "naming_justifications": "imaging is a BNF v4.1 kebab-case microservice slug; crates follow oya-imaging-<bounded-context>-<layer> mapping to ADR-0105's 13-layer enum; per-modality acquisition workers follow oya-imaging-acquisition-<modality>-worker pattern.",
   "owner_team": "axis-imaging + council-clinical",
   "tier_classification": "product / b2b-leader-operational-concern / medical-device-software",
-  "data_classification": "PHI (Protected Health Information) — DICOM pixel data + structured report + audit evidence",
+  "data_classification": "PHI (Protected Health Information) \u2014 DICOM pixel data + structured report + audit evidence",
   "failure_domain": "cell-aware service eligible for tier-0, tier-1, tier-2 with sovereign-cell mandatory for paid PHI",
   "criticality_tier": "Tier 0",
   "layer": "rest",
   "doc_class": "Machine-Readable-Spec",
   "wave_15m_g_state": {
     "authored_artifacts_floor": 100,
-    "substance_bar_source": "ADR-0212 + ADR-0328 §D-15..D-20",
+    "substance_bar_source": "ADR-0212 + ADR-0328 \u00a7D-15..D-20",
     "supersedes_diagnostics_imaging_portions": true,
     "reconciliation_pending": true
   },
@@ -445,5 +445,11 @@
       "primitive": "shard-cell",
       "version_pin": "v1"
     }
-  ]
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
 }

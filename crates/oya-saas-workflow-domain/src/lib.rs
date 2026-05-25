@@ -24,6 +24,7 @@ use oya_saas_workflow_kernel::{
 pub enum WorkflowDomainError {
     DuplicateDefinition,
     UnknownDefinition,
+    DefinitionMismatch,
     DuplicateRun,
     UnknownRun,
     UnknownStep,
@@ -50,8 +51,9 @@ pub struct WorkflowLedger {
 /// Snapshot of a run plus its emitted events (used by app layer + bench).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WorkflowRunSnapshot {
-    pub run: WorkflowRun,           // data_class: INTERNAL_ONLY
-    pub events: Vec<WorkflowEvent>, // data_class: INTERNAL_ONLY
+    pub definition: WorkflowDefinition, // data_class: INTERNAL_ONLY
+    pub run: WorkflowRun,               // data_class: INTERNAL_ONLY
+    pub events: Vec<WorkflowEvent>,     // data_class: INTERNAL_ONLY
 }
 
 impl WorkflowLedger {
@@ -176,8 +178,50 @@ impl WorkflowLedger {
 
     pub fn snapshot(&self, run_id: &WorkflowRunId) -> Option<WorkflowRunSnapshot> {
         let run = self.runs.get(run_id)?.clone();
+        let definition = self.definitions.get(&run.definition_id)?.clone();
         let events = self.events_by_run.get(run_id).cloned().unwrap_or_default();
-        Some(WorkflowRunSnapshot { run, events })
+        Some(WorkflowRunSnapshot {
+            definition,
+            run,
+            events,
+        })
+    }
+
+    pub fn restore_snapshot(
+        &mut self,
+        snapshot: WorkflowRunSnapshot,
+    ) -> Result<(), WorkflowDomainError> {
+        if self.runs.contains_key(&snapshot.run.id) {
+            return Err(WorkflowDomainError::DuplicateRun);
+        }
+        if snapshot.run.definition_id != snapshot.definition.id
+            || snapshot.run.tenant_id != snapshot.definition.tenant_id
+            || snapshot.run.regional_pack != snapshot.definition.regional_pack
+        {
+            return Err(WorkflowDomainError::DefinitionMismatch);
+        }
+        if snapshot
+            .events
+            .iter()
+            .any(|event| event.run_id != snapshot.run.id)
+        {
+            return Err(WorkflowDomainError::TenantMismatch);
+        }
+        if let Some(existing) = self.definitions.get(&snapshot.definition.id) {
+            if existing != &snapshot.definition {
+                return Err(WorkflowDomainError::DefinitionMismatch);
+            }
+        } else {
+            self.definitions
+                .insert(snapshot.definition.id.clone(), snapshot.definition);
+        }
+        if let Some(max_restored_seq) = snapshot.events.iter().filter_map(event_sequence).max() {
+            self.next_event_seq = self.next_event_seq.max(max_restored_seq);
+        }
+        self.events_by_run
+            .insert(snapshot.run.id.clone(), snapshot.events);
+        self.runs.insert(snapshot.run.id.clone(), snapshot.run);
+        Ok(())
     }
 
     pub fn definitions(&self) -> impl Iterator<Item = &WorkflowDefinition> {
@@ -192,6 +236,10 @@ impl WorkflowLedger {
         self.next_event_seq += 1;
         WorkflowEventId::new(format!("wfe_{:020}", self.next_event_seq))
     }
+}
+
+fn event_sequence(event: &WorkflowEvent) -> Option<u64> {
+    event.id.as_str().strip_prefix("wfe_")?.parse().ok()
 }
 
 #[cfg(test)]
@@ -347,5 +395,39 @@ mod tests {
         assert_eq!(snap.events.len(), 2);
         assert_eq!(snap.events[0].kind, WorkflowEventKind::RunStarted);
         assert_eq!(snap.events[1].kind, WorkflowEventKind::StepStarted);
+    }
+
+    #[test]
+    fn restore_snapshot_recovers_run_history_without_reexecution() {
+        let mut ledger = WorkflowLedger::default();
+        let _ = ledger.publish(fixture_definition("wfd_restore")).unwrap();
+        let run_id = WorkflowRunId::new("wfr_restore").unwrap();
+        let _ = ledger
+            .start_run(
+                run_id.clone(),
+                &WorkflowDefinitionId::new("wfd_restore").unwrap(),
+                1_700_000_100,
+            )
+            .unwrap();
+        let _ = ledger
+            .record_step_event(
+                &run_id,
+                &WorkflowStepId::new("wfs_extract").unwrap(),
+                WorkflowEventKind::StepCompleted,
+                1_700_000_110,
+            )
+            .unwrap();
+        let snap = ledger.snapshot(&run_id).unwrap();
+        let mut restored = WorkflowLedger::default();
+        restored.restore_snapshot(snap).unwrap();
+        let next_event = restored
+            .record_step_event(
+                &run_id,
+                &WorkflowStepId::new("wfs_summarize").unwrap(),
+                WorkflowEventKind::StepStarted,
+                1_700_000_120,
+            )
+            .unwrap();
+        assert_eq!(next_event.id.as_str(), "wfe_00000000000000000004");
     }
 }

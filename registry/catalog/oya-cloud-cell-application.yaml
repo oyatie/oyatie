@@ -1,10 +1,21 @@
-context: cloud
+context: compatibility
 role: application
-capability: cloud-cell
+capability: oya-cloud-cell-application
 plane: control
-slo: preview-control-plane
+slo: no-runtime-slo
+status: retired-compatibility-row-no-crate
+successor_catalogs:
+  - registry/catalog/oya-cloud-cell-app.yaml
+  - registry/catalog/oya-cell-domain.yaml
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
+non_claims:
+  - no matching crate exists in this checkout
+  - retained only for catalog compatibility during markdown retirement and foundation truth-down
+  - no runtime adapter provider SDK fake adapter or network operation is implemented

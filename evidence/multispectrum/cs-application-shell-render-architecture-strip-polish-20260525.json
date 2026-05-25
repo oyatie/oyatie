@@ -1,0 +1,292 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-RENDER-ARCHITECTURE-STRIP-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-render-architecture-strip-polish-20260525",
+  "agent": "codex-oyatie-render-architecture-strip-polish",
+  "created_at": "2026-05-25T03:23:00-04:00",
+  "slice": "Top-fold render architecture strip polish",
+  "intent": "Make the SSR shell, selective WASM hydration islands, and local-only prototype boundary explicit in the visible top fold so the mockup explains why it is visually functional but not wired.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added a top-fold render architecture strip beside the FD-001 close command with SSR Shell, Selective WASM, and Local Boundary cards.",
+    "Explained that navigation/proof copy render in the SSR baseline while Workflow Studio, Work Hub, filters, canvas state, and drafts hydrate as selective local WASM islands.",
+    "Added route buttons that visually highlight each architecture mode and route to the shell top, Workflow Studio island, or audit ledger boundary proof.",
+    "Added selected-card/action states, status updates, activity feed entries, and responsive mobile horizontal card scrolling so the explanation remains visible at 390px without page overflow.",
+    "Kept the implementation visually functional but unwired: architecture actions do not execute workflows, send messages/mail/community posts, mutate IAM/auth, billing, deploy, or cloud/provider state."
+  ],
+  "before_metrics": {
+    "renderArchitectureStrip": 0,
+    "visibleSsrSelectiveWasmExplanation": "missing",
+    "source_evidence": "omx explore reported internal SSR/selective-WASM behavior in main.rs/client-manifest.json but no visible top-level architecture education text in the mockup."
+  },
+  "after_metrics": {
+    "desktop_1440x1000": {
+      "stripExists": true,
+      "visibleInViewport": true,
+      "cardCount": 3,
+      "actionCount": 3,
+      "hasSsr": true,
+      "hasSelectiveWasm": true,
+      "hasLocalBoundary": true,
+      "status": "No workflow execution, external send, IAM, billing, deploy, or cloud mutation.",
+      "selectedCard": "ssr",
+      "selectedAction": "ssr",
+      "horizontalOverflow": false,
+      "box": {
+        "top": 218.203125,
+        "bottom": 340.96875,
+        "left": 239,
+        "right": 1116.125,
+        "width": 877.125,
+        "height": 122.765625
+      }
+    },
+    "tablet_1024x900": {
+      "stripExists": true,
+      "visibleInViewport": true,
+      "cardCount": 3,
+      "actionCount": 3,
+      "hasSsr": true,
+      "hasSelectiveWasm": true,
+      "hasLocalBoundary": true,
+      "status": "No workflow execution, external send, IAM, billing, deploy, or cloud mutation.",
+      "selectedCard": "ssr",
+      "selectedAction": "ssr",
+      "horizontalOverflow": false,
+      "box": {
+        "top": 251.703125,
+        "bottom": 400.625,
+        "left": 26,
+        "right": 724.625,
+        "width": 698.625,
+        "height": 148.921875
+      }
+    },
+    "mobile_390x844": {
+      "stripExists": true,
+      "visibleInViewport": true,
+      "cardCount": 3,
+      "actionCount": 3,
+      "hasSsr": true,
+      "hasSelectiveWasm": true,
+      "hasLocalBoundary": true,
+      "status": "No workflow execution, external send, IAM, billing, deploy, or cloud mutation.",
+      "selectedCard": "ssr",
+      "selectedAction": "ssr",
+      "horizontalOverflow": false,
+      "box": {
+        "top": 522.8125,
+        "bottom": 673.359375,
+        "left": 13,
+        "right": 381.078125,
+        "width": 368.078125,
+        "height": 150.546875
+      }
+    }
+  },
+  "interaction_assertions": [
+    {
+      "viewport": "desktop-1440x1000",
+      "action": "ssr",
+      "hash": "#prototype-shell",
+      "selectedCard": "ssr",
+      "selectedAction": "ssr",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-1440x1000",
+      "action": "islands",
+      "hash": "#workflow-studio",
+      "selectedCard": "islands",
+      "selectedAction": "islands",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-1440x1000",
+      "action": "boundary",
+      "hash": "#audit-ledger",
+      "selectedCard": "boundary",
+      "selectedAction": "boundary",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "action": "ssr",
+      "hash": "#prototype-shell",
+      "selectedCard": "ssr",
+      "selectedAction": "ssr",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "action": "islands",
+      "hash": "#workflow-studio",
+      "selectedCard": "islands",
+      "selectedAction": "islands",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "tablet-1024x900",
+      "action": "boundary",
+      "hash": "#audit-ledger",
+      "selectedCard": "boundary",
+      "selectedAction": "boundary",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "action": "ssr",
+      "hash": "#prototype-shell",
+      "selectedCard": "ssr",
+      "selectedAction": "ssr",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "action": "islands",
+      "hash": "#workflow-studio",
+      "selectedCard": "islands",
+      "selectedAction": "islands",
+      "statusChanged": true,
+      "passed": true
+    },
+    {
+      "viewport": "mobile-390x844",
+      "action": "boundary",
+      "hash": "#audit-ledger",
+      "selectedCard": "boundary",
+      "selectedAction": "boundary",
+      "statusChanged": true,
+      "passed": true
+    }
+  ],
+  "responsive_assertions": {
+    "desktop-1440x1000": {
+      "stripExists": true,
+      "visibleInViewport": true,
+      "cardCount": 3,
+      "actionCount": 3,
+      "hasSsr": true,
+      "hasSelectiveWasm": true,
+      "hasLocalBoundary": true,
+      "horizontalOverflow": false,
+      "consoleErrors": []
+    },
+    "tablet-1024x900": {
+      "stripExists": true,
+      "visibleInViewport": true,
+      "cardCount": 3,
+      "actionCount": 3,
+      "hasSsr": true,
+      "hasSelectiveWasm": true,
+      "hasLocalBoundary": true,
+      "horizontalOverflow": false,
+      "consoleErrors": []
+    },
+    "mobile-390x844": {
+      "stripExists": true,
+      "visibleInViewport": true,
+      "cardCount": 3,
+      "actionCount": 3,
+      "hasSsr": true,
+      "hasSelectiveWasm": true,
+      "hasLocalBoundary": true,
+      "horizontalOverflow": false,
+      "consoleErrors": []
+    }
+  },
+  "ssr_curl_counts": {
+    "render-architecture-strip": 1,
+    "data-render-arch-action": 3,
+    "data-render-arch-status": 1,
+    "SSR SHELL": 1,
+    "SELECTIVE WASM": 1,
+    "LOCAL BOUNDARY": 1,
+    "No workflow execution": 1,
+    "external send": 8,
+    "IAM": 5,
+    "billing": 55,
+    "deploy": 60,
+    "cloud mutation": 19
+  },
+  "screenshots": {
+    "after": {
+      "desktop_1440x1000": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-render-architecture-strip-polish/after/render-arch-desktop-1440x1000.png",
+      "tablet_1024x900": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-render-architecture-strip-polish/after/render-arch-tablet-1024x900.png",
+      "mobile_390x844": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-render-architecture-strip-polish/after/render-arch-mobile-390x844.png"
+    },
+    "audit_json": {
+      "playwright": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-render-architecture-strip-polish/after/render-arch-audit.json"
+    },
+    "secondary_diff_note": "No static approved raster reference existed for this incremental architecture-explanation slice; browser screenshots at 3 viewports and DOM/route assertions are recorded as visual evidence."
+  },
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "PASS",
+    "category_match": "Visible SSR shell / selective WASM hydration / local-boundary explanation",
+    "reasoning": "The top fold now explains the render model users asked about: SSR provides the baseline shell/product graph, selective WASM hydrates interactive islands, and the local boundary preserves visually functional but unwired behavior. Playwright evidence shows the strip is visible at desktop, tablet, and mobile viewports, has no horizontal overflow, and all three architecture actions route and update selected/status state without console errors.",
+    "differences": [
+      "Architecture actions are explanatory local routes only and deliberately do not execute workflows, send Messenger/Mail/Community messages, persist drafts, mutate IAM/auth, billing, deployment, or cloud/provider state."
+    ],
+    "suggestions": [
+      "A later production docs drawer can deep-link each architecture card to real service health and hydration diagnostics once backend wiring exists."
+    ]
+  },
+  "commands": [
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 lib tests passed; 0 main tests"
+    },
+    {
+      "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "summary": "ready-after-2s; transient empty reply immediately after restart"
+    },
+    {
+      "cmd": "Playwright render architecture audit at 1440x1000, 1024x900, 390x844",
+      "status": "passed",
+      "summary": "No console errors; strip visible in all viewports; all 9 route assertions passed; no horizontal overflow."
+    }
+  ],
+  "known_limits": [
+    "Visual prototype only; render architecture controls do not execute workflows, send messages/mail/community posts, persist drafts, mutate IAM/auth, billing, deploy, or cloud/provider state.",
+    "This slice explains the SSR/selective-WASM/local-boundary model; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

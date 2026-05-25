@@ -235,6 +235,14 @@
       "migration_phase": "complete",
       "purpose": "Ontology + Knowledge Graph merged product PRD. Typed-entity schema layer (Bominal-ADR-0106) + 3-layer KG runtime (semantic/kinetic/dynamic). Ontology+Workflow jointly form ecosystem-as-a-product backbone."
     },
+    "prd_intelligence": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/intelligence.json",
+      "absorbing_manifest": "/microservices/intelligence/manifest.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "foundry-absorbed-wave-15I",
+      "purpose": "Intelligence product PRD — AI substrate authority after Foundry retirement per ADR-0335; covers provider routing, guardrails, eval, attribution, credential resolution, audit tap, assist-draft, and context-aware retrieval for later cloud-service integration."
+    },
     "audit_kg_robustness": {
       "kind": "audit",
       "current_path": "/registry/kg-audit/index.json",
@@ -930,6 +938,146 @@
       "current_path": "/specs/workspace-hygiene.json",
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Inventory-by-default hygiene pass for agent-created spillover across temp space, user-home coordination files, the main checkout, build artifacts, and Oyatie worktrees before pipeline closeout."
+    },
+    "prd_crm": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/crm.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "crm microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_global_trade": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/global-trade.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "global-trade microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_plant_maintenance": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/plant-maintenance.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "plant-maintenance microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_procurement": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/procurement.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "procurement microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_production_planning": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/production-planning.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "production-planning microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_quality_management": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/quality-management.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "quality-management microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_real_estate": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/real-estate.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "real-estate microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_supply_chain_planning": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/supply-chain-planning.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "supply-chain-planning microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_treasury": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/treasury.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "treasury microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "prd_warehouse": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/warehouse.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "warehouse microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "ci_farm_substrate_canonical": {
+      "kind": "spec",
+      "current_path": "/specs/ci-farm-substrate-canonical.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "Self-hostable distributed CI farm substrate (Jenkins+ArgoCD, ephemeral agents, sccache->SeaweedFS remote cache, per-microservice lane fanout, merge-queue fan-in). Authored under ADR-0349; honest-foundation."
+    },
+    "design_spec_maturity_deferred_surfaces": {
+      "kind": "registry",
+      "current_path": "/registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "Wave-3-I deferred design/spec-maturity surfaces ratchet; transparent deferral of not-yet-authored service surfaces (operational_claim stays blocked_until_operational_evidence)."
+    },
+    "cloud_control_plane_canonical": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-control-plane-canonical.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud Control Plane canonical target architecture (P-TARGET): resource model (Org->...->Resource), ORN, API Gateway->Resource Registry->Operation Ledger->Workflow/Reconciler->OpenTofu/operators/Argo, per-resource quota/billing/audit contract, durable long-running operations, nine control-plane facets. Target spec; no runtime claimed."
+    },
+    "api_contract_ssot_canonical": {
+      "kind": "spec",
+      "current_path": "/specs/api-contract-ssot-canonical.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating REST(OpenAPI 3.2.0)+gRPC(proto3)+GraphQL SDL; GraphQL first-class derived not hand-maintained; api-contract-ssot-drift gate. Pulsar launch-primary; Kubewarden default. Target spec; no generators/runtime claimed."
+    },
+    "cloud_authorization_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-authorization-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud authorization target (P-TARGET): Cedar as universal gate for the control plane + cloud-* resources (ADR-0243); default-deny; KR/JP/US/EU pack overlays; references cedar-policy/fragment schemas. Target spec; no runtime."
+    },
+    "cloud_observability_slo_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-observability-slo-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud observability+SLO target (P-TARGET): OpenTelemetry + measured SLOs + burn-rate + agentic SLO-gated promotion (ADR-0130/0340) for the cloud-* substrate. Target spec; no measured evidence claimed."
+    },
+    "cloud_resource_catalog_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-resource-catalog-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud resource catalog target (P-TARGET): per-resource-type architecture for all cloud-* services (IAM/KMS/Secrets/Compute/Storage/Network/Data/Billing/Capacity), each instantiating the control-plane per-resource contract (quota/billing/audit/lifecycle/slo/retention), Cedar-gated + OTel-instrumented + actuated via OpenTofu/operator/Argo. Target spec; metadata-only until P-STRANGLE."
+    },
+    "cloud_production_quality_kits_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-production-quality-kits-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-prod",
+      "purpose": "Cloud production quality kits target (P-PROD): seven harness-backed evidence gates (overload/fairness, shuffle-shard isolation, privacy/data-governance, canary+PRR, FOCUS cost, K8s PSS, abuse/fraud/DDoS) each with scenarios+evidence-format+feeding production_100_bar gate. Incorporated from plan/ quality review. Target spec; no harnesses/evidence implemented."
+    },
+    "cloud_strangler_migration_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-strangler-migration-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-strangle",
+      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Bazel affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed."
+    },
+    "cloud_toolchain_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-toolchain-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-toolchain",
+      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Bazel rules_rust build graph (crate_universe SSOT, RBE, affected-targets) + Jenkins sole CI (ADR-0359, JCasC, ephemeral agents, GitHub App statuses) + nextest sharding/machete/deny/bacon + oya governance overlay delegating to bazel + merge-queue speculative + ArgoCD progressive delivery. Target spec; no adoption/runtime claimed."
     }
   },
   "by_kind": {

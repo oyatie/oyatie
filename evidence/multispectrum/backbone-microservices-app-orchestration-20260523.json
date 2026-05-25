@@ -1,0 +1,107 @@
+{
+  "change_id": "backbone-microservices-app-orchestration-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Runtime-neutral app-layer write plans for messenger, mail, social, and community implemented write paths.",
+  "scope": [
+    "crates/oya-messenger-app/**",
+    "crates/oya-mail-mailbox-store-app/**",
+    "crates/oya-social-app/**",
+    "crates/oya-community-post-store-app/**",
+    "Cargo.toml",
+    "registry/catalog/oya-messenger-app.yaml",
+    "registry/catalog/oya-mail-mailbox-store-app.yaml",
+    "registry/catalog/oya-social-app.yaml",
+    "registry/catalog/oya-community-post-store-app.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Runtime-neutral app orchestration only. The app crates compose usecase validation, tenant-scoped SQL write batches, and protocol event envelopes; they do not execute sqlx, open network sockets, publish broker events, serve gRPC, or claim deployed production runtime behavior.",
+  "facets": {
+    "F1_simplicity": "Each app crate exposes small plan_* functions that compose already-tested API/usecase, adapter-postgres, and protocol-parity seams without adding a framework or async runtime.",
+    "F2_hyperscaler": "Tenant scope drift is rejected before SQL command construction, and each plan preserves audit, policy, idempotency, and cell/shard routing metadata for later cloud integration. Live runtime, SLO, and deploy evidence remain non-claims.",
+    "F3_adversarial": "Tests cover scope mismatch rejection, SQL batch generation, protocol envelope binding, DMARC quarantine persistence, story purge planning, vote ledger mutation, and moderation evidence flow.",
+    "F5_quality": "Focused app tests plus broad cargo check/test/clippy/fmt, catalog/workflow parsing, dependency-seam, honest-claims, and diff hygiene are part of this evidence run.",
+    "F7_security_privacy": "App plans keep tenant routing, policy decision, audit correlation, and idempotency references explicit; no plaintext payload serialization or unparameterized SQL execution is added.",
+    "F11_observability": "Plans carry audit correlation IDs into persistence records and protocol event envelopes, preserving a future telemetry/audit seam without claiming runtime emission."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --check -p oya-messenger-app -p oya-mail-mailbox-store-app -p oya-social-app -p oya-community-post-store-app",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-messenger-app -p oya-mail-mailbox-store-app -p oya-social-app -p oya-community-post-store-app",
+      "result": "pass",
+      "evidence": "9 unit tests passed across the 4 app packages."
+    },
+    {
+      "command": "cargo clippy -p oya-messenger-app -p oya-mail-mailbox-store-app -p oya-social-app -p oya-community-post-store-app --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <27 touched backbone packages> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test across 27 touched backbone packages",
+      "result": "pass",
+      "evidence": "175 unit tests passed across app/domain/API/usecase/REST/adapter-postgres/shared-command/shared-metrics/shared-protocol packages."
+    },
+    {
+      "command": "cargo clippy -p <27 touched backbone packages> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <27 touched backbone packages>",
+      "result": "pass"
+    },
+    {
+      "command": "ruby YAML parse of app catalog rows and backbone CI workflow",
+      "result": "pass"
+    },
+    {
+      "command": "python static Jenkins package matrix validation against Cargo.toml workspace package names",
+      "result": "pass",
+      "evidence": "jenkins-package-matrices-ok, including app package membership for all four services."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "443 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence including app-orchestration>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 143 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + app crates + app evidence corpus>",
+      "result": "pass",
+      "evidence": "3 documents, 429 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-pre-existing-blocker",
+      "evidence": "Fails on MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }; new app catalog rows parse and no longer introduce InvalidDataClass."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-pre-existing-blocker",
+      "evidence": "Fails on oya-audit-chain-emission-kernel::ChainCoordinate.pack; new app public fields carry data_class comments."
+    }
+  ],
+  "non_claims": [
+    "No sqlx executor, connection pool, migration runner, live database transaction, or RLS integration test is implemented by this slice.",
+    "No AsyncAPI broker publisher, Kafka/NATS/Valkey stream adapter, gRPC server, or gateway runtime binding is implemented by this slice.",
+    "No production readiness, SLO attainment, branch-protection update, ArgoCD deployment, or hyperscaler runtime claim is made."
+  ]
+}

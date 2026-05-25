@@ -1,0 +1,146 @@
+{
+  "change_id": "backbone-microservices-sqlx-executor-20260523",
+  "change_class_id": "CC-1",
+  "summary": "SQLx-backed Postgres command executor adapter seam for backbone persistence execution plans.",
+  "scope": [
+    "crates/oya-shared-postgres-command-adapter-sqlx/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "deny.toml",
+    "registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml",
+    "registry/dependency-rationales.json",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "microservices/messenger/ci/Jenkinsfile",
+    "microservices/mail/ci/Jenkinsfile",
+    "microservices/social/ci/Jenkinsfile",
+    "microservices/community/ci/Jenkinsfile",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Adapter seam only. This slice adds a compiling SQLx Postgres batch executor that validates generated SqlExecutionPlan values, opens a transaction, applies tenant scope through set_config, executes parameterized statements, commits, and returns SqlExecutionReport metadata. Unit tests cover validation and strict TLS database-url shape. No live Postgres/Citus cluster, RLS assertion, migration runner, backup/restore drill, Citus rebalance drill, or production database SLO evidence is claimed.",
+  "source_basis": [
+    "cargo info sqlx@0.8.6 --verbose confirmed the selected sqlx 0.8.6 crate and postgres/runtime-tokio-rustls feature surface available to the adapter.",
+    "Local sqlx-postgres 0.8.6 source/docs confirmed PgSslMode defaults to Prefer and may fall back to non-SSL, so the adapter requires explicit sslmode=require, sslmode=verify-ca, or sslmode=verify-full when pool config requires TLS.",
+    "Local cargo-deny 0.19.6 configuration template/source confirmed per-crate license exceptions use exact crate specs under licenses.exceptions."
+  ],
+  "facets": {
+    "F1_simplicity": "The live execution seam is isolated in a single adapter crate over the existing oya-shared-postgres-command-kernel plan/report types instead of coupling domain/usecase crates directly to SQLx.",
+    "F2_hyperscaler": "The executor preserves tenant, audit, policy, idempotency, and plan-hash metadata from deterministic repository command plans while leaving live Citus/RLS/backup drills as explicit follow-up work.",
+    "F3_adversarial": "Tests reject unsafe SQL shapes, tenant-scope command drift, empty batches, placeholder/parameter mismatches, and non-strict TLS database URL shapes including missing sslmode, disable, allow, and prefer.",
+    "F5_quality": "Focused adapter tests plus the 35-package backbone check/test/clippy/fmt matrix, cargo-deny, dependency-seam, honest-claims, workflow/catalog JSON/YAML parsing, and diff hygiene are part of this run.",
+    "F7_security_privacy": "The adapter uses SQLx parameter binding rather than interpolating values, validates statement shape before transaction execution, requires explicit strict TLS database URL modes by default, and records metadata without logging statement parameter values.",
+    "F11_observability": "SqlExecutionReport records tenant, audit reference, idempotency key, plan hash, command count, affected rows, and per-statement refs for future runtime telemetry correlation."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-shared-postgres-command-adapter-sqlx",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-postgres-command-adapter-sqlx",
+      "result": "pass",
+      "evidence": "5 unit tests passed, including non-strict TLS rejection for missing/disable/allow/prefer and strict TLS acceptance for require/verify-ca/verify-full."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-postgres-command-adapter-sqlx --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p oya-shared-postgres-command-adapter-sqlx",
+      "result": "pass"
+    },
+    {
+      "command": "cargo check -p <35 backbone package matrix> --all-targets",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p <35 backbone package matrix>",
+      "result": "pass",
+      "evidence": "224 unit tests passed across backbone app/domain/API/usecase/REST/gRPC/adapter-postgres/shared-command/shared-sqlx/shared-policy/shared-metrics/shared-protocol packages."
+    },
+    {
+      "command": "cargo clippy -p <35 backbone package matrix> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <35 backbone package matrix>",
+      "result": "pass"
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "advisories ok, bans ok, licenses ok, sources ok after exact per-crate license exceptions for foldhash@0.1.5 and webpki-roots@0.26.11/@1.0.7; duplicate/wildcard diagnostics remain non-blocking warnings under existing policy."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed for 449 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "449 workspace members."
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-blocker",
+      "evidence": "Pre-existing MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-blocker",
+      "evidence": "Pre-existing oya-audit-chain-emission-kernel::ChainCoordinate.pack annotation issue."
+    },
+    {
+      "command": "ruby -rjson -ryaml <workflow + dependency rationale + sqlx catalog parse>",
+      "result": "pass",
+      "evidence": "Parsed .github/workflows/backbone-microservices-ci.yml, registry/dependency-rationales.json, registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml, evidence/multispectrum/backbone-microservices-sqlx-executor-20260523.json, and deny.toml."
+    },
+    {
+      "command": "Jenkinsfile package matrix parse for messenger/mail/social/community",
+      "result": "pass",
+      "evidence": "Each Jenkinsfile includes 14 backbone CI packages including oya-shared-postgres-command-adapter-sqlx."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 231 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + sqlx adapter + policy/registry/CI/evidence corpus>",
+      "result": "pass",
+      "evidence": "6 documents, 1150 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    }
+  ],
+  "license_policy_review": {
+    "new_external_dependency": "sqlx 0.8.6",
+    "runtime_tls_choice": "runtime-tokio-rustls selected to avoid OpenSSL and keep the adapter on the existing rustls-preferred policy path.",
+    "exceptions": [
+      {
+        "crate": "foldhash@0.1.5",
+        "license": "Zlib",
+        "reason": "Transitive sqlx-core hashbrown/hashlink cache dependency; exact per-crate exception avoids a global Zlib policy expansion."
+      },
+      {
+        "crate": "webpki-roots@0.26.11",
+        "license": "CDLA-Permissive-2.0",
+        "reason": "Trust-anchor data for rustls TLS; exact per-crate exception avoids a global CDLA policy expansion."
+      },
+      {
+        "crate": "webpki-roots@1.0.7",
+        "license": "CDLA-Permissive-2.0",
+        "reason": "Nested trust-anchor data version pulled by webpki-roots 0.26.11; exact per-crate exception keeps future bumps review-gated."
+      }
+    ]
+  },
+  "non_claims": [
+    "No live Postgres or Citus instance is provisioned or contacted by this slice.",
+    "No RLS policy, tenant-isolation integration test, migration runner, backup/restore drill, or Citus rebalance evidence is produced by this slice.",
+    "No repository adapter has been switched to call the SQLx executor in production runtime paths yet.",
+    "No production database availability, latency, durability, or recovery SLO is claimed."
+  ]
+}

@@ -1,0 +1,300 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-HR-008",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T13:50:00Z",
+  "freshness_unix": 1779544200,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "HR AC-14 source-versioned statutory labor rulepack manifest validates official HR/labor source refs, version labels, effective dates, approval evidence, source evidence refs, and digests for Korea and US federal examples while explicitly refusing Workflow-engine, payroll-calculation, filing-rail, and cloud-deployment claims.",
+  "scope": [
+    "microservices/hr/crates/oya-hr-employment-domain/src/lib.rs",
+    "microservices/hr/crates/oya-hr-employment-domain/tests/rulepack_manifest.rs",
+    "registry/catalog/oya-hr-employment-domain.yaml",
+    "specs/microservices/hr.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "non_claims": [
+    "Workflow engine execution not attached",
+    "payroll calculation not attached",
+    "statutory filing rail not attached",
+    "storage adapter not changed",
+    "runtime HTTP listener not changed",
+    "cloud deployment not attached",
+    "production statutory correctness not claimed",
+    "runtime audit-chain emission not implemented",
+    "cloud deployment/SLO evidence not asserted"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The manifest is pure-domain provenance data with validation helpers, not a premature Workflow or filing engine.",
+        "Official source URL allowlisting and source digest/evidence fields prevent anonymous or mutable HR statutory provenance."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Rulepack source manifests create a stable input contract for later cloud Workflow, durable policy, and compliance adapters without bundling those capabilities now.",
+        "Capability booleans make Workflow execution, payroll calculation, filing, and cloud deployment non-claims mechanically testable."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/hr/crates/oya-hr-employment-domain/tests/rulepack_manifest.rs::hr_statutory_rulepack_manifest_requires_official_sources_without_runtime_claims",
+      "failing_fixture_id": "hr_statutory_rulepack_manifest_rejects_unofficial_or_unversioned_sources",
+      "diagnostic_asserted": "Tests fail if sources are empty, source versions are missing, source refs are unsafe, official URLs are not allowlisted, digests are malformed, or Workflow/payroll/filing/cloud booleans are overclaimed.",
+      "findings": [
+        "Positive Korea/US manifest coverage and negative overclaim/unofficial-source validation are both covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Future HR durable/cloud adapters can consume HrStatutoryRulepackManifest rather than rediscovering official source provenance requirements."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused HR domain tests/clippy, HR package-group tests/clippy, 25-package enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "implement Workflow execution now",
+        "store only a rulepack_ref string",
+        "add source-versioned HR statutory manifest first"
+      ],
+      "selected_rationale": "The manifest proves official source provenance before Workflow, filing, or cloud adapters can claim statutory readiness.",
+      "rejected_reasons": [
+        "Workflow execution and filing require broader runtime surfaces beyond this slice.",
+        "A bare rulepack ref cannot prove which official sources, versions, and digests were used."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "statutory_source_provenance_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No secrets, network calls, storage, filing credentials, payroll rails, or provider SDK are introduced.",
+        "Source refs, official URLs, evidence refs, and version labels reject unsafe path/credential-shaped metadata."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-hr-rulepack-manifest",
+      "regression_baseline": "Manifest validation loops over a small source vector and performs string validation only; no I/O or runtime path exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, or calculation hot path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "PUBLIC official source URLs and capability flags",
+        "INTERNAL_ONLY rulepack/source/evidence refs and digests"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "korea-hr-labor-compliance",
+        "us-federal-hr-compliance",
+        "enterprise-hr-compliance"
+      ],
+      "official_sources_checked": [
+        "https://www.moel.go.kr/english/policy/laborStandards.do",
+        "https://www.moel.go.kr/english/policy/laborRelations.do",
+        "https://law.go.kr/LSW/lsInfoP.do",
+        "https://www.dol.gov/agencies/whd/flsa",
+        "https://www.eeoc.gov/employers/small-business/small-business-requirements"
+      ],
+      "findings": [
+        "MOEL/Law.go.kr sources are represented as source-versioned inputs, not hard-coded labor thresholds beyond existing domain tests.",
+        "DOL/EEOC sources are allowlisted as official provenance refs while Workflow execution, filing, payroll calculation, and cloud deployment remain non-claims."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive within the HR domain and tests; no storage migration, external resource, or API deployment is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence and audit-chain rows document the source manifest; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No data migration or user migration is introduced."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names follow the existing HR domain pattern and use HR-specific rulepack/source terminology."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "HR spec AC-14/D-16 and task ledger rows document the slice without creating new markdown surfaces."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice stays inside the flat HR microservice path and does not introduce cross-service dependencies."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Pure domain validation preserves clean architecture and defers runtime/cloud adapters."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new third-party dependencies were added."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Spec JSON parses and evidence follows the multispectrum evidence shape used by prior enterprise slices."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation is deterministic string/enum/date/digest checking only."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Challenged whether HR should implement Workflow/filing now; manifest-first is safer because source provenance is prerequisite and keeps non-claims honest."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Complements payroll statutory source manifests and prepares enterprise cloud readiness without eroding the flat microservice boundary."
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after HR statutory rulepack manifest addition"
+    },
+    {
+      "command": "cargo test --locked -p oya-hr-employment-domain",
+      "status": "pass",
+      "notes": "focused HR domain tests passed with rulepack manifest coverage; 21 domain tests passed including 4 rulepack manifest tests"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-hr-employment-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused HR domain clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-hr-employment-domain -p oya-hr-employment-app -p oya-hr-employment-api -p oya-hr-employment-runtime -p oya-hr-employment-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "HR package group tests passed after rulepack manifest addition"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-hr-employment-domain -p oya-hr-employment-app -p oya-hr-employment-api -p oya-hr-employment-runtime -p oya-hr-employment-storage-adapter-inmemory --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "HR package group clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked across HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group",
+      "status": "pass",
+      "notes": "25 enterprise packages including HR statutory rulepack manifest passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "25 enterprise packages including HR statutory rulepack manifest passed clippy with -D warnings"
+    },
+    {
+      "command": "HR statutory rulepack manifest public field data_class scan",
+      "status": "pass",
+      "notes": "HR domain src/lib.rs contains data_class annotations for new manifest/source public fields; file contains 180 data_class markers"
+    },
+    {
+      "command": "HR statutory rulepack manifest quality-marker scan over CS-ENT-HR-008 code/catalog paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in HR domain src/lib.rs, rulepack manifest tests, or HR domain catalog row after comment cleanup"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-statutory-rulepack-manifest-1779544200.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-hr-statutory-rulepack-manifest-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ]
+}

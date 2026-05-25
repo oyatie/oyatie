@@ -1,0 +1,20 @@
+context: application
+role: app
+capability: shell-frontend-prototype
+plane: control
+slo: local-prototype-no-runtime-slo
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-ARCH-BOUNDARY-APPLICATION-SHELL-PROTOTYPE-001
+  evidence: evidence/multispectrum/cs-arch-boundary-application-shell-prototype-20260523.json
+  upstream_microservice: microservices/application/manifest.json
+non_claims:
+  - no backend integration
+  - no real authentication or authorization
+  - no production tenant data
+  - no measured SLO or DR evidence
+  - no live deployment or provider proof

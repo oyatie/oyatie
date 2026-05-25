@@ -1,0 +1,134 @@
+// infra/ci/jenkins/Jenkinsfile.sharded
+// ============================================================================
+// O4 — Distributed test sharding (ADR-0360, part O4).
+//
+// Scripted Jenkins pipeline that fans a `cargo nextest run` test run across N
+// ephemeral Kubernetes agents using nextest's PARTITIONING. Each agent runs a
+// disjoint slice of the test set:
+//
+//     cargo nextest run --partition slice:${SHARD}/${SHARDS}
+//
+// `slice:m/n` (NOT the deprecated `count:m/n`) is the supported, stable form:
+// it round-robins tests into n buckets and runs bucket m. See README-sharding.md
+// for slice-vs-hash-vs-count and the affected+shard composition rationale.
+//
+// COMPOSITION WITH O1 (affected-scope, ADR-0360 part O1):
+//   This pipeline shards a TEST SET. It is correctness-orthogonal to which crates
+//   are in scope. In the affected-mode presubmit, O1 first computes the affected
+//   reverse-dependency closure (`oya verify --affected` => a `-p <crate>...` set);
+//   that SAME `-p` selection is passed here via the AFFECTED_ARGS param so each
+//   shard only partitions the affected tests, not the whole workspace. On trunk /
+//   `--ci-required`, AFFECTED_ARGS is empty => full-workspace mirror is sharded.
+//   Sharding NEVER changes WHAT runs, only HOW it is distributed; the O1 affected
+//   selection and the trunk full-mirror backstop remain the authoritative scopes.
+//
+// CACHE (O3): sccache->S3 env is INHERITED from the `oya-rust-build` pod template
+// in values-local.yaml (RUSTC_WRAPPER=sccache, SCCACHE_BUCKET/ENDPOINT/REGION,
+// CARGO_INCREMENTAL=0, S3 creds from the seaweedfs-s3 Secret). This file does not
+// redefine those; it relies on the template so trust-boundary cred wiring stays
+// in one place.
+//
+// LOCAL-vs-PRODUCTION deltas (honest):
+//   - Agent template: `oya-rust-build` here mounts the repo via hostPath (RO) and
+//     uses the public `rust:1-bookworm` image (local). Production uses the
+//     cosign-signed, digest-pinned agent image from infra/ci/agent-image/
+//     with the toolchain + nextest + sccache BAKED IN (no per-run curl install).
+//   - SHARDS default of 4 is a local-node-friendly number. Production picks SHARDS
+//     from measured test-wall distribution (Karpenter-elastic agents, ADR-0198);
+//     no shard count is claimed as optimal until measured on the farm.
+//   - This pipeline DEMONSTRATES the partition contract. End-to-end speedup /
+//     balance figures stay blocked_until_required_evidence_is_green per ADR-0360.
+// ============================================================================
+
+properties([
+  parameters([
+    // Number of parallel shards. Each maps to one ephemeral agent + one nextest
+    // partition slice. Keep >= 1. Local-friendly default; tune on the farm.
+    string(name: 'SHARDS', defaultValue: '4',
+           description: 'Number of parallel nextest partition slices (agents).'),
+    // O1 affected-scope selection, e.g. "-p oya-cloud-iac-domain -p oya-http-router-kernel".
+    // EMPTY => full-workspace mirror (trunk / --ci-required backstop).
+    string(name: 'AFFECTED_ARGS', defaultValue: '',
+           description: 'O1 affected -p selection; empty = full --workspace mirror.'),
+    // Pinned nextest version. In production the agent image bakes this; locally we
+    // install it at runtime if absent (see installNextest below).
+    string(name: 'NEXTEST_VERSION', defaultValue: '0.9.96',
+           description: 'cargo-nextest version (baked in the prod agent image).'),
+  ])
+])
+
+int shardCount = (params.SHARDS ?: '4').toInteger()
+if (shardCount < 1) { error("SHARDS must be >= 1 (got ${shardCount})") }
+
+// Single-quoted Groovy string => literal '$' for the shell. __SHARD__ / __SHARDS__
+// / __AFFECTED__ / __NEXTEST__ are substituted per shard below. Mirrors the
+// HOME/CARGO_HOME/safe.directory bootstrap from build-lane-seed.groovy because the
+// stock rust image has no writable HOME for the non-root workspace UID.
+def shardShell = '''
+set -eux
+export HOME="$WORKSPACE"
+export CARGO_HOME="$WORKSPACE/.cargo"
+git config --global --add safe.directory /workspace-src
+
+# --- toolchain bootstrap (LOCAL ONLY; prod agent image bakes sccache+nextest) ---
+if [ ! -x /tmp/scc/sccache ]; then
+  curl -fsSL -o /tmp/sccache.tgz \
+    https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-aarch64-unknown-linux-musl.tar.gz
+  mkdir -p /tmp/scc && tar -xzf /tmp/sccache.tgz -C /tmp/scc --strip-components=1
+fi
+export PATH=/tmp/scc:$PATH
+if ! command -v cargo-nextest >/dev/null 2>&1; then
+  # Prod: baked in the signed agent image; local fallback installs the pinned ver.
+  cargo install cargo-nextest --locked --version __NEXTEST__ || cargo install cargo-nextest --locked
+fi
+
+# --- clean checkout (hostPath repo is RO; archive a clean tree) ---
+WORK="$WORKSPACE/repo"; rm -rf "$WORK"; mkdir -p "$WORK"
+git -C /workspace-src archive --format=tar HEAD | tar -x -C "$WORK"
+cd "$WORK"; export CARGO_TARGET_DIR="$WORK/target"
+
+sccache --start-server || true
+sccache --zero-stats || true
+
+# --- the partition: slice __SHARD__ of __SHARDS__ over the (affected|full) set ---
+# `--partition slice:m/n` is the supported nextest form (count: is deprecated).
+# __AFFECTED__ is the O1 -p selection (empty => --workspace full mirror).
+SCOPE="__AFFECTED__"
+if [ -z "$SCOPE" ]; then SCOPE="--workspace"; fi
+echo "SHARD __SHARD__/__SHARDS__ scope=[$SCOPE] agent=$(hostname)"
+T0=$(date +%s)
+# shellcheck disable=SC2086
+cargo nextest run $SCOPE \
+  --partition "slice:__SHARD__/__SHARDS__" \
+  --profile ci
+T1=$(date +%s)
+echo "SHARD __SHARD__/__SHARDS__ wall_seconds=$((T1-T0))"
+sccache --show-stats | grep -E "Cache hits|Cache misses|hits rate" || true
+'''
+
+// Build one parallel branch per shard. nextest slices are 1-based: slice:1/n .. slice:n/n.
+def branches = [:]
+for (int i = 1; i <= shardCount; i++) {
+  int shard = i
+  branches["shard-${shard}-of-${shardCount}"] = {
+    node('oya-rust-build') {            // O3/O5 agent label/pattern from values-local.yaml
+      container('rust') {
+        def s = shardShell
+          .replace('__SHARD__', shard.toString())
+          .replace('__SHARDS__', shardCount.toString())
+          .replace('__AFFECTED__', (params.AFFECTED_ARGS ?: '').trim())
+          .replace('__NEXTEST__', (params.NEXTEST_VERSION ?: '0.9.96'))
+        sh s
+      }
+    }
+  }
+}
+
+timestamps {
+  def t0 = System.currentTimeMillis()
+  echo "O4 sharded nextest: ${shardCount} slices; affected=[${params.AFFECTED_ARGS}]"
+  // failFast:false => collect every shard's result so a single failing slice does
+  // not mask failures in the others (governance wants the full failure picture).
+  parallel(branches + [failFast: false])
+  echo "OVERALL_WALL_SECONDS=" + ((System.currentTimeMillis() - t0) / 1000)
+}

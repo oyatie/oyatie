@@ -6,23 +6,19 @@
   "bounded_contexts": [
     {
       "name": "cloud-kms",
-      "description": "Bounded context 'cloud-kms' for CMK/KEK/DEK lifecycle, envelope encryption, HSM custody, signing, crypto-shred receipts.",
+      "description": "Bounded context 'cloud-kms' for tenant-scoped KMS key lifecycle, provider-neutral encrypt/decrypt authorization, provider command translation, and metadata-only receipt evidence.",
       "crates": [
+        "oya-cloud-kms-domain",
         "oya-cloud-kms-api",
-        "oya-cloud-kms-domain"
+        "oya-cloud-kms-adapter-oci",
+        "oya-cloud-kms-adapter-openbao"
       ]
     }
   ],
   "layers": [
     "adapter",
     "api",
-    "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "domain"
   ],
   "contracts": {
     "openapi": [
@@ -33,26 +29,55 @@
   },
   "capabilities": [
     {
-      "name": "envelope-encryption",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-kms/feature-parity-matrix-2026-05-20.md",
+      "tier": "T2",
+      "name": "key-lifecycle-domain",
+      "file": "crates/oya-cloud-kms-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
-      "name": "hsm-quorum",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-kms/runbooks/hsm-cluster-failover.md",
+      "tier": "T2",
+      "name": "crypto-use-receipts",
+      "file": "crates/oya-cloud-kms-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "metadata-only-kms-evidence-events",
+      "file": "crates/oya-cloud-kms-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "public-api-version-carrier-enforcement",
+      "file": "crates/oya-cloud-kms-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "typed-tenant-cell-region-boundary",
+      "file": "crates/oya-cloud-kms-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "encrypt-decrypt-authorization-api",
+      "file": "crates/oya-cloud-kms-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "provider-translation-oci",
+      "file": "crates/oya-cloud-kms-adapter-oci/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "provider-translation-openbao",
+      "file": "crates/oya-cloud-kms-adapter-openbao/src/lib.rs",
       "risk_class": "high"
     }
   ],
-  "slos": [
-    {
-      "name": "oya-cloud-kms-cloud-kms-crypto-op-p99",
-      "target": "0.99",
-      "sli": "service_manifest_reference{microservice=\"cloud-kms\",slo=\"cloud-kms-crypto-op-p99\"}",
-      "file": "microservices/cloud-kms/performance-benchmark-numbers-2026-05-20.md"
-    }
-  ],
+  "slos": [],
   "ips": [
     {
       "id": "IP-001-wave-d-kms-baseline",
@@ -133,19 +158,42 @@
       "title": "Oss Stewardship Class Policy And Cve Response Sla",
       "scope": "repo",
       "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+    },
+    {
+      "id": "ADR-0346",
+      "title": "Oya Verify Must Run Full Ci Mirror",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+    },
+    {
+      "id": "ADR-0349",
+      "title": "Jenkins Argocd Self Hostable Ci Cd Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+    },
+    {
+      "id": "ADR-0351",
+      "title": "Cell Rebalancer And Cell Lifecycle Microservices",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
+    "circuit_breaker": "not_claimed_cs_cloud_kms_004: no implemented Cloud KMS circuit-breaker/bulkhead code or PrometheusRule evidence in the current KMS crates",
+    "tenant_rate_limit": "not_claimed_cs_cloud_kms_004: no implemented Cloud KMS per-tenant/per-cell rate-limit or quota-enforcement evidence in the current KMS crates",
+    "golden_signals": "not_claimed_cs_cloud_kms_004: no implemented Cloud KMS metrics/OpenSLO/golden-signal emission evidence in the current KMS crates",
+    "error_budget_burn": "not_claimed_cs_cloud_kms_004: SLO list is empty because no measured Cloud KMS SLI or burn-rate rule is implemented yet"
   },
   "audit_chain": {
     "enabled": true,
     "seal_events": [
-      "oya.cloud-kms.doctrine-declared",
-      "oya.cloud-kms.dr-failover"
+      "kmsevt_<tenant>_<operation>_<source>"
     ]
   },
   "secrets_substrate": {
@@ -170,46 +218,15 @@
     },
     "scaling_dimension": "per_request",
     "cell_placement_class": "Tier-0",
-    "notes": "Encrypt/decrypt/sign/generate data-key hot paths scale by crypto requests and HSM partition queues, not user sessions."
-  },
-  "sharding_automation": {
-    "autosharding": "control_plane_driven",
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
-  },
-  "dr": {
-    "rto_p99_seconds": 300,
-    "rpo_p99_seconds": 0,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "postgres_wal_g",
-      "openbao_seal_unseal",
-      "audit_chain_merkle_seal",
-      "object_storage_versioned"
-    ],
-    "failover_runbook": "runbooks/hsm-cluster-failover.md",
-    "dr_tier": "T1",
-    "replication_shape": "active-active-multi-az-cross-region-warm"
+    "notes": "ADR-0340 planning declaration only for the currently implemented Cloud KMS pure crates; CS-CLOUD-KMS-004 does not claim an implemented autoscaler, Karpenter/HPA/KEDA binding, cell-sizer, runtime HSM queue telemetry, runtime connection pool, or measured capacity evidence. Implemented evidence is limited to typed tenant/cell/region boundary metadata, local key lifecycle invariants, deterministic provider command translation, and metadata-only receipt evidence events."
   },
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Foundation key-management substrate: cloud-kms touches tenant key metadata, HSM operations, signing, and crypto-shred receipts, matching ADR-0338 Tier-1 and ADR-0340 Tier-0 placement.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/cloud-kms/README.md",
-    "microservices/cloud-kms/feature-parity-matrix-2026-05-20.md",
-    "microservices/cloud-kms/runbooks/hsm-cluster-failover.md"
+    "crates/oya-cloud-kms-domain/src/lib.rs",
+    "crates/oya-cloud-kms-api/src/lib.rs",
+    "crates/oya-cloud-kms-adapter-oci/src/lib.rs",
+    "crates/oya-cloud-kms-adapter-openbao/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -231,40 +248,13 @@
     }
   },
   "consumes_upstream_oss": [
-    "openbao",
-    "postgresql",
-    "valkey",
-    "cedar"
+    "openbao"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [
-    {
-      "context": "aws-guest",
-      "primitive": "kms-key",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oci-guest",
-      "primitive": "vault",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "cell-kms-key-hierarchy",
-      "version_pin": "v1",
-      "tenant_class_scope": "both"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "cell-audit-chain-shard",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    }
-  ],
+  "iac_module_invocations": [],
   "data_classes_processed": [
     "AUTHENTICATION",
+    "PII_IDENTIFYING",
     "AUDIT",
     "INTERNAL_ONLY"
   ]

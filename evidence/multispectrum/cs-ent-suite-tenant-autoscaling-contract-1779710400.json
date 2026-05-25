@@ -1,0 +1,291 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Preserve FD-001 product delivery as the master-plan product goal; treat Oyatie Cloud as the hyperscaler-grade substrate proof for hosting FD-001 microservices as real tenant workloads.",
+      "Require a review-only tenant autoscaling contract before any Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, admission runtime, or workload deployment claim.",
+      "Keep HorizontalPodAutoscaler requirements, autoscaling/v2 API usage, min/max replica bounds, CPU and memory resource metrics, metrics pipeline evidence, scale-up and scale-down behavior policies, stabilization windows, tenant labels, scaling audit evidence, and tenant-admission policy evidence linkage across all FD-001 manifest workloads.",
+      "Keep Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission outside this contract until environment-backed evidence exists."
+    ],
+    "official_sources": [
+      "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/",
+      "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/",
+      "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/",
+      "https://kubernetes.io/docs/concepts/workloads/autoscaling/",
+      "https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/",
+      "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001",
+  "commands": [
+    "cargo check --locked -p oya-enterprise-suite-tenant-autoscaling-contract",
+    "cargo check --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo test --locked -p oya-enterprise-suite-tenant-autoscaling-contract",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-tenant-autoscaling-contract --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "cargo metadata --format-version=1 --no-deps",
+    "jq . specs/microservices/enterprise-suite.json",
+    "jq . evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json --severity error",
+    "quality-marker scan for touched autoscaling-contract/readiness/spec/task/evidence rows",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json",
+    "audit-chain HEAD-prefix append-only script for evidence/audit-chain.jsonl"
+  ],
+  "created_at": "2026-05-25T12:00:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite tenant-autoscaling-contract naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane contract crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The autoscaling contract imports and validates the FD-001 tenant-workload manifest and tenant-admission policy before exposing review-only elasticity guardrails to cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No external dependency is introduced; the new contract crate depends only on tenant-workload-manifest and tenant-admission-policy workspace crates, and cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: manifest validation, admission-policy validation, required controls, all-manifest-workload scope, official doc URL allowlist, source refs, requirement-kind coverage, workload coverage, duplicate detection, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small additive contract crate plus readiness composition, avoiding live cluster, metrics pipeline, HorizontalPodAutoscaler apply, autoscaling controller, scale-event, and workload runtime plumbing until environment-backed evidence exists."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "The gate strengthens the Oyatie Cloud substrate proof by requiring HPA shape, autoscaling/v2 API, replica bounds, CPU/memory metrics, metrics pipeline evidence, behavior policies, stabilization windows, tenant labels, scaling audit evidence, and admission-policy linkage across all FD-001 manifest workloads before runtime deployment claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Negative tests reject missing requirements, duplicate requirements, doc drift, autoscaling-ref drift, missing required controls, missing all-workload scope, and runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "The public API exposes a single contract builder, validator, doc URL extractor, requirement enum, and explicit nonclaim booleans for readiness reporting."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Focused unit tests and cloud-readiness tests passed; clippy, fmt, catalog, architecture, data-class, dependency-seam, and quality-marker scans are included in closeout."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "A live cluster, Metrics Server runtime, custom metrics API, HPA apply path, controller observation, scale-event observation, or workload observation was deferred because it would require environment-backed evidence; a review-only contract is the smallest honest elasticity-readiness increment."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract composes after tenant-workload, tenant-admission, resource-quota, and availability contracts and before runtime tenant evidence slices, preserving the staged Oyatie Cloud substrate architecture."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "The contract requires tenant-scoped labels, admission linkage, metrics pipeline evidence, scaling audit evidence, and false runtime attachment flags to reduce noisy-neighbor and elasticity-overclaim risk."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "The slice does not add runtime hot-path execution; later autoscaling controller and metrics pipeline work gets bounded validation expectations without creating current runtime load."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "Five autoscaling-contract tests and thirty-one cloud-readiness tests cover positive, negative, and nonclaim paths."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "FD-001 remains the product goal; Oyatie Cloud is only the substrate proof. The contract cites official Kubernetes sources while keeping cluster/metrics/HPA/controller/scale-event/workload/audit claims blocked until evidence exists."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks ledger, catalog row, evidence file, and audit chain were updated for CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The change is additive; reverting the new crate, dependency, readiness fields/tests, spec/task/evidence/audit rows removes the slice without changing existing runtime behavior."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Readiness output now surfaces autoscaling contract readiness, requirement count, all-workload scope, HPA/metrics/replica-bounds/behavior-policy/audit attachment booleans, and explicit false autoscaling-runtime flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "No reserved facet exception is required for this review-only contract."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "Future live substrate work can migrate from the review-only contract by supplying cluster, metrics pipeline, HPA application, autoscaling controller, scale-event, workload, and audit-chain evidence without changing FD-001/Oyatie Cloud claim boundaries."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779710400,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no Kubernetes cluster attachment",
+    "no Metrics Server runtime attachment",
+    "no custom metrics API attachment",
+    "no HorizontalPodAutoscaler application",
+    "no autoscaling controller runtime observation",
+    "no scale-event runtime observation",
+    "no workload runtime deployment",
+    "no cloud-substrate runtime attachment",
+    "no production workload evidence",
+    "no runtime audit-chain emission",
+    "no durable storage runtime",
+    "no deployed listener runtime",
+    "no production Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only tenant autoscaling contract for later FD-001 workload dogfooding on the Oyatie Cloud substrate.",
+    "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves FD-001 microservices can run as elastic tenant workloads.",
+    "It does not prove Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission."
+  ],
+  "review_verdict": "local-gates-pass-with-tenant-autoscaling-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-tenant-autoscaling-contract/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-tenant-autoscaling-contract.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-tenant-autoscaling-contract-oya-vcs-lifecycle-20260525.json"
+  ],
+  "summary": "Adds a review-only FD-001 tenant autoscaling contract for later Oyatie Cloud workload elasticity guardrails and composes it into cloud-readiness without claiming Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload deployment, cloud-substrate runtime, production workload evidence, or runtime audit-chain emission.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 499 packages, 499 catalog records, 725 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 160 branch-appended rows after promotion audit row",
+    "autoscaling_contract_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-tenant-autoscaling-contract --all-targets -- -D warnings",
+    "autoscaling_contract_tests": "PASS: 5 tests",
+    "cargo_check_autoscaling_contract": "PASS: cargo check --locked -p oya-enterprise-suite-tenant-autoscaling-contract",
+    "cargo_check_cloud_readiness": "PASS: cargo check --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo_fmt_check": "PASS: cargo fmt --all -- --check",
+    "cargo_metadata": "PASS: cargo metadata --format-version=1 --no-deps",
+    "catalog_validate": "PASS: 658 records",
+    "cloud_readiness_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cloud_readiness_tests": "PASS: 31 tests",
+    "data_class_workspace": "PASS: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "enterprise_suite_evidence_json": "PASS: jq . evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json",
+    "enterprise_suite_spec_json": "PASS: jq . specs/microservices/enterprise-suite.json",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-tenant-autoscaling-contract-oya-vcs-lifecycle-20260525.json",
+    "quality_marker_scan": "PASS: touched autoscaling-contract/readiness/spec/task/evidence rows and this slice audit-chain tail contain no blocked quality markers after closeout",
+    "slo_coverage_gate": "PASS: 658 records"
+  }
+}

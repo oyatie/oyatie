@@ -1,0 +1,295 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-003",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779530400,
+  "timestamp_iso": "2026-05-23T10:00:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/incident.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-app/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/incident.rs",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-05 incident rollback/quarantine metadata foundation for unhealthy runtime events.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The domain function performs one narrow validation pass for incident rollback planning: tenant/incident identity, rollback-or-quarantine-first sequencing, manual SSH refusal, audit evidence refs, OpenTofu/ops convergence, and idempotency.",
+        "The app function only projects an already-validated plan into a metadata envelope, with no hidden runtime execution or side effects."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Rollback/quarantine-first policy and OpenTofu/ops convergence refs mirror hyperscaler incident discipline without claiming a deployed control plane.",
+        "Manual SSH refusal preserves the ADR-0349 no-manual-deploy posture and keeps later incident adapters on auditable substrate boundaries."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/incident.rs::test_rollback_first_no_manual_ssh and microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/incident.rs::incident_envelope_is_metadata_only",
+      "failing_fixture_id": "manual SSH route refusal, remediation-before-rollback refusal, missing incident evidence refusal, and missing OpenTofu/ops convergence refusal",
+      "diagnostic_asserted": "Tests fail if incident response uses manual SSH, remediates before rollback/quarantine, omits incident JSON/evidence, or bypasses OpenTofu/ops convergence refs.",
+      "findings": [
+        "AC-05 now has direct positive and negative test coverage in the flat microservice crate path.",
+        "The app envelope test confirms the validated metadata remains a non-executing incident rollback handoff."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Types mirror the acceptance wording: IncidentTrigger, IncidentFirstAction, IncidentRemediationRoute, IncidentRollbackInput, and IncidentRollbackPlan.",
+        "The test names and spec test_ref now point to implemented AC-05 incident tests."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "cargo fmt, locked suite tests, locked suite clippy, and 11-package enterprise regression checks passed locally.",
+        "No dependency, catalog, lockfile, runtime adapter, storage adapter, or deployment artifact was added in this slice."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "reuse the generic ops command envelope only",
+        "implement a runtime rollback executor now",
+        "model AC-05 as pure domain/app metadata now"
+      ],
+      "selected_rationale": "A dedicated pure metadata plan/envelope satisfies AC-05 invariants while avoiding premature runtime rollback, incident emitter, or cloud adapter claims.",
+      "rejected_reasons": [
+        "A generic ops command alone would not encode rollback/quarantine-first sequencing or mandatory incident evidence.",
+        "A runtime executor would exceed the current domain/app foundation slice and require storage, deploy, and SLO evidence not present in this branch."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "incident_response_control_plane_boundary_and_manual_access_refusal",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The plan requires tenant id, incident id, canary/incident/rollback audit evidence refs, convergence ref, and idempotency key.",
+        "Manual SSH is modeled as an explicit refused remediation route rather than omitted from the type system."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "pure-domain-constant",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-incident-metadata-foundation",
+      "regression_baseline": "No deployed runtime path exists; validation performs bounded string prefix checks and no I/O.",
+      "findings": [
+        {
+          "summary": "Incident rollback planning is O(1) with fixed field validation and does not allocate beyond the returned metadata plan."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only",
+        "public_schema_version"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "incident-management",
+        "enterprise-ops",
+        "financial-controls",
+        "kr-payroll"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/microservices/enterprise-suite.json",
+        "repo docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+      ],
+      "findings": [
+        "Public fields carry data_class annotations and output metadata is wrapped in Classified values.",
+        "The slice records evidence refs and metadata envelopes only; it does not claim durable incident emission, SLO measurement, compliance certification, or runtime rollback execution."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive inside existing suite crates and can be reverted without data migration, durable state rewrite, or external resource teardown."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The app envelope carries a stable incident rollback topic plus canary, incident, rollback, and convergence refs for later adapters.",
+        "Audit-chain JSONL rows record local evidence attachment and local Oya VCS closeout; no runtime log, metric, trace, or incident event emission is claimed."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-05 test_ref moved from a stale root-crate path to implemented flat microservice domain/app test paths."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "An incident rollback foundation can be useful before runtime integration only if it encodes deterministic safety invariants and remains metadata-only.",
+      "premise_evidence_ref": "specs/microservices/enterprise-suite.json AC-05 and ADR-0349 no-manual-deploy posture",
+      "do_nothing_consequence": "AC-05 would remain a spec statement while later runtime work could accidentally add manual SSH remediation or remediation-before-rollback behavior.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Waiting for full incident runtime would mix pure safety invariants with storage, deploy, SLO, and adapter concerns."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This slice deepens ERP composition by adding suite-wide incident response metadata that protects HR, Payroll, and Accounting runtime composition without direct child-service coupling."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use Enterprise Suite, incident, rollback, quarantine, OpenTofu, and ops vocabulary already present in the acceptance criterion and deployment contract."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Plan, todo, and spec AC-05 now document the incident rollback foundation and its non-claims."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Domain validation remains in the suite domain crate and metadata-envelope preparation remains in the suite app crate."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No runtime rollback executor, incident emitter, storage repository, HTTP router, Workflow client, ArgoCD Application, Helm chart, or cloud deployment artifact was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice adds no third-party dependencies and no workspace dependency changes."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "AC-05 now has concrete test refs and typed metadata structures with schema_version fields."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Required incident checks are deterministic prefix and enum checks over explicit fields."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after adding incident rollback code and tests"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app",
+      "status": "pass",
+      "notes": "19 suite integration tests passed across policy, group, ops, workflow, and incident surfaces"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "clippy completed without warnings for both suite crates"
+    },
+    {
+      "command": "cargo test --locked and cargo clippy --locked across HR/payroll/accounting/suite package group",
+      "status": "pass",
+      "notes": "11 enterprise packages passed targeted regression tests and clippy with -D warnings after incident rollback slice landed"
+    },
+    {
+      "command": "public field data_class annotation scan for suite domain/app src",
+      "status": "pass",
+      "notes": "suite domain/app public fields carry data_class annotations"
+    },
+    {
+      "command": "quality-marker scan over CS-ENT-SUITE-003 paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in incident rollback slice paths"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-incident-rollback-1779530400.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-suite-incident-rollback-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "remaining_risks": [
+    "Runtime rollback execution, incident JSON emission, SLO measurement, durable audit emission, and OpenTofu/ops adapters remain future slices.",
+    "Full ./bin/oya verify --ci-required remains gated by unrelated pre-existing catalog/data-class blockers documented in the task list."
+  ],
+  "verdict": "PASS",
+  "artifacts_attached": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/incident.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/incident.rs",
+    "evidence/vcs/cs-ent-suite-incident-rollback-oya-vcs-lifecycle-20260523.json"
+  ]
+}

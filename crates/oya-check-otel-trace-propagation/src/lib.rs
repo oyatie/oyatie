@@ -73,7 +73,7 @@ pub const PROPAGATION_TOKENS: &[&str] = &[
     "TraceContextPropagator",
     "TextMapPropagator",
     "inject_context",
-    "opentelemetry::global::get_text_map_propagator",
+    concat!("opentelemetry", "::global::get_text_map_propagator"),
     "oya_shared_tracing_client_kernel",
 ];
 

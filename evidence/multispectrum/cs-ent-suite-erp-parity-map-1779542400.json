@@ -1,0 +1,324 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-012",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779542400,
+  "timestamp_iso": "2026-05-23T13:20:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-enterprise-suite-erp-parity-map.yaml",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-14 executable ERP/SAP parity composition map records all 23 SAP module rows as flat Oyatie service destinations with first-write owners, statuses, evidence refs, and explicit non-claims for ERP-suite microservice creation, durable business-document storage, Workflow execution, cloud deployment, and runtime audit-chain emission.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The map is a typed immutable table plus validation helpers, avoiding a sprawling ERP service or duplicative runtime logic.",
+        "Validation focuses on invariants that can regress silently: required module coverage, no microservices/erp destinations, first-write owners, destinations, and no runtime/cloud claims."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Executable parity rows convert SAP comparison pressure into owned service destinations and operating-bar gaps that later cloud integration can sequence.",
+        "Capability flags keep deployed listener, durable document store, Workflow execution, cloud deployment, and runtime audit emission false until real slices attach infrastructure."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::erp_parity_map_covers_sap_modules_without_erp_suite_service",
+      "failing_fixture_id": "validation_rejects_erp_suite_destination",
+      "diagnostic_asserted": "Tests fail if a SAP module row is missing, a forbidden microservices/erp destination appears, HCM/FI rows lose landed evidence refs, flat-service gaps are not represented, or capability flags overclaim runtime/cloud behavior.",
+      "findings": [
+        "Positive full-map coverage and negative ERP-suite destination rejection are both covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Developers can call enterprise_suite_erp_parity_map(), find_erp_module(), capabilities(), and validate_erp_parity_map() without reading the full ADR table."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused parity-map tests/clippy, Enterprise Suite package-group tests/clippy, 24-package enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "create microservices/erp",
+        "leave ADR-0315 as prose only",
+        "add executable parity map under Enterprise Suite composition"
+      ],
+      "selected_rationale": "A typed map preserves ADR-0315 no-suite doctrine while making parity rows testable and ready for future cloud sequencing.",
+      "rejected_reasons": [
+        "microservices/erp is explicitly forbidden by ADR-0315 and would create suite gravity.",
+        "Prose-only parity rows are easier to drift from landed HR/payroll/accounting evidence and cloud readiness non-claims."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "control_plane_metadata_only",
+      "severity_max": "low",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No secrets, customer data, network listener, auth bypass, or provider SDK are introduced.",
+        "The map strengthens security posture by refusing forbidden ERP-suite destinations and runtime/cloud overclaims."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "static_control_plane_table",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-enterprise-erp-parity-map",
+      "regression_baseline": "Static 23-row table validation only; no I/O or hot runtime path.",
+      "findings": [
+        {
+          "summary": "Validation is bounded over 23 rows and runs in tests/control-plane contexts only."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "PUBLIC parity metadata",
+        "INTERNAL_ONLY readiness flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-suite-governance",
+        "erp-sap-parity",
+        "hr-payroll-accounting-composition"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md",
+        "docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md",
+        "specs/microservices/enterprise-suite.json"
+      ],
+      "findings": [
+        "Public fields carry data_class annotations and catalog row declares product-control plane metadata.",
+        "The map records production/runtime/cloud non-claims so ERP parity cannot be misrepresented as deployed capability."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one governance crate, catalog row, workspace membership, spec/tasks/evidence updates, and no external resources or migrations."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Rows include evidence_refs, first_write_owner, status, and capability flags for future review and cloud-integration sequencing.",
+        "Runtime audit-chain emission remains a non-claim; branch closeout uses static audit rows only."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-14 and D-11 record ERP parity as flat composition rather than a monolithic migration cliff.",
+        "SAP/Oracle/Workday/NetSuite import work remains future capability-specific slices referenced by row evidence/status, not runtime code here."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "ERP/SAP parity can be advanced by an executable composition map before durable/cloud runtime exists if the map explicitly rejects suite creation and overclaims.",
+      "premise_evidence_ref": "ADR-0315 module map, enterprise coverage matrix §3, and CS-ENT-SUITE-012 parity tests",
+      "do_nothing_consequence": "ERP parity would remain prose-only and could drift from landed HR/payroll/accounting evidence or accidentally invite a prohibited microservices/erp service.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "ADR-0315 and the coverage matrix are doctrine/reference; the missing seam is an executable local validation artifact, not a doctrine rewrite."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This connects the landed HR/payroll/accounting Enterprise Suite foundations to the broader SAP parity roadmap while keeping future Oyatie cloud integration honest about remaining gaps."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use Enterprise Suite ERP/SAP parity map vocabulary and avoid creating an ERP service boundary."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, plan, todo, evidence, catalog, and audit-chain references were updated."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate is a control-plane governance composition artifact under Enterprise Suite; no microservices/erp path was created."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No listener, auth runtime, durable document store, provider SDK, Workflow engine/broker, child-service network client, cloud adapter, or runtime audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No third-party dependencies were added; the crate has no external dependencies."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No wire API schema is changed; the map exposes typed Rust control-plane records only."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation deterministically scans static module rows for required codes, destinations, first-write owners, forbidden suite paths, and unsupported runtime/cloud claims."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all",
+      "status": "pass",
+      "notes": "workspace formatting applied after adding Enterprise ERP parity map crate"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after Enterprise ERP parity map addition"
+    },
+    {
+      "command": "cargo test --offline -p oya-enterprise-suite-erp-parity-map",
+      "status": "pass",
+      "notes": "initial offline lockfile refresh for new workspace member passed; 5 parity tests passed"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+      "status": "pass",
+      "notes": "focused ERP parity map tests passed under locked Cargo.lock; 5 tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused Enterprise ERP parity map clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory -p oya-enterprise-suite-workflow-adapter-inmemory -p oya-enterprise-suite-local-runtime-composition -p oya-enterprise-suite-local-inmemory-harness -p oya-enterprise-suite-erp-parity-map",
+      "status": "pass",
+      "notes": "Enterprise Suite package group tests passed with ERP parity map included"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api -p oya-enterprise-suite-runtime -p oya-enterprise-suite-storage-adapter-inmemory -p oya-enterprise-suite-workflow-adapter-inmemory -p oya-enterprise-suite-local-runtime-composition -p oya-enterprise-suite-local-inmemory-harness -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "Enterprise Suite package group clippy completed without warnings with ERP parity map included"
+    },
+    {
+      "command": "cargo test --locked across HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map) package group",
+      "status": "pass",
+      "notes": "24 enterprise packages including Enterprise Suite ERP parity map passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "24 enterprise packages including Enterprise Suite ERP parity map passed clippy with -D warnings"
+    },
+    {
+      "command": "Enterprise ERP parity map public field data_class scan",
+      "status": "pass",
+      "notes": "parity map public fields carry data_class annotations; src/lib.rs contains 20 data_class markers"
+    },
+    {
+      "command": "Enterprise ERP parity map quality-marker scan over CS-ENT-SUITE-012 code/catalog paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in Enterprise ERP parity map crate or catalog row"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-erp-parity-map-1779542400.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-suite-erp-parity-map-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "non_claims": [
+    "monolithic ERP microservice not created",
+    "microservices/erp path not created",
+    "deployed HTTP listener not attached",
+    "durable business-document store not attached",
+    "Workflow engine execution not attached",
+    "cloud deployment not attached",
+    "runtime audit-chain emission not implemented",
+    "production ERP parity not claimed",
+    "cloud deployment/SLO evidence not asserted"
+  ]
+}
