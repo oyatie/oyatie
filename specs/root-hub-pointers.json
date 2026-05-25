@@ -1022,6 +1022,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "wave-3-consolidation",
       "purpose": "Wave-3-I deferred design/spec-maturity surfaces ratchet; transparent deferral of not-yet-authored service surfaces (operational_claim stays blocked_until_operational_evidence)."
+    },
+    "cloud_control_plane_canonical": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-control-plane-canonical.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud Control Plane canonical target architecture (P-TARGET): resource model (Org->...->Resource), ORN, API Gateway->Resource Registry->Operation Ledger->Workflow/Reconciler->OpenTofu/operators/Argo, per-resource quota/billing/audit contract, durable long-running operations, nine control-plane facets. Target spec; no runtime claimed."
     }
   },
   "by_kind": {

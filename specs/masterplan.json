@@ -5826,7 +5826,8 @@
       "specs/ci-farm-substrate-canonical.json",
       "registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv",
       "specs/master-plan-sequencing.json",
-      "specs/planning-closure-contract.json"
+      "specs/planning-closure-contract.json",
+      "specs/cloud-control-plane-canonical.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -5884,9 +5885,12 @@
       {
         "id": "P-TARGET",
         "title": "Ideal target architecture + contracts spec",
-        "status": "proposed",
+        "status": "in-progress (control-plane target spec landed; per-resource + contracts specs next)",
         "parallel": "partial",
-        "deliverable": "Vertical-slice nesting (ADR-0357); contracts SSOT (OpenAPI 3.2.0/AsyncAPI 3.1.0/proto3, CS-LAUNCH-API-CONTRACT-SSOT-001); Cedar policy; observability/SLO substrate; cloud-* substrate + tenant microservice target shapes."
+        "deliverable": "Vertical-slice nesting (ADR-0357); contracts SSOT (OpenAPI 3.2.0/AsyncAPI 3.1.0/proto3, CS-LAUNCH-API-CONTRACT-SSOT-001); Cedar policy; observability/SLO substrate; cloud-* substrate + tenant microservice target shapes.",
+        "artifacts": [
+          "specs/cloud-control-plane-canonical.json"
+        ]
       },
       {
         "id": "P-TOOLCHAIN",
