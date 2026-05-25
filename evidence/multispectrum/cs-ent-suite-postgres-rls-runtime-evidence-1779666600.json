@@ -1,0 +1,285 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Treat durable storage readiness as a runtime-evidence claim: require live connection posture, migration digest evidence, role matrix evidence, RLS tenant-isolation probes, backup restore, and PITR rehearsal before durable storage runtime is claimed.",
+      "Keep database connections, migration application, live RLS verification, cloud databases, and production backup restore outside the review-only contract until environment-backed evidence exists.",
+      "Tie every runtime probe back to the existing review-only Postgres/RLS schema plan so runtime evidence cannot drift from table, role, idempotency, tenant, or policy contracts.",
+      "Preserve no-BYPASSRLS, non-owner runtime role, TLS verify-full, delete-forbidden, idempotency conflict, backup restore, and PITR as required controls for hyperscaler-grade storage promotion."
+    ],
+    "official_sources": [
+      "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+      "https://www.postgresql.org/docs/current/sql-createpolicy.html",
+      "https://www.postgresql.org/docs/current/sql-altertable.html",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html",
+      "https://www.postgresql.org/docs/current/backup.html",
+      "https://www.postgresql.org/docs/current/continuous-archiving.html",
+      "https://www.postgresql.org/docs/current/libpq-ssl.html"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-POSTGRES-RLS-RUNTIME-EVIDENCE-001",
+  "commands": [
+    "cargo metadata --format-version=1 --no-deps",
+    "cargo check -p oya-enterprise-suite-postgres-rls-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-postgres-rls-runtime-evidence",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-postgres-rls-runtime-evidence --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "jq . specs/microservices/enterprise-suite.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "quality-marker scan for touched postgres-rls-runtime/readiness/spec/task/evidence rows",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-postgres-rls-runtime-evidence-1779666600.json --severity error",
+    "jq . evidence/multispectrum/cs-ent-suite-postgres-rls-runtime-evidence-1779666600.json",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-POSTGRES-RLS-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-postgres-rls-runtime-evidence-1779666600.json CS-ENT-SUITE-POSTGRES-RLS-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-postgres-rls-runtime-evidence-1779666600.json CS-ENT-SUITE-POSTGRES-RLS-RUNTIME-EVIDENCE-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-POSTGRES-RLS-RUNTIME-EVIDENCE-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-postgres-rls-runtime-evidence-1779666600.json",
+    "audit-chain HEAD-prefix append-only script for evidence/audit-chain.jsonl"
+  ],
+  "created_at": "2026-05-24T09:10:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite postgres-rls-runtime-evidence naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The runtime evidence contract imports and validates the existing Postgres/RLS storage plan, then exposes only review-only probe requirements to cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No new external dependency is introduced; the new evidence crate depends only on the workspace Postgres/RLS storage plan crate and cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: storage-plan validation, table coverage, required probe-kind coverage, official doc URL allowlist, safe refs, required controls, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small typed contract and validator; it adds no database driver, no network connection, no migration runner, no backup process, and no cloud runtime."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Durable storage promotion for FD-001 tenant workloads on the later Oyatie Cloud substrate now requires TLS verify-full posture, migration digest checks, RLS tenant-isolation probes, role hardening, backup restore, and PITR rehearsal evidence before any live Postgres/cloud database claim."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing probes, duplicate probe IDs, unofficial doc URLs, unknown tables, secret-shaped refs, missing controls, and runtime overclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future database/cloud adapters get one typed probe matrix rather than reverse-engineering storage promotion evidence from SQL strings and prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The code uses typed enums, explicit errors, no unsafe, no I/O, no network calls, and no third-party dependencies."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: attach a real Postgres instance now, extend the SQL renderer with more strings, or add a review-only typed runtime evidence contract. The typed contract was selected because it is verifiable now, supports Oyatie Cloud substrate readiness for FD-001 tenant-workload dogfooding, and avoids database/cloud overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract composes over the storage plan and cloud-readiness while keeping the live database, migration application, RLS runtime verification, backup restore, and durable storage blockers intact."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "The probe matrix requires non-owner runtime role, no BYPASSRLS, TLS verify-full, tenant A/B contexts for cross-tenant denial, and rejects secret-shaped refs."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is O(number of static probes + storage tables) and adds no request-path, database, network, or migration runtime work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New runtime-evidence and cloud-readiness tests cover positive readiness, table/probe coverage, nonclaims, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The contract strengthens compliance traceability for tenant-isolated durable storage on the later Oyatie Cloud substrate while preserving production database, live RLS, backup restore, cloud database, and runtime audit evidence as explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog row, evidence, and audit-chain rows document the Postgres/RLS runtime evidence plan and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/catalog row and cloud-readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The plan names runtime-check refs and expected evidence refs, but does not claim runtime telemetry, storage writes, or audit-chain emission."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No migration is applied; migration digest and transaction requirements are evidence-contract entries only until a live database adapter lands."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779666600,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no database connection",
+    "no migration application",
+    "no live RLS verification",
+    "no durable storage runtime",
+    "no cloud database attachment",
+    "no production backup restore evidence",
+    "no runtime audit-chain emission",
+    "no deployed listener runtime evidence",
+    "no durable Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only Postgres/RLS runtime evidence contract foundation.",
+    "It does not prove database connectivity, migration application, live tenant isolation, durable storage writes, backup restore, PITR, runtime audit-chain emission, or cloud deployment readiness."
+  ],
+  "review_verdict": "local-gates-pass-with-postgres-rls-runtime-evidence-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-postgres-rls-runtime-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-postgres-rls-runtime-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-postgres-rls-runtime-evidence-oya-vcs-lifecycle-20260524.json"
+  ],
+  "summary": "Adds an Enterprise Suite Postgres/RLS runtime evidence contract for FD-001 tenant-workload dogfooding on the later Oyatie Cloud substrate and composes it into cloud-readiness without claiming database connection, migration application, live RLS verification, durable storage runtime, backup restore, audit runtime, or cloud deployment.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 483 packages, 483 catalog records, 687 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 128 branch-appended rows after promotion audit row",
+    "cargo_check_postgres_rls_runtime_evidence": "PASS",
+    "cargo_fmt_check": "PASS: cargo fmt --all -- --check",
+    "cargo_metadata": "PASS: cargo metadata --format-version=1 --no-deps",
+    "catalog_validate": "PASS: 642 records",
+    "cloud_readiness_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cloud_readiness_tests": "PASS: 15 tests",
+    "data_class_workspace": "PASS: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "enterprise_suite_evidence_json": "PASS: jq . evidence/multispectrum/cs-ent-suite-postgres-rls-runtime-evidence-1779666600.json",
+    "enterprise_suite_spec_json": "PASS: jq . specs/microservices/enterprise-suite.json",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-postgres-rls-runtime-evidence-oya-vcs-lifecycle-20260524.json",
+    "postgres_rls_runtime_evidence_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-postgres-rls-runtime-evidence --all-targets -- -D warnings",
+    "postgres_rls_runtime_evidence_tests": "PASS: 5 tests",
+    "quality_marker_scan": "PASS: touched postgres-rls-runtime/readiness/spec/task/evidence rows and this slice audit-chain tail contain no blocked quality markers after closeout",
+    "slo_coverage_gate": "PASS: 642 records"
+  }
+}

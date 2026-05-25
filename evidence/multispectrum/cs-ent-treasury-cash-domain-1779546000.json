@@ -1,0 +1,314 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-TREASURY-001",
+  "change_class_id": "CC-1",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T14:20:00Z",
+  "freshness_unix": 1779546000,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "summary": "Treasury cash-management domain foundation adds bank-account approval, cash-position snapshots, liquidity forecast projections, cash-transfer proposal metadata, and SAP FI/TRM parity-map linkage while explicitly refusing durable persistence, bank-network calls, payment execution, accounting ledger mutation, Workflow execution, cloud deployment, and runtime audit-chain claims.",
+  "scope": [
+    "microservices/treasury/crates/oya-treasury-cash-domain/Cargo.toml",
+    "microservices/treasury/crates/oya-treasury-cash-domain/src/lib.rs",
+    "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs",
+    "specs/microservices/treasury.json",
+    "registry/catalog/oya-treasury-cash-domain.yaml",
+    "Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "non_claims": [
+    "durable persistence not attached",
+    "live bank connectivity not attached",
+    "bank-network call not attached",
+    "payment execution not attached",
+    "accounting ledger mutation not attached",
+    "Workflow engine execution not attached",
+    "statutory filing not attached",
+    "cloud deployment not attached",
+    "production treasury parity not claimed",
+    "runtime audit-chain emission not implemented"
+  ],
+  "meta_review_triggered": true,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The implementation is a small pure-domain validation/calculation model, not a treasury workstation or ERP monolith clone.",
+        "Cash position, forecast, and transfer proposal calculations are deterministic guard-clause logic with no hidden side effects."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Flat treasury microservice destination improves SAP FI/TRM parity without creating microservices/erp.",
+        "Capability flags and evidence rows keep cloud/runtime claims honest until adapters and bank rails land."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::approved_bank_account_records_cash_position_and_transfer_proposal",
+      "failing_fixture_id": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::treasury_refuses_currency_mismatch_and_insufficient_source_surplus",
+      "diagnostic_asserted": "Tests fail if unapproved bank accounts, missing cash positions, currency mismatches, insufficient source surplus, invalid dates, unsafe refs, credential-shaped evidence refs, lowercase currency values, or no-need transfers are accepted.",
+      "findings": [
+        "Positive treasury cash flow and negative guard rails are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 25,
+      "findings": [
+        "Types map directly to bank account approval, cash position, liquidity forecast, and cash-transfer proposal concepts common to treasury cash-management systems."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused treasury tests/clippy, ERP parity map tests/clippy, enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan are recorded in verification."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "fold treasury into accounting only",
+        "build payment/bank-network runtime now",
+        "add treasury cash domain foundation first"
+      ],
+      "selected_rationale": "A flat domain foundation gives ERP FI/TRM parity a service-owned first write path while keeping bank networks, payments, storage, Workflow, and cloud adapters out of scope.",
+      "rejected_reasons": [
+        "Accounting-only composition left SAP TRM cash management without a bounded service owner.",
+        "Payment/bank-network runtime requires external rails, authorization, secrets, and durable audit storage beyond this slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "treasury_cash_evidence_metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, external network calls, payment rails, or bank connectivity are introduced.",
+        "Source and audit refs reject traversal, whitespace/control, and credential-shaped strings."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_domain_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-treasury-cash-domain-foundation",
+      "regression_baseline": "Pure string/date/money validation and arithmetic only; no I/O or unbounded data access exists.",
+      "findings": [
+        {
+          "summary": "No database, network, filesystem, or hot runtime path is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "INTERNAL_ONLY treasury/source/evidence refs",
+        "FINANCIAL balances, inflows, outflows, transfer amounts, and shortfall metadata",
+        "PUBLIC non-claim capability flags"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-treasury",
+        "cash-management",
+        "sap-fi-trm-parity"
+      ],
+      "official_sources_checked": [
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/186460fdc35a4b64a713da9bb00deb1e/c7999f525c5b224fe10000000a445394.html",
+        "https://help.sap.com/docs/SAP_S4HANA_CLOUD/ac319d8fa4ea4624b40a58d23e3c4627/b99f6156f5b61d58e10000000a4450e5.html",
+        "https://docs.oracle.com/en/cloud/saas/financials/25d/faofc/cash-positioning.html",
+        "https://docs.oracle.com/en/cloud/saas/financials/25c/faofc/overview-of-the-cash-management-dashboard.html"
+      ],
+      "findings": [
+        "SAP/Oracle official materials inform cash-management coverage only; no exhaustive vendor parity or proprietary behavior clone is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one new crate/spec/catalog row and parity-map references; no migration or external resource is introduced."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static evidence, task rows, and audit-chain rows document the change; runtime audit emission remains a non-claim."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No production user or data migration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package name follows oya-treasury-cash-domain and flat microservice layout."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Machine-readable treasury spec and existing task ledger capture the slice without creating root markdown sprawl."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New code is isolated to microservices/treasury plus Enterprise Suite parity map references."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Clean architecture is preserved: domain crate depends only on data boundary kernel and std."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No new third-party dependencies were added; Cargo.lock changed only for the new workspace package."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "specs/microservices/treasury.json parses successfully and evidence follows prior multispectrum shape."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Cash position, liquidity forecast, and transfer proposal arithmetic is deterministic exact currency-matched validation with no tolerance or hidden state."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Challenged whether treasury should be folded into accounting; creating a separate cash-management domain is more aligned with ERP FI/TRM parity and future cloud integration."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "finding": "Complements HR/payroll/accounting/procurement foundations and improves ERP parity while keeping no microservices/erp monolith."
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo check -p oya-treasury-cash-domain",
+      "status": "pass",
+      "notes": "updated Cargo.lock for the new workspace package without adding third-party dependencies"
+    },
+    {
+      "command": "cargo test --locked -p oya-treasury-cash-domain",
+      "status": "pass",
+      "notes": "focused treasury cash domain tests passed; 4 integration tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-treasury-cash-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused treasury cash domain clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-erp-parity-map",
+      "status": "pass",
+      "notes": "ERP parity map tests passed with FI/TRM treasury foundation coverage; 7 tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-erp-parity-map --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "ERP parity map clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked across treasury + procurement + HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group",
+      "status": "pass",
+      "notes": "27 enterprise packages including treasury cash domain passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across treasury + procurement + HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime+storage)/suite(+runtime+storage+workflow+composition+harness+erp-parity-map+cloud-readiness-gate) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "27 enterprise packages including treasury cash domain passed clippy with -D warnings"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after treasury cash-domain addition"
+    },
+    {
+      "command": "jq . specs/microservices/treasury.json >/dev/null",
+      "status": "pass",
+      "notes": "treasury microservice spec parses as JSON"
+    },
+    {
+      "command": "Treasury cash domain public field data_class scan",
+      "status": "pass",
+      "notes": "treasury domain src/lib.rs contains data_class annotations for new public fields"
+    },
+    {
+      "command": "Treasury cash domain quality-marker scan over CS-ENT-TREASURY-001 code/catalog/spec paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in treasury domain src/lib.rs, tests, catalog row, or treasury spec"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-treasury-cash-domain-1779546000.json --severity error",
+      "status": "pass",
+      "notes": "dependency-seam evidence gate passed"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-treasury-cash-domain-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ]
+}

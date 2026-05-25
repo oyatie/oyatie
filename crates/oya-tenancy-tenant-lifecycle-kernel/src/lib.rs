@@ -7,7 +7,7 @@
 
 /// Opaque tenant identifier. IP-002 will replace this with a ULID-backed newtype.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct TenantId(pub String);
+pub struct TenantId(pub String); // data_class: INTERNAL_ONLY
 
 /// Lifecycle states per IP-003 FSM (Created → Activated → Suspended/Resumed → DeletionRequested → Deleted).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -29,22 +29,22 @@ pub enum PlanTier {
 
 /// Jurisdiction code (ISO 3166-1 alpha-2 plus optional sub-jurisdiction).
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct JurisdictionCode(pub String);
+pub struct JurisdictionCode(pub String); // data_class: INTERNAL_ONLY
 
 /// Aggregate tenant root.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Tenant {
-    pub id: TenantId,
-    pub status: TenantStatus,
-    pub plan_tier: PlanTier,
-    pub jurisdiction: JurisdictionCode,
+    pub id: TenantId,                   // data_class: INTERNAL_ONLY
+    pub status: TenantStatus,           // data_class: INTERNAL_ONLY
+    pub plan_tier: PlanTier,            // data_class: INTERNAL_ONLY
+    pub jurisdiction: JurisdictionCode, // data_class: INTERNAL_ONLY
 }
 
 /// Cross-cutting context every adapter checkout receives.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantContext {
-    pub tenant_id: TenantId,
-    pub jurisdiction: JurisdictionCode,
+    pub tenant_id: TenantId,            // data_class: INTERNAL_ONLY
+    pub jurisdiction: JurisdictionCode, // data_class: INTERNAL_ONLY
 }
 
 /// Sealed port for persistence access.

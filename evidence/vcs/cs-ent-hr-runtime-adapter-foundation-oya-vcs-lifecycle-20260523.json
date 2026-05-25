@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "captured_at_iso": "2026-05-23T11:41:30Z",
+  "captured_by": "codex-enterprise-20260523",
+  "purpose": "Explicit local Oya VCS lifecycle transcript evidence for CS-ENT-HR-006 after HR HTTP runtime adapter foundation evidence. This is command-output evidence; it does not assert registry/vcs/changeset-event-log.json persistence.",
+  "changesets": [
+    "CS-ENT-HR-006"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "claim",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--intent",
+        "CS-ENT-HR-006 HR HTTP runtime adapter foundation",
+        "microservices/hr/crates/oya-hr-employment-runtime/Cargo.toml::CS-ENT-HR-006",
+        "microservices/hr/crates/oya-hr-employment-runtime/src/lib.rs::hr_runtime_router",
+        "microservices/hr/crates/oya-hr-employment-runtime/tests/runtime.rs::hr_runtime_dispatches_sensitive_read_and_leave",
+        "Cargo.toml::microservices.hr.runtime",
+        "registry/catalog/oya-hr-employment-runtime.yaml::CS-ENT-HR-006",
+        "registry/dependency-rationales.json::oya-hr-employment-runtime",
+        "specs/microservices/hr.json::acceptance_criteria.AC-12",
+        "microservices/hr/contracts/openapi-v1.meta.yaml::CS-ENT-HR-006",
+        "tasks/enterprise-microservices-plan.md::CS-ENT-HR-006",
+        "tasks/enterprise-microservices-todo.md::CS-ENT-HR-006",
+        "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json::CS-ENT-HR-006",
+        "evidence/vcs/cs-ent-hr-runtime-adapter-foundation-oya-vcs-lifecycle-20260523.json::CS-ENT-HR-006",
+        "evidence/audit-chain.jsonl::CS-ENT-HR-006"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "claim",
+            "action": "claim-lock",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": "CS-ENT-HR-006 HR HTTP runtime adapter foundation",
+            "scopes": [
+              "microservices/hr/crates/oya-hr-employment-runtime/Cargo.toml::CS-ENT-HR-006",
+              "microservices/hr/crates/oya-hr-employment-runtime/src/lib.rs::hr_runtime_router",
+              "microservices/hr/crates/oya-hr-employment-runtime/tests/runtime.rs::hr_runtime_dispatches_sensitive_read_and_leave",
+              "Cargo.toml::microservices.hr.runtime",
+              "registry/catalog/oya-hr-employment-runtime.yaml::CS-ENT-HR-006",
+              "registry/dependency-rationales.json::oya-hr-employment-runtime",
+              "specs/microservices/hr.json::acceptance_criteria.AC-12",
+              "microservices/hr/contracts/openapi-v1.meta.yaml::CS-ENT-HR-006",
+              "tasks/enterprise-microservices-plan.md::CS-ENT-HR-006",
+              "tasks/enterprise-microservices-todo.md::CS-ENT-HR-006",
+              "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json::CS-ENT-HR-006",
+              "evidence/vcs/cs-ent-hr-runtime-adapter-foundation-oya-vcs-lifecycle-20260523.json::CS-ENT-HR-006",
+              "evidence/audit-chain.jsonl::CS-ENT-HR-006"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "status",
+        "--agent",
+        "codex-enterprise-20260523",
+        "CS-ENT-HR-006"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "status",
+            "action": "read-status",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-006"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "verify",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json",
+        "CS-ENT-HR-006"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "verify",
+            "action": "verify-evidence",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-006"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "done",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json",
+        "CS-ENT-HR-006"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "done",
+            "action": "emit-change-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-006"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": "legacy-grit-compatible-done",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "promote",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--bundle",
+        "CS-ENT-HR-006",
+        "--environment",
+        "dev",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "promote",
+            "action": "promote-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json"
+            ],
+            "bundle_id": "CS-ENT-HR-006",
+            "environment": "dev",
+            "closeout_mode": "controller-promote",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    }
+  ],
+  "non_claims": [
+    "registry/vcs event-log persistence not asserted",
+    "remote CI execution not asserted",
+    "deployed HTTP listener not asserted",
+    "storage/persistence not asserted",
+    "sensitive HR data retrieval not asserted",
+    "Workflow execution not asserted"
+  ]
+}

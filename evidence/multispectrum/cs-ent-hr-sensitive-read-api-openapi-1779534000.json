@@ -1,0 +1,304 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-HR-004",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779534000,
+  "timestamp_iso": "2026-05-23T11:00:00Z",
+  "scope": [
+    "microservices/hr/crates/oya-hr-employment-api/src/lib.rs",
+    "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs",
+    "microservices/hr/contracts/openapi-v1.yaml",
+    "microservices/hr/contracts/openapi-v1.meta.yaml",
+    "specs/microservices/hr.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "HR AC-10 sensitive-read API DTO and OpenAPI 3.2.0 preview contract for later cloud adapters, aligned to the CS-ENT-HR-003 policy foundation.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The API DTO layer remains transport-neutral: it serializes/deserializes stable wire shapes and converts into domain/app inputs only.",
+        "The OpenAPI path is a preview contract and does not introduce a router, middleware, storage, or runtime adapter."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The contract gives future cloud adapters a deterministic request/response shape for centralized authorization/audit integration.",
+        "The response exposes decision metadata, audit topic, idempotency key, payload data class, and schema version without returning sensitive HR data."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::sensitive_read_policy_request_uses_camel_case_and_converts_to_domain_input",
+      "failing_fixture_id": "DTO enum casing and conversion assertions fail if camelCase fields, SCREAMING_SNAKE_CASE labels, app conversion, PHI payload class, or metadata response shape drift",
+      "diagnostic_asserted": "The test asserts actor/subject fields, dataKind/purpose/legalBasis enum labels, consent evidence, app conversion, audit topic, payloadDataClass, and schemaVersion.",
+      "findings": [
+        "API DTO coverage now exercises the sensitive-read domain/app path through the contract layer."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 18,
+      "findings": [
+        "Request and response names mirror the policy language: SensitiveHrReadPolicyRequest and SensitiveReadPolicyDecisionResponse.",
+        "The OpenAPI operationId evaluateHrSensitiveReadPolicy maps directly to the app function name."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "cargo fmt, HR API tests/clippy, HR api-semver, and 12-package enterprise regression tests/clippy passed locally.",
+        "No dependencies, catalog rows, lockfile changes, runtime adapters, or deployed endpoints were added in this slice."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "add deployed HR sensitive-read HTTP route now",
+        "wait for cloud auth service before any contract",
+        "add transport-neutral DTO/OpenAPI preview now"
+      ],
+      "selected_rationale": "DTO/OpenAPI preview prepares cloud integration while preserving the no-runtime-adapter boundary.",
+      "rejected_reasons": [
+        "A deployed route would overclaim runtime auth/data access.",
+        "Waiting would leave external adapter contracts undefined and risk drift from the domain/app foundation."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "api_contract_sensitive_read_authorization_metadata",
+      "severity_max": "high",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The DTO carries policy/evidence refs and no sensitive HR payload values.",
+        "OpenAPI non-claims explicitly exclude runtime authorization, sensitive data retrieval, storage, and audit emission."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "contract-only",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-hr-sensitive-read-api-openapi-preview",
+      "regression_baseline": "No deployed runtime path exists; serde DTO conversion is fixed-field and no I/O.",
+      "findings": [
+        {
+          "summary": "DTO conversion is O(1) over fixed fields."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only",
+        "sensitive_pipa_article23",
+        "phi-response-label",
+        "public_schema_version",
+        "openapi_x_data_class"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "hr-privacy",
+        "consent",
+        "kr-labor",
+        "us-hr",
+        "eu-hr"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/microservices/hr.json",
+        "official OpenAPI Specification 3.2.0 rendering at spec.openapis.org checked earlier on 2026-05-23"
+      ],
+      "findings": [
+        "API public fields include data_class annotations and OpenAPI sensitive-read schema fields include x-data-class annotations.",
+        "The contract returns metadata only and does not claim policy enforcement or sensitive data retrieval."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive in the HR API crate and preview contract; it can be reverted without data migration or external resource teardown."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The response schema includes auditTopic and idempotencyKey for later adapter observability.",
+        "Audit-chain JSONL rows record local evidence and Oya VCS closeout; no runtime telemetry is emitted."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "HR AC-10 records the new API/OpenAPI preview contract, and D-12 clarifies runtime authorization remains out of scope."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A preview API/OpenAPI contract can prepare cloud integration only if it avoids deployed runtime and authorization claims.",
+      "premise_evidence_ref": "specs/microservices/hr.json AC-10 and existing preview-not-deployed OpenAPI contract pattern",
+      "do_nothing_consequence": "Future cloud adapters would lack a stable sensitive-read policy wire shape.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Runtime authorization and data retrieval belong to later cloud adapter slices; contract-first preview is the safe precursor."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice moves HR privacy from domain/app-only metadata toward integration-ready contract surfaces without violating clean architecture."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use sensitive-read policy, purpose, legal basis, evidence ref, decision status, and audit topic vocabulary."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Plan, todo, spec AC-10, decision log, OpenAPI meta, and evidence document the implemented contract and non-claims."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "DTO conversion stays in HR API; policy evaluation stays in HR domain/app; OpenAPI remains a preview contract under the HR service contracts directory."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No HTTP framework, auth middleware, data access layer, storage repository, audit emitter, or cloud deployment artifact was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice adds no third-party dependencies and no workspace dependency changes."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "OpenAPI schemas include required fields, enum labels, x-data-class annotations, and preview non-claims."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "DTO conversion uses explicit enum mappings and field transfer; no reflection or untyped maps at API boundaries."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed"
+    },
+    {
+      "command": "cargo test --locked -p oya-hr-employment-api",
+      "status": "pass",
+      "notes": "HR API tests passed including sensitive-read request/response contract coverage"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-hr-employment-api --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused HR API clippy completed without warnings"
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir microservices/hr/contracts",
+      "status": "pass",
+      "notes": "API semver validation passed: 1 contracts, 1 metadata records"
+    },
+    {
+      "command": "cargo test --locked and cargo clippy --locked across HR/payroll/accounting/suite package group",
+      "status": "pass",
+      "notes": "12 enterprise packages passed targeted regression tests and clippy with -D warnings after HR sensitive-read API/OpenAPI slice landed"
+    },
+    {
+      "command": "API public field data_class and OpenAPI x-data-class scans",
+      "status": "pass",
+      "notes": "HR API public fields carry data_class annotations and sensitive-read OpenAPI schemas carry x-data-class per field"
+    },
+    {
+      "command": "quality-marker scan over CS-ENT-HR-004 paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in HR sensitive-read API/OpenAPI slice paths"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-hr-sensitive-read-api-openapi-1779534000.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-hr-sensitive-read-api-openapi-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "remaining_risks": [
+    "No deployed HTTP endpoint, runtime authorization middleware, sensitive HR data retrieval, storage, audit-chain emission, or cloud runtime exists in this slice.",
+    "Full ./bin/oya verify --ci-required remains gated by unrelated pre-existing catalog/data-class blockers documented in the task list."
+  ],
+  "verdict": "PASS",
+  "artifacts_attached": [
+    "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs",
+    "microservices/hr/contracts/openapi-v1.yaml",
+    "microservices/hr/contracts/openapi-v1.meta.yaml",
+    "evidence/vcs/cs-ent-hr-sensitive-read-api-openapi-oya-vcs-lifecycle-20260523.json"
+  ]
+}

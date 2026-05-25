@@ -26,6 +26,7 @@
       "oya-enterprise-suite-kernel",
       "oya-enterprise-suite-domain",
       "oya-enterprise-suite-app",
+      "oya-enterprise-suite-api",
       "oya-enterprise-suite-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path",
@@ -107,35 +108,328 @@
       "given": "a tenant activates Enterprise Suite",
       "when": "HR, Payroll, and Accounting children are enabled",
       "then": "all writes carry tenant_id, legal_entity_id, data_class, and audit-chain evidence without child apps bypassing the suite policy gateway",
-      "test_ref": "crates/oya-enterprise-suite-domain/tests/policy.rs::test_children_share_suite_policy_gateway"
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/policy.rs::test_children_share_suite_policy_gateway"
     },
     {
       "id": "AC-02",
       "given": "a Korean group has multiple legal entities",
       "when": "group status is rolled up",
       "then": "each entity keeps an independent payroll/accounting close boundary and immutable evidence while group dashboards use projections only",
-      "test_ref": "crates/oya-enterprise-suite-domain/tests/group.rs::test_group_rollup_preserves_entity_boundaries"
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/group.rs::test_group_rollup_preserves_entity_boundaries"
     },
     {
       "id": "AC-03",
       "given": "OpenTofu has provisioned enterprise infra",
       "when": "operators run bootstrap/install/ops flows",
       "then": "all day-2 changes route through Makefile/oya ops/ops.oyatie.com and no SSH troubleshooting command is required",
-      "test_ref": "crates/oya-enterprise-suite-app/tests/ops.rs::test_enterprise_ops_contract_has_no_manual_ssh"
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/ops.rs::test_enterprise_ops_contract_has_no_manual_ssh"
     },
     {
       "id": "AC-04",
       "given": "a workflow crosses HR, Payroll, and Accounting",
       "when": "approval, evidence, or rollback is required",
       "then": "Workflow owns routing and Object Graph owns typed relationships; AI suggestions cannot close deterministic gates",
-      "test_ref": "crates/oya-enterprise-suite-domain/tests/workflow.rs::test_cross_product_workflow_uses_deterministic_gates"
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/workflow.rs::test_cross_product_workflow_uses_deterministic_gates and microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/workflow.rs::workflow_envelope_routes_to_workflow_without_executing_it"
     },
     {
       "id": "AC-05",
       "given": "a production incident or canary SLO breach occurs",
       "when": "enterprise runtime is unhealthy",
       "then": "rollback/quarantine happens first, incident JSON/evidence is emitted, and infra/config fixes converge through OpenTofu/ops",
-      "test_ref": "crates/oya-enterprise-suite-domain/tests/incident.rs::test_rollback_first_no_manual_ssh"
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-domain/tests/incident.rs::test_rollback_first_no_manual_ssh and microservices/enterprise-suite/crates/oya-enterprise-suite-app/tests/incident.rs::incident_envelope_is_metadata_only"
+    },
+    {
+      "id": "AC-06",
+      "given": "a developer integrator submits Enterprise Suite preview API JSON",
+      "when": "policy, group rollup, workflow, incident, or ops requests are decoded",
+      "then": "camelCase DTOs and stable SCREAMING_SNAKE_CASE enums convert into domain/app metadata inputs without mounting a runtime transport",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-api/tests/contracts.rs::child_write_admission_request_uses_camel_case_and_stable_enums and workflow_request_converts_to_app_envelope and incident_request_converts_to_incident_envelope"
+    },
+    {
+      "id": "AC-07",
+      "given": "a developer integrator consumes Enterprise Suite preview OpenAPI",
+      "when": "policy, group rollup, workflow, incident, or ops endpoints are inspected",
+      "then": "OpenAPI 3.2.0 exposes DTO-aligned request schemas with explicit preview non-claims and semver metadata",
+      "test_ref": "microservices/enterprise-suite/contracts/openapi-v1.yaml parsed with microservices/enterprise-suite/contracts/openapi-v1.meta.yaml by ./bin/oya gate validate api-semver --contracts-dir microservices/enterprise-suite/contracts"
+    },
+    {
+      "id": "AC-08",
+      "given": "Enterprise Suite preview contracts and crates exist",
+      "when": "self-hostable CI evaluates suite changes",
+      "then": "Jenkins LTS quality gates run fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence archival without deployment",
+      "test_ref": "microservices/enterprise-suite/ci/Jenkinsfile static lane scan plus package-group cargo tests/clippy"
+    },
+    {
+      "id": "AC-09",
+      "given": "a future Enterprise Suite HTTP adapter receives JSON for policy admission, group close rollup, cross-product Workflow planning, incident rollback planning, ops commands, or health checks",
+      "when": "the Enterprise Suite runtime adapter router dispatches the request through the repo-native Hyper foundation",
+      "then": "OpenAPI-aligned JSON responses and validation error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, auth enforcement runtime, storage, Workflow execution, OpenTofu execution, incident rollback execution, child-service calls, cloud integration, and runtime audit emission",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-runtime/tests/runtime.rs::{enterprise_suite_runtime_dispatches_policy_group_workflow_incident_and_ops,enterprise_suite_runtime_rejects_invalid_json_and_gate_bypass_errors,enterprise_suite_runtime_manifest_and_health_preserve_honest_non_claims}"
+    },
+    {
+      "id": "AC-10",
+      "given": "a future durable Enterprise Suite persistence adapter needs a stable contract for policy, group rollup, workflow, incident, and ops metadata",
+      "when": "the in-memory storage reference adapter records suite metadata envelopes",
+      "then": "idempotency keys are validated and duplicate writes are refused while explicit capability flags keep durable backend, Postgres RLS, cloud object store, runtime write path, and Workflow execution as non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-storage-adapter-inmemory/tests/storage.rs::{enterprise_suite_storage_records_metadata_without_durable_backend_claim,enterprise_suite_storage_refuses_duplicate_idempotency_keys,enterprise_suite_storage_reservation_validates_key_shape_and_allows_commit}"
+    },
+    {
+      "id": "AC-11",
+      "given": "a future Workflow engine or broker adapter needs Enterprise Suite cross-product dispatch intents",
+      "when": "the in-memory Workflow dispatch queue reference adapter records a prepared cross-product Workflow envelope",
+      "then": "required gate metadata, gate evidence counts, object-graph relationship refs, AI suggestion refs, and idempotency keys are preserved while durable queue, Workflow engine execution, broker publish, runtime execution, child-service calls, and audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-workflow-adapter-inmemory/tests/workflow.rs::{enterprise_suite_workflow_queue_records_dispatch_without_execution_claim,enterprise_suite_workflow_queue_refuses_duplicate_dispatches,enterprise_suite_workflow_queue_reservation_validates_key_shape_and_allows_commit}"
+    },
+    {
+      "id": "AC-12",
+      "given": "HR, Payroll, Accounting, and Enterprise Suite runtime adapters are router-ready but not deployed",
+      "when": "the local Enterprise runtime composition manifest catalogs child service routes",
+      "then": "service, method, path, operation id, request/response data-class metadata, and method/path uniqueness are preserved while deployed listener, authentication runtime, child network calls, storage integration, Workflow execution, cloud deployment, and runtime audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-local-runtime-composition/tests/composition.rs::{enterprise_local_runtime_composition_catalogs_child_routes_without_listener_claim,enterprise_local_runtime_composition_rejects_duplicate_method_paths}"
+    },
+    {
+      "id": "AC-13",
+      "given": "HR, Payroll, Accounting, and Enterprise Suite in-memory adapters exist and later cloud integration needs a local rehearsal seam",
+      "when": "the Enterprise local in-memory harness records real app-layer envelopes across the service-specific stores and Suite Workflow queue",
+      "then": "cross-service HR leave-impact, Payroll HR-intake/accounting-dispatch, Accounting payroll-posting, and Suite Workflow dispatch metadata are persisted in-process with counts and capabilities while durable storage, Postgres/RLS, deployed listener, child network calls, Workflow engine, broker publish, filing/disbursement rails, cloud deployment, and runtime audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-local-inmemory-harness/tests/harness.rs::{enterprise_local_inmemory_harness_records_cross_service_metadata_without_cloud_claim,enterprise_local_inmemory_harness_surfaces_duplicate_store_errors}"
+    },
+    {
+      "id": "AC-14",
+      "given": "ADR-0315 requires SAP-class ERP parity through flat service composition and explicitly forbids a monolithic microservices/erp service",
+      "when": "the Enterprise Suite executable ERP parity map is evaluated",
+      "then": "all SAP module rows are present with Oyatie service destinations, first-write owners, status/evidence refs, and capabilities while an ERP suite microservice, deployed listener, durable business-document store, Workflow execution, cloud deployment, and runtime audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::{erp_parity_map_covers_sap_modules_without_erp_suite_service,hcm_and_financial_rows_reference_landed_foundations_without_cloud_claim,map_records_new_required_operational_gaps_as_flat_services,capabilities_keep_runtime_and_cloud_non_claims_false,validation_rejects_erp_suite_destination}"
+    },
+    {
+      "id": "AC-15",
+      "given": "local route composition, in-memory harness, and executable ERP parity map are present but Oyatie cloud runtime integration is not yet deployed",
+      "when": "the Enterprise Suite cloud readiness gate builds its pre-cloud report",
+      "then": "local rehearsal readiness is true while cloud deployment readiness remains false with explicit blockers for listener, external identity-provider verification, durable storage runtime attachment, live Postgres/RLS runtime verification, Workflow engine, broker, filing/disbursement rails, runtime audit emission, cloud deployment evidence, and SLO evidence",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::{cloud_readiness_gate_reports_local_rehearsal_ready_but_cloud_blocked,cloud_readiness_gate_includes_auth_runtime_foundation_without_oidc_provider_claim,cloud_readiness_gate_includes_postgres_rls_storage_plan_without_database_claim,cloud_claim_validation_refuses_unresolved_blockers,cloud_claim_validation_detects_false_positive_ready_flag,required_cloud_blockers_are_stable_and_named}"
+    },
+    {
+      "id": "AC-16",
+      "given": "Enterprise Suite route composition and local rehearsal are ready and later Oyatie cloud deployment needs a GitOps-safe deployment manifest before actual cluster attachment",
+      "when": "the Enterprise Suite cloud deployment manifest foundation is validated and consumed by the cloud readiness gate",
+      "then": "Kubernetes namespace, deployment, service account, digest-pinned image ref, probe paths, replica/resource bounds, ArgoCD application ref, Jenkins quality gate ref, Cosign policy ref, network policy ref, OTel collector ref, SLO target, and imperative-deploy refusal are present while ArgoCD controller, Kubernetes cluster, image publication, Cosign runtime verification, OTel runtime export, cloud deployment evidence, and production SLO evidence remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-deployment-manifest/tests/manifest.rs::{cloud_deployment_manifest_preserves_gitops_security_and_nonclaims,cloud_deployment_manifest_rejects_imperative_deploy_overclaims,cloud_deployment_manifest_validates_namespace_image_resources_and_refs,cloud_deployment_manifest_validates_replica_probe_and_slo_bounds}; microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_manifest_foundation_without_cloud_claim"
+    },
+    {
+      "id": "AC-17",
+      "given": "Enterprise Suite local routes need tenant-bound authentication and authorization semantics before Oyatie cloud gateway integration",
+      "when": "the Enterprise Suite auth runtime foundation validates its route policy and evaluates access decisions",
+      "then": "deny-by-default route policies cover the local HR, Payroll, Accounting, and Enterprise Suite route catalog with issuer/audience/nonce/session checks, tenant isolation, route scopes, sensitive-data MFA/AAL2 requirements, break-glass audit requirements, and cloud-readiness-gate composition while OIDC signature verification, JWKS provider attachment, external identity-provider attachment, durable session storage, deployed gateway enforcement, and runtime audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-auth-runtime/tests/auth_runtime.rs::{auth_runtime_authorizes_scoped_tenant_route_and_denies_cross_tenant,auth_runtime_refuses_expired_bad_issuer_audience_and_nonce,auth_runtime_denies_by_default_and_requires_route_scope,auth_runtime_requires_mfa_and_assurance_for_sensitive_routes,auth_runtime_allows_break_glass_only_with_audit_on_allowed_route,auth_runtime_rejects_runtime_attachment_overclaims}; microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_auth_runtime_foundation_without_oidc_provider_claim"
+    },
+    {
+      "id": "AC-18",
+      "given": "Enterprise Suite in-memory storage seams need a durable Postgres/RLS schema plan before a live database adapter or cloud database is attached",
+      "when": "the Enterprise Suite Postgres/RLS storage plan validates and renders its review-only migration SQL",
+      "then": "tenant-scoped tables for policy admissions, group close rollups, cross-product Workflow plans, incident rollback plans, and ops commands include tenant_id, idempotency_key, payload_json, schema_version, audit evidence, composite tenant/idempotency primary keys, ENABLE ROW LEVEL SECURITY, FORCE ROW LEVEL SECURITY, restrictive current_setting-based policies, no delete policy, and cloud-readiness-gate composition while runtime database connection, migration application, live RLS verification, durable storage runtime, cloud database, and runtime audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-postgres-rls-storage/tests/storage_plan.rs::{postgres_rls_storage_plan_covers_suite_tables_with_tenant_rls,postgres_rls_storage_plan_renders_review_only_migration_sql,postgres_rls_storage_plan_rejects_missing_force_rls_or_tenant_column,postgres_rls_storage_plan_rejects_delete_policy_and_runtime_overclaims,postgres_rls_storage_plan_rejects_duplicate_tables_and_bad_idempotency_scope}; microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_postgres_rls_storage_plan_without_database_claim"
+    },
+    {
+      "id": "AC-19",
+      "given": "Enterprise Suite local route composition, auth runtime, and cloud deployment manifest are ready for later Oyatie cloud ingress",
+      "when": "listener and gateway exposure is planned before any deployed runtime listener or gateway controller is attached",
+      "then": "a review-only Kubernetes ClusterIP Service and Gateway API HTTPRoute plan covers all 19 local routes with auth-policy scope coverage, TLS/network-policy/authz requirements, probe/timeout/port bounds, and explicit non-claims for deployed listener, Gateway controller, load balancer, TLS certificate, runtime auth middleware, cloud deployment evidence, SLO evidence, and runtime audit-chain emission",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-listener-gateway/tests/listener_gateway.rs::{listener_gateway_plan_covers_runtime_routes_auth_policy_and_probe_contract,listener_gateway_plan_renders_review_only_service_and_httproute_manifest,listener_gateway_plan_rejects_route_auth_mismatch_or_duplicate_routes,listener_gateway_plan_rejects_public_ingress_or_runtime_overclaims,listener_gateway_plan_validates_ports_hosts_timeouts_and_probe_paths}; microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_listener_gateway_plan_without_deployed_listener_claim"
+    },
+    {
+      "id": "AC-20",
+      "given": "Enterprise Suite auth runtime and listener/gateway plans are ready for later external identity-provider integration",
+      "when": "OIDC discovery, JWKS, JWT claims, key rotation, tenant claim, MFA/assurance, and route-scope checks are planned before any runtime provider attachment",
+      "then": "a review-only identity-provider verification plan pins the issuer, audience, discovery document URL, JWKS URI, asymmetric signing algorithms, required iss/aud/exp/nbf/iat/sub/nonce/tenant_id/scp/amr/acr claims, clock-skew/token-age/cache/rotation bounds, and explicit non-claims for discovery fetch, JWKS fetch, signature verification, external IdP attachment, token introspection, durable session storage, runtime auth middleware, cloud gateway enforcement, and runtime audit-chain emission",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-identity-provider-verification/tests/identity_provider.rs::{identity_provider_verification_plan_covers_oidc_discovery_jwks_and_claims,identity_provider_verification_plan_renders_review_only_checklist,identity_provider_verification_plan_rejects_bad_issuer_audience_or_algorithm,identity_provider_verification_plan_rejects_claim_drift_and_duplicates,identity_provider_verification_plan_rejects_security_control_gaps_and_runtime_overclaims}; microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_identity_provider_verification_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-21",
+      "given": "Enterprise Suite local runtime composition has cloud readiness foundations but still lacks runtime audit-chain emission evidence",
+      "when": "audit-chain event contracts are planned before any write-ahead log, broker publish, Merkle sealer, cloud sink, or runtime emitter is attached",
+      "then": "a review-only audit-chain emission plan defines CloudEvents-style required context attributes, W3C traceparent correlation, OpenTelemetry log mapping intent, tenant/idempotency/payload-digest/evidence-ref extensions, nine Enterprise Suite event schemas, digest-only payload rules, no sensitive context attributes, and explicit non-claims for WAL runtime, broker publish, Merkle sealing runtime, cloud sink attachment, and runtime audit-chain emission while unblocking catalog/data-class gates needed for honest CI evidence",
+      "test_ref": "microservices/enterprise-suite/crates/oya-enterprise-suite-audit-chain-emission/tests/audit_chain_emission.rs::{enterprise_audit_chain_emission_plan_covers_cloudevents_trace_context_and_digest_only_payloads,enterprise_audit_chain_emission_plan_renders_review_only_checklist,enterprise_audit_chain_emission_plan_rejects_missing_required_metadata,enterprise_audit_chain_emission_plan_rejects_duplicate_events_and_runtime_overclaims,enterprise_audit_chain_emission_plan_rejects_bad_coordinate_or_sensitive_context}; microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_audit_chain_emission_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-22",
+      "given": "Enterprise Suite local cloud-readiness foundations need production SLO evidence prerequisites before Oyatie cloud promotion can be claimed",
+      "when": "SLO evidence is planned before any metrics backend, Alertmanager, canary runtime, rollback automation, multi-region telemetry, or production SLO evidence is attached",
+      "then": "a review-only SLO evidence contract defines OpenSLO manifest paths, OTel metric stream names, rolling error-budget windows, multi-window burn-rate alert policy, canary evidence refs, rollback release-gate refs, and explicit non-claims for runtime OTel export, metrics backend attachment, alert manager attachment, canary runtime, rollback automation, production SLO evidence, and multi-region SLO evidence while cloud-readiness still blocks production cloud claims on the unresolved SLO evidence blocker",
+      "test_ref": "crates/oya-enterprise-suite-slo-evidence/tests/slo_evidence.rs::{slo_evidence_plan_validates_error_budget_otel_and_nonclaims,slo_evidence_plan_preserves_openslo_manifest_paths_and_objective_mix,slo_evidence_plan_rejects_missing_objectives_or_unsafe_refs,slo_evidence_plan_rejects_runtime_or_production_overclaims,slo_evidence_plan_requires_actionable_burn_rate_windows}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_slo_evidence_plan_without_production_slo_claim"
+    },
+    {
+      "id": "AC-23",
+      "given": "Enterprise Suite cross-product Workflow dispatch metadata exists and later cloud integration needs an executable reference before durable Workflow engines or brokers are attached",
+      "when": "the in-memory Workflow adapter executes a queued cross-product Workflow envelope",
+      "then": "the reference deterministically closes each required gate/evidence pair in-process, records execution status and per-gate evidence, refuses missing dispatches, duplicate execution, and gate/evidence drift, and composes into cloud-readiness without claiming durable Workflow engine execution, broker publish, child-service calls, durable queue state, runtime audit-chain emission, or cloud deployment",
+      "test_ref": "crates/oya-enterprise-suite-workflow-adapter-inmemory/tests/workflow.rs::{enterprise_suite_workflow_queue_executes_required_gates_in_memory_without_broker_claim,enterprise_suite_workflow_queue_requires_dispatch_before_execution,enterprise_suite_workflow_queue_refuses_duplicate_execution,enterprise_suite_workflow_queue_rejects_execution_gate_evidence_drift}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_in_memory_workflow_execution_reference_without_engine_claim"
+    },
+    {
+      "id": "AC-24",
+      "given": "Enterprise Suite Payroll and Accounting statutory rulepack manifests exist but later cloud integration still lacks agency filing-rail evidence prerequisites",
+      "when": "statutory filing evidence is planned before any agency credential, live agency connection, submission runtime, disbursement rail, tax-payment execution, durable statutory archive, cloud deployment, production filing evidence, or runtime audit emission is attached",
+      "then": "a review-only statutory filing evidence contract covers KR HomeTax payroll withholding, KR NPS EDI social insurance, KR HomeTax VAT, and US IRS Modernized e-File corporate income tax authority surfaces with source rulepack evidence refs, payload schema refs, payload digest refs, submission-window refs, required agency receipt schema refs, credential-boundary refs, legal-entity isolation, human approval, and explicit non-claims for runtime submission, filing rail runtime, disbursement, payment execution, durable statutory archive, production filing evidence, cloud deployment, and runtime audit-chain emission while cloud-readiness still blocks production cloud claims on statutory filing and disbursement rails",
+      "test_ref": "crates/oya-enterprise-suite-statutory-filing-evidence/tests/statutory_filing.rs::{statutory_filing_evidence_plan_validates_controls_and_nonclaims,statutory_filing_evidence_plan_covers_kr_us_payroll_accounting_authorities,statutory_filing_evidence_plan_preserves_source_manifest_and_receipt_boundaries,statutory_filing_evidence_plan_rejects_missing_requirements_duplicate_and_authority_drift,statutory_filing_evidence_plan_rejects_unsafe_refs_and_runtime_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_statutory_filing_evidence_plan_without_rail_claim"
+    },
+    {
+      "id": "AC-25",
+      "given": "Enterprise Suite Payroll, Tax, Social Insurance, Treasury, and Procurement source evidence exists but later cloud integration still lacks disbursement/payment-rail evidence prerequisites",
+      "when": "disbursement evidence is planned before any bank credential, bank connection, payment execution, disbursement rail runtime, tax-payment execution, durable payment archive, production disbursement evidence, cloud deployment, or runtime audit emission is attached",
+      "then": "a review-only disbursement evidence contract covers US Nacha ACH payroll credit, US EFTPS federal tax payment, KR KFTC IFT social-insurance bank transfer, and EU EPC SEPA vendor credit-transfer surfaces with source rulepack or invoice evidence refs, payment-file schema refs, payment digest refs, beneficiary account privacy-boundary refs, dual approval Workflow refs, reconciliation receipt schema refs, rollback/reversal runbook refs, legal-entity scope, segregation of duties, dual approval, and explicit non-claims for runtime payment execution, bank credentials, bank connections, disbursement rail runtime, tax-payment execution, durable payment archive, production disbursement evidence, cloud deployment, and runtime audit-chain emission while cloud-readiness still blocks production cloud claims on the unresolved disbursement rail blocker",
+      "test_ref": "crates/oya-enterprise-suite-disbursement-evidence/tests/disbursement.rs::{disbursement_evidence_plan_validates_controls_and_nonclaims,disbursement_evidence_plan_covers_payroll_tax_social_insurance_and_vendor_rails,disbursement_evidence_plan_preserves_source_payment_and_reconciliation_boundaries,disbursement_evidence_plan_rejects_missing_requirements_duplicate_and_network_drift,disbursement_evidence_plan_rejects_unsafe_refs_missing_controls_and_runtime_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_disbursement_evidence_plan_without_payment_claim"
+    },
+    {
+      "id": "AC-26",
+      "given": "Enterprise Suite review-only Postgres/RLS storage schema exists and FD-001 microservices are intended to dogfood later as tenant workloads on the Oyatie Cloud substrate, but cloud integration still lacks runtime evidence prerequisites for durable storage claims",
+      "when": "Postgres/RLS runtime evidence is planned before any database connection, migration application, live RLS verification, durable storage runtime, cloud database, production backup restore, or runtime audit emission is attached",
+      "then": "a review-only Postgres/RLS runtime evidence contract covers TLS verify-full connection posture, migration digest matching, owner FORCE ROW LEVEL SECURITY, BYPASSRLS role absence, SELECT/INSERT/UPDATE tenant isolation probes, delete-forbidden behavior, idempotency conflict behavior, backup-restore rehearsal, and PITR rehearsal across the five Enterprise Suite storage-plan tables with official PostgreSQL doc refs, runtime-check refs, expected evidence refs, non-owner runtime-role requirements, tenant A/B probe contexts, and explicit non-claims for runtime database attachment, Postgres connection, migration application, live RLS verification, durable storage runtime, cloud database, production backup restore, and runtime audit-chain emission while cloud-readiness still blocks production cloud claims on durable storage and Postgres/RLS runtime evidence; FD-001 product delivery remains the master-plan product goal and this gate is only an Oyatie Cloud substrate proof prerequisite for hosting real production tenants",
+      "test_ref": "crates/oya-enterprise-suite-postgres-rls-runtime-evidence/tests/runtime_evidence.rs::{postgres_rls_runtime_evidence_plan_validates_controls_and_nonclaims,postgres_rls_runtime_evidence_plan_covers_tables_and_required_probe_kinds,postgres_rls_runtime_evidence_plan_preserves_official_docs_and_ref_boundaries,postgres_rls_runtime_evidence_plan_rejects_missing_probe_duplicate_and_doc_drift,postgres_rls_runtime_evidence_plan_rejects_unsafe_refs_missing_controls_and_runtime_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_postgres_rls_runtime_evidence_plan_without_live_database_claim"
+    },
+    {
+      "id": "AC-27",
+      "given": "FD-001 product delivery remains the master-plan product goal and Oyatie Cloud is the later hyperscaler-grade substrate used to dogfood FD-001 microservices as tenant workloads",
+      "when": "the Enterprise Suite tenant-workload manifest is planned before any Kubernetes namespace creation, ResourceQuota application, NetworkPolicy application, Gateway route attachment, workload deployment, live cloud substrate runtime, production tenant, or runtime audit emission is attached",
+      "then": "a review-only FD-001 tenant-workload manifest covers Enterprise Suite, HR Employment, Payroll Run, and Accounting Journal workloads with tenant namespace, cell, residency region, runtime package refs, route scope refs, deployment manifest refs, ResourceQuota refs, NetworkPolicy refs, service-account boundary refs, Gateway HTTPRoute refs, OpenTelemetry service namespace, tenant-claim requirements, per-workload evidence refs, official Kubernetes/Gateway API/OpenTelemetry doc refs, and explicit non-claims for production tenant attachment, namespace creation, quota/policy application, Gateway route attachment, workload runtime deployment, cloud-substrate runtime attachment, and runtime audit-chain emission while cloud-readiness still blocks production cloud claims on deployed listener, identity provider verification, durable storage, Workflow/broker, statutory/disbursement rails, runtime audit, cloud deployment evidence, and SLO evidence",
+      "test_ref": "crates/oya-enterprise-suite-tenant-workload-manifest/tests/tenant_workload_manifest.rs::{fd001_tenant_workload_manifest_validates_controls_and_nonclaims,fd001_tenant_workload_manifest_covers_fd001_workloads_and_official_sources,fd001_tenant_workload_manifest_preserves_per_workload_isolation_refs,fd001_tenant_workload_manifest_rejects_missing_duplicate_and_doc_drift,fd001_tenant_workload_manifest_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_workload_manifest_without_substrate_claim"
+    },
+    {
+      "id": "AC-28",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove those microservices can run as real production tenant workloads",
+      "when": "cloud deployment evidence is planned before any Argo CD controller attachment, Kubernetes cluster attachment, namespace creation, ResourceQuota application, NetworkPolicy application, Gateway route attachment, workload runtime deployment, runtime OpenTelemetry export, runtime audit-chain emission, or production cloud deployment evidence is attached",
+      "then": "a review-only Enterprise Suite cloud deployment evidence contract covers Argo CD Application sync and health, pinned Git revision, Cosign image verification, Kubernetes namespace, ResourceQuota, NetworkPolicy, ServiceAccount, Deployment availability, readiness-probe, Gateway HTTPRoute acceptance, OpenTelemetry resource identity, deployment audit event, and rollback-plan evidence refs with official source refs while cloud-readiness still blocks production cloud claims on unresolved cloud deployment evidence and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-cloud-deployment-evidence/tests/deployment_evidence.rs::{cloud_deployment_evidence_plan_validates_controls_and_nonclaims,cloud_deployment_evidence_plan_covers_required_requirement_kinds_and_docs,cloud_deployment_evidence_plan_preserves_evidence_ref_boundaries,cloud_deployment_evidence_plan_rejects_missing_duplicate_and_doc_drift,cloud_deployment_evidence_plan_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_cloud_deployment_evidence_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-29",
+      "given": "FD-001 product delivery remains the master-plan product goal, the listener/gateway plan exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can accept production tenant traffic",
+      "when": "deployed listener runtime evidence is planned before any socket binding, Gateway controller attachment, load balancer provisioning, TLS certificate binding, runtime auth middleware, NetworkPolicy application, runtime probe observation, production listener evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only Enterprise Suite listener runtime evidence contract covers ClusterIP Service observation, Gateway HTTPRoute acceptance, TLS certificate binding, readiness probe success, liveness probe success, synthetic health checks, route authorization enforcement, default-deny NetworkPolicy ingress denial, EndpointSlice readiness, graceful shutdown drain, access-log trace correlation, and listener deployment audit event evidence refs with official source refs while cloud-readiness still blocks production cloud claims on deployed listener runtime evidence and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-listener-runtime-evidence/tests/listener_runtime_evidence.rs::{listener_runtime_evidence_plan_validates_controls_and_nonclaims,listener_runtime_evidence_plan_covers_required_requirement_kinds_and_docs,listener_runtime_evidence_plan_preserves_ref_and_route_boundaries,listener_runtime_evidence_plan_rejects_missing_duplicate_and_doc_drift,listener_runtime_evidence_plan_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_listener_runtime_evidence_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-30",
+      "given": "FD-001 product delivery remains the master-plan product goal, the identity-provider verification plan exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 tenant workloads can trust production identity boundaries",
+      "when": "identity-provider runtime evidence is planned before any discovery fetch runtime, JWKS fetch runtime, OIDC signature verification attachment, external identity provider attachment, token introspection, durable session store, runtime auth middleware, cloud gateway enforcement, production identity-provider evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only Enterprise Suite identity-provider runtime evidence contract covers OpenID Connect discovery document observation, issuer metadata matching, JWKS fetch evidence, JWKS kid matching, JWT signature verification evidence, algorithm allowlist enforcement, issuer/audience/temporal claim checks, nonce replay denial, tenant-claim mapping, route-scope authorization, sensitive-route MFA enforcement, key-rotation overlap evidence, and authentication-failure audit event evidence refs with official OpenID Connect, JWS, JWK, JWT, JWT BCP, and CloudEvents source refs while cloud-readiness still blocks production cloud claims on identity-provider verification and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-identity-provider-runtime-evidence/tests/idp_runtime_evidence.rs::{idp_runtime_evidence_plan_validates_controls_and_nonclaims,idp_runtime_evidence_plan_covers_required_requirement_kinds_and_docs,idp_runtime_evidence_plan_preserves_ref_and_claim_boundaries,idp_runtime_evidence_plan_rejects_missing_duplicate_and_doc_drift,idp_runtime_evidence_plan_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_identity_provider_runtime_evidence_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-31",
+      "given": "FD-001 product delivery remains the master-plan product goal, the in-memory Workflow execution reference exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 tenant workloads can execute production workflows through durable engine and broker rails",
+      "when": "Workflow runtime evidence is planned before any production Workflow engine runtime, broker publish runtime, durable queue runtime, child service calls, cloud Workflow runtime, runtime OpenTelemetry export, runtime audit-chain emission, or production Workflow evidence is attached",
+      "then": "a review-only Enterprise Suite Workflow runtime evidence contract covers workflow definition version pinning, deterministic gate observation, dispatch idempotency, execution state transition evidence, durable queue acknowledgement, broker publish confirmation, broker retry and dead-letter routing, tenant partitioning, payload digest matching, child service call boundaries, OpenTelemetry messaging trace correlation, workflow audit events, and replay recovery evidence refs with official Serverless Workflow, AsyncAPI, CloudEvents, and OpenTelemetry source refs while cloud-readiness still blocks production cloud claims on Workflow engine and broker publish execution and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-workflow-runtime-evidence/tests/workflow_runtime_evidence.rs::{workflow_runtime_evidence_plan_validates_controls_and_nonclaims,workflow_runtime_evidence_plan_covers_required_requirement_kinds_and_docs,workflow_runtime_evidence_plan_preserves_ref_boundaries_and_inmemory_source_contract,workflow_runtime_evidence_plan_rejects_missing_duplicate_and_doc_drift,workflow_runtime_evidence_plan_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_workflow_runtime_evidence_plan_without_engine_or_broker_claim"
+    },
+    {
+      "id": "AC-32",
+      "given": "FD-001 product delivery remains the master-plan product goal, the Enterprise Suite audit-chain emission contract exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 tenant workloads can emit production audit evidence",
+      "when": "audit-chain runtime evidence is planned before any runtime emitter, write-ahead log runtime, broker publish runtime, Merkle sealer runtime, cloud audit sink, production audit emission evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only Enterprise Suite audit-chain runtime evidence contract covers CloudEvents envelope observation, W3C trace context propagation, OpenTelemetry log record mapping, tenant partitioning, idempotency deduplication, payload digest verification, sensitive payload redaction, write-ahead log append acknowledgement, outbox publish confirmation, broker acknowledgement, Merkle leaf inclusion, Merkle root sealing, sink ingestion, replay recovery, and failure-path audit evidence refs with official CloudEvents, W3C Trace Context, OpenTelemetry, AsyncAPI, RFC 8785, and RFC 9162 source refs while cloud-readiness still blocks production cloud claims on runtime audit emission and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-audit-chain-runtime-evidence/tests/audit_chain_runtime_evidence.rs::{audit_chain_runtime_evidence_plan_validates_controls_and_nonclaims,audit_chain_runtime_evidence_plan_covers_required_requirement_kinds_and_docs,audit_chain_runtime_evidence_plan_preserves_ref_boundaries_and_source_contract,audit_chain_runtime_evidence_plan_rejects_missing_duplicate_and_doc_drift,audit_chain_runtime_evidence_plan_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_audit_chain_runtime_evidence_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-33",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as real production tenant workloads",
+      "when": "tenant-workload runtime evidence is planned before any production tenant, Kubernetes runtime attachment, workload runtime deployment, Gateway controller attachment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant workload runtime evidence contract covers namespace observation, ResourceQuota usage, default-deny NetworkPolicy behavior, ServiceAccount boundary evidence, Pod security context, workload scheduling, resource requests and limits, readiness and liveness probes, Gateway HTTPRoute acceptance, tenant-claim propagation, OpenTelemetry resource identity, rollout recovery, and workload audit event evidence refs with official Kubernetes, Gateway API, and OpenTelemetry source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-workload-runtime-evidence/tests/tenant_workload_runtime_evidence.rs::{tenant_workload_runtime_evidence_plan_validates_controls_and_nonclaims,tenant_workload_runtime_evidence_plan_covers_required_requirement_kinds_and_docs,tenant_workload_runtime_evidence_plan_preserves_ref_boundaries_and_source_contract,tenant_workload_runtime_evidence_plan_rejects_missing_duplicate_and_doc_drift,tenant_workload_runtime_evidence_plan_rejects_unsafe_refs_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_runtime_evidence_plan_without_runtime_claim"
+    },
+    {
+      "id": "AC-34",
+      "given": "FD-001 product delivery remains the master-plan product goal, the Enterprise Suite Postgres/RLS storage plan exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 tenant workloads can persist real production tenant metadata durably",
+      "when": "a parameterized Postgres/RLS write contract is planned before any database connection, prepared statement runtime, write runtime, durable storage runtime, cloud database, production write evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only Enterprise Suite Postgres/RLS write contract covers SET LOCAL tenant context, parameterized INSERT values, idempotent ON CONFLICT DO NOTHING behavior, tenant-scoped readback by idempotency key, schema-version return, delete-statement prohibition, storage-plan table coverage, and official PostgreSQL source refs while cloud-readiness still blocks durable runtime claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-postgres-rls-write-contract/tests/write_contract.rs::{postgres_rls_write_contract_validates_controls_and_nonclaims,postgres_rls_write_contract_covers_storage_plan_tables_and_docs,postgres_rls_write_contract_preserves_parameterized_tenant_scoped_sql,postgres_rls_write_contract_rejects_missing_duplicate_and_doc_drift,postgres_rls_write_contract_rejects_unparameterized_sql_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_postgres_write_contract_without_runtime_claim"
+    },
+    {
+      "id": "AC-35",
+      "given": "FD-001 product delivery remains the master-plan product goal, the Enterprise Suite Postgres/RLS write contract exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 tenant workloads can persist real production tenant metadata durably",
+      "when": "a Postgres/RLS transaction and prepared-statement execution contract is planned before any database connection, transaction runtime, prepared statement runtime, write runtime, durable storage runtime, cloud database, production write evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only Enterprise Suite Postgres/RLS transaction contract covers explicit BEGIN, transaction-local tenant context binding through set_config, prepared insert statements, bound execution, tenant-scoped readback, commit only after readback, rollback on failure, autocommit write prohibition, write-contract table coverage, and official PostgreSQL source refs while cloud-readiness still blocks durable runtime claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-postgres-rls-transaction-contract/tests/transaction_contract.rs::{postgres_rls_transaction_contract_validates_controls_and_nonclaims,postgres_rls_transaction_contract_covers_tables_steps_and_docs,postgres_rls_transaction_contract_preserves_transaction_local_bound_execution,postgres_rls_transaction_contract_rejects_missing_duplicate_and_doc_drift,postgres_rls_transaction_contract_rejects_autocommit_context_drift_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_postgres_transaction_contract_without_runtime_claim"
+    },
+    {
+      "id": "AC-36",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest exists, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as guarded production tenant workloads",
+      "when": "a Kubernetes tenant admission policy contract is planned before any Kubernetes cluster attachment, admission controller runtime, admission policy application, runtime admission enforcement, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant admission policy contract covers ValidatingAdmissionPolicy and binding requirements, fail-closed Deny actions, tenant labels, digest-pinned images, latest-tag prohibition, resource requests and limits, service-account boundaries, default service-account prohibition, service-account token automount prohibition, Pod Security Admission restricted namespace labels, ResourceQuota requirement, default-deny NetworkPolicy requirement, admission audit annotations, all FD-001 manifest workloads in scope, and official Kubernetes source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-admission-policy/tests/admission_policy.rs::{tenant_admission_policy_contract_validates_controls_and_nonclaims,tenant_admission_policy_contract_covers_workloads_rule_kinds_and_docs,tenant_admission_policy_contract_preserves_fail_closed_deny_controls,tenant_admission_policy_contract_rejects_missing_duplicate_doc_and_ref_drift,tenant_admission_policy_contract_rejects_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_admission_policy_without_runtime_claim"
+    },
+    {
+      "id": "AC-37",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest and tenant admission policy contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as guarded production tenant workloads",
+      "when": "tenant image provenance and SBOM evidence is planned before any image registry attachment, image publication, Cosign runtime verification, transparency-log runtime verification, SLSA provenance runtime verification, SBOM runtime publication, vulnerability scanner attachment, admission controller runtime, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant image provenance contract covers all FD-001 manifest workloads in scope, OCI digest pinning, Cosign signature verification, keyless OIDC identity binding, transparency-log evidence, in-toto statement requirements, SLSA provenance, builder-id pinning, source-revision pinning, SBOM requirements, vulnerability scan gate requirements, tenant-admission policy evidence linkage, and official OCI/Sigstore/SLSA/in-toto/SPDX/CycloneDX source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-image-provenance-contract/tests/image_provenance.rs::{tenant_image_provenance_contract_validates_controls_and_nonclaims,tenant_image_provenance_contract_covers_workloads_controls_and_docs,tenant_image_provenance_contract_preserves_refs_and_all_workload_scope,tenant_image_provenance_contract_rejects_missing_duplicate_doc_and_ref_drift,tenant_image_provenance_contract_rejects_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_image_provenance_without_runtime_claim"
+    },
+    {
+      "id": "AC-38",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest and tenant admission policy contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as guarded production tenant workloads",
+      "when": "tenant secret-boundary evidence is planned before any Kubernetes Secret creation, secret data materialization, encryption provider runtime attachment, external secret store runtime attachment, RBAC runtime application, projected-token runtime attachment, secret rotation runtime, secret-access runtime audit, admission controller runtime, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant secret-boundary contract covers all FD-001 manifest workloads in scope, no-inline-secret-material requirements, Kubernetes Secret reference requirements, at-rest encryption evidence, RBAC least privilege, namespace secret isolation, workload-scoped ServiceAccounts, service-account token automount prohibition, short-lived projected-token boundaries, external secret-store handoff boundaries, rotation evidence, secret-access audit evidence, tenant-admission policy evidence linkage, and official Kubernetes source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-secret-boundary-contract/tests/secret_boundary.rs::{tenant_secret_boundary_contract_validates_controls_and_nonclaims,tenant_secret_boundary_contract_covers_workloads_controls_and_docs,tenant_secret_boundary_contract_preserves_refs_and_all_workload_scope,tenant_secret_boundary_contract_rejects_missing_duplicate_doc_and_ref_drift,tenant_secret_boundary_contract_rejects_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_secret_boundary_without_runtime_claim"
+    },
+    {
+      "id": "AC-39",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest and tenant admission policy contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as guarded production tenant workloads",
+      "when": "tenant network egress evidence is planned before any Kubernetes cluster attachment, network-policy provider attachment, NetworkPolicy application, runtime egress enforcement, DNS probe runtime, external egress runtime allowance, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant egress policy contract covers all FD-001 manifest workloads in scope, Kubernetes NetworkPolicy egress isolation, default-deny egress, DNS-only egress exceptions, same-namespace Service allowlists, explicit cross-namespace selectors, external CIDR deny-by-default posture, ipBlock exception evidence, pinned ports and protocols, tenant label selectors, network-policy provider evidence, egress audit evidence, tenant-admission policy evidence linkage, and official Kubernetes source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-egress-policy-contract/tests/egress_policy.rs::{tenant_egress_policy_contract_validates_controls_and_nonclaims,tenant_egress_policy_contract_covers_workloads_rules_and_docs,tenant_egress_policy_contract_preserves_network_policy_refs_and_scope,tenant_egress_policy_contract_rejects_missing_duplicate_doc_and_ref_drift,tenant_egress_policy_contract_rejects_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_egress_policy_without_runtime_claim"
+    },
+    {
+      "id": "AC-40",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest and tenant admission policy contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as guarded production tenant workloads",
+      "when": "tenant ResourceQuota and LimitRange guardrails are planned before any Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime attachment, LimitRanger runtime attachment, quota usage runtime observation, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant ResourceQuota and LimitRange contract covers all FD-001 manifest workloads in scope, namespace ResourceQuota requirements, compute requests quotas, compute limits quotas, object-count quotas, persistent-storage quotas, LimitRange defaults, LimitRange min/max bounds, container requests and limits, ResourceQuota admission evidence, LimitRanger admission evidence, tenant label selectors, quota usage audit evidence, tenant-admission policy evidence linkage, and official Kubernetes source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-resource-quota-contract/tests/resource_quota.rs::{tenant_resource_quota_contract_validates_controls_and_nonclaims,tenant_resource_quota_contract_covers_workloads_requirements_and_docs,tenant_resource_quota_contract_preserves_quota_refs_and_scope,tenant_resource_quota_contract_rejects_missing_duplicate_doc_and_ref_drift,tenant_resource_quota_contract_rejects_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_resource_quota_without_runtime_claim"
+    },
+    {
+      "id": "AC-41",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest and tenant admission policy contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as resilient production tenant workloads",
+      "when": "tenant availability, scheduling, and disruption guardrails are planned before any Kubernetes cluster attachment, PodDisruptionBudget application, topology-spread application, pod anti-affinity application, scheduler runtime observation, rolling-update runtime observation, readiness-probe runtime observation, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant availability contract covers all FD-001 manifest workloads in scope, PodDisruptionBudget requirements, minimum-available budgets, multi-replica workload requirements, zone topology spread, hostname topology spread, pod anti-affinity, node topology-label evidence, rolling-update availability, progress deadlines, readiness-probe evidence, tenant label selectors, disruption audit evidence, tenant-admission policy evidence linkage, and official Kubernetes source refs while cloud-readiness still blocks production cloud claims and does not recast Oyatie Cloud as the FD-001 product goal",
+      "test_ref": "crates/oya-enterprise-suite-tenant-availability-contract/tests/availability.rs::{tenant_availability_contract_validates_controls_and_nonclaims,tenant_availability_contract_covers_workloads_requirements_and_docs,tenant_availability_contract_preserves_availability_refs_and_scope,tenant_availability_contract_rejects_missing_duplicate_doc_and_ref_drift,tenant_availability_contract_rejects_missing_controls_and_overclaims}; crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_includes_tenant_availability_without_runtime_claim"
+    },
+    {
+      "id": "AC-42",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, and availability contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as elastic production tenant workloads",
+      "when": "tenant autoscaling guardrails are planned before any Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant autoscaling contract covers all FD-001 manifest workloads in scope, Kubernetes HorizontalPodAutoscaler requirements, autoscaling/v2 API usage, min/max replica bounds, CPU and memory resource metrics, resource metrics pipeline evidence, scale-up behavior policies, scale-down behavior policies, stabilization windows, tenant label selectors, scaling audit evidence, tenant admission policy evidence linkage, and official Kubernetes source refs without recasting Oyatie Cloud as the product goal",
+      "test_ref": [
+        "cargo test -p oya-enterprise-suite-tenant-autoscaling-contract",
+        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_autoscaling_without_runtime_claim"
+      ]
+    },
+    {
+      "id": "AC-43",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, availability, and autoscaling contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as economically attributable production tenant workloads",
+      "when": "tenant cost-allocation and FinOps showback guardrails are planned before any Kubernetes cluster attachment, resource metrics runtime attachment, OpenTelemetry collector runtime attachment, FinOps runtime attachment, cost report runtime generation, billing export runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant cost-allocation contract covers all FD-001 manifest workloads in scope, Kubernetes tenant cost-allocation labels, Kubernetes recommended application labels, namespace cost boundaries, workload resource requests, ResourceQuota usage evidence, OpenTelemetry service resources, OpenTelemetry Kubernetes resource attributes, FinOps allocation strategy, shared-cost policy, allocation coverage KPIs, tenant label selectors, cost-allocation audit evidence, tenant admission policy evidence linkage, and official FinOps/Kubernetes/OpenTelemetry source refs without recasting Oyatie Cloud as the product goal",
+      "test_ref": [
+        "cargo test -p oya-enterprise-suite-tenant-cost-allocation-contract",
+        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_cost_allocation_without_runtime_claim"
+      ]
+    },
+    {
+      "id": "AC-44",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, availability, autoscaling, and cost-allocation contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as residency-bound production tenant workloads",
+      "when": "tenant residency and data-perimeter placement guardrails are planned before any Kubernetes cluster attachment, namespace creation, node-affinity application, scheduler runtime observation, storage residency runtime attachment, telemetry residency runtime attachment, audit residency runtime attachment, cross-region egress runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant residency contract covers all FD-001 manifest workloads in scope, tenant residency region labels, namespace residency labels, workload node-affinity requirements, topology region constraints, storage residency policy refs, telemetry residency policy refs, audit residency policy refs, cross-region egress policy refs, tenant-model jurisdiction refs, cell-placement residency refs, admission-policy evidence, workload-manifest evidence, residency audit evidence, and official Kubernetes/OpenTelemetry/AWS data-perimeter source refs without recasting Oyatie Cloud as the product goal",
+      "test_ref": [
+        "cargo test -p oya-enterprise-suite-tenant-residency-contract",
+        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_residency_without_runtime_claim"
+      ]
+    },
+    {
+      "id": "AC-45",
+      "given": "FD-001 product delivery remains the master-plan product goal, the FD-001 tenant-workload manifest plus tenant admission, resource quota, availability, autoscaling, cost-allocation, and residency contracts exist, and Oyatie Cloud is the later hyperscaler-grade substrate used to prove FD-001 microservices can run as zero-trust production tenant workloads",
+      "when": "tenant workload cryptographic identity and service-to-service trust guardrails are planned before any Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE server runtime attachment, SPIRE agent runtime attachment, SVID runtime issuance, mTLS handshake observation, certificate-rotation runtime observation, Gateway BackendTLSPolicy application, authorization-policy runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached",
+      "then": "a review-only FD-001 tenant workload-identity contract covers all FD-001 manifest workloads in scope, SPIFFE IDs, pinned trust domain, X.509 SVID requirements, JWT-SVID policy, mutual TLS policy, Gateway API BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, tenant-admission policy evidence linkage, workload-manifest evidence, and official SPIFFE/SPIRE/Kubernetes/Gateway API/OpenTelemetry source refs without recasting Oyatie Cloud as the product goal",
+      "test_ref": [
+        "cargo test -p oya-enterprise-suite-tenant-workload-identity-contract",
+        "cargo test -p oya-enterprise-suite-cloud-readiness-gate cloud_readiness_gate_includes_tenant_workload_identity_without_runtime_claim"
+      ],
+      "evidence_ref": "evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json"
     }
   ],
   "scope": {
@@ -187,7 +481,12 @@
       "enterprise.suite.policy.v1",
       "enterprise.legal_entity_context.v1",
       "enterprise.cross_product_workflow.v1",
-      "enterprise.close_evidence.v1"
+      "enterprise.close_evidence.v1",
+      "enterprise.suite.api_dto.v1",
+      "enterprise.incident_rollback.v1",
+      "enterprise.suite.openapi.v1",
+      "enterprise.suite.policy_admission.openapi.v1",
+      "enterprise.suite.incident_rollback.openapi.v1"
     ]
   },
   "data_model": {
@@ -370,6 +669,16 @@
       },
       "verification_ref": "oya gate validate enterprise-close-evidence",
       "lane_ref": "audit-chain"
+    },
+    {
+      "name": "enterprise_suite_slo_evidence_contract_coverage_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "cargo test -p oya-enterprise-suite-slo-evidence && oya gate validate enterprise-slo-coverage",
+      "lane_ref": "slo-coverage"
     }
   ],
   "risks": [
@@ -745,6 +1054,174 @@
       "planned_verification_ref": "oya gate validate enterprise-enterprisesuite-scale-model",
       "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
       "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "slo_error_budget_release_gating",
+      "target": "OpenSLO manifests, OTel metric streams, multi-window burn-rate alerts, canary evidence, and rollback gates exist before production SLO evidence is claimed",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-slo-evidence && oya gate validate enterprise-slo-coverage",
+      "enforcement_status": "foundation_contract_landed_pending_runtime_evidence",
+      "enforcement_note": "CS-ENT-SUITE-SLO-EVIDENCE-001 defines the contract and keeps production SLO evidence as a blocker until runtime telemetry, metrics backend, alert manager, canary, rollback automation, and multi-region evidence land."
+    },
+    {
+      "dimension": "workflow_execution_determinism",
+      "target": "Every in-memory Workflow reference execution closes an already-queued deterministic gate/evidence set exactly once before any durable Workflow engine or broker runtime is claimed",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-workflow-adapter-inmemory && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_reference_landed_pending_durable_engine",
+      "enforcement_note": "CS-ENT-SUITE-WORKFLOW-EXECUTION-001 records process-local execution evidence and keeps Workflow engine execution, broker publish, child-service calls, durable queue state, and runtime audit-chain emission as blockers."
+    },
+    {
+      "dimension": "statutory_filing_evidence_gate",
+      "target": "KR and US statutory filing rails require official authority refs, source rulepack evidence, payload digests, agency receipt schemas, credential boundaries, legal-entity isolation, and human approval before any runtime submission or disbursement rail is claimed",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-statutory-filing-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_runtime_filing_rail",
+      "enforcement_note": "CS-ENT-SUITE-STATUTORY-FILING-EVIDENCE-001 defines the filing evidence contract and keeps agency credentials, live agency connections, runtime submissions, tax payment execution, durable statutory archive, and production filing evidence as blockers."
+    },
+    {
+      "dimension": "disbursement_evidence_gate",
+      "target": "Payroll, tax, social-insurance, and vendor disbursement rails require official network/authority refs, source evidence, payment-file schemas, payment digests, beneficiary account privacy boundaries, dual approval, reconciliation receipts, rollback/reversal runbooks, legal-entity scope, and segregation of duties before any payment execution or bank connection is claimed",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-disbursement-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_runtime_disbursement_rail",
+      "enforcement_note": "CS-ENT-SUITE-DISBURSEMENT-EVIDENCE-001 defines the disbursement evidence contract and keeps bank credentials, bank connections, payment execution, disbursement rail runtime, tax-payment execution, durable payment archive, production disbursement evidence, cloud deployment, and runtime audit-chain emission as blockers."
+    },
+    {
+      "dimension": "postgres_rls_runtime_evidence_gate",
+      "target": "Enterprise Suite durable storage claims for FD-001 tenant workloads on Oyatie Cloud require TLS verify-full posture, migration digest application evidence, non-owner runtime role, FORCE RLS, BYPASSRLS absence, tenant cross-read/write denial probes, delete-forbidden and idempotency conflict probes, backup restore rehearsal, and PITR rehearsal before any live Postgres/RLS or cloud database readiness claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-postgres-rls-runtime-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_postgres_rls_runtime",
+      "enforcement_note": "CS-ENT-SUITE-POSTGRES-RLS-RUNTIME-EVIDENCE-001 defines the runtime evidence contract as an Oyatie Cloud substrate prerequisite and keeps database connections, migration application, live RLS verification, durable storage runtime, cloud database, production backup restore, and runtime audit-chain emission as blockers."
+    },
+    {
+      "dimension": "tenant_workload_manifest_gate",
+      "target": "FD-001 tenant-workload dogfooding on Oyatie Cloud requires namespace isolation, resource quota, network policy, service-account boundary, Gateway HTTPRoute, route auth scope, tenant-claim, legal-entity claim, OpenTelemetry resource identity, and per-workload evidence refs before any live cloud-substrate tenant or workload deployment claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-workload-manifest && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_oyatie_cloud_substrate",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-WORKLOAD-MANIFEST-001 defines the review-only FD-001 tenant workload manifest and keeps production tenant, namespace creation, quota/policy application, Gateway route attachment, workload deployment, cloud-substrate runtime, and runtime audit-chain emission as blockers."
+    },
+    {
+      "dimension": "cloud_deployment_evidence_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require Argo CD sync/health, pinned Git revision, Cosign image verification, Kubernetes namespace/quota/network/service-account observations, Deployment availability, readiness probes, Gateway HTTPRoute acceptance, OpenTelemetry resource identity, deployment audit event, and rollback-plan evidence before any live cloud deployment or production tenant claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-cloud-deployment-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_cloud_deployment_evidence",
+      "enforcement_note": "CS-ENT-SUITE-CLOUD-DEPLOYMENT-EVIDENCE-001 defines the review-only cloud deployment evidence contract as an Oyatie Cloud substrate proof prerequisite while keeping Argo CD controller attachment, Kubernetes cluster attachment, namespace creation, quota/policy application, Gateway route attachment, workload runtime deployment, runtime OTel export, production cloud deployment evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "listener_runtime_evidence_gate",
+      "target": "FD-001 Enterprise Suite listener promotion on Oyatie Cloud requires ClusterIP Service observation, Gateway HTTPRoute acceptance, TLS certificate binding, readiness/liveness/synthetic health probes, route authorization enforcement, default-deny NetworkPolicy evidence, EndpointSlice readiness, graceful shutdown drain, trace-correlated access logs, and deployment audit event evidence before any live listener or production tenant traffic claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-listener-runtime-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_listener_runtime_evidence",
+      "enforcement_note": "CS-ENT-SUITE-LISTENER-RUNTIME-EVIDENCE-001 defines the review-only listener runtime evidence contract as an Oyatie Cloud substrate proof prerequisite while keeping socket binding, Gateway controller attachment, load balancer provisioning, TLS certificate attachment, runtime auth middleware, NetworkPolicy application, runtime probe observation, production listener evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "identity_provider_runtime_evidence_gate",
+      "target": "FD-001 Enterprise Suite identity-provider promotion on Oyatie Cloud requires OIDC discovery observation, issuer and JWKS evidence, kid and signature verification evidence, algorithm allowlist enforcement, issuer/audience/temporal/nonce/tenant/scope/MFA claim evidence, key-rotation overlap evidence, and authentication-failure audit event evidence before any live external IdP or production tenant identity claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-identity-provider-runtime-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_identity_provider_runtime_evidence",
+      "enforcement_note": "CS-ENT-SUITE-IDP-RUNTIME-EVIDENCE-001 defines the review-only identity-provider runtime evidence contract as an Oyatie Cloud substrate proof prerequisite while keeping discovery fetch runtime, JWKS fetch runtime, OIDC signature verification attachment, external identity provider attachment, token introspection, durable session store, runtime auth middleware, cloud gateway enforcement, production identity-provider evidence, and runtime audit-chain emission as blockers."
+    },
+    {
+      "dimension": "workflow_runtime_evidence_gate",
+      "target": "FD-001 Enterprise Suite Workflow promotion on Oyatie Cloud requires pinned workflow definitions, deterministic gate evidence, idempotent dispatch, execution state transitions, durable queue acknowledgements, broker publish confirmation, retry and dead-letter evidence, tenant partitioning, payload digests, child-service boundaries, OpenTelemetry messaging traces, workflow audit events, and replay recovery before any live engine or broker claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-workflow-runtime-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_workflow_engine_broker_runtime",
+      "enforcement_note": "CS-ENT-SUITE-WORKFLOW-RUNTIME-EVIDENCE-001 defines the review-only Workflow runtime evidence contract as an Oyatie Cloud substrate proof prerequisite while keeping Workflow engine runtime, broker publish runtime, durable queue runtime, child-service calls, cloud Workflow runtime, runtime OTel export, production Workflow evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "audit_chain_runtime_evidence_gate",
+      "target": "FD-001 Enterprise Suite audit-chain promotion on Oyatie Cloud requires CloudEvents envelopes, W3C trace context, OpenTelemetry log mapping, tenant partitioning, idempotent dedupe, payload digest verification, sensitive payload redaction, WAL append acknowledgement, outbox publish, broker acknowledgement, Merkle inclusion and sealing, sink ingestion, replay recovery, and failure-path audit evidence before any live audit emitter or runtime audit-chain claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-audit-chain-runtime-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_runtime_audit_chain_emission",
+      "enforcement_note": "CS-ENT-SUITE-AUDIT-RUNTIME-EVIDENCE-001 defines the review-only audit-chain runtime evidence contract as an Oyatie Cloud substrate proof prerequisite while keeping runtime emitter, WAL runtime, broker publish runtime, Merkle sealer runtime, cloud audit sink, production audit emission evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_workload_runtime_evidence_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require namespace, ResourceQuota usage, default-deny NetworkPolicy, ServiceAccount boundary, Pod security, scheduling, resource request/limit, readiness/liveness probe, Gateway acceptance, tenant-claim propagation, OpenTelemetry resource identity, rollout recovery, and workload audit event evidence before any live tenant workload or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-workload-runtime-evidence && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_workload_runtime_evidence",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-RUNTIME-EVIDENCE-001 defines the review-only tenant workload runtime evidence contract as an Oyatie Cloud substrate proof prerequisite while keeping production tenant, Kubernetes runtime attachment, workload deployment, Gateway controller attachment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "postgres_rls_write_contract_gate",
+      "target": "Enterprise Suite durable Postgres adapters for FD-001 tenant workloads on Oyatie Cloud must use SET LOCAL app.tenant_id, parameterized INSERT values, idempotent ON CONFLICT DO NOTHING, tenant-scoped readback by idempotency key, schema-version return, and delete-statement prohibition before any write runtime or durable storage claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-postgres-rls-write-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_postgres_write_runtime",
+      "enforcement_note": "CS-ENT-SUITE-POSTGRES-WRITE-CONTRACT-001 defines the review-only parameterized write contract as an Oyatie Cloud substrate prerequisite while keeping database connections, prepared statement runtime, write execution, durable storage runtime, cloud database, production write evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "postgres_rls_transaction_contract_gate",
+      "target": "Enterprise Suite durable Postgres adapters for FD-001 tenant workloads on Oyatie Cloud must execute tenant-scoped writes inside explicit transactions, bind app.tenant_id transaction-locally through set_config, use prepared insert statements with bound parameters, read back by tenant/idempotency key, commit only after readback, rollback on failure, and forbid autocommit writes before any transaction runtime or durable storage claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-postgres-rls-transaction-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_postgres_transaction_runtime",
+      "enforcement_note": "CS-ENT-SUITE-POSTGRES-TX-CONTRACT-001 defines the review-only transaction/prepared-statement contract as an Oyatie Cloud substrate prerequisite while keeping database connections, transaction runtime, prepared statement runtime, write execution, durable storage runtime, cloud database, production write evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_admission_policy_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require ValidatingAdmissionPolicy plus binding guardrails across all manifest workloads with failurePolicy Fail, Deny actions, tenant labels, digest-pinned images, no latest tags, resource requests and limits, service-account boundaries, default service-account prohibition, service-account token automount prohibition, Pod Security restricted namespace labels, ResourceQuota, default-deny NetworkPolicy, and admission audit annotations before any admission runtime or workload deployment claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-admission-policy && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_admission_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-ADMISSION-POLICY-001 defines the review-only tenant admission policy contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, admission controller runtime, policy application, runtime admission enforcement, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_image_provenance_gate",
+      "target": "FD-001 tenant workload images on Oyatie Cloud require OCI digest pinning, Cosign signature verification, keyless OIDC identity binding, transparency-log evidence, in-toto/SLSA provenance, pinned builder identity, pinned source revision, SBOM publication contract, vulnerability scan gate contract, and tenant-admission policy evidence linkage across all manifest workloads before any image publication, runtime verification, admission runtime, or workload deployment claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-image-provenance-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_image_provenance_runtime",
+      "enforcement_note": "CS-ENT-SUITE-IMAGE-PROVENANCE-CONTRACT-001 defines the review-only tenant image provenance and SBOM contract as an Oyatie Cloud substrate prerequisite while keeping image registry attachment, image publication, Cosign runtime verification, transparency-log runtime verification, SLSA provenance runtime verification, SBOM runtime publication, vulnerability scanner attachment, admission controller runtime, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_secret_boundary_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require no inline secret material, Kubernetes Secret references, encryption-at-rest evidence, RBAC least privilege, namespace-scoped secret isolation, workload-scoped ServiceAccounts, service-account token automount prohibition, short-lived projected-token boundaries, external secret-store handoff boundaries, rotation evidence, secret-access audit evidence, and tenant-admission policy evidence linkage across all manifest workloads before any secret runtime, admission runtime, or workload deployment claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-secret-boundary-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_secret_boundary_runtime",
+      "enforcement_note": "CS-ENT-SUITE-SECRET-BOUNDARY-CONTRACT-001 defines the review-only tenant secret-boundary contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes Secret creation, secret data materialization, encryption provider runtime, external secret store runtime, RBAC runtime application, projected-token runtime, rotation runtime, secret-access runtime audit, admission controller runtime, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_egress_policy_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require Kubernetes NetworkPolicy egress isolation, default-deny egress, DNS-only egress exceptions, same-namespace Service allowlists, explicit cross-namespace selectors, external CIDR deny-by-default posture, ipBlock exception evidence, pinned ports/protocols, tenant label selectors, network-policy provider evidence, egress audit evidence, and tenant-admission policy evidence linkage across all manifest workloads before any network-policy runtime, egress runtime, or workload deployment claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-egress-policy-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_egress_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-EGRESS-POLICY-CONTRACT-001 defines the review-only tenant egress policy contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, network-policy provider attachment, NetworkPolicy application, runtime egress enforcement, DNS probe runtime, external egress runtime allowance, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_resource_quota_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require namespace ResourceQuota, compute requests and limits quotas, object-count quotas, persistent-storage quotas, LimitRange defaults, LimitRange min/max bounds, container requests/limits, ResourceQuota and LimitRanger admission evidence, tenant labels, quota usage audit evidence, and tenant-admission policy evidence linkage across all manifest workloads before any quota runtime, workload deployment, or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-resource-quota-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_quota_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001 defines the review-only tenant ResourceQuota and LimitRange contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime, LimitRanger runtime, quota usage runtime observation, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_availability_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require PodDisruptionBudgets, minimum-available budgets, multi-replica workload policy, zone and hostname topology spread, pod anti-affinity, node topology-label evidence, rolling-update availability, progress-deadline evidence, readiness-probe evidence, tenant labels, disruption audit evidence, and tenant-admission policy evidence linkage across all manifest workloads before any scheduler runtime, rollout runtime, workload deployment, or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-availability-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_availability_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-AVAILABILITY-CONTRACT-001 defines the review-only tenant availability, scheduling, and disruption contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, PodDisruptionBudget application, topology-spread application, pod anti-affinity application, scheduler runtime observation, rolling-update runtime observation, readiness-probe runtime observation, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_autoscaling_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require HorizontalPodAutoscaler contracts, autoscaling/v2 API usage, min/max replica bounds, CPU and memory resource metrics, resource metrics pipeline evidence, scale-up and scale-down behavior policies, stabilization windows, tenant labels, scaling audit evidence, and tenant-admission policy evidence linkage across all manifest workloads before any autoscaling runtime, workload deployment, or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-autoscaling-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_autoscaling_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-AUTOSCALING-CONTRACT-001 defines the review-only tenant autoscaling contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_cost_allocation_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require tenant cost-allocation labels, Kubernetes recommended application labels, namespace cost boundaries, workload resource requests, ResourceQuota usage evidence, OpenTelemetry service resources, OpenTelemetry Kubernetes resource attributes, FinOps allocation strategy, shared-cost policy, allocation coverage KPIs, tenant selectors, cost-allocation audit evidence, and tenant-admission policy evidence linkage across all manifest workloads before any cost runtime, workload deployment, or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-cost-allocation-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_cost_allocation_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-COST-ALLOCATION-CONTRACT-001 defines the review-only tenant cost-allocation and FinOps showback contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, resource metrics runtime attachment, OpenTelemetry collector runtime attachment, FinOps runtime attachment, cost report runtime generation, billing export runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_residency_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require tenant residency region labels, namespace residency labels, workload node affinity, topology region constraints, storage/telemetry/audit residency policy refs, cross-region egress policy refs, tenant-model jurisdiction refs, cell-placement residency refs, admission evidence, workload-manifest evidence, and residency audit evidence across all manifest workloads before any scheduler runtime, storage runtime, telemetry runtime, workload deployment, or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-residency-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_residency_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-RESIDENCY-CONTRACT-001 defines the review-only tenant residency placement and data-perimeter contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, namespace creation, node-affinity application, scheduler runtime observation, storage residency runtime, telemetry residency runtime, audit residency runtime, cross-region egress runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, and runtime audit-chain emission as blockers. FD-001 remains the product goal; Oyatie Cloud is the substrate proof."
+    },
+    {
+      "dimension": "tenant_workload_identity_gate",
+      "target": "FD-001 tenant workloads on Oyatie Cloud require SPIFFE IDs, pinned trust domain, X.509 SVIDs, JWT-SVID policy, mutual TLS policy, Gateway BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, tenant-admission policy evidence linkage, and workload-manifest evidence across all manifest workloads before any identity runtime, mTLS runtime, workload deployment, or cloud-substrate runtime claim",
+      "planned_verification_ref": "cargo test -p oya-enterprise-suite-tenant-workload-identity-contract && cargo test -p oya-enterprise-suite-cloud-readiness-gate",
+      "enforcement_status": "foundation_contract_landed_pending_live_tenant_workload_identity_runtime",
+      "enforcement_note": "CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001 defines the review-only tenant workload cryptographic identity contract as an Oyatie Cloud substrate prerequisite while keeping Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE runtime attachment, SVID issuance, mTLS handshake observation, BackendTLSPolicy application, authorization-policy runtime, workload runtime, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission outside the claim boundary."
     }
   ],
   "best_practices": [
@@ -752,21 +1229,83 @@
     "deterministic rulepacks before AI assistance",
     "rollback-first launch controls",
     "suite-level policy gateway",
-    "PRD-per-child before implementation"
+    "PRD-per-child before implementation",
+    "Gateway API HTTPRoute plan before runtime listener attachment",
+    "review-only OIDC/JWKS verification plan before runtime IdP attachment",
+    "CloudEvents-style event context before runtime audit-chain transport attachment",
+    "W3C traceparent correlation on audit events before cloud observability export",
+    "digest-only audit payloads with sensitive context attributes forbidden",
+    "deterministic in-memory Workflow execution reference before durable engine or broker attachment",
+    "statutory filing payload digest and agency receipt contract before any filing rail runtime",
+    "payment-file digest, beneficiary account privacy boundary, dual approval, and reconciliation receipt contract before any disbursement rail runtime",
+    "Postgres/RLS runtime probe matrix, TLS verify-full, migration digest, backup restore, and PITR rehearsal contract before durable storage runtime claims",
+    "FD-001 tenant-workload manifest with namespace, quota, network-policy, Gateway route, tenant-claim, and OTel resource identity contract before Oyatie Cloud substrate dogfooding claims",
+    "cloud deployment evidence contract with Argo CD sync/health, pinned Git revision, Cosign verification, Kubernetes rollout, Gateway acceptance, OTel identity, deployment audit event, and rollback-plan refs before Oyatie Cloud production deployment claims",
+    "listener runtime evidence contract with ClusterIP service observation, Gateway acceptance, TLS binding, readiness/liveness/synthetic probes, route authz, default-deny network policy, EndpointSlice readiness, graceful drain, trace correlation, and deployment audit event refs before Oyatie Cloud listener claims",
+    "identity-provider runtime evidence contract with OIDC discovery observation, JWKS kid match, JWT signature and algorithm allowlist evidence, issuer/audience/temporal/nonce/tenant/scope/MFA claim checks, key-rotation overlap, and auth-failure audit event refs before Oyatie Cloud identity-provider claims",
+    "Workflow runtime evidence contract with pinned definitions, deterministic gates, idempotent dispatch, durable queue acknowledgements, broker publish/retry/dead-letter evidence, tenant partitioning, payload digest, OTel messaging trace, audit event, and replay recovery refs before Oyatie Cloud Workflow engine or broker claims",
+    "Audit-chain runtime evidence contract with CloudEvents envelope, W3C trace context, OTel log mapping, tenant partition, idempotent dedupe, payload digest, sensitive payload redaction, WAL append, outbox publish, broker ack, Merkle inclusion/sealing, sink ingestion, replay recovery, and failure-path audit refs before Oyatie Cloud runtime audit claims",
+    "tenant workload runtime evidence contract with namespace observation, ResourceQuota usage, default-deny NetworkPolicy, ServiceAccount boundary, Pod security context, scheduling, resource request/limit, readiness/liveness probes, Gateway acceptance, tenant-claim propagation, OTel resource identity, rollout recovery, and workload audit refs before Oyatie Cloud tenant workload runtime claims",
+    "Postgres/RLS parameterized write contract with SET LOCAL tenant context, idempotent ON CONFLICT DO NOTHING, tenant-scoped readback, schema-version return, delete prohibition, and official PostgreSQL docs before durable storage runtime claims",
+    "Postgres/RLS explicit transaction contract with transaction-local set_config tenant context, prepared statement planning, bound execution, tenant-scoped readback, commit-after-readback, rollback-on-error, autocommit-write prohibition, and official PostgreSQL docs before durable storage runtime claims",
+    "Kubernetes tenant admission policy contract with ValidatingAdmissionPolicy bindings across all FD-001 manifest workloads, Fail/Deny enforcement semantics, tenant labels, digest-pinned image requirements, no latest tags, resource requests and limits, service-account boundaries, Pod Security restricted namespace labels, ResourceQuota, default-deny NetworkPolicy, and audit annotations before Oyatie Cloud tenant workload runtime claims",
+    "Tenant image provenance contract with OCI digest pinning, Cosign keyless OIDC signature verification, transparency-log evidence, in-toto/SLSA provenance, builder-id and source-revision pins, SBOM requirements, vulnerability scan gate, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime claims",
+    "Tenant secret-boundary contract with no inline secret material, Kubernetes Secret references, encryption-at-rest evidence, RBAC least privilege, namespace-scoped isolation, workload-scoped ServiceAccounts, short-lived projected-token boundaries, external secret-store handoff boundaries, rotation evidence, secret-access audit evidence, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime claims",
+    "Tenant egress policy contract with Kubernetes NetworkPolicy egress isolation, default-deny egress, DNS-only egress exceptions, same-namespace Service allowlists, explicit cross-namespace selectors, external CIDR deny-by-default posture, ipBlock exception evidence, pinned ports/protocols, tenant label selectors, network-policy provider evidence, egress audit evidence, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime claims",
+    "Tenant ResourceQuota and LimitRange contract with namespace quotas, compute requests/limits quotas, object-count quotas, persistent-storage quotas, LimitRange defaults and min/max bounds, container request/limit requirements, ResourceQuota and LimitRanger admission evidence, tenant labels, quota usage audit evidence, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime claims",
+    "Tenant availability contract with PodDisruptionBudgets, minimum-available budgets, multi-replica workload requirements, zone and hostname topology spread, pod anti-affinity, node topology-label evidence, rolling-update availability, progress deadlines, readiness-probe evidence, tenant labels, disruption audit evidence, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime claims",
+    "Tenant autoscaling contract with Kubernetes HorizontalPodAutoscaler, autoscaling/v2 API requirements, min/max replica bounds, CPU and memory resource metrics, resource metrics pipeline evidence, scale-up and scale-down behavior policies, stabilization windows, tenant label selectors, scaling audit evidence, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime claims",
+    "Tenant cost-allocation contract with tenant cost-allocation labels, Kubernetes recommended application labels, namespace cost boundaries, workload resource requests, ResourceQuota usage evidence, OpenTelemetry service and Kubernetes resource attributes, FinOps allocation strategy, shared-cost policy, allocation coverage KPIs, tenant selectors, cost-allocation audit evidence, and tenant admission policy evidence linkage across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime or FinOps runtime claims",
+    "Tenant residency contract with tenant residency region labels, namespace residency labels, workload node-affinity requirements, topology region constraints, storage residency policy refs, telemetry residency policy refs, audit residency policy refs, cross-region egress policy refs, tenant-model jurisdiction refs, cell-placement residency refs, admission-policy evidence, workload-manifest evidence, and residency audit evidence across all FD-001 manifest workloads before Oyatie Cloud tenant workload runtime or residency runtime claims",
+    "Tenant workload-identity contract with SPIFFE IDs, pinned trust domain, X.509 SVIDs, JWT-SVID policy, mutual TLS policy, Gateway BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, tenant admission policy evidence linkage, and workload-manifest evidence across all FD-001 manifest workloads before Oyatie Cloud tenant workload identity runtime or mTLS runtime claims"
   ],
   "patterns": [
     "shared policy gateway",
     "append-only evidence ledger",
     "Workflow-owned approvals",
     "Object Graph typed relationships",
-    "OpenTofu/ops desired-state convergence"
+    "OpenTofu/ops desired-state convergence",
+    "review-only ClusterIP Service plus Gateway API HTTPRoute",
+    "OIDC discovery and JWKS claim-validation preflight",
+    "review-only audit-chain emission contract before WAL/broker/sealer/cloud-sink runtime",
+    "tenant-scoped idempotent audit event schemas with evidence refs and payload digests",
+    "process-local Workflow gate execution record before cloud Workflow runtime promotion",
+    "review-only statutory filing authority registry before agency credential attachment",
+    "review-only disbursement network registry before bank credential or payment execution attachment",
+    "review-only Postgres/RLS runtime evidence contract before live database or cloud database attachment",
+    "review-only Postgres/RLS transaction and prepared-statement contract before live durable storage adapter attachment",
+    "review-only Kubernetes tenant admission policy contract before live admission controller or workload runtime attachment",
+    "review-only tenant image provenance and SBOM contract before live registry publication, admission runtime, or workload runtime attachment",
+    "review-only tenant secret-boundary contract before live Secret creation, external store runtime, RBAC runtime, or workload runtime attachment",
+    "review-only tenant egress policy contract before live NetworkPolicy provider, NetworkPolicy application, egress enforcement, DNS probe runtime, or workload runtime attachment",
+    "review-only tenant ResourceQuota and LimitRange contract before live quota admission, quota object application, quota usage observation, or workload runtime attachment",
+    "review-only tenant availability, topology-spread, PodDisruptionBudget, and rollout contract before live scheduler observation, PDB application, rollout runtime, or workload runtime attachment",
+    "review-only tenant autoscaling contract before live Metrics Server runtime, autoscaling API attachment, HorizontalPodAutoscaler application, scale-event observation, or workload runtime attachment",
+    "review-only tenant cost-allocation and FinOps showback contract before live metrics, OpenTelemetry collector, cost reporting, billing export, workload runtime, or cloud-substrate attachment",
+    "review-only tenant residency and data-perimeter placement contract before live cluster, namespace, scheduler, storage residency, telemetry residency, audit residency, cross-region egress observation, workload runtime, or cloud-substrate attachment",
+    "review-only tenant workload cryptographic identity and service-to-service trust contract before live SPIFFE Workload API attachment, SPIRE runtime, SVID issuance, mTLS handshake observation, BackendTLSPolicy application, authorization-policy runtime, or workload runtime attachment"
   ],
   "anti_patterns": [
     "child app bypassing shared policy",
     "manual SSH runbooks",
     "single global ledger for all legal entities",
     "third-party ERP as source of truth",
-    "AI-only close decisions"
+    "AI-only close decisions",
+    "direct public NodePort exposure before gateway policy evidence",
+    "accepting JWTs before issuer/audience/signature/JWKS/tenant-claim verification evidence",
+    "embedding raw payroll/HR/accounting payloads or credential material in audit event context",
+    "claiming runtime audit-chain emission before WAL, broker, Merkle sealer, and cloud sink evidence exist",
+    "claiming durable Postgres write safety before explicit transaction, transaction-local tenant context, bound execution, commit/rollback, and readback contracts exist",
+    "claiming production tenant workload guardrails before fail-closed admission policies, Pod Security restricted labels, digest-pinned images, resource bounds, service-account controls, quota, and default-deny network policy contracts exist",
+    "image tag or digest promoted to a tenant workload without signed provenance, SBOM, vulnerability gate, and admission evidence linkage",
+    "tenant workload manifest or evidence artifact carrying inline secret material or unscoped Secret access instead of references, RBAC, rotation, and audit boundaries",
+    "tenant workload allowed broad external egress or cross-namespace egress without default-deny policy, explicit selectors, ipBlock exception evidence, and audit evidence",
+    "tenant workload admitted to a shared substrate without namespace quotas, compute request/limit quotas, object/storage quotas, LimitRange defaults and bounds, quota admission evidence, and quota usage audit evidence",
+    "tenant workload promoted as resilient without PodDisruptionBudget, multi-replica, topology-spread, anti-affinity, readiness probe, rolling-update, progress deadline, and disruption audit evidence",
+    "tenant workload promoted as elastic without HorizontalPodAutoscaler requirements, autoscaling/v2 API usage, replica bounds, CPU and memory metrics, metrics pipeline evidence, behavior policies, stabilization windows, tenant selectors, scaling audit evidence, and admission policy linkage",
+    "tenant workload promoted as economically attributable without tenant cost labels, workload resource requests, quota usage evidence, OpenTelemetry resource identity, FinOps allocation strategy, shared-cost policy, coverage KPI, audit evidence, and admission policy linkage",
+    "tenant workload promoted as residency-bound without region labels, namespace labels, node affinity, topology constraints, storage/telemetry/audit residency policy refs, cross-region egress policy refs, tenant-model jurisdiction linkage, cell-placement refs, admission evidence, workload evidence, and residency audit evidence",
+    "tenant workload promoted as zero-trust or mutually authenticated without SPIFFE IDs, trust-domain pinning, X.509 SVID requirements, mutual TLS policy, Gateway BackendTLSPolicy refs, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, service telemetry identity, authorization binding, audit evidence, and admission/workload-manifest evidence linkage"
   ],
   "goals": {
     "scalability": {
@@ -857,6 +1396,200 @@
       "id": "D-03",
       "decision": "HR, Payroll, and Accounting are the first enterprise children; suite model remains extensible for procurement, compliance, assets, and corporate intelligence.",
       "date": "2026-05-16"
+    },
+    {
+      "id": "D-04",
+      "decision": "Enterprise Suite foundation lands as flat microservice crates oya-enterprise-suite-domain and oya-enterprise-suite-app under microservices/enterprise-suite/crates/. The slice implements shared policy-gateway admission, legal-entity group close projections, and metadata-only ops command envelopes; Workflow deterministic gates, incident rollback runtime, REST adapters, storage, and cloud deployment remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-05",
+      "decision": "Enterprise Suite cross-product Workflow foundation implements AC-04 as pure domain/app metadata: Workflow owns routing, Object Graph owns typed relationships, deterministic gates require evidence, and AI suggestions remain advisory only. Runtime Workflow execution, Object Graph persistence, child service calls, and incident rollback runtime remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-06",
+      "decision": "Enterprise Suite runtime adapter crate binds suite API DTOs to the repo-native Hyper router/middleware foundation and returns OpenAPI-aligned JSON responses; it is router-ready but does not deploy a listener, enforce auth, persist state, execute Workflow, run OpenTofu, perform incident rollback, call child services, integrate cloud services, or emit runtime audit-chain events.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-07",
+      "decision": "Enterprise Suite in-memory storage adapter defines the metadata persistence seam and idempotency behavior for later durable Postgres/RLS or cloud adapters; it is volatile test/local reference storage and does not attach runtime writes, durable storage, Workflow execution, OpenTofu execution, incident rollback execution, child-service calls, or audit-chain emission.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-08",
+      "decision": "Enterprise Suite in-memory Workflow dispatch queue defines the cross-product Workflow dispatch seam and idempotency behavior for later Workflow engine/broker/cloud adapters; it is volatile test/local reference queueing and does not execute Workflow, publish to a broker, call child services, persist durable queue state, or emit runtime audit-chain events.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-09",
+      "decision": "Enterprise Suite local runtime composition catalogs router-ready HR, Payroll, Accounting, and Suite route manifests for later listener/cloud wiring; it does not deploy a listener, enforce auth, call child services, integrate storage, execute Workflow, deploy cloud infrastructure, or emit runtime audit-chain events.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-10",
+      "decision": "Enterprise Suite local in-memory harness composes HR, Payroll, Accounting, Suite storage adapters and the Suite Workflow queue for process-local cloud-integration rehearsal; it does not attach durable storage, Postgres/RLS, deployed listeners, child network calls, Workflow engine/broker execution, filing/disbursement rails, cloud deployment, or runtime audit-chain emission.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-11",
+      "decision": "Enterprise Suite ERP/SAP parity remains an executable composition map over flat service destinations instead of a monolithic ERP service. The map records module owners, evidence refs, operating-bar gaps, and non-claims for cloud/runtime/durable execution so later Oyatie cloud integration can promote slices without changing ADR-0315 no-suite boundaries.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-12",
+      "decision": "Enterprise Suite cloud readiness is expressed as an explicit control-plane gate over the local route composition, in-memory harness, ERP parity map, deployment manifest, auth runtime foundation, and Postgres/RLS storage plan. The gate can mark local rehearsal ready while refusing cloud deployment claims until listener/external identity-provider verification, durable storage runtime attachment, live Postgres/RLS verification, Workflow/broker execution, statutory rails, runtime audit emission, cloud deployment evidence, and SLO evidence land in future slices.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-16",
+      "decision": "Enterprise Suite cloud integration advances through a declarative Kubernetes/GitOps manifest foundation before any deployed-listener or cloud-readiness claim; the manifest validates ArgoCD/Jenkins/Cosign/network/OTel/SLO evidence surfaces and refuses imperative kubectl/Helm deploy paths while runtime cluster attachment and deployment evidence remain blockers.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "D-17",
+      "decision": "Enterprise Suite authentication advances as a local route-policy runtime before cloud gateway enforcement. The runtime validates tenant-bound issuer/audience/nonce/session claims, route scopes, sensitive-data MFA/AAL2, and break-glass audit requirements, but keeps OIDC signature verification, JWKS/provider integration, durable session storage, deployed gateway enforcement, and runtime audit-chain emission as later cloud blockers.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "D-18",
+      "decision": "Enterprise Suite durable-storage integration advances through a review-only Postgres/RLS schema plan before any database connection or migration execution. The plan pins tenant_id, idempotency_key, payload, audit-evidence columns, composite tenant/idempotency primary keys, ENABLE and FORCE ROW LEVEL SECURITY, restrictive current_setting-based policies, no-delete append-only semantics, and explicit non-claims for runtime database attachment, applied migrations, live RLS verification, cloud database, and runtime audit-chain emission.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "D-19",
+      "decision": "Enterprise Suite listener exposure advances as a review-only Kubernetes Service/Gateway API plan over the existing local route composition, auth runtime policy, and cloud deployment manifest. The plan requires ClusterIP service exposure, Gateway API HTTPRoute routing, TLS/network-policy/authz controls, bounded probes/timeouts/ports, and full route/auth coverage while keeping deployed listener runtime evidence, Gateway controller attachment, load balancer provisioning, TLS certificate attachment, runtime auth middleware, cloud deployment evidence, SLO evidence, and runtime audit-chain emission as later blockers.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "D-20",
+      "decision": "Enterprise Suite external identity-provider integration advances as a review-only OIDC/JWKS verification plan before any provider, JWKS fetcher, signature verifier, token introspection, durable session store, runtime auth middleware, or cloud gateway enforcement is attached. The plan pins issuer/audience, discovery and JWKS URLs, asymmetric signing algorithms, required JWT/OIDC/tenant/MFA claims, cache/rotation/clock-skew bounds, and route-scope alignment while cloud readiness continues to block on runtime identity-provider verification evidence.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "DEC-2026-05-24-SLO-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite SLO evidence advances through a review-only contract over OpenSLO manifests, OTel metric stream names, rolling error-budget windows, burn-rate alert policy, canary evidence, and rollback release gates before any production SLO evidence claim. Cloud-readiness composes this plan but continues to block cloud deployment until runtime telemetry, metrics backend, alert manager, canary runtime, rollback automation, multi-region telemetry, and production evidence are attached.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "DEC-2026-05-24-WORKFLOW-EXECUTION-REFERENCE",
+      "decision": "Enterprise Suite Workflow execution advances from metadata-only dispatch queueing to a deterministic in-memory reference that closes required gate/evidence pairs after a queued dispatch. This reference proves the execution contract for later durable Workflow engine, broker, and cloud adapters while keeping runtime engine execution, broker publish, child-service calls, durable queue state, cloud deployment, and runtime audit-chain emission as explicit blockers.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "DEC-2026-05-24-STATUTORY-FILING-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite statutory filing advances through a review-only evidence contract before any agency credential, live agency connection, runtime submission, tax payment execution, durable statutory archive, or production filing evidence is attached. The contract pins KR HomeTax/NPS EDI and US IRS MeF authority surfaces, source rulepack evidence refs, payload digests, receipt schemas, credential boundaries, legal-entity isolation, and human approval while cloud readiness continues to block production claims on filing and disbursement rails.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "DEC-2026-05-24-DISBURSEMENT-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite disbursement advances through a review-only evidence contract before any bank credential, bank connection, payment execution, disbursement rail runtime, tax-payment execution, durable payment archive, production disbursement evidence, cloud deployment, or runtime audit-chain emission is attached. The contract pins Nacha ACH, EFTPS, KFTC IFT, and EPC SEPA authority/network surfaces, source rulepack or invoice evidence, payment-file schemas, payment digests, beneficiary account privacy boundaries, dual approval, reconciliation receipts, rollback/reversal runbooks, legal-entity scope, and segregation of duties while cloud readiness continues to block production claims on the disbursement rail.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "DEC-2026-05-24-POSTGRES-RLS-RUNTIME-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite durable storage advances through a review-only Postgres/RLS runtime evidence contract before any database connection, migration application, live RLS verification, durable storage runtime, cloud database, production backup restore, or runtime audit-chain emission is attached. The contract binds the existing Postgres/RLS schema plan to TLS verify-full posture, migration digest checks, restrictive RLS probes, non-owner runtime role hardening, BYPASSRLS absence, idempotency conflict evidence, backup restore rehearsal, and PITR rehearsal while cloud readiness continues to block production claims on durable storage and Postgres/RLS runtime evidence. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate proof that these FD-001 microservices can run as real tenant workloads.",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "DEC-2026-05-25-FD001-TENANT-WORKLOAD-MANIFEST",
+      "decision": "FD-001 tenant-workload dogfooding on Oyatie Cloud advances through a review-only Enterprise Suite tenant-workload manifest before any Kubernetes namespace creation, ResourceQuota application, NetworkPolicy application, Gateway route attachment, workload deployment, production tenant, live cloud substrate, or runtime audit-chain emission is attached. The manifest preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that Enterprise Suite, HR Employment, Payroll Run, and Accounting Journal can later run as isolated tenant workloads with namespace, cell, residency, quota, network, service-account, route, tenant-claim, legal-entity, OpenTelemetry, and evidence boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-CLOUD-DEPLOYMENT-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite cloud deployment evidence advances through a review-only contract before any Argo CD controller, Kubernetes cluster, namespace creation, quota/policy application, Gateway route attachment, workload runtime deployment, runtime telemetry export, production cloud deployment evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 microservices can later run as isolated production tenant workloads with Argo CD sync/health, pinned Git revision, Cosign verification, Kubernetes rollout, Gateway acceptance, OTel identity, deployment audit event, and rollback-plan evidence.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-LISTENER-RUNTIME-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite deployed listener readiness advances through a review-only runtime evidence contract before any bound listener socket, Gateway controller, load balancer, TLS certificate, runtime auth middleware, NetworkPolicy application, runtime probe observation, production listener evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 tenant workloads can later accept isolated production traffic with ClusterIP Service, Gateway acceptance, TLS, probe, route authorization, NetworkPolicy, EndpointSlice, graceful drain, trace correlation, and deployment audit evidence.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-IDP-RUNTIME-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite identity-provider runtime readiness advances through a review-only evidence contract before any discovery fetch runtime, JWKS fetch runtime, OIDC signature verification attachment, external identity provider attachment, token introspection, durable session store, runtime auth middleware, cloud gateway enforcement, production identity-provider evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 tenant workloads can later trust OpenID Connect discovery, JWKS, signature, algorithm, claim, nonce, tenant, route-scope, MFA, key-rotation, and audit-failure evidence boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-WORKFLOW-RUNTIME-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite Workflow runtime readiness advances through a review-only evidence contract before any production Workflow engine runtime, broker publish runtime, durable queue runtime, child-service calls, cloud Workflow runtime, runtime OpenTelemetry export, production Workflow evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 tenant workloads can later execute durable workflows with pinned definitions, deterministic gates, idempotent dispatch, state transitions, durable queue acknowledgements, broker publish and retry/dead-letter evidence, tenant partitioning, payload digest, trace correlation, audit events, and replay recovery boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-AUDIT-RUNTIME-EVIDENCE-CONTRACT",
+      "decision": "Enterprise Suite runtime audit-chain readiness advances through a review-only evidence contract before any runtime emitter, write-ahead log runtime, broker publish runtime, Merkle sealer runtime, cloud audit sink, production audit emission evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 tenant workloads can later emit auditable evidence with CloudEvents envelopes, W3C trace context, OpenTelemetry log mapping, tenant partitions, idempotency dedupe, payload digest verification, sensitive payload redaction, WAL append, outbox publish, broker acknowledgement, Merkle inclusion and sealing, sink ingestion, replay recovery, and failure-path audit boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-RUNTIME-EVIDENCE-CONTRACT",
+      "decision": "FD-001 tenant workload runtime readiness advances through a review-only evidence contract before any production tenant, Kubernetes runtime attachment, workload runtime deployment, Gateway controller attachment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later prove namespace, quota, network, service-account, Pod-security, scheduling, probe, Gateway, tenant-claim, OpenTelemetry, rollout recovery, and audit-event evidence boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-POSTGRES-RLS-WRITE-CONTRACT",
+      "decision": "Enterprise Suite durable-storage readiness advances through a review-only Postgres/RLS parameterized write contract before any database connection, prepared statement runtime, write runtime, durable storage runtime, cloud database, production write evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 tenant workloads can later persist metadata with SET LOCAL tenant context, parameterized INSERT values, idempotency conflict handling, tenant-scoped readback, schema-version return, delete prohibition, and official PostgreSQL source boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-POSTGRES-RLS-TRANSACTION-CONTRACT",
+      "decision": "Enterprise Suite durable-storage readiness advances through a review-only Postgres/RLS transaction and prepared-statement contract before any database connection, transaction runtime, prepared statement runtime, write runtime, durable storage runtime, cloud database, production write evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 tenant workloads can later persist metadata through explicit transactions, transaction-local set_config tenant context, prepared insert statements, bound execution, tenant-scoped readback, commit-after-readback, rollback-on-error, and autocommit-write prohibition boundaries.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-ADMISSION-POLICY-CONTRACT",
+      "decision": "FD-001 tenant workload readiness advances through a review-only Kubernetes admission policy contract before any Kubernetes cluster attachment, admission controller runtime, admission policy application, runtime admission enforcement, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later be guarded by fail-closed ValidatingAdmissionPolicy bindings, tenant labels, digest-pinned images, no latest tags, resource bounds, service-account boundaries, Pod Security restricted namespace labels, ResourceQuota, default-deny NetworkPolicy, and admission audit annotations.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-IMAGE-PROVENANCE-CONTRACT",
+      "decision": "FD-001 tenant workload supply-chain readiness advances through a review-only image provenance and SBOM contract before any image registry attachment, image publication, Cosign runtime verification, transparency-log runtime verification, SLSA provenance runtime verification, SBOM runtime publication, vulnerability scanner attachment, admission controller runtime, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workload images can later be admitted only with OCI digest pinning, Cosign keyless OIDC signatures, transparency-log evidence, in-toto/SLSA provenance, builder-id and source-revision pins, SBOM requirements, vulnerability gate evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-SECRET-BOUNDARY-CONTRACT",
+      "decision": "FD-001 tenant workload sensitive-material readiness advances through a review-only secret-boundary contract before any Kubernetes Secret creation, secret data materialization, encryption provider runtime attachment, external secret store runtime attachment, RBAC runtime application, projected-token runtime attachment, secret rotation runtime, secret-access runtime audit, admission controller runtime, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later consume sensitive material only through Secret references, encryption-at-rest evidence, least-privilege RBAC, namespace isolation, workload-scoped ServiceAccounts, short-lived token boundaries, external store handoff boundaries, rotation evidence, access-audit evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-EGRESS-POLICY-CONTRACT",
+      "decision": "FD-001 tenant workload network-readiness advances through a review-only egress policy contract before any Kubernetes cluster attachment, network-policy provider attachment, NetworkPolicy application, runtime egress enforcement, DNS probe runtime, external egress runtime allowance, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use default-deny egress, DNS-only exceptions, same-namespace Service allowlists, explicit cross-namespace selectors, external CIDR deny-by-default posture, ipBlock exception evidence, pinned ports/protocols, tenant label selectors, provider evidence, egress audit evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-RESOURCE-QUOTA-CONTRACT",
+      "decision": "FD-001 tenant workload noisy-neighbor readiness advances through a review-only ResourceQuota and LimitRange contract before any Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime attachment, LimitRanger runtime attachment, quota usage runtime observation, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use namespace quotas, compute requests and limits quotas, object-count quotas, persistent-storage quotas, LimitRange defaults and min/max bounds, container request/limit requirements, ResourceQuota and LimitRanger admission evidence, tenant label selectors, quota usage audit evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-AVAILABILITY-CONTRACT",
+      "decision": "FD-001 tenant workload resilience readiness advances through a review-only availability, scheduling, and disruption contract before any Kubernetes cluster attachment, PodDisruptionBudget application, topology-spread application, pod anti-affinity application, scheduler runtime observation, rolling-update runtime observation, readiness-probe runtime observation, workload runtime deployment, cloud-substrate runtime attachment, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use PodDisruptionBudgets, minimum-available budgets, multi-replica policy, zone and hostname topology spread, pod anti-affinity, node topology-label evidence, rolling-update availability, progress deadlines, readiness-probe evidence, tenant label selectors, disruption audit evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-AUTOSCALING-CONTRACT",
+      "decision": "FD-001 tenant workload elasticity readiness advances through a review-only autoscaling contract before any Kubernetes cluster attachment, Metrics Server runtime attachment, custom metrics API attachment, HorizontalPodAutoscaler application, autoscaling controller runtime observation, scale-event runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use HorizontalPodAutoscaler guardrails, autoscaling/v2 API shape, min/max replica bounds, CPU and memory metrics, resource metrics pipeline evidence, scaling behavior policies, stabilization windows, tenant label selectors, scaling audit evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25",
+      "evidence_ref": "evidence/multispectrum/cs-ent-suite-tenant-autoscaling-contract-1779710400.json"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-COST-ALLOCATION-CONTRACT",
+      "decision": "FD-001 tenant workload economic-attribution readiness advances through a review-only tenant cost-allocation and FinOps showback contract before any Kubernetes cluster attachment, resource metrics runtime attachment, OpenTelemetry collector runtime attachment, FinOps runtime attachment, cost report runtime generation, billing export runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use tenant cost-allocation labels, Kubernetes recommended application labels, namespace cost boundaries, workload resource requests, ResourceQuota usage evidence, OpenTelemetry service and Kubernetes resource attributes, FinOps allocation strategy, shared-cost policy, allocation coverage KPIs, tenant label selectors, cost-allocation audit evidence, and tenant-admission policy linkage.",
+      "date": "2026-05-25",
+      "evidence_ref": "evidence/multispectrum/cs-ent-suite-tenant-cost-allocation-contract-1779711000.json"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-RESIDENCY-CONTRACT",
+      "decision": "FD-001 tenant workload residency-readiness advances through a review-only tenant residency placement and data-perimeter contract before any Kubernetes cluster attachment, namespace creation, node-affinity application, scheduler runtime observation, storage residency runtime attachment, telemetry residency runtime attachment, audit residency runtime attachment, cross-region egress runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use tenant residency region labels, namespace residency labels, workload node affinity, topology region constraints, storage residency policy refs, telemetry residency policy refs, audit residency policy refs, cross-region egress policy refs, tenant-model jurisdiction refs, cell-placement residency refs, admission-policy evidence, workload-manifest evidence, and residency audit evidence.",
+      "date": "2026-05-25",
+      "evidence_ref": "evidence/multispectrum/cs-ent-suite-tenant-residency-contract-1779711600.json"
+    },
+    {
+      "id": "DEC-2026-05-25-TENANT-WORKLOAD-IDENTITY-CONTRACT",
+      "decision": "FD-001 tenant workload zero-trust readiness advances through a review-only workload cryptographic identity and service-to-service trust contract before any Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE server runtime attachment, SPIRE agent runtime attachment, SVID runtime issuance, mTLS handshake observation, certificate-rotation runtime observation, Gateway BackendTLSPolicy application, authorization-policy runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission is attached. The contract preserves FD-001 product delivery as the master-plan product goal while making Oyatie Cloud the substrate proof that FD-001 Enterprise Suite, HR, Payroll, and Accounting tenant workloads can later use SPIFFE IDs, pinned trust domains, X.509 SVIDs, JWT-SVID policy, mutual TLS, Gateway API BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, tenant-admission policy evidence linkage, and workload-manifest evidence.",
+      "date": "2026-05-25",
+      "evidence_ref": "evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json"
     }
   ],
   "sources_scanned": [
@@ -865,20 +1598,150 @@
     "/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
     "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
     "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+    "https://achdevguide.nacha.org/ach-file-overview",
+    "https://argo-cd.readthedocs.io/en/stable/",
+    "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+    "https://aws.amazon.com/blogs/security/establishing-a-data-perimeter-on-aws/",
+    "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+    "https://cloudevents.io/",
+    "https://cyclonedx.org/capabilities/sbom/",
+    "https://datatracker.ietf.org/doc/html/rfc7519",
+    "https://docs.rs/hyper/latest/hyper/server/",
+    "https://docs.sigstore.dev/cosign/verifying/",
+    "https://docs.sigstore.dev/cosign/verifying/verify/",
+    "https://docs.temporal.io/workflow-definition",
+    "https://docs.temporal.io/workflows",
+    "https://edi.nps.or.kr/",
     "https://en.douzone.com/",
+    "https://eng.kftc.or.kr/business",
+    "https://fiscal.treasury.gov/eftps/",
+    "https://gateway-api.sigs.k8s.io/api-types/httproute/",
+    "https://gateway-api.sigs.k8s.io/concepts/api-overview/",
+    "https://gateway-api.sigs.k8s.io/docs/introduction/",
+    "https://github.com/OpenSLO/OpenSLO",
+    "https://github.com/serverlessworkflow/specification",
+    "https://in-toto.io/docs/specs/",
+    "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "https://kubernetes.io/docs/concepts/configuration/secret/",
+    "https://kubernetes.io/docs/concepts/containers/images/",
+    "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/",
+    "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/",
+    "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+    "https://kubernetes.io/docs/concepts/policy/limit-range/",
+    "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+    "https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+    "https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+    "https://kubernetes.io/docs/concepts/security/multi-tenancy/",
+    "https://kubernetes.io/docs/concepts/security/pod-security-admission/",
+    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+    "https://kubernetes.io/docs/concepts/security/rbac-good-practices/",
+    "https://kubernetes.io/docs/concepts/security/secrets-good-practices/",
+    "https://kubernetes.io/docs/concepts/security/service-accounts/",
+    "https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/",
+    "https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/",
+    "https://kubernetes.io/docs/concepts/services-networking/ingress/",
+    "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+    "https://kubernetes.io/docs/concepts/services-networking/service/",
+    "https://kubernetes.io/docs/concepts/storage/projected-volumes/",
+    "https://kubernetes.io/docs/concepts/workloads/autoscaling/",
+    "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/",
+    "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+    "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/",
+    "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+    "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes",
+    "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/",
+    "https://kubernetes.io/docs/reference/kubernetes-api/admissionregistration/validating-admission-policy-v1/",
+    "https://kubernetes.io/docs/reference/kubernetes-api/apps/deployment-v1/",
+    "https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/",
+    "https://kubernetes.io/docs/reference/kubernetes-api/policy/pod-disruption-budget-v1/",
+    "https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/",
+    "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
+    "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+    "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/",
+    "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+    "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/",
+    "https://kubernetes.io/docs/tasks/run-application/update-deployment-rolling/",
+    "https://openid.net/specs/openid-connect-core-1_0-final.html",
+    "https://openid.net/specs/openid-connect-core-1_0.html",
+    "https://openid.net/specs/openid-connect-discovery-1_0-final.html",
+    "https://openid.net/specs/openid-connect-discovery-1_0.html",
+    "https://openslo.com/",
+    "https://opentelemetry.io/docs/concepts/resources/",
+    "https://opentelemetry.io/docs/specs/otel/logs/data-model/",
+    "https://opentelemetry.io/docs/specs/otel/metrics/data-model/",
+    "https://opentelemetry.io/docs/specs/semconv/general/events/",
+    "https://opentelemetry.io/docs/specs/semconv/http/http-spans/",
+    "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/",
+    "https://opentelemetry.io/docs/specs/semconv/resource/",
+    "https://opentelemetry.io/docs/specs/semconv/resource/k8s/",
+    "https://opentelemetry.io/docs/specs/semconv/resource/service/",
+    "https://pages.nist.gov/800-63-4/sp800-63b.html",
+    "https://raw.githubusercontent.com/cloudevents/spec/v1.0.2/cloudevents/spec.md",
+    "https://s.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=238910&mi=40296",
+    "https://serverlessworkflow.io/",
+    "https://slsa.dev/spec/v1.2/",
+    "https://slsa.dev/spec/v1.2/attestation-model",
+    "https://slsa.dev/spec/v1.2/build-provenance",
+    "https://slsa.dev/spec/v1.2/verifying-artifacts",
+    "https://spdx.github.io/spdx-spec/v2.3/",
+    "https://specs.opencontainers.org/image-spec/manifest/?v=v1.1.0",
+    "https://sre.google/sre-book/service-level-objectives/",
     "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+    "https://www.asyncapi.com/docs/reference/specification/v3.0.0",
     "https://www.concur.com/en-us/travel-expense",
+    "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-scheme-management",
+    "https://www.finops.org/framework/capabilities/allocation/",
+    "https://www.hometax.go.kr/",
+    "https://www.irs.gov/e-file-providers/modernized-e-file-mef-internet-filing",
+    "https://www.irs.gov/e-file-providers/modernized-e-file-overview",
+    "https://www.irs.gov/eftps",
+    "https://www.iso20022.org/sites/default/files/media/file/ISO20022_BusinessAreas.pdf",
+    "https://www.nacha.org/newrules",
     "https://www.netsuite.com/portal/products/erp.shtml",
+    "https://www.oecd.org/en/publications/tax-administration-3-0-the-digital-transformation-of-tax-administration_ca274cc5-en.html",
+    "https://www.postgresql.org/docs/current/backup.html",
+    "https://www.postgresql.org/docs/current/config-setting.html",
+    "https://www.postgresql.org/docs/current/continuous-archiving.html",
+    "https://www.postgresql.org/docs/current/ddl-constraints.html",
+    "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+    "https://www.postgresql.org/docs/current/functions-admin.html",
+    "https://www.postgresql.org/docs/current/libpq-exec.html",
+    "https://www.postgresql.org/docs/current/libpq-ssl.html",
+    "https://www.postgresql.org/docs/current/sql-altertable.html",
+    "https://www.postgresql.org/docs/current/sql-begin.html",
+    "https://www.postgresql.org/docs/current/sql-commit.html",
+    "https://www.postgresql.org/docs/current/sql-createpolicy.html",
+    "https://www.postgresql.org/docs/current/sql-createtable.html",
+    "https://www.postgresql.org/docs/current/sql-insert.html",
+    "https://www.postgresql.org/docs/current/sql-prepare.html",
+    "https://www.postgresql.org/docs/current/sql-rollback.html",
+    "https://www.postgresql.org/docs/current/sql-set.html",
+    "https://www.rfc-editor.org/rfc/rfc7515",
+    "https://www.rfc-editor.org/rfc/rfc7517",
+    "https://www.rfc-editor.org/rfc/rfc7519",
+    "https://www.rfc-editor.org/rfc/rfc8725",
+    "https://www.rfc-editor.org/rfc/rfc8785",
+    "https://www.rfc-editor.org/rfc/rfc9162",
+    "https://www.rfc-editor.org/rfc/rfc9700",
     "https://www.rippling.com/",
     "https://www.sage.com/en-us/sage-business-cloud/intacct/",
     "https://www.sap.com/products/erp/s4hana.cloud-edition.html",
     "https://www.sap.com/products/hcm.html",
     "https://www.sap.com/products/spend-management.html",
     "https://www.sap.com/products/technology-platform.html",
+    "https://www.w3.org/TR/trace-context/",
     "https://www.workday.com/en-us/products/human-capital-management/overview.html",
     "specs/deployment-ops-contract.json",
+    "specs/microservices/connect-suite.json",
     "specs/microservices/suite.json",
-    "specs/microservices/connect-suite.json"
+    "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",
+    "https://spiffe.io/docs/latest/spiffe-about/overview/",
+    "https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/",
+    "https://spiffe.io/docs/latest/spire-about/spire-concepts/",
+    "https://gateway-api.sigs.k8s.io/api-types/backendtlspolicy/"
   ],
   "industry_audit_source_fidelity": {
     "audit_id": "enterprise-suite-industry-audit-1779012320",

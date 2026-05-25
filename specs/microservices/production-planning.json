@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/microservices/production-planning.json",
+  "title": "Production Planning Microservice",
+  "_meta": {
+    "doc_class": "Machine-Readable-PRD",
+    "spec_id": "PRD-MICROSERVICE-PRODUCTION-PLANNING",
+    "version": "0.1.0",
+    "status": "preview",
+    "owner_team": "council-enterprise",
+    "created_at": "2026-05-23",
+    "change_id": "CS-ENT-PRODUCTION-PLANNING-001"
+  },
+  "identity": {
+    "microservice": "production-planning",
+    "bounded_context": "plan-to-produce",
+    "crate_prefix": "oya-production-planning",
+    "primary_crate": "microservices/production-planning/crates/oya-production-planning-domain"
+  },
+  "goals": [
+    "Provide a flat production-planning domain foundation for work-definition approval, MRP planned-order proposal, and production-release preparation metadata.",
+    "Prepare ERP-grade SAP PP parity metadata without attaching procurement purchase orders, inventory mutation, shop-floor execution, accounting posting, Workflow execution, runtime audit-chain emission, or cloud deployment."
+  ],
+  "non_goals": [
+    "No live MRP engine, finite scheduler, manufacturing execution system, shop-floor dispatch, inventory goods movement, or production confirmation runtime.",
+    "No procurement purchase-order creation, warehouse mutation, accounting posting, Workflow execution, statutory filing, runtime audit-chain emission, or cloud deployment.",
+    "No SAP, Oracle, or Dynamics production-planning exhaustive parity claim."
+  ],
+  "sources_scanned": [
+    "https://help.sap.com/docs/SAP_S4HANA_CLOUD/2bba750d1e124e1ea2a039bb1cd9b6c5?locale=en-US&state=PRODUCTION&version=2602.500",
+    "https://help.sap.com/docs/SAP_S4HANA_CLOUD/2bba750d1e124e1ea2a039bb1cd9b6c5/e8c6bd131b9d471698716f65e5852e97.html",
+    "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/25c/faumf/overview-of-work-orders.html",
+    "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/24b/faumf/overview-of-production-process-design.html",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/production-control/bill-of-material-bom",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/production-control/routes-operations",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/production-control/production-process-overview"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a product has an approved manufacturing definition before planning",
+      "when": "the production-planning domain approves the work definition",
+      "then": "tenant, legal entity, plant, product item, BOM, route, work center, component counts, run minutes, effective date, source refs, approval evidence, idempotency key, state, schema version, and false shop-floor/inventory/cloud flags are present",
+      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::work_definition_drives_mrp_and_release_plan"
+    },
+    {
+      "id": "AC-02",
+      "given": "an approved work definition exists and demand exceeds available supply after safety stock",
+      "when": "material requirements planning metadata is produced",
+      "then": "demand, on-hand quantity, scheduled receipts, safety stock, net requirement, lot-sized planned order quantity, horizon, demand source, planning evidence, idempotency key, and false procurement/inventory/cloud flags are present",
+      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::{work_definition_drives_mrp_and_release_plan,production_planning_refuses_unapproved_work_definition_and_unproposed_order}"
+    },
+    {
+      "id": "AC-03",
+      "given": "a planned order proposal has material and capacity evidence",
+      "when": "production release preparation runs",
+      "then": "production order, planned order, work definition, material availability, material remainder, required capacity, capacity remainder, schedule/material/capacity evidence, release-allowed flag, and false shop-floor/inventory/accounting/Workflow/cloud flags are present",
+      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::{work_definition_drives_mrp_and_release_plan,production_planning_refuses_material_or_capacity_shortage}"
+    },
+    {
+      "id": "AC-04",
+      "given": "untrusted identifiers, source refs, evidence refs, dates, horizons, or quantities enter the production-planning domain",
+      "when": "domain validation runs",
+      "then": "prefix-only, traversal, whitespace/control, credential-shaped refs, invalid dates, invalid horizons, zero quantities, missing work-definition approval, missing planned-order proposal, material shortage, and capacity shortage are refused",
+      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::production_planning_validates_refs_dates_and_quantities"
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Production Planning enters the enterprise microservice set as a flat plan-to-produce domain crate rather than a monolithic ERP/PP module; SAP PP and manufacturing coverage is mapped through Enterprise Suite parity composition while MRP runtime, shop-floor execution, inventory mutation, procurement POs, accounting posting, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
+      "date": "2026-05-23"
+    }
+  ]
+}

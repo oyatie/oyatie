@@ -1,0 +1,273 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Keep Workflow execution deterministic: the same input must close the same gate/evidence sequence without random, network, database, or LLM side effects in the replay/reference path.",
+      "Use the in-memory reference as a contract test for future durable engines and broker adapters, not as a production Workflow runtime.",
+      "Separate execution-reference evidence from broker/event emission evidence so cloud readiness cannot imply a durable queue, child-service call, or audit-chain runtime.",
+      "Preserve vendor-neutral workflow handoff vocabulary so later Serverless Workflow/Temporal-style adapters can map the same gates without rewriting domain/app envelopes."
+    ],
+    "official_sources": [
+      "https://serverlessworkflow.io/",
+      "https://github.com/serverlessworkflow/specification",
+      "https://docs.temporal.io/workflow-definition",
+      "https://docs.temporal.io/workflows",
+      "https://github.com/cloudevents/spec"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-WORKFLOW-EXECUTION-001",
+  "commands": [
+    "cargo test --locked -p oya-enterprise-suite-workflow-adapter-inmemory",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-workflow-adapter-inmemory --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "jq . specs/microservices/enterprise-suite.json",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "quality-marker scan for touched workflow/readiness/spec/task/evidence rows",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-workflow-execution-1779664800.json --severity error"
+  ],
+  "created_at": "2026-05-24T08:40:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, execution status, changeset, and evidence names follow the enterprise-suite workflow-adapter naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "The existing flat crates/ workflow adapter is extended in place and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The slice keeps Workflow execution reference logic in the in-memory adapter and keeps cloud-readiness as a control-plane composer; architecture-boundaries is expected to include one new workspace edge."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No external dependency is introduced; cloud-readiness adds one workspace path dependency on the existing workflow adapter."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Execution is deterministic and bounded: it requires an existing dispatch, refuses duplicate execution, checks gate/evidence count drift, records each gate once, and sets all real runtime/cloud capability flags false."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The implementation is a small state-machine extension over the existing BTreeMap-backed queue; it adds no threads, no async runtime, no network call, and no broker."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "A deterministic execution reference is now available for later Workflow-engine/broker/cloud adapters while production blockers remain explicit in cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests cover execution without dispatch, duplicate execution, and gate/evidence drift to prevent false execution-readiness claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future durable adapters get a concrete execution record shape with dispatch idempotency, execution idempotency, gate records, and explicit nonclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The code keeps unsafe forbidden, uses typed statuses/errors, bounded vectors from validated envelopes, and no new third-party crates."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: keep metadata-only dispatch, attach a real Workflow engine/broker now, or add a deterministic in-memory execution reference. The reference was selected because it is testable now and avoids runtime/cloud overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The execution reference stays behind the workflow dispatch port and cloud-readiness consumes only capability flags, preserving adapter/control-plane boundaries."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "No child-service call, broker publish, credential handling, durable queue, or runtime audit emission is introduced; idempotency keys retain existing whitespace/path traversal refusal."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Execution is O(number of required gates) over an already prepared in-memory envelope and is outside any deployed request path."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "Workflow adapter and cloud-readiness tests cover positive execution, local readiness composition, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The slice strengthens evidence traceability for deterministic gate closure while keeping statutory filing, disbursement, production SLO, durable Workflow engine, and runtime audit-chain evidence as blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog data classes, evidence, and audit-chain rows document the execution reference and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing execution records/capability fields, cloud-readiness composition fields, and spec/task/evidence rows."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Execution records include gate evidence refs and status, but no runtime telemetry, audit-chain emission, or broker event is claimed."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No data/schema migration is performed; durable Workflow engine, broker, cloud deployment, and runtime audit emission remain future migrations."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779664800,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no durable Workflow engine",
+    "no broker publish",
+    "no child-service calls",
+    "no durable queue state",
+    "no live Workflow runtime",
+    "no runtime audit-chain emission",
+    "no deployed listener runtime evidence",
+    "no durable business storage runtime attachment",
+    "no statutory filing rail",
+    "no disbursement rail",
+    "no cloud deployment evidence",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a deterministic in-memory Workflow execution reference only.",
+    "It does not prove production Workflow execution, broker delivery, child service mutation, durable queue persistence, runtime audit-chain emission, or cloud deployment readiness."
+  ],
+  "review_verdict": "local-gates-pass-with-workflow-execution-reference-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-workflow-adapter-inmemory/src/lib.rs",
+    "crates/oya-enterprise-suite-workflow-adapter-inmemory/tests/workflow.rs",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs",
+    "registry/catalog/oya-enterprise-suite-workflow-adapter-inmemory.yaml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Adds deterministic in-memory Enterprise Suite Workflow execution records and composes the capability into cloud-readiness without claiming durable Workflow engine or broker runtime.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 480 packages, 480 catalog records, 683 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 122 branch-appended rows after promotion audit row",
+    "cargo_fmt_check": "PASS",
+    "catalog_validate": "PASS: 639 records",
+    "cloud_readiness_clippy": "PASS",
+    "cloud_readiness_tests": "PASS: 12 tests",
+    "data_class_workspace": "PASS: data class fitness validation passed: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "enterprise_suite_spec_json": "PASS",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-workflow-execution-oya-vcs-lifecycle-20260524.json",
+    "quality_marker_scan": "PASS: no new uppercase quality markers in touched workflow/readiness/spec/task/evidence diff",
+    "slo_coverage_gate": "PASS: 639 records",
+    "workflow_adapter_clippy": "PASS",
+    "workflow_adapter_tests": "PASS: 7 tests"
+  }
+}

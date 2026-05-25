@@ -1,0 +1,19 @@
+[package]
+name = "oya-enterprise-suite-tenant-resource-quota-contract"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-enterprise-suite-tenant-admission-policy = { path = "../oya-enterprise-suite-tenant-admission-policy" }
+oya-enterprise-suite-tenant-workload-manifest = { path = "../oya-enterprise-suite-tenant-workload-manifest" }
+
+[lib]
+name = "oya_enterprise_suite_tenant_resource_quota_contract"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

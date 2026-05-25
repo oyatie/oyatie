@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/microservices/warehouse.json",
+  "title": "Warehouse Inventory Microservice",
+  "_meta": {
+    "doc_class": "Machine-Readable-PRD",
+    "spec_id": "PRD-MICROSERVICE-WAREHOUSE",
+    "version": "0.1.0",
+    "status": "preview",
+    "owner_team": "council-enterprise",
+    "created_at": "2026-05-23",
+    "change_id": "CS-ENT-WAREHOUSE-001"
+  },
+  "identity": {
+    "microservice": "warehouse",
+    "bounded_context": "inventory-and-warehouse-execution",
+    "crate_prefix": "oya-warehouse-inventory",
+    "primary_crate": "microservices/warehouse/crates/oya-warehouse-inventory-domain"
+  },
+  "goals": [
+    "Provide a flat warehouse inventory domain foundation for goods receipt, putaway stock positioning, inventory reservation, pick confirmation, and cycle-count reconciliation metadata.",
+    "Prepare ERP-grade MM/EWM parity metadata without attaching durable persistence, procurement three-way match, accounting ledger mutation, robotics/scanner runtime, carrier calls, shipping labels, Workflow execution, runtime audit-chain emission, or cloud deployment."
+  ],
+  "non_goals": [
+    "No durable warehouse database, WMS runtime task engine, robot/scanner integration, carrier network call, or shipping label generation.",
+    "No procurement three-way match, accounting ledger mutation, payment execution, Workflow execution, statutory filing, runtime audit-chain emission, or cloud deployment.",
+    "No SAP EWM, Oracle WMS, or Dynamics warehouse exhaustive parity claim."
+  ],
+  "sources_scanned": [
+    "https://help.sap.com/docs/SAP_S4HANA_CLOUD/87f9b54f9c4f4e75aff0061860a6589a/b8e1242b86f5403f9c81a65e9a188f10.html",
+    "https://help.sap.com/docs/SAP_S4HANA_CLOUD/87f9b54f9c4f4e75aff0061860a6589a/4938549c790d4e2cbeade042b59becd3.html",
+    "https://docs.oracle.com/en/cloud/saas/warehouse-management/26b/owmwr/allocation.html",
+    "https://docs.oracle.com/en/cloud/saas/warehouse-management/26a/owmol/overview.html",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/warehouse-management-overview"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a procurement purchase order arrives at a warehouse receiving dock",
+      "when": "the warehouse inventory domain records goods receipt",
+      "then": "tenant, legal entity, warehouse, item, PO, inbound load, expected quantity, received quantity, quantity variance, unit of measure, PO source ref, receiving evidence, timestamp, idempotency key, state, and explicit false procurement/accounting/durable-write flags are present",
+      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::goods_receipt_putaway_reservation_pick_and_cycle_count_flow"
+    },
+    {
+      "id": "AC-02",
+      "given": "a goods receipt has been recorded",
+      "when": "putaway is recorded into a storage bin",
+      "then": "receipt, source location, target bin, item, quantity, remaining capacity, location directive, putaway evidence, stock position identity, and false robotics/durable/cloud flags are present",
+      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{goods_receipt_putaway_reservation_pick_and_cycle_count_flow,warehouse_refuses_missing_receipt_and_inactive_reservation,warehouse_refuses_capacity_shortage_and_over_reservation}"
+    },
+    {
+      "id": "AC-03",
+      "given": "available stock exists for an outbound order",
+      "when": "inventory reservation is created",
+      "then": "stock position, outbound order, allocation policy, reservation evidence, reserved quantity, available-after-reservation, pick-release flag, and false carrier/cloud flags are present while over-reservation is refused",
+      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_refuses_capacity_shortage_and_over_reservation"
+    },
+    {
+      "id": "AC-04",
+      "given": "a reservation is active",
+      "when": "inventory pick confirmation is recorded",
+      "then": "pick task, reservation, outbound order, bin, item, picked quantity, pick evidence, shipment-release flag, and false carrier-call/shipping-label/cloud flags are present; inactive reservation and picked/reserved quantity mismatch are refused",
+      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{goods_receipt_putaway_reservation_pick_and_cycle_count_flow,warehouse_validates_refs_quantities_and_pick_counts}"
+    },
+    {
+      "id": "AC-05",
+      "given": "cycle counting compares book and counted inventory",
+      "when": "cycle count reconciliation runs",
+      "then": "variance, tolerance, within-tolerance flag, count evidence, and false accounting-adjustment/durable-write/cloud flags are present; variance outside tolerance is refused",
+      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_validates_refs_quantities_and_pick_counts"
+    },
+    {
+      "id": "AC-06",
+      "given": "untrusted identifiers, source refs, evidence refs, units, or quantities enter the warehouse domain",
+      "when": "domain validation runs",
+      "then": "prefix-only, traversal, whitespace/control, credential-shaped refs, zero operational quantities, invalid units of measure, capacity shortage, over-reservation, and pick mismatch are refused",
+      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_validates_refs_quantities_and_pick_counts"
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Warehouse enters the enterprise microservice set as a flat inventory domain crate rather than a monolithic ERP/EWM module; SAP MM/EWM and WMS-like coverage is mapped through Enterprise Suite parity composition while persistence, WMS runtime task execution, robotics/scanner I/O, carrier networks, accounting mutation, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
+      "date": "2026-05-23"
+    }
+  ]
+}

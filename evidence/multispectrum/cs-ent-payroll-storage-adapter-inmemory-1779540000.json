@@ -1,0 +1,321 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-PAYROLL-004",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779540000,
+  "timestamp_iso": "2026-05-23T12:40:00Z",
+  "scope": [
+    "microservices/payroll/crates/oya-payroll-run-storage-adapter-inmemory/Cargo.toml",
+    "microservices/payroll/crates/oya-payroll-run-storage-adapter-inmemory/src/lib.rs",
+    "microservices/payroll/crates/oya-payroll-run-storage-adapter-inmemory/tests/storage.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-payroll-run-storage-adapter-inmemory.yaml",
+    "specs/microservices/payroll.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Payroll AC-12 in-memory storage seam reference adapter records trial-close audit, accounting dispatch, and HR leave-impact intake metadata with idempotency validation while explicitly avoiding durable storage, Postgres/RLS, payroll calculation, filing/disbursement rails, Workflow dispatch, HR/accounting calls, and audit-chain emission claims.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The adapter is a compact BTreeMap/BTreeSet reference implementation with no provider configuration or hidden I/O.",
+        "Malformed idempotency keys and duplicate writes fail deterministically before records are inserted."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The storage port separates payroll metadata record semantics from future durable Postgres/RLS or cloud provider adapters.",
+        "Capability flags keep durable backend, Postgres/RLS, payroll calculation, statutory filing rails, disbursement rails, Workflow dispatch, HR/accounting calls, and audit emission false until real integrations land."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/payroll/crates/oya-payroll-run-storage-adapter-inmemory/tests/storage.rs::payroll_storage_records_metadata_without_durable_backend_claim",
+      "failing_fixture_id": "duplicate idempotency and malformed key tests",
+      "diagnostic_asserted": "Tests fail if duplicate writes are accepted, malformed keys reserve, payroll envelope metadata is dropped, or capability flags imply durable storage/calculation/filing/disbursement/runtime execution.",
+      "findings": [
+        "Positive coverage persists all three payroll record kinds; negative coverage refuses duplicate idempotency keys and unsafe key shapes."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "The crate exposes a named storage port trait, in-memory store, stored-record shape, capability descriptor, and explicit persist helpers for each existing Payroll app envelope."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Payroll storage adapter tests/clippy, payroll package-group tests/clippy, 20-package enterprise regression tests/clippy, fmt, data_class scan, and quality-marker scan passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "wire Postgres/RLS now",
+        "store full payroll/payee/wage-ledger details in the reference adapter",
+        "add an in-memory payroll metadata storage seam reference first"
+      ],
+      "selected_rationale": "The in-memory reference pins idempotency and payroll envelope-to-record contracts before durable storage, RLS, cloud operations, calculation, and filing/disbursement rails exist.",
+      "rejected_reasons": [
+        "Postgres/RLS requires migrations, tenancy controls, rollback, and SLO evidence that are outside this slice.",
+        "Storing full payroll/payee/wage-ledger details would overclaim privacy/security posture; this adapter records metadata only."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "metadata_persistence_idempotency_boundary",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No secrets, provider credentials, databases, or network clients are introduced.",
+        "Idempotency key validation rejects empty, whitespace, path traversal, and duplicate keys; payroll calculation, filing, disbursement, HR calls, and accounting calls remain false capabilities."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "in_memory_reference_map",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-payroll-storage-inmemory-reference",
+      "regression_baseline": "No durable backend exists; tests exercise fixed-size in-memory metadata records.",
+      "findings": [
+        {
+          "summary": "Operations are bounded by BTreeMap/BTreeSet key operations over in-process metadata; no network, filesystem, or database I/O is introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only",
+        "pii_identifying_metadata",
+        "financial_metadata",
+        "public_capability_metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "payroll-run-governance",
+        "kr-payroll-close",
+        "hr-leave-impact-controls",
+        "accounting-dispatch-controls"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "repo storage port/adapter patterns",
+        "specs/microservices/payroll.json"
+      ],
+      "findings": [
+        "Stored-record and capability public fields carry data_class annotations.",
+        "Capability response explicitly marks durable backend, Postgres/RLS, payroll calculation, statutory filing rails, disbursement rails, Workflow dispatch, HR/accounting network calls, and audit-chain emission false."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one Payroll in-memory adapter crate, catalog row, workspace membership, spec/tasks/evidence updates, and no migrations or external resources."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Stored records carry topic, tenant, legal entity, run id, primary ref, idempotency key, schema version, payload data class, evidence count, and backend label for future audit/telemetry labels."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Payroll AC-12 and D-11 record the storage seam while durable storage, Postgres/RLS, payroll calculation, filing/disbursement rails, Workflow dispatch, HR/accounting calls, and cloud/SLO evidence remain future slices."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A storage seam reference can land before durable Payroll storage if it is explicitly volatile, metadata-only, and all provider/runtime capabilities stay false.",
+      "premise_evidence_ref": "specs/microservices/payroll.json AC-12 and Payroll storage capability tests",
+      "do_nothing_consequence": "Future durable Payroll adapters would lack a tested idempotency and metadata record-shape contract for trial-close audit, accounting dispatch, and HR leave-impact intake envelopes.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Shared storage providers do not define payroll-specific metadata repository semantics or calculation/filing/disbursement non-claims."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This advances Payroll toward later Oyatie cloud integration without pretending a durable payroll datastore, calculation engine, filing/disbursement rails, Workflow dispatch, HR network integration, or Accounting network integration exists."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names follow Payroll run storage adapter, in-memory, idempotency, and metadata record vocabulary."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Payroll spec, plan, todo, evidence, catalog, and audit-chain references were updated."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Storage-specific code lives in a new Payroll adapter crate; runtime/API/app/domain behavior remains unchanged."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No database migration, provider SDK, HTTP framework, runtime write integration, Workflow client, HR client, Accounting client, statutory filing transport, disbursement rail, cloud adapter, or audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No third-party dependencies were added; the crate depends only on existing Payroll app/domain crates."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Stored records include schema_version and stable topic/idempotency/reference fields; no wire API schema is changed."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Persistence helpers deterministically map existing Payroll app envelopes into record views and then enforce key validation/duplicate checks before insert."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed after Payroll in-memory storage adapter addition"
+    },
+    {
+      "command": "cargo test --offline -p oya-payroll-run-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "initial offline lockfile refresh for new workspace member passed after correcting test expectation; 3 Payroll storage tests passed"
+    },
+    {
+      "command": "cargo test --locked -p oya-payroll-run-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "Payroll storage adapter tests passed under locked Cargo.lock; 3 tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-payroll-run-storage-adapter-inmemory --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "focused Payroll storage adapter clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked -p oya-payroll-run-domain -p oya-payroll-run-app -p oya-payroll-run-api -p oya-payroll-run-runtime -p oya-payroll-run-storage-adapter-inmemory",
+      "status": "pass",
+      "notes": "Payroll package group tests passed after storage adapter addition"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-payroll-run-domain -p oya-payroll-run-app -p oya-payroll-run-api -p oya-payroll-run-runtime -p oya-payroll-run-storage-adapter-inmemory --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "Payroll package group clippy completed without warnings"
+    },
+    {
+      "command": "cargo test --locked across HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime)/suite(+runtime+storage+workflow) package group",
+      "status": "pass",
+      "notes": "20 enterprise packages including HR storage, Payroll storage, Enterprise Suite storage, and Enterprise Suite workflow adapter passed targeted regression tests"
+    },
+    {
+      "command": "cargo clippy --locked across HR(+runtime+storage)/payroll(+runtime+storage)/accounting(+runtime)/suite(+runtime+storage+workflow) package group --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "20 enterprise packages including Payroll storage adapter passed clippy with -D warnings"
+    },
+    {
+      "command": "Payroll storage public field data_class scan",
+      "status": "pass",
+      "notes": "storage record/capability public fields carry data_class annotations; src/lib.rs contains 29 data_class markers"
+    },
+    {
+      "command": "Payroll storage quality-marker scan over CS-ENT-PAYROLL-004 code/catalog paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in Payroll storage adapter crate or catalog row"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-payroll-storage-adapter-inmemory-1779540000.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-payroll-storage-adapter-inmemory-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "non_claims": [
+    "durable storage backend not attached",
+    "Postgres/RLS not attached",
+    "payroll calculation not attached",
+    "statutory filing rails not attached",
+    "disbursement rails not attached",
+    "Workflow dispatch not attached",
+    "HR network calls not attached",
+    "Accounting network calls not attached",
+    "runtime write path not attached",
+    "runtime audit-chain emission not implemented",
+    "cloud deployment/SLO evidence not asserted"
+  ]
+}

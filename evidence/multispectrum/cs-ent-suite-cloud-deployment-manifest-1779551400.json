@@ -1,0 +1,301 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-CLOUD-DEPLOYMENT-MANIFEST-001",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779551400,
+  "timestamp_iso": "2026-05-24T01:00:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-deployment-manifest/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-deployment-manifest/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-deployment-manifest/tests/manifest.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-enterprise-suite-cloud-deployment-manifest.yaml",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-16 adds a declarative Kubernetes/GitOps deployment manifest foundation and composes it into the cloud-readiness gate. The manifest validates namespace, digest-pinned image reference, probe paths, resource requests and limits, replica bounds, ArgoCD/Jenkins/Cosign/network/OTel references, and explicit non-claims while refusing imperative deploy flags or runtime attachment overclaims.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new crate is a typed manifest validator with no side effects, no provider clients, and no network or filesystem runtime path.",
+        "Failure modes are explicit enum variants instead of stringly readiness booleans."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice advances cloud integration readiness by making Kubernetes, ArgoCD, Jenkins, Cosign, network policy, OTel, and SLO surfaces machine-checkable before any deployment claim.",
+        "Cloud readiness remains false because runtime blockers for listener, auth, durable storage, Postgres/RLS, Workflow/broker, statutory rails, runtime audit, deployment evidence, and production SLO evidence are still present."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-deployment-manifest/tests/manifest.rs::cloud_deployment_manifest_preserves_gitops_security_and_nonclaims",
+      "failing_fixture_id": "cloud_deployment_manifest_rejects_imperative_deploy_overclaims",
+      "diagnostic_asserted": "Tests fail if the manifest allows imperative kubectl or Helm deploys, mutable image tags, unsafe refs, weak replica/resource/probe/SLO values, or runtime attachment claims.",
+      "findings": [
+        "Positive manifest validation and negative overclaim, image, ref, replica, resource, probe, and SLO validations are covered."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 15,
+      "findings": [
+        "Developers can call enterprise_suite_cloud_deployment_manifest() and validate_cloud_deployment_manifest() to see the required pre-cloud deployment contract and rejection reasons."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Targeted manifest check/test/clippy, cloud-readiness test/clippy, 36-package enterprise regression test/clippy, fmt, jq, data_class scan, quality-marker scan, dependency-seam gate, Oya VCS verify/done/promote, and audit-chain append-only checks are required for closeout."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "claim cloud readiness from the existing readiness gate alone",
+        "add real Kubernetes manifests and a live ArgoCD application now",
+        "add a typed declarative manifest foundation without deployment claims"
+      ],
+      "selected_rationale": "A typed foundation gives later cloud work a narrow, testable contract while avoiding false deployment, image publication, or controller-attachment claims.",
+      "rejected_reasons": [
+        "The existing readiness gate did not model deployment manifest policy, image pinning, imperative deploy refusal, probe/resource bounds, or GitOps references.",
+        "Live deployment would be premature because auth, durable storage, Workflow/broker, statutory rails, runtime audit emission, deployment evidence, and production SLO evidence remain unresolved blockers."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "deployment_manifest_control_plane",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No secrets, tenant data, listener, auth runtime, cloud provider SDK, service account creation, image signing key, or cluster credential is introduced.",
+        "Reference validators reject unsafe text, path traversal, credential-shaped refs, default/system namespaces, mutable images, and imperative deployment flags."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_static_manifest_validation",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-enterprise-suite-cloud-deployment-manifest",
+      "regression_baseline": "Validation checks a fixed in-memory manifest with scalar fields and static refs; no I/O, network calls, provider clients, or hot request path exists.",
+      "findings": [
+        {
+          "summary": "Manifest validation is bounded by a fixed set of fields and does not affect runtime throughput."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "PUBLIC manifest control-plane metadata",
+        "INTERNAL_ONLY deployment reference metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-suite-governance",
+        "cloud-readiness",
+        "gitops-vcs-replacement",
+        "jenkins-argocd-self-hostable-ci-cd-substrate"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+        "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+        "https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/",
+        "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+        "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+        "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+        "https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/",
+        "https://plugins.jenkins.io/kubernetes/",
+        "https://docs.sigstore.dev/cosign/verifying/verify/",
+        "https://opentelemetry.io/docs/platforms/kubernetes/collector/"
+      ],
+      "findings": [
+        "All public struct fields in changed source carry data_class annotations.",
+        "The manifest keeps statutory filing and disbursement rails out of scope and keeps runtime audit emission as an unresolved cloud blocker."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one crate, one catalog row, spec/task/evidence updates, and a readiness-gate composition field. No migration or external resource is created."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The readiness report now includes a cloud_deployment_manifest_ready flag and evidence ref for dashboard and release-gate consumption.",
+        "Runtime OTel export and deploy audit emission remain explicit non-claims."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-16 records a staged migration boundary from local manifest foundation to later cloud deployment work.",
+        "The readiness gate incorporates the manifest without removing the remaining cloud blockers."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A declarative manifest foundation is useful before a real Kubernetes or ArgoCD deployment only if it refuses runtime attachment claims and imperative deployment paths.",
+      "premise_evidence_ref": "manifest.rs negative tests plus cloud readiness gate blocker assertions",
+      "do_nothing_consequence": "Later cloud work would need to infer deployment expectations from prose instead of consuming a typed, tested policy record.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "The cloud-readiness gate owns aggregate status, but a separate manifest crate keeps deployment policy validation isolated from readiness aggregation."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This is the next smallest cloud-integration step after ERP parity closure: it provides a GitOps deployment contract while preserving the no-cloud-deployment boundary."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use cloud-deployment-manifest vocabulary and avoid deployed-service or production-ready claims."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, plan, todo, catalog, multispectrum evidence, VCS evidence, and audit-chain references are part of the closeout set."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate sits under microservices/enterprise-suite/crates with a product-control catalog row and no new runtime adapter layer."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No listener, auth runtime, durable store, Postgres/RLS, provider SDK, Workflow engine/broker, child-service network client, cloud adapter, statutory rail, or runtime audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new manifest crate has no third-party dependencies; the readiness gate adds only a local workspace dependency on it."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No external wire API schema changes; the addition is a Rust control-plane struct plus Enterprise Suite AC-16 metadata."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation is deterministic scalar/ref checking with no clock, randomness, I/O, network, or provider calls."
+      ]
+    }
+  },
+  "verification": {
+    "completed": [
+      "cargo check -p oya-enterprise-suite-cloud-deployment-manifest",
+      "cargo test --locked -p oya-enterprise-suite-cloud-deployment-manifest",
+      "cargo clippy --locked -p oya-enterprise-suite-cloud-deployment-manifest --all-targets -- -D warnings",
+      "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+      "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+      "36-package enterprise regression: cargo test --locked for HR/payroll/accounting/enterprise-suite/procurement/treasury/warehouse/production-planning/quality-management/plant-maintenance/supply-chain-planning/crm/global-trade/real-estate packages",
+      "36-package enterprise regression: cargo clippy --locked --all-targets -- -D warnings for same package set",
+      "cargo fmt --all -- --check",
+      "jq . specs/microservices/enterprise-suite.json",
+      "jq . evidence/multispectrum/cs-ent-suite-cloud-deployment-manifest-1779551400.json",
+      "data_class scan across manifest and readiness source fields",
+      "quality-marker scan across new/changed manifest/readiness/spec/catalog files",
+      "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-cloud-deployment-manifest-1779551400.json --severity error"
+    ],
+    "known_pre_existing_blockers": [
+      "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog is blocked by missing pre-existing oya-tenancy-tenant-lifecycle-kernel catalog row",
+      "./bin/oya gate validate data-class --workspace Cargo.toml is blocked by pre-existing crates/oya-audit-chain-emission-kernel/src/lib.rs::ChainCoordinate.pack",
+      "Full ./bin/oya verify --ci-required remains blocked by the two pre-existing issues above"
+    ]
+  },
+  "non_claims": [
+    "No Kubernetes cluster was contacted or created.",
+    "No ArgoCD controller, Application CR, or sync was attached.",
+    "No container image was built, published, pulled, or verified at runtime.",
+    "No Cosign runtime signature verification or policy controller integration was executed.",
+    "No OpenTelemetry runtime export or collector deployment was executed.",
+    "No cloud deployment evidence or production SLO evidence is claimed.",
+    "No deployed listener, auth runtime, durable storage, Postgres/RLS, Workflow/broker, statutory filing/disbursement rail, or runtime audit emitter is introduced."
+  ],
+  "open_cloud_blockers": [
+    "deployed listener missing",
+    "auth runtime missing",
+    "durable storage missing",
+    "Postgres/RLS missing",
+    "Workflow/broker missing",
+    "statutory filing rails missing",
+    "disbursement rails missing",
+    "runtime audit-chain emission missing",
+    "cloud deployment evidence missing",
+    "production SLO evidence missing",
+    "runtime secret and credential path missing"
+  ]
+}

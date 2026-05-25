@@ -7,7 +7,7 @@
 #![allow(dead_code)]
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct SubScopeId(pub String);
+pub struct SubScopeId(pub String); // data_class: INTERNAL_ONLY
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SubScopeKind {
@@ -22,20 +22,20 @@ pub enum SubScopeKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubScope {
-    pub id: SubScopeId,
-    pub tenant_id: String,
-    pub kind: SubScopeKind,
-    pub parent: Option<SubScopeId>,
-    pub path: SubScopePath,
+    pub id: SubScopeId,             // data_class: INTERNAL_ONLY
+    pub tenant_id: String,          // data_class: INTERNAL_ONLY
+    pub kind: SubScopeKind,         // data_class: INTERNAL_ONLY
+    pub parent: Option<SubScopeId>, // data_class: INTERNAL_ONLY
+    pub path: SubScopePath,         // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SubScopePath(pub Vec<String>);
+pub struct SubScopePath(pub Vec<String>); // data_class: INTERNAL_ONLY
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HierarchyEdge {
-    pub parent: SubScopeId,
-    pub child: SubScopeId,
+    pub parent: SubScopeId, // data_class: INTERNAL_ONLY
+    pub child: SubScopeId,  // data_class: INTERNAL_ONLY
 }
 
 pub trait SubScopeRegistryPort {

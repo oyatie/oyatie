@@ -1,0 +1,277 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Treat statutory filing systems as authority-specific rails: require official endpoint/source refs, credential boundaries, payload schemas, payload digests, and agency acknowledgement/receipt evidence before runtime submission claims.",
+      "Keep agency credentials and live agency connections outside the review-only contract until certified provider/onboarding evidence exists.",
+      "Keep tax-payment/disbursement execution separate from filing evidence so a filing-readiness plan cannot imply funds movement.",
+      "Preserve legal-entity isolation and human approval as required controls for corporate payroll/accounting statutory submissions."
+    ],
+    "official_sources": [
+      "https://www.irs.gov/e-file-providers/modernized-e-file-overview",
+      "https://www.irs.gov/e-file-providers/modernized-e-file-mef-internet-filing",
+      "https://s.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=238910&mi=40296",
+      "https://www.hometax.go.kr/",
+      "https://edi.nps.or.kr/",
+      "https://www.oecd.org/en/publications/tax-administration-3-0-the-digital-transformation-of-tax-administration_ca274cc5-en.html"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-STATUTORY-FILING-EVIDENCE-001",
+  "commands": [
+    "cargo metadata --format-version=1 --no-deps",
+    "cargo test --locked -p oya-enterprise-suite-statutory-filing-evidence",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-statutory-filing-evidence --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "jq . specs/microservices/enterprise-suite.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "quality-marker scan for touched statutory filing/readiness/spec/task/evidence rows",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-statutory-filing-evidence-1779665400.json --severity error"
+  ],
+  "created_at": "2026-05-24T08:50:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite statutory-filing-evidence naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The statutory evidence contract stays in a dedicated control-plane crate and cloud-readiness consumes only validated plan fields and capability flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No new external dependency is introduced; cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: requirement uniqueness, KR/US and rail-kind coverage, official authority URL allowlist, safe refs, required controls, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small typed contract and validator; it adds no agency client, no payment execution, no durable archive, and no cloud runtime."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Filing readiness now requires official authority refs, payload digests, agency receipts, credential boundaries, legal-entity isolation, and human approval before cloud promotion can claim statutory filing rails."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing requirements, duplicate requirement IDs, unofficial authority URLs, credential-shaped refs, missing controls, and runtime overclaim flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future cloud/filing adapters get one typed evidence plan instead of discovering statutory prerequisites from payroll/accounting prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "The crate uses typed enums, explicit errors, no unsafe, no network calls, and no third-party dependencies."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: immediate filing API integration, broad prose-only checklist, or a review-only typed evidence contract. The typed contract was selected because it is verifiable now and avoids legal/runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract references existing payroll/accounting statutory rulepack evidence and composes into cloud-readiness while leaving runtime submission and disbursement as blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "Agency credential refs are boundary refs only; tests reject credential-shaped secret/token/password payload refs and runtime credential attachment remains false."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is O(number of filing requirements) over four static requirement rows and adds no request-path, network, or storage runtime work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New statutory filing tests and cloud-readiness tests cover positive readiness, authority coverage, nonclaims, and negative overclaim/drift cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The contract strengthens compliance traceability for statutory filings while preserving production filing, agency credential, payment/disbursement, durable archive, and runtime audit evidence as explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks, catalog row, evidence, and audit-chain rows document the statutory filing evidence plan and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/catalog row and cloud-readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The plan names payload digest and agency receipt evidence refs, but does not claim runtime telemetry or audit-chain emission."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No data/schema migration is performed; agency credentials, live agency connections, runtime submission, payment execution, durable archive, and cloud deployment remain future migrations."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779665400,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no agency credential attachment",
+    "no live agency connection",
+    "no runtime statutory submission",
+    "no filing rail runtime",
+    "no disbursement rail",
+    "no tax payment execution",
+    "no durable statutory archive",
+    "no production filing evidence",
+    "no cloud deployment evidence",
+    "no runtime audit-chain emission",
+    "no deployed listener runtime evidence",
+    "no durable business storage runtime attachment",
+    "no durable Workflow engine or broker execution",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only statutory filing evidence contract foundation.",
+    "It does not prove statutory filing submission, agency acceptance, agency credential onboarding, payment/disbursement execution, durable statutory archiving, runtime audit-chain emission, or cloud deployment readiness."
+  ],
+  "review_verdict": "local-gates-pass-with-statutory-filing-evidence-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-statutory-filing-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-statutory-filing-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Adds an Enterprise Suite statutory filing evidence contract and composes it into cloud-readiness without claiming agency filing, disbursement, payment, archive, audit runtime, or cloud deployment.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 481 packages, 481 catalog records, 684 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 124 branch-appended rows after promotion audit row",
+    "cargo_fmt_check": "PASS",
+    "cargo_metadata": "PASS",
+    "catalog_validate": "PASS: 640 records",
+    "cloud_readiness_clippy": "PASS",
+    "cloud_readiness_tests": "PASS: 13 tests",
+    "data_class_workspace": "PASS: data class fitness validation passed: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "enterprise_suite_spec_json": "PASS",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-statutory-filing-evidence-oya-vcs-lifecycle-20260524.json",
+    "quality_marker_scan": "PASS: no new uppercase quality markers in touched statutory filing/readiness/spec/task/evidence diff",
+    "slo_coverage_gate": "PASS: 640 records",
+    "statutory_filing_clippy": "PASS",
+    "statutory_filing_tests": "PASS: 5 tests"
+  }
+}

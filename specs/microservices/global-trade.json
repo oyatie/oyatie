@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/microservices/global-trade.json",
+  "title": "Global Trade Microservice",
+  "_meta": {
+    "doc_class": "Machine-Readable-PRD",
+    "spec_id": "PRD-MICROSERVICE-GLOBAL-TRADE",
+    "version": "0.1.0",
+    "status": "preview",
+    "owner_team": "council-enterprise",
+    "created_at": "2026-05-24",
+    "change_id": "CS-ENT-GLOBAL-TRADE-001"
+  },
+  "identity": {
+    "microservice": "global-trade",
+    "bounded_context": "global-trade-compliance",
+    "crate_prefix": "oya-global-trade",
+    "primary_crate": "microservices/global-trade/crates/oya-global-trade-compliance-domain"
+  },
+  "goals": [
+    "Provide a flat global-trade compliance domain foundation for party screening metadata, trade-item classification metadata, export-control assessment metadata, customs declaration preparation metadata, and landed-cost simulation metadata.",
+    "Prepare ERP-grade SAP GTS parity metadata without attaching live denied-party screening, government list downloads, legal rulings, customs/export filing, broker network submission, shipment/order/inventory/accounting mutation, Workflow execution, runtime audit-chain emission, or cloud deployment."
+  ],
+  "non_goals": [
+    "No live denied-party or sanctions-provider network calls, government list downloads, legal-ruling retrieval, tariff subscription integration, customs-authority filing, export declaration transmission, broker workflow, or document archive runtime.",
+    "No durable persistence, business transaction block mutation, product master mutation, shipment mutation, inventory cost update, accounting posting, payment disbursement, Workflow execution, runtime audit-chain emission, or cloud deployment.",
+    "No SAP GTS, Oracle GTM, Microsoft Dynamics 365, customs-agency, export-control, or landed-cost exhaustive parity/certification claim."
+  ],
+  "sources_scanned": [
+    "https://help.sap.com/docs/SAP_GLOBAL_TRADE_SERVICES/bdb1d2fb216941a69f6300006343e977/4a9eb3af0c5b388fe10000000a42189c.html",
+    "https://help.sap.com/docs/SAP_GLOBAL_TRADE_SERVICES/bdb1d2fb216941a69f6300006343e977/3d9f38ad-f3a1-472e-8a26-2da32ecdca46.html?version=11.0.15",
+    "https://www.oracle.com/scm/logistics/global-trade-management/",
+    "https://docs.oracle.com/en/cloud/saas/transportation/25c/gtmcf/customs-filing-process.html",
+    "https://docs.oracle.com/en/cloud/saas/transportation/26a/otmol/gtm/trade_compliance_management/trade_compliance_management_generic_setup.htm",
+    "https://docs.oracle.com/en/cloud/saas/transportation/25c/gtmrc/overview.html",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/landed-cost/landed-cost-overview",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/landed-cost/costing-parameters-setup",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/landed-cost/landed-cost-vs-tms"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a trade party has tenant, legal entity, role, country, normalized party name, sanctions-list version ref, screening score, source ref, and audit evidence",
+      "when": "the global-trade domain screens the party metadata",
+      "then": "screening, tenant, legal entity, party, role, country, name, list version, score, source, evidence, outcome, hold flag, idempotency key, state, schema version, and false live-provider/list-download/block-mutation/cloud flags are present",
+      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::party_item_export_customs_and_landed_cost_flow"
+    },
+    {
+      "id": "AC-02",
+      "given": "a trade item has tenant, legal entity, origin/destination countries, HS code, export-control classification, customs value, duty rate, source ref, and audit evidence",
+      "when": "trade-item classification metadata is prepared",
+      "then": "classification, tenant, legal entity, item, origin/destination countries, HS code, export-control classification, customs value, duty rate, source, evidence, idempotency key, state, schema version, and false regulatory-content/legal-ruling/product-master/cloud flags are present",
+      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::party_item_export_customs_and_landed_cost_flow"
+    },
+    {
+      "id": "AC-03",
+      "given": "a screened party and classified item are available with export-control classification, shipment value, license presence, embargo signal, source ref, and audit evidence",
+      "when": "export-control assessment metadata is prepared",
+      "then": "assessment, tenant, legal entity, classification, item, destination, export-control classification, shipment value, party outcome, license/embargo signals, decision, compliance-hold flag, source, evidence, idempotency key, state, schema version, and false license-management/government-filing/order-mutation/Workflow/cloud flags are present",
+      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow,global_trade_records_compliance_holds_without_runtime_mutation_claim}"
+    },
+    {
+      "id": "AC-04",
+      "given": "an export-control assessment allows the transaction and declaration metadata has quantity, unit value, freight, insurance, incoterm, customs procedure, source ref, and audit evidence",
+      "when": "customs declaration preparation metadata is prepared",
+      "then": "declaration, assessment, tenant, legal entity, item, party, declaration type, decision, quantity, goods value, freight, insurance, declared customs value, incoterm, procedure, source, evidence, idempotency key, state, schema version, and false customs-submission/broker/shipment/document-archive/cloud flags are present",
+      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow}"
+    },
+    {
+      "id": "AC-05",
+      "given": "a prepared customs declaration has declared customs value, duty rate, brokerage fee, local transport cost, source ref, and audit evidence",
+      "when": "landed-cost simulation metadata is prepared",
+      "then": "landed-cost simulation, declaration, tenant, legal entity, declared customs value, duty rate, duty amount, brokerage fee, local transport cost, total landed cost, source, evidence, idempotency key, state, schema version, and false accounting/inventory/payment/cloud flags are present",
+      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow}"
+    },
+    {
+      "id": "AC-06",
+      "given": "untrusted identifiers, country codes, HS/ECCN values, list/source/evidence refs, incoterms, customs procedures, amounts, quantities, duty rates, or overclaim paths enter the global-trade domain",
+      "when": "domain validation runs",
+      "then": "prefix-only identifiers, invalid ISO country codes, invalid HS/ECCN values, path traversal, whitespace/control characters, credential-shaped refs, zero/overflow amounts, invalid quantities, invalid duty rates, missing party screening, missing item classification, missing export-control assessment, and compliance-hold customs preparation are refused",
+      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{global_trade_refuses_unscreened_unclassified_or_held_flow,global_trade_validates_refs_codes_amounts_and_rates,global_trade_records_compliance_holds_without_runtime_mutation_claim}"
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Global Trade enters the enterprise microservice set as a flat compliance domain crate rather than a monolithic ERP/GTS suite; SAP GTS parity is represented through Enterprise Suite composition while denied-party providers, regulatory content, legal rulings, customs/export filings, broker networks, document archives, business-document mutations, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
+      "date": "2026-05-24"
+    }
+  ]
+}

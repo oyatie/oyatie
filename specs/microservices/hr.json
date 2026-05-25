@@ -21,10 +21,10 @@
       "tenant-work"
     ],
     "crate_refs_planned": [
-      "oya-enterprise-hr-kernel",
-      "oya-enterprise-hr-domain",
-      "oya-enterprise-hr-app",
-      "oya-enterprise-hr-rest"
+      "oya-hr-employment-kernel",
+      "oya-hr-employment-domain",
+      "oya-hr-employment-app",
+      "oya-hr-employment-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
   },
@@ -92,35 +92,98 @@
       "given": "a tenant creates or updates an employee",
       "when": "the employment record is persisted",
       "then": "tenant_id, legal_entity_id, manager_id, employment_status, data_class, and audit evidence are present",
-      "test_ref": "crates/oya-enterprise-hr-domain/tests/employment.rs::test_employment_requires_entity_and_audit"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-domain/tests/employment.rs::test_employment_requires_entity_and_audit"
     },
     {
       "id": "AC-02",
       "given": "a Korean entity crosses 10 employees",
       "when": "Rules of Employment obligation is evaluated",
       "then": "Workflow opens Drafted -> EmployeeReviewSent -> MajorityConsentObtained -> MoelFiled -> Active evidence path",
-      "test_ref": "crates/oya-enterprise-hr-domain/tests/kr_rules.rs::test_rules_of_employment_threshold_opens_workflow"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-domain/tests/kr_rules.rs::test_rules_of_employment_threshold_opens_workflow"
     },
     {
       "id": "AC-03",
       "given": "a Korean entity crosses 30 employees",
       "when": "labor-management council obligation is evaluated",
       "then": "council roster, meeting cadence, and minutes evidence requirements activate",
-      "test_ref": "crates/oya-enterprise-hr-domain/tests/kr_council.rs::test_labor_management_council_threshold"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-domain/tests/kr_council.rs::test_labor_management_council_threshold"
     },
     {
       "id": "AC-04",
       "given": "an employee requests leave or attendance correction",
       "when": "a manager approves or rejects it",
       "then": "Workflow records delegation/escalation, labor-law rulepack basis, and payroll-impact evidence",
-      "test_ref": "crates/oya-enterprise-hr-domain/tests/leave.rs::test_leave_approval_emits_payroll_impact"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-domain/tests/leave.rs::test_leave_approval_emits_payroll_impact and microservices/hr/crates/oya-hr-employment-app/tests/leave.rs::leave_payroll_impact_envelope_is_metadata_only"
     },
     {
       "id": "AC-05",
       "given": "an org admin attempts to access medical or sensitive HR data",
       "when": "policy evaluates the read",
       "then": "purpose-bound access, consent/legal basis, and sensitive-read logging are required",
-      "test_ref": "crates/oya-enterprise-hr-domain/tests/privacy.rs::test_sensitive_hr_read_requires_basis"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-domain/tests/privacy.rs::test_sensitive_hr_read_requires_basis and microservices/hr/crates/oya-hr-employment-app/tests/privacy.rs::sensitive_read_envelope_is_metadata_only"
+    },
+    {
+      "id": "AC-06",
+      "given": "an HR employment command or Korea labor threshold obligation is evaluated by the app layer",
+      "when": "the app crate prepares downstream integration metadata",
+      "then": "metadata-only audit and Workflow dispatch envelopes are produced without storage, network, or Workflow I/O",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-app/tests/app_envelopes.rs::{onboarding_emits_metadata_only_audit_event,kr_obligations_create_workflow_dispatches}"
+    },
+    {
+      "id": "AC-07",
+      "given": "an external caller submits HR onboarding or labor-compliance JSON",
+      "when": "the API DTO contract parses the request",
+      "then": "camelCase fields, stable enum labels, consistent validation error envelope shape, and deterministic conversion into app/domain inputs are preserved without transport runtime I/O",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::{onboard_employee_request_uses_camel_case_and_stable_enums,labor_compliance_request_converts_to_domain_snapshot,error_envelope_has_consistent_shape}"
+    },
+    {
+      "id": "AC-08",
+      "given": "a future HTTP adapter needs HR employment wire contracts",
+      "when": "contract validation runs",
+      "then": "OpenAPI v1 describes onboarding and labor-compliance request/response shapes with semver metadata and explicit non-deployed status",
+      "test_ref": "microservices/hr/contracts/openapi-v1.yaml + microservices/hr/contracts/openapi-v1.meta.yaml; validated by oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+    },
+    {
+      "id": "AC-09",
+      "given": "HR employment changes are proposed for review",
+      "when": "the self-hostable CI quality gate runs",
+      "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across HR domain/app/API packages before promotion",
+      "test_ref": "microservices/hr/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-hr-employment-domain, oya-hr-employment-app, oya-hr-employment-api; oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+    },
+    {
+      "id": "AC-10",
+      "given": "an external caller submits a sensitive HR read policy decision request",
+      "when": "the API DTO and preview contract parse the request",
+      "then": "camelCase fields, stable sensitive-read enum labels, purpose/legal-basis evidence fields, and metadata-only decision response shape are preserved without runtime authorization or data retrieval",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::sensitive_read_policy_request_uses_camel_case_and_converts_to_domain_input; microservices/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1sensitive-read-policy-decisions; validated by oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+    },
+    {
+      "id": "AC-11",
+      "given": "an external caller submits a leave or attendance payroll-impact planning request",
+      "when": "the API DTO and preview contract parse the request",
+      "then": "camelCase fields, stable leave/payroll enum labels, rulepack/routing/payroll evidence fields, and metadata-only HR-to-payroll response shape are preserved without payroll calculation or runtime dispatch",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::leave_payroll_impact_request_uses_camel_case_and_converts_to_domain_input; microservices/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1leave-payroll-impact-plans; validated by oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+    },
+    {
+      "id": "AC-12",
+      "given": "a future HR HTTP adapter receives JSON for onboarding, labor workflow planning, sensitive-read policy decisions, leave payroll-impact planning, or health checks",
+      "when": "the HR runtime adapter router dispatches the request through the repo-native Hyper foundation",
+      "then": "OpenAPI-aligned JSON responses and validation/forbidden error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-runtime/tests/runtime.rs::{hr_runtime_dispatches_sensitive_read_and_leave,hr_runtime_dispatches_onboarding_and_labor_workflow_metadata,hr_runtime_rejects_invalid_json_and_forbidden_sensitive_purpose,hr_runtime_manifest_and_health_preserve_honest_non_claims}"
+    },
+    {
+      "id": "AC-13",
+      "given": "a future durable HR persistence adapter needs a stable contract for employment lifecycle, labor workflow, leave payroll-impact, and sensitive-read metadata",
+      "when": "the in-memory HR storage reference adapter records app-layer HR envelopes",
+      "then": "topic, tenant, legal-entity, primary refs, evidence counts, payload data-class labels, and idempotency keys are preserved while durable backend, Postgres/RLS, sensitive data retrieval, Workflow execution, Payroll calls, and audit-chain emission remain explicit non-claims",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-storage-adapter-inmemory/tests/storage.rs::{hr_storage_records_metadata_without_durable_backend_claim,hr_storage_refuses_duplicate_idempotency_keys,hr_storage_reservation_validates_key_shape_and_allows_commit}"
+    },
+    {
+      "id": "AC-14",
+      "given": "a future HR labor-compliance or durable policy adapter needs the statutory basis for a rulepack",
+      "when": "the HR statutory rulepack source manifest is built",
+      "then": "source-versioned official MOEL/Law.go.kr/DOL/EEOC URLs, evidence refs, digests, effective dates, and approval evidence are required while Workflow engine, payroll calculation, filing rail, cloud deployment, and runtime audit emission remain explicit non-claims",
+      "test_ref": "microservices/hr/crates/oya-hr-employment-domain/tests/rulepack_manifest.rs::{hr_statutory_rulepack_manifest_requires_official_sources_without_runtime_claims,hr_statutory_rulepack_manifest_rejects_empty_sources_and_overclaims,hr_statutory_rulepack_manifest_rejects_unofficial_or_unversioned_sources,united_states_hr_manifest_can_reference_dol_and_eeoc_sources_without_payroll_claim}"
     }
   ],
   "scope": {
@@ -280,7 +343,7 @@
       {
         "pack": "KR",
         "required": true,
-        "notes": "Korea-first HR/payroll/accounting fidelity: Labor Standards Act, 4\ub300\ubcf4\ud5d8, HomeTax, K-GAAP/K-IFRS, PIPA, ISMS-P, SAPA, rules-of-employment and labor-management-council thresholds."
+        "notes": "Korea-first HR/payroll/accounting fidelity: Labor Standards Act, 4대보험, HomeTax, K-GAAP/K-IFRS, PIPA, ISMS-P, SAPA, rules-of-employment and labor-management-council thresholds."
       },
       {
         "pack": "US",
@@ -339,7 +402,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-enterprise-hr-domain -- lifecycle_policy",
+      "verification_ref": "cargo nextest -p oya-hr-employment-domain -- lifecycle_policy",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -349,7 +412,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate enterprise-hr-kr-obligations",
+      "verification_ref": "oya gate validate hr-kr-obligations",
       "lane_ref": "compliance"
     },
     {
@@ -359,7 +422,7 @@
         "stable": 99.9,
         "GA": 99.99
       },
-      "verification_ref": "cargo nextest -p oya-enterprise-hr-domain -- attendance_payroll_bridge",
+      "verification_ref": "cargo nextest -p oya-hr-employment-domain -- attendance_payroll_bridge",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -369,7 +432,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate enterprise-hr-sensitive-read-audit",
+      "verification_ref": "oya gate validate hr-sensitive-read-audit",
       "lane_ref": "audit-chain"
     }
   ],
@@ -538,6 +601,71 @@
       "id": "D-03",
       "decision": "HR, Payroll, and Accounting are the first enterprise children; suite model remains extensible for procurement, compliance, assets, and corporate intelligence.",
       "date": "2026-05-16"
+    },
+    {
+      "id": "D-04",
+      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier enterprise-suite crate naming; HR implementation crates use oya-hr-<bounded-context>-<layer> under microservices/hr/crates/.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-05",
+      "decision": "HR AC-01..AC-03 were implemented in CS-ENT-HR-001; AC-04 leave/payroll impact is implemented in CS-ENT-HR-002; AC-05 sensitive-read purpose/legal-basis policy is implemented in CS-ENT-HR-003.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-06",
+      "decision": "HR app-layer crate emits metadata-only audit and Workflow dispatch envelopes over the pure employment domain; runtime dispatch, persistence, and cloud adapters remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-07",
+      "decision": "HR API crate owns serializable DTO contracts and deterministic conversion into employment app/domain inputs; deployed HTTP routing, auth middleware, persistence, and runtime adapters remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-08",
+      "decision": "HR OpenAPI v1 preview contract aligns to HR API DTO crate shapes for employee onboarding and labor-compliance planning; deployed HTTP runtime and auth enforcement remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-09",
+      "decision": "HR Jenkins LTS quality gate covers the employment domain/app/API package group plus the HR OpenAPI contract; ArgoCD, Helm, runtime deploy, storage, Workflow execution, and cloud adapters remain out of scope until deployable adapters land.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-10",
+      "decision": "HR AC-04 leave approval payroll-impact foundation is implemented as pure domain planning plus metadata-only app envelope; Workflow execution, payroll calculation, storage, and cloud adapters remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-11",
+      "decision": "HR AC-05 sensitive-read policy is implemented as pure purpose/legal-basis evaluation plus metadata-only audit envelope; runtime authorization middleware, data retrieval, storage, and audit-chain emission remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-12",
+      "decision": "HR sensitive-read policy is exposed through transport-neutral API DTOs and OpenAPI 3.2.0 preview request/response contracts for future cloud adapters; deployed authorization, sensitive data retrieval, storage, and runtime audit emission remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-13",
+      "decision": "HR leave payroll-impact planning is exposed through transport-neutral API DTOs and OpenAPI 3.2.0 preview request/response contracts for future payroll/cloud adapters; leave balance calculation, payroll calculation, storage, Workflow execution, and runtime audit emission remain out of scope.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-14",
+      "decision": "HR runtime adapter crate binds HR API DTOs to the repo-native Hyper router/middleware foundation and returns OpenAPI-aligned JSON responses; it is router-ready but does not deploy a listener, persist state, execute Workflow, call Payroll, retrieve sensitive HR data, or emit runtime audit-chain events.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-15",
+      "decision": "HR in-memory storage adapter defines the metadata persistence seam and idempotency behavior for later durable Postgres/RLS or cloud adapters; it is volatile test/local reference storage and does not attach runtime writes, durable storage, Workflow execution, Payroll calls, sensitive-data retrieval, or audit-chain emission.",
+      "date": "2026-05-23"
+    },
+    {
+      "id": "D-16",
+      "decision": "HR statutory labor rulepacks are represented first as source-versioned manifest provenance in the HR domain; this prepares later cloud/workflow/durable adapters without claiming Workflow execution, payroll calculation, filing transport, cloud deployment, production statutory correctness, or runtime audit-chain emission.",
+      "date": "2026-05-23"
     }
   ],
   "sources_scanned": [

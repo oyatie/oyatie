@@ -1,0 +1,173 @@
+{
+  "schema": "oyatie.vcs.lifecycle-transcript.v1",
+  "change_id": "CS-ENT-SUITE-010",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T13:01:00Z",
+  "evidence_ref": "evidence/multispectrum/cs-ent-suite-local-runtime-composition-1779541200.json",
+  "commands": [
+    {
+      "step": "claim",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-SUITE-010 Enterprise local runtime composition manifest",
+          "scopes": [
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-local-runtime-composition/Cargo.toml::CS-ENT-SUITE-010",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-local-runtime-composition/src/lib.rs::enterprise_local_runtime_composition",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-local-runtime-composition/tests/composition.rs::enterprise_local_runtime_composition_catalogs_child_routes_without_listener_claim",
+            "Cargo.toml::microservices.enterprise_suite.local_runtime_composition",
+            "registry/catalog/oya-enterprise-suite-local-runtime-composition.yaml::CS-ENT-SUITE-010",
+            "specs/microservices/enterprise-suite.json::acceptance_criteria.AC-12",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-SUITE-010",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-SUITE-010",
+            "evidence/multispectrum/cs-ent-suite-local-runtime-composition-1779541200.json::CS-ENT-SUITE-010",
+            "evidence/vcs/cs-ent-suite-local-runtime-composition-oya-vcs-lifecycle-20260523.json::CS-ENT-SUITE-010",
+            "evidence/audit-chain.jsonl::CS-ENT-SUITE-010"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-010"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-010"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-local-runtime-composition-1779541200.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-010"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-local-runtime-composition-1779541200.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-local-runtime-composition-1779541200.json"
+          ],
+          "bundle_id": "CS-ENT-SUITE-010",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

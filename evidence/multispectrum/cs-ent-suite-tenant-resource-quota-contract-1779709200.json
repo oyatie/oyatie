@@ -1,0 +1,291 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Preserve FD-001 product delivery as the master-plan product goal; treat Oyatie Cloud as the hyperscaler-grade substrate proof for hosting FD-001 microservices as real tenant workloads.",
+      "Require a review-only tenant ResourceQuota and LimitRange contract before any Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime, LimitRanger runtime, quota usage runtime observation, admission runtime, or workload deployment claim.",
+      "Keep namespace ResourceQuota, compute requests quotas, compute limits quotas, object-count quotas, persistent-storage quotas, LimitRange defaults, LimitRange min/max bounds, container request/limit requirements, ResourceQuota admission evidence, LimitRanger admission evidence, tenant labels, quota usage audit evidence, and tenant-admission policy evidence linkage across all FD-001 manifest workloads.",
+      "Keep Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime, LimitRanger runtime, quota usage runtime observation, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission outside this contract until environment-backed evidence exists."
+    ],
+    "official_sources": [
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/docs/concepts/policy/limit-range/",
+      "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/",
+      "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+      "https://kubernetes.io/docs/concepts/security/multi-tenancy/"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001",
+  "commands": [
+    "cargo check --locked -p oya-enterprise-suite-tenant-resource-quota-contract",
+    "cargo check --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo test --locked -p oya-enterprise-suite-tenant-resource-quota-contract",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-tenant-resource-quota-contract --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "cargo metadata --format-version=1 --no-deps",
+    "jq . specs/microservices/enterprise-suite.json",
+    "jq . evidence/multispectrum/cs-ent-suite-tenant-resource-quota-contract-1779709200.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-tenant-resource-quota-contract-1779709200.json --severity error",
+    "quality-marker scan for touched resource-quota-contract/readiness/spec/task/evidence rows",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-resource-quota-contract-1779709200.json CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-resource-quota-contract-1779709200.json CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-tenant-resource-quota-contract-1779709200.json",
+    "audit-chain HEAD-prefix append-only script for evidence/audit-chain.jsonl"
+  ],
+  "created_at": "2026-05-25T11:40:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite tenant-resource-quota-contract naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New control-plane contract crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "The quota contract imports and validates the FD-001 tenant-workload manifest and tenant-admission policy before exposing review-only noisy-neighbor guardrails to cloud-readiness."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No external dependency is introduced; the new contract crate depends only on tenant-workload-manifest and tenant-admission-policy workspace crates, and cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: manifest validation, admission-policy validation, required controls, all-manifest-workload scope, official doc URL allowlist, source refs, requirement-kind coverage, workload coverage, duplicate detection, and runtime overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The change is additive; reverting the new crate, dependency, readiness fields/tests, spec/task/evidence/audit rows removes the slice without changing existing runtime behavior."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Readiness output now surfaces quota contract readiness, requirement count, all-workload scope, ResourceQuota/LimitRange/compute/storage/admission/audit attachment booleans, and explicit false quota-runtime flags."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "No reserved facet exception is required for this review-only contract."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "Future live substrate work can migrate from the review-only contract by supplying cluster, ResourceQuota application, LimitRange application, quota admission, LimitRanger, quota status, workload, and audit-chain evidence without changing FD-001/Oyatie Cloud claim boundaries."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a small additive contract crate plus readiness composition, avoiding live cluster, quota admission, quota object apply, quota usage observation, and workload runtime plumbing until the boundary contract is explicit and reviewable."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "The gate strengthens the Oyatie Cloud substrate proof by requiring namespace quotas, compute requests/limits quotas, object and storage quotas, LimitRange defaults and bounds, admission evidence, tenant labels, and usage audit evidence across all FD-001 manifest workloads before runtime deployment claims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Negative tests reject missing requirements, duplicate requirements, doc drift, quota-ref drift, missing required controls, missing all-workload scope, and runtime overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "The public API exposes a single contract builder, validator, doc URL extractor, requirement enum, and explicit nonclaim booleans for readiness reporting."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Focused unit tests and cloud-readiness tests passed; clippy, fmt, catalog, architecture, data-class, and quality-marker scans are included in closeout."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "A live cluster, ResourceQuota apply path, LimitRange apply path, quota admission controller attachment, or quota status observation was deferred because it would require environment-backed evidence; a review-only contract is the smallest honest noisy-neighbor readiness increment."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The contract composes after tenant-workload and tenant-admission contracts and before runtime tenant evidence slices, preserving the staged Oyatie Cloud substrate architecture."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "The contract requires tenant-scoped namespace quotas, LimitRange boundaries, container requests and limits, admission evidence, tenant labels, usage audit evidence, admission linkage, and false runtime attachment flags to reduce noisy-neighbor and quota-bypass risk."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "The slice does not add runtime hot-path execution; later quota controller and status-observation work gets bounded validation expectations without creating current runtime load."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "Five quota-contract tests and twenty-nine cloud-readiness tests cover positive, negative, and nonclaim paths."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "FD-001 remains the product goal; Oyatie Cloud is only the substrate proof. The contract cites official Kubernetes sources while keeping cluster/quota/runtime/workload/audit claims blocked until evidence exists."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks ledger, catalog row, evidence file, and audit chain were updated for CS-ENT-SUITE-TENANT-RESOURCE-QUOTA-CONTRACT-001."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779709200,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no Kubernetes cluster attachment",
+    "no ResourceQuota application",
+    "no LimitRange application",
+    "no quota admission runtime attachment",
+    "no LimitRanger runtime attachment",
+    "no quota usage runtime observation",
+    "no workload runtime deployment",
+    "no cloud-substrate runtime attachment",
+    "no production workload evidence",
+    "no runtime audit-chain emission",
+    "no durable storage runtime",
+    "no deployed listener runtime",
+    "no production Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only tenant ResourceQuota and LimitRange contract for later FD-001 workload dogfooding on the Oyatie Cloud substrate.",
+    "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves FD-001 microservices can run as guarded tenant workloads.",
+    "It does not prove Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime attachment, LimitRanger runtime attachment, quota usage runtime observation, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission."
+  ],
+  "review_verdict": "local-gates-pass-with-tenant-resource-quota-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-tenant-resource-quota-contract/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "registry/catalog/oya-enterprise-suite-tenant-resource-quota-contract.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/vcs/cs-ent-suite-tenant-resource-quota-contract-oya-vcs-lifecycle-20260525.json"
+  ],
+  "summary": "Adds a review-only FD-001 tenant ResourceQuota and LimitRange contract for later Oyatie Cloud workload noisy-neighbor guardrails and composes it into cloud-readiness without claiming Kubernetes cluster attachment, ResourceQuota application, LimitRange application, quota admission runtime attachment, LimitRanger runtime attachment, quota usage runtime observation, workload deployment, cloud-substrate runtime, production workload evidence, or runtime audit-chain emission.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 497 packages, 497 catalog records, 719 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 156 branch-appended rows after promotion audit row",
+    "cargo_check_cloud_readiness": "PASS: cargo check --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo_check_resource_quota_contract": "PASS: cargo check --locked -p oya-enterprise-suite-tenant-resource-quota-contract",
+    "cargo_fmt_check": "PASS: cargo fmt --all -- --check",
+    "cargo_metadata": "PASS: cargo metadata --format-version=1 --no-deps",
+    "catalog_validate": "PASS: 656 records",
+    "cloud_readiness_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cloud_readiness_tests": "PASS: 29 tests",
+    "data_class_workspace": "PASS: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "enterprise_suite_evidence_json": "PASS: jq . evidence/multispectrum/cs-ent-suite-tenant-resource-quota-contract-1779709200.json",
+    "enterprise_suite_spec_json": "PASS: jq . specs/microservices/enterprise-suite.json",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-tenant-resource-quota-contract-oya-vcs-lifecycle-20260525.json",
+    "quality_marker_scan": "PASS: touched resource-quota-contract/readiness/spec/task/evidence rows and this slice audit-chain tail contain no blocked quality markers after closeout",
+    "resource_quota_contract_clippy": "PASS: cargo clippy --locked -p oya-enterprise-suite-tenant-resource-quota-contract --all-targets -- -D warnings",
+    "resource_quota_contract_tests": "PASS: 5 tests",
+    "slo_coverage_gate": "PASS: 656 records"
+  }
+}

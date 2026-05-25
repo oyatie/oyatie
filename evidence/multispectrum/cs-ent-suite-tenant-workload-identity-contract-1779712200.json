@@ -1,0 +1,264 @@
+{
+  "change_id": "CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001",
+  "change_class_id": "CC-1",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "created_at": "2026-05-25T12:30:00Z",
+  "freshness_unix": 1779712200,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "best_practice_research": {
+    "official_sources": [
+      "https://kubernetes.io/docs/concepts/security/service-accounts/",
+      "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",
+      "https://spiffe.io/docs/latest/spiffe-about/overview/",
+      "https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/",
+      "https://spiffe.io/docs/latest/spire-about/spire-concepts/",
+      "https://gateway-api.sigs.k8s.io/api-types/backendtlspolicy/",
+      "https://opentelemetry.io/docs/specs/semconv/resource/service/"
+    ],
+    "handoff_constraints": [
+      "Preserve FD-001 product delivery as the master-plan product goal; treat Oyatie Cloud as the hyperscaler-grade substrate proof for hosting FD-001 microservices as real tenant workloads.",
+      "Require a review-only tenant workload cryptographic identity and service-to-service trust contract before any Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE server runtime attachment, SPIRE agent runtime attachment, SVID runtime issuance, mTLS handshake observation, Gateway BackendTLSPolicy application, authorization-policy runtime attachment, or workload deployment claim.",
+      "Keep SPIFFE IDs, pinned trust domain, X.509 SVIDs, JWT-SVID policy, mutual TLS policy, Gateway BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, tenant-admission policy evidence linkage, and workload-manifest evidence across all FD-001 manifest workloads.",
+      "Keep Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE runtime attachment, SVID issuance, mTLS observation, certificate rotation runtime, BackendTLSPolicy application, authorization-policy runtime, workload runtime deployment, cloud-substrate runtime, production workload evidence, and runtime audit-chain emission outside this contract until environment-backed evidence exists."
+    ]
+  },
+  "commands": [
+    "cargo metadata --format-version=1 --offline",
+    "cargo check --locked -p oya-enterprise-suite-tenant-workload-identity-contract",
+    "cargo check --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo test --locked -p oya-enterprise-suite-tenant-workload-identity-contract",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-tenant-workload-identity-contract --all-targets -- -D warnings",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "cargo metadata --format-version=1 --no-deps",
+    "jq . specs/microservices/enterprise-suite.json",
+    "jq . evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json --severity error",
+    "quality-marker scan for touched workload-identity/readiness/spec/task/evidence rows",
+    "./bin/oya vcs --format json status --agent codex-enterprise-20260523 CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001",
+    "./bin/oya vcs --format json verify --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001",
+    "./bin/oya vcs --format json done --agent codex-enterprise-20260523 --evidence evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001",
+    "./bin/oya vcs --format json promote --agent codex-enterprise-20260523 --bundle CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001 --environment dev --evidence evidence/multispectrum/cs-ent-suite-tenant-workload-identity-contract-1779712200.json",
+    "audit-chain prefix-preserving script for evidence/audit-chain.jsonl"
+  ],
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package, capability, changeset, and evidence names follow the enterprise-suite tenant-workload-identity-contract naming pattern."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, task ledger, multispectrum evidence, and audit-chain conventions are preserved."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New control-plane contract crate is under crates/ and cloud-readiness composes it through a workspace path dependency."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The workload-identity contract imports and validates the FD-001 tenant-workload manifest and tenant-admission policy before exposing review-only SPIFFE/SPIRE, mTLS, Gateway BackendTLSPolicy, telemetry identity, authorization binding, and audit evidence guardrails to cloud-readiness."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No external dependency is introduced; the new contract crate depends only on tenant-workload-manifest and tenant-admission-policy workspace crates, and cloud-readiness adds one workspace path dependency."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite JSON, catalog row, data_class annotations, and multispectrum evidence keep machine-readable shapes."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Validation is deterministic and bounded: manifest validation, admission-policy validation, trust-domain and SPIFFE ID validation, required controls, all-manifest-workload scope, official doc URL allowlist, source refs, requirement-kind coverage, workload coverage, duplicate detection, and runtime overclaim flags are checked."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice is a small additive contract crate plus readiness composition, avoiding live SPIFFE, SPIRE, mTLS, Gateway BackendTLSPolicy, authorization runtime, workload runtime, and cloud runtime plumbing until environment-backed evidence exists."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The gate strengthens the Oyatie Cloud substrate proof by requiring SPIFFE IDs, pinned trust domain, X.509 SVIDs, JWT-SVID policy, mutual TLS policy, Gateway BackendTLSPolicy refs, certificate-rotation evidence, trust-bundle evidence, Workload API boundaries, workload-attestation selectors, OpenTelemetry service identity, authorization-policy binding, identity-audit evidence, and admission/workload-manifest evidence across all FD-001 manifest workloads before runtime deployment claims."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Negative tests reject missing requirements, duplicate requirements, doc drift, policy-ref drift, missing required controls, missing all-workload scope, and runtime overclaims."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The public API exposes a single contract builder, validator, doc URL extractor, requirement enum, and explicit nonclaim booleans for readiness reporting."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Focused unit tests and cloud-readiness tests passed during development; clippy, fmt, catalog, architecture, data-class, dependency-seam, and quality-marker scans are included in closeout."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "A live SPIFFE/SPIRE deployment, SVID issuance path, mTLS handshake probe, Gateway BackendTLSPolicy application, or workload observation path was deferred because it would require environment-backed evidence; a review-only contract is the smallest honest workload-identity readiness increment."
+      ]
+    },
+    "F6_architecture": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The contract composes after tenant-workload, tenant-admission, resource-quota, availability, autoscaling, cost-allocation, and residency contracts and before live tenant runtime slices, preserving the staged Oyatie Cloud substrate architecture."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The contract requires workload cryptographic identity, trust-domain pinning, SVID requirements, mTLS policy, trust-bundle evidence, workload attestation, authorization-policy binding, telemetry identity, audit evidence, and false runtime attachment flags to reduce service-identity spoofing and overclaim risk."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice does not add runtime hot-path execution; later identity runtime enforcement work gets bounded validation expectations without creating current runtime load."
+      ]
+    },
+    "F8_tests": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Five workload-identity contract tests and thirty-four cloud-readiness tests cover positive, negative, and nonclaim paths."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "FD-001 remains the product goal; Oyatie Cloud is only the substrate proof. The contract cites official SPIFFE, SPIRE, Kubernetes, Gateway API, and OpenTelemetry sources while keeping cluster, Workload API, SPIRE runtime, SVID issuance, mTLS observation, BackendTLSPolicy application, workload runtime, and audit claims blocked until evidence exists."
+      ]
+    },
+    "F9_docs": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, tasks ledger, catalog row, evidence file, and audit chain were updated for CS-ENT-SUITE-TENANT-WORKLOAD-IDENTITY-CONTRACT-001."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive; reverting the new crate, dependency, readiness fields/tests, spec/task/evidence/audit rows removes the slice without changing existing runtime behavior."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Readiness output now surfaces workload-identity contract readiness, requirement count, all-workload scope, SPIFFE/SVID/mTLS/BackendTLS/trust-bundle/telemetry/audit attachment booleans, and explicit false identity-runtime flags."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No reserved facet exception is required for this review-only contract."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Future live substrate work can migrate from the review-only contract by supplying cluster, SPIFFE Workload API, SPIRE runtime, SVID issuance, mTLS handshake, BackendTLSPolicy, authorization runtime, workload, cloud-substrate, and audit-chain evidence without changing FD-001/Oyatie Cloud claim boundaries."
+      ]
+    }
+  },
+  "known_gaps": [
+    "no Kubernetes cluster attachment",
+    "no SPIFFE Workload API attachment",
+    "no SPIRE server runtime attachment",
+    "no SPIRE agent runtime attachment",
+    "no SVID runtime issuance",
+    "no mTLS handshake observation",
+    "no certificate-rotation runtime observation",
+    "no Gateway BackendTLSPolicy application",
+    "no authorization-policy runtime attachment",
+    "no workload runtime deployment",
+    "no cloud-substrate runtime attachment",
+    "no production workload evidence",
+    "no runtime audit-chain emission",
+    "no durable storage runtime",
+    "no deployed listener runtime",
+    "no production Workflow engine or broker execution",
+    "no production statutory filing or disbursement rail",
+    "no production or multi-region SLO evidence",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only tenant workload cryptographic identity contract for later FD-001 workload dogfooding on the Oyatie Cloud substrate.",
+    "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves FD-001 microservices can run as zero-trust tenant workloads.",
+    "It does not prove Kubernetes cluster attachment, SPIFFE Workload API attachment, SPIRE server runtime attachment, SPIRE agent runtime attachment, SVID runtime issuance, mTLS handshake observation, certificate-rotation runtime observation, Gateway BackendTLSPolicy application, authorization-policy runtime attachment, workload runtime deployment, cloud-substrate runtime attachment, production workload evidence, or runtime audit-chain emission."
+  ],
+  "review_verdict": "local-gates-pass-with-tenant-workload-identity-contract-and-oya-vcs-promoted"
+}

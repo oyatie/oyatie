@@ -8,7 +8,7 @@
 #![allow(dead_code)]
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct LockId(pub String);
+pub struct LockId(pub String); // data_class: INTERNAL_ONLY
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LockReason {
@@ -22,18 +22,18 @@ pub enum LockReason {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LifecycleLock {
-    pub id: LockId,
-    pub tenant_id: String,
-    pub reason: LockReason,
-    pub holder: String,
-    pub expires_at_epoch_s: u64,
+    pub id: LockId,              // data_class: INTERNAL_ONLY
+    pub tenant_id: String,       // data_class: INTERNAL_ONLY
+    pub reason: LockReason,      // data_class: INTERNAL_ONLY
+    pub holder: String,          // data_class: INTERNAL_ONLY
+    pub expires_at_epoch_s: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LockDecision {
-    pub allow: bool,
-    pub blocking_locks: Vec<LockId>,
-    pub explanation: String,
+    pub allow: bool,                 // data_class: INTERNAL_ONLY
+    pub blocking_locks: Vec<LockId>, // data_class: INTERNAL_ONLY
+    pub explanation: String,         // data_class: INTERNAL_ONLY
 }
 
 pub fn evaluate(action: &str, locks: &[LifecycleLock]) -> LockDecision {

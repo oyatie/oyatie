@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/microservices/procurement.json",
+  "title": "Procurement Source-to-Pay Microservice",
+  "_meta": {
+    "doc_class": "Machine-Readable-PRD",
+    "spec_id": "PRD-MICROSERVICE-PROCUREMENT",
+    "version": "0.1.0",
+    "status": "preview",
+    "owner_team": "council-enterprise",
+    "created_at": "2026-05-23",
+    "change_id": "CS-ENT-PROCUREMENT-001"
+  },
+  "identity": {
+    "microservice": "procurement",
+    "bounded_context": "source-to-pay",
+    "crate_prefix": "oya-procurement-source-to-pay",
+    "primary_crate": "microservices/procurement/crates/oya-procurement-source-to-pay-domain"
+  },
+  "goals": [
+    "Provide a flat source-to-pay domain foundation for ERP-grade supplier qualification, purchase requisition approval, purchase order issuance, and three-way matching.",
+    "Prepare clean handoff metadata for Accounting liability drafts without attaching payments, inventory mutation, supplier network calls, persistence, Workflow execution, or cloud deployment."
+  ],
+  "non_goals": [
+    "No supplier portal or supplier network runtime call.",
+    "No durable persistence, Postgres/RLS, Workflow execution, inventory mutation, payment execution, statutory filing, or cloud deployment.",
+    "No SAP Ariba, Oracle Procurement, or Coupa exhaustive parity claim."
+  ],
+  "sources_scanned": [
+    "https://help.sap.com/docs/strategic-sourcing/sap-ariba-product-sourcing/sap-ariba-strategic-sourcing-suite?locale=en-US",
+    "https://www.oracle.com/erp/procurement/",
+    "https://docs.coupa.com/en/supplier-documentation/coupa-for-suppliers/the-coupa-supplier-portal-or-csp/features-and-processes-in-the-coupa-supplier-portal/purchase-orders/about-purchase-orders"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a supplier is onboarded before procurement use",
+      "when": "the source-to-pay domain qualifies the supplier",
+      "then": "tenant, legal entity, supplier profile, KYB evidence, risk-screening evidence, approved vendor-master ref, idempotency key, and schema version are present",
+      "test_ref": "microservices/procurement/crates/oya-procurement-source-to-pay-domain/tests/source_to_pay.rs::approved_requisition_issues_purchase_order_and_three_way_match"
+    },
+    {
+      "id": "AC-02",
+      "given": "a requester creates a purchase requisition",
+      "when": "approval is evaluated",
+      "then": "supplier qualification, budget ref, policy evidence, approval evidence, financial amount, requester, approver, tenant, and legal entity are required",
+      "test_ref": "microservices/procurement/crates/oya-procurement-source-to-pay-domain/tests/source_to_pay.rs::procurement_refuses_unqualified_supplier_and_unapproved_purchase_order"
+    },
+    {
+      "id": "AC-03",
+      "given": "an approved requisition becomes a purchase order",
+      "when": "the purchase order is issued",
+      "then": "contract ref, approval evidence, issue evidence, amount, supplier, and requisition linkage are preserved without supplier-network or cloud runtime claims",
+      "test_ref": "microservices/procurement/crates/oya-procurement-source-to-pay-domain/tests/source_to_pay.rs::approved_requisition_issues_purchase_order_and_three_way_match"
+    },
+    {
+      "id": "AC-04",
+      "given": "goods receipt and supplier invoice arrive for an issued purchase order",
+      "when": "three-way match is evaluated",
+      "then": "ordered, received, and invoiced quantities plus ordered/invoiced amounts must match before accounting liability draft is allowed; payment execution, inventory mutation, supplier network calls, and cloud deployment remain false",
+      "test_ref": "microservices/procurement/crates/oya-procurement-source-to-pay-domain/tests/source_to_pay.rs::{approved_requisition_issues_purchase_order_and_three_way_match,three_way_match_refuses_quantity_and_amount_mismatches}"
+    },
+    {
+      "id": "AC-05",
+      "given": "untrusted identifiers, source refs, evidence refs, or money values enter the procurement domain",
+      "when": "domain validation runs",
+      "then": "prefix-only, traversal, whitespace/control, credential-shaped evidence refs, nonpositive amounts, and non-ISO currency codes are refused",
+      "test_ref": "microservices/procurement/crates/oya-procurement-source-to-pay-domain/tests/source_to_pay.rs::procurement_validates_evidence_and_source_ref_boundaries"
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Procurement enters the enterprise microservice set as a flat source-to-pay domain crate rather than a monolithic ERP module; SAP MM/SRM and Ariba-like coverage is mapped through Enterprise Suite parity composition while runtime supplier networks, durable storage, payment rails, Workflow execution, and cloud deployment remain explicit non-claims.",
+      "date": "2026-05-23"
+    }
+  ]
+}

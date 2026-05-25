@@ -1,0 +1,10 @@
+context: enterprise-suite
+role: runtime
+capability: postgres-rls-runtime-evidence-plan
+plane: control
+slo: preview-control-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: self-reviewed
+supply_chain: source-only

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/microservices/plant-maintenance.json",
+  "title": "Plant Maintenance Microservice",
+  "_meta": {
+    "doc_class": "Machine-Readable-PRD",
+    "spec_id": "PRD-MICROSERVICE-PLANT-MAINTENANCE",
+    "version": "0.1.0",
+    "status": "preview",
+    "owner_team": "council-enterprise",
+    "created_at": "2026-05-24",
+    "change_id": "CS-ENT-PLANT-MAINTENANCE-001"
+  },
+  "identity": {
+    "microservice": "plant-maintenance",
+    "bounded_context": "enterprise-asset-maintenance",
+    "crate_prefix": "oya-plant-maintenance",
+    "primary_crate": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain"
+  },
+  "goals": [
+    "Provide a flat plant-maintenance domain foundation for equipment asset registration, preventive-maintenance plan approval, maintenance work-order release metadata, and work-order completion metadata.",
+    "Prepare ERP-grade SAP PM/EAM parity metadata without attaching durable asset persistence, IoT/SCADA ingestion, technician dispatch, spare-parts inventory reservation, procurement requisitions, accounting posting, Workflow execution, runtime audit-chain emission, or cloud deployment."
+  ],
+  "non_goals": [
+    "No live enterprise asset management runtime, scheduling engine, technician mobile app, IoT/SCADA connector, spare-parts inventory mutation, procurement requisition creation, accounting posting, or predictive-maintenance model.",
+    "No durable persistence, warehouse mutation, supplier network call, plant safety permit execution, Workflow execution, runtime audit-chain emission, or cloud deployment.",
+    "No SAP, Oracle, or Dynamics plant-maintenance/enterprise-asset-management exhaustive parity claim."
+  ],
+  "sources_scanned": [
+    "https://help.sap.com/docs/SAP_S4HANA_CLOUD/2dfa044a255f49e89a3050daf3c61c11/c4edd426410a4aa29ee9aa6448b4aeb5.html",
+    "https://www.sap.com/products/erp/s4hana/features/asset-management.html",
+    "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/26a/faumm/overview-of-maintenance-work-execution.html",
+    "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/26b/faumm/using-maintenance.pdf",
+    "https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/24c/fasrp/api-maintenance-maintenance-work-orders.html",
+    "https://learn.microsoft.com/ga-ie/dynamics365/supply-chain/asset-management/overview/objects-and-work-orders",
+    "https://learn.microsoft.com/en-us/dynamics365/supply-chain/asset-management/preventive-and-reactive-maintenance/maintenance-plans"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "an equipment asset has tenant, legal entity, plant, functional location, criticality, installation/warranty dates, source refs, and registration evidence",
+      "when": "the plant-maintenance domain registers the equipment asset",
+      "then": "equipment, tenant, legal entity, plant, functional location, criticality, dates, source refs, registration evidence, idempotency key, state, schema version, and false durable-registry/IoT/cloud flags are present",
+      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::asset_master_drives_preventive_plan_work_order_and_completion"
+    },
+    {
+      "id": "AC-02",
+      "given": "a registered equipment asset needs scheduled preventive maintenance",
+      "when": "preventive-maintenance plan metadata is approved",
+      "then": "plan, equipment, tenant, legal entity, plant, functional location, interval, lead time, labor estimate, spare-part count, next due date, strategy source, approval evidence, idempotency key, state, and false scheduler/inventory/Workflow/cloud flags are present",
+      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow}"
+    },
+    {
+      "id": "AC-03",
+      "given": "an approved preventive-maintenance plan is ready for execution",
+      "when": "maintenance work-order release metadata is prepared",
+      "then": "work order, plan, equipment, tenant, legal entity, plant, functional location, priority, planned start, labor/spare-part plan, safety permit flag, job instruction source, release evidence, idempotency key, state, and false inventory/procurement/technician-dispatch/Workflow/cloud flags are present",
+      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow}"
+    },
+    {
+      "id": "AC-04",
+      "given": "a released maintenance work order has completion evidence and measured labor/spare/downtime values",
+      "when": "work-order completion metadata is recorded",
+      "then": "work order, equipment, tenant, legal entity, plant, completion date, planned/actual labor, labor variance, planned/actual spare parts, remaining spare parts, downtime, measurement/completion evidence, recalculation flag, and false accounting/meter-write/runtime-audit/cloud flags are present",
+      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_spare_part_over_consumption}"
+    },
+    {
+      "id": "AC-05",
+      "given": "untrusted identifiers, source refs, evidence refs, dates, intervals, quantities, or overclaim paths enter the plant-maintenance domain",
+      "when": "domain validation runs",
+      "then": "prefix-only identifiers, path traversal, whitespace/control characters, credential-shaped refs, invalid dates, warranty dates before installation, invalid preventive intervals, zero labor/spare quantities, missing equipment registration, missing plan approval, missing work-order release, and spare-part over-consumption are refused",
+      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow,plant_maintenance_validates_dates_refs_intervals_and_quantities,plant_maintenance_refuses_spare_part_over_consumption}"
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Plant Maintenance enters the enterprise microservice set as a flat enterprise-asset-maintenance domain crate rather than a monolithic ERP/PM module; SAP PM/EAM and broader ERP maintenance coverage is mapped through Enterprise Suite parity composition while scheduling runtime, IoT ingestion, technician dispatch, spare-parts inventory, procurement requisitions, accounting posting, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
+      "date": "2026-05-24"
+    }
+  ]
+}

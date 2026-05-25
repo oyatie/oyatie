@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "captured_at_iso": "2026-05-23T11:11:30Z",
+  "captured_by": "codex-enterprise-20260523",
+  "purpose": "Explicit local Oya VCS lifecycle transcript evidence for CS-ENT-HR-005 after HR leave payroll-impact API/OpenAPI preview contract evidence. This is command-output evidence; it does not assert registry/vcs/changeset-event-log.json persistence.",
+  "changesets": [
+    "CS-ENT-HR-005"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "claim",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--intent",
+        "CS-ENT-HR-005 HR leave payroll-impact API DTO and OpenAPI preview contract",
+        "microservices/hr/crates/oya-hr-employment-api/src/lib.rs::LeavePayrollImpactRequest",
+        "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::leave_payroll_impact_request_uses_camel_case_and_converts_to_domain_input",
+        "microservices/hr/contracts/openapi-v1.yaml::paths./hr/v1/leave-payroll-impact-plans",
+        "microservices/hr/contracts/openapi-v1.meta.yaml::CS-ENT-HR-005",
+        "specs/microservices/hr.json::acceptance_criteria.AC-11",
+        "tasks/enterprise-microservices-plan.md::CS-ENT-HR-005",
+        "tasks/enterprise-microservices-todo.md::CS-ENT-HR-005",
+        "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json::CS-ENT-HR-005",
+        "evidence/vcs/cs-ent-hr-leave-payroll-impact-api-openapi-oya-vcs-lifecycle-20260523.json::CS-ENT-HR-005",
+        "evidence/audit-chain.jsonl::CS-ENT-HR-005"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "claim",
+            "action": "claim-lock",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": "CS-ENT-HR-005 HR leave payroll-impact API DTO and OpenAPI preview contract",
+            "scopes": [
+              "microservices/hr/crates/oya-hr-employment-api/src/lib.rs::LeavePayrollImpactRequest",
+              "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::leave_payroll_impact_request_uses_camel_case_and_converts_to_domain_input",
+              "microservices/hr/contracts/openapi-v1.yaml::paths./hr/v1/leave-payroll-impact-plans",
+              "microservices/hr/contracts/openapi-v1.meta.yaml::CS-ENT-HR-005",
+              "specs/microservices/hr.json::acceptance_criteria.AC-11",
+              "tasks/enterprise-microservices-plan.md::CS-ENT-HR-005",
+              "tasks/enterprise-microservices-todo.md::CS-ENT-HR-005",
+              "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json::CS-ENT-HR-005",
+              "evidence/vcs/cs-ent-hr-leave-payroll-impact-api-openapi-oya-vcs-lifecycle-20260523.json::CS-ENT-HR-005",
+              "evidence/audit-chain.jsonl::CS-ENT-HR-005"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "status",
+        "--agent",
+        "codex-enterprise-20260523",
+        "CS-ENT-HR-005"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "status",
+            "action": "read-status",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-005"
+            ],
+            "evidence_refs": [],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "verify",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json",
+        "CS-ENT-HR-005"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "verify",
+            "action": "verify-evidence",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-005"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": null,
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "done",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json",
+        "CS-ENT-HR-005"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "done",
+            "action": "emit-change-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [
+              "CS-ENT-HR-005"
+            ],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json"
+            ],
+            "bundle_id": null,
+            "environment": null,
+            "closeout_mode": "legacy-grit-compatible-done",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./bin/oya",
+        "vcs",
+        "--format",
+        "json",
+        "promote",
+        "--agent",
+        "codex-enterprise-20260523",
+        "--bundle",
+        "CS-ENT-HR-005",
+        "--environment",
+        "dev",
+        "--evidence",
+        "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json"
+      ],
+      "exit_code": 0,
+      "stdout_json": [
+        {
+          "command": "oya vcs",
+          "status": "accepted",
+          "schema_version": 1,
+          "ratchet": {
+            "accepted": true,
+            "warnings": [],
+            "blocking_errors": [],
+            "forbidden_uses": []
+          },
+          "plan": {
+            "kind": "promote",
+            "action": "promote-bundle",
+            "agent_id": "codex-enterprise-20260523",
+            "intent": null,
+            "scopes": [],
+            "evidence_refs": [
+              "evidence/multispectrum/cs-ent-hr-leave-payroll-impact-api-openapi-1779534600.json"
+            ],
+            "bundle_id": "CS-ENT-HR-005",
+            "environment": "dev",
+            "closeout_mode": "controller-promote",
+            "compatibility_alias": null
+          }
+        }
+      ],
+      "stderr": ""
+    }
+  ],
+  "non_claims": [
+    "registry/vcs event-log persistence not asserted",
+    "remote CI execution not asserted",
+    "deployed HTTP runtime not asserted",
+    "payroll calculation not asserted"
+  ]
+}
