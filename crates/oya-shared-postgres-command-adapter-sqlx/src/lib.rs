@@ -20,7 +20,9 @@ pub enum SqlxPostgresCommandError {
     Kernel(SqlCommandError),
     MissingDatabaseUrl,
     TlsRequiredButDisabled,
-    UnsafeSql { command_name: &'static str },
+    UnsafeSql {
+        command_name: &'static str,
+    },
     ParameterCountMismatch {
         command_name: &'static str,
         expected_highest_placeholder: usize,
@@ -43,8 +45,8 @@ impl From<sqlx::Error> for SqlxPostgresCommandError {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SqlxPostgresConnectionConfig {
-    pub database_url: String,        // data_class: INTERNAL_ONLY
-    pub pool: PostgresPoolConfig,    // data_class: INTERNAL_ONLY
+    pub database_url: String,     // data_class: INTERNAL_ONLY
+    pub pool: PostgresPoolConfig, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -243,8 +245,7 @@ mod tests {
     };
 
     fn plan() -> SqlExecutionPlan {
-        let tenant = TenantSqlContext::new("tenant:t", "cell-a", "tenant:t#cell-a", "US")
-            .unwrap();
+        let tenant = TenantSqlContext::new("tenant:t", "cell-a", "tenant:t#cell-a", "US").unwrap();
         let statement = SqlCommand::new(
             "insert_probe",
             "INSERT INTO messenger_messages (tenant_id, message_id) VALUES ($1, $2)",
@@ -312,7 +313,10 @@ mod tests {
             PostgresPoolConfig::for_microservice("messenger", 16).unwrap(),
         );
 
-        assert_eq!(config, Err(SqlxPostgresCommandError::TlsRequiredButDisabled));
+        assert_eq!(
+            config,
+            Err(SqlxPostgresCommandError::TlsRequiredButDisabled)
+        );
     }
 
     #[test]
@@ -328,7 +332,10 @@ mod tests {
 
     #[test]
     fn highest_placeholder_tracks_postgres_bind_numbers() {
-        assert_eq!(highest_placeholder("INSERT INTO t VALUES ($1, $2, $10)"), 10);
+        assert_eq!(
+            highest_placeholder("INSERT INTO t VALUES ($1, $2, $10)"),
+            10
+        );
         assert_eq!(highest_placeholder("INSERT INTO t VALUES ($1, $1)"), 1);
         assert_eq!(highest_placeholder("UPDATE t SET a = true"), 0);
     }

@@ -480,8 +480,8 @@
         "producer": "tenant identity kernel"
       },
       {
-        "name": "ontology_action.v1.proto",
-        "ref": "$ref:contracts/ontology_action.v1.proto",
+        "name": "ontology_action-v1.proto",
+        "ref": "$ref:contracts/ontology_action-v1.proto",
         "producer": "$ref:specs/microservices/ontology.json",
         "bidirectional": true
       }

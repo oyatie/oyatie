@@ -85,14 +85,23 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
     insert("api", &["kernel", "domain", "app", "usecase", "adapter"]);
     insert(
         "worker",
-        &["kernel", "domain", "app", "usecase", "adapter", "api", "rest"],
+        &[
+            "kernel", "domain", "app", "usecase", "adapter", "api", "rest",
+        ],
     );
     // Composite adapters (e.g. kafka/nats/pulsar event-bus adapters wrapping a
     // base event-bus adapter) and adapters reusing transport DTOs are lateral
     // interface-layer edges.
     insert(
         "adapter",
-        &["kernel", "domain", "application", "usecase", "adapter", "api"],
+        &[
+            "kernel",
+            "domain",
+            "application",
+            "usecase",
+            "adapter",
+            "api",
+        ],
     );
     // Co-located SDK bindings wrap the service public surface: api DTOs, rest
     // routes, and the transport adapter. Outer client/facade layer.

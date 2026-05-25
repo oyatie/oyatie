@@ -258,15 +258,15 @@ fn validate_entity_key(tenant_id: &str, entity_id: &str) -> Result<(), ObjectGra
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct EntityTypeId {
-    pub value: String,
+    pub value: String, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct LinkTypeId {
-    pub value: String,
+    pub value: String, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ActionTypeId {
-    pub value: String,
+    pub value: String, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum LinkCardinality {
@@ -284,65 +284,65 @@ pub enum AutonomyTier {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypePropertyDefinition {
-    pub name: String,
-    pub tier: PropertyTier,
+    pub name: String, // data_class: INTERNAL_ONLY
+    pub tier: PropertyTier, // data_class: INTERNAL_ONLY
     pub data_class: PrivacyDataClass,
-    pub required: bool,
+    pub required: bool, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityTypeDefinition {
-    pub tenant_id: String,
-    pub id: EntityTypeId,
-    pub display_name: Classified<String>,
-    pub properties: Vec<EntityTypePropertyDefinition>,
-    pub revision: u32,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub id: EntityTypeId, // data_class: INTERNAL_ONLY
+    pub display_name: Classified<String>, // data_class: INTERNAL_ONLY
+    pub properties: Vec<EntityTypePropertyDefinition>, // data_class: INTERNAL_ONLY
+    pub revision: u32, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LinkTypeDefinition {
-    pub tenant_id: String,
-    pub id: LinkTypeId,
-    pub from_entity_type: EntityTypeId,
-    pub to_entity_type: EntityTypeId,
-    pub cardinality: LinkCardinality,
-    pub allow_cross_tenant: bool,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub id: LinkTypeId, // data_class: INTERNAL_ONLY
+    pub from_entity_type: EntityTypeId, // data_class: INTERNAL_ONLY
+    pub to_entity_type: EntityTypeId, // data_class: INTERNAL_ONLY
+    pub cardinality: LinkCardinality, // data_class: INTERNAL_ONLY
+    pub allow_cross_tenant: bool, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionTypeDefinition {
-    pub tenant_id: String,
-    pub id: ActionTypeId,
-    pub entity_type: EntityTypeId,
-    pub surface: String,
-    pub max_autonomy_tier: AutonomyTier,
-    pub audit_event_type: String,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub id: ActionTypeId, // data_class: INTERNAL_ONLY
+    pub entity_type: EntityTypeId, // data_class: INTERNAL_ONLY
+    pub surface: String, // data_class: INTERNAL_ONLY
+    pub max_autonomy_tier: AutonomyTier, // data_class: INTERNAL_ONLY
+    pub audit_event_type: String, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionPolicyDecision {
-    pub decision_id: String,
-    pub tenant_id: String,
-    pub principal_id: String,
-    pub allowed_surfaces: Vec<String>,
-    pub autonomy_tier: AutonomyTier,
+    pub decision_id: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub principal_id: String, // data_class: INTERNAL_ONLY
+    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+    pub autonomy_tier: AutonomyTier, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionInvocationRequest {
-    pub tenant_id: String,
-    pub principal_id: String,
-    pub action_id: ActionTypeId,
-    pub entity_id: String,
-    pub idempotency_key: String,
-    pub requested_at_epoch_seconds: u64,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub principal_id: String, // data_class: INTERNAL_ONLY
+    pub action_id: ActionTypeId, // data_class: INTERNAL_ONLY
+    pub entity_id: String, // data_class: INTERNAL_ONLY
+    pub idempotency_key: String, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionInvocationReceipt {
-    pub decision_id: String,
-    pub tenant_id: String,
-    pub principal_id: String,
-    pub action_id: String,
-    pub entity_id: String,
-    pub idempotency_key: String,
-    pub audit_event_type: String,
-    pub occurred_at_epoch_seconds: u64,
-    pub schema_version: u32,
+    pub decision_id: String,            // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub principal_id: String,           // data_class: INTERNAL_ONLY
+    pub action_id: String,              // data_class: INTERNAL_ONLY
+    pub entity_id: String,              // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,        // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,       // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,            // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum OntologyEngineError {
