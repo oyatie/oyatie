@@ -5863,30 +5863,22 @@
       {
         "id": "P-DEFINE",
         "title": "Define production-100 exit bar",
-        "status": "proposed-bar-awaiting-ratification",
+        "status": "ratified-2026-05-25",
         "parallel": "no (gates all)",
         "deliverable": "Collaboratively define: scale targets, compliance packs, deployment model (ADR-0254), first production workload (FD-001 candidate), SLO/DR/security/cost exit gates. No production claim until green.",
         "production_100_bar": {
-          "_status": "PROPOSED for ratification \u2014 recommended values grounded in FD-001 (masterplan), ADR-0254 deployment spectrum, KR localization pack, hyperscaler-gates.json. Adjust before P-TARGET starts.",
-          "deployment_model": "shared-cloud multi-tenant, oyatie-operated cells (ADR-0254); logical isolation via cell + Cedar + per-tenant encryption",
-          "first_production_workload": "FD-001 narrow vertical slice: Cloud IAM + Cloud KMS + Cloud Secrets substrate serving ONE enterprise tenant service end-to-end (recommend Accounting or HR) as the first live tenant \u2014 not the whole suite",
-          "scale_targets_initial": {
-            "tenants": "10 paid + demo-trial",
-            "rps_p99": "1k sustained / 5k burst per core service",
-            "regions": "1 primary + 1 DR region",
-            "cells": ">=2 per region (no single-cell global bottleneck, ADR-0248)"
-          },
-          "compliance_gate": "KR pack mandatory (Labor Standards/4\ub300\ubcf4\ud5d8/HomeTax/K-GAAP/PIPA/ISMS-P) + baseline SOC2/ISO27001 design-level; EU/US deferred to post-100",
-          "slo_exit_gates": {
-            "availability": "99.9% per core service, measured (not declared)",
-            "latency": "per-microservice manifest SLO targets green (ADR-0340)",
-            "error_budget": "burn-rate alerting + agentic SLO-gated promotion wired"
-          },
-          "dr_exit_gates": "RTO/RPO matrix per ADR-0343 with at least one executed restore/failover drill (evidence, not claim)",
-          "security_exit_gates": "Cedar default-deny enforced; cosign-signed images (ADR-0181) verified at admission (Kubewarden); 0 critical/high CVEs (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263)",
-          "cost_exit_gate": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344)",
-          "ci_cd_exit_gate": "Jenkins sole CI green (ADR-0359); ArgoCD progressive delivery (canary->bake->auto-rollback) proven on the first workload; merge-queue speculative (ADR-0111)",
-          "master_exit_rule": "'production-ready'/'hyperscaler-mature' claims stay blocked_until_required_evidence_is_green; 100 = all the above gates GREEN with measured evidence on the first production workload"
+          "_status": "RATIFIED 2026-05-25 (dimension-by-dimension with user). 100 = the Oyatie Cloud hyperscaler substrate operated as a real multi-region IaaS/PaaS. Ambitious multi-year target; the roadmap phases sequence the path. All maturity claims blocked_until_required_evidence_is_green.",
+          "first_production_product": "The cloud-* substrate itself, operated as IaaS/PaaS for tenants (NOT a tenant product). cloud-* services graduate from today's metadata-only foundations to LIVE provisioning via the Cloud Control Plane (ORN -> Resource Registry -> Operation Ledger -> API Gateway -> Workflow/Reconciler -> OpenTofu/operators/Argo). Tenant product microservices (FD-001) are post-100, served on the proven substrate (ADR-0242 dogfooding).",
+          "substrate_cut": "FULL cloud-* set live: Cloud Control Plane + IAM + KMS + Secrets + Compute + Storage + Network + Data + Billing + Capacity. Each: provision -> operate -> meter -> audit -> rollback.",
+          "deployment_models": "shared-cloud multi-tenant + dedicated-cloud single-tenant (both oyatie-operated, ADR-0254). hybrid-BYO / on-prem-connected / air-gapped are post-100.",
+          "scale_bar": "Multi-region hyperscale: many tenants, >=3 active regions, high sustained+burst rps; autosharding + auto-rebalance + dynamic sharding proven (ADR-0348); cellular architecture with no single-cell global bottleneck (ADR-0248/0341).",
+          "compliance_gate": "KR mandatory (Labor Standards/4\ub300\ubcf4\ud5d8/HomeTax/K-GAAP/PIPA/ISMS-P) + SOC2/ISO27001 design-level. EU/US/JP/others post-100.",
+          "slo_exit": "Measured >=99.9% availability per cloud-* service across regions; per-microservice manifest SLO/latency targets green (ADR-0340); burn-rate alerting + agentic SLO-gated promotion; control-plane operation-ledger durability for every create/update/delete.",
+          "dr_exit": "Multi-region DR with RTO/RPO matrix per service + per-compliance-pack (ADR-0343); >=1 executed cross-region failover drill per region pair (evidence, not claim).",
+          "security_exit": "Cedar default-deny universal gate (ADR-0243); tenant isolation proven for BOTH shared (logical: cell+Cedar+per-tenant-encryption) and dedicated (physical cell pinning); cosign-signed images verified at admission via Kubewarden (ADR-0181); 0 critical/high CVE (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263).",
+          "cost_exit": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344); mandatory quota/metering/billing resource contract per resource type.",
+          "ci_cd_exit": "Jenkins = sole CI, green (ADR-0359); ArgoCD progressive delivery (canary -> bake -> automatic metric-gated rollback) proven on cloud-* deploys; merge-queue speculative+batch (ADR-0111); local oya verify mirror green (ADR-0346).",
+          "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json)."
         }
       },
       {
