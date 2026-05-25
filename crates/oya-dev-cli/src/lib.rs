@@ -42,6 +42,20 @@ mod catalog_registry;
 mod cedar_fragment_coverage_gate;
 mod changeset_state_enum_closed_gate;
 mod changeset_state_monotonicity_gate;
+mod cloud_iac_cell_topology_gate;
+mod cloud_iac_gitops_evidence_gate;
+mod cloud_iac_helm_chart_gate;
+mod cloud_iac_kubewarden_admission_gate;
+mod cloud_iac_module_archive_gate;
+mod cloud_iac_module_catalog_gate;
+mod cloud_iac_module_provenance_gate;
+mod cloud_iac_module_provider_requirements_gate;
+mod cloud_iac_module_registry_protocol_gate;
+mod cloud_iac_module_release_index_gate;
+mod cloud_iac_opentofu_validation_gate;
+mod cloud_iac_provider_lockfile_gate;
+mod cloud_iac_provider_readiness_gate;
+mod cloud_iac_provider_signature_review_gate;
 mod codeview_read_surface_gates;
 mod command_output;
 mod command_process;
@@ -72,6 +86,8 @@ mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
 mod planning_closure_gate;
+mod planning_ssot_coverage_gate;
+mod platform_substrate_defaults_gate;
 mod pre_push_contract_gate;
 mod protection_context_match_gate;
 mod quality_lane_gates;
@@ -121,6 +137,50 @@ pub(crate) use changeset_state_enum_closed_gate::{
 };
 pub(crate) use changeset_state_monotonicity_gate::{
     parse_changeset_state_monotonicity_validate_args, validate_changeset_state_monotonicity_gate,
+};
+pub(crate) use cloud_iac_cell_topology_gate::{
+    parse_cloud_iac_cell_topology_validate_args, validate_cloud_iac_cell_topology_gate,
+};
+pub(crate) use cloud_iac_gitops_evidence_gate::{
+    parse_cloud_iac_gitops_evidence_validate_args, validate_cloud_iac_gitops_evidence_gate,
+};
+pub(crate) use cloud_iac_helm_chart_gate::{
+    parse_cloud_iac_helm_chart_args, validate_cloud_iac_helm_chart_gate,
+};
+pub(crate) use cloud_iac_kubewarden_admission_gate::{
+    parse_cloud_iac_kubewarden_admission_args, validate_cloud_iac_kubewarden_admission_gate,
+};
+pub(crate) use cloud_iac_module_archive_gate::{
+    parse_cloud_iac_module_archive_args, validate_cloud_iac_module_archive_gate,
+};
+pub(crate) use cloud_iac_module_catalog_gate::{
+    parse_cloud_iac_module_catalog_validate_args, validate_cloud_iac_module_catalog_gate,
+};
+pub(crate) use cloud_iac_module_provenance_gate::{
+    parse_cloud_iac_module_provenance_args, validate_cloud_iac_module_provenance_gate,
+};
+pub(crate) use cloud_iac_module_provider_requirements_gate::{
+    parse_cloud_iac_module_provider_requirements_args,
+    validate_cloud_iac_module_provider_requirements_gate,
+};
+pub(crate) use cloud_iac_module_registry_protocol_gate::{
+    parse_cloud_iac_module_registry_protocol_args, validate_cloud_iac_module_registry_protocol_gate,
+};
+pub(crate) use cloud_iac_module_release_index_gate::{
+    parse_cloud_iac_module_release_index_args, validate_cloud_iac_module_release_index_gate,
+};
+pub(crate) use cloud_iac_opentofu_validation_gate::{
+    parse_cloud_iac_opentofu_validation_args, validate_cloud_iac_opentofu_validation_gate,
+};
+pub(crate) use cloud_iac_provider_lockfile_gate::{
+    parse_cloud_iac_provider_lockfile_args, validate_cloud_iac_provider_lockfile_gate,
+};
+pub(crate) use cloud_iac_provider_readiness_gate::{
+    parse_cloud_iac_provider_readiness_args, validate_cloud_iac_provider_readiness_gate,
+};
+pub(crate) use cloud_iac_provider_signature_review_gate::{
+    parse_cloud_iac_provider_signature_review_args,
+    validate_cloud_iac_provider_signature_review_gate,
 };
 pub(crate) use codeview_read_surface_gates::{
     parse_codeview_read_surface_validate_args, validate_codeview_read_surface_gate,
@@ -204,6 +264,9 @@ pub(crate) use placeholder_debt_gates::{
 pub(crate) use planning_closure_gate::{
     parse_planning_closure_validate_args, validate_planning_closure_gate,
 };
+pub(crate) use platform_substrate_defaults_gate::{
+    parse_platform_substrate_defaults_args, validate_platform_substrate_defaults_gate,
+};
 pub(crate) use pre_push_contract_gate::{
     parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
 };
@@ -272,6 +335,7 @@ pub fn run_cli_from_env() -> ExitCode {
         Some("supply-chain") => commands::supply_chain::run(args.collect(), &usage()),
         Some("vcs") => commands::vcs::run(args.collect(), &usage()),
         Some("verify") => commands::verify::run(args.collect(), &usage()),
+        Some("merge-queue") => commands::merge_queue::run(args.collect(), &usage()),
         _ => {
             eprintln!("{}", usage());
             ExitCode::from(2)
@@ -328,7 +392,22 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
+        + "\n       oya gate validate platform-substrate-defaults [--architecture <specs/platform-architecture.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"
+        + "\n       oya gate validate cloud-iac-module-catalog [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>]"
+        + "\n       oya gate validate cloud-iac-gitops-evidence [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--templates-root <microservices/cloud-iac/iac>]"
+        + "\n       oya gate validate cloud-iac-helm-chart-signed-image-wiring [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--chart-root <microservices/cloud-iac/iac/k8s/helm>]"
+        + "\n       oya gate validate cloud-iac-kubewarden-admission-policy [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--kubewarden-root <microservices/cloud-iac/iac/k8s/kubewarden>] [--kyverno-policy <infra/kyverno/policies/require-signed-images.yaml>]"
+        + "\n       oya gate validate cloud-iac-cell-topology [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--topology <microservices/cloud-iac/cell-topology/foundation.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>]"
+        + "\n       oya gate validate cloud-iac-opentofu-validation [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--modules-root <microservices/cloud-iac/tofu/modules>] [--tofu-bin <tofu>] [--keep-temp]"
+        + "\n       oya gate validate cloud-iac-module-provider-requirements [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>]"
+        + "\n       oya gate validate cloud-iac-module-provenance [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>]"
+        + "\n       oya gate validate cloud-iac-module-release-index [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>] [--release-index <microservices/cloud-iac/tofu/modules/release-index.json>] [--archive-manifest <microservices/cloud-iac/tofu/modules/archive-manifest.json>] [--provider-lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>] [--provider-signature-review <microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
+        + "\n       oya gate validate cloud-iac-module-archive [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>] [--release-index <microservices/cloud-iac/tofu/modules/release-index.json>] [--archive-manifest <microservices/cloud-iac/tofu/modules/archive-manifest.json>] [--out-dir <target/oya-cloud-iac/module-archives>]"
+        + "\n       oya gate validate cloud-iac-module-registry-protocol [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--release-index <microservices/cloud-iac/tofu/modules/release-index.json>] [--archive-manifest <microservices/cloud-iac/tofu/modules/archive-manifest.json>] [--protocol-fixtures <microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json>]"
+        + "\n       oya gate validate cloud-iac-provider-readiness [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>]"
+        + "\n       oya gate validate cloud-iac-provider-lockfile [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>] [--lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>]"
+        + "\n       oya gate validate cloud-iac-provider-signature-review [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>] [--review <microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
         + "\n       oya gate validate dependency-seam [--repo-root <.>] [--registry <registry/dependency-rationales.json>] [--evidence <evidence/multispectrum/<change>.json>]... [--fixture-root <crates/oya-check-dependency-seam/tests/fixtures>] [--offline|--online-audit] [--severity <report-only|error>] [--emit-report <path>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-lockin-discipline [--registry <registry/vendor-lockin-phaseout/index.json>] [--workspace <Cargo.toml>]"
@@ -931,7 +1010,8 @@ fn adr_citation_forensic_path(path: &str) -> bool {
                 || path.contains("synthesis")
                 || path.contains("adjudication")
                 || path.contains("lessons-learned")
-                || path.contains("executive-briefing")))
+                || path.contains("executive-briefing")
+                || path.contains("scorecard")))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -1,0 +1,245 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-TRUST-CLOUD-DIRECT-ANCHOR-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-trust-cloud-direct-anchor-polish-20260525",
+  "agent": "codex-oyatie-trust-cloud-direct-anchor-polish",
+  "created_at": "2026-05-25T01:39:59-04:00",
+  "slice": "Trust/cloud direct-anchor polish",
+  "intent": "Continue the Bominal-grade cohesive Oyatie dashboard by upgrading FinOps, Resource Inventory, Evidence Ledger, and Object Graph direct anchors into interactive FD-001/Oyatie Cloud trust proof surfaces with SSR parity.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added dynamic and SSR-static trust proof boards to FinOps, Resource Inventory, Evidence Ledger, and Object Graph using the existing proof-card visual language.",
+    "Each direct anchor now states FD-001 product delivery, Oyatie Cloud dogfood substrate posture, and explicit local-only/no-mutation boundaries instead of reading as a separate isolated widget.",
+    "Added data-trust-proof-action routing/staging interactions for budget guardrails, receipt sealing, resource linking, lineage tracing, and routes to Cloud, Policy, Inventory, Audit, Gates, Evidence, Workflow, Finance, Mail, Messenger, Community, and Catalog.",
+    "Added reusable trust-anchor CSS and responsive grid handling without introducing a separate design-system layer."
+  ],
+  "before_metrics": {
+    "finops-pane": {
+      "id": "finops-pane",
+      "className": "cockpit-panel",
+      "buttons": 3,
+      "cards": 0,
+      "proofActions": 0,
+      "proofCards": 0,
+      "proofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": true,
+      "sample": "FINOPSRun-rate and sustainabilityCompute · $21.4kNetwork · $9.8kStorage · $7.2kAudit · $3.1kOpen commit planTag anomalyDraft budget noteFinOps ready · local budget actions only.6 modules visible in this envelope · backend wiring remains disabled"
+    },
+    "resource-inventory": {
+      "id": "resource-inventory",
+      "className": "resource-panel active",
+      "buttons": 6,
+      "cards": 6,
+      "proofActions": 0,
+      "proofCards": 0,
+      "proofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": false,
+      "sample": "RESOURCE INVENTORYTenant assets with ownership, region, cost, and riskKindNameRegionOwnerStateMonthlyActionK8stenant-admin-apiPrimary tenant administration API workload with policy and audit sidecars.us-east-2Cloud platformactive$12.4kInspectVPCnorthwind-prod-meshProduction network mesh awaiting rollback evidence for the hot split.us-east-2Network operations"
+    },
+    "evidence-ledger": {
+      "id": "evidence-ledger",
+      "className": "evidence-ledger-panel",
+      "buttons": 7,
+      "cards": 6,
+      "proofActions": 0,
+      "proofCards": 0,
+      "proofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": false,
+      "sample": "LEDGERReceipt timelineAttach to inboxblockingPayroll delta needs four-insurance approvalNHIS tier increase detected; owner must approve before April close package seals.SourcePayrollOwnerFinance closeSLA4.0hreviewHomeTax withholding transport waiting118 employees validated; 사업자등록번호 confirmation remains before send preview.SourceTaxOwnerCFO deskSLA1dsealedWor"
+    },
+    "object-graph": {
+      "id": "object-graph",
+      "className": "object-graph-panel",
+      "buttons": 8,
+      "cards": 8,
+      "proofActions": 0,
+      "proofCards": 0,
+      "proofStatuses": 0,
+      "fd001": false,
+      "oyatieCloud": false,
+      "localBoundary": false,
+      "sample": "OBJECT GRAPHTenant operation lineageTenant selected · 8 linked objectsTenantNorthwind Corp.WorkflowTenant change approvalApprovalAPR-274MailFinance close briefMessengerOps roomCommunityGovernance councilCloud cellus-east-2ReceiptREC-WF-7741Graph rootTenant change approvalPrimary outputTask · message · evidence draftAutonomy ceilingNo auto-executionRegionus-e"
+    }
+  },
+  "after_metrics": {
+    "finops-pane": {
+      "id": "finops-pane",
+      "className": "cockpit-panel",
+      "buttons": 13,
+      "cards": 3,
+      "proofActions": 10,
+      "proofCards": 3,
+      "proofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "sample": "FINOPSRun-rate and sustainabilityCompute · $21.4kNetwork · $9.8kStorage · $7.2kAudit · $3.1kOpen commit planTag anomalyDraft budget noteFinOps ready · local budget actions only.FD-001 WORKLOAD ECONOMYProduct delivery remains the north starRun-rate is shown per FD-001 tenant workload: Workflow, Messenger, Mail, Community, Intelligence, and audit services stay"
+    },
+    "resource-inventory": {
+      "id": "resource-inventory",
+      "className": "resource-panel active",
+      "buttons": 16,
+      "cards": 9,
+      "proofActions": 10,
+      "proofCards": 3,
+      "proofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "sample": "RESOURCE INVENTORYTenant assets with ownership, region, cost, and riskKindNameRegionOwnerStateMonthlyActionK8stenant-admin-apiPrimary tenant administration API workload with policy and audit sidecars.us-east-2Cloud platformactive$12.4kInspectVPCnorthwind-prod-meshProduction network mesh awaiting rollback evidence for the hot split.us-east-2Network operations"
+    },
+    "evidence-ledger": {
+      "id": "evidence-ledger",
+      "className": "evidence-ledger-panel",
+      "buttons": 17,
+      "cards": 9,
+      "proofActions": 10,
+      "proofCards": 3,
+      "proofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "sample": "LEDGERReceipt timelineAttach to inboxblockingPayroll delta needs four-insurance approvalNHIS tier increase detected; owner must approve before April close package seals.SourcePayrollOwnerFinance closeSLA4.0hreviewHomeTax withholding transport waiting118 employees validated; 사업자등록번호 confirmation remains before send preview.SourceTaxOwnerCFO deskSLA1dsealedWor"
+    },
+    "object-graph": {
+      "id": "object-graph",
+      "className": "object-graph-panel",
+      "buttons": 18,
+      "cards": 11,
+      "proofActions": 10,
+      "proofCards": 3,
+      "proofStatuses": 1,
+      "fd001": true,
+      "oyatieCloud": true,
+      "localBoundary": true,
+      "sample": "OBJECT GRAPHTenant operation lineageTenant selected · 8 linked objectsTenantNorthwind Corp.WorkflowTenant change approvalApprovalAPR-274MailFinance close briefMessengerOps roomCommunityGovernance councilCloud cellus-east-2ReceiptREC-WF-7741Graph rootTenant change approvalPrimary outputTask · message · evidence draftAutonomy ceilingNo auto-executionRegionus-e"
+    }
+  },
+  "interaction_assertions": [
+    {
+      "action": "finops route-policy",
+      "hash": "#policy-access",
+      "passed": true
+    },
+    {
+      "action": "resource route-audit",
+      "hash": "#audit-ledger",
+      "passed": true
+    },
+    {
+      "action": "evidence route-mail",
+      "hash": "#work-hub",
+      "mailActive": true,
+      "passed": true
+    },
+    {
+      "action": "object route-cloud",
+      "hash": "#cloud-ops-cockpit",
+      "passed": true
+    },
+    {
+      "action": "finops stage-budget",
+      "status": "Budget guardrail staged locally · no billing, procurement, deploy, DNS, or cloud mutation",
+      "passed": true
+    }
+  ],
+  "ssr_curl_counts": {
+    "data-trust-proof-action": 40,
+    "data-trust-proof-status": 4,
+    "data-trust-proof-card": 12,
+    "FD-001": 99,
+    "Oyatie Cloud": 52,
+    "LOCAL-ONLY": 9,
+    "local-only": 8
+  },
+  "screenshots": {
+    "after": {
+      "finops-pane": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/after/finops-pane.png",
+      "resource-inventory": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/after/resource-inventory.png",
+      "evidence-ledger": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/after/evidence-ledger.png",
+      "object-graph": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/after/object-graph.png"
+    },
+    "audit_json": {
+      "before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/before/direct-anchor-before-audit.json",
+      "after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/after/direct-anchor-after-audit.json",
+      "playwright": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-trust-cloud-direct-anchor-polish/after/playwright-trust-cloud-proof.json"
+    }
+  },
+  "visual_verdict": {
+    "score": 93,
+    "verdict": "PASS",
+    "category_match": "Cohesive FD-001/Oyatie Cloud trust, cost, resource, evidence, and graph command surfaces",
+    "reasoning": "The four sparse direct anchors now carry the same product thesis: FD-001 remains the product delivery goal, Oyatie Cloud is the substrate, and every control is visually interactive but local-only. Metrics confirm each target has proof cards/actions/statuses and direct FD-001/Oyatie Cloud/local-boundary language; Playwright confirms core route and staging interactions work in the live Podman browser session.",
+    "differences": [
+      "The added proof boards increase vertical density; this is an intentional content and affordance addition, not a regression.",
+      "No external backend is wired; the mock remains explicit about no billing, deploy, mail, database, or cloud mutation."
+    ],
+    "suggestions": [
+      "Continue remaining sparse direct anchors such as ledger preview, filing readiness, and service catalog in later slices.",
+      "After the remaining anchors converge, consolidate repeated proof-board patterns into a smaller shared component/token layer."
+    ]
+  },
+  "commands": [
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "rustfmt crates/oya-application-shell-frontend-prototype/src/app.rs",
+      "status": "passed"
+    },
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 lib tests passed; 0 main tests"
+    },
+    {
+      "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "summary": "ready-after-4s; transient empty replies immediately after restart"
+    },
+    {
+      "cmd": "node /tmp/oya-direct-anchor-audit.cjs before/after",
+      "status": "passed"
+    },
+    {
+      "cmd": "node /tmp/oya-trust-cloud-visual-proof.cjs",
+      "status": "passed"
+    }
+  ],
+  "known_limits": [
+    "Visual prototype only; no backend writes, auth changes, workflow execution, mail sends, billing, deploy, DNS, database, provider, or cloud mutations are wired.",
+    "This slice improves FinOps, Resource Inventory, Evidence Ledger, and Object Graph; it does not prove the full dashboard/mockup objective complete."
+  ]
+}

@@ -341,7 +341,7 @@ Treating ontology schemas as unversioned JSON examples is an anti-pattern.
 
 `docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md` binds direct read path limits.
 
-`docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md` binds projection pinning.
+`docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md` binds projection pinning.
 
 `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` binds capability tier projection.
 

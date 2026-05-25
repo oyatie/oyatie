@@ -1,0 +1,288 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-runtime-20260525",
+  "timestamp_iso": "2026-05-25T04:14:37Z",
+  "freshness_unix": 1779682477,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-iac-runtime/Cargo.toml",
+    "crates/oya-cloud-iac-runtime/src/lib.rs",
+    "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs",
+    "registry/catalog/oya-cloud-iac-runtime.yaml",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-registry-runtime-composition-20260525.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Add an architecture-compliant runtime-role in-process Cloud IaC OpenTofu module-registry composition that first matches the framework-free REST router, validates route surface metadata against the API contract, and dispatches to the pure API DTO route boundary while preserving no live HTTP listener/server, deployed endpoint, auth runtime, persistence, signing, SLSA/VSA, tofu plan/apply, provider runtime, FD-001 tenant workload hosting, or cloud provisioning claims.",
+  "complementary_plan_reference": [
+    "/Users/jasonlee/Developer/source/plan (complementary only, not source of truth)"
+  ],
+  "best_practice_sources": [
+    {
+      "url": "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "what_it_establishes": "OpenTofu clients discover service base URLs through /.well-known/terraform.json, including modules.v1."
+    },
+    {
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "what_it_establishes": "The module registry protocol uses GET versions and download routes under the modules.v1 base."
+    },
+    {
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "what_it_establishes": "Versioned registry source strings identify reusable modules; runtime credentials, serving, and provider execution are separate concerns."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime",
+      "result": "FAIL_EXPECTED_RED",
+      "exit_code": 101,
+      "log": "/tmp/cs-cloud-iac-module-registry-runtime-composition-red.log",
+      "summary": "Failed before implementation because package oya-cloud-iac-runtime did not exist."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iac-runtime -- --nocapture",
+      "result": "PASS",
+      "summary": "4 runtime composition tests passed: discovery/versions/download dispatch, low-cardinality template retention, capture propagation, route-specific authorization refusal, API boundary context refusal, and wrong-method/unknown-path/dot-segment/whitespace route refusal."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iac-domain -p oya-cloud-iac-api -p oya-cloud-iac-rest -p oya-cloud-iac-runtime -- --nocapture",
+      "result": "PASS",
+      "summary": "24 Cloud IaC tests passed: 6 domain, 10 API, 4 REST router, and 4 runtime composition tests."
+    },
+    {
+      "command": "cargo fmt --all -- --check && cargo check -p oya-cloud-iac-runtime -p oya-cloud-iac-rest -p oya-cloud-iac-api -p oya-cloud-iac-domain --all-targets && cargo clippy -p oya-cloud-iac-runtime -p oya-cloud-iac-rest -p oya-cloud-iac-api -p oya-cloud-iac-domain --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped Cloud IaC runtime/REST/API/domain formatting, check, and clippy passed with warnings denied."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after adding the oya-cloud-iac-runtime catalog record."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog && ./bin/oya gate validate api-semver --contracts-dir contracts && ./bin/oya gate validate planning-closure",
+      "result": "PASS",
+      "summary": "Architecture-boundaries passed with 444 packages / 444 catalog records / 596 dependency edges; API semver and planning-closure remained green."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-registry-protocol && ./bin/oya gate validate cloud-iac-module-archive && ./bin/oya gate validate cloud-iac-module-release-index && ./bin/oya gate validate cloud-iac-module-provenance && ./bin/oya gate validate cloud-iac-module-provider-requirements && ./bin/oya gate validate cloud-iac-provider-readiness && ./bin/oya gate validate cloud-iac-provider-lockfile && ./bin/oya gate validate cloud-iac-provider-signature-review && ./bin/oya gate validate cloud-iac-opentofu-validation",
+      "result": "PASS",
+      "summary": "Existing Cloud IaC module/provider/protocol/OpenTofu regression gates passed after adding the runtime composition boundary and manifest scope."
+    },
+    {
+      "command": "./bin/oya gate run-all",
+      "result": "PASS",
+      "summary": "Default aggregate gate run passed 93/93 lanes with 427 workspace packages and 612 catalog records."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest remained valid JSON after adding runtime-composition scope."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-cloud-iac-module-registry-runtime-composition-20260525.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-module-registry-runtime-composition-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Strict dependency-seam validation passed: 6 subchecks, 6 pass, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root /tmp/cs-cloud-iac-module-registry-runtime-composition-corpus && ./bin/oya gate validate retired-vocabulary --corpus-root /tmp/cs-cloud-iac-module-registry-runtime-composition-retired",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed over 5 runtime-composition documents; scoped retired-vocabulary passed over 5 documents with 0 drift hits."
+    },
+    {
+      "command": "./bin/oya git diff --check -- Cargo.toml Cargo.lock crates/oya-cloud-iac-runtime/Cargo.toml crates/oya-cloud-iac-runtime/src/lib.rs crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs registry/catalog/oya-cloud-iac-runtime.yaml microservices/cloud-iac/manifest.json tasks/plan.md tasks/todo.md evidence/multispectrum/cs-cloud-iac-module-registry-runtime-composition-20260525.json evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Whitespace diff check passed for all claimed runtime-composition files."
+    },
+    {
+      "command": "python3 JSON parse for Cloud IaC manifest/runtime evidence plus evidence/audit-chain.jsonl",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest and runtime-composition evidence parsed; audit-chain JSONL parsed 465 rows after lifecycle promoted row."
+    },
+    {
+      "command": "./bin/oya vcs work/verify/done/promote --agent codex-cloud-iac-runtime-20260525 --evidence evidence/multispectrum/cs-cloud-iac-module-registry-runtime-composition-20260525.json --bundle CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001 --environment local-foundry",
+      "result": "PASS",
+      "summary": "Oya VCS accepted work, verify, done, and local-foundry promote for CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001."
+    }
+  ],
+  "module_registry_runtime_composition": {
+    "crate": "oya-cloud-iac-runtime",
+    "role": "runtime",
+    "composes": [
+      "oya-cloud-iac-rest",
+      "oya-cloud-iac-api",
+      "oya-cloud-iac-domain",
+      "oya-http-router-kernel"
+    ],
+    "entrypoint": "dispatch_module_registry_runtime_request",
+    "routes": [
+      "/.well-known/terraform.json",
+      "/v1/modules/{namespace}/{name}/{system}/versions",
+      "/v1/modules/{namespace}/{name}/{system}/{version}/download"
+    ],
+    "surfaces": [
+      "cloud.iac.module_registry.discovery",
+      "cloud.iac.module_registry.versions",
+      "cloud.iac.module_registry.download"
+    ],
+    "runtime_non_claim_constant": "in-process-runtime-composition-no-live-http-listener-no-cloud-provisioning"
+  },
+  "implemented_claims": [
+    "Added oya-cloud-iac-runtime as a workspace member and registry/catalog runtime package for Cloud IaC module-registry composition.",
+    "Runtime dispatch first matches the framework-free REST router before API dispatch, so route-level rejections happen before DTO construction.",
+    "Runtime checks REST required_surface metadata against the API surface constants before dispatching to the API route boundary.",
+    "Runtime response retains low-cardinality matched_template, captures, route-specific required_surface, and the API DTO response.",
+    "Tests cover discovery, versions, download, wrong methods, unknown paths, dot-segment captures, whitespace-mutated paths, route-specific authorization, API request-id validation, and non-claim constant."
+  ],
+  "explicit_non_claims": [
+    "no live HTTP listener or Hyper server composition",
+    "no deployed service discovery endpoint",
+    "no deployed module versions endpoint",
+    "no deployed module download endpoint",
+    "no registry publish path or object-store serving",
+    "no request body parsing or live HTTP response serialization",
+    "no authentication or Cedar runtime integration beyond existing in-process authorization metadata checks",
+    "no database adapter or persistence",
+    "no module signing or Sigstore/cosign execution",
+    "no SLSA or VSA attestation generation",
+    "no tofu test/plan/apply evidence",
+    "no provider runtime, provider API calls, provider credentials, or cloud provisioning",
+    "no FD-001 microservice dogfood tenant workload hosting or production tenant workload evidence",
+    "no full ./bin/oya verify --ci-required success claim"
+  ],
+  "false_green_findings_closed": [
+    "Closed the architecture-boundary composition gap left by the router-only REST crate: runtime-role composition is now the allowed location for rest + api dispatch.",
+    "Truth-downed prior tasks/plan wording that incorrectly said the REST-router slice dispatches into API DTOs; the REST crate remains router-only and the runtime crate owns composition.",
+    "Avoided treating in-process composition as a live module registry, deployed endpoint, auth runtime, persistence layer, signing/SLSA evidence, provider execution, FD-001 dogfood evidence, or cloud provisioning evidence."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required is not claimed by this ChangeSet; repo-wide unrelated blockers remain outside this Cloud IaC slice.",
+    "Cloud IaC still needs future slices for an actual HTTP listener, live service discovery and module versions/download endpoints, registry publish path, object-store serving, authentication/Cedar runtime integration, database adapter, module signing/Sigstore/cosign, SLSA attestations, independent provider provenance/VSA verification, tofu tests, plan/apply evidence, provider-resource-complete modules, and live GitOps/provider integration evidence.",
+    "FD-001 remains the master-plan product delivery goal and Oyatie Cloud must later prove itself by hosting FD-001 microservices as tenant workloads; this ChangeSet provides no tenant-workload dogfood evidence.",
+    "Concurrent unrelated application-shell and other agent work exists in the worktree; this ChangeSet does not claim or modify those surfaces.",
+    "The complementary /Users/jasonlee/Developer/source/plan files informed sequencing only and are not treated as source-of-truth implementation evidence."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Composition is small and explicit: one request type, one response type, one dispatcher, and no live I/O."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Adds one substrate step toward a hosted module-registry control-plane path while preserving that actual cloud/runtime/tenant hosting is not implemented yet.",
+        "FD-001 dogfood tenant workload hosting remains future proof of substrate readiness, not a claim here."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests force route refusal for wrong methods, unknown paths, dot-segment captures, and whitespace-mutated paths before API dispatch."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Dispatcher API keeps boundary context, authorization, method, and path explicit for future HTTP adapter handoff."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No new third-party dependencies; focused tests, fmt, check, clippy, architecture, and run-all gates passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Chose runtime-role crate instead of rest->api dispatch because architecture-boundaries forbids rest -> api edges and permits runtime composition."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Router kernel dot-segment refusal remains in front of API dispatch; API authz and path validation remain the second boundary."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Three static routes and in-memory registry lookup only; no network, filesystem, provider, or OpenTofu execution added."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Manifest, catalog, tasks, and evidence encode explicit non-claims and local-only scope."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Route paths and response DTO dispatch remain aligned with official OpenTofu service discovery and module registry protocol docs."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Manifest scope, tasks/plan, tasks/todo, catalog record, evidence, and audit-chain entries were updated."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "reserved",
+      "findings": [
+        "No reserved facet action required."
+      ]
+    },
+    "F13_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Future HTTP adapter can consume the in-process dispatcher; no service operations are claimed."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim used before source changes; no raw git/gh; architecture-boundaries role constraints shaped the implementation."
+      ]
+    },
+    "A2_source_truthfulness": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Official OpenTofu docs establish route semantics; repo-local gates distinguish in-process composition from live service evidence."
+      ]
+    },
+    "A3_nonclaim_discipline": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Explicitly excludes live endpoints, auth runtime, persistence, signing/SLSA, provider runtime, plan/apply, cloud provisioning, full verify, and FD-001 tenant workload hosting."
+      ]
+    }
+  }
+}

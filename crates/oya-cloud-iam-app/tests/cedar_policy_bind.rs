@@ -4,7 +4,9 @@
 
 use oya_cloud_iam_app::{
     CLOUD_IAM_CEDAR_POLICY_BIND_SCHEMA_VERSION, CLOUD_IAM_CEDAR_POLICY_BIND_SURFACE,
-    CloudIamCedarPolicyBindError, CloudIamCedarPolicyBindRequest, bind_cedar_policy,
+    CloudIamBoundaryCellId, CloudIamBoundaryRegionId, CloudIamBoundaryTenantId,
+    CloudIamCedarPolicyBindError, CloudIamCedarPolicyBindRequest, CloudIamUseCaseBoundary,
+    bind_cedar_policy,
 };
 use oya_cloud_iam_domain::{
     IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate, IamRoleId, MfaState,
@@ -76,8 +78,23 @@ fn bind_request() -> CloudIamCedarPolicyBindRequest {
     CloudIamCedarPolicyBindRequest {
         request_id: "req_bind_001".to_string(),
         tenant_id: TENANT_ID.to_string(),
+        boundary: use_case_boundary(TENANT_ID, "cell-alpha-region-a-001", "home-region"),
         policy: policy_version(),
         role: role_create(),
+    }
+}
+
+fn use_case_boundary(tenant_id: &str, cell_id: &str, region_id: &str) -> CloudIamUseCaseBoundary {
+    CloudIamUseCaseBoundary {
+        tenant_id: CloudIamBoundaryTenantId {
+            value: tenant_id.to_string(),
+        },
+        cell_id: CloudIamBoundaryCellId {
+            value: cell_id.to_string(),
+        },
+        region_id: CloudIamBoundaryRegionId {
+            value: region_id.to_string(),
+        },
     }
 }
 
@@ -95,6 +112,8 @@ fn cedar_policy_bind_publishes_policy_and_creates_role_transactionally() {
         response.metadata.schema_version,
         CLOUD_IAM_CEDAR_POLICY_BIND_SCHEMA_VERSION
     );
+    assert_eq!(response.metadata.cell_id, "cell-alpha-region-a-001");
+    assert_eq!(response.metadata.region_id, "home-region");
     assert_eq!(
         CLOUD_IAM_CEDAR_POLICY_BIND_SURFACE,
         "cloud.iam.cedar_policy.bind"
@@ -112,6 +131,39 @@ fn cedar_policy_bind_publishes_policy_and_creates_role_transactionally() {
         attributes: BTreeMap::new(),
     });
     assert!(decision.allowed);
+}
+
+#[test]
+fn cedar_policy_bind_rejects_missing_or_drifted_use_case_boundary_before_mutation() {
+    let mut policies = PolicySet::default();
+    let mut directory = directory_with_principal();
+    let mut missing_cell = bind_request();
+    missing_cell.boundary.cell_id.value = String::new();
+
+    assert_eq!(
+        bind_cedar_policy(&mut policies, &mut directory, missing_cell),
+        Err(CloudIamCedarPolicyBindError::EmptyBoundaryCell)
+    );
+    assert!(policies.get(POLICY_ID, POLICY_VERSION).is_none());
+
+    let mut tenant_drift = bind_request();
+    tenant_drift.boundary.tenant_id.value = "ten_beta".to_string();
+    assert_eq!(
+        bind_cedar_policy(&mut policies, &mut directory, tenant_drift),
+        Err(CloudIamCedarPolicyBindError::BoundaryTenantMismatch {
+            request_tenant_id: TENANT_ID.to_string(),
+            boundary_tenant_id: "ten_beta".to_string(),
+        })
+    );
+    assert!(policies.get(POLICY_ID, POLICY_VERSION).is_none());
+
+    let mut missing_region = bind_request();
+    missing_region.boundary.region_id.value = " ".to_string();
+    assert_eq!(
+        bind_cedar_policy(&mut policies, &mut directory, missing_region),
+        Err(CloudIamCedarPolicyBindError::EmptyBoundaryRegion)
+    );
+    assert!(policies.get(POLICY_ID, POLICY_VERSION).is_none());
 }
 
 #[test]

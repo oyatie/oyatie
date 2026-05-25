@@ -9,6 +9,10 @@ use oya_cloud_iam_domain::{
     AssumeRoleRequest, CloudIamError, IamDirectory, IamRole, IamRoleCreate, IdentityProvider,
     IdentityProviderCreate, IdentityProviderKind, IdentityProviderUpdate, StsSession,
 };
+pub use oya_cloud_iam_domain::{
+    CloudIamBoundaryCellId, CloudIamBoundaryRegionId, CloudIamBoundaryTenantId,
+    CloudIamPlacementBoundary as CloudIamApiPlacementBoundary,
+};
 use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE: &str = "cloud.iam.identity_provider.create";
@@ -17,6 +21,10 @@ pub const CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE: &str = "cloud.iam.identity_p
 pub const CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE: &str = "cloud.iam.identity_provider.update";
 pub const CLOUD_IAM_ROLE_CREATE_SURFACE: &str = "cloud.iam.role.create";
 pub const CLOUD_IAM_STS_TOKEN_SURFACE: &str = "cloud.iam.sts.token";
+pub const CLOUD_IAM_PUBLIC_API_VERSION_HEADER: &str = "Oyatie-Version";
+pub const CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION: &str = "2026-05-21";
+pub const CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS: &[&str] =
+    &["2026-05-21", "2026-02-21", "2025-11-21"];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudIamIdentityProviderDeleteApiStatus {
@@ -144,6 +152,11 @@ impl CloudIamStsTokenApiStatus {
 pub enum CloudIamApiErrorCode {
     RequestIdEmpty,
     TenantHeaderEmpty,
+    BoundaryCellEmpty,
+    BoundaryRegionEmpty,
+    PlacementTenantMismatch,
+    PublicApiVersionMissing,
+    PublicApiVersionUnsupported,
     IdempotencyKeyEmpty,
     PathProviderIdEmpty,
     PathRoleIdEmpty,
@@ -167,6 +180,11 @@ impl CloudIamApiErrorCode {
         match self {
             Self::RequestIdEmpty => "CLOUD_IAM_REQUEST_ID_EMPTY",
             Self::TenantHeaderEmpty => "CLOUD_IAM_TENANT_HEADER_EMPTY",
+            Self::BoundaryCellEmpty => "CLOUD_IAM_BOUNDARY_CELL_EMPTY",
+            Self::BoundaryRegionEmpty => "CLOUD_IAM_BOUNDARY_REGION_EMPTY",
+            Self::PlacementTenantMismatch => "CLOUD_IAM_PLACEMENT_TENANT_MISMATCH",
+            Self::PublicApiVersionMissing => "CLOUD_IAM_PUBLIC_API_VERSION_MISSING",
+            Self::PublicApiVersionUnsupported => "CLOUD_IAM_PUBLIC_API_VERSION_UNSUPPORTED",
             Self::IdempotencyKeyEmpty => "CLOUD_IAM_IDEMPOTENCY_KEY_EMPTY",
             Self::PathProviderIdEmpty => "CLOUD_IAM_PATH_PROVIDER_ID_EMPTY",
             Self::PathRoleIdEmpty => "CLOUD_IAM_PATH_ROLE_ID_EMPTY",
@@ -189,15 +207,19 @@ impl CloudIamApiErrorCode {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamApiBoundaryContext {
-    pub request_id: String,      // data_class: INTERNAL_ONLY
-    pub tenant_id: String,       // data_class: INTERNAL_ONLY
-    pub idempotency_key: String, // data_class: INTERNAL_ONLY
+    pub request_id: String,                      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                 // data_class: INTERNAL_ONLY
+    pub oyatie_version: String,                  // data_class: PUBLIC
+    pub placement: CloudIamApiPlacementBoundary, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamApiReadBoundaryContext {
-    pub request_id: String, // data_class: INTERNAL_ONLY
-    pub tenant_id: String,  // data_class: INTERNAL_ONLY
+    pub request_id: String,                      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub oyatie_version: String,                  // data_class: PUBLIC
+    pub placement: CloudIamApiPlacementBoundary, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -641,6 +663,16 @@ pub struct CloudIamApiErrorDetail {
 pub enum CloudIamApiError {
     EmptyRequestId,
     EmptyTenantHeader,
+    EmptyBoundaryCell,
+    EmptyBoundaryRegion,
+    PlacementTenantMismatch {
+        header_tenant_id: String,    // data_class: INTERNAL_ONLY
+        placement_tenant_id: String, // data_class: INTERNAL_ONLY
+    },
+    MissingPublicApiVersion,
+    UnsupportedPublicApiVersion {
+        oyatie_version: String, // data_class: PUBLIC
+    },
     EmptyIdempotencyKey,
     EmptyPathProviderId,
     EmptyPathRoleId,
@@ -770,6 +802,13 @@ impl CloudIamApiError {
         match self {
             Self::EmptyRequestId => CloudIamApiErrorCode::RequestIdEmpty,
             Self::EmptyTenantHeader => CloudIamApiErrorCode::TenantHeaderEmpty,
+            Self::EmptyBoundaryCell => CloudIamApiErrorCode::BoundaryCellEmpty,
+            Self::EmptyBoundaryRegion => CloudIamApiErrorCode::BoundaryRegionEmpty,
+            Self::PlacementTenantMismatch { .. } => CloudIamApiErrorCode::PlacementTenantMismatch,
+            Self::MissingPublicApiVersion => CloudIamApiErrorCode::PublicApiVersionMissing,
+            Self::UnsupportedPublicApiVersion { .. } => {
+                CloudIamApiErrorCode::PublicApiVersionUnsupported
+            }
             Self::EmptyIdempotencyKey => CloudIamApiErrorCode::IdempotencyKeyEmpty,
             Self::EmptyPathProviderId => CloudIamApiErrorCode::PathProviderIdEmpty,
             Self::EmptyPathRoleId => CloudIamApiErrorCode::PathRoleIdEmpty,
@@ -824,6 +863,11 @@ impl CloudIamApiError {
             Self::Iam(error) => cloud_iam_status_kind(error),
             Self::EmptyRequestId
             | Self::EmptyTenantHeader
+            | Self::EmptyBoundaryCell
+            | Self::EmptyBoundaryRegion
+            | Self::PlacementTenantMismatch { .. }
+            | Self::MissingPublicApiVersion
+            | Self::UnsupportedPublicApiVersion { .. }
             | Self::EmptyIdempotencyKey
             | Self::EmptyPathProviderId
             | Self::EmptyPathRoleId
@@ -837,6 +881,15 @@ impl CloudIamApiError {
         match self {
             Self::EmptyRequestId => "X-Request-Id header is required",
             Self::EmptyTenantHeader => "X-Tenant-Id header is required",
+            Self::EmptyBoundaryCell => "Cloud IAM cell boundary is required",
+            Self::EmptyBoundaryRegion => "Cloud IAM region boundary is required",
+            Self::PlacementTenantMismatch { .. } => {
+                "Cloud IAM typed placement tenant must match request tenant"
+            }
+            Self::MissingPublicApiVersion => "Oyatie-Version header is required",
+            Self::UnsupportedPublicApiVersion { .. } => {
+                "Oyatie-Version header must be a supported YYYY-MM-DD public API version"
+            }
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
             Self::EmptyPathProviderId => "Path identity provider id is required",
             Self::EmptyPathRoleId => "Path role id is required",
@@ -870,6 +923,20 @@ impl CloudIamApiError {
         match self {
             Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
             Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
+            Self::EmptyBoundaryCell => vec![detail("boundary.cell_id", "must be non-empty")],
+            Self::EmptyBoundaryRegion => vec![detail("boundary.region_id", "must be non-empty")],
+            Self::PlacementTenantMismatch { .. } => vec![detail(
+                "boundary.tenant_id",
+                "must match the request tenant header before IAM logic executes",
+            )],
+            Self::MissingPublicApiVersion => vec![detail(
+                "header.Oyatie-Version",
+                "must be a non-empty YYYY-MM-DD public API version",
+            )],
+            Self::UnsupportedPublicApiVersion { .. } => vec![detail(
+                "header.Oyatie-Version",
+                "must match a Cloud IAM supported public API version",
+            )],
             Self::EmptyIdempotencyKey => {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
             }
@@ -1274,6 +1341,8 @@ fn validate_boundary(boundary: &CloudIamApiBoundaryContext) -> Result<(), CloudI
     if boundary.tenant_id.trim().is_empty() {
         return Err(CloudIamApiError::EmptyTenantHeader);
     }
+    validate_placement_boundary(&boundary.tenant_id, &boundary.placement)?;
+    validate_public_api_version(&boundary.oyatie_version)?;
     if boundary.idempotency_key.trim().is_empty() {
         return Err(CloudIamApiError::EmptyIdempotencyKey);
     }
@@ -1288,6 +1357,43 @@ fn validate_read_boundary(
     }
     if boundary.tenant_id.trim().is_empty() {
         return Err(CloudIamApiError::EmptyTenantHeader);
+    }
+    validate_placement_boundary(&boundary.tenant_id, &boundary.placement)?;
+    validate_public_api_version(&boundary.oyatie_version)?;
+    Ok(())
+}
+
+fn validate_placement_boundary(
+    tenant_id: &str,
+    placement: &CloudIamApiPlacementBoundary,
+) -> Result<(), CloudIamApiError> {
+    if placement.tenant_id.value.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyTenantHeader);
+    }
+    if placement.tenant_id.value != tenant_id {
+        return Err(CloudIamApiError::PlacementTenantMismatch {
+            header_tenant_id: tenant_id.to_string(),
+            placement_tenant_id: placement.tenant_id.value.clone(),
+        });
+    }
+    if placement.cell_id.value.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyBoundaryCell);
+    }
+    if placement.region_id.value.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyBoundaryRegion);
+    }
+    Ok(())
+}
+
+fn validate_public_api_version(oyatie_version: &str) -> Result<(), CloudIamApiError> {
+    let normalized_version = oyatie_version.trim();
+    if normalized_version.is_empty() {
+        return Err(CloudIamApiError::MissingPublicApiVersion);
+    }
+    if !CLOUD_IAM_SUPPORTED_PUBLIC_API_VERSIONS.contains(&oyatie_version) {
+        return Err(CloudIamApiError::UnsupportedPublicApiVersion {
+            oyatie_version: oyatie_version.to_string(),
+        });
     }
     Ok(())
 }
@@ -1455,6 +1561,19 @@ fn identity_provider_create_fingerprint_for(
                 "path.identity_provider_id={}",
                 request.path_identity_provider_id
             ),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
+            format!(
+                "boundary.tenant_id={}",
+                request.boundary.placement.tenant_id.value
+            ),
+            format!(
+                "boundary.cell_id={}",
+                request.boundary.placement.cell_id.value
+            ),
+            format!(
+                "boundary.region_id={}",
+                request.boundary.placement.region_id.value
+            ),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1505,6 +1624,19 @@ fn identity_provider_update_fingerprint_for(
                 "path.identity_provider_id={}",
                 request.path_identity_provider_id
             ),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
+            format!(
+                "boundary.tenant_id={}",
+                request.boundary.placement.tenant_id.value
+            ),
+            format!(
+                "boundary.cell_id={}",
+                request.boundary.placement.cell_id.value
+            ),
+            format!(
+                "boundary.region_id={}",
+                request.boundary.placement.region_id.value
+            ),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1551,6 +1683,19 @@ fn identity_provider_delete_fingerprint_for(
                 "path.identity_provider_id={}",
                 request.path_identity_provider_id
             ),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
+            format!(
+                "boundary.tenant_id={}",
+                request.boundary.placement.tenant_id.value
+            ),
+            format!(
+                "boundary.cell_id={}",
+                request.boundary.placement.cell_id.value
+            ),
+            format!(
+                "boundary.region_id={}",
+                request.boundary.placement.region_id.value
+            ),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1582,6 +1727,19 @@ fn role_create_fingerprint_for(
     CloudIamRequestFingerprint {
         canonical: [
             format!("path.role_id={}", request.path_role_id),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
+            format!(
+                "boundary.tenant_id={}",
+                request.boundary.placement.tenant_id.value
+            ),
+            format!(
+                "boundary.cell_id={}",
+                request.boundary.placement.cell_id.value
+            ),
+            format!(
+                "boundary.region_id={}",
+                request.boundary.placement.region_id.value
+            ),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1637,6 +1795,19 @@ fn role_create_fingerprint_for(
 fn sts_token_fingerprint_for(request: &CloudIamStsTokenApiRequest) -> CloudIamRequestFingerprint {
     CloudIamRequestFingerprint {
         canonical: [
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
+            format!(
+                "boundary.tenant_id={}",
+                request.boundary.placement.tenant_id.value
+            ),
+            format!(
+                "boundary.cell_id={}",
+                request.boundary.placement.cell_id.value
+            ),
+            format!(
+                "boundary.region_id={}",
+                request.boundary.placement.region_id.value
+            ),
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
@@ -1751,6 +1922,8 @@ fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
         | CloudIamError::DuplicatePrincipal
         | CloudIamError::DuplicateRole
         | CloudIamError::DuplicateSession
+        | CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        | CloudIamError::DuplicateIdentityProviderRegistryRecord
         | CloudIamError::ProviderInUse => CloudIamApiStatusKind::Conflict,
         CloudIamError::PrincipalCannotAssumeRole
         | CloudIamError::MfaNotVerified
@@ -1772,14 +1945,20 @@ fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
         | CloudIamError::InvalidVerificationMaterialRef
         | CloudIamError::InvalidSessionId
         | CloudIamError::InvalidExternalId
+        | CloudIamError::InvalidIdentityProviderRegistrySnapshotId
+        | CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion
         | CloudIamError::InvalidDataClass
         | CloudIamError::InvalidSemver
         | CloudIamError::InvalidSessionDuration
+        | CloudIamError::EmptyIdentityProviderRegistrySnapshot
+        | CloudIamError::IdentityProviderRegistryRawMaterialForbidden
         | CloudIamError::MissingAssumablePrincipal
         | CloudIamError::DuplicateAssumablePrincipal
         | CloudIamError::DuplicateScope
         | CloudIamError::PrincipalKindMismatch
         | CloudIamError::ProviderRequired
+        | CloudIamError::InvalidProviderEvidenceRef
+        | CloudIamError::ProviderMismatch
         | CloudIamError::MissingExternalSubject
         | CloudIamError::UnexpectedExternalSubject
         | CloudIamError::UnknownProvider
@@ -1816,12 +1995,24 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         }
         CloudIamError::InvalidSessionId => "session_id must be a sts_ identifier",
         CloudIamError::InvalidExternalId => "external_id must be non-empty when present",
+        CloudIamError::InvalidIdentityProviderRegistrySnapshotId => {
+            "identity provider registry snapshot id must be non-empty metadata"
+        }
+        CloudIamError::InvalidIdentityProviderRegistrySnapshotSchemaVersion => {
+            "identity provider registry snapshot schema version is unsupported"
+        }
         CloudIamError::InvalidDataClass => "role data_class must be a public privacy class",
         CloudIamError::InvalidSemver => "cedar_policy_version must be semver",
         CloudIamError::InvalidSessionDuration => {
             "session duration must be >0 and <= role/platform limit"
         }
         CloudIamError::MissingAssumablePrincipal => "role must trust at least one principal",
+        CloudIamError::EmptyIdentityProviderRegistrySnapshot => {
+            "identity provider registry snapshot must contain at least one record"
+        }
+        CloudIamError::IdentityProviderRegistryRawMaterialForbidden => {
+            "identity provider registry snapshots must not contain raw provider, credential, assertion, or STS material"
+        }
         CloudIamError::DuplicateAssumablePrincipal => "role trust policy has duplicate principals",
         CloudIamError::DuplicateScope => "STS scope list has duplicate scopes",
         CloudIamError::PrincipalKindMismatch => "principal kind does not match identifier",
@@ -1837,6 +2028,12 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         CloudIamError::ProviderInUse => {
             "identity provider cannot be deleted while principals reference it"
         }
+        CloudIamError::InvalidProviderEvidenceRef => {
+            "provider evidence ref must use an allowlisted opaque IdP evidence-ref scheme"
+        }
+        CloudIamError::ProviderMismatch => {
+            "identity provider registry evidence provider does not match expected provider"
+        }
         CloudIamError::MissingExternalSubject => {
             "federated/external principal requires external_subject"
         }
@@ -1846,7 +2043,11 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         CloudIamError::DuplicateProvider
         | CloudIamError::DuplicatePrincipal
         | CloudIamError::DuplicateRole
-        | CloudIamError::DuplicateSession => "resource identifier is already present",
+        | CloudIamError::DuplicateSession
+        | CloudIamError::DuplicateIdentityProviderRegistrySnapshot
+        | CloudIamError::DuplicateIdentityProviderRegistryRecord => {
+            "resource identifier is already present"
+        }
         CloudIamError::UnknownProvider => {
             "identity provider must exist before principal registration"
         }

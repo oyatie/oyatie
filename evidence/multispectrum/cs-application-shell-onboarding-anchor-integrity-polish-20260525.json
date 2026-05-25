@@ -1,0 +1,127 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-ONBOARDING-ANCHOR-INTEGRITY-POLISH-20260525",
+  "schema_version": "1.0",
+  "evidence_id": "cs-application-shell-onboarding-anchor-integrity-polish-20260525",
+  "bundle": "CS-APPLICATION-SHELL-ONBOARDING-ANCHOR-INTEGRITY-POLISH-20260525",
+  "agent": "codex-oyatie-onboarding-anchor-integrity-polish",
+  "created_at": "2026-05-25T04:54:34.582Z",
+  "slice": "Workspace onboarding + route anchor integrity polish",
+  "product_direction": "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the hyperscaler-grade dogfood substrate that proves the platform can host real production tenants.",
+  "changed_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "before_audit": {
+    "identity_onboarding": {
+      "panel_id": null,
+      "direct_buttons": 1,
+      "onboarding_actions": 0,
+      "status_nodes": 0,
+      "cards": 1,
+      "steps": 9,
+      "mentions_fd001": false,
+      "mentions_oyatie_cloud": false
+    },
+    "anchor_counts": {
+      "identityOnboarding": 0,
+      "tasksTitle": 0,
+      "scheduleTitle": 0
+    },
+    "summary": "#identity-onboarding, #tasks-title, and #schedule-title had no direct SSR anchor nodes; onboarding was a sparse setup checklist with one button and no FD-001/Oyatie Cloud tenant-admission command surface."
+  },
+  "after_audit": {
+    "identity_onboarding": {
+      "panel_id": "identity-onboarding",
+      "direct_buttons": 11,
+      "onboarding_actions": 10,
+      "status_nodes": 1,
+      "cards": 4,
+      "steps": 9,
+      "status_after_advance": "Workspace setup advanced locally",
+      "onboarding_percent_after_advance": "67%",
+      "tasks_route_visible": true,
+      "schedule_route_visible": true,
+      "policy_route_activated": true,
+      "mentions_fd001": true,
+      "mentions_oyatie_cloud": true,
+      "mentions_unwired_local_state": true
+    },
+    "anchor_counts": {
+      "identityOnboarding": 1,
+      "tasksTitle": 1,
+      "scheduleTitle": 1
+    },
+    "ssr_curl_counts": {
+      "identity_onboarding_id": 1,
+      "tasks_title_id": 1,
+      "schedule_title_id": 1,
+      "onboarding_actions": 10,
+      "onboarding_status_nodes": 1,
+      "fd001_mentions": 50,
+      "oyatie_cloud_mentions": 23,
+      "onboarding_cards": 3
+    }
+  },
+  "visual_evidence": {
+    "before_screenshots": [
+      ".omx/artifacts/visual-ralph/oya-onboarding-anchor-integrity-polish/before/screenshots/identity-onboarding-before.png"
+    ],
+    "after_screenshots": [
+      ".omx/artifacts/visual-ralph/oya-onboarding-anchor-integrity-polish/after/screenshots/identity-onboarding-after.png",
+      ".omx/artifacts/visual-ralph/oya-onboarding-anchor-integrity-polish/after/screenshots/identity-onboarding-after-interacted.png"
+    ],
+    "diff_overlays": [
+      ".omx/artifacts/visual-ralph/oya-onboarding-anchor-integrity-polish/after/diffs/identity-onboarding-before-after-diff.png"
+    ],
+    "pixel_diff": {
+      "before": {
+        "width": 961,
+        "height": 374
+      },
+      "after": {
+        "width": 961,
+        "height": 636
+      },
+      "compared": {
+        "width": 961,
+        "height": 374
+      },
+      "mismatch": 28585,
+      "mismatchRatio": 0.079532
+    },
+    "visual_verdict": {
+      "score": 91,
+      "verdict": "pass",
+      "category_match": "enterprise tenant onboarding command surface",
+      "reasoning": "Onboarding now has direct anchor integrity, FD-001/Oyatie Cloud tenant-admission cards, local route/status actions, and restored tasks/schedule anchors for navigation parity."
+    },
+    "browser_smoke_json": ".omx/artifacts/visual-ralph/oya-onboarding-anchor-integrity-polish/after/onboarding-anchor-smoke.json",
+    "before_audit_json": ".omx/artifacts/visual-ralph/oya-onboarding-anchor-integrity-polish/before/onboarding-anchor-before-audit.json"
+  },
+  "verification": {
+    "commands_passed": [
+      "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "cargo test -p oya-application-shell-frontend-prototype",
+      "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "node /tmp/oya_onboarding_after.cjs"
+    ],
+    "browser_console": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "page_errors": [],
+    "request_failures": []
+  },
+  "known_limits": [
+    "This slice upgrades onboarding and route anchor integrity only; it does not assert the full dashboard mockup is complete.",
+    "Interactions are intentionally local visual state and route activation; no registry, HRIS, auth provider, payroll, receipt vault, or cloud provider wiring was added.",
+    "Console info about missing /pkg is expected in fallback SSR smoke because the selective WASM island package is not served by the local container."
+  ]
+}

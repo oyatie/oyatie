@@ -1,0 +1,278 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-catalog-gate",
+  "timestamp_iso": "2026-05-23T13:51:33Z",
+  "freshness_unix": 1779544293,
+  "git_sha": "fe21ffac",
+  "scope": [
+    "crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/commands/gate/run_all.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-module-catalog-gate-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Make the prior evidence-time Cloud IaC OpenTofu module catalog coherence check permanent as a first-class fail-closed local Oya gate while preserving all live registry, provider, OpenTofu runtime, module-signing, SLO, DR, and capacity claims as explicit non-claims.",
+  "best_practice_sources": [
+    {
+      "source": "OpenTofu Module Registry Protocol",
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "evidence_used": "Module identity is modeled as namespace/name/system/version; the gate rejects duplicate release keys and requires exact semver."
+    },
+    {
+      "source": "OpenTofu Module Sources",
+      "url": "https://opentofu.org/docs/language/modules/sources/",
+      "evidence_used": "The local skeleton catalog is treated as source metadata only, with no live registry or provider-complete release claim."
+    },
+    {
+      "source": "OpenTofu Dependency Lock File",
+      "url": "https://opentofu.org/docs/language/files/dependency-lock/",
+      "evidence_used": "Provider lockfile and checksum review remain non-claims; this slice validates local catalog structure only."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-catalog --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json",
+      "result": "FAIL before implementation",
+      "summary": "The command exited 2 and printed usage because cloud-iac-module-catalog was not wired in the gate dispatcher."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_module_catalog -- --nocapture",
+      "result": "PASS",
+      "summary": "7 focused tests passed, covering parser defaults/unknown flags, coherent fixtures, manifest count drift, skeleton overclaims, missing main.tofu files, and run-all catalog membership."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "result": "PASS",
+      "summary": "19 gate-catalog tests passed after adding cloud-iac-module-catalog to AGGREGATED_VALIDATE_LANES."
+    },
+    {
+      "command": "./bin/oya gate validate cloud-iac-module-catalog --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json",
+      "result": "PASS",
+      "summary": "Live Cloud IaC manifest/catalog check passed: 6 modules and 8 files checked."
+    },
+    {
+      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain",
+      "result": "PASS",
+      "summary": "Scoped Rust check passed."
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings",
+      "result": "PASS",
+      "summary": "Scoped clippy passed with warnings denied."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "PASS",
+      "summary": "Workspace Rust formatting check passed after formatting touched packages."
+    },
+    {
+      "command": "python3 -m json.tool microservices/cloud-iac/manifest.json; python3 -m json.tool microservices/cloud-iac/tofu/modules/catalog.json; audit-chain JSONL parse",
+      "result": "PASS",
+      "summary": "Cloud IaC manifest/catalog JSON parse, and current audit-chain JSONL parsed before appending this slice's closeout rows."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "result": "PASS",
+      "summary": "Planning-closure passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "result": "PASS",
+      "summary": "41 contracts and 41 metadata records passed."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "result": "PASS",
+      "summary": "Architecture-boundaries passed: 441 packages, 441 catalog records, 590 dependency edges."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity report-only --emit-report /tmp/cs-cloud-iac-module-catalog-dependency-seam-report.json",
+      "result": "PASS",
+      "summary": "Dependency-seam report-only pass: 6 subchecks, 0 blocking diagnostics; no new dependency was added."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-cloud-iac-module-catalog-gate-20260523.json --online-audit --severity error --emit-report /tmp/cs-cloud-iac-module-catalog-dependency-seam-strict.json",
+      "result": "PASS",
+      "summary": "Dependency-seam strict pass with this multispectrum evidence: 6 subchecks, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate audit-chain-replay",
+      "result": "PASS",
+      "summary": "Audit-chain replay passed: 1 shard and 28 events after attaching this slice's evidence row."
+    },
+    {
+      "command": "./bin/oya gate validate retired-vocabulary --corpus-root microservices/cloud-iac --corpus-root tasks --exclude-root target",
+      "result": "PASS",
+      "summary": "Retired-vocabulary passed on touched Cloud IaC/task surfaces: 200 documents, 0 drift hits. Broader dev-cli source corpus has pre-existing retired-vocabulary drift in legacy comments not introduced by this slice."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root microservices/cloud-iac --corpus-root crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs --corpus-root tasks",
+      "result": "PASS",
+      "summary": "Scoped honest-claims passed: 200 documents, 19724 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes."
+    },
+    {
+      "command": "./bin/oya gate run-all",
+      "result": "PASS",
+      "summary": "Default run-all passed 82/82 lanes, including the new cloud-iac-module-catalog lane. Evidence log: /tmp/cs-cloud-iac-module-catalog-run-all.log."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "DIAGNOSTIC_FAIL_THEN_REPAIRED",
+      "summary": "Initial full verify reached D-5 and failed only on oya-vcs-admission because pre-existing evidence/multispectrum/cs-application-shell-ui-ux-fix-20260523.json lacked audit-chain coverage; this slice backfilled an audit-chain coverage row without changing app-shell source."
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "result": "PASS",
+      "summary": "Provider admission passed after the app-shell UI/UX evidence audit-chain coverage backfill."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "PASS",
+      "summary": "Full verify rerun passed: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 nextest 4326 passed / 1 skipped, D-5 run-all 89/89 with CI-required preflights, D-6 ADR index write, D-7 ADR-shape. Evidence log: /tmp/cs-cloud-iac-module-catalog-full-verify-rerun.log."
+    }
+  ],
+  "implemented_claims": [
+    "A strict `oya gate validate cloud-iac-module-catalog` lane now exists and is registered in the run-all gate catalog.",
+    "The gate validates Cloud IaC manifest catalog path, source root, module count, module names, and modeled registry fields against the local catalog.",
+    "The gate validates catalog schema_version, catalog_id slug, authority source root, non-empty non-claims, module identity fields, exact semver, OpenTofu system, repo-relative paths, source_path/main_file shape, duplicate release keys, local skeleton honesty flags, evidence_ref shape, and on-disk `main.tofu` existence.",
+    "Cloud IaC manifest now declares this gate-backed local filesystem/JSON guard while preserving runtime/provider/module-signing non-claims."
+  ],
+  "explicit_non_claims": [
+    "No live OpenTofu private module registry API is implemented.",
+    "No module signing/cosign attestation, provider mirror, provider dependency lockfile, provider credential, or provider-resource-complete module body is implemented.",
+    "No tofu init, validate, test, plan, apply, drift detection, REST, SDK, worker, provider adapter, rollback engine, or Argo CD API integration is implemented.",
+    "No measured SLO, active-active DR, sharding execution, mesh runtime enforcement, or capacity telemetry readiness is claimed."
+  ],
+  "false_green_findings_closed": [
+    "Manifest module_count/module_names can no longer drift from the catalog without failing a first-class Oya gate.",
+    "Catalog entries can no longer point to missing `main.tofu` files without failing a first-class Oya gate.",
+    "Local skeleton entries can no longer claim provider resources, materialized outputs, or tests without failing the gate.",
+    "The run-all catalog now includes the Cloud IaC catalog coherence lane, so the previous custom evidence-time check is no longer the only enforcement path."
+  ],
+  "known_gaps": [
+    "This is a local filesystem/JSON coherence gate, not a live registry service.",
+    "The gate intentionally does not execute OpenTofu or validate provider lockfiles/checksums.",
+    "Legacy Cloud IaC Markdown/IP/capability prose may still contain future-state planning language and remains de-authorized by manifest non-claims.",
+    "Live registry/runtime/provider/OpenTofu/Argo CD work remains sequentially blocked behind future contract slices."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The implementation is a narrow local validator rather than a broad registry/runtime stack.",
+        "It uses existing serde_json in oya-dev-cli and avoids adding dependencies or widening the pure domain crate."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The gate locks shared IaC catalog truth before downstream cloud write fanout.",
+        "It uses OpenTofu module identity shape while explicitly refusing live/provider/runtime readiness claims."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "failing_fixture_added": true,
+      "failing_fixture_id": "cloud_iac_module_catalog_gate_rejects_manifest_count_drift / rejects_skeleton_overclaim / rejects_missing_main_file",
+      "diagnostic_asserted": "unknown lane before implementation, manifest/catalog drift, skeleton overclaims, and missing main.tofu fail closed",
+      "findings": [
+        "RED unknown-lane command failed before dispatcher implementation.",
+        "Negative tests cover the drift paths most likely to produce false green Cloud IaC claims."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "new_contributor_minutes_estimate": 6,
+      "findings": [
+        "The command has defaults for the live Cloud IaC manifest and catalog.",
+        "Failure messages aggregate diagnostics so contributors can fix all local catalog drift in one pass."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests, gate-catalog tests, live gate, check, clippy, fmt, JSON parsing, and relevant Oya gates passed.",
+        "Default run-all passed 82/82 lanes and full ./bin/oya verify --ci-required passed 5/5 mandatory plus 2/2 advisory after an unrelated app-shell evidence coverage backfill."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Create a new oya-check-cloud-iac-catalog-coherence crate",
+        "Implement a live private OpenTofu registry API",
+        "Add a local dev-cli gate using existing serde_json"
+      ],
+      "selected_rationale": "A local dev-cli gate is the smallest permanent enforcement surface because it avoids new dependency/workspace churn and does not overclaim live registry/runtime behavior.",
+      "rejected_reasons": [
+        "A new checker crate would touch root workspace dependency surfaces already active with concurrent agents.",
+        "A live registry API requires contracts, persistence, auth, release signing, and runtime evidence beyond this sequential slice."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "No credentials, kubeconfigs, tokens, state files, tenant data, or provider account data were added.",
+        "The gate rejects absolute/parent-traversal catalog paths and basic secret-like evidence/main_file markers."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Validation is linear over modules plus BTreeSet duplicate checks; current live catalog has six modules."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The gate improves local compliance evidence hygiene by making manifest/catalog coherence machine-verifiable.",
+        "No compliance certification, provider attestation, SLO, DR, or runtime audit-readiness claim is made."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "findings": [
+        "The gate is additive and defaults to the existing manifest/catalog paths.",
+        "Run-all lane count increases by one with no removal of existing lanes."
+      ]
+    },
+    "F11_documentation": {
+      "considered": true,
+      "findings": [
+        "tasks/plan.md and tasks/todo.md now document the slice scope, acceptance criteria, verification, and non-claims.",
+        "The manifest coherence_guard identifies the permanent gate and runtime mode."
+      ]
+    },
+    "F12_reserved": {
+      "considered": false,
+      "not_applicable_reason": "Reserved facet not applicable to this local gate."
+    },
+    "F13_operability": {
+      "considered": true,
+      "findings": [
+        "Future Cloud IaC registry/provider/runtime work can build on a gate-locked local catalog instead of a custom evidence-time script."
+      ]
+    }
+  },
+  "promotion_status": "oya-vcs-promote-accepted-local-review"
+}

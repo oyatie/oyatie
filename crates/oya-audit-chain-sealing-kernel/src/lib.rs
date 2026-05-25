@@ -8,18 +8,18 @@
 /// Reference to a signing key handle held inside an HSM.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SigningKeyRef {
-    pub key_id: String,
+    pub key_id: String, // data_class: INTERNAL_ONLY
 }
 
 /// Pack-scoped key epoch covering a half-open period range. Full schema in IP-006.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackEpoch {
-    pub pack: String,
-    pub tenant_partition: String,
-    pub period_lo: String,
-    pub period_hi: String,
-    pub active_key: SigningKeyRef,
-    pub retiring_key: Option<SigningKeyRef>,
+    pub pack: String,                        // data_class: PUBLIC
+    pub tenant_partition: String,            // data_class: INTERNAL_ONLY
+    pub period_lo: String,                   // data_class: INTERNAL_ONLY
+    pub period_hi: String,                   // data_class: INTERNAL_ONLY
+    pub active_key: SigningKeyRef,           // data_class: INTERNAL_ONLY
+    pub retiring_key: Option<SigningKeyRef>, // data_class: INTERNAL_ONLY
 }
 
 /// Lifecycle status of a SealRecord. Full enum in IP-006.
@@ -37,14 +37,14 @@ pub enum SealStatus {
 /// Seal record summary; persisted by `oya-audit-chain-sealing-adapter-postgres`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SealRecord {
-    pub pack: String,
-    pub tenant_partition: String,
-    pub period_id: String,
-    pub leaf_count: u64,
-    pub merkle_root: String,
-    pub prior_root: Option<String>,
-    pub signing_key: SigningKeyRef,
-    pub status: SealStatus,
+    pub pack: String,               // data_class: PUBLIC
+    pub tenant_partition: String,   // data_class: INTERNAL_ONLY
+    pub period_id: String,          // data_class: INTERNAL_ONLY
+    pub leaf_count: u64,            // data_class: PUBLIC
+    pub merkle_root: String,        // data_class: INTERNAL_ONLY
+    pub prior_root: Option<String>, // data_class: INTERNAL_ONLY
+    pub signing_key: SigningKeyRef, // data_class: INTERNAL_ONLY
+    pub status: SealStatus,         // data_class: PUBLIC
 }
 
 /// Merkle root construction port. Pure; implementation in sealing-domain.

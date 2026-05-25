@@ -1,0 +1,280 @@
+{
+  "agent_id": "codex-enterprise-20260523",
+  "best_practice_research": {
+    "handoff_constraints": [
+      "Use SLIs/SLOs and error budgets as action-driving reliability controls, not broad uptime prose.",
+      "Keep SLO manifests vendor-neutral and declarative through OpenSLO-style YAML.",
+      "Name OTel metric streams as planned evidence inputs without claiming runtime export.",
+      "Keep production SLO evidence blocked until deployed runtime, telemetry backend, alerting, canary, rollback, and multi-region evidence exist."
+    ],
+    "official_sources": [
+      "https://sre.google/sre-book/service-level-objectives/",
+      "https://github.com/OpenSLO/OpenSLO",
+      "https://opentelemetry.io/docs/reference/specification/metrics/data-model/",
+      "https://kubernetes.io/docs/concepts/workloads/pods/probes/"
+    ]
+  },
+  "change_class_id": "CC-1",
+  "change_id": "CS-ENT-SUITE-SLO-EVIDENCE-001",
+  "commands": [
+    "cargo metadata --format-version=1 --no-deps",
+    "cargo check -p oya-enterprise-suite-slo-evidence",
+    "cargo test --locked -p oya-enterprise-suite-slo-evidence",
+    "cargo clippy --locked -p oya-enterprise-suite-slo-evidence --all-targets -- -D warnings",
+    "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+    "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+    "cargo fmt --all -- --check",
+    "jq . specs/microservices/enterprise-suite.json",
+    "OpenSLO manifest shape scan for microservices/enterprise-suite/slos/*.openslo.yaml",
+    "./bin/oya gate validate slo-coverage --registry registry/catalog",
+    "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+    "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+    "./bin/oya gate validate data-class --workspace Cargo.toml",
+    "quality-marker scan for touched SLO evidence/readiness/spec/task/evidence rows",
+    "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-slo-evidence-1779664200.json --severity error"
+  ],
+  "created_at": "2026-05-24T08:30:00Z",
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "facets": {
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "Package, capability, SLO names, manifest names, and changeset follow the enterprise-suite naming pattern."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Root operating contract, Enterprise Suite spec, tasks, multispectrum evidence, and audit-chain conventions are preserved."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "New package is under crates/ and SLO manifests are under microservices/enterprise-suite/slos/."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "architecture-boundaries passes with 480 packages, 480 catalog records, and 682 dependency edges."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "findings": [
+        "No new external dependency is introduced; cloud-readiness adds one workspace path dependency."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite JSON parses, catalog validates, and OpenSLO shape scan passes for four manifests."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "findings": [
+        "Validation is deterministic and bounded: uniqueness, target bounds, windows, thresholds, refs, required controls, and overclaim flags are checked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "The slice is additive and can be reverted by removing the new crate/manifests/catalog row and readiness dependency/fields."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "The contract names OTel metric streams and evidence refs but does not claim runtime telemetry export or a metrics backend."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F12_reserved": {
+      "considered": true,
+      "findings": [
+        "Reserved facet not applicable; no special reserved-surface claim is made."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No schema or data migration is performed; production telemetry, alerting, canary, rollback automation, and multi-region evidence remain future work."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a deterministic SLO evidence contract plus cloud-readiness composition; it adds no metrics scrape, network call, alert dispatch, or production runtime side effect."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "SLO prerequisites now include OpenSLO manifests, OTel metric stream names, rolling error-budget windows, multi-window burn-rate policy, canary evidence refs, and rollback gates while production SLO evidence remains blocked."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Tests mutate missing objectives, unsafe manifest paths, credential-shaped metric names, runtime evidence flags, and invalid burn-rate windows to prove false SLO claims are refused."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Future cloud integration can consume one typed plan and four explicit OpenSLO manifest paths instead of discovering SLO obligations from prose."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "No new third-party dependencies were added; validation uses bounded string checks and explicit enums."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternatives considered: broad prose-only SLO statements, immediate runtime telemetry claims, or a typed pre-cloud contract. The typed pre-cloud contract was selected because it is testable and avoids production SLO overclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F6_architecture": {
+      "considered": true,
+      "findings": [
+        "The new crate is a flat enterprise-suite control-plane package and cloud-readiness depends on it through a workspace path edge."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "Credential-shaped refs and unsafe/path-traversal text are rejected in manifest, metric, dashboard, canary, rollback, and evidence refs."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "The slice adds constant-size validation over four objectives and does not add runtime request-path work; latency objectives are manifest/contract metadata only."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F8_tests": {
+      "considered": true,
+      "findings": [
+        "New SLO evidence tests and cloud-readiness tests cover positive readiness, nonclaims, and negative overclaim cases."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "The SLO evidence contract preserves auditability and honest-claim boundaries for enterprise cloud promotion; production SLO evidence and regulatory/runtime claims remain explicit blockers."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    },
+    "F9_docs": {
+      "considered": true,
+      "findings": [
+        "Enterprise Suite spec, tasks plan/todo, OpenSLO manifests, catalog row, evidence, and audit-chain rows describe the contract and nonclaims."
+      ],
+      "rigor": "deep",
+      "verdict": "PASS"
+    }
+  },
+  "freshness_unix": 1779664200,
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "known_gaps": [
+    "no runtime OTel export",
+    "no metrics backend attachment",
+    "no alert manager attachment",
+    "no canary runtime",
+    "no rollback automation runtime",
+    "no production SLO evidence",
+    "no multi-region SLO evidence",
+    "no deployed listener runtime evidence",
+    "no durable storage runtime attachment",
+    "no Workflow engine or broker execution",
+    "no statutory filing or disbursement rail",
+    "no cloud deployment evidence",
+    "no runtime audit-chain emission",
+    "full oya verify --ci-required not claimed for the whole branch",
+    "registry/vcs event-log persistence not asserted"
+  ],
+  "nonclaims": [
+    "This slice is a review-only SLO evidence contract foundation.",
+    "It does not prove production SLO attainment or cloud deployment readiness."
+  ],
+  "review_verdict": "local-gates-pass-with-slo-evidence-contract-and-oya-vcs-promoted",
+  "scope": [
+    "crates/oya-enterprise-suite-slo-evidence/**",
+    "crates/oya-enterprise-suite-cloud-readiness-gate/{Cargo.toml,src/lib.rs,tests/readiness.rs}",
+    "microservices/enterprise-suite/slos/*.openslo.yaml",
+    "registry/catalog/oya-enterprise-suite-slo-evidence.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Adds an Enterprise Suite SLO evidence contract foundation and composes it into cloud-readiness without claiming production SLO evidence.",
+  "verification_results": {
+    "architecture_boundaries": "PASS: 480 packages, 480 catalog records, 682 dependency edges",
+    "audit_chain_append_only": "PASS: HEAD-prefix-preserving check found 120 branch-appended rows after promotion audit row",
+    "cargo_fmt_check": "PASS",
+    "cargo_metadata": "PASS",
+    "catalog_validate": "PASS: 639 records",
+    "cloud_readiness_clippy": "PASS",
+    "cloud_readiness_tests": "PASS: 11 tests",
+    "data_class_workspace": "PASS: data class fitness validation passed: 1650 fields checked, 1362 annotated, 288 legacy unannotated",
+    "dependency_seam": "PASS: dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking",
+    "enterprise_suite_spec_json": "PASS",
+    "openslo_manifest_shape_scan": "PASS: 4 manifests",
+    "oya_vcs_lifecycle": "PASS: local Oya VCS claim/status/verify/done/promote accepted; transcript evidence/vcs/cs-ent-suite-slo-evidence-oya-vcs-lifecycle-20260524.json",
+    "quality_marker_scan": "PASS: no new uppercase quality markers in touched SLO evidence/readiness/spec/task/evidence diff",
+    "slo_coverage_gate": "PASS: 639 records",
+    "slo_evidence_check": "PASS",
+    "slo_evidence_clippy": "PASS",
+    "slo_evidence_tests": "PASS: 5 tests"
+  }
+}

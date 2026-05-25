@@ -243,6 +243,18 @@ impl<H> Router<H> {
         None
     }
 
+    /// Return true when `path` matches a registered template for any method.
+    ///
+    /// Runtime adapters use this to distinguish a real unknown route (404)
+    /// from a known route with the wrong method (405). This intentionally
+    /// returns only a boolean so callers cannot accidentally use captured
+    /// path values as metric labels or error details.
+    pub fn path_matches_any_method(&self, path: &str) -> bool {
+        self.routes
+            .iter()
+            .any(|(_, template, _)| template.match_path(path).is_some())
+    }
+
     pub fn count(&self) -> usize {
         self.routes.len()
     }
@@ -380,6 +392,22 @@ mod tests {
             .unwrap();
         let (handler, _, _) = router.match_route(HttpMethod::Post, "/workspace").unwrap();
         assert_eq!(*handler, "post_handler");
+    }
+
+    #[test]
+    fn router_path_matches_any_method_distinguishes_method_mismatch_from_unknown_path() {
+        let mut router: Router<&'static str> = Router::new();
+        router
+            .route(
+                HttpMethod::Get,
+                "/v1/modules/{namespace}/{name}/{system}/versions",
+                "get",
+            )
+            .unwrap();
+
+        assert!(router.path_matches_any_method("/v1/modules/oyatie/vpc/opentofu/versions"));
+        assert!(!router.path_matches_any_method("/v1/modules/oyatie/vpc"));
+        assert!(!router.path_matches_any_method("/v1/modules/oyatie/../opentofu/versions"));
     }
 
     #[test]

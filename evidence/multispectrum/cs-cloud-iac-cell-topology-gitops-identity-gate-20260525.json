@@ -1,0 +1,274 @@
+{
+  "schema": "multispectrum-review/v2.4.0",
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001",
+  "change_class_id": "CC-2",
+  "agent_id": "codex-cloud-iac-cell-topology-gitops-identity-20260525",
+  "timestamp_iso": "2026-05-25T08:16:27Z",
+  "freshness_unix": 1779696987,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "scope": [
+    "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs",
+    "microservices/cloud-iac/iac/aws-guest/argocd/apps/template.yaml",
+    "microservices/cloud-iac/iac/colo/argocd/apps/template.yaml",
+    "microservices/cloud-iac/iac/oci-guest/argocd/apps/template.yaml",
+    "microservices/cloud-iac/iac/on-prem/argocd/apps/template.yaml",
+    "microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/template.yaml",
+    "microservices/cloud-iac/manifest.json",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-iac-cell-topology-gitops-identity-gate-20260525.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "objective": "Make the Cloud IaC cell-topology gate fail closed when a cell gitops_template omits or drifts topology-derived identity labels.",
+  "complementary_plan_reference": {
+    "path": "/Users/jasonlee/Developer/source/plan",
+    "authority": "complementary-only-not-source-of-truth",
+    "use": "hyperscaler substrate roadmap context only"
+  },
+  "best_practice_sources": [
+    {
+      "url": "https://argo-cd.readthedocs.io/en/latest/user-guide/application-specification/",
+      "what_it_establishes": "Argo CD Application manifests are Kubernetes resources with metadata/spec/sync-policy surfaces; this ChangeSet validates repo-local Application metadata only and performs no Argo CD API action."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/",
+      "what_it_establishes": "Kubernetes labels are metadata for organizing/selecting objects, and automated components should use a prefix; this ChangeSet uses oyatie.com-prefixed local labels."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/",
+      "what_it_establishes": "Kubernetes recommended labels show the operational value of consistent labels for application management while leaving custom labels to owners."
+    },
+    {
+      "url": "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "what_it_establishes": "Cloud IaC remains anchored to the local OpenTofu registry protocol evidence chain already locked by prior slices; no new live registry operation is claimed here."
+    },
+    {
+      "url": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+      "what_it_establishes": "Repo-local doctrine makes Argo CD the self-hostable GitOps substrate; this slice strengthens local Argo CD template evidence without claiming runtime integration."
+    }
+  ],
+  "red_tests": [
+    {
+      "command": "cargo test -p oya-dev-cli cloud_iac_cell_topology_gate_rejects_gitops_template_identity_drift -- --nocapture",
+      "result": "FAIL_EXPECTED_RED",
+      "exit_code": 101,
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-red.log",
+      "summary": "A fixture with a drifted AWS guest template cell-id label was incorrectly accepted by the cell-topology gate before the fix."
+    }
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-dev-cli && cargo test -p oya-dev-cli cloud_iac_cell_topology -- --nocapture",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-focused-green.log",
+      "summary": "Focused cell-topology tests passed, including the new GitOps template identity drift rejection."
+    },
+    {
+      "command": "oya gate validate cloud-iac-cell-topology; oya gate validate cloud-iac-gitops-evidence",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-live-cloud-iac-gates.log",
+      "summary": "Live repo-local cell topology and GitOps evidence gates passed with five contexts/templates and topology identity labels."
+    },
+    {
+      "command": "cargo fmt --all -- --check; cargo check -p oya-dev-cli --all-targets; cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-rust-quality.log",
+      "summary": "Rust formatting, scoped package check, and clippy warnings-as-errors passed for oya-dev-cli."
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain; oya catalog validate; architecture-boundaries; api-semver; planning-closure; license-policy",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-governance-core.log",
+      "summary": "Gate catalog unit tests and core governance/admission gates passed."
+    },
+    {
+      "command": "scoped cloud-iac gate suite",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-cloud-iac-gates.log",
+      "summary": "All scoped Cloud IaC gates passed: module catalog, GitOps evidence, cell topology, module registry protocol, module archive, release-index, provenance, provider readiness, provider requirements, provider lockfile, provider signature review, and OpenTofu validation."
+    },
+    {
+      "command": "scoped anti-slop scan",
+      "result": "PASS_WITH_KNOWN_NON_SLOP_FINDINGS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-slop-scan.log",
+      "summary": "No new TODO/FIXME/HACK/fallback bypass was introduced in the changed code path; grep hits are prior documented temporary OpenTofu-copy/credential prose and historical skipped-test wording."
+    },
+    {
+      "command": "dependency-seam strict; scoped honest-claims; scoped retired-vocabulary temp corpus; evidence JSON parse; audit-chain JSONL parse; oya git diff --check",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-final-closeout-gates.log",
+      "summary": "Strict dependency-seam, scoped honest-claims, scoped retired-vocabulary, JSON/audit parsing, and whitespace diff checks passed."
+    },
+    {
+      "command": "oya vcs work; oya vcs verify; oya vcs done --controller-promote; oya vcs promote --environment local-foundry",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-oya-vcs-closeout.log",
+      "summary": "Oya VCS work, verify, done --controller-promote, and promote accepted for the ChangeSet."
+    },
+    {
+      "command": "post-promote dependency-seam strict; scoped honest-claims; scoped retired-vocabulary temp corpus; evidence JSON parse; audit-chain JSONL parse; oya git diff --check",
+      "result": "PASS",
+      "log": "/tmp/cs-cloud-iac-cell-topology-gitops-identity-gate-post-promote-closeout-gates.log",
+      "summary": "Post-promote strict dependency-seam, scoped honest-claims, scoped retired-vocabulary, JSON/audit parsing, and whitespace diff checks passed after lifecycle evidence/audit/task updates."
+    }
+  ],
+  "implemented_claims": [
+    "The Cloud IaC cell-topology gate now reads each cell gitops_template file from the repo-local filesystem after path validation.",
+    "Each cell gitops_template must carry oyatie.com/region equal to cells.region.",
+    "Each cell gitops_template must carry oyatie.com/cell-id equal to cells.cell_id.",
+    "Each cell gitops_template must carry oyatie.com/tenant-id equal to cells.tenant_id.",
+    "Each cell gitops_template must carry oyatie.com/isolation-tier equal to cells.isolation_tier.",
+    "Each cell gitops_template must carry oyatie.com/default-cross-cell-traffic-allowed equal to cells.default_cross_cell_traffic_allowed.",
+    "The five live Cloud IaC Argo CD Application templates now include those topology-derived labels."
+  ],
+  "explicit_non_claims": [
+    "No Argo CD API, Kubernetes API, kubectl, Helm CLI, OpenTofu CLI, cloud provider API, mesh-runtime, sharding-runtime, or network call is added by this slice.",
+    "No live Argo CD sync, diff, health, prune, self-heal, application-controller behavior, or namespace reconciliation is implemented.",
+    "No production authentication, Cedar policy runtime, tenant identity runtime, provider runtime, object-store integration, deployed endpoint, measured SLO, DR, capacity telemetry, or rollback evidence is claimed.",
+    "No tofu plan/apply/state backend, provider resource provisioning, FD-001 tenant workload hosting, production readiness, hyperscaler readiness, or cloud provisioning is claimed."
+  ],
+  "false_green_findings_closed": [
+    "The cell-topology gate can no longer pass merely because a gitops_template path exists; it must also match topology identity labels for each cell."
+  ],
+  "known_gaps": [
+    "Full ./bin/oya verify --ci-required is not claimed green.",
+    "Aggregate ./bin/oya gate run-all is not claimed green unless freshly rerun and proven.",
+    "This is a local template identity coherence gate only; live Argo CD/Kubernetes integration remains a future slice.",
+    "Cloud IaC still needs live object-store adapters, production auth/Cedar, OpenTofu plan/apply/state, deployed GitOps sync evidence, provider runtime, and FD-001 tenant workload dogfood evidence."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Kept the implementation simple and fail-closed: read the existing template text and require exact topology-derived label lines rather than adding a YAML parser or live Argo CD dependency."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Strengthens cell identity coherence across topology and GitOps contracts before runtime fanout; this is a prerequisite, not a production-readiness claim."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED fixture proved template cell-id drift passed before the fix; focused GREEN rejects the drift."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Operators and agents can see cell identity directly on Application metadata while the gate remains local and deterministic."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Focused tests, live gates, fmt/check/clippy, governance gates, and scoped Cloud IaC suite passed before closeout."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Add live Argo CD API validation now",
+        "Add a YAML parser dependency",
+        "Use exact local label-line validation now"
+      ],
+      "selected_rationale": "Exact local label-line validation is the smallest honest step: it closes the false-green without adding live credentials, network calls, or a parser dependency.",
+      "rejected_reasons": [
+        "Live Argo CD validation needs deployed controller/API credentials and runtime evidence outside this slice.",
+        "A YAML parser dependency is unnecessary for the current template convention and would widen dependency-seam scope."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "owasp_class_review": "configuration-integrity-and-tenant-isolation-metadata",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "The gate keeps tenant/cell identity metadata coherent and continues to reject secret-like evidence refs; no secrets or tenant data are introduced."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "The added work is bounded to reading five small repo-local templates during gate validation; no runtime serving path or network I/O is affected."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Cell/tenant/isolation metadata is explicit in local GitOps templates; regulatory-grade live evidence remains non-claimed."
+      ]
+    },
+    "F10_compatibility": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Existing GitOps evidence and cell topology gates remain green with added labels; no template paths or Argo CD spec targets changed."
+      ]
+    },
+    "F11_operability": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "Mislabelled templates fail during local gate validation before a later sync/deploy path can rely on stale cell identity."
+      ]
+    },
+    "F12_reserved": {
+      "considered": false,
+      "rigor": "not_applicable",
+      "findings": []
+    },
+    "F13_traceability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "ChangeSet ties source/tests/templates, manifest, tasks, evidence, and audit-chain rows under Oya VCS lifecycle."
+      ]
+    },
+    "A1_policy_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Used Oya VCS claim; avoided raw git/gh; re-read root hub and operating contract; kept /plan complementary-only; did not claim production/hyperscaler completion."
+      ]
+    },
+    "A2_dependency_seam": {
+      "considered": true,
+      "rigor": "standard",
+      "findings": [
+        "No new dependencies were introduced. Strict dependency-seam is part of closeout evidence."
+      ]
+    }
+  },
+  "review": {
+    "code_review_status": "self_review_passed_after_post_promote_closeout",
+    "architectural_status": "CLEAR_FOR_LOCAL_CELL_TOPOLOGY_GITOPS_IDENTITY_GATE_SCOPE",
+    "ship_status": "NO_GO_FOR_PRODUCTION_DEPLOYMENT",
+    "ultraqa_status": "bounded_local_gate_qa_passed",
+    "review_findings": [
+      "No critical/high issue found for the local gate scope. Live Argo CD/Kubernetes runtime behavior remains an explicit non-claim."
+    ]
+  },
+  "lifecycle": {
+    "oya_vcs_claim": "accepted",
+    "oya_vcs_work": "accepted",
+    "oya_vcs_verify": "accepted",
+    "oya_vcs_done": "accepted-controller-promote",
+    "oya_vcs_promote": "accepted-local-foundry",
+    "audit_chain_event": "lifecycle_promoted"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "id": "cs-application-shell-workflow-editor-parity-20260524",
+  "change_id": "CS-APPLICATION-SHELL-WORKFLOW-EDITOR-PARITY-20260524",
+  "change_class_id": "CC-1",
+  "timestamp": "2026-05-24T16:23:28-04:00",
+  "created_at": "2026-05-24T20:23:28Z",
+  "freshness_unix": 1779654208,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "agent": "codex-oyatie-workflow-editor-parity",
+  "agent_id": "codex-oyatie-workflow-editor-parity",
+  "scope": "Continue moving the Oyatie application-shell prototype toward the complete Bominal-grade mockup by deepening Workflow Studio into a local, visibly functional editor surface.",
+  "user_direction": [
+    "$agent-skills:visual-ralph $agent-skills:frontend-ui-engineering make further polishes towardds complete mockup of oyatie",
+    "The mockup should use Bominal and the standalone Workflow Editor as references, improve/integrate them, and remain a cohesive product rather than a separate mix of surfaces.",
+    "Surfaces should be fully interactive and functional visually, without backend wiring."
+  ],
+  "implemented": [
+    "Replaced the Workflow Studio static SVG diagram with a Bominal-style local workflow board composed of draggable node cards, SVG edge paths, visible ports, grid canvas, and a drop hint.",
+    "Added SSR-rendered workflow card data attributes so the local JS island can select, drag, connect, inspect, and extend nodes without backend wiring.",
+    "Added local drag movement for workflow nodes, including live edge-path recomputation and status-bar feedback.",
+    "Added local palette drag/drop and Add block behavior that creates visual workflow cards, node toolbar entries, inspector content, and local edge previews.",
+    "Added connect-mode behavior that marks a pending source and previews a local connection to a selected target node.",
+    "Added visual zoom control behavior and kept Run/Validate/Publish/Clear states integrated with the board and status chip.",
+    "Kept the design language within the existing Bominal-derived Oyatie tokens: flat surfaces, tight radii, dense controls, mono metadata, and restrained accent color."
+  ],
+  "reference_artifacts": {
+    "bominal_reference_subset": ".omx/artifacts/visual-ralph/bominal-reference/",
+    "bominal_workflow_reference": ".omx/artifacts/visual-ralph/bominal-reference/screenshots/bominal-workflow-studio-800.png",
+    "standalone_workflow_reference": ".omx/artifacts/visual-ralph/bominal-reference/screenshots/workflow-editor-standalone-800.png",
+    "previous_regression_repair_workflow": ".omx/artifacts/visual-ralph/oya-regression-repair/screenshots/workflow-deep-1440.png"
+  },
+  "verification": [
+    { "command": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "command": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "details": "8 passed" },
+    { "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr", "status": "passed" },
+    { "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --no-default-features --features hydrate --lib --release", "status": "passed" },
+    { "command": "podman restart oya-frontend-prototype-live && curl -fsS http://127.0.0.1:3000/", "status": "passed", "details": "HTML includes workflow-board, data-workflow-card, workflow-board-edge, canvas-drop-hint, and data-workflow-palette-search." },
+    { "command": "NODE_PATH=<npx playwright module cache> node /tmp/oya-workflow-parity-interaction.js", "status": "passed", "details": "Confirmed initial workflow cards, Add block creates local card, inspector updates, drag changes card position, connect mode preserves/adds edge network, zoom label changes, and Run preview state applies." },
+    { "command": "python3 urllib smoke for http://127.0.0.1:3000/api/render-envelope/tenant-admin", "status": "passed", "details": "context=tenant-admin; modules=6; approvals=3; workflow_nodes=4" },
+    { "command": "npx --yes playwright screenshot ...", "status": "passed", "details": "Captured workflow-board, interacted workflow-board, and command palette screenshots." }
+  ],
+  "screenshots": {
+    "workflow_board": ".omx/artifacts/visual-ralph/oya-workflow-editor-parity/screenshots/workflow-board-1440.png",
+    "workflow_board_interacted": ".omx/artifacts/visual-ralph/oya-workflow-editor-parity/screenshots/workflow-board-interacted-1440.png",
+    "command_palette": ".omx/artifacts/visual-ralph/oya-workflow-editor-parity/screenshots/command-palette-workflow-1440.png"
+  },
+  "visual_verdict": {
+    "score": 88,
+    "verdict": "material_progress_not_final_complete",
+    "category_match": "Cohesive Oyatie Workflow Studio with Bominal-style dense editor chrome and local visual interactivity.",
+    "improvements_over_previous_pass": [
+      "The workflow editor is now a local interactive board rather than a static SVG line of nodes.",
+      "Node cards can be visually dragged, inspected, added from the palette, connected in preview mode, zoomed, and run as a simulation preview.",
+      "The result is closer to the standalone workflow editor reference while remaining embedded in the cohesive Oyatie control center."
+    ],
+    "remaining_differences": [
+      "Still not full parity with Bominal standalone editor: no persisted document model, true pan canvas, real port-to-port drag connection, editable field inspector, context menu, undo stack, or multi-run history.",
+      "Workflow additions and connections are local DOM previews; Leptos state and backend workflow engine are intentionally not wired.",
+      "The broader Oyatie mockup still needs deeper routed Messenger, Mail, Community, settings, identity, notification, and analytics pages before complete-product status can be proven."
+    ]
+  },
+  "non_claims": [
+    "No backend integration, real authentication/authorization, production tenant data, PHI/PII, external message/mail/community send, real workflow execution, or real cloud provider operation is claimed.",
+    "No production readiness, measured SLO, DR, compliance certification, provider-live operation, or hyperscaler readiness is claimed.",
+    "Bominal remains a visual/product reference; the implementation is repo-native Rust/Leptos/CSS/JS and intentionally not copied as-is."
+  ],
+  "facets": {
+    "F1_linus": { "considered": true, "rigor": "deep", "findings": ["Addressed the largest remaining regression gap by replacing a static workflow SVG with a local editor board.", "Avoided broad architecture churn; changes stay in the prototype frontend crate and evidence file."] },
+    "F2_hyperscaler": { "considered": true, "rigor": "standard", "findings": ["No hyperscaler claims; editor behavior is local visual workflow modeling only."] },
+    "F3_adversarial": { "considered": true, "rigor": "deep", "failing_fixture_added": false, "findings": ["Prior weakness: workflow looked static. This pass verifies Add, drag, connect, zoom, and run preview visual interactions with a browser script."] },
+    "F4_ergonomic": { "considered": true, "rigor": "deep", "new_contributor_minutes_estimate": 10, "findings": ["Palette, board, ports, status chip, inspector, node toolbar, and zoom controls create a more learnable no-code editor surface."] },
+    "F5_quality": { "considered": true, "rigor": "deep", "findings": ["Fmt, JS syntax, unit tests, SSR build, hydrate build, API smoke, Podman restart, browser interaction smoke, and screenshots passed."] },
+    "F6_alternatives": { "considered": true, "rigor": "standard", "alternatives_named": ["Leave static SVG and polish only CSS", "Attempt full drag/drop workflow engine", "Add local visual workflow board with JS island behavior"], "selected_rationale": "The local visual board moves materially toward the requested interactive mockup without falsely claiming real engine/backend wiring." },
+    "F7_security": { "considered": true, "rigor": "standard", "secrets_touched": false, "tenant_data_touched": false, "findings": ["Only static/local mock UI data and client-side visual interactions were added."] },
+    "F8_performance": { "considered": true, "rigor": "standard", "findings": ["No new production dependency; edge recomputation is scoped to visible local workflow cards."] },
+    "F9_compliance": { "considered": true, "rigor": "standard", "findings": ["Prototype no-backend/no-real-execution boundary is preserved in copy, status, and evidence."] },
+    "F10_observability": { "considered": true, "rigor": "standard", "findings": ["Evidence records verification commands, interaction smoke output, and screenshots for default/interacted editor states."] },
+    "F11_docs": { "considered": true, "rigor": "standard", "findings": ["This evidence captures scope, verification, screenshots, visual verdict, and remaining gaps."] },
+    "F12_reserved": { "considered": false, "rigor": "not_applicable", "findings": [] },
+    "F13_policy_adherence": { "considered": true, "rigor": "deep", "findings": ["Root hub/docs AGENTS contract refreshed and Oya VCS claim accepted before edits."] }
+  }
+}

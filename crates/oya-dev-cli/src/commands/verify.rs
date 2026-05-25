@@ -106,6 +106,12 @@ struct VerifyInvalid {
 }
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    if let Some(pos) = args.iter().position(|arg| arg == "--from-results") {
+        return run_from_results(args.get(pos + 1).map(String::as_str), usage);
+    }
+    if args.iter().any(|arg| arg == "--affected") {
+        return run_affected_entry(args, usage);
+    }
     if !args.iter().any(|arg| arg == "--ci-required") {
         return run_gate_alias(args, usage);
     }
@@ -132,11 +138,145 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     }
 }
 
+/// `oya verify --from-results <junit.xml>` — ADR-0360 O2 gate-only overlay:
+/// derive the test verdict from the lane's nextest JUnit report instead of
+/// re-running cargo. Unparseable/absent report is a FAILURE, never a silent PASS.
+fn run_from_results(path: Option<&str>, usage: &str) -> ExitCode {
+    let Some(path) = path else {
+        eprintln!("oya verify: --from-results requires a <junit.xml> path\n{usage}");
+        return ExitCode::from(2);
+    };
+    let xml = match std::fs::read_to_string(path) {
+        Ok(contents) => contents,
+        Err(error) => {
+            eprintln!("oya verify --from-results: cannot read {path:?}: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    match super::verify_results::parse_junit_summary(&xml) {
+        Ok(summary) => {
+            println!(
+                "oya verify --from-results {path}: tests={}, failures={}, errors={} -> {}",
+                summary.tests,
+                summary.failures,
+                summary.errors,
+                if summary.passed() { "PASS" } else { "FAIL" }
+            );
+            if summary.passed() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            }
+        }
+        Err(message) => {
+            eprintln!("oya verify --from-results {path}: {message}");
+            ExitCode::from(2)
+        }
+    }
+}
+
 fn run_gate_alias(args: Vec<String>, usage: &str) -> ExitCode {
     let mut forwarded = Vec::with_capacity(args.len() + 1);
     forwarded.push("run-all".to_string());
     forwarded.extend(args);
     gate::run(forwarded, usage)
+}
+
+/// `oya verify --affected [--base <ref>]` — ADR-0360 O1 presubmit mode. Narrows
+/// the cargo mirror to the affected reverse-dependency closure (or skips cargo
+/// for non-Rust-only changes); the governance gates always run. `--ci-required`
+/// remains the authoritative full mirror (the trunk backstop).
+fn run_affected_entry(args: Vec<String>, usage: &str) -> ExitCode {
+    use super::verify_affected::{self, BuildScope};
+
+    let mut verify_args = VerifyArgs::default();
+    let mut base = "dev".to_string();
+    let mut iter = args.into_iter().peekable();
+    while let Some(flag) = iter.next() {
+        match flag.as_str() {
+            "--affected" => {}
+            "--base" => match iter.next() {
+                Some(value) => base = value,
+                None => {
+                    eprintln!("oya verify: --base requires a <ref> argument\n{usage}");
+                    return ExitCode::from(2);
+                }
+            },
+            "--include-deferred" => verify_args.include_deferred = true,
+            "--skip-fmt" => verify_args.skip_fmt = true,
+            "--skip-check" => verify_args.skip_check = true,
+            "--skip-clippy" => verify_args.skip_clippy = true,
+            "--skip-nextest" => verify_args.skip_nextest = true,
+            "--skip-gate-run-all" | "--skip-gates" => verify_args.skip_gate_run_all = true,
+            other => {
+                eprintln!("oya verify: unknown flag {other:?}\n{usage}");
+                return ExitCode::from(2);
+            }
+        }
+    }
+
+    let repo_root = match workspace_root() {
+        Ok(root) => root,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::from(2);
+        }
+    };
+
+    let changed = match verify_affected::changed_files(repo_root.as_path(), &base) {
+        Ok(files) => files,
+        Err(message) => {
+            eprintln!("oya verify --affected: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let (members, rdeps) = match verify_affected::workspace_graph(repo_root.as_path()) {
+        Ok(graph) => graph,
+        Err(message) => {
+            eprintln!("oya verify --affected: {message}");
+            return ExitCode::from(2);
+        }
+    };
+
+    let scope = verify_affected::classify(&changed, &members, &rdeps);
+    let targeting = match &scope {
+        BuildScope::Full => {
+            println!(
+                "oya verify --affected (base={base}): {} changed file(s) -> FULL workspace mirror (full-build trigger)",
+                changed.len()
+            );
+            CargoTargeting::Workspace
+        }
+        BuildScope::NoRust => {
+            println!(
+                "oya verify --affected (base={base}): {} changed file(s), no Rust impact -> SKIP cargo; gates only",
+                changed.len()
+            );
+            CargoTargeting::Skip
+        }
+        BuildScope::Crates(crates) => {
+            println!(
+                "oya verify --affected (base={base}): {} changed file(s) -> {} affected crate(s): {}",
+                changed.len(),
+                crates.len(),
+                crates.join(", ")
+            );
+            CargoTargeting::Packages(crates.clone())
+        }
+    };
+
+    if std::env::var("OYA_VERIFY_RUNNING").as_deref() == Ok("1") {
+        eprintln!("oya verify: recursive invocation refused");
+        return ExitCode::from(2);
+    }
+
+    match run_mirror(verify_args, targeting) {
+        Ok(exit) => exit,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            ExitCode::from(2)
+        }
+    }
 }
 
 fn parse_verify_args(args: Vec<String>, usage: &str) -> Result<VerifyArgs, VerifyInvalid> {
@@ -165,44 +305,93 @@ fn parse_verify_args(args: Vec<String>, usage: &str) -> Result<VerifyArgs, Verif
     Ok(parsed)
 }
 
+/// How the cargo mirror steps are targeted. `--ci-required` always uses
+/// [`CargoTargeting::Workspace`] (the authoritative full mirror); `--affected`
+/// narrows to [`CargoTargeting::Packages`] or skips cargo entirely
+/// ([`CargoTargeting::Skip`]) per ADR-0360 O1.
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum CargoTargeting {
+    Workspace,
+    Packages(Vec<String>),
+    Skip,
+}
+
+impl CargoTargeting {
+    fn package_flags(&self) -> Vec<String> {
+        match self {
+            CargoTargeting::Packages(crates) => crates
+                .iter()
+                .flat_map(|c| ["-p".to_string(), c.clone()])
+                .collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    fn check_args(&self) -> Vec<String> {
+        let mut a = vec!["check".to_string()];
+        match self {
+            CargoTargeting::Packages(_) => a.extend(self.package_flags()),
+            _ => a.push("--workspace".to_string()),
+        }
+        a.push("--all-targets".to_string());
+        a
+    }
+
+    fn clippy_args(&self) -> Vec<String> {
+        let mut a = vec!["clippy".to_string()];
+        match self {
+            CargoTargeting::Packages(_) => a.extend(self.package_flags()),
+            _ => a.push("--workspace".to_string()),
+        }
+        a.extend(["--all-targets", "--", "-D", "warnings"].map(String::from));
+        a
+    }
+
+    fn nextest_args(&self) -> Vec<String> {
+        let mut a = vec!["nextest".to_string(), "run".to_string()];
+        match self {
+            CargoTargeting::Packages(_) => a.extend(self.package_flags()),
+            _ => a.push("--workspace".to_string()),
+        }
+        a
+    }
+}
+
 fn run_ci_required_mirror(args: VerifyArgs) -> Result<ExitCode, VerifyInvalid> {
+    run_mirror(args, CargoTargeting::Workspace)
+}
+
+fn run_mirror(args: VerifyArgs, targeting: CargoTargeting) -> Result<ExitCode, VerifyInvalid> {
     let workspace_root = workspace_root()?;
     warn_for_skip_flags(&args);
 
+    let skip_cargo = matches!(targeting, CargoTargeting::Skip);
+    let check_args = targeting.check_args();
+    let clippy_args = targeting.clippy_args();
+    let nextest_args = targeting.nextest_args();
+
     let [fmt, check, clippy, nextest, gate_run_all] = mandatory_steps();
     let mut mandatory = Vec::with_capacity(MANDATORY_TOTAL);
-    mandatory.push(run_or_skip(fmt, args.skip_fmt, || {
+    mandatory.push(run_or_skip(fmt, args.skip_fmt || skip_cargo, || {
         run_inherited("cargo", &["fmt", "--check"], workspace_root.as_path())
     })?);
-    mandatory.push(run_or_skip(check, args.skip_check, || {
-        run_inherited(
-            "cargo",
-            &["check", "--workspace", "--all-targets"],
-            workspace_root.as_path(),
-        )
+    mandatory.push(run_or_skip(check, args.skip_check || skip_cargo, || {
+        let refs: Vec<&str> = check_args.iter().map(String::as_str).collect();
+        run_inherited("cargo", &refs, workspace_root.as_path())
     })?);
-    mandatory.push(run_or_skip(clippy, args.skip_clippy, || {
-        run_inherited(
-            "cargo",
-            &[
-                "clippy",
-                "--workspace",
-                "--all-targets",
-                "--",
-                "-D",
-                "warnings",
-            ],
-            workspace_root.as_path(),
-        )
+    mandatory.push(run_or_skip(clippy, args.skip_clippy || skip_cargo, || {
+        let refs: Vec<&str> = clippy_args.iter().map(String::as_str).collect();
+        run_inherited("cargo", &refs, workspace_root.as_path())
     })?);
-    mandatory.push(run_or_skip(nextest, args.skip_nextest, || {
-        ensure_cargo_nextest(workspace_root.as_path())?;
-        run_inherited(
-            "cargo",
-            &["nextest", "run", "--workspace"],
-            workspace_root.as_path(),
-        )
-    })?);
+    mandatory.push(run_or_skip(
+        nextest,
+        args.skip_nextest || skip_cargo,
+        || {
+            ensure_cargo_nextest(workspace_root.as_path())?;
+            let refs: Vec<&str> = nextest_args.iter().map(String::as_str).collect();
+            run_inherited("cargo", &refs, workspace_root.as_path())
+        },
+    )?);
     mandatory.push(run_or_skip(gate_run_all, args.skip_gate_run_all, || {
         let mut gate_args = vec!["gate", "run-all", "--ci-required"];
         if args.include_deferred {

@@ -1,0 +1,111 @@
+{
+  "change_id": "backbone-microservices-governance-validator-unblock-20260524",
+  "change_class_id": "CC-2",
+  "summary": "Unblocks local catalog and data-class governance validators for the backbone PR by adding conservative global catalog records for existing workspace crates, annotating existing kernel fields, deleting stale legacy allowances, and recording the remote Actions-budget failure mode.",
+  "scope": [
+    "registry/catalog/oya-audit-chain-*.yaml",
+    "registry/catalog/oya-payments-*.yaml",
+    "registry/catalog/oya-tenancy-*.yaml",
+    "crates/oya-audit-chain-emission-kernel/src/lib.rs",
+    "crates/oya-audit-chain-sealing-kernel/src/lib.rs",
+    "crates/oya-shared-oidc-client-kernel/src/lib.rs",
+    "crates/oya-shared-scim-server-kernel/src/lib.rs",
+    "crates/oya-tenancy-*-kernel/src/lib.rs",
+    "registry/data-class/legacy-unannotated-fields.tsv",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This changes metadata and comments only. It claims local catalog/data-class validator pass, focused compile pass for touched kernel crates, and PR check-run annotation diagnosis. It does not claim remote GitHub Actions runner execution, branch-protection success, merge, production deployment, live gateway, live database, live collector, or live broker evidence.",
+  "facets": {
+    "F1_simplicity": "Catalog records use the existing flat registry shape with conservative preview, unreviewed, source-only posture; kernel changes are line-local data_class comments.",
+    "F2_correctness": "The records cover workspace crates previously reported missing by catalog validation; data-class comments convert previously untracked kernel fields into annotated fields and stale legacy rows are removed.",
+    "F5_quality": "The two known local governance blockers from prior closeout are now re-run to passing results instead of remaining as known failures.",
+    "F7_security_privacy": "No new runtime data flow is introduced. Sensitive DSR/SCIM fields are annotated as sensitive, audit-chain sealing fields as AUDIT/INTERNAL_ONLY, and catalog records avoid unsupported operational data classes in privacy-owned lists.",
+    "F10_ci_cd": "PR #179 remote checks did not start runner steps because the Actions budget prevented use; this is recorded as an external CI execution blocker and no remote green result is claimed.",
+    "F13_reversibility": "The change is additive catalog metadata plus comments/legacy-row deletion and can be reverted without altering business behavior."
+  },
+  "verification": [
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "pass",
+      "evidence": "catalog validation passed: 639 records."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "pass",
+      "evidence": "data class fitness validation passed: 1832 fields checked, 1547 annotated, 285 legacy unannotated."
+    },
+    {
+      "command": "cargo check -p <10 touched kernel package matrix> --all-targets",
+      "result": "pass",
+      "evidence": "Affected audit-chain, tenancy, OIDC, and SCIM kernel packages compiled after comment-only annotations."
+    },
+    {
+      "command": "cargo fmt --check -p <10 touched kernel package matrix>",
+      "result": "pass",
+      "evidence": "Focused formatting check for the touched audit-chain, tenancy, OIDC, and SCIM kernel packages completed successfully."
+    },
+    {
+      "command": "cargo test -p <10 touched kernel package matrix>",
+      "result": "pass",
+      "evidence": "Focused package tests passed: OIDC 16 tests, SCIM 22 tests, and the touched audit-chain/tenancy kernels had zero package-local tests."
+    },
+    {
+      "command": "cargo clippy -p <10 touched kernel package matrix> --all-targets -- -D warnings",
+      "result": "pass",
+      "evidence": "Focused clippy for the touched audit-chain, tenancy, OIDC, and SCIM kernel packages completed with -D warnings."
+    },
+    {
+      "command": "cargo deny check",
+      "result": "pass",
+      "evidence": "cargo-deny completed successfully; existing duplicate/wildcard warnings remain warnings, not blocking errors."
+    },
+    {
+      "command": "./bin/oya gate validate license-policy --workspace Cargo.toml",
+      "result": "pass",
+      "evidence": "license policy validation passed: 461 packages."
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "cargo prefix validation passed: 461 workspace members."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence 'evidence/multispectrum/backbone-microservices-*.json'",
+      "result": "pass",
+      "evidence": "Scoped dependency-seam validation passed: 6 subchecks, 1 pass, 4 report-only, 1 skipped, 0 fail, 7 diagnostics, 0 blocking."
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root evidence/multispectrum/backbone-microservices-governance-validator-unblock-20260524.json",
+      "result": "pass",
+      "evidence": "Scoped honest-claims validation passed after final evidence/task updates: 3 documents, 982 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "evidence": "Whitespace/diff hygiene passed after final evidence/task updates."
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "fail",
+      "evidence": "D-1 fmt, D-2 workspace check, and D-3 workspace clippy passed. D-4 cargo nextest run --workspace failed on six oya-dev-cli::oya_verify_ci_mirror tests because nested oya verify invocations were refused as recursive. D-5 oya gate run-all --ci-required passed 77/88 lanes and failed doc-catalog, adr-citation, design-spec-maturity-claims, glossary-vocabulary, placeholder-debt, dependency-seam, readme-doc-coverage, architecture-boundaries, layered-architecture-discipline, cargo nextest run --workspace --no-fail-fast, and cargo run -q -p oya-foundry-vcs-admission-gate-app. D-6 oya doc adr-index --write failed because ADR-0321 metadata Owner is missing. D-7 oya lint adr-shape passed with no new ADRs. Final summary: oya verify FAIL (mandatory: 3/5, advisory: 1/2). These are recorded as full-repo/local mirror blockers; no green full-verify claim is made."
+    },
+    {
+      "command": "gh api check-run annotation audit for PR #179 failing checks",
+      "result": "pass",
+      "evidence": "36 failing check annotations share: The job was not started because an Actions budget is preventing further use. Job records have no runner steps/logs."
+    },
+    {
+      "command": "oya vcs verify/done/promote --agent codex-1779524019183 --evidence evidence/multispectrum/backbone-microservices-governance-validator-unblock-20260524.json --bundle cb-backbone-microservices-governance-validator-unblock-20260524 --environment ci-preview",
+      "result": "pass",
+      "evidence": "Oya VCS lifecycle accepted: verify-evidence, emit-change-bundle, and promote-bundle for cb-backbone-microservices-governance-validator-unblock-20260524."
+    }
+  ],
+  "non_claims": [
+    "Remote GitHub Actions did not execute runner steps and is not claimed green.",
+    "Full local oya verify --ci-required is not claimed green; it currently fails on repo-global/local mirror issues documented in verification.",
+    "Catalog records are preview/unreviewed/source-only metadata; they do not assert stable APIs, independent security review, SBOM, signed provenance, or production readiness.",
+    "Kernel data_class comments do not implement new authorization, data masking, or retention behavior.",
+    "No production cloud integration, live ArgoCD sync, live database probe, live collector, or live broker delivery is claimed."
+  ]
+}

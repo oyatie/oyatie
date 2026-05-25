@@ -1,0 +1,173 @@
+{
+  "schema": "oyatie.vcs.lifecycle-transcript.v1",
+  "change_id": "CS-ENT-SUITE-013",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-23T13:31:00Z",
+  "evidence_ref": "evidence/multispectrum/cs-ent-suite-cloud-readiness-gate-1779543000.json",
+  "commands": [
+    {
+      "step": "claim",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-SUITE-013 Enterprise cloud readiness gate",
+          "scopes": [
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml::CS-ENT-SUITE-013",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs::enterprise_suite_cloud_readiness_report",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs::cloud_readiness_gate_reports_local_rehearsal_ready_but_cloud_blocked",
+            "Cargo.toml::microservices.enterprise_suite.cloud_readiness_gate",
+            "registry/catalog/oya-enterprise-suite-cloud-readiness-gate.yaml::CS-ENT-SUITE-013",
+            "specs/microservices/enterprise-suite.json::acceptance_criteria.AC-15",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-SUITE-013",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-SUITE-013",
+            "evidence/multispectrum/cs-ent-suite-cloud-readiness-gate-1779543000.json::CS-ENT-SUITE-013",
+            "evidence/vcs/cs-ent-suite-cloud-readiness-gate-oya-vcs-lifecycle-20260523.json::CS-ENT-SUITE-013",
+            "evidence/audit-chain.jsonl::CS-ENT-SUITE-013"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-013"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-013"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-cloud-readiness-gate-1779543000.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-SUITE-013"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-cloud-readiness-gate-1779543000.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "status": "accepted",
+      "accepted": true,
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-suite-cloud-readiness-gate-1779543000.json"
+          ],
+          "bundle_id": "CS-ENT-SUITE-013",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

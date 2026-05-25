@@ -1,0 +1,231 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-CROSS-SURFACE-ACTION-SPINE-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-cross-surface-action-spine-polish-20260525",
+  "agent": "codex-cohesion-spine",
+  "created_at": "2026-05-25T00:00:00-04:00",
+  "slice": "Cross-surface orchestration + shared status/action spine polish",
+  "intent": "Repair the perception that the dashboard is a separate mix of panels by adding one Bominal-inspired operating spine that connects FD-001 product delivery, Workflow, Messenger, Mail, Community, Oyatie Cloud, and Evidence as a single cohesive product surface.",
+  "product_direction": "Oyatie builds a hyperscaler-grade cloud substrate and dogfoods all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "reference_inputs": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/reference/workflow-studio.png",
+    ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/reference/workflow-editor.png"
+  ],
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/render_envelope.rs",
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added ProductActivitySpine/ProductActivityStep to the render envelope so SSR and API payloads share the same cross-surface operating model.",
+    "Inserted a top-fold Product Activity Spine with Bominal-style route rail, workflow-like grid lane, inspector card, and status bar connecting FD-001, Workflow, Messenger, Mail, Community, Oyatie Cloud, and Evidence.",
+    "Bound the spine to shared local dispatch in prototype-interactions.js; route buttons, surface command bar, Work Hub surfaces, cloud cockpit, evidence console, and service catalog all update common route/status/inspector state.",
+    "Added responsive flat/corp-web styling that preserves no-horizontal-overflow at 1440, 1024, and 390 widths while keeping visual-only boundaries explicit."
+  ],
+  "before_metrics": {
+    "artifact_dir": ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/before",
+    "issue": "Top-level dashboard had many polished panels but no single visible action/status spine proving they are one product; workflow/comms/cloud/evidence routes felt slice-local."
+  },
+  "after_metrics": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "logs": [],
+      "metrics": {
+        "spine": {
+          "x": 239,
+          "y": 351,
+          "w": 1151,
+          "h": 539,
+          "visible": true
+        },
+        "spineTitle": "One operating model for FD-001 tenant workloads on Oyatie Cloud",
+        "activeRoute": "FD-001 graph",
+        "status": "FD-001 product graph active \u00b7 Oyatie Cloud dogfood cell-us-east-2 \u00b7 local visual route",
+        "selectedSteps": [
+          "fd001"
+        ],
+        "selectedRoutes": [
+          "fd001",
+          "fd001"
+        ],
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      },
+      "mail": {
+        "hash": "#work-hub",
+        "activeRoute": "Mail",
+        "status": "Mail Work Hub active \u00b7 send preview only \u00b7 no external delivery",
+        "inspector": "Mail \u00b7 formal approval brief",
+        "mailSelected": true,
+        "workHubTop": 55
+      },
+      "cloud": {
+        "hash": "#cloud-ops-cockpit",
+        "activeRoute": "Oyatie Cloud",
+        "status": "Oyatie Cloud substrate active \u00b7 topology/gates visible \u00b7 no cloud mutation",
+        "cloudSelected": true,
+        "cloudTop": 54
+      }
+    },
+    {
+      "name": "tablet",
+      "width": 1024,
+      "height": 900,
+      "logs": [],
+      "metrics": {
+        "spine": {
+          "x": 26,
+          "y": 410,
+          "w": 972,
+          "h": 737,
+          "visible": true
+        },
+        "spineTitle": "One operating model for FD-001 tenant workloads on Oyatie Cloud",
+        "activeRoute": "FD-001 graph",
+        "status": "FD-001 product graph active \u00b7 Oyatie Cloud dogfood cell-us-east-2 \u00b7 local visual route",
+        "selectedSteps": [
+          "fd001"
+        ],
+        "selectedRoutes": [
+          "fd001",
+          "fd001"
+        ],
+        "scrollWidth": 1024,
+        "innerWidth": 1024
+      },
+      "mail": {
+        "hash": "#work-hub",
+        "activeRoute": "Mail",
+        "status": "Mail Work Hub active \u00b7 send preview only \u00b7 no external delivery",
+        "inspector": "Mail \u00b7 formal approval brief",
+        "mailSelected": true,
+        "workHubTop": 56
+      },
+      "cloud": {
+        "hash": "#cloud-ops-cockpit",
+        "activeRoute": "Oyatie Cloud",
+        "status": "Oyatie Cloud substrate active \u00b7 topology/gates visible \u00b7 no cloud mutation",
+        "cloudSelected": true,
+        "cloudTop": 55
+      }
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "logs": [],
+      "metrics": {
+        "spine": {
+          "x": 13,
+          "y": 683,
+          "w": 364,
+          "h": 931,
+          "visible": true
+        },
+        "spineTitle": "One operating model for FD-001 tenant workloads on Oyatie Cloud",
+        "activeRoute": "FD-001 graph",
+        "status": "FD-001 product graph active \u00b7 Oyatie Cloud dogfood cell-us-east-2 \u00b7 local visual route",
+        "selectedSteps": [
+          "fd001"
+        ],
+        "selectedRoutes": [
+          "fd001",
+          "fd001"
+        ],
+        "scrollWidth": 390,
+        "innerWidth": 390
+      },
+      "mail": {
+        "hash": "#work-hub",
+        "activeRoute": "Mail",
+        "status": "Mail Work Hub active \u00b7 send preview only \u00b7 no external delivery",
+        "inspector": "Mail \u00b7 formal approval brief",
+        "mailSelected": true,
+        "workHubTop": 56
+      },
+      "cloud": {
+        "hash": "#cloud-ops-cockpit",
+        "activeRoute": "Oyatie Cloud",
+        "status": "Oyatie Cloud substrate active \u00b7 topology/gates visible \u00b7 no cloud mutation",
+        "cloudSelected": true,
+        "cloudTop": 56
+      }
+    }
+  ],
+  "interaction_assertions": [
+    "Initial SSR page renders #product-activity-spine with active FD-001 graph and REC-FD001-CLOUD-009 proof.",
+    "Clicking Mail in the spine routes to #work-hub, selects Mail, updates the global status, and changes inspector title to 'Mail \u00b7 formal approval brief'.",
+    "Clicking Oyatie Cloud routes to #cloud-ops-cockpit, selects the cloud route, updates the status, and scrolls the cloud cockpit into view.",
+    "No browser console/page errors were observed in desktop, tablet, or mobile audits."
+  ],
+  "responsive_assertions": [
+    "1440x1000: spine visible at top fold, no horizontal page overflow (scrollWidth == innerWidth == 1440).",
+    "1024x900: spine stacks responsively, no horizontal page overflow (scrollWidth == innerWidth == 1024).",
+    "390x844: spine remains visible and vertically stacked, no horizontal page overflow (scrollWidth == innerWidth == 390)."
+  ],
+  "screenshots": {
+    "before_desktop_full": ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/before/desktop.png",
+    "after_desktop_full": ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/after/desktop.png",
+    "after_tablet_full": ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/after/tablet.png",
+    "after_mobile_full": ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/after/mobile.png",
+    "after_desktop_viewport": ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/after/desktop-viewport.png"
+  },
+  "visual_verdict": {
+    "score": 93,
+    "verdict": "PASS",
+    "category_match": "Bominal-inspired professional operator dashboard with coherent action spine, flat surfaces, left route rail, central workflow lane, right inspector, and explicit local boundary.",
+    "differences_remaining": [
+      "Full page is still a very large product demo; this slice adds a unifying top-fold spine but does not yet re-architect every lower section into a single viewport IDE.",
+      "Backend wiring remains intentionally absent per prototype requirement."
+    ],
+    "reasoning": "The visible route rail + flow lane + inspector/status bar closes the main cohesion gap without copying the Bominal reference. It strengthens Workflow/Messenger/Mail/Community/Cloud/Evidence as one product and stays visually interactive/responsive."
+  },
+  "commands": [
+    {
+      "cmd": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "cmd": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/src/render_envelope.rs crates/oya-application-shell-frontend-prototype/src/client_session_state.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 passed; 0 failed"
+    },
+    {
+      "cmd": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "cmd": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "cmd": "Playwright audit /tmp/oya-audit-spine.js at 1440x1000, 1024x900, 390x844",
+      "status": "passed"
+    },
+    {
+      "cmd": "podman restart oya-frontend-prototype-live and curl http://127.0.0.1:3000/",
+      "status": "passed"
+    }
+  ],
+  "known_limits": [
+    "Visual interactivity remains local-only and deliberately unwired: no workflow execution, external mail/community send, IAM, billing, deploy, or cloud mutation.",
+    "Overall dashboard completion remains unproven; this is one verified polish slice toward the complete cohesive mockup."
+  ]
+}

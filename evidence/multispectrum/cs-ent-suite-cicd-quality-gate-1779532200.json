@@ -1,0 +1,288 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-006",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779532200,
+  "timestamp_iso": "2026-05-23T10:30:00Z",
+  "scope": [
+    "microservices/enterprise-suite/ci/Jenkinsfile",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-08 Jenkins LTS quality gate for suite domain/app/API packages and OpenAPI semver.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The Jenkinsfile is a direct service-local quality gate and does not mix deployment or runtime concerns.",
+        "The package list is explicit: suite domain, app, and API crates only."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "ADR-0349 Jenkins LTS pattern is mirrored with Kubernetes agent, kata runtime class, cosign-required image policy, and Oya VCS admission evidence.",
+        "OpenAPI semver and Wave 15-ZE evidence archival are included in the suite lane."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "static Jenkins lane scan over microservices/enterprise-suite/ci/Jenkinsfile",
+      "failing_fixture_id": "required marker scan fails if fmt/check/clippy/nextest/api-semver/Oya VCS/Wave 15-ZE/cosign/runtimeClass markers are missing",
+      "diagnostic_asserted": "Static scan enforces the expected CI quality gate lanes before evidence closeout.",
+      "findings": [
+        "The lane scan passed and package tests/clippy/api-semver passed locally."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 15,
+      "findings": [
+        "The suite Jenkinsfile matches existing HR/payroll/accounting layout, making future service-specific CI additions predictable."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Static Jenkins scan, cargo fmt, suite package tests/clippy, api-semver, dependency-seam, and quality-marker scan passed locally.",
+        "No runtime deployment artifact or live Jenkins controller execution is claimed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "reuse child-service Jenkins lanes only",
+        "add a live deployment pipeline now",
+        "add suite-specific quality gate now"
+      ],
+      "selected_rationale": "Enterprise Suite has its own domain/app/API/OpenAPI surfaces and needs a self-hostable quality gate before runtime adapters.",
+      "rejected_reasons": [
+        "Child-service lanes do not cover suite packages or suite OpenAPI.",
+        "Deployment pipeline would exceed current contract/domain foundation scope."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "ci_supply_chain_and_admission_gate",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "Jenkins pod declares cosign-required image policy, no privilege escalation, dropped capabilities, and kata runtime class.",
+        "Oya VCS admission evidence remains part of the quality gate."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "ci-quality-gate",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-ci-config-only",
+      "regression_baseline": "CI config only; local validation ran targeted suite package tests/clippy and static scan.",
+      "findings": [
+        {
+          "summary": "The CI loop scopes package checks to suite domain/app/API crates to keep feedback bounded."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "none-new"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "enterprise-ops",
+        "financial-controls",
+        "incident-management"
+      ],
+      "official_sources_checked": [
+        "repo docs/AGENTS.md",
+        "repo specs/microservices/enterprise-suite.json",
+        "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+        "existing HR/payroll/accounting Jenkinsfiles"
+      ],
+      "findings": [
+        "The Jenkinsfile emits Wave 15-ZE evidence metadata and archives it as a CI artifact.",
+        "This slice does not process tenant or regulated payload data."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive service-local CI configuration and can be reverted without state migration or external resource teardown."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "CI evidence JSON captures lanes, build URL, git commit, runtime class, and image signature policy for future controller runs.",
+        "Local audit-chain rows record evidence and Oya VCS closeout."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite now has CI parity with HR, payroll, and accounting preview microservices."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A Jenkinsfile can be landed before a live controller run only if it is framed as a static quality-gate contract and locally validated.",
+      "premise_evidence_ref": "ADR-0349 plus existing HR/payroll/accounting Jenkinsfile pattern",
+      "do_nothing_consequence": "Suite package and OpenAPI changes would not have a service-local self-hostable CI gate.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Live Jenkins/ArgoCD deployment is a separate infrastructure slice and should consume this quality gate."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This slice completes suite foundation parity: domain/app/API/OpenAPI now have a self-hostable CI quality gate."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Microservice, package, artifact, and evidence names follow Enterprise Suite and existing Jenkins conventions."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Plan, todo, and spec AC-08 document the quality gate and non-claims."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Jenkinsfile lives under microservices/enterprise-suite/ci like sibling service CI files."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No ArgoCD Application, Helm chart, runtime deployment, storage adapter, Workflow execution, incident runtime, OpenTofu runner, or cloud adapter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice adds no code dependencies."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Wave 15-ZE evidence JSON shape mirrors sibling Jenkinsfiles and includes scope_boundary quality-gate-only-no-deploy."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "CI loops over explicit package list and fails on non-zero fmt/check/clippy/nextest/api-semver/admission commands."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "static Jenkins lane scan over microservices/enterprise-suite/ci/Jenkinsfile",
+      "status": "pass",
+      "notes": "required Jenkins/Kubernetes/runtimeClass/cosign/fmt/check/clippy/nextest/api-semver/Oya VCS/Wave 15-ZE/archive markers found"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "notes": "workspace formatting check passed"
+    },
+    {
+      "command": "cargo test --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api",
+      "status": "pass",
+      "notes": "suite domain/app/API tests passed"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-enterprise-suite-domain -p oya-enterprise-suite-app -p oya-enterprise-suite-api --all-targets -- -D warnings",
+      "status": "pass",
+      "notes": "suite package clippy completed without warnings"
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir microservices/enterprise-suite/contracts",
+      "status": "pass",
+      "notes": "1 contract and 1 metadata record accepted"
+    },
+    {
+      "command": "quality-marker scan over CS-ENT-SUITE-006 paths",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in CI slice paths"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-cicd-quality-gate-1779532200.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-suite-cicd-quality-gate-oya-vcs-lifecycle-20260523.json; claim/status/verify/done/promote all exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "remaining_risks": [
+    "No live Jenkins controller execution log or archived controller artifact is claimed.",
+    "No ArgoCD Application, Helm chart, runtime deployment, storage, Workflow execution, incident runtime, OpenTofu execution, or cloud adapter exists in this slice.",
+    "Full ./bin/oya verify --ci-required remains gated by unrelated pre-existing catalog/data-class blockers documented in the task list."
+  ],
+  "verdict": "PASS",
+  "artifacts_attached": [
+    "microservices/enterprise-suite/ci/Jenkinsfile",
+    "evidence/vcs/cs-ent-suite-cicd-quality-gate-oya-vcs-lifecycle-20260523.json"
+  ]
+}

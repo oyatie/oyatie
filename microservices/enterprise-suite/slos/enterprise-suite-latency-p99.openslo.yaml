@@ -1,0 +1,33 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: enterprise-suite-latency-p99
+  labels:
+    service: enterprise-suite
+    sap_code: "suite"
+spec:
+  description: "Enterprise Suite governed API p99 latency objective over router-ready composition routes; production evidence remains unclaimed until runtime telemetry lands."
+  service: enterprise-suite
+  indicator:
+    metadata:
+      name: enterprise-suite-latency-p99-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_server_request_duration_bucket{service=\"enterprise-suite\",le=\"0.5\"}[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_server_request_duration_count{service=\"enterprise-suite\"}[5m]))"
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: enterprise-suite-latency-p99
+      target: 0.99

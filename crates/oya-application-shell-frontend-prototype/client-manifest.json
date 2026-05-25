@@ -1,0 +1,119 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/client-manifest.schema.json",
+  "name": "oya-application-shell-frontend-prototype",
+  "status": "integrated-product-workbench-prototype",
+  "surface": "application-shell-control-center",
+  "owner_microservice": "application",
+  "stack": {
+    "framework": "Leptos",
+    "framework_version": "0.8.19",
+    "cargo_leptos_version": "0.3.6",
+    "language": "Rust",
+    "wasm_target": "wasm32-unknown-unknown",
+    "preferred_dev_runner": "cargo-leptos",
+    "preferred_dev_command": "cargo leptos watch",
+    "documented_equivalent": "cargo run -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+    "style_entrypoint": "style/app.css",
+    "cargo_leptos_config": "Cargo.toml#[package.metadata.leptos]",
+    "hydration_model": "SSR-first static shell with selective Leptos/WASM island mounting; Workflow, Messenger, Mail, and Community interactions keep local visual state and fetch permitted render envelopes when context changes.",
+    "island_entrypoint": "mount_dashboard_islands() exported from the WASM package",
+    "dev_server_fallback": "The documented SSR dev server attempts the WASM island bundle first, then loads /client/prototype-interactions.js so the prototype remains visually interactive without cargo-leptos-generated /pkg assets."
+  },
+  "dev_commands": [
+    {
+      "name": "preferred local dev server",
+      "working_directory": "crates/oya-application-shell-frontend-prototype",
+      "command": "cargo leptos watch",
+      "notes": "Uses the crate-local cargo-leptos metadata and the SSR feature to run a mock-only local shell at 127.0.0.1:3000."
+    },
+    {
+      "name": "documented local dev server without cargo-leptos",
+      "working_directory": "repo root",
+      "command": "cargo run -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+      "notes": "Launches the crate-local SSR mock shell server at 127.0.0.1:3000 and serves /api/render-envelope/<context-id> for selective island refreshes; cargo-leptos remains the preferred watcher when installed."
+    },
+    {
+      "name": "documented build equivalent when cargo-leptos is not installed",
+      "working_directory": "repo root",
+      "command": "cargo test -p oya-application-shell-frontend-prototype && cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --release && cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+      "notes": "Builds and tests the Leptos/WASM scaffold without launching a dev server."
+    }
+  ],
+  "mock_only": true,
+  "non_goals": [
+    "no backend integration",
+    "no real authentication or authorization",
+    "no PHI, PII, or production tenant data",
+    "no workflow execution",
+    "no healthcare, financial, legal, or operational action"
+  ],
+  "rendering_security": {
+    "model": "server-derived render envelope",
+    "task_1_scope": "superseded by user expansion to full dashboard after scaffold acceptance",
+    "future_modules": {
+      "server_only_catalog": "src/server_mock_catalog.rs behind #[cfg(feature = \"ssr\")]",
+      "serializable_envelope": "src/render_envelope.rs",
+      "hydrated_state": "src/client_session_state.rs"
+    },
+    "implemented_files": {
+      "server_only_catalog": "src/server_mock_catalog.rs behind #[cfg(feature = \"ssr\")]",
+      "serializable_envelope": "src/render_envelope.rs TenantRenderEnvelope derives serde Serialize/Deserialize",
+      "hydrated_state": "src/client_session_state.rs stores active permitted context/session state only",
+      "server_endpoint": "src/main.rs serves /api/render-envelope/<context-id> only in the SSR dev server",
+      "wasm_island": "src/app.rs DashboardIsland fetches one permitted envelope at a time and does not embed the full server mock catalog",
+      "surface_interactions": "src/app.rs ProductSurface, WorkflowTool, Work Hub composer, and Workflow Studio local draft-node state",
+      "visual_fallback": "static/prototype-interactions.js provides the same visual-only local interactions when cargo-leptos/wasm-bindgen assets are not present in the dev server package directory."
+    },
+    "context_switching": "Context buttons are inside a selective Leptos/WASM island. The browser requests /api/render-envelope/<context-id>; the SSR/server-only mock catalog derives and serializes only the permitted TenantRenderEnvelope for that tenant/role/accreditation context.",
+    "selective_wasm_islands": {
+      "ssr_shell": "Header, hero, prototype notice, and initial dashboard HTML are server-rendered and useful before WASM loads.",
+      "island_root": "#oya-dashboard-island-root[data-island=\"render-envelope-dashboard\"]",
+      "wasm_entrypoint": "mount_dashboard_islands()",
+      "interactive_scope": [
+        "context switching / render-envelope refresh",
+        "workflow node inspection, mode switching, visual block insertion, and simulation preview",
+        "Messenger channel switching, item inspection, and local draft queueing",
+        "Mail compose preview and local draft queueing",
+        "Community topic inspection and local post draft queueing"
+      ],
+      "non_shipped_catalog_invariant": "src/server_mock_catalog.rs and full mock catalog sentinel are compiled only with feature=ssr; browser artifacts must not contain SERVER_ONLY_CATALOG_SENTINEL_DO_NOT_SHIP_TO_BROWSER_WASM."
+    },
+    "interactive_but_unwired": "Workflow block additions, mode switching, hub channel switching, item inspection, and draft queueing are functional in local WASM state only; no backend mutation, external send, or workflow execution occurs."
+  },
+  "forbidden_fallbacks": [
+    "React",
+    "xyflow",
+    "client-side hiding of unauthorized modules as a security model"
+  ],
+  "initial_route": {
+    "path": "/",
+    "required_landmark": "main#prototype-shell[aria-labelledby=prototype-title]",
+    "required_notice": "visible prototype/demo notice"
+  },
+  "implemented_surfaces": [
+    "cloud-console shell",
+    "tenant/role context switcher",
+    "daily tasks",
+    "calendar schedule",
+    "approval queue",
+    "permitted module catalog",
+    "cohesive mock Workflow Studio with palette, canvas, inspector, mode toolbar, local visual block insertion, and simulation preview",
+    "built-in Messenger with local thread selection and draft queueing",
+    "built-in Mail with local compose/draft queueing",
+    "built-in Community spaces with local post draft queueing",
+    "ontology explanation panel",
+    "advisory intelligence panel"
+  ],
+  "visual_reference": {
+    "workflow_dashboard_reference": "Visual Ralph full dashboard reference generated with imagegen and copied into the workspace",
+    "workflow_dashboard_path": ".omx/artifacts/visual-ralph/oya-full-dashboard/oya-full-dashboard-reference.png",
+    "bominal_reference_inputs": [
+      ".omx/artifacts/visual-ralph/bominal-workflow-reference/workflow-editor-standalone-download.html",
+      ".omx/artifacts/visual-ralph/bominal-workflow-reference/Bominal Workflow Studio.html",
+      ".omx/artifacts/visual-ralph/bominal-workflow-reference/workflow.css",
+      ".omx/artifacts/visual-ralph/bominal-workflow-reference/tokens.css",
+      ".omx/artifacts/visual-ralph/bominal-workflow-reference/.thumbnail"
+    ],
+    "integration_note": "References informed layout density, palette/canvas/inspector/status composition, and neutral token direction; React/JSX was not ported."
+  }
+}

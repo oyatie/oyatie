@@ -1,0 +1,283 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "CS-CLOUD-KMS-002",
+  "changeset_id": "CS-CLOUD-KMS-002",
+  "change_slug": "cs-cloud-kms-typed-placement-boundary",
+  "change_class_id": "CC-1",
+  "git_sha_base": "dd9da6ddbc837bc2b54ef9e31a9c79d3e7e7911d",
+  "freshness_unix": 1779515006,
+  "timestamp_iso": "2026-05-23T05:43:26Z",
+  "agent_id": "codex-leader",
+  "depends_on": [
+    "CS-CLOUD-KMS-001"
+  ],
+  "scope": [
+    "Cargo.lock",
+    "crates/oya-cloud-kms-domain/src/lib.rs",
+    "crates/oya-cloud-kms-api/Cargo.toml",
+    "crates/oya-cloud-kms-api/src/lib.rs",
+    "crates/oya-cloud-kms-api/tests/cloud_kms_api.rs",
+    "contracts/openapi/cloud/cloud-kms-v1.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-leader --intent CS-CLOUD-KMS-002-typed-placement-boundary crates/oya-cloud-kms-domain/src/lib.rs crates/oya-cloud-kms-api/src/lib.rs crates/oya-cloud-kms-api/tests/cloud_kms_api.rs crates/oya-cloud-kms-api/Cargo.toml contracts/openapi/cloud/cloud-kms-v1.yaml tasks/plan.md tasks/todo.md evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json evidence/audit-chain.jsonl",
+      "status": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json work --agent codex-leader --evidence evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json",
+      "status": "accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json claim --agent codex-leader --intent CS-CLOUD-KMS-002-lockfile-dependency-surface Cargo.lock",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Bind Cloud KMS encrypt/decrypt hot paths to typed tenant/cell/region placement boundaries. API boundary contexts now require X-Region-Code and X-Cell-Id, validate them as canonical region/cell values before authorization/idempotency, compare them against the registered KMS key placement before ledger or receipt mutation, thread them into domain KMS use requests, and keep idempotency fingerprints placement-aware.",
+  "baseline_diff": {
+    "before": "Cloud KMS key creation carried typed RegionCode and CellId, but encrypt/decrypt API and domain use requests carried only tenant/key/body data. Hot-path crypto authorization could not prove the caller's region/cell matched the key's cell-local HSM placement.",
+    "after": "Cloud KMS API boundary contexts carry region and cell_id, validate missing/invalid/mismatched placement before authorization/idempotency/domain mutation, domain KmsEncryptRequest/KmsDecryptRequest enforce request region/cell against the KmsKey, and OpenAPI requires X-Region-Code plus X-Cell-Id for encrypt/decrypt."
+  },
+  "repo_authority_used": [
+    {
+      "source": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+      "establishes": "Tier 3 cells host cloud-secrets data-plane KMS keys and per-cell HSM partitions; per-tenant KMS root keys live in the cell HSM; hot-path tenant serving resolves in the home cell and cross-cell hot-path serving is forbidden."
+    },
+    {
+      "source": "docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md",
+      "establishes": "Data-residency hard-stops use cell-pin/cell-id decisions and forbid work when cell_id does not match the required cell; cell-id is the named residency audit surface."
+    },
+    {
+      "source": "tasks/plan.md",
+      "establishes": "CS-CLOUD-KMS-002 acceptance criteria require typed tenant/cell/region boundary metadata and no KMS operation without matching tenant/cell/region context."
+    }
+  ],
+  "implementation_notes": [
+    "Reused existing oya-cloud-region-domain RegionCode and CellId types instead of adding another placement abstraction.",
+    "Kept tenant checks in existing boundary/principal/body validation and added region/cell checks to the same CloudKmsApiBoundaryContext to avoid splitting tooling/tools or creating a second boundary object prematurely.",
+    "Preserved domain purity: the domain receives region/cell strings and validates them into RegionCode/CellId against the already-typed KmsKey; API remains responsible for transport header names and response error shaping.",
+    "Placement mismatch for a known key returns Kms(ResourceRegionMismatch) or Kms(CellPlacementMismatch) before idempotency ledger mutation; unknown-key behavior remains not-found through existing KMS domain path."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-kms-api kms_api_rejects_missing_or_drifted_placement_before_ledger -- --nocapture",
+      "status": "failed-as-expected-red",
+      "evidence": "Initial RED compile failed because KmsEncryptRequest and KmsDecryptRequest did not yet carry region/cell_id from the API boundary."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-domain rejects_crypto_use_when_request_region_or_cell_drift_from_key_placement -- --nocapture",
+      "status": "passed",
+      "evidence": "Domain negative test passed: region drift returns ResourceRegionMismatch and same-region cell drift returns CellPlacementMismatch."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-api kms_api_rejects_missing_or_drifted_placement_before_ledger -- --nocapture",
+      "status": "passed",
+      "evidence": "API negative test passed: missing region/cell and known-key placement drift reject before ledger or receipt mutation."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-api",
+      "status": "passed",
+      "evidence": "Cloud KMS API tests passed: 13 passed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-domain",
+      "status": "passed",
+      "evidence": "Cloud KMS domain tests passed: 27 passed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-kms-domain -p oya-cloud-kms-api -p oya-cloud-kms-adapter-oci -p oya-cloud-kms-adapter-openbao",
+      "status": "passed",
+      "evidence": "Cloud KMS domain/api/adapters regression passed: OCI adapter 4, OpenBao adapter 4, API 13, domain 27 tests."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-kms-domain -p oya-cloud-kms-api -p oya-cloud-kms-adapter-oci -p oya-cloud-kms-adapter-openbao --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Cloud KMS clippy completed with -D warnings."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "passed",
+      "evidence": "Rust formatting check exited 0."
+    },
+    {
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "status": "passed",
+      "evidence": "API semver validation passed: 41 contracts, 41 metadata records."
+    },
+    {
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog --self-test",
+      "status": "passed",
+      "evidence": "architecture-boundaries self-test passed: 10 cases."
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam",
+      "status": "passed",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 2 diagnostics, 0 blocking."
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json >/tmp/cs-cloud-kms-002-evidence.pretty && tail -1 evidence/audit-chain.jsonl | python3 -m json.tool >/tmp/cs-cloud-kms-002-audit.pretty",
+      "status": "passed",
+      "evidence": "multispectrum evidence JSON and audit-chain JSONL row parse successfully"
+    },
+    {
+      "command": "./bin/oya git diff --check -- Cargo.lock crates/oya-cloud-kms-domain/src/lib.rs crates/oya-cloud-kms-api/Cargo.toml crates/oya-cloud-kms-api/src/lib.rs crates/oya-cloud-kms-api/tests/cloud_kms_api.rs contracts/openapi/cloud/cloud-kms-v1.yaml tasks/plan.md tasks/todo.md evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json evidence/audit-chain.jsonl",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation re-run after task-state updates passed: blocker_count=0."
+    },
+    {
+      "command": "./bin/oya vcs --format json verify --agent codex-leader --evidence evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json#verify",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS verify accepted"
+    },
+    {
+      "command": "./bin/oya vcs --format json done --agent codex-leader --controller-promote --evidence evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json#done ...",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS done accepted with controller-promote closeout"
+    },
+    {
+      "command": "./bin/oya vcs --format json promote --agent codex-leader --bundle cb-cs-cloud-kms-002 --environment local-review --evidence evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json#promote",
+      "status": "passed-lifecycle",
+      "evidence": "Oya VCS promote accepted for local-review bundle cb-cs-cloud-kms-002"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The slice adds two existing primitive fields to the existing boundary and domain request structs rather than creating a new abstraction stack."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "KMS key use is bound to cell-local HSM placement, matching the repo's cellular architecture doctrine for hot-path intra-cell execution."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tests clear authorization surfaces on missing-header cases to prove boundary validation runs before auth and assert empty idempotency ledger plus zero receipts on placement failures."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "Header names are explicit in OpenAPI and error details point to header.X-Region-Code/header.X-Cell-Id."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "RED/GREEN TDD, package regression, clippy, fmt, and Oya gates cover the claimed behavior."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Only validate placement inside the domain after idempotency lookup",
+        "Parse placement from key_id strings only",
+        "Add typed boundary fields at API plus domain enforcement"
+      ],
+      "selected_rationale": "The selected path proves placement before auth/idempotency side effects while keeping domain enforcement as a second line of defense.",
+      "rejected_reasons": [
+        "Domain-only validation would still allow placement failures to enter the API idempotency ledger.",
+        "Key-id parsing alone does not prove caller cell matches the registered KMS key cell."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Known-key region/cell drift fails before ledger or receipt mutation; no key/plaintext/ciphertext material is added to boundary metadata."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "Boundary parsing is constant-size and key lookup uses the existing in-memory directory iterator; no network or provider I/O is introduced."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "audit_chain_emission_required": true,
+      "audit_chain_evidence_path": "evidence/audit-chain.jsonl",
+      "findings": [
+        "Cell/region headers make the KMS hot path auditable against the cell residency boundary required by ADR-0248 and ADR-0304."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "The change is isolated to KMS API/domain request shapes and OpenAPI headers; rollback is a single ChangeSet revert."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "medium",
+      "findings": [
+        "API errors now identify placement boundary header fields; dedicated placement metrics/traces remain deferred to gateway/observability work."
+      ]
+    },
+    "F12_operability": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "OpenAPI exposes exact required placement headers for SDK/gateway implementers."
+      ]
+    },
+    "F13_boundary": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Clean architecture remains intact: API owns transport headers/errors/idempotency; domain owns key placement invariants; adapters remain provider-command translation only."
+      ]
+    }
+  },
+  "changed_files": [
+    "Cargo.lock",
+    "crates/oya-cloud-kms-domain/src/lib.rs",
+    "crates/oya-cloud-kms-api/Cargo.toml",
+    "crates/oya-cloud-kms-api/src/lib.rs",
+    "crates/oya-cloud-kms-api/tests/cloud_kms_api.rs",
+    "contracts/openapi/cloud/cloud-kms-v1.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md",
+    "evidence/multispectrum/cs-cloud-kms-typed-placement-boundary-20260523.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "remaining_risks": [
+    "API gateway/proto carriers are still future work outside this API crate slice.",
+    "Provider adapters still receive provider request shapes without explicit region/cell fields; they remain deterministic command translators and do not execute provider I/O in this slice.",
+    "Cloud KMS manifest still overclaims some capability/SLO/DR surfaces and is deferred to CS-CLOUD-KMS-004."
+  ],
+  "lifecycle": {
+    "claim": "accepted",
+    "work": "accepted",
+    "verify": "accepted",
+    "done": "accepted",
+    "promote": "accepted"
+  }
+}

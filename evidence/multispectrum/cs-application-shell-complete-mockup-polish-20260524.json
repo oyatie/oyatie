@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "id": "cs-application-shell-complete-mockup-polish-20260524",
+  "change_id": "CS-APPLICATION-SHELL-COMPLETE-MOCKUP-POLISH-20260524",
+  "change_class_id": "CC-1",
+  "timestamp": "2026-05-24T15:27:10-04:00",
+  "created_at": "2026-05-24T19:27:10Z",
+  "freshness_unix": 1779650830,
+  "git_sha": "a93fe797e3709ca63d885dc5e1a48d1a128d9e7a",
+  "agent": "codex-oyatie-complete-mockup-polish",
+  "agent_id": "codex-oyatie-complete-mockup-polish",
+  "scope": "Further polish the Oyatie application shell toward a complete Bominal-informed product mockup.",
+  "user_direction": [
+    "$agent-skills:visual-ralph $agent-skills:frontend-ui-engineering make further polishes towards complete mockup of oyatie",
+    "Continue from the existing worktree and improve or replace existing work as needed."
+  ],
+  "implemented": [
+    "Added a Bominal-style operational intelligence strip directly in the Command Center: Evidence spine, Object graph, Readiness gauge, and Cross-module signal cards.",
+    "Added a local object quick-view side peek/drawer with identity card, key-value metadata, risk chip, evidence timeline, and local visual-only actions.",
+    "Expanded the left rail to include Evidence spine as a first-class Trust surface.",
+    "Made New action and Object graph controls open the side peek locally through the static fallback shell chrome.",
+    "Enhanced the command palette with command action metadata, local filtering, workflow/mail/community routing, and audit-chain quick-view opening.",
+    "Added hash-deeplink states for Visual Ralph evidence capture: #side-peek and #command-palette.",
+    "Kept all new behavior local/visual-only with no backend mutation, real auth, external send, PHI/PII, or workflow execution."
+  ],
+  "reference_artifacts": {
+    "bominal_reference_subset": ".omx/artifacts/visual-ralph/bominal-reference/",
+    "workflow_reference": ".omx/artifacts/visual-ralph/bominal-reference/screenshots/workflow-editor-standalone-800.png",
+    "previous_oyatie_visual_baseline": ".omx/artifacts/visual-ralph/oya-ui-ux-fix/screenshots/oyatie-bominal-integration-top.png"
+  },
+  "verification": [
+    { "command": "cargo fmt --package oya-application-shell-frontend-prototype --check", "status": "passed" },
+    { "command": "cargo test -p oya-application-shell-frontend-prototype", "status": "passed", "details": "8 passed" },
+    { "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr", "status": "passed" },
+    { "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --no-default-features --features hydrate --lib --release", "status": "passed" },
+    { "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js", "status": "passed" },
+    { "command": "curl -fsS --max-time 5 http://127.0.0.1:3000/", "status": "passed", "details": "HTML includes evidence-spine, operator-intelligence, data-side-peek, data-sidepeek-trigger, data-command-action, Object quick view, Readiness, and Cross-module signal." },
+    { "command": "podman ps --format '{{.Names}} {{.Status}} {{.Ports}}'", "status": "passed", "details": "oya-frontend-prototype-live Up; 0.0.0.0:3000->3000/tcp." }
+  ],
+  "screenshots": {
+    "top": ".omx/artifacts/visual-ralph/oya-complete-mockup-polish/screenshots/polished-top-1440.png",
+    "workhub": ".omx/artifacts/visual-ralph/oya-complete-mockup-polish/screenshots/polished-workhub-1440.png",
+    "workflow": ".omx/artifacts/visual-ralph/oya-complete-mockup-polish/screenshots/polished-workflow-1440.png",
+    "sidepeek": ".omx/artifacts/visual-ralph/oya-complete-mockup-polish/screenshots/polished-sidepeek-1440-v2.png",
+    "command_palette": ".omx/artifacts/visual-ralph/oya-complete-mockup-polish/screenshots/polished-command-palette-1440.png"
+  },
+  "visual_verdict": {
+    "score": 93,
+    "verdict": "progress_pass",
+    "category_match": "Complete product mockup moving toward Bominal-quality operator shell and Oyatie-specific trust/control surfaces.",
+    "improvements_over_previous_pass": [
+      "The top Command Center now exposes audit/evidence/object-graph/readiness primitives instead of jumping from generic KPIs straight to task cards.",
+      "The mockup now has a side-peek object detail surface and richer command-palette behavior, closing two major feature/functionality gaps versus the Bominal references.",
+      "Trust surfaces are visible in navigation, cards, object graph, command palette, and side peek instead of existing only as copy."
+    ],
+    "remaining_differences": [
+      "Workflow Studio still uses local mock node manipulation rather than real drag/connect geometry.",
+      "Command palette search and side peek are local static-shell interactions, not full product state routing.",
+      "The final complete Oyatie mockup can still be expanded with more product-specific screens such as tenant settings, cloud resources, billing, and governance analytics."
+    ]
+  },
+  "non_claims": [
+    "No backend integration, real authentication/authorization, production tenant data, PHI/PII, external message/mail/community send, or real workflow execution is claimed.",
+    "No production readiness, measured SLO, DR, compliance certification, provider-live operation, or hyperscaler readiness is claimed.",
+    "This is a repo-native Rust/Leptos/CSS/JS prototype polish pass, not a copy of Bominal React source."
+  ],
+  "facets": {
+    "F1_linus": { "considered": true, "rigor": "deep", "findings": ["Added product-meaningful surfaces instead of decorative polish.", "Kept the changes scoped to the application-shell prototype." ] },
+    "F2_hyperscaler": { "considered": true, "rigor": "standard", "findings": ["Local Podman reachability verified; no hyperscaler claim made." ] },
+    "F3_adversarial": { "considered": true, "rigor": "deep", "failing_fixture_added": false, "findings": ["Previous gap was lack of feature/functionality depth; this pass adds visible evidence, object graph, side peek, and command palette interactions." ] },
+    "F4_ergonomic": { "considered": true, "rigor": "deep", "new_contributor_minutes_estimate": 12, "findings": ["Command palette, rail navigation, side peek, evidence strip, and readiness cards improve professional operator flow." ] },
+    "F5_quality": { "considered": true, "rigor": "deep", "findings": ["Rust fmt/test/SSR/hydrate build and JS syntax checks passed; screenshots captured for the new states." ] },
+    "F6_alternatives": { "considered": true, "rigor": "standard", "alternatives_named": ["Only tweak spacing/colors", "Copy more Bominal source", "Add repo-native product primitives and interactions"], "selected_rationale": "Repo-native primitives move closer to a complete Oyatie mockup without violating the reference-not-copy instruction." },
+    "F7_security": { "considered": true, "rigor": "standard", "secrets_touched": false, "tenant_data_touched": false, "findings": ["All new interactions are local visual-only browser behavior." ] },
+    "F8_performance": { "considered": true, "rigor": "standard", "findings": ["Added flat CSS primitives and small static JS only; no new runtime dependencies." ] },
+    "F9_compliance": { "considered": true, "rigor": "standard", "findings": ["Prototype/non-claim boundaries remain explicit; evidence and object graph are visual mock surfaces." ] },
+    "F10_observability": { "considered": true, "rigor": "standard", "findings": ["Evidence file and screenshot artifacts document the Visual Ralph pass." ] },
+    "F11_docs": { "considered": true, "rigor": "standard", "findings": ["This evidence records scope, verification, screenshots, non-claims, and remaining visual gaps." ] },
+    "F12_reserved": { "considered": false, "rigor": "not_applicable", "findings": [] },
+    "F13_policy_adherence": { "considered": true, "rigor": "deep", "findings": ["Oya VCS claim was accepted for the scoped crate and evidence path before edits; root hub and docs/AGENTS were read." ] }
+  }
+}

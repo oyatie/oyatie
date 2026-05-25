@@ -1,3 +1,11 @@
+---
+id: ADR-0351
+status: Accepted
+planning_impact: true
+date: 2026-05-21
+owner_team: council-architecture
+---
+
 # ADR-0351: Cell-rebalancer + cell-lifecycle microservices (amends ADR-0333)
 
 ```yaml
@@ -5,6 +13,7 @@ adr_id: ADR-0351
 title: Cell-rebalancer + cell-lifecycle microservices (amends ADR-0333)
 status: Accepted
 date: 2026-05-21
+owner: council-architecture
 authority_chain:
   - keystone: ADR-0248 (Amazon-shape cellular architecture)
   - keystone: ADR-0245 (Substrate vs product layering)

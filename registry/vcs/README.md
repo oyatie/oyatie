@@ -21,8 +21,9 @@ states) plus the three terminal-fail states (`abandoned`, `rejected`,
   Webhook receivers MUST check the dedup_key before appending; a
   repeated dedup_key is a no-op.
 - The non-decreasing-subsequence invariant from ADR-0110 §"Monotonic
-  invariant" is enforced by the `oya-foundry-fitness-changeset-state-monotonicity`
-  CI lane (`oya gate validate changeset-state-monotonicity`).
+  invariant" is enforced by the `changeset-state-monotonicity` governance gate
+  lane (`oya gate validate changeset-state-monotonicity`), run by the Jenkins CI
+  (ADR-0361; the retired GitHub Actions job is superseded).
 - Every `to_state` value MUST be one of the 13 closed-enum values
   emitted by `ChangesetState::as_wire()` in
   `crates/oya-foundry-vcs-changeset-state-kernel`. Drift is caught by

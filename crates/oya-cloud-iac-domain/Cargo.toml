@@ -1,0 +1,17 @@
+[package]
+name = "oya-cloud-iac-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+
+[lib]
+name = "oya_cloud_iac_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

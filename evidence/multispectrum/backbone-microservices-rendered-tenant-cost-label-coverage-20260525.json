@@ -1,0 +1,276 @@
+{
+  "change_id": "backbone-microservices-rendered-tenant-cost-label-coverage-20260525",
+  "change_class_id": "CC-2",
+  "summary": "Static rendered Deployment manifest snapshots make ADR-0199 tenant-cost-label coverage scan FD-001 backbone dogfood workloads with zero findings.",
+  "scope": [
+    "microservices/messenger/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    "microservices/mail/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    "microservices/social/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    "microservices/community/iac/helm/oyatie-cloud-dogfood/rendered/deployment.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds static rendered Deployment manifest snapshots generated from the current source Helm values/templates so the ADR-0199 tenant-cost-label advisory gate scans concrete FD-001 dogfood workload YAML. It does not claim Helm release rendering in CI, Kubernetes API admission, OpenCost allocation output, ArgoCD sync/health, branch-protection state, remote CI green, or production tenant workload deployment.",
+  "best_practice_research": [
+    {
+      "source": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Rendered snapshots preserve Kubernetes recommended app.kubernetes.io grouping labels plus Oyatie tenant/cost labels."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Rendered snapshots keep explicit resource requests/limits for future scheduler and cost/capacity accounting."
+    },
+    {
+      "source": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Rendered snapshots preserve liveness/readiness probe declarations."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Rendered snapshots preserve restricted-style security context posture already present in the source charts."
+    },
+    {
+      "source": "https://opencost.io/docs/specification",
+      "source_quality": "official OpenCost specification documentation",
+      "used_for": "Grounded cost labels as future allocation dimensions while explicitly avoiding a live OpenCost report claim."
+    }
+  ],
+  "source_basis": [
+    {
+      "url": "repo://crates/oya-dev-cli/src/governance_advisory_lanes.rs#validate_tenant_cost_labels_coverage_gate",
+      "use": "The current advisory gate scans YAML files under microservices/*/iac/helm/**/rendered/*.yaml and counts missing required label keys."
+    },
+    {
+      "url": "repo://registry/quality/lanes.yaml#oya-governance-tenant-cost-labels-coverage",
+      "use": "The quality lane declares rendered Helm manifest coverage for ADR-0199 tenant cost labels."
+    },
+    {
+      "url": "repo://microservices/{messenger,mail,social,community}/iac/k8s/helm/{values.yaml,templates/deployment.yaml}",
+      "use": "The rendered snapshots mirror current source chart defaults and label/probe/resource/security structure."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The follow-on is data-only plus CI smoke coverage: four rendered Deployment YAML snapshots, no new runtime code, no controller, and no dependency.",
+        "Selector labels remain minimal app labels; mutable tenant/cost/product labels live only on metadata and pod-template labels."
+      ],
+      "fixuptasks": [
+
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The tenant-cost-label advisory lane now observes four concrete FD-001 dogfood workload manifests instead of reporting an empty scan set.",
+        "Rendered snapshots make later admission, FinOps, and observability integration easier to validate without pretending a cluster or OpenCost pipeline is live."
+      ],
+      "fixuptasks": [
+
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Each rendered snapshot carries an explicit non-claim annotation to block accidental interpretation as applied cluster state.",
+        "CI governance smoke now treats rendered YAML as a distinct class and requires Deployment kind, probes, runtimeClassName, resources, securityContext, tenant/cost/regulatory labels, dogfood labels, and non-claim annotation.",
+        "The tenant-cost-label gate result moved from zero scanned manifests to four scanned manifests with zero findings, making empty-set false confidence less likely."
+      ],
+      "failing_fixture_added": false,
+      "not_applicable_reason": "This static rendered-manifest coverage slice is not a defect fix; adversarial coverage is the rendered YAML validation and existing tenant-cost-label gate result.",
+      "passing_fixture_id": "tenant-cost-labels-coverage advisory scanned 4 manifests with 0 findings",
+      "diagnostic_asserted": "Removing a required oya.io label from any rendered snapshot would produce a tenant-cost-labels-coverage finding or governance-smoke missing-key failure."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Operators and future agents can inspect concrete workload YAML without mentally evaluating Helm placeholders."
+      ],
+      "new_contributor_minutes_estimate": 8
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The rendered snapshots parse as YAML and are included in both the advisory tenant-cost-label gate and backbone governance-smoke argument list.",
+        "Workflow path filters now include the rendered snapshot directories so future changes to these artifacts trigger backbone CI."
+      ],
+      "fixuptasks": [
+
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Leave the ADR-0199 gate scanning zero manifests",
+        "Change the advisory gate to scan source Helm templates directly",
+        "Add static rendered snapshots under the gate's documented rendered path"
+      ],
+      "selected_rationale": "Adding static rendered snapshots uses the documented lane path, avoids broad gate semantics changes, and makes the empty-scan condition explicit without requiring cluster credentials.",
+      "rejected_reasons": [
+        "Leaving zero scans preserves an avoidable false-confidence gap.",
+        "Scanning templates directly would blur the rendered-manifest lane contract and still not provide concrete YAML for downstream review."
+      ],
+      "findings": [
+
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No secrets, credentials, tokens, certificate material, tenant records, network credentials, or cluster kubeconfig were added.",
+        "Rendered labels are low-cardinality static classification labels, not user data.",
+        "Snapshots preserve non-root pod security context, RuntimeDefault seccomp, dropped capabilities, and read-only root filesystem."
+      ],
+      "owasp_class_review": "security_misconfiguration_prevention",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Static YAML snapshots have no runtime request-path performance impact."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Rendered snapshots supply future audit/FinOps classification evidence, but no compliance enforcement or cost allocation output is claimed."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reverting removes four rendered YAML files, workflow path/smoke additions, and task/evidence text without touching selectors, service code, or live infrastructure."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Concrete pod-template labels create low-cardinality future correlation dimensions for logs, metrics, traces, and cost allocation."
+      ]
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No source chart selector changes or live Deployment upgrades are introduced."
+      ]
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Rendered snapshot paths use the existing iac/helm/**/rendered contract named in ADR-0199 coverage docs."
+      ]
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "tasks/plan.md, tasks/todo.md, evidence, and audit-chain rows document rendered-snapshot scope and non-claims."
+      ]
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Static rendered outputs live under iac/helm/oyatie-cloud-dogfood/rendered while source Helm charts remain under iac/k8s/helm."
+      ]
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "This is infrastructure evidence only; service domain, API, REST, persistence, broker, and worker boundaries are untouched."
+      ]
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No Cargo, npm, Helm, or provider dependency was added."
+      ]
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "The rendered snapshot schema is standard apps/v1 Deployment YAML with explicit labels/probes/resources/securityContext."
+      ]
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Backbone CI path filters and governance smoke now cover the rendered snapshots; the repo-global tenant-cost-label advisory lane scans them as part of run-all."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "ruby -ryaml static rendered tenant cost label verification for four Deployment snapshots",
+      "result": "pass",
+      "evidence": "rendered tenant cost label static verification passed for 4 services"
+    },
+    {
+      "command": "./bin/oya gate validate tenant-cost-labels-coverage",
+      "result": "pass_advisory",
+      "evidence": "tenant cost-labels coverage advisory: 4 manifests scanned; 0 findings"
+    },
+    {
+      "command": "Ruby governance-smoke command copied from .github/workflows/backbone-microservices-ci.yml",
+      "result": "pass",
+      "evidence": "parsed 40 files"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity error --evidence evidence/multispectrum/backbone-microservices-rendered-tenant-cost-label-coverage-20260525.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root <8 scoped files>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 8 documents, 2077 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "./bin/oya gate validate audit-chain-replay",
+      "result": "pass",
+      "evidence": "audit chain replay validation passed after evidence refresh"
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "pass",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4542 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; tenant-cost-labels-coverage scanned 4 manifests with 0 findings; D-7 ADR shape passed."
+    }
+  ],
+  "non_claims": [
+    "No Helm CLI render, Helm release, Kubernetes manifest apply, admission webhook result, or Kubernetes cluster reconciliation was run or verified.",
+    "No OpenCost, Prometheus, billing export, chargeback, showback, cost allocation report, or FinOps dashboard was run or verified.",
+    "No ArgoCD sync/health, live Oyatie Cloud tenant workload deployment, Gateway/TLS/DNS rollout, branch-protection state, remote CI green, SLO, or production availability claim is made.",
+    "No service runtime behavior, REST/gRPC handler behavior, database behavior, broker publishing, or outbox worker execution changed."
+  ],
+  "git_sha": "a232cdcdf28e",
+  "freshness_unix": 1779682154
+}

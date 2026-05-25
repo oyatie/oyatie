@@ -1,0 +1,18 @@
+[package]
+name = "oya-workflow-engine-event-bus-adapter-kafka"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-workflow-engine-event-bus-adapter = { path = "../oya-workflow-engine-event-bus-adapter" }
+
+[lib]
+name = "oya_workflow_engine_event_bus_adapter_kafka"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

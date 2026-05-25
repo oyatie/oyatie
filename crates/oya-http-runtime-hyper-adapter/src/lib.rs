@@ -22,6 +22,7 @@
 use std::collections::BTreeMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
+use std::net::TcpListener as StdTcpListener;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -32,7 +33,7 @@ use hyper::service::service_fn;
 use hyper::{Request, Response};
 use hyper_util::rt::{TokioIo, TokioTimer};
 use hyper_util::server::conn::auto::Builder as ConnBuilder;
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 
 use oya_http_middleware_kernel::{Handler, MiddlewareChain, call_into_response};
 pub use oya_http_middleware_kernel::{HttpRequest, HttpResponse};
@@ -219,6 +220,9 @@ pub fn dispatch(
 ) -> HttpResponse {
     let (handler, captures, template) = match router.match_route(request.method, &request.path) {
         Some(triple) => triple,
+        None if router.path_matches_any_method(&request.path) => {
+            return HttpResponse::method_not_allowed();
+        }
         None => return HttpResponse::not_found(),
     };
     let template_owned = template.to_string();
@@ -236,6 +240,9 @@ pub enum HyperRuntimeError {
     BodyTooLarge { max_bytes: usize },
     UnsupportedMethod(String),
     NonUtf8HeaderValue { header_name: String },
+    Config(String),
+    Connection(String),
+    Runtime(String),
 }
 
 impl HyperRuntimeError {
@@ -248,6 +255,9 @@ impl HyperRuntimeError {
             HyperRuntimeError::BodyTooLarge { .. } => 413,
             HyperRuntimeError::UnsupportedMethod(_) => 405,
             HyperRuntimeError::NonUtf8HeaderValue { .. } => 400,
+            HyperRuntimeError::Config(_) => 500,
+            HyperRuntimeError::Connection(_) => 500,
+            HyperRuntimeError::Runtime(_) => 500,
         }
     }
 }
@@ -268,6 +278,13 @@ impl std::fmt::Display for HyperRuntimeError {
             HyperRuntimeError::NonUtf8HeaderValue { header_name } => {
                 write!(f, "header `{header_name}` contains non-UTF-8 bytes")
             }
+            HyperRuntimeError::Config(reason) => {
+                write!(f, "hyper server configuration failed: {reason}")
+            }
+            HyperRuntimeError::Connection(reason) => {
+                write!(f, "hyper connection failed: {reason}")
+            }
+            HyperRuntimeError::Runtime(reason) => write!(f, "tokio runtime failed: {reason}"),
         }
     }
 }
@@ -299,6 +316,21 @@ pub async fn serve(
     let listener = TcpListener::bind(addr)
         .await
         .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+    serve_listener(listener, router, chain, config).await
+}
+
+/// Serve an already-bound Tokio listener indefinitely.
+///
+/// This is the daemon-facing seam used by application composition roots that
+/// own the bind decision outside this adapter. It keeps all Tokio/Hyper types
+/// inside this crate while still allowing callers to perform pre-bind policy
+/// checks with `std::net::TcpListener`.
+pub async fn serve_listener(
+    listener: TcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+) -> Result<(), HyperRuntimeError> {
     let config = Arc::new(config);
     loop {
         let (stream, _peer) = match listener.accept().await {
@@ -309,38 +341,158 @@ pub async fn serve(
         let router = router.clone();
         let chain = chain.clone();
         let config = config.clone();
-        let timer_config = config.clone();
         tokio::spawn(async move {
-            let service = service_fn(move |req: Request<Incoming>| {
-                let router = router.clone();
-                let chain = chain.clone();
-                let config = config.clone();
-                async move {
-                    let response = match collect_hyper_request(req, config.max_body_bytes).await {
-                        Ok(parsed) => dispatch(parsed, &router, &chain),
-                        Err(err) => HttpResponse::from(err),
-                    };
-                    Ok::<_, Infallible>(to_hyper_response(response))
-                }
-            });
-            let mut builder = ConnBuilder::new(hyper_util::rt::TokioExecutor::new());
-            // S4 hardening: bound how long we'll wait for headers from a
-            // slow client. Slowloris-style attacks that drip header bytes
-            // at one byte per second exceed this budget and the conn drops.
-            builder
-                .http1()
-                .header_read_timeout(timer_config.header_read_timeout)
-                .keep_alive(true)
-                .timer(TokioTimer::new());
-            // HTTP/2: keepalive ping bounds idle connections.
-            builder
-                .http2()
-                .keep_alive_interval(Some(timer_config.keepalive_timeout / 2))
-                .keep_alive_timeout(timer_config.keepalive_timeout)
-                .timer(TokioTimer::new());
-            let _ = builder.serve_connection(io, service).await;
+            let _ = serve_stream(io, router, chain, config).await;
         });
     }
+}
+
+/// Serve exactly one accepted connection from an already-bound listener.
+///
+/// This is a deterministic loopback harness for service-level integration
+/// tests and local evidence capture. It does not replace `serve` for daemon
+/// operation and does not create deployment, readiness, or production endpoint
+/// evidence by itself.
+pub async fn serve_one_connection(
+    listener: TcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+) -> Result<(), HyperRuntimeError> {
+    serve_n_connections(listener, router, chain, config, 1).await
+}
+
+/// Serve a bounded number of accepted connections from an already-bound listener.
+///
+/// This is for deterministic integration evidence only. It avoids unbounded
+/// daemon lifetime in tests while exercising the same Hyper request parsing,
+/// response serialization, router, middleware, and handler seam as `serve`.
+pub async fn serve_n_connections(
+    listener: TcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+    max_connections: usize,
+) -> Result<(), HyperRuntimeError> {
+    if max_connections == 0 {
+        return Err(HyperRuntimeError::Config(
+            "max_connections must be greater than zero".to_string(),
+        ));
+    }
+    let config = Arc::new(config);
+    for _ in 0..max_connections {
+        let (stream, _peer) = listener
+            .accept()
+            .await
+            .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+        serve_stream(
+            TokioIo::new(stream),
+            router.clone(),
+            chain.clone(),
+            config.clone(),
+        )
+        .await?;
+    }
+    Ok(())
+}
+
+/// Blocking wrapper for deterministic tests that need to bind a std listener
+/// outside this crate without depending directly on tokio.
+///
+/// The std listener must already be bound (commonly to `127.0.0.1:0` in a
+/// test). This helper converts it to a Tokio listener and serves one
+/// connection on a private single-thread runtime.
+pub fn serve_one_connection_on_std_listener(
+    listener: StdTcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+) -> Result<(), HyperRuntimeError> {
+    serve_n_connections_on_std_listener(listener, router, chain, config, 1)
+}
+
+/// Blocking wrapper for bounded local integration evidence without leaking
+/// Tokio into downstream crates.
+pub fn serve_n_connections_on_std_listener(
+    listener: StdTcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+    max_connections: usize,
+) -> Result<(), HyperRuntimeError> {
+    listener
+        .set_nonblocking(true)
+        .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|error| HyperRuntimeError::Runtime(error.to_string()))?;
+    runtime.block_on(async move {
+        let listener = TcpListener::from_std(listener)
+            .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+        serve_n_connections(listener, router, chain, config, max_connections).await
+    })
+}
+
+/// Blocking wrapper for daemon entrypoints that pre-bind a std listener while
+/// keeping the async runtime dependency adapter-local.
+pub fn serve_on_std_listener(
+    listener: StdTcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+) -> Result<(), HyperRuntimeError> {
+    listener
+        .set_nonblocking(true)
+        .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|error| HyperRuntimeError::Runtime(error.to_string()))?;
+    runtime.block_on(async move {
+        let listener = TcpListener::from_std(listener)
+            .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+        serve_listener(listener, router, chain, config).await
+    })
+}
+
+async fn serve_stream(
+    io: TokioIo<TcpStream>,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: Arc<ServerConfig>,
+) -> Result<(), HyperRuntimeError> {
+    let timer_config = config.clone();
+    let service = service_fn(move |req: Request<Incoming>| {
+        let router = router.clone();
+        let chain = chain.clone();
+        let config = config.clone();
+        async move {
+            let response = match collect_hyper_request(req, config.max_body_bytes).await {
+                Ok(parsed) => dispatch(parsed, &router, &chain),
+                Err(err) => HttpResponse::from(err),
+            };
+            Ok::<_, Infallible>(to_hyper_response(response))
+        }
+    });
+    let mut builder = ConnBuilder::new(hyper_util::rt::TokioExecutor::new());
+    // S4 hardening: bound how long we'll wait for headers from a slow client.
+    builder
+        .http1()
+        .header_read_timeout(timer_config.header_read_timeout)
+        .keep_alive(true)
+        .timer(TokioTimer::new());
+    // HTTP/2: keepalive ping bounds idle connections.
+    builder
+        .http2()
+        .keep_alive_interval(Some(timer_config.keepalive_timeout / 2))
+        .keep_alive_timeout(timer_config.keepalive_timeout)
+        .timer(TokioTimer::new());
+    builder
+        .serve_connection(io, service)
+        .await
+        .map_err(|error| HyperRuntimeError::Connection(error.to_string()))?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -385,6 +537,22 @@ mod tests {
         let chain = empty_chain();
         let response = dispatch(mock_request(HttpMethod::Get, "/nope"), &router, &chain);
         assert_eq!(response.status, 404);
+    }
+
+    #[test]
+    fn dispatch_known_path_with_wrong_method_returns_405() {
+        let mut router: Router<SyncHandler> = Router::new();
+        router
+            .route(HttpMethod::Get, "/workspace", ok_handler(b"live-list"))
+            .unwrap();
+        let chain = empty_chain();
+        let response = dispatch(
+            mock_request(HttpMethod::Post, "/workspace"),
+            &router,
+            &chain,
+        );
+        assert_eq!(response.status, 405);
+        assert_eq!(response.body, b"method not allowed".to_vec());
     }
 
     #[test]
@@ -511,6 +679,103 @@ mod tests {
         assert!(drained.is_empty());
     }
 
+    #[tokio::test]
+    async fn serve_one_connection_serves_loopback_request() {
+        use std::io::{Read, Write};
+
+        let mut router: Router<SyncHandler> = Router::new();
+        router
+            .route(HttpMethod::Get, "/healthz", ok_handler(b"ok"))
+            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind local listener");
+        let addr = listener.local_addr().expect("listener has local addr");
+        let server = tokio::spawn(async move {
+            serve_one_connection(
+                listener,
+                Arc::new(router),
+                Arc::new(empty_chain()),
+                ServerConfig::default().with_max_body_bytes(0),
+            )
+            .await
+        });
+
+        let response = tokio::task::spawn_blocking(move || {
+            let mut stream = std::net::TcpStream::connect(addr).expect("connect loopback");
+            stream
+                .write_all(b"GET /healthz HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
+                .expect("write request");
+            let mut response = String::new();
+            stream.read_to_string(&mut response).expect("read response");
+            response
+        })
+        .await
+        .expect("client task joins");
+
+        server
+            .await
+            .expect("server task joins")
+            .expect("serves one connection");
+        assert!(response.starts_with("HTTP/1.1 200 OK"));
+        assert!(response.ends_with("ok"));
+    }
+
+    #[tokio::test]
+    async fn serve_n_connections_serves_bounded_loopback_requests() {
+        use std::io::{Read, Write};
+
+        let mut router: Router<SyncHandler> = Router::new();
+        router
+            .route(HttpMethod::Get, "/healthz", ok_handler(b"health"))
+            .unwrap();
+        router
+            .route(HttpMethod::Get, "/livez", ok_handler(b"live"))
+            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind local listener");
+        let addr = listener.local_addr().expect("listener has local addr");
+        let server = tokio::spawn(async move {
+            serve_n_connections(
+                listener,
+                Arc::new(router),
+                Arc::new(empty_chain()),
+                ServerConfig::default().with_max_body_bytes(0),
+                2,
+            )
+            .await
+        });
+
+        let responses = tokio::task::spawn_blocking(move || {
+            ["/healthz", "/livez"].map(|path| {
+                let mut stream = std::net::TcpStream::connect(addr).expect("connect loopback");
+                stream
+                    .write_all(
+                        format!(
+                            "GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+                        )
+                        .as_bytes(),
+                    )
+                    .expect("write request");
+                let mut response = String::new();
+                stream.read_to_string(&mut response).expect("read response");
+                response
+            })
+        })
+        .await
+        .expect("client task joins");
+
+        server
+            .await
+            .expect("server task joins")
+            .expect("serves bounded connections");
+        assert!(responses[0].starts_with("HTTP/1.1 200 OK"));
+        assert!(responses[0].ends_with("health"));
+        assert!(responses[1].starts_with("HTTP/1.1 200 OK"));
+        assert!(responses[1].ends_with("live"));
+    }
+
     // F3 adversarial: handler_to_sync wraps a typed Handler so the router
     // can hold it as a SyncHandler, and the rendered error path goes through
     // From<Error> for HttpResponse — proves the Phase 6 contract end-to-end.
@@ -602,6 +867,9 @@ mod tests {
     fn hyper_runtime_error_status_code_mapping() {
         assert_eq!(HyperRuntimeError::Bind("x".into()).status_code(), 500);
         assert_eq!(HyperRuntimeError::BodyRead("x".into()).status_code(), 400);
+        assert_eq!(HyperRuntimeError::Config("x".into()).status_code(), 500);
+        assert_eq!(HyperRuntimeError::Connection("x".into()).status_code(), 500);
+        assert_eq!(HyperRuntimeError::Runtime("x".into()).status_code(), 500);
         assert_eq!(
             HyperRuntimeError::BodyTooLarge { max_bytes: 1 }.status_code(),
             413

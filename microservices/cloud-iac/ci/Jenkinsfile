@@ -42,6 +42,17 @@ spec:
     CARGO_INCREMENTAL = '0'
     CARGO_TERM_COLOR = 'always'
     NEXTEST_PROFILE = 'ci'
+    // ADR-0349 + specs/ci-farm-substrate-canonical.json: shared remote build cache
+    // (sccache -> SeaweedFS S3) so ephemeral lane agents reuse compiled shared-substrate
+    // crates instead of recompiling the 121 kernel + 30 shared crates cold per lane.
+    RUSTC_WRAPPER = 'sccache'
+    SCCACHE_BUCKET = 'oya-ci-sccache-shared-prod'
+    SCCACHE_ENDPOINT = 'seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333'
+    SCCACHE_S3_USE_SSL = 'false'
+    SCCACHE_REGION = 'oya-local'
+    // S3 credentials bound from OpenBao via the Jenkins credentials plugin; never inlined.
+    AWS_ACCESS_KEY_ID = credentials('oya-ci-sccache-access-key-id')
+    AWS_SECRET_ACCESS_KEY = credentials('oya-ci-sccache-secret-access-key')
   }
 
   stages {
@@ -56,6 +67,11 @@ spec:
         container('rust') {
           sh 'rustup component add rustfmt clippy'
           sh 'cargo nextest --version || cargo install cargo-nextest --locked'
+          // Remote build cache: start sccache against the SeaweedFS S3 backend so this
+          // ephemeral agent reuses shared-substrate compilation across lanes (ADR-0349).
+          sh 'sccache --version || cargo install sccache --locked'
+          sh 'sccache --start-server || true'
+          sh 'sccache --show-stats || true'
         }
       }
     }

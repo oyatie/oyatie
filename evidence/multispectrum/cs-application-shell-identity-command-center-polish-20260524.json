@@ -1,0 +1,174 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-IDENTITY-COMMAND-CENTER-POLISH-20260524",
+  "evidence_id": "cs-application-shell-identity-command-center-polish-20260524",
+  "created_at": "2026-05-24T22:20:00-04:00",
+  "agent": "codex-oyatie-identity-command-center-polish",
+  "objective": "Continue the full Oyatie mockup toward Bominal-grade completeness by upgrading the identity, workforce, auth, roles, employees, onboarding, and evidence routes from a sparse settings panel into a dense cohesive command center.",
+  "change_class_id": "CC-2",
+  "skills_used": [
+    "agent-skills:visual-ralph",
+    "agent-skills:frontend-ui-engineering"
+  ],
+  "reference_inputs": {
+    "bominal_zip": "/Users/jasonlee/Downloads/Bominal.zip",
+    "workflow_standalone_html": "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    "bominal_patterns_reviewed": [
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+      "/tmp/bominal-ref/docs/design-system/README.md dense flat tactical visual language",
+      "/tmp/bominal-ref/docs/bominal-corporate-platform/MODULE-MAP.md shared tenant/workforce/approval/audit model"
+    ]
+  },
+  "gap_analysis": {
+    "source": "live dashboard gap scan after the Daily Execution polish",
+    "findings_addressed": [
+      "The default Identity/Workforce Auth panel had a large blank lower area after the passkey and security score controls.",
+      "Identity, role, employee, onboarding, workflow, mail, finance, and evidence concepts existed but did not read as one cohesive product operation in the default view.",
+      "The surface needed Bominal-style dense lineage, risk queue, lifecycle state, and cross-suite route actions rather than a settings-only feel.",
+      "Interactions needed to remain visually functional and local-only: no real SSO, HRIS, directory, payroll, or evidence writes."
+    ]
+  },
+  "implemented": [
+    "Added an Identity Command Center board under the Auth panel so the default identity view fills with operational density rather than blank space.",
+    "Added an Access Spine that links Passkey, Session, Role, Employee, Workflow, and Audit as one governed identity path from authentication to payroll close.",
+    "Added an Identity Risk Queue for payroll approver recertification, vendor guest PII denial, and passkey challenge evidence.",
+    "Added Workforce Lifecycle bars for onboarding, role review, session hygiene, and payroll readiness.",
+    "Added a Route Matrix from Identity to Workflow Studio, Mail reviewer, Session audit, Onboarding, Payroll close, and Evidence Spine.",
+    "Mirrored the command board in the SSR static identity suite so it is present before hydration.",
+    "Extended fallback JavaScript with data-identity-route-action handling for route buttons, local status updates, active route state, and activity-center events.",
+    "Added flat, low-radius, dense CSS matching the Bominal tactical design language: bordered grid lineage, compact risk rows, lifecycle bars, and route buttons."
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "tests": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --no-default-features --features hydrate --release",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "observations": [
+        "live server reachable on 127.0.0.1:3000 after 4 seconds",
+        "SSR output contains identity-command-board markup",
+        "server log captured at /tmp/oya-frontend-prototype-live-identity.log"
+      ]
+    },
+    {
+      "command": "Playwright smoke for #identity-workforce-suite, command board density, passkey staging, employee search, session route, Mail route, Evidence route, console/network health",
+      "status": "passed",
+      "artifact": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/identity-command-smoke.json",
+      "observations": {
+        "initial": {
+          "commandBoards": 1,
+          "commandCards": 4,
+          "spineNodes": 6,
+          "riskRows": 3,
+          "lifecycleRows": 4,
+          "routeButtons": 8,
+          "passkeyRows": 4,
+          "activePanel": "auth"
+        },
+        "passkeyAfter": {
+          "passkeyRows": 5,
+          "score": "97/100",
+          "status": "Passkey registration preview staged locally"
+        },
+        "sessionsPanel": "sessions",
+        "employeesPanel": "employees",
+        "activeHub": "Mail",
+        "evidenceTop": {
+          "top": 75,
+          "bottom": 893,
+          "height": 818
+        },
+        "consoleErrors": [],
+        "failedRequests": []
+      }
+    },
+    {
+      "command": "pixelmatch secondary debug diffs against Bominal corporate, employees, and workflow-studio references cropped to shared viewport",
+      "status": "passed",
+      "artifact": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/identity-pixel-diff-summary.json",
+      "observations": {
+        "method": "pixelmatch threshold=0.12, anti-alias ignored; secondary structural evidence only",
+        "comparisons": [
+          {
+            "name": "bominal-corporate",
+            "comparedSize": "1440x900",
+            "mismatchRatio": 0.0708,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/diff-identity-vs-bominal-corporate.png"
+          },
+          {
+            "name": "bominal-employees",
+            "comparedSize": "1440x900",
+            "mismatchRatio": 0.0612,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/diff-identity-vs-bominal-employees.png"
+          },
+          {
+            "name": "bominal-workflow-studio",
+            "comparedSize": "1440x900",
+            "mismatchRatio": 0.0712,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/diff-identity-vs-bominal-workflow-studio.png"
+          }
+        ]
+      }
+    }
+  ],
+  "screenshots": {
+    "identity_command": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/identity-command-1440.png",
+    "employees_search": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/identity-employees-search-1440.png",
+    "mail_route": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/identity-mail-route-1440.png",
+    "evidence_route": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/identity-evidence-route-1440.png",
+    "diff_corporate": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/diff-identity-vs-bominal-corporate.png",
+    "diff_employees": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/diff-identity-vs-bominal-employees.png",
+    "diff_workflow_studio": ".omx/artifacts/visual-ralph/oya-identity-command-center-polish/screenshots/diff-identity-vs-bominal-workflow-studio.png"
+  },
+  "visual_verdict": {
+    "score": 92,
+    "category_match": "Bominal-style identity/workforce command center integrated with auth, roles, employees, onboarding, workflow, mail, finance, and evidence surfaces",
+    "verdict": "The default Identity/Workforce surface now reads as a dense operational product surface rather than a sparse settings panel. The new access spine, risk queue, lifecycle bars, and route matrix connect identity decisions to payroll close, Workflow Studio, Mail, and Evidence Spine while preserving local-only visual behavior.",
+    "improved_matches": [
+      "The former blank lower area is replaced by dense, high-signal operational content.",
+      "Identity is no longer isolated from the rest of Oyatie; the command board shows concrete routes to Workflow, Mail, Finance, Employee Directory, Onboarding, Sessions, and Evidence.",
+      "The visual language now uses compact bordered grids, tactical lineage cells, low-radius buttons, and spreadsheet-like progress bars consistent with Bominal references.",
+      "SSR and fallback/hydrated interactions both expose the new command surface."
+    ],
+    "remaining_differences": [
+      "No real authentication mutation, SSO action, HRIS write, payroll change, or audit-chain write is wired.",
+      "This advances the complete mockup; a final cross-surface completion audit is still required before claiming the whole dashboard is finished."
+    ]
+  },
+  "non_claims": [
+    "No passkey is registered with a real identity provider.",
+    "No employee, role, session, payroll, mail, workflow, or evidence backend is mutated.",
+    "All interactions are visual-only local prototype state.",
+    "This is one additional polish slice toward the full mockup, not a claim that the entire dashboard is complete."
+  ],
+  "touched_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-identity-command-center-polish-20260524.json"
+  ]
+}

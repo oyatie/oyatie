@@ -2,7 +2,14 @@
 id: ADR-0347
 title: Foundry-fitness to governance bulk rename (doctrine-only; all oya-foundry-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-sre-reliability
+  - ops-platform
+  - council-security
+  - axis-governance
 owners:
   - council-architecture
   - ops-sre-reliability
@@ -149,7 +156,7 @@ The decision does not delete any existing lane logic; the rename is name-only. T
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: anachronistic ownership label after ADR-0335 foundry retirement
 
@@ -231,7 +238,7 @@ The prefix is established. The rename is not introducing new terminology; it is 
 - **A.9.10** Does not introduce a `oya-foundry-*` legacy-allowlist exception. The bulk rename is total; no `oya-foundry-fitness-*` remnants are permitted outside the historical-context paragraphs of ADR-0335 + this ADR.
 - **A.9.11** Does not modify the `oya-shared-*` or `oya-cloud-*` prefix doctrine; only the foundry-fitness → governance rename is in scope.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -315,7 +322,7 @@ B2.034. The rename inventory file at `.omc/state/oya-foundry-fitness-rename-inve
 - This ADR does not introduce new dependencies; the rename is name-only.
 - This ADR does not change branch-protection contract semantics; only gate-name strings rename.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 
@@ -503,7 +510,7 @@ F.3 **Rename to `oya-fitness-*` (drop both prefixes).** Drop both `foundry-` and
 
 F.4 **Rename in two phases (first rename workflows, later rename crates).** Split Wave 15-ZB into Wave 15-ZB1 (workflows + lanes.yaml + catalog + branch-protection) and Wave 15-ZB2 (crates + Cargo workspace + per-µservice manifests). Rejected because: (a) the rename surfaces are tightly coupled (workflows invoke crates by package name; renaming workflows without renaming crates leaves the workflow→crate binding broken); (b) the mixed-state window between Wave 15-ZB1 and Wave 15-ZB2 reintroduces the drift problem; (c) atomic landing of the full rename surface is the safest pattern.
 
-F.5 **Defer the rename to a future "vocabulary cleanup wave" untargeted.** Note the rename in TODO form; defer indefinitely. Rejected because: (a) the realignment-wave authoring cadence is the canonical time to land vocabulary cleanups per ADR-0327; (b) deferring after foundry retirement is complete leaves an ownership-attribution gap that compounds over time; (c) the `oya-governance-*` prefix is already in active use (E.1 + ADR-0345); deferring widens the inconsistency.
+F.5 **Defer the rename to a future "vocabulary cleanup wave" untargeted.** Note the rename as an untracked follow-up; defer indefinitely. Rejected because: (a) the realignment-wave authoring cadence is the canonical time to land vocabulary cleanups per ADR-0327; (b) deferring after foundry retirement is complete leaves an ownership-attribution gap that compounds over time; (c) the `oya-governance-*` prefix is already in active use (E.1 + ADR-0345); deferring widens the inconsistency.
 
 ## G. Multispectrum Review v2.4.0
 

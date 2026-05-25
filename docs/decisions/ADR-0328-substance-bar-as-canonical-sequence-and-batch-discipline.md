@@ -3,6 +3,7 @@ id: ADR-0328
 title: Substance Bar as Canonical Sequence and Batch Discipline
 status: Proposed
 date: 2026-05-20
+owner_team: council-architecture
 related_adrs: [ADR-0244, ADR-0263, ADR-0316, ADR-0321, ADR-0322, ADR-0323, ADR-0324, ADR-0327, ADR-0136-amendment, ADR-0247, ADR-0255-amendment, ADR-0138]
 decision_owner: council-architecture
 doc_class: Architecture-Decision-Record
@@ -61,7 +62,7 @@ No markdown-retirement exception is introduced by this decision.
 The sole durable product of this ADR is a normative ordering and verification
 contract for subsequent authoring and audit waves.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: drift now creates the wrong product
 
@@ -236,7 +237,7 @@ This ADR must remain compatible with ADR-0138.
 Retirement of the foundry path follows the six-path deprecation pattern and does
 not silently delete canonical provenance.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -326,7 +327,7 @@ same-file conflict and partial-completion failures.
 Driver 8: every dispatch must be self-contained enough that a fresh Codex agent
 can act without tribal memory.
 
-## C. Consequences and Engineering-Rigor Matrix
+## Consequences
 
 ### C.1 Positive consequences
 

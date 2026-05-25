@@ -98,6 +98,10 @@ impl SlsaPrimitive {
                 "cosign sign-blob",
                 "cosign-installer",
                 "rekor",
+                // ADR-0361 Jenkins-native grounding tokens:
+                "cosign attest",
+                "slsaprovenance",
+                "slsa provenance",
             ],
             SlsaPrimitive::HermeticBuild => &[
                 // Pinned toolchain action (sha or version pin) +
@@ -230,13 +234,27 @@ where
         // Canonical SLSA L3 citation set: every µservice claiming
         // `slsa_l3: green` is required to be grounded by AT LEAST the
         // three canonical workflow files.
-        let canonical_citations = [
-            ".github/workflows/slsa.yml",
-            ".github/workflows/cosign.yml",
-            ".github/workflows/sbom.yml",
+        // ADR-0361: SLSA-L3 evidence is grounded in the Jenkins pipeline, not the
+        // retired GitHub Actions workflows. The shared CI lane grounds both
+        // SignedProvenance (cosign attest --type slsaprovenance) and HermeticBuild
+        // (cargo cyclonedx SBOM); the captured signing evidence README grounds the
+        // measured provenance.
+        let canonical_citations: [(&str, SlsaPrimitive); 3] = [
+            (
+                "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+                SlsaPrimitive::SignedProvenance,
+            ),
+            (
+                "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+                SlsaPrimitive::HermeticBuild,
+            ),
+            (
+                "evidence/ci/slsa/README.md",
+                SlsaPrimitive::SignedProvenance,
+            ),
         ];
 
-        for citation in canonical_citations {
+        for (citation, primitive) in canonical_citations {
             total_citations += 1;
             match workflow_by_path.get(citation) {
                 None => violations.push(SlsaL3EvidenceViolation {
@@ -249,14 +267,6 @@ where
                     ),
                 }),
                 Some(workflow) => {
-                    // Verify the SLSA-relevant primitive that this
-                    // canonical citation is responsible for.
-                    let primitive = match citation {
-                        ".github/workflows/slsa.yml" => SlsaPrimitive::SignedProvenance,
-                        ".github/workflows/cosign.yml" => SlsaPrimitive::SignedProvenance,
-                        ".github/workflows/sbom.yml" => SlsaPrimitive::HermeticBuild,
-                        _ => SlsaPrimitive::SignedProvenance,
-                    };
                     if !declares_primitive(workflow, primitive) {
                         violations.push(SlsaL3EvidenceViolation {
                             scorecard_path: scorecard.path.clone(),
@@ -345,55 +355,30 @@ mod tests {
   "slsa_l3": { "overall_status": "yellow", "deltas": [] }
 }"#;
 
-    const SLSA_WORKFLOW: &str = r#"
-name: slsa
-on: { release: { types: [published] }}
-jobs:
-  provenance:
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@7f4fdb87
-    with:
-      base64-subjects: ${{ needs.hash-artifacts.outputs.digests }}
-      provenance-name: provenance.intoto.jsonl
+    // ADR-0361: SLSA-L3 evidence is grounded in the Jenkins pipeline.
+    const OYACILANE_LANE: &str = r#"
+// oya-jenkins-shared :: oyaCiLane
+stage('sign + provenance') {
+  sh 'cosign sign --yes "$IMAGE_DIGEST"'
+  sh 'cosign attest --yes --predicate target/provenance.intoto.json --type slsaprovenance "$IMAGE_DIGEST"'
+}
+stage('SBOM') { sh 'cargo cyclonedx --format json'; sh 'syft dir:. -o cyclonedx-json' }
 "#;
 
-    const COSIGN_WORKFLOW: &str = r#"
-name: cosign
-jobs:
-  sign-artifacts:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: sigstore/cosign-installer@d7d6bc7722
-      - run: cosign sign-blob --yes …
-      - run: cosign verify-blob …  # rekor anchoring
-"#;
-
-    const SBOM_WORKFLOW: &str = r#"
-name: sbom
-jobs:
-  generate-sbom:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@21dc36fb
-      - run: cargo install --locked cargo-cyclonedx
-      - run: cargo cyclonedx --format json …
-      - run: syft . -o spdx-json=releases/${{ github.ref_name }}/sbom.spdx.json
+    const SLSA_EVIDENCE_README: &str = r#"
+# Jenkins SLSA/cosign/SBOM evidence
+cosign sign by digest; cosign attest SLSA provenance; cosign verify-attestation passed.
 "#;
 
     fn workflows_full_set() -> Vec<WorkflowDocument> {
         vec![
             WorkflowDocument {
-                path: ".github/workflows/slsa.yml".into(),
-                contents: SLSA_WORKFLOW.into(),
+                path: "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy".into(),
+                contents: OYACILANE_LANE.into(),
             },
             WorkflowDocument {
-                path: ".github/workflows/cosign.yml".into(),
-                contents: COSIGN_WORKFLOW.into(),
-            },
-            WorkflowDocument {
-                path: ".github/workflows/sbom.yml".into(),
-                contents: SBOM_WORKFLOW.into(),
+                path: "evidence/ci/slsa/README.md".into(),
+                contents: SLSA_EVIDENCE_README.into(),
             },
         ]
     }
@@ -412,26 +397,21 @@ jobs:
     }
 
     #[test]
-    fn fails_when_slsa_workflow_missing() {
+    fn fails_when_pipeline_lane_missing() {
         let scorecard = ScorecardOverrideDocument {
             path: "microservices/foundry/scorecards/overrides.json".into(),
             microservice: "foundry".into(),
             contents: SCORECARD_GREEN.into(),
         };
-        let workflows = vec![
-            WorkflowDocument {
-                path: ".github/workflows/cosign.yml".into(),
-                contents: COSIGN_WORKFLOW.into(),
-            },
-            WorkflowDocument {
-                path: ".github/workflows/sbom.yml".into(),
-                contents: SBOM_WORKFLOW.into(),
-            },
-        ];
+        // Only the evidence README present; the oyaCiLane grounding is absent.
+        let workflows = vec![WorkflowDocument {
+            path: "evidence/ci/slsa/README.md".into(),
+            contents: SLSA_EVIDENCE_README.into(),
+        }];
         let err = validate_slsa_l3_evidence_grounded(vec![scorecard], workflows)
-            .expect_err("missing slsa.yml must fail");
+            .expect_err("missing oyaCiLane grounding must fail");
         assert_eq!(err.kind, ViolationKind::WorkflowFileMissing);
-        assert!(err.cited_workflow.ends_with("slsa.yml"));
+        assert!(err.cited_workflow.ends_with("oyaCiLane.groovy"));
     }
 
     #[test]
@@ -443,16 +423,12 @@ jobs:
         };
         let workflows = vec![
             WorkflowDocument {
-                path: ".github/workflows/slsa.yml".into(),
-                contents: "name: slsa\njobs: {}".into(), // missing canonical tokens
+                path: "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy".into(),
+                contents: "// lane stub with no signing/sbom tokens".into(),
             },
             WorkflowDocument {
-                path: ".github/workflows/cosign.yml".into(),
-                contents: COSIGN_WORKFLOW.into(),
-            },
-            WorkflowDocument {
-                path: ".github/workflows/sbom.yml".into(),
-                contents: SBOM_WORKFLOW.into(),
+                path: "evidence/ci/slsa/README.md".into(),
+                contents: SLSA_EVIDENCE_README.into(),
             },
         ];
         let err = validate_slsa_l3_evidence_grounded(vec![scorecard], workflows)
@@ -473,42 +449,6 @@ jobs:
         assert_eq!(report.scorecards_checked, 1);
         assert_eq!(report.citations_checked, 0);
         assert_eq!(report.microservices_audited, 0);
-    }
-
-    #[test]
-    fn tolerates_workflows_directory_prefix() {
-        // Some runners may strip the leading `.github/` when streaming.
-        let workflow = WorkflowDocument {
-            path: "workflows/slsa.yml".into(),
-            contents: SLSA_WORKFLOW.into(),
-        };
-        let scorecard = ScorecardOverrideDocument {
-            path: "microservices/foundry/scorecards/overrides.json".into(),
-            microservice: "foundry".into(),
-            contents: SCORECARD_GREEN.into(),
-        };
-        let (report, violations) = audit_all_violations(
-            vec![scorecard],
-            vec![
-                workflow,
-                WorkflowDocument {
-                    path: ".github/workflows/cosign.yml".into(),
-                    contents: COSIGN_WORKFLOW.into(),
-                },
-                WorkflowDocument {
-                    path: ".github/workflows/sbom.yml".into(),
-                    contents: SBOM_WORKFLOW.into(),
-                },
-            ],
-        );
-        assert_eq!(report.citations_checked, 3);
-        // The bare workflows/slsa.yml should canonicalize and pass.
-        assert!(
-            violations
-                .iter()
-                .all(|v| v.kind != ViolationKind::WorkflowFileMissing),
-            "unexpected missing-citation violations: {violations:?}"
-        );
     }
 
     #[test]

@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-FULL-VERIFY-METADATA-BLOCKERS-001",
+  "agent_id": "codex-verify-metadata-fix",
+  "created_at": "2026-05-23T10:17:39Z",
+  "scope": "Repair deterministic full-verify metadata/doc catalog/data-class/ADR/glossary/placeholder blockers exposed after the oya verify recursion harness fix",
+  "claim": "Deterministic data-class, doc-catalog, readme-doc-coverage, ADR-citation, glossary-vocabulary, placeholder-debt, JSON syntax, and fmt blockers were repaired; full verify remains non-green because D-5 still has seven failing lanes and D-6 ADR index generation now stops on duplicate ADR ids.",
+  "pre_repair_failures": [
+    {
+      "lane": "data-class",
+      "before": "UnknownUnannotatedField: crates/oya-audit-chain-emission-kernel/src/lib.rs ChainCoordinate.pack",
+      "repair": "Annotated ChainCoordinate fields with INTERNAL_ONLY data_class comments and added explicit legacy allowances for pre-existing unannotated kernel fields discovered by the stricter scan."
+    },
+    {
+      "lane": "doc-catalog/readme-doc-coverage",
+      "before": "docs/AGENTS-OPERATING-CONTRACT.md and docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md were missing catalog/readme rows.",
+      "repair": "Added DOC-CATALOG, machine-readable catalog, and docs/README coverage rows for the canonical documents."
+    },
+    {
+      "lane": "adr-citation",
+      "before": "ADR-0399 and other inherited/legacy ADR references were rejected as disallowed citations.",
+      "repair": "Rephrased hypothetical ADR-0399 references to ADR-NNNN placeholders and added inherited/reserved ADR ids to registry/adr/inherited-bominal-adrs.yaml."
+    },
+    {
+      "lane": "glossary-vocabulary",
+      "before": "Retired vocabulary token MVP was still present in docs/architecture/wave-3-retrospective-2026-05-20.md and related prose.",
+      "repair": "Replaced retired token uses with minimum viable implementation/product phrasing and regenerated the warning baseline."
+    },
+    {
+      "lane": "placeholder-debt",
+      "before": "Duplicate placeholder registry row blocked validation.",
+      "repair": "Regenerated registry/placeholder-debt/registry.tsv with current scan output."
+    },
+    {
+      "lane": "D-6 ADR index",
+      "before": "ADR index generation failed first on ADR-0321 missing owner metadata, then surfaced H1/owner/id/status metadata gaps through ADR-0352.",
+      "repair": "Added owner_team/frontmatter/H1/id/status metadata for ADR-0321..ADR-0352 as discovered by the generator."
+    }
+  ],
+  "implemented_changes": [
+    "Added data_class INTERNAL_ONLY annotations for ChainCoordinate fields and updated data-class legacy registry for pre-existing unannotated kernel fields.",
+    "Added canonical doc catalog/readme coverage for AGENTS-OPERATING-CONTRACT and PRD-OYATIE-FROM-SCRATCH-CANONICAL.",
+    "Added/fixed ADR owner_team, H1, id, and status metadata for ADR-0321..ADR-0352 as needed for ADR index validation to advance.",
+    "Added inherited/reserved legacy ADR ids to registry/adr/inherited-bominal-adrs.yaml so citation validation accepts current historical references without fabricating missing ADR files.",
+    "Removed/rephrased retired MVP vocabulary in touched docs and regenerated glossary-vocabulary baseline.",
+    "Regenerated placeholder-debt registry for current open-placeholder inventory.",
+    "Formatted Rust changes with cargo fmt and validated catalog JSON syntax."
+  ],
+  "green_verification": [
+    {
+      "command": "cargo fmt --check",
+      "status": "pass"
+    },
+    {
+      "command": "python3 -m json.tool docs/machine-readable/catalog.json >/tmp/catalog.pretty.json",
+      "status": "pass",
+      "summary": "JSON parsed; pretty output had 1075 lines."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "status": "pass",
+      "summary": "1650 fields checked, 1305 annotated, 345 legacy unannotated."
+    },
+    {
+      "command": "./bin/oya gate validate doc-catalog --docs-dir docs --catalog docs/machine-readable/catalog.json",
+      "status": "pass",
+      "summary": "41 documents."
+    },
+    {
+      "command": "./bin/oya gate validate readme-doc-coverage --docs-dir docs --catalog docs/machine-readable/catalog.json",
+      "status": "pass",
+      "summary": "41 documents."
+    },
+    {
+      "command": "./bin/oya gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions --inheritance-registry registry/adr/inherited-bominal-adrs.yaml",
+      "status": "pass",
+      "summary": "2156 documents, 281601 citations, 354 allowed ADRs."
+    },
+    {
+      "command": "./bin/oya gate validate glossary-vocabulary --docs-dir docs --glossary docs/GLOSSARY.md --baseline registry/glossary-vocabulary/warning-baseline.tsv --ignored-uppercase-words registry/glossary-vocabulary/ignored-uppercase-words.tsv",
+      "status": "pass",
+      "summary": "2156 documents, 3210 casing warnings, 2529 uncited acronym warnings."
+    },
+    {
+      "command": "./bin/oya gate validate placeholder-debt --docs-dir docs --registry registry/placeholder-debt/registry.tsv",
+      "status": "pass",
+      "summary": "2156 documents, 987 open placeholders, 565 registry records."
+    },
+    {
+      "command": "./bin/oya gate run-all --ci-required",
+      "status": "fail_expected_remaining_blockers",
+      "summary": "Improved to 81/88 lanes passed. cargo fmt/check/clippy/nextest lanes passed; nextest run id 646d487b-210b-4fe9-9a08-8393516f6db3 with 4308 passed and 1 skipped."
+    }
+  ],
+  "remaining_blockers": {
+    "d5_gate_run_all": {
+      "command": "./bin/oya gate run-all --ci-required",
+      "status": "fail",
+      "summary": "81/88 lanes passed after this repair.",
+      "failed_lanes": [
+        "claim-ceiling \u2014 SecurityReviewAboveFoundation",
+        "design-spec-maturity-claims \u2014 81 missing service-surface maturity declarations",
+        "dependency-seam \u2014 1 blocking diagnostic in run-all context",
+        "layered-architecture-discipline \u2014 16 MeshTierUnderclaimed manifest violations",
+        "cargo run -q -p oya-foundry-vcs-admission-gate-app \u2014 missing required provider proof tool trivy",
+        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json \u2014 missing required provider proof tool trivy",
+        "bash scripts/github-actions-required-secrets-check.sh \u2014 required command not found: gh"
+      ]
+    },
+    "d6_adr_index": {
+      "command": "./bin/oya doc adr-index --write",
+      "status": "fail",
+      "summary": "ADR index validation now stops at DuplicateAdr { id: \"ADR-0246\" } after earlier owner/H1/id/status metadata blockers were repaired.",
+      "known_duplicate_sets": [
+        [
+          "docs/decisions/ADR-0246-amendment-library-first-network-opt-in-clarification.md",
+          "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md"
+        ],
+        [
+          "docs/decisions/ADR-0253-amendment-http3-fallback-strict-tls-ech-pqc.md",
+          "docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"
+        ],
+        [
+          "docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md",
+          "docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
+        ],
+        [
+          "docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md",
+          "docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md"
+        ]
+      ]
+    },
+    "full_verify": {
+      "status": "not_green_not_claimed",
+      "reason": "Top-level ./bin/oya verify --ci-required cannot be claimed green while D-5 run-all and D-6 ADR index components are red; this ChangeSet did not rerun the full wrapper after the final component evidence because the component blockers are sufficient proof of non-green status."
+    }
+  },
+  "non_claims": [
+    "No full ./bin/oya verify --ci-required success is claimed.",
+    "No production readiness, hyperscaler readiness, live-provider proof, SLO, DR, sharding, or Phase 1 readiness is claimed.",
+    "The 345 legacy data-class allowances are an explicit compatibility inventory, not semantic completion of all historical fields.",
+    "No ADR duplicate-id renumbering, supersession cleanup, or citation migration is claimed.",
+    "No installation/proof of trivy or gh is claimed.",
+    "Regenerated glossary/placeholder baselines reflect current inventory only; they do not close every open placeholder or uncited-acronym warning."
+  ],
+  "facets": {
+    "F1_source_grounding": "All claims are tied to current gate outputs and touched source/doc/registry files.",
+    "F2_tests_and_gates": "Target metadata gates pass; run-all remains red with explicit lane list.",
+    "F3_security_privacy": "No new runtime/data flow; data-class annotations use INTERNAL_ONLY and legacy allowances are explicit nonclaims.",
+    "F4_architecture": "No architecture/runtime readiness claimed; layered architecture remains a listed blocker.",
+    "F5_operability": "Tooling prerequisites trivy and gh remain blockers; no bypass added.",
+    "F6_rollback": "Changes are metadata/doc/registry/Rust-comment annotations and can be reverted by file diff; no migrations/runtime writes.",
+    "F7_user_impact": "Improves local verification determinism and failure specificity only.",
+    "F8_observability": "Evidence captured in multispectrum JSON, task ledgers, and audit-chain rows.",
+    "F9_dependency": "No new dependencies added.",
+    "F10_claim_honesty": "Full verify and hyperscaler readiness remain explicitly nonclaimed.",
+    "F11_docs": "tasks/plan.md and tasks/todo.md updated with repaired and remaining blockers.",
+    "F12_reserved": "not_applicable",
+    "F13_followup": "Next deterministic repair is ADR duplicate-id renumber/supersession cleanup or remaining D-5 blocker lane repair."
+  }
+}

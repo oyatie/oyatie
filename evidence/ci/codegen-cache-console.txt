@@ -1,0 +1,480 @@
+Started
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Agent rust-build-58n4q is provisioned from template rust-build
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  annotations:
+    kubernetes.jenkins.io/last-refresh: "1779730247049"
+  labels:
+    jenkins: "slave"
+    jenkins/label-digest: "a9dd6bfa926552ed5e98a68bfa409cb013e67cf0"
+    jenkins/label: "oya-rust-build"
+    kubernetes.jenkins.io/controller: "http___oya-jenkins_oya-ci-jenkins_svc_cluster_local_8080x"
+  name: "rust-build-58n4q"
+  namespace: "oya-ci-jenkins"
+spec:
+  containers:
+  - args:
+    - "infinity"
+    command:
+    - "sleep"
+    env:
+    - name: "RUSTC_WRAPPER"
+      value: "sccache"
+    - name: "SCCACHE_BUCKET"
+      value: "oya-ci-sccache-shared-prod"
+    - name: "SCCACHE_ENDPOINT"
+      value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
+    - name: "SCCACHE_S3_USE_SSL"
+      value: "false"
+    - name: "SCCACHE_REGION"
+      value: "oya-local"
+    - name: "CARGO_INCREMENTAL"
+      value: "0"
+    - name: "AWS_ACCESS_KEY_ID"
+      valueFrom:
+        secretKeyRef:
+          key: "access_key"
+          name: "seaweedfs-s3"
+    - name: "AWS_SECRET_ACCESS_KEY"
+      valueFrom:
+        secretKeyRef:
+          key: "secret_key"
+          name: "seaweedfs-s3"
+    image: "rust:1-bookworm"
+    name: "rust"
+    resources:
+      limits:
+        cpu: "5"
+        memory: "12Gi"
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - "ALL"
+    volumeMounts:
+    - mountPath: "/workspace-src"
+      name: "repo-src"
+      readOnly: true
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - env:
+    - name: "JENKINS_SECRET"
+      value: "********"
+    - name: "JENKINS_AGENT_NAME"
+      value: "rust-build-58n4q"
+    - name: "JENKINS_WEB_SOCKET"
+      value: "true"
+    - name: "REMOTING_OPTS"
+      value: "-noReconnectAfter 1d"
+    - name: "JENKINS_NAME"
+      value: "rust-build-58n4q"
+    - name: "JENKINS_AGENT_WORKDIR"
+      value: "/home/jenkins/agent"
+    - name: "JENKINS_URL"
+      value: "http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080/"
+    image: "jenkins/inbound-agent:3355.v388858a_47b_33-3-jdk21"
+    name: "jnlp"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  nodeSelector:
+    kubernetes.io/os: "linux"
+  restartPolicy: "Never"
+  securityContext:
+    fsGroup: 1000
+    runAsNonRoot: true
+    runAsUser: 1000
+  volumes:
+  - hostPath:
+      path: "/Users/jasonlee/Developer/source"
+      type: "Directory"
+    name: "repo-src"
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
+
+Running on rust-build-58n4q in /home/jenkins/agent/workspace/oya-ci-codegen
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (cold codegen (agent 1 — build + populate SeaweedFS))
+[Pipeline] timeout
+Timeout set to expire in 30 min
+[Pipeline] {
+[Pipeline] container
+[Pipeline] {
+[Pipeline] sh
++ set -eux
++ export HOME=/home/jenkins/agent/workspace/****-codegen
++ export CARGO_HOME=/home/jenkins/agent/workspace/****-codegen/.cargo
++ git config --global --add safe.directory /workspace-src
++ [ ! -x /tmp/scc/sccache ]
++ curl -fsSL -o /tmp/sccache.tgz https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-aarch64-unknown-linux-musl.tar.gz
++ mkdir -p /tmp/scc
++ tar -xzf /tmp/sccache.tgz -C /tmp/scc --strip-components=1
++ export PATH=/tmp/scc:/usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++ WORK=/home/jenkins/agent/workspace/****-codegen/repo
++ rm -rf /home/jenkins/agent/workspace/****-codegen/repo
++ mkdir -p /home/jenkins/agent/workspace/****-codegen/repo
++ git -C /workspace-src archive --format=tar HEAD
++ tar -x -C /home/jenkins/agent/workspace/****-codegen/repo
++ cd /home/jenkins/agent/workspace/****-codegen/repo
++ export CARGO_TARGET_DIR=/home/jenkins/agent/workspace/****-codegen/repo/target
++ sccache --start-server
+sccache: Starting the server...
++ sccache --zero-stats
+Statistics zeroed.
++ date +%s
++ T0=1779730251
++ cargo build -p oya-http-runtime-hyper-adapter
+info: syncing channel updates for 1.95.0-aarch64-unknown-linux-gnu
+info: latest update on 2026-04-16 for version 1.95.0 (59807616e 2026-04-14)
+info: downloading component clippy
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded atomic-waker v1.1.2
+  Downloaded itoa v1.0.18
+  Downloaded smallvec v1.15.1
+  Downloaded futures-core v0.3.32
+  Downloaded unicode-ident v1.0.24
+  Downloaded pin-project-lite v0.2.17
+  Downloaded tokio-macros v2.7.0
+  Downloaded http-body-util v0.1.3
+  Downloaded http v1.4.0
+  Downloaded fnv v1.0.7
+  Downloaded futures-channel v0.3.32
+  Downloaded equivalent v1.0.2
+  Downloaded httpdate v1.0.3
+  Downloaded proc-macro2 v1.0.106
+  Downloaded indexmap v2.14.0
+  Downloaded http-body v1.0.1
+  Downloaded bytes v1.11.1
+  Downloaded hyper-util v0.1.20
+  Downloaded mio v1.2.0
+  Downloaded syn v2.0.117
+  Downloaded h2 v0.4.14
+  Downloaded tracing v0.1.44
+  Downloaded once_cell v1.21.4
+  Downloaded hashbrown v0.17.1
+  Downloaded libc v0.2.186
+  Downloaded tracing-core v0.1.36
+  Downloaded socket2 v0.6.3
+  Downloaded httparse v1.10.1
+  Downloaded slab v0.4.12
+  Downloaded futures-sink v0.3.32
+  Downloaded tokio-util v0.7.18
+  Downloaded tokio v1.52.3
+  Downloaded hyper v1.9.0
+  Downloaded quote v1.0.45
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling libc v0.2.186
+   Compiling quote v1.0.45
+   Compiling bytes v1.11.1
+   Compiling pin-project-lite v0.2.17
+   Compiling futures-core v0.3.32
+   Compiling itoa v1.0.18
+   Compiling once_cell v1.21.4
+   Compiling hashbrown v0.17.1
+   Compiling tracing-core v0.1.36
+   Compiling http v1.4.0
+   Compiling httparse v1.10.1
+   Compiling futures-sink v0.3.32
+   Compiling mio v1.2.0
+   Compiling socket2 v0.6.3
+   Compiling syn v2.0.117
+   Compiling equivalent v1.0.2
+   Compiling indexmap v2.14.0
+   Compiling http-body v1.0.1
+   Compiling tracing v0.1.44
+   Compiling fnv v1.0.7
+   Compiling slab v0.4.12
+   Compiling atomic-waker v1.1.2
+   Compiling futures-channel v0.3.32
+   Compiling httpdate v1.0.3
+   Compiling smallvec v1.15.1
+   Compiling oya-http-router-kernel v0.1.0 (/home/jenkins/agent/workspace/****-codegen/repo/crates/oya-http-router-kernel)
+   Compiling http-body-util v0.1.3
+   Compiling oya-http-middleware-kernel v0.1.0 (/home/jenkins/agent/workspace/****-codegen/repo/crates/oya-http-middleware-kernel)
+   Compiling tokio-macros v2.7.0
+   Compiling tokio v1.52.3
+   Compiling tokio-util v0.7.18
+   Compiling h2 v0.4.14
+   Compiling hyper v1.9.0
+   Compiling hyper-util v0.1.20
+   Compiling oya-http-runtime-hyper-adapter v0.1.0 (/home/jenkins/agent/workspace/****-codegen/repo/crates/oya-http-runtime-hyper-adapter)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.03s
++ date +%s
++ T1=1779730261
++ hostname
++ echo CODEGEN agent=rust-build-58n4q wall_seconds=10
+CODEGEN agent=rust-build-58n4q wall_seconds=10
++ sccache --show-stats
++ grep -E Compile requests|Cache hits|Cache misses|Cache hits rate
+Compile requests                     48
+Compile requests executed            39
+Cache hits                            0
+Cache misses                         38
+Cache misses (Rust)                  38
+Cache hits rate                    0.00 %
+Cache hits rate (Rust)             0.00 %
+[Pipeline] }
+[Pipeline] // container
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] node
+Agent rust-build-gmsgs is provisioned from template rust-build
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  annotations:
+    kubernetes.jenkins.io/last-refresh: "1779730263020"
+  labels:
+    jenkins: "slave"
+    jenkins/label-digest: "a9dd6bfa926552ed5e98a68bfa409cb013e67cf0"
+    jenkins/label: "oya-rust-build"
+    kubernetes.jenkins.io/controller: "http___oya-jenkins_oya-ci-jenkins_svc_cluster_local_8080x"
+  name: "rust-build-gmsgs"
+  namespace: "oya-ci-jenkins"
+spec:
+  containers:
+  - args:
+    - "infinity"
+    command:
+    - "sleep"
+    env:
+    - name: "RUSTC_WRAPPER"
+      value: "sccache"
+    - name: "SCCACHE_BUCKET"
+      value: "oya-ci-sccache-shared-prod"
+    - name: "SCCACHE_ENDPOINT"
+      value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
+    - name: "SCCACHE_S3_USE_SSL"
+      value: "false"
+    - name: "SCCACHE_REGION"
+      value: "oya-local"
+    - name: "CARGO_INCREMENTAL"
+      value: "0"
+    - name: "AWS_ACCESS_KEY_ID"
+      valueFrom:
+        secretKeyRef:
+          key: "access_key"
+          name: "seaweedfs-s3"
+    - name: "AWS_SECRET_ACCESS_KEY"
+      valueFrom:
+        secretKeyRef:
+          key: "secret_key"
+          name: "seaweedfs-s3"
+    image: "rust:1-bookworm"
+    name: "rust"
+    resources:
+      limits:
+        cpu: "5"
+        memory: "12Gi"
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - "ALL"
+    volumeMounts:
+    - mountPath: "/workspace-src"
+      name: "repo-src"
+      readOnly: true
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - env:
+    - name: "JENKINS_SECRET"
+      value: "********"
+    - name: "JENKINS_AGENT_NAME"
+      value: "rust-build-gmsgs"
+    - name: "JENKINS_WEB_SOCKET"
+      value: "true"
+    - name: "REMOTING_OPTS"
+      value: "-noReconnectAfter 1d"
+    - name: "JENKINS_NAME"
+      value: "rust-build-gmsgs"
+    - name: "JENKINS_AGENT_WORKDIR"
+      value: "/home/jenkins/agent"
+    - name: "JENKINS_URL"
+      value: "http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080/"
+    image: "jenkins/inbound-agent:3355.v388858a_47b_33-3-jdk21"
+    name: "jnlp"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  nodeSelector:
+    kubernetes.io/os: "linux"
+  restartPolicy: "Never"
+  securityContext:
+    fsGroup: 1000
+    runAsNonRoot: true
+    runAsUser: 1000
+  volumes:
+  - hostPath:
+      path: "/Users/jasonlee/Developer/source"
+      type: "Directory"
+    name: "repo-src"
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
+
+Running on rust-build-gmsgs in /home/jenkins/agent/workspace/oya-ci-codegen
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (warm codegen (agent 2 — fresh pod, cache-served codegen))
+[Pipeline] timeout
+Timeout set to expire in 20 min
+[Pipeline] {
+[Pipeline] container
+[Pipeline] {
+[Pipeline] sh
++ set -eux
++ export HOME=/home/jenkins/agent/workspace/****-codegen
++ export CARGO_HOME=/home/jenkins/agent/workspace/****-codegen/.cargo
++ git config --global --add safe.directory /workspace-src
++ [ ! -x /tmp/scc/sccache ]
++ curl -fsSL -o /tmp/sccache.tgz https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-aarch64-unknown-linux-musl.tar.gz
++ mkdir -p /tmp/scc
++ tar -xzf /tmp/sccache.tgz -C /tmp/scc --strip-components=1
++ export PATH=/tmp/scc:/usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++ WORK=/home/jenkins/agent/workspace/****-codegen/repo
++ rm -rf /home/jenkins/agent/workspace/****-codegen/repo
++ mkdir -p /home/jenkins/agent/workspace/****-codegen/repo
++ git -C /workspace-src archive --format=tar HEAD
++ tar -x -C /home/jenkins/agent/workspace/****-codegen/repo
++ cd /home/jenkins/agent/workspace/****-codegen/repo
++ export CARGO_TARGET_DIR=/home/jenkins/agent/workspace/****-codegen/repo/target
++ sccache --start-server
+sccache: Starting the server...
++ sccache --zero-stats
+Statistics zeroed.
++ date +%s
++ T0=1779730266
++ cargo build -p oya-http-runtime-hyper-adapter
+info: syncing channel updates for 1.95.0-aarch64-unknown-linux-gnu
+info: latest update on 2026-04-16 for version 1.95.0 (59807616e 2026-04-14)
+info: downloading component clippy
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded atomic-waker v1.1.2
+  Downloaded itoa v1.0.18
+  Downloaded equivalent v1.0.2
+  Downloaded futures-sink v0.3.32
+  Downloaded fnv v1.0.7
+  Downloaded quote v1.0.45
+  Downloaded httpdate v1.0.3
+  Downloaded tokio-macros v2.7.0
+  Downloaded futures-core v0.3.32
+  Downloaded slab v0.4.12
+  Downloaded http-body-util v0.1.3
+  Downloaded smallvec v1.15.1
+  Downloaded proc-macro2 v1.0.106
+  Downloaded unicode-ident v1.0.24
+  Downloaded tracing-core v0.1.36
+  Downloaded socket2 v0.6.3
+  Downloaded indexmap v2.14.0
+  Downloaded httparse v1.10.1
+  Downloaded tokio-util v0.7.18
+  Downloaded mio v1.2.0
+  Downloaded hyper v1.9.0
+  Downloaded h2 v0.4.14
+  Downloaded http v1.4.0
+  Downloaded syn v2.0.117
+  Downloaded pin-project-lite v0.2.17
+  Downloaded once_cell v1.21.4
+  Downloaded hashbrown v0.17.1
+  Downloaded futures-channel v0.3.32
+  Downloaded http-body v1.0.1
+  Downloaded bytes v1.11.1
+  Downloaded tokio v1.52.3
+  Downloaded libc v0.2.186
+  Downloaded hyper-util v0.1.20
+  Downloaded tracing v0.1.44
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.45
+   Compiling libc v0.2.186
+   Compiling bytes v1.11.1
+   Compiling pin-project-lite v0.2.17
+   Compiling futures-core v0.3.32
+   Compiling itoa v1.0.18
+   Compiling http v1.4.0
+   Compiling once_cell v1.21.4
+   Compiling tracing-core v0.1.36
+   Compiling equivalent v1.0.2
+   Compiling httparse v1.10.1
+   Compiling futures-sink v0.3.32
+   Compiling hashbrown v0.17.1
+   Compiling tracing v0.1.44
+   Compiling indexmap v2.14.0
+   Compiling http-body v1.0.1
+   Compiling fnv v1.0.7
+   Compiling atomic-waker v1.1.2
+   Compiling socket2 v0.6.3
+   Compiling mio v1.2.0
+   Compiling slab v0.4.12
+   Compiling syn v2.0.117
+   Compiling futures-channel v0.3.32
+   Compiling smallvec v1.15.1
+   Compiling httpdate v1.0.3
+   Compiling oya-http-router-kernel v0.1.0 (/home/jenkins/agent/workspace/****-codegen/repo/crates/oya-http-router-kernel)
+   Compiling http-body-util v0.1.3
+   Compiling oya-http-middleware-kernel v0.1.0 (/home/jenkins/agent/workspace/****-codegen/repo/crates/oya-http-middleware-kernel)
+   Compiling tokio-macros v2.7.0
+   Compiling tokio v1.52.3
+   Compiling tokio-util v0.7.18
+   Compiling h2 v0.4.14
+   Compiling hyper v1.9.0
+   Compiling hyper-util v0.1.20
+   Compiling oya-http-runtime-hyper-adapter v0.1.0 (/home/jenkins/agent/workspace/****-codegen/repo/crates/oya-http-runtime-hyper-adapter)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.33s
++ date +%s
++ T1=1779730270
++ hostname
++ echo CODEGEN agent=rust-build-gmsgs wall_seconds=4
+CODEGEN agent=rust-build-gmsgs wall_seconds=4
++ sccache --show-stats
++ grep -E Compile requests|Cache hits|Cache misses|Cache hits rate
+Compile requests                      48
+Compile requests executed             39
+Cache hits                            38
+Cache hits (Rust)                     38
+Cache misses                           0
+Cache hits rate                   100.00 %
+Cache hits rate (Rust)            100.00 %
+[Pipeline] }
+[Pipeline] // container
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS

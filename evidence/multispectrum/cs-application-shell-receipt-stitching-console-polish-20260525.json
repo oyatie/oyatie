@@ -1,0 +1,238 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-RECEIPT-STITCHING-CONSOLE-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-receipt-stitching-console-polish-20260525",
+  "agent": "codex-receipt-stitching-console",
+  "created_at": "2026-05-25T00:00:00-04:00",
+  "slice": "Evidence receipt stitching console polish",
+  "intent": "Turn the audit ledger into the universal FD-001 and Oyatie Cloud proof stream: selectable receipts route to Workflow, Cloud, Mail, Community, Evidence Graph, and Deployment Gates without wiring any production side effects.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "reference_inputs": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    ".omx/artifacts/visual-ralph/oya-workflow-output-bus/after/desktop-workflow-output-bus-before.png",
+    ".omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/desktop-cloud-workload-plane-before.png"
+  ],
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Added a Receipt Stitching Console at the top of the Audit Ledger so Workflow output, Work Hub handoffs, Cloud workload posture, and Deployment Gate packets read as one cohesive proof stream.",
+    "Added selectable receipt source cards with title, receipt id, owner, state, route, and detail binding so the proof stream feels like an operational console rather than static copy.",
+    "Added local receipt routes to Workflow, Oyatie Cloud, Mail brief, Community note, Evidence Graph, Deployment Gates, and packet sealing; Mail/Community reuse the existing Work Hub handoff bus.",
+    "Synchronized receipt selection and routing with Audit Ledger status, Product Activity Spine, command/activity feed, and Work Hub draft state while preserving the visual-only boundary.",
+    "Added responsive CSS using the existing dense Bominal/Oyatie command-surface tokens and verified desktop/tablet/mobile no-overflow behavior."
+  ],
+  "before_metrics": {
+    "issue": "The dashboard had separate Workflow output, Cloud workload, Work Hub, Evidence, and Deployment Gate interactions, but the Audit Ledger did not yet expose a single operator-facing receipt stitcher proving they are one FD-001 tenant workload product on Oyatie Cloud.",
+    "prior_evidence": "evidence/multispectrum/cs-application-shell-cloud-tenant-workload-plane-polish-20260525.json"
+  },
+  "after_metrics": [
+    {
+      "name": "desktop: receipt console visible",
+      "pass": true,
+      "detail": "{\"x\":266,\"y\":294.59375,\"width\":1096.5,\"height\":172.125}"
+    },
+    {
+      "name": "desktop: no page horizontal overflow",
+      "pass": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "desktop: cloud receipt updates detail",
+      "pass": true,
+      "detail": "Cloud tenant workload posture"
+    },
+    {
+      "name": "desktop: Mail action opens Work Hub Mail",
+      "pass": true,
+      "detail": "Mail"
+    },
+    {
+      "name": "desktop: Mail handoff source is Evidence spine",
+      "pass": true,
+      "detail": "Evidence spine \u2192 Mail handoff #1"
+    },
+    {
+      "name": "desktop: Mail draft inserted from receipt",
+      "pass": true,
+      "detail": "Evidence spine \u2192 MailReceipt brief \u00b7 Cloud tenant workload postureREC-FD001-CLOUD-009 proves Oyatie Cloud workload plane \u2192 gates. This is a local-only reviewer mail draft; no evidence vault or mail send occurred.draftREC-FD001-CLOUD-009 \u00b7 receipt stitching console"
+    },
+    {
+      "name": "desktop: Graph action opens object graph",
+      "pass": true,
+      "detail": "Object graph opened from shell navigation"
+    },
+    {
+      "name": "desktop: Gates action opens deployment gates",
+      "pass": true,
+      "detail": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud."
+    },
+    {
+      "name": "desktop: Seal action updates visible control",
+      "pass": true,
+      "detail": "Packet sealed"
+    },
+    {
+      "name": "tablet: receipt console visible",
+      "pass": true,
+      "detail": "{\"x\":53,\"y\":332.140625,\"width\":918,\"height\":426.03125}"
+    },
+    {
+      "name": "tablet: no page horizontal overflow",
+      "pass": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "tablet: cloud receipt updates detail",
+      "pass": true,
+      "detail": "Cloud tenant workload posture"
+    },
+    {
+      "name": "tablet: Mail action opens Work Hub Mail",
+      "pass": true,
+      "detail": "Mail"
+    },
+    {
+      "name": "tablet: Mail handoff source is Evidence spine",
+      "pass": true,
+      "detail": "Evidence spine \u2192 Mail handoff #1"
+    },
+    {
+      "name": "tablet: Mail draft inserted from receipt",
+      "pass": true,
+      "detail": "Evidence spine \u2192 MailReceipt brief \u00b7 Cloud tenant workload postureREC-FD001-CLOUD-009 proves Oyatie Cloud workload plane \u2192 gates. This is a local-only reviewer mail draft; no evidence vault or mail send occurred.draftREC-FD001-CLOUD-009 \u00b7 receipt stitching console"
+    },
+    {
+      "name": "tablet: Graph action opens object graph",
+      "pass": true,
+      "detail": "Object graph opened from shell navigation"
+    },
+    {
+      "name": "tablet: Gates action opens deployment gates",
+      "pass": true,
+      "detail": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud."
+    },
+    {
+      "name": "tablet: Seal action updates visible control",
+      "pass": true,
+      "detail": "Packet sealed"
+    },
+    {
+      "name": "mobile: receipt console visible",
+      "pass": true,
+      "detail": "{\"x\":40,\"y\":431.046875,\"width\":310,\"height\":749}"
+    },
+    {
+      "name": "mobile: no page horizontal overflow",
+      "pass": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "mobile: cloud receipt updates detail",
+      "pass": true,
+      "detail": "Cloud tenant workload posture"
+    },
+    {
+      "name": "mobile: Mail action opens Work Hub Mail",
+      "pass": true,
+      "detail": "Mail"
+    },
+    {
+      "name": "mobile: Mail handoff source is Evidence spine",
+      "pass": true,
+      "detail": "Evidence spine \u2192 Mail handoff #1"
+    },
+    {
+      "name": "mobile: Mail draft inserted from receipt",
+      "pass": true,
+      "detail": "Evidence spine \u2192 MailReceipt brief \u00b7 Cloud tenant workload postureREC-FD001-CLOUD-009 proves Oyatie Cloud workload plane \u2192 gates. This is a local-only reviewer mail draft; no evidence vault or mail send occurred.draftREC-FD001-CLOUD-009 \u00b7 receipt stitching console"
+    },
+    {
+      "name": "mobile: Graph action opens object graph",
+      "pass": true,
+      "detail": "Object graph opened from shell navigation"
+    },
+    {
+      "name": "mobile: Gates action opens deployment gates",
+      "pass": true,
+      "detail": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud."
+    },
+    {
+      "name": "mobile: Seal action updates visible control",
+      "pass": true,
+      "detail": "Packet sealed"
+    },
+    {
+      "name": "console has no errors",
+      "pass": true,
+      "detail": "[]"
+    }
+  ],
+  "browser_artifacts": {
+    "desktop_before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/desktop-receipt-console-before.png",
+    "desktop_mail_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/desktop-mail-route-after.png",
+    "desktop_graph_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/desktop-graph-route-after.png",
+    "tablet_before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/tablet-receipt-console-before.png",
+    "tablet_mail_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/tablet-mail-route-after.png",
+    "tablet_graph_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/tablet-graph-route-after.png",
+    "mobile_before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/mobile-receipt-console-before.png",
+    "mobile_mail_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/mobile-mail-route-after.png",
+    "mobile_graph_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/mobile-graph-route-after.png"
+  },
+  "browser_report": ".omx/artifacts/visual-ralph/oya-receipt-stitching-console/after/report.json",
+  "visual_ralph_verdict": {
+    "score": 94,
+    "verdict": "PASS",
+    "category_match": "Bominal-grade dense evidence console integrated with FD-001 product delivery and Oyatie Cloud substrate proof",
+    "differences": [
+      "Reference Bominal is a standalone local app; this slice intentionally keeps Oyatie shell chrome, audit ledger, Product Activity Spine, and local-only proof language visible.",
+      "Receipt routes create browser-local visual state and draft previews rather than real audit vault, deployment, mail, community, billing, or cloud-provider mutations by requirement."
+    ],
+    "suggestions": [
+      "Next slices can make Finance, Identity, Intelligence, and People Ops emit identical receipt cards into this stitching console.",
+      "A future persistent mock store could retain selected receipt/source/action state across reloads once the prototype moves beyond visual-only state.",
+      "A keyboard shortcut layer could make receipt routing feel even closer to a hyperscaler operator console."
+    ],
+    "reasoning": "The console is visible in the Audit Ledger fold, uses the established dense command-surface hierarchy, and proves cross-surface routes through browser QA at 1440, 1024, and 390 widths with no horizontal overflow or console errors. It directly embodies the latest direction that FD-001 remains the product goal while Oyatie Cloud proves the platform by hosting those microservices as tenant workloads."
+  },
+  "verification": [
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "command": "target/debug/oya git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 passed"
+    },
+    {
+      "command": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "command": "node /tmp/oya-receipt-stitching-console-qa.mjs",
+      "status": "passed",
+      "summary": "desktop/tablet/mobile receipt select, Mail handoff, Evidence Graph route, Deployment Gates route, Seal action, no console errors, no horizontal overflow"
+    }
+  ],
+  "local_only_boundary": "No workflow execution, mail send, community publish, backend write, audit vault write, deploy, DNS, billing, IAM, or cloud-provider mutation is wired; all receipt-stitching actions are browser visual state."
+}

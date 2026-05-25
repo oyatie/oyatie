@@ -1,0 +1,142 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-POLICY-AUDIT-ANCHOR-POLISH-20260525",
+  "schema_version": "1.0",
+  "evidence_id": "cs-application-shell-policy-audit-anchor-polish-20260525",
+  "bundle": "CS-APPLICATION-SHELL-POLICY-AUDIT-ANCHOR-POLISH-20260525",
+  "agent": "codex-oyatie-policy-audit-anchor-polish",
+  "created_at": "2026-05-25T04:29:53.822Z",
+  "slice": "Policy Access + Audit Ledger weak-anchor visual/UX polish",
+  "product_direction": "FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the hyperscaler-grade dogfood substrate that proves the platform can host real production tenants.",
+  "changed_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "before_audit": {
+    "policy_access": {
+      "direct_buttons": 0,
+      "policy_anchor_actions": 0,
+      "cards": 0,
+      "summary": "Sparse static role envelope table with no direct controls."
+    },
+    "audit_ledger": {
+      "direct_buttons": 0,
+      "audit_anchor_actions": 0,
+      "cards": 0,
+      "receipts": 5,
+      "summary": "Static receipt list with no route controls or status feedback."
+    }
+  },
+  "after_audit": {
+    "policy_access": {
+      "direct_buttons": 15,
+      "policy_anchor_actions": 15,
+      "cards": 6,
+      "status_after_evidence_click": "Policy evidence spine opened locally",
+      "mentions_fd001": true,
+      "mentions_oyatie_cloud": true,
+      "mentions_unwired_local_state": true
+    },
+    "audit_ledger": {
+      "direct_buttons": 14,
+      "audit_anchor_actions": 14,
+      "cards": 3,
+      "receipts": 5,
+      "status_after_inspect_click": "REC-NTW-4182-A inspected locally",
+      "status_after_seal_click": "Receipt packet sealed visually \u00b7 no vault mutation",
+      "mentions_fd001": true,
+      "mentions_oyatie_cloud": true,
+      "mentions_unwired_local_state": true
+    },
+    "ssr_curl_counts": {
+      "policy_anchor_actions": 15,
+      "audit_anchor_actions": 14,
+      "fd001_mentions": 37,
+      "oyatie_cloud_mentions": 16,
+      "policy_status_nodes": 1,
+      "audit_status_nodes": 1
+    }
+  },
+  "visual_evidence": {
+    "before_screenshots": [
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/before/screenshots/policy-access-before.png",
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/before/screenshots/audit-ledger-before.png"
+    ],
+    "after_screenshots": [
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/after/screenshots/policy-access-after.png",
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/after/screenshots/audit-ledger-after.png",
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/after/screenshots/audit-ledger-after-interacted.png"
+    ],
+    "diff_overlays": [
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/after/diffs/policy-access-before-after-diff.png",
+      ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/after/diffs/audit-ledger-before-after-diff.png"
+    ],
+    "pixel_diff": {
+      "policy": {
+        "before": {
+          "width": 1097,
+          "height": 254
+        },
+        "after": {
+          "width": 1097,
+          "height": 621
+        },
+        "compared": {
+          "width": 1097,
+          "height": 254
+        },
+        "mismatch": 23325,
+        "mismatchRatio": 0.083711
+      },
+      "audit": {
+        "before": {
+          "width": 1097,
+          "height": 227
+        },
+        "after": {
+          "width": 1097,
+          "height": 487
+        },
+        "compared": {
+          "width": 1097,
+          "height": 227
+        },
+        "mismatch": 27926,
+        "mismatchRatio": 0.112144
+      }
+    },
+    "visual_verdict": {
+      "score": 92,
+      "verdict": "pass",
+      "reasoning": "Both weak anchors now present dense Bominal-grade control boards, connected routes, receipt/status feedback, and cohesive FD-001/Oyatie Cloud dogfood-substrate language instead of sparse static lists.",
+      "category_match": "enterprise command dashboard anchor polish"
+    },
+    "browser_smoke_json": ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/after/policy-audit-anchor-smoke.json",
+    "before_audit_json": ".omx/artifacts/visual-ralph/oya-policy-audit-anchor-polish/before/anchor-before-audit.json"
+  },
+  "verification": {
+    "commands_passed": [
+      "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "cargo test -p oya-application-shell-frontend-prototype",
+      "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "node /tmp/oya_policy_audit_after.cjs"
+    ],
+    "browser_console": [
+      {
+        "type": "info",
+        "text": "Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg."
+      }
+    ],
+    "page_errors": [],
+    "request_failures": []
+  },
+  "known_limits": [
+    "This slice upgrades Policy Access and Audit Ledger anchors only; it does not assert the full dashboard mockup is complete.",
+    "Interactions are intentionally local visual state and route activation; no backend, workflow execution, cloud provider, deploy, billing, or receipt vault wiring was added.",
+    "Console info about missing /pkg is expected in fallback SSR smoke because the selective WASM island package is not served by the local container."
+  ]
+}

@@ -21,7 +21,7 @@ Final verdict preview: NEEDS-WAVE-4. The corpus is broad and substantially remed
 - Scoring dimensions: presence, depth, cross-reference density, policy/contract/test/threat evidence, and registry conformance
 - Cross-reference density: count of explicit ADR, microservice, registry/spec, journey, persona, compliance, policy, and contract anchors
 - Depth grading: A-rigorous >=120 lines with broad markers and cross refs; B-complete >=80 lines; C-partial >=40 lines; D-thin >0; F-missing
-- Named-gap policy: every incomplete row names the concrete missing evidence rather than using generic TODO language
+- Named-gap policy: every incomplete row names the concrete missing evidence rather than using generic follow-up language
 - Stop condition: scorecard file >=3000 lines, lifecycle evidence commands run, no source file edits beyond this scorecard
 
 Workstreams defined for this audit: ADR decisions, microservice specifications, journeys, personas, compliance packs, standards, capability-tier registry, Foundry pipeline specs, CI gate crates, customer-facing material, tests/benchmarks, cumulative remediation line estimate, Wave-4 priority queue, and final verdict.
@@ -1556,11 +1556,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 487 refs / 2222 lines = 21.92 per 100 lines
 - artifact: `docs/decisions/ADR-0254-deployment-model-spectrum.md`
 - named gaps: none named; retain in regression audit
-### ADR-0255 — ADR-0255-amendment-library-first-network-opt-in-clarification.md
+### ADR-0255 — ADR-0355-amendment-library-first-network-opt-in-clarification.md
 - status: Proposed
 - depth: A-rigorous; lines=1187; substance_markers=10
 - cross-ref-density: 244 refs / 1187 lines = 20.56 per 100 lines
-- artifact: `docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md`
+- artifact: `docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0256
 - status: MISSING

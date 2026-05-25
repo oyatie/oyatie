@@ -1,0 +1,19 @@
+[package]
+name = "oya-enterprise-suite-cloud-deployment-evidence"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-enterprise-suite-cloud-deployment-manifest = { path = "../oya-enterprise-suite-cloud-deployment-manifest" }
+oya-enterprise-suite-tenant-workload-manifest = { path = "../oya-enterprise-suite-tenant-workload-manifest" }
+
+[lib]
+name = "oya_enterprise_suite_cloud_deployment_evidence"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

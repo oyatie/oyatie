@@ -117,7 +117,7 @@ pub struct Jwk {
     pub kty: String,
     pub alg: String,
     #[serde(default)]
-    pub r#use: Option<String>,
+    pub r#use: Option<String>, // data_class: INTERNAL_ONLY
     /// Base64url-encoded modulus (RSA) or x-coordinate (EC) etc. We keep this
     /// opaque at the kernel; the `JwsVerifier` adapter knows how to decode.
     #[serde(default)]

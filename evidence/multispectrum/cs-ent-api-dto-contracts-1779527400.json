@@ -1,0 +1,350 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-API-001",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac",
+  "freshness_unix": 1779527400,
+  "timestamp_iso": "2026-05-23T09:10:00Z",
+  "scope": [
+    "microservices/hr/crates/oya-hr-employment-api",
+    "microservices/payroll/crates/oya-payroll-run-api",
+    "microservices/accounting/crates/oya-accounting-journal-api",
+    "microservices/hr/catalog/oya-hr-employment-api.yaml",
+    "microservices/payroll/catalog/oya-payroll-run-api.yaml",
+    "microservices/accounting/catalog/oya-accounting-journal-api.yaml",
+    "registry/catalog/oya-hr-employment-api.yaml",
+    "registry/catalog/oya-payroll-run-api.yaml",
+    "registry/catalog/oya-accounting-journal-api.yaml",
+    "registry/dependency-rationales.json",
+    "specs/microservices/hr.json",
+    "specs/microservices/payroll.json",
+    "specs/microservices/accounting.json",
+    "Cargo.toml",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md"
+  ],
+  "summary": "Transport-neutral API DTO contract crates for HR, payroll, and accounting foundation flows.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The API crates expose plain DTOs, enum mappings, and conversion methods into existing domain/app inputs instead of introducing a router or framework prematurely.",
+        "Contract tests assert observable JSON field names and enum labels so accidental public-shape drift is caught early."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Flat package names oya-hr-employment-api, oya-payroll-run-api, and oya-accounting-journal-api preserve per-service API ownership.",
+        "The slice creates provider-neutral boundary contracts before cloud/runtime adapters, matching API-first integration sequencing without deployment claims."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/{hr,payroll,accounting}/crates/*-api/tests/contracts.rs",
+      "failing_fixture_id": "serde contract assertions for renamed fields and enum labels",
+      "diagnostic_asserted": "Tests fail if camelCase field names, SCREAMING_SNAKE_CASE enum labels, validation error envelope shape, or domain/app conversion behavior drifts.",
+      "findings": [
+        "cargo test --locked -p oya-hr-employment-api -p oya-payroll-run-api -p oya-accounting-journal-api passes 10 integration tests."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Request types are named after business actions: OnboardEmployeeRequest, LaborCompliancePlanRequest, PayrollTrialCloseRequest, PayrollJournalDraftRequest, JournalPostRequest, PayrollPostingRequest, and VatDeadlineRequest.",
+        "Each request owns an into_domain or into_command conversion, keeping handler code later thin and predictable."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Verification passed: cargo fmt, locked cargo test for all three API crates, clippy for each API crate with --all-targets and -D warnings, cargo tree, governance gates, cargo deny, JSON parse, and quality-marker scan.",
+        "Cargo.lock was refreshed by cargo for the new workspace package entries and already-present serde dependencies."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "add an HTTP framework now",
+        "publish OpenAPI files without typed Rust DTOs",
+        "land Rust DTO contracts first"
+      ],
+      "selected_rationale": "Rust DTO contracts give compile-time conversion checks and serde shape tests without coupling to transport or deployment choices.",
+      "rejected_reasons": [
+        "An HTTP framework would add runtime/auth/deployment concerns that need separate evidence.",
+        "OpenAPI-only files would not prove conversion into existing domain/app inputs."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "api4_unrestricted_resource_consumption_and_api6_sensitive_business_flows",
+      "severity_max": "medium",
+      "secrets_touched": false,
+      "tenant_data_touched": true,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "DTOs carry tenant, legal-entity, evidence, source digest, and financial fields explicitly; runtime auth and rate limiting are not claimed by this transport-neutral slice.",
+        "No credentials, HTTP listener, external client, database, payment rail, or filing connector was introduced."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "cold-path",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-api-dto-contracts",
+      "regression_baseline": "No prior HR/payroll/accounting API DTO crates existed; no served latency or throughput claim is made.",
+      "findings": [
+        {
+          "summary": "DTO conversion is synchronous value movement over bounded request vectors; no network, async runtime, persistence, or polling loop introduced."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "internal_only",
+        "pii_identifying",
+        "financial"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a",
+      "regulatory_packs_impacted": [
+        "kr-labor",
+        "kr-payroll",
+        "financial-controls"
+      ],
+      "official_sources_checked": [
+        "IRS Pub 15 (2026)",
+        "IRS Pub 15-T (2026)",
+        "DOL FLSA recordkeeping",
+        "FASB standards",
+        "IFRS IAS 1",
+        "SEC ICFR",
+        "Korea MOEL/Labor Standards Act"
+      ],
+      "findings": [
+        "All new public DTO fields carry data_class comments and catalogs classify HR as PII, payroll as PII plus FINANCIAL, and accounting as FINANCIAL.",
+        "The API layer does not claim legal compliance, tax-rate correctness, statutory filing, financial statement export, or live access-control enforcement."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Additive workspace members and catalog rows can be reverted by removing the three API crate directories, registry/per-service catalog rows, spec AC-07/decision-log additions, and Cargo.toml members. No migration or persisted data exists."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "DTO contracts include validation error envelope shapes but do not emit logs, metrics, traces, or audit-chain records at runtime. Runtime observability remains a later adapter slice."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No external endpoint is deployed yet, so compatibility risk is limited to workspace consumers. The tests pin initial public JSON shapes before any runtime adapter ships."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "API DTO crates are useful before cloud integration only if they remain transport-neutral and prove conversion into current app/domain inputs.",
+      "premise_evidence_ref": "tasks/enterprise-microservices-plan.md#CS-ENT-API-001 + cargo tree output for each API crate",
+      "do_nothing_consequence": "Later HTTP/cloud adapters would either duplicate request contracts or bypass typed conversion into domain/app layers.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Waiting for deployed HTTP adapters would couple contract work to auth, routing, SLO, and infrastructure evidence."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Fits compositional ERP sequencing by placing a serializable admission boundary above domain and app foundations while preserving service separation."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Package names follow oya-<microservice>-<bounded-context>-api."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "tasks/enterprise-microservices-plan.md and tasks/enterprise-microservices-todo.md document the API DTO slice and non-claims."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Implementation resides under microservices/hr|payroll|accounting/crates/*-api with matching per-service and central catalog rows."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No HTTP framework, router, auth middleware, persistence, Workflow client, audit emitter, filing connector, payment rail, or cloud runtime introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "API crates use workspace serde for serialization, serde_json only in tests, and inward dependencies on same-service app/domain crates where conversion tests require them.",
+        "registry/dependency-rationales.json explicitly allows serde and serde_json for the three transport-neutral API DTO crates; dependency-seam passes after that policy row update."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "HR, Payroll, and Accounting specs gained AC-07 API DTO acceptance refs pointing to existing contract tests."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Conversion methods are deterministic field mappings with enum matches and no hidden global state."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test --locked -p oya-hr-employment-api -p oya-payroll-run-api -p oya-accounting-journal-api",
+      "status": "pass",
+      "tests": "10 integration tests"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-hr-employment-api --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-payroll-run-api --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo clippy --locked -p oya-accounting-journal-api --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo tree -p oya-hr-employment-api; cargo tree -p oya-payroll-run-api; cargo tree -p oya-accounting-journal-api",
+      "status": "pass",
+      "notes": "serde is the only new normal third-party dependency; serde_json is test-only; dependencies otherwise point inward to same-service app/domain crates"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "status": "pass",
+      "notes": "428 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate slo-coverage --registry registry/catalog",
+      "status": "pass",
+      "notes": "560 records"
+    },
+    {
+      "command": "./bin/oya gate validate claim-ceiling --registry registry/catalog",
+      "status": "pass",
+      "notes": "560 records"
+    },
+    {
+      "command": "./bin/oya gate validate cohesion --workspace Cargo.toml --registry registry/catalog --contracts docs/machine-readable/contracts.json",
+      "status": "pass",
+      "notes": "26 contracts, 10 implemented sources"
+    },
+    {
+      "command": "cargo deny check",
+      "status": "pass_with_pre_existing_warnings",
+      "notes": "duplicate cpufeatures plus pre-existing cloud IAM/KMS wildcard path warnings; exit 0"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-api-dto-contracts-1779527400.json --severity error",
+      "status": "pass",
+      "notes": "6 subchecks, 5 pass, 1 skipped, 0 diagnostics, 0 blocking after registry/dependency-rationales allowed API DTO serde usage"
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "status": "blocked_pre_existing",
+      "notes": "exit 1: MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }"
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml",
+      "status": "blocked_pre_existing",
+      "notes": "exit 1: UnknownUnannotatedField crates/oya-audit-chain-emission-kernel/src/lib.rs ChainCoordinate.pack"
+    },
+    {
+      "command": "python3 JSON parse evidence + specs + audit-chain JSONL",
+      "status": "pass",
+      "notes": "API evidence, dependency-rationales registry, three microservice specs, and current audit-chain JSONL parsed"
+    },
+    {
+      "command": "quality-marker scan over API slice",
+      "status": "pass",
+      "notes": "no low-quality marker terms found in API slice paths"
+    },
+    {
+      "command": "Oya VCS status/verify/done/promote transcript parse",
+      "status": "pass",
+      "notes": "evidence/vcs/cs-ent-api-dto-contracts-oya-vcs-lifecycle-20260523.json; all commands exit 0 and status accepted; registry/vcs event-log persistence not asserted"
+    }
+  ],
+  "remaining_risks": [
+    "No deployed HTTP route, auth policy, rate limit, storage, workflow dispatch, statutory filing, or SLO evidence claimed.",
+    "OpenAPI/proto wire specifications remain pending and should align to these DTO shapes before runtime adapters ship.",
+    "Full oya verify --ci-required is not claimed because broad repo has known pre-existing catalog/data-class blockers."
+  ],
+  "verdict": "READY-FOR-LOCAL-PROMOTION",
+  "artifacts_attached": {
+    "tests": [
+      "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs",
+      "microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs",
+      "microservices/accounting/crates/oya-accounting-journal-api/tests/contracts.rs"
+    ],
+    "oya_vcs_lifecycle_transcript": "evidence/vcs/cs-ent-api-dto-contracts-oya-vcs-lifecycle-20260523.json"
+  }
+}

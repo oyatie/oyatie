@@ -76,6 +76,8 @@ enforced_by:
 decision_owner: council-quality
 ---
 
+# ADR-0324: Anti-Script Anti-Template Doctrine
+
 ## Status
 
 Proposed (2026-05-20). Applies to all in-scope content (per ADR-0322 scope)
@@ -140,7 +142,7 @@ the CI mechanisms that detect them.
   a template body; required four-PR remediation before the W3-G ADR cluster
   could land.
 
-## Decision Summary
+## Decision
 
 The following are CATEGORICALLY forbidden as authoring mechanisms for
 substantive content artifacts:
@@ -176,6 +178,10 @@ The doctrine is enforced through three complementary mechanisms:
    commit hook detect script-driven write patterns and BLOCK them.
 3. **Template-stamping detector** (per ADR-0322 §D-7) — body-level
    detection of the symptoms of an undetected script.
+
+## Consequences
+
+Categorically forbidding script- and template-driven authoring of substantive content (AP-1..AP-6) means contributors must author each artifact per-name with bespoke substance, and the provenance and template-stamping detectors will block offending pull requests; the detailed mechanics, failure modes, and migration path below enumerate the operational consequences of that prohibition.
 
 ## Detailed Mechanics
 
@@ -724,7 +730,7 @@ A provenance record for a single-artifact authoring run:
 
 ```json
 {
-  "artifact_path": "docs/decisions/ADR-0399-hypothetical-doctrine.md",
+  "artifact_path": "docs/decisions/ADR-NNNN-hypothetical-doctrine.md",
   "author_principal": "claude-opus-4-7@dispatcher-instance-19",
   "tool_chain": [
     {
@@ -742,7 +748,7 @@ A provenance record for a single-artifact authoring run:
     {
       "tool": "claude-opus-4-7",
       "operation": "write",
-      "target_path": "docs/decisions/ADR-0399-hypothetical-doctrine.md",
+      "target_path": "docs/decisions/ADR-NNNN-hypothetical-doctrine.md",
       "timestamp": "2026-05-20T14:08:55.000Z"
     }
   ],

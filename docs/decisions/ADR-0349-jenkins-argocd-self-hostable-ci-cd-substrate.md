@@ -2,7 +2,15 @@
 id: ADR-0349
 title: Jenkins (LTS) + ArgoCD canonical self-hostable CI/CD substrate (Jenkins augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - ops-platform
+  - ops-sre-reliability
+  - axis-cloud-iac
+  - axis-observability
+  - council-security
 owners:
   - council-architecture
   - ops-platform
@@ -192,7 +200,7 @@ The decision does not retire GitHub Actions. The decision does not retire `kubec
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: GitHub Actions cannot serve air-gap, on-prem, colo, or oyatie-as-provider contexts
 
@@ -259,7 +267,7 @@ Per ADR-0242 (oyatie-is-a-tenant), ADR-0244 (tenant scoping), and the Amazon-sha
 - **A.9.10** Does not change Bominal corpus posture; Bominal authors its sibling rename ADR independently per `feedback_bominal_inheritance_precedence`.
 - **A.9.11** Does not impose Jenkins X, Tekton, Flux, Spinnaker, or any SaaS CI as alternatives; each is rejected with named reasons in §F below.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -357,7 +365,7 @@ B2.040. The Bominal parallel corpus authors its sibling Jenkins + ArgoCD ADR ind
 - This ADR does not change the K8s-everywhere runtime substrate per ADR-0254.
 - This ADR does not introduce a new programming language or build tool beyond the operationally familiar Jenkinsfile Groovy + JCasC YAML + ArgoCD CRDs.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 

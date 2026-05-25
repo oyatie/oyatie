@@ -1,0 +1,222 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-CLOUD-TENANT-WORKLOAD-PLANE-POLISH-20260525",
+  "schema": "oyatie.visual-ralph.evidence.v1",
+  "id": "cs-application-shell-cloud-tenant-workload-plane-polish-20260525",
+  "agent": "codex-cloud-tenant-workload-plane",
+  "created_at": "2026-05-25T00:00:00-04:00",
+  "slice": "Oyatie Cloud tenant workload plane polish",
+  "intent": "Make Oyatie Cloud visibly host FD-001 microservices as dogfood tenant workloads and route those hosted workloads back into Workflow, Mail, Community, Evidence, and deployment gates without wiring production side effects.",
+  "product_direction": "Oyatie will build a hyperscaler-grade cloud substrate and dogfood all FD-001 microservices as tenant workloads on that substrate. FD-001 product delivery remains the master-plan product goal; Oyatie Cloud is the substrate that proves the platform can host real production tenants.",
+  "reference_inputs": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    ".omx/artifacts/visual-ralph/oya-cross-surface-action-spine/reference/workflow-studio.png",
+    ".omx/artifacts/visual-ralph/oya-workflow-output-bus/after/desktop-workflow-output-bus-before.png"
+  ],
+  "files_changed": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "implementation_summary": [
+    "Replaced the Cloud Ops workload table with a visible FD-001 Tenant Workload Plane that names Workflow, built-in Comms, Evidence, and Identity as tenant workloads on Oyatie Cloud cells.",
+    "Added selectable workload cards with service, cell, route, receipt, and state metadata so the cloud substrate proof reads as an operational cockpit rather than a generic cloud widget.",
+    "Added local workload routes to Workflow, Mail brief, Community, Evidence, and Deployment Gates; Mail/Community routes insert local drafts through the existing Work Hub handoff bus.",
+    "Synchronized workload selection with cockpit status, Product Activity Spine, command shell status, activity feed, and detail receipts while preserving no backend/deploy/cloud mutation.",
+    "Added responsive CSS for the tenant workload plane using existing Bominal/dense command-surface tokens and verified desktop/tablet/mobile no-overflow behavior."
+  ],
+  "before_metrics": {
+    "issue": "Oyatie Cloud already showed topology and generic services, but FD-001 microservices did not feel explicitly hosted as tenant workloads with direct product-surface routes.",
+    "prior_evidence": "evidence/multispectrum/cs-application-shell-workflow-output-bus-polish-20260525.json"
+  },
+  "after_metrics": [
+    {
+      "name": "desktop: tenant workload plane visible",
+      "pass": true,
+      "detail": "{\"x\":900.625,\"y\":444.140625,\"width\":461.875,\"height\":440.90625}"
+    },
+    {
+      "name": "desktop: no page horizontal overflow",
+      "pass": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "desktop: Comms workload updates detail",
+      "pass": true,
+      "detail": "messenger-mail-community"
+    },
+    {
+      "name": "desktop: Mail route opens Work Hub Mail",
+      "pass": true,
+      "detail": "Mail"
+    },
+    {
+      "name": "desktop: Mail handoff keeps cloud source",
+      "pass": true,
+      "detail": "Oyatie Cloud \u2192 Mail handoff #1"
+    },
+    {
+      "name": "desktop: Mail draft inserted from cloud workload",
+      "pass": true,
+      "detail": "Oyatie Cloud \u2192 MailSubstrate brief \u00b7 Built-in communicationsmessenger-mail-community is running as an FD-001 tenant workload in us-east-2 + kr-seoul. Messenger/Mail/Community handoff bus. Receipt REC-COMMS-HANDOFF-006 is attached locally; no cloud or mail mutation executed.draftREC-COMMS-HANDOFF-006 \u00b7 cloud workload plane local draft"
+    },
+    {
+      "name": "desktop: Evidence route updates global activity",
+      "pass": true,
+      "detail": "Evidence spine \u2192 evidence route opened locally \u00b7 REC-FD001-CLOUD-009"
+    },
+    {
+      "name": "desktop: Gates route reaches deployment gates",
+      "pass": true,
+      "detail": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud."
+    },
+    {
+      "name": "tablet: tenant workload plane visible",
+      "pass": true,
+      "detail": "{\"x\":53,\"y\":611.875,\"width\":918,\"height\":428.46875}"
+    },
+    {
+      "name": "tablet: no page horizontal overflow",
+      "pass": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "tablet: Comms workload updates detail",
+      "pass": true,
+      "detail": "messenger-mail-community"
+    },
+    {
+      "name": "tablet: Mail route opens Work Hub Mail",
+      "pass": true,
+      "detail": "Mail"
+    },
+    {
+      "name": "tablet: Mail handoff keeps cloud source",
+      "pass": true,
+      "detail": "Oyatie Cloud \u2192 Mail handoff #1"
+    },
+    {
+      "name": "tablet: Mail draft inserted from cloud workload",
+      "pass": true,
+      "detail": "Oyatie Cloud \u2192 MailSubstrate brief \u00b7 Built-in communicationsmessenger-mail-community is running as an FD-001 tenant workload in us-east-2 + kr-seoul. Messenger/Mail/Community handoff bus. Receipt REC-COMMS-HANDOFF-006 is attached locally; no cloud or mail mutation executed.draftREC-COMMS-HANDOFF-006 \u00b7 cloud workload plane local draft"
+    },
+    {
+      "name": "tablet: Evidence route updates global activity",
+      "pass": true,
+      "detail": "Evidence spine \u2192 evidence route opened locally \u00b7 REC-FD001-CLOUD-009"
+    },
+    {
+      "name": "tablet: Gates route reaches deployment gates",
+      "pass": true,
+      "detail": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud."
+    },
+    {
+      "name": "mobile: tenant workload plane visible",
+      "pass": true,
+      "detail": "{\"x\":40,\"y\":908.03125,\"width\":317.734375,\"height\":853.9375}"
+    },
+    {
+      "name": "mobile: no page horizontal overflow",
+      "pass": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "mobile: Comms workload updates detail",
+      "pass": true,
+      "detail": "messenger-mail-community"
+    },
+    {
+      "name": "mobile: Mail route opens Work Hub Mail",
+      "pass": true,
+      "detail": "Mail"
+    },
+    {
+      "name": "mobile: Mail handoff keeps cloud source",
+      "pass": true,
+      "detail": "Oyatie Cloud \u2192 Mail handoff #1"
+    },
+    {
+      "name": "mobile: Mail draft inserted from cloud workload",
+      "pass": true,
+      "detail": "Oyatie Cloud \u2192 MailSubstrate brief \u00b7 Built-in communicationsmessenger-mail-community is running as an FD-001 tenant workload in us-east-2 + kr-seoul. Messenger/Mail/Community handoff bus. Receipt REC-COMMS-HANDOFF-006 is attached locally; no cloud or mail mutation executed.draftREC-COMMS-HANDOFF-006 \u00b7 cloud workload plane local draft"
+    },
+    {
+      "name": "mobile: Evidence route updates global activity",
+      "pass": true,
+      "detail": "Evidence spine \u2192 evidence route opened locally \u00b7 REC-FD001-CLOUD-009"
+    },
+    {
+      "name": "mobile: Gates route reaches deployment gates",
+      "pass": true,
+      "detail": "Deployment gates ready \u00b7 FD-001 microservices are tenant workloads on Oyatie Cloud."
+    },
+    {
+      "name": "console has no errors",
+      "pass": true,
+      "detail": "[]"
+    }
+  ],
+  "browser_artifacts": {
+    "desktop_before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/desktop-cloud-workload-plane-before.png",
+    "desktop_mail_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/desktop-mail-route-after.png",
+    "desktop_evidence_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/desktop-evidence-route-after.png",
+    "tablet_before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/tablet-cloud-workload-plane-before.png",
+    "tablet_mail_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/tablet-mail-route-after.png",
+    "tablet_evidence_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/tablet-evidence-route-after.png",
+    "mobile_before": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/mobile-cloud-workload-plane-before.png",
+    "mobile_mail_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/mobile-mail-route-after.png",
+    "mobile_evidence_after": "/Users/jasonlee/Developer/source/.omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/mobile-evidence-route-after.png"
+  },
+  "browser_report": ".omx/artifacts/visual-ralph/oya-cloud-tenant-workload-plane/after/report.json",
+  "visual_ralph_verdict": {
+    "score": 93,
+    "verdict": "PASS",
+    "category_match": "Hyperscaler-grade cloud substrate command surface integrated with FD-001 product workload graph",
+    "differences": [
+      "The reference Bominal interface is a standalone local app; Oyatie intentionally keeps global shell rail, Product Activity Spine, and cloud/product proof copy visible.",
+      "Cloud workload actions are local visual routes, not provider operations, by product requirement."
+    ],
+    "suggestions": [
+      "Next slices can make Finance/Identity/Intelligence emit the same workload receipts into the cloud plane.",
+      "A future persistent mock state store could retain workload selection across reloads once the prototype moves beyond visual-only state."
+    ],
+    "reasoning": "The new plane makes the user's substrate thesis explicit: FD-001 microservices are shown as tenant workloads on Oyatie Cloud, selectable, routeable, and connected to Work Hub/Evidence/Gates. Browser QA proves the interactions and responsive behavior across 1440/1024/390 widths."
+  },
+  "verification": [
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "summary": "8 passed"
+    },
+    {
+      "command": "cargo check --manifest-path crates/oya-application-shell-frontend-prototype/Cargo.toml --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "passed"
+    },
+    {
+      "command": "node /tmp/oya-cloud-tenant-workload-plane-qa.mjs",
+      "status": "passed",
+      "summary": "desktop/tablet/mobile workload select, Mail handoff, Evidence route, Gates route, no console errors, no horizontal overflow"
+    }
+  ],
+  "local_only_boundary": "No workflow execution, mail send, community publish, backend write, deploy, DNS, billing, IAM, or cloud provider mutation is wired; all workload-plane actions are browser visual state."
+}

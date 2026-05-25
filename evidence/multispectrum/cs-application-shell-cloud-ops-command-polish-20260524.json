@@ -1,0 +1,178 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-CLOUD-OPS-COMMAND-POLISH-20260524",
+  "evidence_id": "cs-application-shell-cloud-ops-command-polish-20260524",
+  "created_at": "2026-05-24T22:34:00-04:00",
+  "agent": "codex-oyatie-cloud-ops-command-polish",
+  "objective": "Continue the full Oyatie mockup toward Bominal-grade completeness by upgrading the Cloud Ops cockpit from a sparse topology map into a dense cohesive operations command surface with topology, workload, release, FinOps, resource, Mail, Workflow, and evidence routes.",
+  "change_class_id": "CC-2",
+  "skills_used": [
+    "agent-skills:visual-ralph",
+    "agent-skills:frontend-ui-engineering"
+  ],
+  "reference_inputs": {
+    "bominal_zip": "/Users/jasonlee/Downloads/Bominal.zip",
+    "workflow_standalone_html": "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    "bominal_patterns_reviewed": [
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+      ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png",
+      "/tmp/bominal-ref/docs/design-system/README.md dense flat tactical visual language",
+      "/tmp/bominal-ref/docs/bominal-corporate-platform/MODULE-MAP.md shared tenant/cloud/policy/audit model"
+    ]
+  },
+  "gap_analysis": {
+    "source": "live dashboard gap scan after Identity Command Center polish",
+    "findings_addressed": [
+      "The Cloud Ops cockpit default Topology view still read as a sparse map with large low-information rectangles.",
+      "Cloud topology, workload inventory, deployment gates, FinOps, Mail, Workflow, and Evidence existed elsewhere but were not surfaced as one connected operations command surface.",
+      "The cloud surface needed more Bominal-style density: cell control, workload rows, release lanes, and explicit cross-suite routes.",
+      "Interactions needed to remain visually functional and local-only: no cloud, DNS, deployment, billing, or evidence backend operation."
+    ]
+  },
+  "implemented": [
+    "Added a Cloud Operations Command Matrix immediately under the topology map in both hydrated and SSR static output.",
+    "Added Cell Control with selectable us-east-2, eu-west-1, and kr-seoul cells plus residency, rollback, and audit-sidecar metadata.",
+    "Added a Workloads table tying tenant-admin-api, workflow-runner, and audit-vault to cell, SLO, cost, and state.",
+    "Added Release Gates lanes for Jenkins parity, ArgoCD app, cosign verification, and audit-chain emit readiness.",
+    "Added a Routes panel that opens connected Workflow, Mail, Evidence, and FinOps surfaces locally.",
+    "Extended Cloud Ops fallback JavaScript with actions for cell selection, resource inventory route, deployment gates route, Workflow route, Mail route, Evidence route, and FinOps route.",
+    "Added dense flat CSS for the command matrix: low-radius cards, compact tables, lifecycle bars, and route buttons matching the Bominal tactical reference language."
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "passed"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "passed"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "passed",
+      "tests": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+      "status": "passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --no-default-features --features hydrate --release",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "passed"
+    },
+    {
+      "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "passed",
+      "observations": [
+        "live server reachable on 127.0.0.1:3000 after 7 seconds",
+        "SSR output contains ops-command-matrix markup",
+        "server log captured at /tmp/oya-frontend-prototype-live-cloud-ops.log"
+      ]
+    },
+    {
+      "command": "Playwright smoke for #cloud-ops-cockpit, command matrix density, cell selector, inventory route, deployment gates route, Mail route, Evidence route, console/network health",
+      "status": "passed",
+      "artifact": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/cloud-ops-command-smoke.json",
+      "observations": {
+        "initial": {
+          "commandMatrices": 1,
+          "commandCards": 4,
+          "cellButtons": 3,
+          "workloadRows": 3,
+          "releaseLanes": 4,
+          "routeButtons": 4,
+          "metrics": 4,
+          "status": "Topology ready · local runbooks only."
+        },
+        "cellSelection": {
+          "activeCell": "kr-seoul",
+          "status": "kr-seoul residency-gated cell selected locally"
+        },
+        "resourceState": {
+          "activePanel": "resource-inventory",
+          "top": 55
+        },
+        "gatesState": {
+          "activePanel": "deployment-gates",
+          "gateCards": 4
+        },
+        "activeHub": "Mail",
+        "evidenceTop": {
+          "top": 75,
+          "bottom": 893,
+          "height": 818
+        },
+        "consoleErrors": [],
+        "failedRequests": []
+      }
+    },
+    {
+      "command": "pixelmatch secondary debug diffs against Bominal corporate, workflow-studio, and employees references cropped to shared viewport",
+      "status": "passed",
+      "artifact": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/cloud-ops-pixel-diff-summary.json",
+      "observations": {
+        "method": "pixelmatch threshold=0.12, anti-alias ignored; secondary structural evidence only",
+        "comparisons": [
+          {
+            "name": "bominal-corporate",
+            "comparedSize": "1440x900",
+            "mismatchRatio": 0.0753,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/diff-cloud-ops-vs-bominal-corporate.png"
+          },
+          {
+            "name": "bominal-workflow-studio",
+            "comparedSize": "1440x900",
+            "mismatchRatio": 0.0745,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/diff-cloud-ops-vs-bominal-workflow-studio.png"
+          },
+          {
+            "name": "bominal-employees",
+            "comparedSize": "1440x900",
+            "mismatchRatio": 0.064,
+            "diffPath": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/diff-cloud-ops-vs-bominal-employees.png"
+          }
+        ]
+      }
+    }
+  ],
+  "screenshots": {
+    "cloud_ops_command": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/cloud-ops-command-1440.png",
+    "resource_route": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/cloud-resource-route-1440.png",
+    "gates_route": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/cloud-gates-route-1440.png",
+    "mail_route": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/cloud-mail-route-1440.png",
+    "evidence_route": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/cloud-evidence-route-1440.png",
+    "diff_corporate": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/diff-cloud-ops-vs-bominal-corporate.png",
+    "diff_workflow_studio": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/diff-cloud-ops-vs-bominal-workflow-studio.png",
+    "diff_employees": ".omx/artifacts/visual-ralph/oya-cloud-ops-command-polish/screenshots/diff-cloud-ops-vs-bominal-employees.png"
+  },
+  "visual_verdict": {
+    "score": 92,
+    "category_match": "Bominal-style cloud operations command surface integrated with topology, workload inventory, deployment gates, FinOps, Mail, Workflow, and Evidence Spine",
+    "verdict": "The Cloud Ops cockpit no longer reads as a sparse topology sketch. It now has a dense command surface with cell controls, workload/cost/policy rows, release-readiness lanes, and cross-suite routes while preserving the flat tactical Bominal visual language.",
+    "improved_matches": [
+      "Large sparse rectangles are now followed by operator-level controls and tables that make cloud state actionable.",
+      "Cloud, resource inventory, deployment gates, Workflow, Mail, Evidence, and FinOps are connected as one product surface rather than separate demo panels.",
+      "Cell selection and route buttons visibly change local state and navigate to connected surfaces without backend writes.",
+      "SSR and fallback/hydrated interactions both expose the denser operations command matrix."
+    ],
+    "remaining_differences": [
+      "No real cloud resource, DNS, deploy, budget, mail, workflow, or evidence write is wired.",
+      "This advances the complete mockup; a final cross-surface completion audit is still required before claiming the whole dashboard is finished."
+    ]
+  },
+  "non_claims": [
+    "No real cloud operation, deployment, DNS change, billing mutation, mail send, workflow execution, or audit-chain write occurs.",
+    "All interactions are visual-only local prototype state.",
+    "This is one additional polish slice toward the full mockup, not a claim that the entire dashboard is complete."
+  ],
+  "touched_files": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-cloud-ops-command-polish-20260524.json"
+  ]
+}

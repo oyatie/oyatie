@@ -1,0 +1,267 @@
+{
+  "change_id": "backbone-microservices-cloud-tenant-workload-labels-20260525",
+  "change_class_id": "CC-2",
+  "summary": "Static Oyatie Cloud dogfood tenant workload labels for messenger, mail, social, and community Kubernetes Helm Deployment templates plus CI static smoke coverage.",
+  "scope": [
+    "microservices/messenger/iac/k8s/helm/values.yaml",
+    "microservices/mail/iac/k8s/helm/values.yaml",
+    "microservices/social/iac/k8s/helm/values.yaml",
+    "microservices/community/iac/k8s/helm/values.yaml",
+    "microservices/messenger/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/mail/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/social/iac/k8s/helm/templates/deployment.yaml",
+    "microservices/community/iac/k8s/helm/templates/deployment.yaml",
+    ".github/workflows/backbone-microservices-ci.yml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "This slice adds source-controlled Helm values and Deployment/Pod-template labels that identify FD-001 backbone services as Oyatie Cloud dogfood tenant workloads. It proves static chart and CI-smoke readiness only; it does not claim rendered live manifests, Kubernetes admission, OpenCost allocation, ArgoCD sync/health, branch-protection state, remote CI green, or production tenant workload deployment.",
+  "best_practice_research": [
+    {
+      "source": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Grounded continued use of app.kubernetes.io labels and explicit workload labels for grouping and tool interoperability."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Kept Deployment static checks requiring resource requests/limits because resource declarations are the basis for scheduler reservation and cost/capacity accounting."
+    },
+    {
+      "source": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Kept Deployment static checks requiring readiness and liveness probes for workload lifecycle health boundaries."
+    },
+    {
+      "source": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "source_quality": "official Kubernetes documentation",
+      "used_for": "Kept securityContext checks aligned with restricted-style pod hardening already present in the charts."
+    },
+    {
+      "source": "https://opencost.io/docs/specification",
+      "source_quality": "official OpenCost specification documentation",
+      "used_for": "Grounded cost-allocation labels as useful dimensions for future showback/chargeback without claiming a live OpenCost report."
+    }
+  ],
+  "source_basis": [
+    {
+      "url": "repo://registry/quality/lanes.yaml#oya-governance-tenant-cost-labels-coverage",
+      "use": "Existing advisory governance lane names required tenant cost label keys: oya.io/tenant-id, oya.io/cost-center, oya.io/workload-class, and oya.io/regulatory-pack."
+    },
+    {
+      "url": "repo://crates/oya-check-tenant-cost-labels-coverage/src/lib.rs",
+      "use": "Existing validator logic scans workload manifests for the four required oya.io tenant cost labels; this slice makes the source templates emit those labels."
+    },
+    {
+      "url": "repo://microservices/{messenger,mail,social,community}/manifest.json",
+      "use": "Existing microservice manifests describe tenant-workload/cloud-readiness posture; labels now carry that posture into static Kubernetes workload templates."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The slice is a small values/template/CI contract change with no new controller, generator, dependency, or runtime branching.",
+        "The labels are duplicated only where Kubernetes consumers need them: Deployment metadata and Pod-template metadata. They are intentionally excluded from selector.matchLabels to avoid immutable selector churn."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Tenant, cost-center, workload-class, regulatory-pack, substrate, and product-goal labels give future schedulers, admission policy, observability, and cost tools a stable workload-level correlation surface.",
+        "The labels support dogfooding FD-001 services as tenant workloads on Oyatie Cloud while preserving the master-plan product goal/non-claim boundary."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "CI governance smoke now distinguishes HTTPRoute templates from Deployment templates, preventing the prior broad /templates/ heuristic from misclassifying Deployment templates as Gateway routes.",
+        "Static checks fail if any Deployment template loses probes, runtimeClassName, resources, securityContext, or the required tenant/cost/regulatory/dogfood labels.",
+        "No live OpenCost, admission, or ArgoCD result is claimed, avoiding false production-readiness language."
+      ],
+      "failing_fixture_added": false,
+      "not_applicable_reason": "This is a static infrastructure contract slice rather than a defect fix; adversarial coverage is the local static validation command and CI smoke requirement set.",
+      "passing_fixture_id": "tenant workload label static verification passed for four backbone Deployment templates",
+      "diagnostic_asserted": "Missing required deployment labels/probes/resources/security context raise a Ruby smoke failure naming the file and missing strings."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Future environment overlays can override workloadLabels in one values block per service without editing Deployment templates."
+      ],
+      "new_contributor_minutes_estimate": 6
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "The governance-smoke command parses JSON/proto/YAML surfaces and applies template-specific string requirements to both Gateway HTTPRoute and Deployment templates.",
+        "The values files remain normal YAML and the Deployment templates remain static-template checked without requiring cluster credentials or Helm rendering."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "alternatives_named": [
+        "Only add labels to rendered manifests under microservices/*/iac/helm/**/rendered",
+        "Only add namespace-level labels in the cloud ApplicationSet",
+        "Add values-driven labels to the source Helm Deployment and Pod-template metadata"
+      ],
+      "selected_rationale": "Source Helm templates are the common workload contract for later rendering and ArgoCD promotion, while Pod-template labels are visible to pod-level observability/cost tooling.",
+      "rejected_reasons": [
+        "Rendered-only manifests would drift from chart source and do not exist for this static chart slice.",
+        "Namespace-only labels do not identify individual workload controllers/pods and are insufficient for workload-level cost and policy correlation."
+      ],
+      "findings": []
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "No secrets, credentials, tokens, certificates, tenant records, network endpoints, or live cluster credentials were added.",
+        "Labels are low-cardinality non-secret identifiers for tenant/cost/regulatory classification only.",
+        "The existing restricted-style securityContext, read-only root filesystem, dropped capabilities, and RuntimeDefault seccomp checks remain part of the CI smoke contract."
+      ],
+      "owasp_class_review": "security_misconfiguration_prevention",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Labels add Kubernetes metadata only and do not change Rust request handling, SQL, broker, or runtime paths."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "regulatoryPack and productGoal labels provide future compliance/audit grouping, but no live compliance enforcement or certification claim is made."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Reverting removes values blocks, label lines, CI smoke additions, and task/evidence text without changing service binaries or Kubernetes selectors."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Pod-template labels create a future low-cardinality correlation surface for logs, metrics, traces, cost allocation, and admission decisions."
+      ]
+    },
+    "F13_migration_backwards_compat": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No selector labels changed, so future upgrades avoid Deployment selector immutability hazards from tenant/cost overlay changes."
+      ]
+    },
+    "A1_naming_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "The required cost labels use the existing oya.io keys from the tenant-cost-labels coverage lane; dogfood labels use the existing oyatie.com namespace."
+      ]
+    },
+    "A2_documentation_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "tasks/plan.md, tasks/todo.md, this multispectrum evidence, and audit-chain evidence document scope, verification, and non-claims."
+      ]
+    },
+    "A3_structure_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "Workload identity metadata lives in per-service Helm chart values/templates rather than service domain/usecase crates."
+      ]
+    },
+    "A4_architecture_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "This remains an infrastructure chart contract for later Oyatie Cloud deployment; no service runtime, persistence, broker, or policy engine boundary changed."
+      ]
+    },
+    "A5_dependency_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "No Cargo, npm, Helm, or provider dependency was added."
+      ]
+    },
+    "A6_schema_algorithm_policy": {
+      "considered": true,
+      "rigor": "scan",
+      "findings": [
+        "The label schema is explicit and values-driven: tenantId, costCenter, workloadClass, regulatoryPack, dogfoodSubstrate, and productGoal."
+      ]
+    },
+    "A7_ci_cd_policy": {
+      "considered": true,
+      "rigor": "deep",
+      "findings": [
+        "Backbone governance smoke now asserts Deployment template shape and tenant/cost/regulatory/dogfood labels for all four services while retaining HTTPRoute checks."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "ruby -ryaml static tenant workload label verification for four values.yaml files and four Deployment templates",
+      "result": "pass",
+      "evidence": "tenant workload label static verification passed for 4 services"
+    },
+    {
+      "command": "Ruby governance-smoke command copied from .github/workflows/backbone-microservices-ci.yml",
+      "result": "pass",
+      "evidence": "parsed 35 files"
+    },
+    {
+      "command": "./bin/oya gate validate tenant-cost-labels-coverage",
+      "result": "pass_advisory_empty_scope",
+      "evidence": "tenant cost-labels coverage advisory: 0 manifests scanned; 0 findings; rendered-manifest coverage is not claimed by this static chart slice."
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --severity error --evidence evidence/multispectrum/backbone-microservices-cloud-tenant-workload-labels-20260525.json",
+      "result": "pass",
+      "evidence": "dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root <12 scoped files>",
+      "result": "pass",
+      "evidence": "honest-claims validation passed: 12 documents, 2285 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "./bin/oya git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya verify --ci-required",
+      "result": "pass",
+      "evidence": "oya verify: PASS (mandatory: 5/5, advisory: 2/2); D-4 cargo nextest run --workspace: 4542 passed, 1 skipped; D-5 oya gate run-all --ci-required: 88/88 lanes passed; D-7 ADR shape passed."
+    }
+  ],
+  "non_claims": [
+    "No Kubernetes manifest was rendered, applied, admitted, or reconciled in a cluster.",
+    "No OpenCost, Prometheus, billing export, chargeback, showback, or cost allocation report was run or verified.",
+    "No ArgoCD sync/health, live Oyatie Cloud tenant workload deployment, Gateway/TLS/DNS rollout, branch-protection state, remote CI green, SLO, or production availability claim is made.",
+    "No service runtime behavior, REST/gRPC handler behavior, database behavior, broker publishing, or outbox worker execution changed."
+  ],
+  "git_sha": "0a9db175cdcb",
+  "freshness_unix": 1779681358
+}

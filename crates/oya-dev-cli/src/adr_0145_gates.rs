@@ -201,6 +201,21 @@ pub(crate) fn run_slsa_l3_evidence_grounded(args: Vec<String>) -> ExitCode {
         }
     }
 
+    // ADR-0361: feed the Jenkins-native SLSA grounding (the shared CI lane + the
+    // captured signing evidence) so the canonical citations resolve once the
+    // GitHub Actions workflows are retired.
+    for jenkins_path in [
+        "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy",
+        "evidence/ci/slsa/README.md",
+    ] {
+        if let Some(contents) = read_optional_string(&PathBuf::from(jenkins_path)) {
+            workflows.push(slsa_check::WorkflowDocument {
+                path: jenkins_path.to_string(),
+                contents,
+            });
+        }
+    }
+
     let (report, violations) = slsa_check::audit_all_violations(scorecards, workflows);
     println!(
         "slsa-l3-evidence-grounded: {} scorecards, {} citations, {} workflows inspected, {} µservices",

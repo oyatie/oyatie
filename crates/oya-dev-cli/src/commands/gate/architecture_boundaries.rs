@@ -28,12 +28,14 @@
 //!
 //! The `ALLOWED_DEPENDENCY_ROLES` table began as a verbatim port from the
 //! Python source, then adopted ADR-0106's `application` → `usecase`
-//! correction for new catalog records. Legacy `application`, `runtime`,
-//! and `test` rows remain transitional/grandfathered, but new shared
-//! orchestration crates MUST use `usecase`, and `app -> app` remains a
-//! forbidden edge. `app` may depend on `usecase` because the deployable
-//! composition root is allowed to call inward use-case orchestration;
-//! it must not compose another app crate. Audit row B-2 in
+//! correction for new catalog records. Backbone transport alignment later
+//! added `grpc` plus explicit REST/adapter inward-usecase composition edges so
+//! outer protocol adapters can call inward orchestration without weakening
+//! kernel/domain boundaries. Legacy `application`, `runtime`, and `test` rows
+//! remain transitional/grandfathered, but new shared orchestration crates MUST
+//! use `usecase`, and `app -> app` remains a forbidden edge. `app` may depend
+//! on `usecase` because the deployable composition root is allowed to call
+//! inward use-case orchestration; it must not compose another app crate. Audit row B-2 in
 //! `evidence/audits/shell-python-replacement-audit-2026-05-15.md` tracks
 //! the migration sequence.
 
@@ -48,8 +50,9 @@ use serde_json::Value;
 const LEGACY_IMPLEMENTATION_DIRS: [&str; 3] = ["modules", "services", "platform"];
 
 /// Role-based dependency-edge matrix. Key = depending role; value =
-/// roles that the depending crate is allowed to import from. Mirrors
-/// the Python `ALLOWED_DEPENDENCY_ROLES` dict 1:1.
+/// roles that the depending crate is allowed to import from. This started as
+/// the legacy Python `ALLOWED_DEPENDENCY_ROLES` matrix and is now the canonical
+/// Rust authority for workspace role edges.
 fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> {
     let mut table: BTreeMap<&'static str, BTreeSet<&'static str>> = BTreeMap::new();
     let mut insert = |role: &'static str, allowed: &[&'static str]| {
@@ -68,12 +71,66 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
             "usecase",
             "adapter",
             "rest",
+            "grpc",
+            "api",
+            "worker",
+            "bindings",
         ],
     );
-    insert("api", &["kernel", "domain", "app"]);
-    insert("worker", &["kernel", "domain", "app"]);
-    insert("adapter", &["kernel", "domain"]);
-    insert("rest", &["kernel", "domain", "application", "adapter"]);
+    // Transports (api/rest/grpc) and drivers (worker) call INWARD to usecase
+    // orchestration and adapter ports; this completes the inward-composition
+    // doctrine started for adapter/rest/grpc. No inner layer (kernel/domain/
+    // usecase/application) gains an outward edge, so the dependency rule
+    // (dependencies point inward) is preserved.
+    insert("api", &["kernel", "domain", "app", "usecase", "adapter"]);
+    insert(
+        "worker",
+        &[
+            "kernel", "domain", "app", "usecase", "adapter", "api", "rest",
+        ],
+    );
+    // Composite adapters (e.g. kafka/nats/pulsar event-bus adapters wrapping a
+    // base event-bus adapter) and adapters reusing transport DTOs are lateral
+    // interface-layer edges.
+    insert(
+        "adapter",
+        &[
+            "kernel",
+            "domain",
+            "application",
+            "usecase",
+            "adapter",
+            "api",
+        ],
+    );
+    // Co-located SDK bindings wrap the service public surface: api DTOs, rest
+    // routes, and the transport adapter. Outer client/facade layer.
+    insert("bindings", &["kernel", "domain", "api", "rest", "adapter"]);
+    insert(
+        "rest",
+        &[
+            "kernel",
+            "domain",
+            "application",
+            "usecase",
+            "app",
+            "adapter",
+            "api",
+            "grpc",
+        ],
+    );
+    insert(
+        "grpc",
+        &[
+            "kernel",
+            "domain",
+            "application",
+            "usecase",
+            "app",
+            "adapter",
+            "grpc",
+        ],
+    );
     insert("infrastructure", &["kernel", "domain"]);
     insert("test", &["kernel", "domain"]);
     insert(
@@ -87,7 +144,10 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
             "worker",
             "adapter",
             "rest",
+            "grpc",
             "runtime",
+            "usecase",
+            "bindings",
         ],
     );
     table
@@ -784,6 +844,123 @@ mod tests {
             fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
         let packages = vec![rest_pkg, kernel_pkg];
         let catalog = [rest_rec, kernel_rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn rest_into_usecase_and_app_is_allowed() {
+        let (kernel_pkg, kernel_rec) =
+            fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+        let (usecase_pkg, usecase_rec) = fixture_package(
+            "oya-platform-tenant-usecase",
+            "usecase",
+            &["oya-platform-tenant-kernel"],
+            "crates",
+        );
+        let (app_pkg, app_rec) = fixture_package(
+            "oya-platform-tenant-app",
+            "app",
+            &["oya-platform-tenant-usecase"],
+            "crates",
+        );
+        let (rest_pkg, rest_rec) = fixture_package(
+            "oya-platform-tenant-rest",
+            "rest",
+            &["oya-platform-tenant-usecase", "oya-platform-tenant-app"],
+            "crates",
+        );
+        let packages = vec![kernel_pkg, usecase_pkg, app_pkg, rest_pkg];
+        let catalog = [kernel_rec, usecase_rec, app_rec, rest_rec]
+            .into_iter()
+            .collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn grpc_transport_role_allows_inward_runtime_composition() {
+        let (kernel_pkg, kernel_rec) =
+            fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+        let (usecase_pkg, usecase_rec) = fixture_package(
+            "oya-platform-tenant-usecase",
+            "usecase",
+            &["oya-platform-tenant-kernel"],
+            "crates",
+        );
+        let (app_pkg, app_rec) = fixture_package(
+            "oya-platform-tenant-app",
+            "app",
+            &["oya-platform-tenant-usecase"],
+            "crates",
+        );
+        let (grpc_helper_pkg, grpc_helper_rec) = fixture_package(
+            "oya-platform-tenant-grpc-helper",
+            "grpc",
+            &["oya-platform-tenant-app"],
+            "crates",
+        );
+        let (grpc_pkg, grpc_rec) = fixture_package(
+            "oya-platform-tenant-grpc",
+            "grpc",
+            &[
+                "oya-platform-tenant-usecase",
+                "oya-platform-tenant-grpc-helper",
+            ],
+            "crates",
+        );
+        let packages = vec![kernel_pkg, usecase_pkg, app_pkg, grpc_helper_pkg, grpc_pkg];
+        let catalog = [kernel_rec, usecase_rec, app_rec, grpc_helper_rec, grpc_rec]
+            .into_iter()
+            .collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn adapter_into_usecase_is_allowed() {
+        let (kernel_pkg, kernel_rec) =
+            fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+        let (usecase_pkg, usecase_rec) = fixture_package(
+            "oya-platform-tenant-usecase",
+            "usecase",
+            &["oya-platform-tenant-kernel"],
+            "crates",
+        );
+        let (adapter_pkg, adapter_rec) = fixture_package(
+            "oya-platform-tenant-adapter",
+            "adapter",
+            &["oya-platform-tenant-usecase"],
+            "crates",
+        );
+        let packages = vec![kernel_pkg, usecase_pkg, adapter_pkg];
+        let catalog = [kernel_rec, usecase_rec, adapter_rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn app_depending_on_grpc_is_allowed() {
+        let (grpc_pkg, grpc_rec) = fixture_package(
+            "oya-platform-tenant-grpc",
+            "grpc",
+            &["oya-platform-tenant-usecase"],
+            "crates",
+        );
+        let (usecase_pkg, usecase_rec) =
+            fixture_package("oya-platform-tenant-usecase", "usecase", &[], "crates");
+        let (app_pkg, app_rec) = fixture_package(
+            "oya-platform-tenant-app",
+            "app",
+            &["oya-platform-tenant-grpc"],
+            "crates",
+        );
+        let packages = vec![grpc_pkg, usecase_pkg, app_pkg];
+        let catalog = [grpc_rec, usecase_rec, app_rec].into_iter().collect();
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");

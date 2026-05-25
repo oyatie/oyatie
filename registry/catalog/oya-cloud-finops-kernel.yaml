@@ -1,10 +1,17 @@
 context: cloud
 role: kernel
-capability: finops
+capability: cloud-finops
 plane: analytics
-slo: preview-control-plane
-data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL_REGULATED_CREDIT, BEHAVIORAL_TENANT_PRODUCT]
+slo: local-foundation-no-runtime-slo
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL, BEHAVIORAL_TENANT_PRODUCT]
 operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
+non_claims:
+  - no FinOps worker database or provider adapter runtime
+  - no FOCUS file generation or OpenCost federation
+  - no measured SLO or DR evidence

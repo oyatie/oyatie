@@ -1,0 +1,179 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-WORKFLOW-STUDIO-PARITY-POLISH-20260525",
+  "schema_version": "1.0.0",
+  "id": "CS-APPLICATION-SHELL-WORKFLOW-STUDIO-PARITY-POLISH-20260525",
+  "kind": "multispectrum-evidence",
+  "agent": "codex-oyatie-workflow-studio-parity-polish",
+  "captured_at": "2026-05-25T02:53:42.309Z",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css"
+  ],
+  "goal_context": "Continue toward a complete Bominal-grade Oyatie mockup; this slice upgrades the Workflow Studio surface, not the entire remaining dashboard.",
+  "reference_sources": [
+    "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-standalone-1440.png"
+  ],
+  "change_summary": [
+    "Added Bominal-style process chrome with process id, owner, SLA, validate/simulate/diff/publish commands, and local status.",
+    "Added layout, overlay, and filter toolbars matching the dense workflow-editor control model.",
+    "Added canvas simulation metrics overlay, connector grid, richer inspector tabs, editable property form, approval rule stack, and local interaction handlers.",
+    "Preserved cohesive product behavior: workflow routes remain inside the Oyatie dashboard and built-in Messenger/Mail/Community outputs remain local-only."
+  ],
+  "visual_verdict": {
+    "score": 91,
+    "verdict": "pass-for-workflow-studio-slice-not-full-dashboard-completion",
+    "category_match": true,
+    "differences": [
+      "Oyatie remains embedded inside the full application shell with the global rail, so it intentionally does not become a standalone full-window clone.",
+      "The current canvas uses Oyatie workflow objects and local-only semantics rather than copying Bominal labels and data as-is.",
+      "Remaining full-dashboard parity still needs continued pass-by-pass polish outside Workflow Studio."
+    ],
+    "suggestions": [
+      "Continue the same IDE-density treatment for any remaining sparse route surfaces.",
+      "If the user asks for standalone workflow mode, add a route/state that hides the global dashboard rail and gives Workflow Studio the entire viewport."
+    ],
+    "reasoning": "The Workflow Studio now matches the Bominal reference in chrome density, toolbar affordances, connector palette, metrics overlay, inspector editing, and visual local interactivity while staying a cohesive Oyatie product surface."
+  },
+  "browser_smoke": {
+    "capturedAt": "2026-05-25T02:53:42.309Z",
+    "viewport": "1440x1000",
+    "summary": {
+      "height": 789,
+      "processChrome": 1,
+      "lensToolbar": 1,
+      "metricOverlays": 4,
+      "connectors": 9,
+      "propertyInputs": 7,
+      "workflowCards": 10,
+      "inspectorTabs": 4,
+      "buttons": 98,
+      "runPreviewing": true,
+      "processStatus": "owner changed locally",
+      "statusText": "Nodes: 9Local blocks: 1Messenger/Mail/Community outputs are draftsLocal node added to canvas",
+      "textSample": "Workflow StudioTenant change approvalv18 · draftOwner · tenant adminSLA · 4.0hsimulation previewFitClear runValidateRunAdd blockPublishPROCESSPROC-PAYROLL-CLOSEOWNERHyo-jin Park · #274SLA4.0d✓ Validate◷ Simulate↯ Diff v17 → v18게시 v18owner changed locallyNo-code approval path for risky cloud and tenant configuration changes.SelectConnectSimulateLAYOUTGraphSwimlanesTimelineTreeOVERLAYCycleCostOwnerRiskOffFILTERAllCritical pathBottlenecksAI suggestions⌕⌘KPrimitives12System taskDeterministic step · 0 msSApprovalSingle, parallel, or quorumAValidationRule check · halts on failVExternal callHTTP, RPC, or connectorEBranch / SwitchMulti-way condition splitBWait / TimerUntil time · or durationWLoop / For-eachIterate over collectionLAI stepSuggest · classify · extract⌥A중단 / 에스컬레이트CFO 알림 · 실행 중단HForm / InputCollect data from humanFWebhook triggerInbound event startTEnd / ReceiptEmit immutable event⌘EActions6TaskCreate a governed work itemTHTTP requestCall external REST/HTTPHDatabaseRead/write a recordDTransformReshape the payloadXFilterDrop failed itemsFWrite to docAppend a row / lineWLogic5If / BranchTwo-way condition splitISwitchMulti-way routingSLoop / For-eachIterate collectionLWaitDelay or durationWMergeWait for branchesMBuilt-in surfaces3Messenger postRoute run summary to Ops roomMMail draftFormal approval note⌘MCommunity notePublish governed updateCConnectors9국세HomeTax국민NPS / 4대신한ShinhanTTossKKakao Work#SlackGWorkspaceQQuickBooksNNotionSelectConnectSimulateinteractive islandCYCLE5"
+    },
+    "assertions": {
+      "hasProcessChrome": true,
+      "hasLensToolbar": true,
+      "hasMetricsOverlay": true,
+      "hasConnectors": true,
+      "hasInspectorProperties": true,
+      "hasDenseCards": true,
+      "hasInspectorTabs": true,
+      "interactionsUpdatedStatus": true,
+      "noConsoleErrors": true,
+      "noFailedRequests": true
+    },
+    "errors": [],
+    "failed": [],
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-interactions-1440.png",
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-parity-1440.png"
+    ]
+  },
+  "pixel_diff": {
+    "capturedAt": "2026-05-25T02:54:17.846Z",
+    "comparisons": [
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-parity-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/pixel-diff-ref-http-workflow-studio-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 80394,
+        "mismatchRatio": 0.062032
+      },
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-standalone-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-parity-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/pixel-diff-ref-http-workflow-standalone-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 63663,
+        "mismatchRatio": 0.049123
+      },
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-parity-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/pixel-diff-ref-http-corporate-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 84446,
+        "mismatchRatio": 0.065159
+      }
+    ]
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "details": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "pass"
+    },
+    {
+      "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "pass",
+      "details": "SSR contains workflow-process-chrome"
+    },
+    {
+      "command": "node /tmp/oya-workflow-parity-smoke.mjs",
+      "status": "pass",
+      "details": {
+        "hasProcessChrome": true,
+        "hasLensToolbar": true,
+        "hasMetricsOverlay": true,
+        "hasConnectors": true,
+        "hasInspectorProperties": true,
+        "hasDenseCards": true,
+        "hasInspectorTabs": true,
+        "interactionsUpdatedStatus": true,
+        "noConsoleErrors": true,
+        "noFailedRequests": true
+      }
+    },
+    {
+      "command": "node /tmp/oya-workflow-pixel-diff.mjs",
+      "status": "pass"
+    }
+  ],
+  "artifacts": {
+    "smoke": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/workflow-studio-parity-smoke.json",
+    "pixel_diff_summary": ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/workflow-studio-pixel-diff-summary.json",
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-interactions-1440.png",
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/screenshots/workflow-studio-parity-1440.png"
+    ],
+    "pixel_diffs": [
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/pixel-diff-ref-http-workflow-studio-1440.png",
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/pixel-diff-ref-http-workflow-standalone-1440.png",
+      ".omx/artifacts/visual-ralph/oya-workflow-studio-parity-polish/pixel-diff-ref-http-corporate-1440.png"
+    ]
+  },
+  "known_limits": [
+    "This is a Workflow Studio parity slice; it does not prove the complete Oyatie mockup objective is done.",
+    "All workflow commands, inspector changes, connector insertions, simulations, and publish actions remain visual-only local state."
+  ]
+}

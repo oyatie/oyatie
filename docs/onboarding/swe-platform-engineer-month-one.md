@@ -13,7 +13,7 @@ related_oyatie_adrs:
   - docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
   - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
   - docs/decisions/ADR-0006-ontology-typed-entity-layer.md
-  - docs/decisions/ADR-0257-amendment-library-first-ontology-read-path.md
+  - docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/DOC-CATALOG.md

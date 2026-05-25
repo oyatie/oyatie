@@ -1,0 +1,97 @@
+{
+  "change_id": "backbone-microservices-protocol-parity-20260523",
+  "change_class_id": "CC-1",
+  "summary": "Runtime-free AsyncAPI and proto parity metadata bindings for implemented messenger, mail, social, and community write receipts.",
+  "scope": [
+    "crates/oya-shared-protocol-parity-kernel/**",
+    "crates/oya-messenger-message-stream-api/**",
+    "crates/oya-mail-mailbox-store-api/**",
+    "crates/oya-social-post-composition-api/**",
+    "crates/oya-community-post-store-api/**",
+    "Cargo.toml",
+    "registry/catalog/oya-shared-protocol-parity-kernel.yaml",
+    "tasks/plan.md",
+    "tasks/todo.md"
+  ],
+  "claim_boundary": "Runtime-free protocol parity metadata and event-envelope validation only. This slice does not generate protobuf serializers, publish AsyncAPI events, run a broker, expose gRPC servers, implement broader route handlers, or claim production protocol readiness.",
+  "facets": {
+    "F1_simplicity": "A small shared kernel validates binding metadata and envelopes; API crates declare per-write-path bindings without adding network, broker, codegen, or async runtime dependencies.",
+    "F2_hyperscaler": "Honest non-claim: explicit REST/AsyncAPI/proto mapping reduces future integration drift, but runtime adapters, backpressure, SLOs, and deployment proof remain pending.",
+    "F3_adversarial": "Tests cover exact AsyncAPI/proto names, event-kind shape, semver schema versions, receipt event-type mismatches, and missing audit/policy fields.",
+    "F5_quality": "Focused cargo test, clippy -D warnings, fmt, dependency-seam, honest-claims, catalog/data-class audits, and diff hygiene are part of this evidence run.",
+    "F7_security_privacy": "Protocol envelopes carry policy decision, audit correlation, idempotency, and scope references explicitly; no payload plaintext or tenant data is serialized by this metadata-only slice.",
+    "F11_observability": "Envelope metadata creates a future event audit seam with schema version and audit correlation references, without claiming runtime telemetry emission."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --check -p oya-shared-protocol-parity-kernel -p oya-messenger-message-stream-api -p oya-mail-mailbox-store-api -p oya-social-post-composition-api -p oya-community-post-store-api",
+      "result": "pass"
+    },
+    {
+      "command": "cargo test -p oya-shared-protocol-parity-kernel -p oya-messenger-message-stream-api -p oya-mail-mailbox-store-api -p oya-social-post-composition-api -p oya-community-post-store-api",
+      "result": "pass",
+      "evidence": "20 unit tests passed across shared protocol parity kernel and 4 API packages."
+    },
+    {
+      "command": "cargo clippy -p oya-shared-protocol-parity-kernel -p oya-messenger-message-stream-api -p oya-mail-mailbox-store-api -p oya-social-post-composition-api -p oya-community-post-store-api --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-",
+      "result": "pass",
+      "evidence": "439 workspace members"
+    },
+    {
+      "command": "./bin/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence <all backbone evidence including protocol-parity>",
+      "result": "pass",
+      "evidence": "6 subchecks: 4 pass, 1 report-only, 1 skipped, 0 fail, 121 diagnostics, 0 blocking"
+    },
+    {
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus <tasks + touched API/protocol/evidence corpus>",
+      "result": "pass",
+      "evidence": "3 documents, 376 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows"
+    },
+    {
+      "command": "ruby -rjson -ryaml parse of protocol-parity evidence and shared catalog row",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "result": "known-pre-existing-blocker",
+      "evidence": "Fails on MissingCrateRecord { crate_id: \"oya-tenancy-tenant-lifecycle-kernel\" }; new oya-shared-protocol-parity-kernel catalog row parses."
+    },
+    {
+      "command": "./bin/oya gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "result": "known-pre-existing-blocker",
+      "evidence": "Fails on oya-audit-chain-emission-kernel::ChainCoordinate.pack; new ProtocolParityBinding/Spec/EventEnvelope public fields carry data_class comments."
+    },
+    {
+      "command": "cargo test across 23 touched backbone packages",
+      "result": "pass",
+      "evidence": "166 unit tests passed across domain/API/usecase/REST/adapter-postgres/shared-command/shared-metrics/shared-protocol packages."
+    },
+    {
+      "command": "cargo clippy -p <23 touched backbone packages> --all-targets -- -D warnings",
+      "result": "pass"
+    },
+    {
+      "command": "cargo fmt --check -p <23 touched backbone packages>",
+      "result": "pass"
+    },
+    {
+      "command": "./bin/oya vcs verify/done/promote for cb-backbone-microservices-protocol-parity-20260523 targeting dev",
+      "result": "pass",
+      "evidence": "Oya VCS ratchet accepted verify, done --controller-promote, and promote --environment dev."
+    }
+  ],
+  "non_claims": [
+    "No AsyncAPI broker publisher or subscriber runtime is implemented by this slice.",
+    "No protobuf code generation, serialization, gRPC service, or gateway binding is implemented by this slice.",
+    "No broader REST/OpenAPI business handler beyond prior typed write paths is implemented by this slice.",
+    "No production protocol readiness, live interoperability, or hyperscaler runtime claim is made."
+  ]
+}

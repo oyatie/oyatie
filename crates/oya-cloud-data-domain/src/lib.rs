@@ -28,6 +28,12 @@ const REF_RESIDENCY_POLICY_PREFIX: &str = "residency";
 const REF_SCHEMA_REGISTRY_PREFIX: &str = "schema";
 const REF_LICENSE_PREFIX: &str = "license";
 const REF_ADR_GATE_PREFIX: &str = "adr-gate";
+const REF_TABLE_PREFIX: &str = "table";
+const REF_POLICY_PREFIX: &str = "policy";
+const REF_RESTORE_PREFIX: &str = "restore";
+const REF_EVIDENCE_PREFIX: &str = "evidence";
+const TENANT_PARTITION_COLUMN: &str = "tenant_id";
+const CELL_PARTITION_COLUMN: &str = "cell_id";
 const MIN_REPLICATED_AZ_COUNT: usize = 3;
 const POSTGRES_MAJOR_VERSION: u16 = 16;
 const MIN_KAFKA_OUTBOX_POLL_MS: u16 = 100;
@@ -136,9 +142,9 @@ pub struct PostgresShape {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ValkeyShape {
     pub distribution: ValkeyDistribution, // data_class: PUBLIC
-    pub major_version: u16,              // data_class: PUBLIC
-    pub replica_count: u16,              // data_class: INTERNAL_ONLY
-    pub max_ttl_seconds: Option<u64>,    // data_class: INTERNAL_ONLY
+    pub major_version: u16,               // data_class: PUBLIC
+    pub replica_count: u16,               // data_class: INTERNAL_ONLY
+    pub max_ttl_seconds: Option<u64>,     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -290,6 +296,57 @@ pub struct BackupEvidence {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DataTenantCellGuardrailCreate {
+    pub service_id: String,                        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                         // data_class: INTERNAL_ONLY
+    pub region: String,                            // data_class: PUBLIC
+    pub primary_cell_id: String,                   // data_class: PUBLIC
+    pub engine: ManagedDataEngine,                 // data_class: PUBLIC
+    pub table_refs: Vec<String>,                   // data_class: INTERNAL_ONLY
+    pub tenant_partition_column: String,           // data_class: INTERNAL_ONLY
+    pub cell_partition_column: String,             // data_class: INTERNAL_ONLY
+    pub citus_distribution_column: Option<String>, // data_class: INTERNAL_ONLY
+    pub citus_colocated_table_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub row_level_security_enabled: bool,          // data_class: INTERNAL_ONLY
+    pub force_row_level_security: bool,            // data_class: INTERNAL_ONLY
+    pub rls_policy_ref: String,                    // data_class: INTERNAL_ONLY
+    pub migration: SchemaMigrationPolicy,          // data_class: INTERNAL_ONLY
+    pub backup: DataBackupPolicy,                  // data_class: INTERNAL_ONLY
+    pub restore_drill_evidence_ref: String,        // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,                // data_class: INTERNAL_ONLY
+    pub residency: ResidencyClass,                 // data_class: INTERNAL_ONLY
+    pub allowed_data_classes: Vec<DataClass>,      // data_class: PUBLIC
+    pub engine_shape: EngineShape,                 // data_class: INTERNAL_ONLY
+    pub state: ManagedDataState,                   // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DataTenantCellGuardrail {
+    pub service_id: Classified<ManagedDataServiceId>,
+    pub tenant_id: Classified<String>,
+    pub region: Classified<RegionCode>,
+    pub primary_cell_id: Classified<CellId>,
+    pub engine: Classified<ManagedDataEngine>,
+    pub table_refs: Classified<Vec<String>>,
+    pub tenant_partition_column: Classified<String>,
+    pub cell_partition_column: Classified<String>,
+    pub citus_distribution_column: Classified<Option<String>>,
+    pub citus_colocated_table_ref: Classified<Option<String>>,
+    pub row_level_security_enabled: Classified<bool>,
+    pub force_row_level_security: Classified<bool>,
+    pub rls_policy_ref: Classified<String>,
+    pub migration: Classified<SchemaMigrationPolicy>,
+    pub backup: Classified<TypedDataBackupPolicy>,
+    pub restore_drill_evidence_ref: Classified<String>,
+    pub evidence_refs: Classified<Vec<String>>,
+    pub residency: Classified<ResidencyClass>,
+    pub allowed_data_classes: Classified<Vec<PrivacyDataClass>>,
+    pub engine_shape: Classified<EngineShape>,
+    pub state: Classified<ManagedDataState>,
+    pub schema_version: Classified<u32>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudDataError {
     InvalidServiceId,
     InvalidBackupEvidenceId,
@@ -307,6 +364,8 @@ pub enum CloudDataError {
     InvalidBackupPolicy,
     InvalidMigrationPolicy,
     InvalidEngineShape,
+    InvalidPartitioningPolicy,
+    InvalidTenantIsolationPolicy,
     InvalidLicensePosture,
     InvalidExpansionGate,
     InvalidReference,
@@ -537,6 +596,91 @@ impl BackupEvidence {
             bytes_written: internal(input.bytes_written),
             restore_drill_verified: internal(input.restore_drill_verified),
             schema_version: public(BACKUP_EVIDENCE_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl DataTenantCellGuardrail {
+    pub fn new(input: DataTenantCellGuardrailCreate) -> Result<Self, CloudDataError> {
+        let DataTenantCellGuardrailCreate {
+            service_id,
+            tenant_id,
+            region,
+            primary_cell_id,
+            engine,
+            table_refs,
+            tenant_partition_column,
+            cell_partition_column,
+            citus_distribution_column,
+            citus_colocated_table_ref,
+            row_level_security_enabled,
+            force_row_level_security,
+            rls_policy_ref,
+            migration,
+            backup,
+            restore_drill_evidence_ref,
+            evidence_refs,
+            residency,
+            allowed_data_classes,
+            engine_shape,
+            state,
+        } = input;
+
+        if state != ManagedDataState::Provisioning {
+            return Err(CloudDataError::InvalidInitialState);
+        }
+        validate_tenant_id(&tenant_id)?;
+        let id = ManagedDataServiceId::new(service_id)?;
+        let id_parts = parse_service_id(&id.value)?;
+        let region = RegionCode::new(region).map_err(|_| CloudDataError::InvalidRegion)?;
+        let cell_id = CellId::new(primary_cell_id).map_err(|_| CloudDataError::InvalidCellId)?;
+        validate_cell_region(&cell_id, &region)?;
+        validate_service_id_matches(&id_parts, engine, &region, &tenant_id)?;
+        validate_residency(&residency, &region)?;
+        let allowed_data_classes = typed_privacy_classes(&allowed_data_classes)?;
+        validate_engine_shape(engine, &engine_shape)?;
+        let table_refs = validate_table_refs(&table_refs)?;
+        validate_tenant_cell_partitioning(
+            engine,
+            &tenant_partition_column,
+            &cell_partition_column,
+            citus_distribution_column.as_deref(),
+            citus_colocated_table_ref.as_deref(),
+            &table_refs,
+        )?;
+        validate_row_level_security(row_level_security_enabled, force_row_level_security)?;
+        validate_metadata_ref_path(&rls_policy_ref, REF_POLICY_PREFIX)?;
+        validate_migration_policy(&migration)?;
+        let backup = typed_backup(backup, &region, &tenant_id)?;
+        validate_metadata_ref_path(&restore_drill_evidence_ref, REF_RESTORE_PREFIX)?;
+        if evidence_refs.is_empty() {
+            return Err(CloudDataError::InvalidReference);
+        }
+        let evidence_refs = unique_metadata_refs(&evidence_refs, REF_EVIDENCE_PREFIX)?;
+
+        Ok(Self {
+            service_id: internal(id),
+            tenant_id: internal(tenant_id),
+            region: public(region),
+            primary_cell_id: public(cell_id),
+            engine: public(engine),
+            table_refs: internal(table_refs),
+            tenant_partition_column: internal(tenant_partition_column),
+            cell_partition_column: internal(cell_partition_column),
+            citus_distribution_column: internal(citus_distribution_column),
+            citus_colocated_table_ref: internal(citus_colocated_table_ref),
+            row_level_security_enabled: internal(row_level_security_enabled),
+            force_row_level_security: internal(force_row_level_security),
+            rls_policy_ref: internal(rls_policy_ref),
+            migration: internal(migration),
+            backup: internal(backup),
+            restore_drill_evidence_ref: internal(restore_drill_evidence_ref),
+            evidence_refs: internal(evidence_refs),
+            residency: internal(residency),
+            allowed_data_classes: public(allowed_data_classes),
+            engine_shape: internal(engine_shape),
+            state: public(state),
+            schema_version: public(CLOUD_DATA_SCHEMA_VERSION),
         })
     }
 }
@@ -890,9 +1034,10 @@ fn validate_postgres_shape(
 }
 
 fn validate_valkey_shape(shape: &ValkeyShape) -> Result<(), CloudDataError> {
-    if shape.distribution == ValkeyDistribution::ForbiddenSsplRsal74OrLater
-        || shape.replica_count < 3
-    {
+    if shape.replica_count < 3 {
+        return Err(CloudDataError::InvalidEngineShape);
+    }
+    if shape.distribution == ValkeyDistribution::ForbiddenSsplRsal74OrLater {
         return Err(CloudDataError::InvalidLicensePosture);
     }
     if shape.major_version == 0 || shape.max_ttl_seconds == Some(0) {
@@ -939,6 +1084,76 @@ fn validate_stable_expansion_gate(
     Ok(())
 }
 
+fn validate_table_refs(values: &[String]) -> Result<Vec<String>, CloudDataError> {
+    if values.is_empty() {
+        return Err(CloudDataError::InvalidPartitioningPolicy);
+    }
+    unique_metadata_refs(values, REF_TABLE_PREFIX)
+}
+
+fn validate_tenant_cell_partitioning(
+    engine: ManagedDataEngine,
+    tenant_partition_column: &str,
+    cell_partition_column: &str,
+    citus_distribution_column: Option<&str>,
+    citus_colocated_table_ref: Option<&str>,
+    table_refs: &[String],
+) -> Result<(), CloudDataError> {
+    validate_column_name(tenant_partition_column)?;
+    validate_column_name(cell_partition_column)?;
+    if tenant_partition_column != TENANT_PARTITION_COLUMN
+        || cell_partition_column != CELL_PARTITION_COLUMN
+    {
+        return Err(CloudDataError::InvalidPartitioningPolicy);
+    }
+
+    match engine {
+        ManagedDataEngine::Postgres => {
+            if citus_distribution_column.is_some() || citus_colocated_table_ref.is_some() {
+                return Err(CloudDataError::InvalidPartitioningPolicy);
+            }
+            Ok(())
+        }
+        ManagedDataEngine::Citus => {
+            let distribution_column =
+                citus_distribution_column.ok_or(CloudDataError::InvalidPartitioningPolicy)?;
+            if distribution_column != tenant_partition_column {
+                return Err(CloudDataError::InvalidPartitioningPolicy);
+            }
+            let colocated_ref =
+                citus_colocated_table_ref.ok_or(CloudDataError::InvalidPartitioningPolicy)?;
+            validate_metadata_ref_path(colocated_ref, REF_TABLE_PREFIX)?;
+            if !table_refs
+                .iter()
+                .any(|table_ref| table_ref == colocated_ref)
+            {
+                return Err(CloudDataError::InvalidPartitioningPolicy);
+            }
+            Ok(())
+        }
+        ManagedDataEngine::PgVector
+        | ManagedDataEngine::Valkey
+        | ManagedDataEngine::Kafka
+        | ManagedDataEngine::ClickHouse
+        | ManagedDataEngine::Cassandra
+        | ManagedDataEngine::Iceberg
+        | ManagedDataEngine::Milvus
+        | ManagedDataEngine::Temporal => Err(CloudDataError::InvalidEngineShape),
+    }
+}
+
+fn validate_column_name(value: &str) -> Result<(), CloudDataError> {
+    validate_segment(value).map_err(|_| CloudDataError::InvalidPartitioningPolicy)
+}
+
+fn validate_row_level_security(enabled: bool, force_enabled: bool) -> Result<(), CloudDataError> {
+    if enabled && force_enabled {
+        Ok(())
+    } else {
+        Err(CloudDataError::InvalidTenantIsolationPolicy)
+    }
+}
+
 fn validate_residency(
     residency: &ResidencyClass,
     region: &RegionCode,
@@ -972,6 +1187,13 @@ fn validate_ref_path(value: &str, prefix: &str) -> Result<(), CloudDataError> {
     validate_path(value, prefix, 3, CloudDataError::InvalidReference)
 }
 
+fn validate_metadata_ref_path(value: &str, prefix: &str) -> Result<(), CloudDataError> {
+    if contains_secret_like_reference(value) {
+        return Err(CloudDataError::InvalidReference);
+    }
+    validate_ref_path(value, prefix)
+}
+
 fn validate_path(
     value: &str,
     prefix: &str,
@@ -999,6 +1221,26 @@ fn unique_refs(values: &[String], prefix: &str) -> Result<(), CloudDataError> {
     Ok(())
 }
 
+fn unique_metadata_refs(values: &[String], prefix: &str) -> Result<Vec<String>, CloudDataError> {
+    let mut seen = BTreeSet::new();
+    let mut refs = Vec::with_capacity(values.len());
+    for value in values {
+        validate_metadata_ref_path(value, prefix)?;
+        if !seen.insert(value.clone()) {
+            return Err(CloudDataError::InvalidReference);
+        }
+        refs.push(value.clone());
+    }
+    Ok(refs)
+}
+
+fn contains_secret_like_reference(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    ["secret", "token", "password", "credential", "private_key"]
+        .iter()
+        .any(|needle| lower.contains(needle))
+}
+
 fn validate_segment(value: &str) -> Result<(), ()> {
     if value.is_empty()
         || value.starts_with('-')
@@ -1015,11 +1257,14 @@ fn validate_segment(value: &str) -> Result<(), ()> {
 }
 
 fn validate_tenant_id(value: &str) -> Result<(), CloudDataError> {
-    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
-        Ok(())
-    } else {
-        Err(CloudDataError::InvalidTenantId)
+    let Some(suffix) = value.strip_prefix(TENANT_ID_PREFIX) else {
+        return Err(CloudDataError::InvalidTenantId);
+    };
+    validate_segment(suffix).map_err(|_| CloudDataError::InvalidTenantId)?;
+    if suffix.is_empty() {
+        return Err(CloudDataError::InvalidTenantId);
     }
+    Ok(())
 }
 
 fn validate_positive_time(value: u64) -> Result<(), CloudDataError> {

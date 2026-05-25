@@ -1,0 +1,297 @@
+{
+  "evidence_schema": "/specs/multispectrum-review.json#v2.4.0",
+  "change_id": "CS-ENT-SUITE-AUTH-RUNTIME-001",
+  "change_class_id": "CC-1",
+  "meta_review_triggered": true,
+  "agent_id": "codex-enterprise-20260523",
+  "git_sha": "fe21ffac75113adb29089a313960f33d5ddfea5e",
+  "freshness_unix": 1779552000,
+  "timestamp_iso": "2026-05-24T01:10:00Z",
+  "scope": [
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-auth-runtime/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-auth-runtime/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-auth-runtime/tests/auth_runtime.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/Cargo.toml",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/src/lib.rs",
+    "microservices/enterprise-suite/crates/oya-enterprise-suite-cloud-readiness-gate/tests/readiness.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "registry/catalog/oya-enterprise-suite-auth-runtime.yaml",
+    "specs/microservices/enterprise-suite.json",
+    "tasks/enterprise-microservices-plan.md",
+    "tasks/enterprise-microservices-todo.md",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Enterprise Suite AC-17 adds a local auth runtime foundation for later cloud gateway integration. It validates tenant-bound issuer/audience/nonce/session claims, deny-by-default route scopes across the 19-route local HR/Payroll/Accounting/Enterprise Suite catalog, sensitive-data MFA/AAL2 requirements, break-glass audit requirements, and cloud-readiness-gate composition while keeping external OIDC/JWKS/provider verification and deployed gateway enforcement as explicit non-claims.",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The auth runtime is a deterministic in-memory policy evaluator with typed errors and no side effects, provider clients, listener mutation, or persistence.",
+        "Deny-by-default routing is explicit: an unregistered method/path or missing route scope fails closed."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The slice moves cloud readiness from a broad missing-auth blocker to a tested local authorization foundation plus a narrower external identity-provider verification blocker.",
+        "The cloud-readiness gate now composes auth runtime readiness while cloud deployment remains false."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "failing_fixture_added": true,
+      "passing_fixture_id": "microservices/enterprise-suite/crates/oya-enterprise-suite-auth-runtime/tests/auth_runtime.rs::auth_runtime_authorizes_scoped_tenant_route_and_denies_cross_tenant",
+      "failing_fixture_id": "auth_runtime_denies_by_default_and_requires_route_scope",
+      "diagnostic_asserted": "Tests fail if cross-tenant requests, expired sessions, bad issuer/audience/nonce, unknown routes, missing scopes, weak assurance, missing MFA, break-glass misuse, or runtime-attachment overclaims are accepted.",
+      "findings": [
+        "Positive route authorization and negative security-path coverage are both present."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "new_contributor_minutes_estimate": 20,
+      "findings": [
+        "Developers can call enterprise_auth_runtime_policy(), validate_enterprise_auth_runtime_policy(), and authorize_enterprise_route() to understand the pre-cloud auth boundary."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Targeted auth runtime check/test/clippy, cloud-readiness test/clippy, 37-package enterprise regression test/clippy, fmt, jq, data_class scan, quality-marker scan, dependency-seam gate, Oya VCS lifecycle, and audit-chain append-only checks are required for closeout."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives_named": [
+        "wire auth directly into existing preview route handlers",
+        "wait for a full external OIDC/JWKS gateway before adding auth semantics",
+        "add a local route-policy auth runtime and keep provider/gateway verification as a blocker"
+      ],
+      "selected_rationale": "A separate local runtime establishes route, tenant, scope, MFA, and break-glass semantics without falsely claiming cryptographic token verification or deployed gateway enforcement.",
+      "rejected_reasons": [
+        "Direct route-handler mutation would imply enforcement on preview handlers that still explicitly lack a deployed listener.",
+        "Waiting for cloud gateway integration would leave local route security semantics untyped and untested."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "owasp_class_review": "authentication_authorization_foundation",
+      "severity_max": "high",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": true,
+      "findings": [
+        "Authorization denies by default, enforces tenant isolation, validates issuer/audience/nonce/session boundaries, and requires route scopes.",
+        "Sensitive HR/payroll/accounting/suite routes require AAL2 and MFA; break-glass access requires audit marking.",
+        "The runtime refuses overclaims for external identity provider, JWKS, OIDC signature verification, durable sessions, deployed gateway, and runtime audit emission."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "perf_budget_class": "bounded_static_route_policy_lookup",
+      "benchmark_attached": false,
+      "benchmark_id": "n/a-enterprise-suite-auth-runtime-foundation",
+      "regression_baseline": "Authorization scans a fixed 19-route vector and checks scalar claim fields; no network, storage, cryptography, or hot listener path exists.",
+      "findings": [
+        {
+          "summary": "The foundation is bounded by the local route catalog and does not affect deployed traffic throughput because no deployed gateway is attached."
+        }
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "data_class_touched": [
+        "PUBLIC auth control-plane metadata",
+        "INTERNAL_ONLY subject/tenant/scope/session metadata"
+      ],
+      "audit_chain_emission_required": true,
+      "audit_chain_emission_present": true,
+      "secret_handling_path": "n/a-no-secrets-or-keys-added",
+      "regulatory_packs_impacted": [
+        "enterprise-suite-governance",
+        "hr-sensitive-data-access",
+        "payroll-financial-access",
+        "accounting-financial-access",
+        "cloud-readiness"
+      ],
+      "official_sources_checked": [
+        "repo specs/root-hub-pointers.json",
+        "repo docs/AGENTS.md",
+        "repo specs/master-plan-sequencing.json",
+        "repo specs/markdown-retirement-policy.json",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+        "https://openid.net/specs/openid-connect-core-1_0-final.html",
+        "https://www.rfc-editor.org/rfc/rfc9700",
+        "https://pages.nist.gov/800-63-4/sp800-63b.html",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+      ],
+      "findings": [
+        "All new public struct fields in changed source carry data_class annotations.",
+        "The design follows official OIDC/OAuth/NIST/OWASP themes by modeling issuer/audience/nonce/session checks, deny-by-default access control, least privilege route scopes, MFA/assurance for sensitive routes, and explicit external-provider verification as a later blocker."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The change is additive: one crate, one catalog row, spec/task/evidence updates, and readiness-gate composition. No migration, credential, or external resource is created."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Auth decisions surface audit_required and external_identity_verification_required flags for later runtime/gateway observability.",
+        "Runtime audit-chain emission remains an explicit non-claim and blocker."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite AC-17 records the staged migration boundary from local auth semantics to later OIDC/JWKS/provider and deployed gateway enforcement.",
+        "AC-15 cloud-readiness wording now narrows the auth blocker to external identity-provider verification."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "premise_stated": "A local auth runtime foundation can improve cloud readiness without claiming production authentication only if it refuses provider, signature-verification, durable-session, gateway, and runtime-audit overclaims.",
+      "premise_evidence_ref": "auth_runtime_rejects_runtime_attachment_overclaims and cloud_readiness_gate_includes_auth_runtime_foundation_without_oidc_provider_claim",
+      "do_nothing_consequence": "The Enterprise Suite cloud gate would keep a broad auth-missing blocker with no tested route/tenant/scope semantics for later gateway work.",
+      "upstream_fix_considered": true,
+      "upstream_fix_rejection_reason": "Existing preview route handlers intentionally do not enforce auth; a separate runtime-policy crate preserves their non-claim while enabling later gateway composition."
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "This is the next cloud-integration step after deployment manifest foundation: route authorization semantics are now typed before listener/gateway deployment."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Names use auth-runtime-foundation vocabulary and avoid deployed-gateway or production-auth claims."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Enterprise Suite spec, plan, task list, catalog, multispectrum evidence, VCS evidence, and audit-chain references are part of the closeout set."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The crate sits under microservices/enterprise-suite/crates with a runtime-security catalog row and no new external service adapter."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No listener, route-handler mutation, durable store, provider SDK, JWKS fetcher, Workflow engine/broker, statutory rail, or runtime audit emitter was introduced."
+      ]
+    },
+    "A5_dependency_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "The new auth runtime crate has no third-party dependencies; the readiness gate adds only a local workspace dependency on it."
+      ]
+    },
+    "A6_schema_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "No external wire API schema changes; the addition is a Rust control-plane/runtime-policy struct set plus Enterprise Suite AC-17 metadata."
+      ]
+    },
+    "A7_algorithm_adherence": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Authorization is deterministic scalar/ref checking over the fixed route policy vector with no clock source, randomness, I/O, network, or provider calls."
+      ]
+    }
+  },
+  "verification": {
+    "completed": [
+      "cargo check -p oya-enterprise-suite-auth-runtime",
+      "cargo test --locked -p oya-enterprise-suite-auth-runtime",
+      "cargo clippy --locked -p oya-enterprise-suite-auth-runtime --all-targets -- -D warnings",
+      "cargo test --locked -p oya-enterprise-suite-cloud-readiness-gate",
+      "cargo clippy --locked -p oya-enterprise-suite-cloud-readiness-gate --all-targets -- -D warnings",
+      "37-package enterprise regression: cargo test --locked for HR/payroll/accounting/enterprise-suite/procurement/treasury/warehouse/production-planning/quality-management/plant-maintenance/supply-chain-planning/crm/global-trade/real-estate packages",
+      "37-package enterprise regression: cargo clippy --locked --all-targets -- -D warnings for same package set",
+      "cargo fmt --all -- --check",
+      "jq . specs/microservices/enterprise-suite.json",
+      "jq . evidence/multispectrum/cs-ent-suite-auth-runtime-1779552000.json",
+      "data_class scan across auth runtime and readiness source fields",
+      "quality-marker scan across auth runtime/readiness/spec/catalog files",
+      "./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-suite-auth-runtime-1779552000.json --severity error"
+    ],
+    "known_pre_existing_blockers": [
+      "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog is blocked by missing pre-existing oya-tenancy-tenant-lifecycle-kernel catalog row",
+      "./bin/oya gate validate data-class --workspace Cargo.toml is blocked by pre-existing crates/oya-audit-chain-emission-kernel/src/lib.rs::ChainCoordinate.pack",
+      "Full ./bin/oya verify --ci-required remains blocked by the two pre-existing issues above"
+    ]
+  },
+  "non_claims": [
+    "No OIDC signature verification is executed.",
+    "No JWKS document is fetched or cached.",
+    "No external identity provider is contacted or attached.",
+    "No credential issuance, password verification, MFA enrollment, or session service is introduced.",
+    "No durable session storage or deployed gateway enforcement is claimed.",
+    "No existing HTTP route handler is mutated to claim deployed auth enforcement.",
+    "No runtime audit-chain emission, cloud deployment evidence, or production SLO evidence is claimed."
+  ],
+  "open_cloud_blockers": [
+    "deployed listener missing",
+    "external identity-provider verification missing",
+    "durable storage missing",
+    "Postgres/RLS missing",
+    "Workflow/broker missing",
+    "statutory filing rails missing",
+    "disbursement rails missing",
+    "runtime audit-chain emission missing",
+    "cloud deployment evidence missing",
+    "production SLO evidence missing",
+    "runtime credential/secret path missing"
+  ]
+}

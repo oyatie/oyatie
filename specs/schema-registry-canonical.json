@@ -18,6 +18,7 @@
     "AsyncAPI 3.x (event contracts)",
     "Protobuf 3 (proto3) (gRPC service definitions)",
     "OpenAPI 3.1 (REST surface definitions)",
+    "GraphQL SDL (schema and resolver contract projections generated or validated from the shared Rust-native contract source)",
     "Avro 1.x (legacy Kafka producers; new code uses proto3)",
     "JSON Schema (configuration documents, manifest schemas)"
   ],
@@ -27,9 +28,17 @@
       "asyncapi.audit-chain.events.audit-seal-emitted",
       "proto3.tenancy.api.TenancyService.CreateTenant",
       "openapi.workflow-engine.rest.v1.workflows",
+      "graphql.workflow-engine.api.v1.WorkflowQuery",
       "jsonschema.governance.manifest.scorecard-overrides"
     ],
     "ci_validator": "oya gate validate schema-registry-naming-convention"
+  },
+  "contract_authoring_model": {
+    "single_shared_source_of_truth_required": true,
+    "authoring_model": "Rust-native TypeSpec-like source checked into the service contract-source tree",
+    "generated_or_validated_outputs": ["OpenAPI REST", "Protobuf gRPC", "GraphQL SDL/resolver contracts", "AsyncAPI event contracts where applicable"],
+    "manual_parallel_schema_maintenance_forbidden": true,
+    "drift_gate_required": "future ChangeSet must add deterministic gate coverage that refuses REST/gRPC/GraphQL drift from the shared source."
   },
   "versioning": {
     "scheme": "semantic <major>.<minor>.<patch>",

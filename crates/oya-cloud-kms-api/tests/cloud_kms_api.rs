@@ -3,8 +3,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_kms_api::{
-    CLOUD_KMS_DECRYPT_SURFACE, CLOUD_KMS_ENCRYPT_SURFACE, CloudKmsApiAuthorization,
-    CloudKmsApiBoundaryContext, CloudKmsApiError, CloudKmsApiPrincipal, CloudKmsCryptoApiStatus,
+    CLOUD_KMS_DECRYPT_SURFACE, CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION, CLOUD_KMS_ENCRYPT_SURFACE,
+    CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS, CloudKmsApiAuthorization, CloudKmsApiBoundaryContext,
+    CloudKmsApiError, CloudKmsApiPrincipal, CloudKmsCryptoApiStatus,
     CloudKmsCryptoIdempotencyLedger, CloudKmsDecryptApiRequest, CloudKmsDecryptRequest,
     CloudKmsEncryptApiRequest, CloudKmsEncryptRequest, authorize_cloud_kms_decrypt_from_api,
     authorize_cloud_kms_encrypt_from_api,
@@ -20,7 +21,10 @@ fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudKmsApiBoundaryC
     CloudKmsApiBoundaryContext {
         request_id: request_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
+        region: "region-home".to_string(),
+        cell_id: "cell-region-home-a-001".to_string(),
         idempotency_key: idempotency_key.to_string(),
+        oyatie_version: CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION.to_string(),
     }
 }
 
@@ -154,6 +158,156 @@ fn encrypt_api_rejects_required_header_and_tenant_drift_before_ledger() {
     );
     assert!(ledger.is_empty());
     assert_eq!(directory.receipts().count(), 0);
+}
+
+#[test]
+fn kms_api_rejects_missing_or_unsupported_oyatie_version_before_ledger() {
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
+    let mut missing_encrypt =
+        encrypt_api_request("req-kms-version-missing", "idem-kms-version-missing");
+    missing_encrypt.boundary.oyatie_version = " ".to_string();
+    missing_encrypt.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, missing_encrypt),
+        Err(CloudKmsApiError::MissingPublicApiVersion)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut unsupported_encrypt = encrypt_api_request(
+        "req-kms-version-unsupported",
+        "idem-kms-version-unsupported",
+    );
+    unsupported_encrypt.boundary.oyatie_version = "2026-01-01".to_string();
+    unsupported_encrypt.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, unsupported_encrypt),
+        Err(CloudKmsApiError::UnsupportedPublicApiVersion {
+            oyatie_version: "2026-01-01".to_string(),
+        })
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut missing_decrypt = decrypt_api_request(
+        "req-kms-decrypt-version-missing",
+        "idem-kms-decrypt-version-missing",
+    );
+    missing_decrypt.boundary.oyatie_version = "\t".to_string();
+    missing_decrypt.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        authorize_cloud_kms_decrypt_from_api(&mut directory, &mut ledger, missing_decrypt),
+        Err(CloudKmsApiError::MissingPublicApiVersion)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut unsupported_decrypt = decrypt_api_request(
+        "req-kms-decrypt-version-unsupported",
+        "idem-kms-decrypt-version-unsupported",
+    );
+    unsupported_decrypt.boundary.oyatie_version = "not-a-date".to_string();
+    unsupported_decrypt.authorization.allowed_surfaces.clear();
+
+    assert_eq!(
+        authorize_cloud_kms_decrypt_from_api(&mut directory, &mut ledger, unsupported_decrypt),
+        Err(CloudKmsApiError::UnsupportedPublicApiVersion {
+            oyatie_version: "not-a-date".to_string(),
+        })
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+}
+
+#[test]
+fn kms_api_rejects_missing_or_drifted_placement_before_ledger() {
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
+
+    let mut missing_region =
+        encrypt_api_request("req-kms-region-missing", "idem-kms-region-missing");
+    missing_region.boundary.region = " ".to_string();
+    missing_region.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, missing_region),
+        Err(CloudKmsApiError::EmptyRegionHeader)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut missing_cell = decrypt_api_request("req-kms-cell-missing", "idem-kms-cell-missing");
+    missing_cell.boundary.cell_id = "\t".to_string();
+    missing_cell.authorization.allowed_surfaces.clear();
+    assert_eq!(
+        authorize_cloud_kms_decrypt_from_api(&mut directory, &mut ledger, missing_cell),
+        Err(CloudKmsApiError::EmptyCellHeader)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut region_drift = encrypt_api_request("req-kms-region-drift", "idem-kms-region-drift");
+    region_drift.boundary.region = "region-away".to_string();
+    region_drift.boundary.cell_id = "cell-region-away-a-001".to_string();
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, region_drift),
+        Err(CloudKmsApiError::Kms(CloudKmsError::ResourceRegionMismatch))
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+
+    let mut cell_drift = decrypt_api_request("req-kms-cell-drift", "idem-kms-cell-drift");
+    cell_drift.boundary.cell_id = "cell-region-home-b-001".to_string();
+    assert_eq!(
+        authorize_cloud_kms_decrypt_from_api(&mut directory, &mut ledger, cell_drift),
+        Err(CloudKmsApiError::Kms(CloudKmsError::CellPlacementMismatch))
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.receipts().count(), 0);
+}
+
+#[test]
+fn kms_api_accepts_manifest_public_versions_and_keys_idempotency_by_version() {
+    for (index, oyatie_version) in CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS
+        .iter()
+        .copied()
+        .enumerate()
+    {
+        let mut directory = directory_with_key();
+        let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
+        let mut request = encrypt_api_request(
+            &format!("req-kms-version-supported-{index}"),
+            &format!("idem-kms-version-supported-{index}"),
+        );
+        request.boundary.oyatie_version = oyatie_version.to_string();
+
+        let response = authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, request)
+            .expect("manifest-declared Cloud KMS public API version is accepted");
+
+        assert_eq!(response.data.key_id, "kms/region-home/ten_alpha/object-key");
+        assert_eq!(ledger.len(), 1);
+        assert_eq!(directory.receipts().count(), 1);
+    }
+
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
+    let request = encrypt_api_request("req-kms-version-default", "idem-kms-version-key");
+    authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("default public API version succeeds");
+
+    let mut version_drifted = request;
+    version_drifted.boundary.oyatie_version = "2026-02-21".to_string();
+    assert_eq!(
+        authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, version_drifted),
+        Err(CloudKmsApiError::IdempotencyKeyReused {
+            idempotency_key: "idem-kms-version-key".to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(directory.receipts().count(), 1);
 }
 
 #[test]

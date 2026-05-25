@@ -1,7 +1,12 @@
 ---
 id: ADR-0334
 status: Accepted
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - axis-social
+  - axis-shorts
 deciders:
   - user-directive-2026-05-21
   - council-architecture
@@ -377,6 +382,10 @@ workspace.
 
 C-18. The only approved short-video contract surface is social OpenAPI,
 AsyncAPI, and proto.
+
+## Consequences
+
+Merging `microservices/shorts/` into `microservices/social/` means short-form video is owned by social and rides the same `Post` aggregate with a `media.kind = short_video` discriminator rather than a separate service; the data-model, operational, and migration consequences are enumerated in the sections below.
 
 ## Data Model Consequences
 

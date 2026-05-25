@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0",
+  "change_id": "CS-CLOUD-OPS-FOUNDATION-001",
+  "agent_id": "codex-cloud-ops-foundation-20260523",
+  "created_at": "2026-05-23T09:22:00Z",
+  "scope": "Phase 0 Cloud Capacity / Cell / DCOps / FinOps / Marketplace / FSH local foundation only",
+  "claim": "Implemented metadata-only CloudOpsFoundationGuardrail for stable capacity headroom, bounded rebalance, tenant/region/cell-scoped evidence lanes across capacity/cell/DCOps/FinOps/Marketplace/FSH/audit-chain, and truth-downed related manifests/catalog records to code-backed local-foundation claims.",
+  "source_inspection": {
+    "actual_state_before_change": [
+      "oya-cloud-capacity-domain already had capacity SKU, reservation, commitment, spot, rebalancing, metering, stable headroom, and max rebalance move primitives, but no cross-ops evidence guardrail tying capacity/cell/DCOps/FinOps/Marketplace/FSH lanes to tenant/region/cell scope.",
+      "oya-cell-domain and oya-cloud-cell-app already had tenant/cell binding and API-boundary local foundation tests.",
+      "oya-cloud-dcops-domain already had pure datacenter site/facility/power/cooling/security/rack/equipment/cable/BMS/work-order/sustainability records.",
+      "oya-cloud-finops-domain/kernel/api already had rate card, allocation, budget, anomaly/recommendation, report, kernel, and API-boundary tests but no live FOCUS/OpenCost export runtime.",
+      "oya-cloud-marketplace-domain/kernel already had seller/listing/private offer/entitlement/fee and kernel command-shaping tests but no live provider marketplace integration.",
+      "cell-lifecycle, cell-rebalancer, finops-portal, marketplace, and ops-dashboard-control-center manifests overclaimed missing crates/layers, measured SLOs, audit-chain runtime, DR, sharding, mesh, IaC, OSS runtime, and provider integrations."
+    ],
+    "authoritative_next_slice_before_change": "tasks/plan.md and tasks/todo.md identified Cloud Capacity/Cell/DCOps/FinOps/Marketplace/FSH as the next sequential Phase 0 slice after Cloud Billing + Tax closeout."
+  },
+  "official_sources_used": [
+    {
+      "name": "Google SRE Handling Overload",
+      "url": "https://sre.google/sre-book/handling-overload/",
+      "relevance": "Resource-based capacity, per-customer quotas, criticality, throttling, retry budgets, and overload handling require measured runtime evidence; this slice keeps only metadata guardrails and no overload runtime claims."
+    },
+    {
+      "name": "Kubernetes Node Autoscaling",
+      "url": "https://v1-32.docs.kubernetes.io/docs/concepts/cluster-administration/node-autoscaling/",
+      "relevance": "Node autoscaling is cluster runtime behavior; this slice does not claim Kubernetes autoscaler/controller implementation."
+    },
+    {
+      "name": "FOCUS Specification",
+      "url": "https://focus.finops.org/focus-specification/",
+      "relevance": "FOCUS 1.3 is the current uniform billing/cost dataset specification as of this work; this slice does not claim FOCUS data generation/export."
+    },
+    {
+      "name": "OpenCost Specification",
+      "url": "https://opencost.io/docs/specification/",
+      "relevance": "OpenCost defines vendor-neutral Kubernetes infrastructure/container cost measurement and allocation; this slice does not claim OpenCost ingestion or Prometheus/Mimir federation."
+    },
+    {
+      "name": "Uptime Institute Tier Classification System",
+      "url": "https://uptimeinstitute.com/tiers",
+      "relevance": "Data-center tier claims require facility infrastructure/topology evidence; this slice validates DCOps domain metadata only and does not claim certification or facility runtime."
+    },
+    {
+      "name": "AWS Marketplace SaaS products",
+      "url": "https://docs.aws.amazon.com/marketplace/latest/userguide/saas-products.html",
+      "relevance": "SaaS sellers manage customer access/provisioning and subscription/contract integration; this slice validates marketplace domain metadata only and does not claim provider marketplace API integration."
+    },
+    {
+      "name": "AWS Marketplace SaaS product guidelines",
+      "url": "https://docs.aws.amazon.com/marketplace/latest/userguide/saas-guidelines.html",
+      "relevance": "Marketplace products with customer data need security-relevant audit logging; this slice records audit-chain runtime as an explicit non-claim while guarding evidence ref lanes."
+    }
+  ],
+  "implemented_changes": [
+    {
+      "file": "crates/oya-cloud-capacity-domain/src/lib.rs",
+      "changes": [
+        "Added public evidence-prefix constants and CLOUD_OPS_FOUNDATION_SCHEMA_VERSION.",
+        "Added CloudOpsFoundationGuardrailCreate and CloudOpsFoundationGuardrail.",
+        "Added InvalidOpsEvidenceRef and InvalidAuditChainRef errors.",
+        "Added stable headroom computation reuse and strict tenant id validation.",
+        "Added path-safe, non-secret, tenant/region/cell-scoped evidence/audit ref validators."
+      ]
+    },
+    {
+      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "changes": [
+        "Added RED/GREEN integration coverage for happy path, headroom, rebalance/cell, evidence/audit lane, and tenant/region/cell drift cases."
+      ]
+    },
+    {
+      "file": "microservices/{cell-lifecycle,cell-rebalancer,finops-portal,marketplace,ops-dashboard-control-center}/manifest.json",
+      "changes": [
+        "Replaced broad runtime/full-pack claims with code-backed local foundation crates/capabilities and explicit non-claims for runtime, SLO, DR, sharding, mesh, IaC, provider-live, and audit-chain persistence."
+      ]
+    },
+    {
+      "file": "registry/catalog/oya-cloud-{capacity,cell,dcops,finops,marketplace}*.yaml",
+      "changes": [
+        "Marked code-backed catalogs as local-foundation-no-runtime-slo/self-reviewed/source-only and compatibility rows as no-runtime-slo no-crate rows with successor catalogs."
+      ]
+    },
+    {
+      "file": "tasks/plan.md and tasks/todo.md",
+      "changes": [
+        "Recorded CS-CLOUD-OPS-FOUNDATION-001 local foundation closure state and non-claims; next action is Phase 0 closure/gate re-audit, not production readiness."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "id": "F1",
+      "command": "cargo test -p oya-cloud-capacity-domain --test cloud_ops_foundation (before implementation)",
+      "status": "expected_fail_red",
+      "summary": "Failed with unresolved imports CloudOpsFoundationGuardrail and CloudOpsFoundationGuardrailCreate plus missing InvalidOpsEvidenceRef/InvalidAuditChainRef variants."
+    },
+    {
+      "id": "F2",
+      "command": "cargo test -p oya-cloud-capacity-domain --test cloud_ops_foundation",
+      "status": "pass",
+      "summary": "5 integration tests passed: happy path, stable headroom rejection, rebalance/cell-region rejection, evidence/audit lane rejection, tenant/region/cell drift rejection."
+    },
+    {
+      "id": "F3",
+      "command": "cargo test -p oya-cloud-capacity-domain -p oya-cloud-capacity-kernel -p oya-cloud-cell-app -p oya-cell-domain -p oya-cloud-dcops-domain -p oya-cloud-finops-domain -p oya-cloud-finops-kernel -p oya-cloud-finops-api -p oya-cloud-marketplace-domain -p oya-cloud-marketplace-kernel",
+      "status": "pass",
+      "summary": "Capacity, cell, DCOps, FinOps, and Marketplace package test set passed."
+    },
+    {
+      "id": "F4",
+      "command": "cargo clippy -p oya-cloud-capacity-domain -p oya-cloud-capacity-kernel -p oya-cloud-cell-app -p oya-cell-domain -p oya-cloud-dcops-domain -p oya-cloud-finops-domain -p oya-cloud-finops-kernel -p oya-cloud-finops-api -p oya-cloud-marketplace-domain -p oya-cloud-marketplace-kernel --all-targets -- -D warnings",
+      "status": "pass",
+      "summary": "Scoped clippy completed without warnings."
+    },
+    {
+      "id": "F5",
+      "command": "cargo check -p oya-cloud-capacity-domain -p oya-cloud-capacity-kernel -p oya-cloud-cell-app -p oya-cell-domain -p oya-cloud-dcops-domain -p oya-cloud-finops-domain -p oya-cloud-finops-kernel -p oya-cloud-finops-api -p oya-cloud-marketplace-domain -p oya-cloud-marketplace-kernel",
+      "status": "pass",
+      "summary": "Scoped package check passed."
+    },
+    {
+      "id": "F6",
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "Workspace formatting check passed after code changes."
+    },
+    {
+      "id": "F7",
+      "command": "custom cloud-ops manifest/catalog coherence validator",
+      "status": "pass",
+      "summary": "5 manifests parse; SLOs empty; runtime audit/DR/IaC/mesh/sharding false; claimed manifest crates exist; 10 code-backed catalogs and 9 compatibility rows reconciled for CS-CLOUD-OPS-FOUNDATION-001."
+    },
+    {
+      "id": "F8",
+      "command": "./bin/oya gate validate planning-closure",
+      "status": "pass",
+      "summary": "Planning closure validation passed with blocker_count=0."
+    },
+    {
+      "id": "F9",
+      "command": "./bin/oya gate validate api-semver --contracts-dir contracts",
+      "status": "pass",
+      "summary": "API semver validation passed: 41 contracts, 41 metadata records."
+    },
+    {
+      "id": "F10",
+      "command": "./bin/oya gate validate dependency-seam --severity report-only",
+      "status": "pass_report_only",
+      "summary": "Dependency seam passed in report-only mode: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 blocking failures."
+    },
+    {
+      "id": "F11",
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus ...scoped cloud ops roots...",
+      "status": "pass",
+      "summary": "Scoped honest-claims validation passed: 7 documents, 2023 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes."
+    },
+    {
+      "id": "F12",
+      "command": "./bin/oya git diff --check",
+      "status": "pass",
+      "summary": "No whitespace errors in diff."
+    },
+    {
+      "id": "F13",
+      "command": "./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "status": "known_repo_wide_fail_not_claimed",
+      "summary": "Still fails on unrelated pre-existing registry/catalog/oya-cloud-compute-functions-api.yaml InvalidSecurityReview; this ChangeSet does not claim repo-wide catalog validation green."
+    },
+    {
+      "id": "F14",
+      "command": "./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "status": "known_repo_wide_fail_not_claimed",
+      "summary": "Still fails on unrelated pre-existing missing catalog records for tenancy/payments/audit-chain surfaces; this ChangeSet does not claim repo-wide architecture-boundaries green."
+    }
+  ],
+  "code_review": {
+    "method": "local five-axis review per code-review/code-review-and-quality skills after tests/gates",
+    "files_reviewed": [
+      "crates/oya-cloud-capacity-domain/src/lib.rs",
+      "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "microservices/cell-lifecycle/manifest.json",
+      "microservices/cell-rebalancer/manifest.json",
+      "microservices/finops-portal/manifest.json",
+      "microservices/marketplace/manifest.json",
+      "microservices/ops-dashboard-control-center/manifest.json",
+      "registry/catalog/oya-cloud-capacity-*.yaml",
+      "registry/catalog/oya-cloud-cell*.yaml",
+      "registry/catalog/oya-cell-domain.yaml",
+      "registry/catalog/oya-platform-cell-kernel.yaml",
+      "registry/catalog/oya-cloud-dcops*.yaml",
+      "registry/catalog/oya-cloud-finops*.yaml",
+      "registry/catalog/oya-cloud-marketplace*.yaml",
+      "tasks/plan.md",
+      "tasks/todo.md"
+    ],
+    "critical": [],
+    "high": [],
+    "medium": [],
+    "low": [],
+    "architectural_status": "CLEAR for local-foundation scope; repo-wide architecture-boundaries remains blocked by unrelated missing catalog records and is not claimed green",
+    "recommendation": "APPROVE local foundation scope"
+  },
+  "non_claims": [
+    "no live capacity scheduler/reservation API/provider purchase path/spot interruption integration",
+    "no cell lifecycle promotion/drain/decommission engine or tenant migration/rebalance workflow",
+    "no DCOps dashboard runtime, BMS telemetry integration, facility certification, or live site operations",
+    "no FinOps portal UI, FOCUS export, OpenCost ingestion, Mimir/Prometheus federation, invoice PDF renderer, or public reporting service runtime",
+    "no external AWS/OCI marketplace adapter, entitlement/metering service integration, settlement ledger, escrow, payout, tax clearance, or revenue-share runtime",
+    "no FSH/file-storage runtime beyond previously closed storage local foundation metadata surfaces",
+    "no measured SLOs, DR drills, sharding/autoscaling automation, mesh runtime, OpenTofu plan/apply, provider-live smoke, database/broker/worker/runtime, or audit-chain persistence"
+  ],
+  "known_repo_wide_blockers_not_claimed_green": [
+    "./bin/oya catalog validate still fails on registry/catalog/oya-cloud-compute-functions-api.yaml: InvalidSecurityReview, unrelated to this ChangeSet.",
+    "./bin/oya gate validate architecture-boundaries still fails on pre-existing missing catalog records for tenancy/payments/audit-chain crate rows, unrelated to this ChangeSet.",
+    "Full ./bin/oya verify --ci-required remains outside this local-foundation claim and is not claimed green."
+  ],
+  "oya_vcs": {
+    "claim": "accepted before writes",
+    "work": "accepted for CS-CLOUD-OPS-FOUNDATION-001",
+    "verify": "accepted with evidence/multispectrum/cs-cloud-ops-foundation-20260523.json",
+    "done": "accepted with --controller-promote",
+    "promote": "accepted for bundle CS-CLOUD-OPS-FOUNDATION-001 in local env"
+  },
+  "updated_at": "2026-05-23T09:24:00Z"
+}

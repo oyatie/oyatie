@@ -1,6 +1,7 @@
 ---
 id: ADR-0251
 status: Proposed
+planning_impact: true
 date: 2026-05-20
 owners:
   - council-architecture

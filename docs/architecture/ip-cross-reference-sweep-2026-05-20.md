@@ -288,7 +288,7 @@ For each deficient IP, add a small cross-reference block rather than rewriting t
 ```markdown
 ## Cross-reference integrity
 - Journey support: jNNN — <journey name and why this IP supports it>
-- Related ADRs: ADR-0000, ADR-0000, ADR-0000, ADR-0000, ADR-0000
+- Related ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0145, ADR-0263
 - Cross-µservice handoffs: <owning µservice> -> <other µservice> via <contract/event/saga>
 - Cedar policy: <policy path or fragment id>; default-deny behavior and decision field
 - ADR-0263 audit-event classes: EVT-...; mandatory fields include tenant_id, principal_id, trace_id, audit_id/evidence_hash as applicable

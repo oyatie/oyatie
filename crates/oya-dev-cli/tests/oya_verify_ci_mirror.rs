@@ -180,6 +180,14 @@ impl VerifyFixture {
         command
             .current_dir(repo_root())
             .args(args)
+            // These integration tests are themselves run by
+            // `oya verify --ci-required` during the CI mirror. The verifier
+            // deliberately exports OYA_VERIFY_RUNNING=1 to child commands so a
+            // real nested `oya verify` is refused. The fixture is different:
+            // it launches a fresh top-level verifier against fake cargo/oya/git
+            // shims, so clear the parent guard before asserting verifier
+            // behavior.
+            .env_remove("OYA_VERIFY_RUNNING")
             .env("PATH", fixture_path(&self.bin))
             .env("FAKE_VERIFY_LOG", &self.log)
             .env("FAKE_VERIFY_GIT_ROOT", repo_root())

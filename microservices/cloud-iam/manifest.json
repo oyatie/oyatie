@@ -8,8 +8,11 @@
       "name": "cloud-iam",
       "description": "Bounded context 'cloud-iam' for tenant identity, authorization, STS, provider translation, role and principal lifecycle.",
       "crates": [
+        "oya-cloud-iam-domain",
+        "oya-cloud-iam-app",
         "oya-cloud-iam-api",
-        "oya-cloud-iam-domain"
+        "oya-cloud-iam-adapter-oci",
+        "oya-cloud-iam-adapter-selfhosted"
       ]
     }
   ],
@@ -17,12 +20,7 @@
     "adapter",
     "api",
     "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "domain"
   ],
   "contracts": {
     "openapi": [
@@ -33,26 +31,67 @@
   },
   "capabilities": [
     {
-      "name": "authorization",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md",
+      "tier": "T2",
+      "name": "identity-provider-registry-snapshot",
+      "file": "crates/oya-cloud-iam-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
-      "name": "provider-translation",
-      "availability": "demo_trial capped; paid per contract/compliance pack",
-      "file": "microservices/cloud-iam/feature-parity-matrix-2026-05-20.md",
+      "tier": "T2",
+      "name": "identity-provider-registry-evidence-event",
+      "file": "crates/oya-cloud-iam-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "public-api-version-carrier-enforcement",
+      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "typed-tenant-cell-region-boundary",
+      "file": "crates/oya-cloud-iam-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "identity-provider-mutation-api",
+      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "role-create-api",
+      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "sts-token-issuance-api",
+      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "cedar-policy-bind",
+      "file": "crates/oya-cloud-iam-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "provider-translation-oci",
+      "file": "crates/oya-cloud-iam-adapter-oci/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "provider-translation-selfhosted",
+      "file": "crates/oya-cloud-iam-adapter-selfhosted/src/lib.rs",
       "risk_class": "high"
     }
   ],
-  "slos": [
-    {
-      "name": "oya-cloud-iam-cloud-iam-authorize-p99",
-      "target": "0.99",
-      "sli": "service_manifest_reference{microservice=\"cloud-iam\",slo=\"cloud-iam-authorize-p99\"}",
-      "file": "microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md"
-    }
-  ],
+  "slos": [],
   "ips": [
     {
       "id": "IP-001-wave-d-iam-baseline",
@@ -133,19 +172,42 @@
       "title": "Oss Stewardship Class Policy And Cve Response Sla",
       "scope": "repo",
       "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+    },
+    {
+      "id": "ADR-0346",
+      "title": "Oya Verify Must Run Full Ci Mirror",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+    },
+    {
+      "id": "ADR-0349",
+      "title": "Jenkins Argocd Self Hostable Ci Cd Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+    },
+    {
+      "id": "ADR-0351",
+      "title": "Cell Rebalancer And Cell Lifecycle Microservices",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
+    "circuit_breaker": "not_claimed_cs_cloud_iam_005: no implemented Cloud IAM circuit-breaker/bulkhead code or PrometheusRule evidence in the current crates",
+    "tenant_rate_limit": "not_claimed_cs_cloud_iam_005: no implemented Cloud IAM per-tenant/per-cell rate-limit or quota-enforcement evidence in the current crates",
+    "golden_signals": "not_claimed_cs_cloud_iam_005: no implemented Cloud IAM metrics/OpenSLO/golden-signal emission evidence in the current crates",
+    "error_budget_burn": "not_claimed_cs_cloud_iam_005: SLO list is empty because no measured Cloud IAM SLI or burn-rate rule is implemented yet"
   },
   "audit_chain": {
     "enabled": true,
     "seal_events": [
-      "oya.cloud-iam.doctrine-declared",
-      "oya.cloud-iam.dr-failover"
+      "evt_cloud_iam_idp_registry_<tenant>_<provider>_<idempotency_key>"
     ]
   },
   "secrets_substrate": {
@@ -170,39 +232,7 @@
     },
     "scaling_dimension": "per_request",
     "cell_placement_class": "Tier-0",
-    "notes": "Hot-path Cedar authorize, token issue, introspection, and provider translation scale by authorization requests and principal/role counts."
-  },
-  "sharding_automation": {
-    "autosharding": "control_plane_driven",
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
-  },
-  "dr": {
-    "rto_p99_seconds": 300,
-    "rpo_p99_seconds": 30,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "postgres_wal_g",
-      "valkey_cluster",
-      "audit_chain_merkle_seal",
-      "object_storage_versioned"
-    ],
-    "failover_runbook": "runbooks/identity-plane-failover.md",
-    "dr_tier": "T1",
-    "replication_shape": "active-active-multi-az-cross-region-warm"
+    "notes": "ADR-0340 planning declaration only for the currently implemented Cloud IAM pure crates; CS-CLOUD-IAM-005 does not claim an implemented autoscaler, Karpenter/HPA/KEDA binding, cell-sizer, runtime connection pool, or measured capacity evidence. Implemented evidence is limited to typed tenant/cell/region request-boundary placement metadata."
   },
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Foundation identity substrate: cloud-iam handles tenant principals, authorization, STS, and provider projection data, matching ADR-0338's Tier-1 floor for cloud-iam and ADR-0340's Tier-0 cellular class.",

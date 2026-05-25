@@ -299,9 +299,7 @@ fn check_cargo_audit_shell(config: &DependencySeamConfig) -> DependencySeamSubch
 
 fn run_cargo_audit(config: &DependencySeamConfig) -> AuditOutcome {
     let output = Command::new("cargo")
-        .arg("audit")
-        .arg("--no-fetch")
-        .arg("--stale")
+        .args(cargo_audit_args(config.offline))
         .current_dir(&config.repo_root)
         .env_remove("RUSTC_WRAPPER")
         .output();
@@ -333,6 +331,14 @@ fn run_cargo_audit(config: &DependencySeamConfig) -> AuditOutcome {
             )],
             notes: Vec::new(),
         },
+    }
+}
+
+fn cargo_audit_args(offline: bool) -> Vec<&'static str> {
+    if offline {
+        vec!["audit", "--no-fetch", "--stale"]
+    } else {
+        vec!["audit", "--stale"]
     }
 }
 
@@ -1168,6 +1174,29 @@ mod tests {
     }
 
     #[test]
+    fn live_registry_authorizes_app_shell_mock_render_envelope_boundary() {
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("repo root")
+            .to_path_buf();
+        let rationales =
+            read_dependency_rationales(&repo_root.join("registry/dependency-rationales.json"))
+                .expect("live dependency rationales");
+
+        for dependency in ["serde", "serde_json"] {
+            let allowed = rationales
+                .get(dependency)
+                .and_then(allowed_crates_for_rationale)
+                .unwrap_or_default();
+            assert!(
+                allowed.contains("oya-application-shell-frontend-prototype"),
+                "{dependency} must explicitly allow only the app-shell prototype render-envelope boundary"
+            );
+        }
+    }
+
+    #[test]
     fn cargo_audit_shell_skips_without_failure_in_offline_mode() {
         let root = fixture_repo("offline-audit");
         write_valid_repo(&root);
@@ -1185,6 +1214,15 @@ mod tests {
         assert_eq!(audit.status, SubcheckStatus::Skipped);
         assert!(report.blocking_diagnostics().is_empty());
         cleanup(&root);
+    }
+
+    #[test]
+    fn online_cargo_audit_does_not_require_preseeded_advisory_db() {
+        assert_eq!(
+            cargo_audit_args(true),
+            vec!["audit", "--no-fetch", "--stale"]
+        );
+        assert_eq!(cargo_audit_args(false), vec!["audit", "--stale"]);
     }
 
     #[test]

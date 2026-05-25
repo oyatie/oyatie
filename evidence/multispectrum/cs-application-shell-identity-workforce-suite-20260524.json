@@ -1,0 +1,130 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-IDENTITY-WORKFORCE-SUITE-20260524",
+    "evidence_id": "cs-application-shell-identity-workforce-suite-20260524",
+    "created_at": "2026-05-24T00:00:00-04:00",
+    "agent": "codex-oyatie-identity-workforce-suite",
+    "objective": "Repair the Bominal-regression gap by adding a cohesive Oyatie Identity + Workforce suite that visibly integrates Bominal-inspired Auth, sessions, roles, organization profile, employee directory, and onboarding workflows into the dashboard rather than presenting separate mixed cards.",
+    "reference_inputs": {
+        "bominal_zip": "/Users/jasonlee/Downloads/Bominal.zip",
+        "workflow_standalone_html": "/Users/jasonlee/Downloads/Workflow Editor _standalone_.html",
+        "reference_screenshots": [
+            ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-auth-1440.png",
+            ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-org-profile-1440.png",
+            ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png",
+            ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png"
+        ]
+    },
+    "implemented": [
+        "Added a deep Identity + Workforce suite to the dashboard immediately after the corporate operations graph, so Bominal settings/auth/org/employee/onboarding capability is a cohesive product area, not a disconnected card mix.",
+        "Added Bominal-derived settings rail, active admin identity, passkey/MFA authentication methods, security score card, session/device register, role-envelope matrix, organization profile KPIs, legal/bank/payroll/insurance detail cards, employee directory stats/search/filters/table, and workspace onboarding checklist.",
+        "Mirrored the new suite in SSR static HTML so the live Podman prototype renders it before WASM hydration and before the visual fallback takes over.",
+        "Added visual-only interactions: tab switching, command-palette jump, passkey draft row + security score update, employee search/filter, local employee invite row, onboarding progress advancement, and local status feedback.",
+        "Added Bominal-like dense flat styling using existing Oyatie/Bominal tokens: cool neutral panels, compact rail controls, tab pills, tabular metrics, low-radius tables, and Korean-first content.",
+        "Added command palette action for Identity & Workforce and hash-addressable states for auth/sessions/roles/org/employees/onboarding screenshot reproduction."
+    ],
+    "verification": [
+        {
+            "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+            "status": "passed"
+        },
+        {
+            "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+            "status": "passed"
+        },
+        {
+            "command": "cargo test -p oya-application-shell-frontend-prototype",
+            "status": "passed",
+            "tests": "8 passed"
+        },
+        {
+            "command": "cargo build -p oya-application-shell-frontend-prototype --no-default-features --features ssr",
+            "status": "passed"
+        },
+        {
+            "command": "cargo build --target wasm32-unknown-unknown -p oya-application-shell-frontend-prototype --no-default-features --features hydrate --lib --release",
+            "status": "passed"
+        },
+        {
+            "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+            "status": "passed",
+            "observations": [
+                "live server reachable on 127.0.0.1:3000",
+                "SSR output contains identity-workforce-suite"
+            ]
+        },
+        {
+            "command": "npx --yes playwright screenshot --viewport-size=1440,900 ... #identity-auth/#identity-org/#identity-employees/#identity-onboarding/#command-palette",
+            "status": "passed",
+            "observations": [
+                "Captured auth, organization profile, employee directory, onboarding, and command palette states at 1440x900.",
+                "Hash-addressed screenshots prove the identity suite can reproduce deep product states from the live SSR shell."
+            ]
+        },
+        {
+            "command": "npx --yes -p playwright ... identity interaction smoke",
+            "status": "passed",
+            "observations": {
+                "initialPanel": "auth",
+                "passkeyRowsAfterClick": 1,
+                "securityScoreAfterPasskey": "97/100",
+                "employeePanelAfterTabClick": "employees",
+                "visibleEmployeeRowsAfterSearchChoiYuna": 1,
+                "localEmployeeInviteRowsAfterAdd": 1,
+                "activePanelAfterOnboardingClick": "onboarding",
+                "onboardingPercentAfterAdvance": "67%",
+                "knownFallbackResponse": "GET /pkg/oya_application_shell_frontend_prototype.js returns 404 in this live container, then prototype-interactions.js mounts the visual fallback; this was expected from the current container seam and did not block interactions."
+            },
+            "artifact": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/identity-smoke.json"
+        },
+        {
+            "command": "npx --yes -p pixelmatch -p pngjs ... Bominal reference/current screenshot diff",
+            "status": "passed",
+            "artifact": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/pixel-diff-summary.json",
+            "observations": [
+                "auth mismatch ratio 0.0284 against Bominal auth reference at 1440x900",
+                "org mismatch ratio 0.0326 against Bominal org profile reference at 1440x900",
+                "employees mismatch ratio 0.0368 against Bominal employee directory reference at 1440x900"
+            ]
+        }
+    ],
+    "screenshots": {
+        "identity_auth": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/identity-auth-1440.png",
+        "identity_org": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/identity-org-1440.png",
+        "identity_employees": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/identity-employees-1440.png",
+        "identity_onboarding": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/identity-onboarding-1440.png",
+        "identity_command_palette": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/identity-command-palette-1440.png",
+        "pixel_diff_auth": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/diff-auth-1440.png",
+        "pixel_diff_org": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/diff-org-1440.png",
+        "pixel_diff_employees": ".omx/artifacts/visual-ralph/oya-identity-workforce-suite/screenshots/diff-employees-1440.png"
+    },
+    "visual_verdict": {
+        "score": 91,
+        "category_match": "Bominal-style enterprise settings/workforce suite embedded coherently into Oyatie's operations dashboard",
+        "verdict": "This slice now passes the Visual Ralph threshold for the missing Bominal auth/org/employees/onboarding feature gap. It is intentionally Oyatie-branded and integrated into the dashboard shell rather than a direct Bominal clone.",
+        "improved_matches": [
+            "Auth page now has left settings rail, passkey/MFA rows, recovery methods, security score, and add-passkey interaction.",
+            "Organization profile now has KPI cards plus legal, bank/payment, payroll calendar, and social-insurance information density similar to Bominal.",
+            "Employee directory now has stats, search, filters, dense table rows, manager/team/status columns, and local add-invite behavior.",
+            "Onboarding now has a 9-step setup path, progress indicator, current step card, and local progress advancement.",
+            "The suite is cohesive within one product surface and linked from left rail plus command palette."
+        ],
+        "remaining_differences": [
+            "This is still a prototype surface with local browser interactions only; it does not perform real authentication, HR writes, filings, mail sends, or workflow execution.",
+            "The live Podman SSR container still lacks the generated /pkg JS glue, so the intended fallback mounts after a known /pkg 404; visual functionality remains available through prototype-interactions.js.",
+            "Bominal's pages are separate routes; Oyatie intentionally integrates them as one in-dashboard suite for cohesive product flow.",
+            "Exact icons, type metrics, and route-specific whitespace are close but not a literal pixel clone."
+        ]
+    },
+    "non_claims": [
+        "No live auth mutation, passkey creation, session revocation, or role policy change occurs.",
+        "No external HR, payroll, banking, insurance, email, messenger, community, or filing system is contacted.",
+        "No persistence is claimed beyond local DOM state in the visual prototype.",
+        "This does not complete every Bominal route; it closes the major identity/workforce/settings gap in the current mockup."
+    ],
+    "touched_files": [
+        "crates/oya-application-shell-frontend-prototype/src/app.rs",
+        "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+        "crates/oya-application-shell-frontend-prototype/style/app.css",
+        "evidence/multispectrum/cs-application-shell-identity-workforce-suite-20260524.json"
+    ]
+}

@@ -1,0 +1,14 @@
+# CI farm local-k3s execution evidence — 2026-05-25T15:44:20Z
+## cluster
+colima   Ready   control-plane   13m   v1.35.0+k3s1   192.168.5.1   <none>   Ubuntu 24.04.4 LTS   6.8.0-100-generic   docker://29.2.1
+## controller
+oya-jenkins-0 ready=1; numExecutors=0 (JCasC-only)
+## JCasC cloud
+oya-ci-kubernetes (KubernetesCloud), template rust-ci label=oya-rust-ci, webSocket=true
+## green pipeline (build #5, agent rust-ci-znj98) — Finished: SUCCESS
+Running on rust-ci-znj98 in /home/jenkins/agent/workspace/oya-ci-smoke
+rustc 1.95.0 (59807616e 2026-04-14)
+cargo 1.95.0 (f2d3ce0bd 2026-03-21)
++ echo CACHE_ENV SCCACHE_BUCKET=oya-ci-sccache-shared-prod SCCACHE_ENDPOINT=seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333
+CACHE_ENV SCCACHE_BUCKET=oya-ci-sccache-shared-prod SCCACHE_ENDPOINT=seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333
+Finished: SUCCESS

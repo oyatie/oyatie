@@ -362,7 +362,7 @@ Apple opensource.apple.com. Oyatie's registry is the corpus-wide analog.
 
 ### 11.7 Future substrate-adoption contract
 
-Every NEW substrate-adoption ADR (e.g., a hypothetical ADR-0400+ that selects
+Every NEW substrate-adoption ADR (e.g., a future substrate-adoption ADR that selects
 a new upstream) MUST add a registry entry as part of the ADR's required
 artifact. The `oya-check-oss-stewardship-registry-presence` lane refuses
 substrate adoption that skips registry declaration. Council-architecture +

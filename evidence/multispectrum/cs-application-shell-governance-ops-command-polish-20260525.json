@@ -1,0 +1,210 @@
+{
+  "change_id": "CS-APPLICATION-SHELL-GOVERNANCE-OPS-COMMAND-POLISH-20260525",
+  "schema_version": "1.0.0",
+  "id": "CS-APPLICATION-SHELL-GOVERNANCE-OPS-COMMAND-POLISH-20260525",
+  "kind": "multispectrum-evidence",
+  "agent": "codex-oyatie-governance-ops-command-polish",
+  "captured_at": "2026-05-25T03:18:34.820718Z",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/src/app.rs",
+    "crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+    "crates/oya-application-shell-frontend-prototype/style/app.css",
+    "evidence/multispectrum/cs-application-shell-governance-ops-command-polish-20260525.json"
+  ],
+  "goal_context": "Continue toward a complete Bominal-grade Oyatie mockup after the user called the current mockup a major regression; this slice upgrades Governance Analytics / corporate operations, not the entire remaining dashboard objective.",
+  "reference_sources": [
+    "/Users/jasonlee/Downloads/Bominal.zip",
+    "/tmp/bominal-reference/app-governance.jsx",
+    "/tmp/bominal-reference/data-governance.js",
+    "/tmp/bominal-reference/governance.css",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png",
+    ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png"
+  ],
+  "change_summary": [
+    "Replaced the sparse Governance Analytics summary with a Bominal-inspired but Oyatie-native command board inside the cohesive corporate operations graph.",
+    "Added executive posture score, 13-week trend sparkline, four governance pillars, policy gates, exec approval table, 5x5 risk heatmap, risk detail peek, 12-month compliance calendar, evidence readiness lanes, control attestations, immutable audit chain, board-cycle timeline, and cross-suite route matrix.",
+    "Added local interaction handlers for governance commands, risk selection, calendar cell selection, and route buttons into Workflow, Mail, Community, Finance, Cloud Ops, Identity, Evidence, Catalog, and the Action Inbox.",
+    "Preserved local-only/no-backend semantics while improving visual density, feature coverage, and functional affordances against the Bominal governance reference."
+  ],
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "pass-for-governance-ops-slice-not-full-dashboard-completion",
+    "category_match": true,
+    "differences": [
+      "The surface remains embedded in the Oyatie global shell rather than becoming a separate Bominal application clone.",
+      "Content is adapted to Oyatie cloud/tenant, workflow, built-in communications, identity, and evidence-spine concepts instead of copying Bominal data as-is.",
+      "The complete-dashboard goal remains active; this pass specifically closes the Governance Analytics/corporate-operations regression gap."
+    ],
+    "suggestions": [
+      "Continue applying this same dense Bominal-grade treatment to any remaining sparse route surfaces before declaring the full mockup complete.",
+      "Add a dedicated full-window governance route only if the user wants a standalone governance analytics screen separate from the cohesive dashboard."
+    ],
+    "reasoning": "Governance Analytics now has the key Bominal feature families: posture, risk matrix, compliance calendar, approvals, attestation, audit chain, board cycle, copilot-style local commands, and cross-product routing. Browser smoke proves the controls are visibly interactive and local-only."
+  },
+  "browser_smoke": {
+    "capturedAt": "2026-05-25T03:18:34.820837Z",
+    "viewport": "1440x900",
+    "summary": {
+      "ok": true,
+      "counts": {
+        "commandBoards": 1,
+        "postureStrips": 1,
+        "pillars": 4,
+        "commandCards": 9,
+        "policyGates": 4,
+        "decisions": 4,
+        "riskPins": 5,
+        "calendarCells": 10,
+        "evidenceLanes": 4,
+        "routeButtons": 8,
+        "attestations": 3,
+        "auditBlocks": 4,
+        "boardSteps": 4
+      },
+      "riskPeek": "LSA §53 weekly-hour breach",
+      "calendarStatus": "Social insurance May review selected · filing calendar remains visual-only",
+      "cloudStatus": "Cloud network split gate selected · rollback evidence required",
+      "mailHub": "Mail",
+      "communityHub": "Community",
+      "financeActive": "Ledger close",
+      "consoleEvents": [],
+      "failedRequests": []
+    },
+    "assertions": {
+      "hasPostureStrip": true,
+      "hasPillars": true,
+      "hasRiskHeatmap": true,
+      "hasComplianceCalendar": true,
+      "hasControlAttestations": true,
+      "hasAuditChain": true,
+      "hasBoardCycle": true,
+      "hasRouteMatrix": true,
+      "riskSelectionUpdatesPeek": true,
+      "calendarSelectionUpdatesStatus": true,
+      "mailRouteActivatesMail": true,
+      "communityRouteActivatesCommunity": true,
+      "financeRouteActivatesLedger": true,
+      "noConsoleErrors": true,
+      "noFailedRequests": true
+    },
+    "errors": [],
+    "failed": [],
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-command-1440.png",
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-interacted-1440.png",
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-route-mail-1440.png"
+    ]
+  },
+  "pixel_diff": {
+    "capturedAt": "2026-05-25T03:17:23.741Z",
+    "note": "Pixel diff is secondary evidence only: this slice matches Bominal governance density/features, not a one-to-one clone of the command-center viewport.",
+    "comparisons": [
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-corporate-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-command-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/diff-governance-vs-ref-http-corporate-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 86550,
+        "mismatchRatio": 0.066782
+      },
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-employees-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-command-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/diff-governance-vs-ref-http-employees-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 74157,
+        "mismatchRatio": 0.05722
+      },
+      {
+        "ref": ".omx/artifacts/visual-ralph/bominal-reference-full/screenshots/ref-http-workflow-studio-1440.png",
+        "current": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-command-1440.png",
+        "diffPath": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/diff-governance-vs-ref-http-workflow-studio-1440.png",
+        "width": 1440,
+        "height": 900,
+        "mismatchPixels": 84375,
+        "mismatchRatio": 0.065104
+      }
+    ]
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --package oya-application-shell-frontend-prototype --check",
+      "status": "pass"
+    },
+    {
+      "command": "node --check crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- crates/oya-application-shell-frontend-prototype/src/app.rs crates/oya-application-shell-frontend-prototype/static/prototype-interactions.js crates/oya-application-shell-frontend-prototype/style/app.css",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend-prototype",
+      "status": "pass",
+      "details": "8 passed"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --features ssr --no-default-features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build -p oya-application-shell-frontend-prototype --target wasm32-unknown-unknown --features hydrate --no-default-features --release --lib",
+      "status": "pass",
+      "details": "Hydration lib artifact; building the package bin for wasm is not the intended hydration target."
+    },
+    {
+      "command": "podman restart oya-frontend-prototype-live && curl http://127.0.0.1:3000/",
+      "status": "pass",
+      "details": "SSR contains governance-posture-strip, data-governance-risk, compliance calendar, and board cycle markup."
+    },
+    {
+      "command": "node /tmp/oya-governance-ops-smoke.mjs",
+      "status": "pass",
+      "details": {
+        "commandBoards": 1,
+        "postureStrips": 1,
+        "pillars": 4,
+        "commandCards": 9,
+        "policyGates": 4,
+        "decisions": 4,
+        "riskPins": 5,
+        "calendarCells": 10,
+        "evidenceLanes": 4,
+        "routeButtons": 8,
+        "attestations": 3,
+        "auditBlocks": 4,
+        "boardSteps": 4
+      }
+    },
+    {
+      "command": "node /tmp/oya-governance-pixel-diff.mjs",
+      "status": "pass",
+      "details": {
+        "bestMismatchRatio": 0.05722
+      }
+    }
+  ],
+  "artifacts": {
+    "smoke": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/governance-ops-command-smoke.json",
+    "pixel_diff_summary": ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/governance-ops-pixel-diff-summary.json",
+    "screenshots": [
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-command-1440.png",
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-ops-interacted-1440.png",
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/governance-route-mail-1440.png"
+    ],
+    "pixel_diffs": [
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/diff-governance-vs-ref-http-corporate-1440.png",
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/diff-governance-vs-ref-http-employees-1440.png",
+      ".omx/artifacts/visual-ralph/oya-governance-ops-command-polish/screenshots/diff-governance-vs-ref-http-workflow-studio-1440.png"
+    ]
+  },
+  "known_limits": [
+    "This is a Governance Analytics / corporate operations parity slice; it does not prove the full Oyatie dashboard mockup objective is complete.",
+    "All governance review, brief sealing, risk, calendar, route, attestation, audit-chain, and board-cycle actions remain visual-only local state with no backend writes.",
+    "Pixel diff is used only as secondary debug evidence because the target is Bominal-grade cohesion and density, not a direct clone of a single Bominal viewport."
+  ]
+}

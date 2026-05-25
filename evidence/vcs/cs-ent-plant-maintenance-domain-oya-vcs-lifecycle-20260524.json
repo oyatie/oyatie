@@ -1,0 +1,174 @@
+{
+  "change_id": "CS-ENT-PLANT-MAINTENANCE-001",
+  "agent_id": "codex-enterprise-20260523",
+  "timestamp_iso": "2026-05-24T00:11:00Z",
+  "evidence_refs": [
+    "evidence/multispectrum/cs-ent-plant-maintenance-domain-1779548400.json"
+  ],
+  "lifecycle": [
+    "claim",
+    "status",
+    "verify",
+    "done",
+    "promote"
+  ],
+  "status": "promote-accepted-local-review",
+  "registry_vcs_event_log_persistence_asserted": false,
+  "steps": [
+    {
+      "step": "claim",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "claim",
+          "action": "claim-lock",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": "CS-ENT-PLANT-MAINTENANCE-001 Plant maintenance domain foundation",
+          "scopes": [
+            "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/src/lib.rs::PlantMaintenanceDomain",
+            "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::asset_master_drives_preventive_plan_work_order_and_completion",
+            "Cargo.toml::microservices.plant_maintenance.domain",
+            "registry/catalog/oya-plant-maintenance-domain.yaml::CS-ENT-PLANT-MAINTENANCE-001",
+            "specs/microservices/plant-maintenance.json::acceptance_criteria.AC-01",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/src/lib.rs::SapModuleCode.Pm.plant_maintenance",
+            "microservices/enterprise-suite/crates/oya-enterprise-suite-erp-parity-map/tests/parity.rs::plant_maintenance_row_references_domain_foundation",
+            "tasks/enterprise-microservices-plan.md::CS-ENT-PLANT-MAINTENANCE-001",
+            "tasks/enterprise-microservices-todo.md::CS-ENT-PLANT-MAINTENANCE-001",
+            "evidence/multispectrum/cs-ent-plant-maintenance-domain-1779548400.json::CS-ENT-PLANT-MAINTENANCE-001",
+            "evidence/vcs/cs-ent-plant-maintenance-domain-oya-vcs-lifecycle-20260524.json::CS-ENT-PLANT-MAINTENANCE-001",
+            "evidence/audit-chain.jsonl::CS-ENT-PLANT-MAINTENANCE-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "status",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "status",
+          "action": "read-status",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-PLANT-MAINTENANCE-001"
+          ],
+          "evidence_refs": [],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "verify",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-PLANT-MAINTENANCE-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-plant-maintenance-domain-1779548400.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "done",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [
+            "CS-ENT-PLANT-MAINTENANCE-001"
+          ],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-plant-maintenance-domain-1779548400.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "legacy-grit-compatible-done",
+          "compatibility_alias": null
+        }
+      }
+    },
+    {
+      "step": "promote",
+      "response": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "codex-enterprise-20260523",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/multispectrum/cs-ent-plant-maintenance-domain-1779548400.json"
+          ],
+          "bundle_id": "CS-ENT-PLANT-MAINTENANCE-001",
+          "environment": "dev",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    }
+  ]
+}

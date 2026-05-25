@@ -2,7 +2,19 @@
 id: ADR-0329
 title: Tier system retired; replaced by tenant-class model
 status: Accepted
+planning_impact: true
 date: 2026-05-21
+owner_team:
+  - council-architecture
+  - council-product
+  - council-engineering
+  - council-privacy
+  - council-security
+  - axis-policy-engine
+  - axis-tenancy
+  - axis-foundry
+  - ops-compliance
+  - ops-sre-reliability
 owners:
   - council-architecture
   - council-product
@@ -132,7 +144,7 @@ ADR-0037 and are out of scope here.
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: tier vocabulary became corpus residue at scale
 
@@ -392,7 +404,7 @@ Bronze/Silver/Gold/Platinum tokens entirely (no replacement is needed
 because the substance-bar doctrine in ADR-0322 already provides the
 uniform quality contract).
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -970,7 +982,7 @@ ADR-0252's title but is preserved per B2.039.
 B2.100. The retirement is final on Acceptance. No further capability-
 tier doctrine authoring is sanctioned in any Oyatie surface.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Maintainability
 

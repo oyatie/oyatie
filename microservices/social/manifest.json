@@ -8,6 +8,7 @@
       "name": "social",
       "description": "Bounded context 'social' within social (data plane); includes short-form video flavor absorbed from retired shorts per ADR-0334",
       "crates": [
+        "oya-connect-social-domain",
         "oya-social-app",
         "oya-social-content-moderation-adapter-clamav",
         "oya-social-content-moderation-adapter-opswat",
@@ -22,6 +23,9 @@
         "oya-social-post-composition-adapter-postgres",
         "oya-social-post-composition-adapter-s3",
         "oya-social-post-composition-kernel",
+        "oya-social-post-composition-api",
+        "oya-social-post-composition-usecase",
+        "oya-social-post-composition-rest",
         "oya-social-search-adapter-meilisearch",
         "oya-social-user-profile-adapter-postgres",
         "oya-social-user-profile-domain",
@@ -43,10 +47,12 @@
   ],
   "layers": [
     "adapter",
+    "api",
     "app",
     "domain",
     "kernel",
-    "rest"
+    "rest",
+    "usecase"
   ],
   "contracts": {
     "openapi": [
@@ -187,67 +193,67 @@
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
-      "title": "IP-002: Cargo workspace bootstrap (per-µservice flat layout)",
+      "title": "IP-002: Cargo workspace bootstrap (per-\u00b5service flat layout)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-002-cargo-workspace-bootstrap.md"
     },
     {
       "id": "IP-003-user-profile-bc",
-      "title": "IP-003: user-profile BC end-to-end (kernel → domain → usecase → api → adapter-postgres → rest → sdk → app)",
+      "title": "IP-003: user-profile BC end-to-end (kernel \u2192 domain \u2192 usecase \u2192 api \u2192 adapter-postgres \u2192 rest \u2192 sdk \u2192 app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-003-user-profile-bc.md"
     },
     {
       "id": "IP-004-follow-graph-bc",
-      "title": "IP-004: follow-graph BC (kernel → domain → usecase → adapter-postgres + worker + sdk)",
+      "title": "IP-004: follow-graph BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-004-follow-graph-bc.md"
     },
     {
       "id": "IP-005-post-composition-bc",
-      "title": "IP-005: post-composition BC (kernel → domain → usecase → adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
+      "title": "IP-005: post-composition BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-005-post-composition-bc.md"
     },
     {
       "id": "IP-006-feed-timeline-bc",
-      "title": "IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + rest + sdk + app)",
+      "title": "IP-006: feed-timeline BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + rest + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-006-feed-timeline-bc.md"
     },
     {
       "id": "IP-007-reactions-bc",
-      "title": "IP-007: reactions BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + sdk)",
+      "title": "IP-007: reactions BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-007-reactions-bc.md"
     },
     {
       "id": "IP-008-mentions-and-hashtags-bc",
-      "title": "IP-008: mentions + hashtags BCs (kernel → domain → usecase → adapter + worker + sdk)",
+      "title": "IP-008: mentions + hashtags BCs (kernel \u2192 domain \u2192 usecase \u2192 adapter + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-008-mentions-and-hashtags-bc.md"
     },
     {
       "id": "IP-009-trending-topics-bc",
-      "title": "IP-009: trending-topics BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + sdk)",
+      "title": "IP-009: trending-topics BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-009-trending-topics-bc.md"
     },
     {
       "id": "IP-010-notifications-bc",
-      "title": "IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + websocket + sdk + app)",
+      "title": "IP-010: notifications BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-valkey + worker + websocket + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-010-notifications-bc.md"
     },
     {
       "id": "IP-011-content-moderation-bc",
-      "title": "IP-011: content-moderation BC (kernel → domain → usecase → adapter-clamav + adapter-opswat + worker + sdk)",
+      "title": "IP-011: content-moderation BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-clamav + adapter-opswat + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-011-content-moderation-bc.md"
     },
     {
       "id": "IP-012-search-and-cedar-filter",
-      "title": "IP-012: search BC + Cedar-scoped filter (kernel → domain → usecase → adapter-meilisearch + worker + sdk)",
+      "title": "IP-012: search BC + Cedar-scoped filter (kernel \u2192 domain \u2192 usecase \u2192 adapter-meilisearch + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-012-search-and-cedar-filter.md"
     },
@@ -372,10 +378,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -396,7 +402,7 @@
     "ambient_waypoint": false,
     "north_south_only": false
   },
-  "naming_justifications": "social is a BNF v4.1 kebab-case microservice slug; generated names follow oya-social-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "social is a BNF v4.1 kebab-case microservice slug; generated names follow oya-social-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum. Connect-social domain foundation crate is present as the spec-bound Connect suite social domain surface; oya-social-* runtime slices remain planned adapter/kernel surfaces. Post-composition api/usecase foundation crates are present to bridge the Connect social domain model toward the standalone social microservice contract surface. Post-composition REST boundary crate is framework-free and OpenAPI-route-aligned until runtime Hyper bindings land.",
   "capability_profiles": [
     "T0",
     "T1",
@@ -426,7 +432,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
   "owner_team": "axis-social",
   "service_classification": "hero-product",
   "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
