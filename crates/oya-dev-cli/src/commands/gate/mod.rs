@@ -1790,6 +1790,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("planning-ssot-coverage")) => {
+            crate::planning_ssot_coverage_gate::run_planning_ssot_coverage(args.collect())
+        }
         (Some("validate"), Some("planning-closure")) => {
             match crate::parse_planning_closure_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_planning_closure_gate(args) {

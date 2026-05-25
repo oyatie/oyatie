@@ -86,6 +86,7 @@ mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
 mod planning_closure_gate;
+mod planning_ssot_coverage_gate;
 mod platform_substrate_defaults_gate;
 mod pre_push_contract_gate;
 mod protection_context_match_gate;
