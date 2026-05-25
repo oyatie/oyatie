@@ -1,0 +1,125 @@
+# In-cluster git server (git daemon) — the local GitOps source for ArgoCD.
+# Closes the deferred CD seam: ArgoCD repo-server clones from git:// to sync.
+#
+# An initContainer seeds a bare repo from the manifests ConfigMap; the main
+# container serves it read-only over git://. Production points ArgoCD at the
+# real VCS (Jenkins GitHub App lane, ADR-0359); this is the local analogue.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitops-demo-manifests
+  namespace: argocd
+data:
+  deployment.yaml: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: gitops-demo
+      labels: { app: gitops-demo }
+    spec:
+      replicas: 2
+      selector:
+        matchLabels: { app: gitops-demo }
+      template:
+        metadata:
+          labels: { app: gitops-demo }
+        spec:
+          containers:
+            - name: web
+              image: nginx:1.27-alpine
+              ports: [{ containerPort: 80 }]
+              resources:
+                requests: { cpu: "25m", memory: "32Mi" }
+                limits: { cpu: "100m", memory: "64Mi" }
+  service.yaml: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: gitops-demo
+    spec:
+      selector: { app: gitops-demo }
+      ports: [{ port: 80, targetPort: 80 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-server
+  namespace: argocd
+  labels: { app: git-server }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: git-server }
+  template:
+    metadata:
+      labels: { app: git-server }
+    spec:
+      initContainers:
+        - name: seed-repo
+          image: alpine/git:2.47.2
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eux
+              export HOME=/tmp
+              git config --global user.email ci@oya.local
+              git config --global user.name oya-ci
+              git config --global init.defaultBranch main
+              git init --bare /srv/git/oya-demo.git
+              rm -rf /tmp/wt && mkdir -p /tmp/wt
+              cp /manifests/*.yaml /tmp/wt/
+              cd /tmp/wt
+              git init
+              git add -A
+              git commit -m "seed gitops demo"
+              git remote add origin /srv/git/oya-demo.git
+              git push origin HEAD:refs/heads/main
+          volumeMounts:
+            - { name: gitdata, mountPath: /srv/git }
+            - { name: manifests, mountPath: /manifests }
+      containers:
+        - name: git-daemon
+          # alpine/git lacks the daemon subcommand; add git + git-daemon then serve.
+          image: alpine:3.20
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              apk add --no-cache git git-daemon >/dev/null 2>&1
+              exec git daemon --reuseaddr --export-all --base-path=/srv/git --verbose
+          ports: [{ name: git, containerPort: 9418 }]
+          volumeMounts:
+            - { name: gitdata, mountPath: /srv/git }
+      volumes:
+        - name: gitdata
+          emptyDir: {}
+        - name: manifests
+          configMap:
+            name: gitops-demo-manifests
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-server
+  namespace: argocd
+spec:
+  selector: { app: git-server }
+  ports: [{ name: git, port: 9418, targetPort: 9418 }]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: oya-gitops-demo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: "git://git-server.argocd.svc.cluster.local/oya-demo.git"
+    targetRevision: main
+    path: .
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: oya-gitops-demo
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true"]
