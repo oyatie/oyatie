@@ -5833,7 +5833,8 @@
       "specs/cloud-observability-slo-target.json",
       "specs/cloud-resource-catalog-target.json",
       "specs/cloud-production-quality-kits-target.json",
-      "specs/cloud-strangler-migration-target.json"
+      "specs/cloud-strangler-migration-target.json",
+      "specs/cloud-toolchain-target.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -5950,6 +5951,9 @@
             "id": "P-TOOLCHAIN.5",
             "step": "Layer remote build cache (sccache->SeaweedFS) + Bazel rules_rust affected-target selection; oya as governance overlay delegating build/test to bazel (ADR-0358)"
           }
+        ],
+        "artifacts": [
+          "specs/cloud-toolchain-target.json"
         ]
       },
       {

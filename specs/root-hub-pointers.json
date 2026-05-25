@@ -1071,6 +1071,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-strangle",
       "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Bazel affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed."
+    },
+    "cloud_toolchain_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-toolchain-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-toolchain",
+      "purpose": "Cloud toolchain target (P-TOOLCHAIN): Bazel rules_rust build graph (crate_universe SSOT, RBE, affected-targets) + Jenkins sole CI (ADR-0359, JCasC, ephemeral agents, GitHub App statuses) + nextest sharding/machete/deny/bacon + oya governance overlay delegating to bazel + merge-queue speculative + ArgoCD progressive delivery. Target spec; no adoption/runtime claimed."
     }
   },
   "by_kind": {
