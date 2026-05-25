@@ -14,11 +14,8 @@ pub(crate) mod supply_chain;
 pub(crate) mod vcs;
 pub(crate) mod verify;
 pub(crate) mod verify_affected;
-// O2 (ADR-0360): nextest JUnit results-ingest for the gate-only overlay.
-// O6 (ADR-0360): speculative merge-queue algorithm (ADR-0111 projected state).
-// Both are tested decision cores; CLI/runtime wiring layers on top, so the
-// public surface is intentionally unused for now.
-#[allow(dead_code)]
+// O6 (ADR-0360): speculative merge-queue algorithm (ADR-0111), wired as
+// `oya merge-queue simulate`.
 pub(crate) mod merge_queue;
-#[allow(dead_code)]
+// O2 (ADR-0360): nextest JUnit results-ingest, wired as `oya verify --from-results`.
 pub(crate) mod verify_results;

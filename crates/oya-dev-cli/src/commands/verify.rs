@@ -106,6 +106,9 @@ struct VerifyInvalid {
 }
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    if let Some(pos) = args.iter().position(|arg| arg == "--from-results") {
+        return run_from_results(args.get(pos + 1).map(String::as_str), usage);
+    }
     if args.iter().any(|arg| arg == "--affected") {
         return run_affected_entry(args, usage);
     }
@@ -130,6 +133,43 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         Ok(exit) => exit,
         Err(error) => {
             eprintln!("{}", error.message);
+            ExitCode::from(2)
+        }
+    }
+}
+
+/// `oya verify --from-results <junit.xml>` — ADR-0360 O2 gate-only overlay:
+/// derive the test verdict from the lane's nextest JUnit report instead of
+/// re-running cargo. Unparseable/absent report is a FAILURE, never a silent PASS.
+fn run_from_results(path: Option<&str>, usage: &str) -> ExitCode {
+    let Some(path) = path else {
+        eprintln!("oya verify: --from-results requires a <junit.xml> path\n{usage}");
+        return ExitCode::from(2);
+    };
+    let xml = match std::fs::read_to_string(path) {
+        Ok(contents) => contents,
+        Err(error) => {
+            eprintln!("oya verify --from-results: cannot read {path:?}: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    match super::verify_results::parse_junit_summary(&xml) {
+        Ok(summary) => {
+            println!(
+                "oya verify --from-results {path}: tests={}, failures={}, errors={} -> {}",
+                summary.tests,
+                summary.failures,
+                summary.errors,
+                if summary.passed() { "PASS" } else { "FAIL" }
+            );
+            if summary.passed() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            }
+        }
+        Err(message) => {
+            eprintln!("oya verify --from-results {path}: {message}");
             ExitCode::from(2)
         }
     }

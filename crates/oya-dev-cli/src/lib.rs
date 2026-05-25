@@ -335,6 +335,7 @@ pub fn run_cli_from_env() -> ExitCode {
         Some("supply-chain") => commands::supply_chain::run(args.collect(), &usage()),
         Some("vcs") => commands::vcs::run(args.collect(), &usage()),
         Some("verify") => commands::verify::run(args.collect(), &usage()),
+        Some("merge-queue") => commands::merge_queue::run(args.collect(), &usage()),
         _ => {
             eprintln!("{}", usage());
             ExitCode::from(2)

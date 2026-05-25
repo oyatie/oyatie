@@ -9,6 +9,85 @@
 //! queue (webhook-driven, CI-backed) wraps this decision core. The test oracle
 //! is injected so the logic is verifiable without real CI.
 
+use std::process::ExitCode;
+
+/// `oya merge-queue simulate --queue A,B,C [--bad B,...] [--window N]` — drives
+/// the speculative projected-state algorithm to completion and prints the trunk
+/// progression. A simulation harness for the ADR-0111 queue: the `--bad` set
+/// stands in for the CI oracle (any projected stack containing a bad candidate
+/// fails). Proves the always-green-trunk invariant interactively.
+pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    let mut iter = args.into_iter();
+    let sub = iter.next();
+    if sub.as_deref() != Some("simulate") {
+        eprintln!(
+            "usage: oya merge-queue simulate --queue <csv> [--bad <csv>] [--window N]\n{usage}"
+        );
+        return ExitCode::from(2);
+    }
+    let mut queue: Vec<String> = Vec::new();
+    let mut bad: Vec<String> = Vec::new();
+    let mut window: usize = 4;
+    let mut rest = iter;
+    while let Some(flag) = rest.next() {
+        match flag.as_str() {
+            "--queue" => queue = csv(rest.next().as_deref()),
+            "--bad" => bad = csv(rest.next().as_deref()),
+            "--window" => {
+                window = rest
+                    .next()
+                    .and_then(|v| v.parse().ok())
+                    .filter(|n| *n >= 1)
+                    .unwrap_or(4)
+            }
+            other => {
+                eprintln!("oya merge-queue: unknown flag {other:?}\n{usage}");
+                return ExitCode::from(2);
+            }
+        }
+    }
+    if queue.is_empty() {
+        eprintln!("oya merge-queue simulate: --queue <csv> is required");
+        return ExitCode::from(2);
+    }
+
+    let mut trunk: Vec<String> = Vec::new();
+    let mut round = 0usize;
+    let max_rounds = queue.len() + 1;
+    while !queue.is_empty() && round < max_rounds {
+        round += 1;
+        let result = speculative_round(&queue, window, |projected| {
+            !projected.iter().any(|c| bad.contains(c))
+        });
+        println!(
+            "round {round}: window={window} landed=[{}] ejected={} requeued=[{}]",
+            result.landed.join(","),
+            result.ejected.clone().unwrap_or_else(|| "-".to_string()),
+            result.requeued.join(",")
+        );
+        trunk.extend(result.landed);
+        queue = result.requeued;
+        window = result.next_window;
+    }
+    println!(
+        "trunk (always-green) landed in order: [{}]; rejected: [{}]",
+        trunk.join(","),
+        bad.join(",")
+    );
+    ExitCode::SUCCESS
+}
+
+fn csv(s: Option<&str>) -> Vec<String> {
+    s.map(|v| {
+        v.split(',')
+            .map(str::trim)
+            .filter(|t| !t.is_empty())
+            .map(String::from)
+            .collect()
+    })
+    .unwrap_or_default()
+}
+
 /// Outcome of one speculative round over the queue head.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct RoundResult {
