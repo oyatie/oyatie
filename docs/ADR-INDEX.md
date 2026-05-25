@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 297
-- **Numbering:** ADR-0001..ADR-0360 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0361
-- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 89, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 298
+- **Numbering:** ADR-0001..ADR-0361 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0362
+- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 90, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -318,11 +318,12 @@ doc_status: published
 | ADR-0358 | Proposed | Ideal 0→100 production roadmap — strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first | council-architecture | [`ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md`](decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md) |
 | ADR-0359 | Proposed | Jenkins completely replaces GitHub Actions as the CI orchestrator | council-architecture | [`ADR-0359-jenkins-completely-replaces-github-actions.md`](decisions/ADR-0359-jenkins-completely-replaces-github-actions.md) |
 | ADR-0360 | Proposed | CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0360-ci-pipeline-optimization-program.md`](decisions/ADR-0360-ci-pipeline-optimization-program.md) |
+| ADR-0361 | Proposed | Execute the Jenkins-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0361-jenkins-native-cicd-revamp-execution.md`](decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0361), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0362), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -349,6 +350,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 297 ADR files (sorted ascending)
+- `decisions/` directory listing — 298 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
