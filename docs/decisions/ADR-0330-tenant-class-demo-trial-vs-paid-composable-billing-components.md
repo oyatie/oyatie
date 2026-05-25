@@ -2,6 +2,7 @@
 id: ADR-0330
 title: Tenant Class — demo_trial vs paid with Composable Billing Components
 status: Accepted
+planning_impact: true
 date: 2026-05-21
 owner_team: council-architecture
 related:

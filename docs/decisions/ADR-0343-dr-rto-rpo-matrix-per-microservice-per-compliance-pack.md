@@ -2,6 +2,7 @@
 id: ADR-0343
 title: DR + RTO/RPO matrix per-µservice + per-compliance-pack (effective tenant RTO/RPO = max(µservice declared, all-applicable-pack floors))
 status: Proposed
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture

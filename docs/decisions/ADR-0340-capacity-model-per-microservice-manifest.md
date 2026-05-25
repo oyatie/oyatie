@@ -2,6 +2,7 @@
 id: ADR-0340
 title: Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant + scaling_dimension + cell_placement_class)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture

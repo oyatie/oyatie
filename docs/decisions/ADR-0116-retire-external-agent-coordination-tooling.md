@@ -1,6 +1,7 @@
 ---
 id: ADR-0116
 status: accepted
+planning_impact: true
 doc_status: published
 ---
 

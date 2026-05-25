@@ -2,6 +2,7 @@
 id: ADR-0336
 title: Valkey is the canonical in-memory KV / cache / pubsub substrate (Redis retired for license drift)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture

@@ -2,6 +2,7 @@
 id: ADR-0329
 title: Tier system retired; replaced by tenant-class model
 status: Accepted
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture

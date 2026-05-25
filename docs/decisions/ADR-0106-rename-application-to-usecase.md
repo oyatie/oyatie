@@ -2,6 +2,7 @@
 id: ADR-0106
 title: Rename `application` layer to `usecase` (amends ADR-0105)
 status: Accepted
+planning_impact: true
 doc_status: published
 owner: council-architecture
 date: 2026-05-15

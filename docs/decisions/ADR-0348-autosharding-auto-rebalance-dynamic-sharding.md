@@ -2,6 +2,7 @@
 id: ADR-0348
 title: Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible)
 status: Proposed
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture

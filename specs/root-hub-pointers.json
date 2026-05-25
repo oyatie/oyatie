@@ -1008,6 +1008,20 @@
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "wave-3-consolidation",
       "purpose": "warehouse microservice PRD foundation consolidated in wave-3 (flat single-concern per ADR-0131/0132); metadata-only scope with explicit non-claims."
+    },
+    "ci_farm_substrate_canonical": {
+      "kind": "spec",
+      "current_path": "/specs/ci-farm-substrate-canonical.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "Self-hostable distributed CI farm substrate (Jenkins+ArgoCD, ephemeral agents, sccache->SeaweedFS remote cache, per-microservice lane fanout, merge-queue fan-in). Authored under ADR-0349; honest-foundation."
+    },
+    "design_spec_maturity_deferred_surfaces": {
+      "kind": "registry",
+      "current_path": "/registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "wave-3-consolidation",
+      "purpose": "Wave-3-I deferred design/spec-maturity surfaces ratchet; transparent deferral of not-yet-authored service surfaces (operational_claim stays blocked_until_operational_evidence)."
     }
   },
   "by_kind": {

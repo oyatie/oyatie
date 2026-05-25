@@ -2,6 +2,7 @@
 id: ADR-0342
 title: API versioning HYBRID model — date-based (YYYY-MM-DD) for public APIs (OpenAPI 3.2.0 endpoints, AsyncAPI 3.1.0 channels, proto3 services) + semver (major.minor.patch) for SDK packages (TS / Python / Go / Java / Kotlin / Swift / Rust / .NET-C# / C / C++); N=3 supported public versions; ≥180-day post-deprecation window; per-tenant version pinning
 status: Proposed
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture

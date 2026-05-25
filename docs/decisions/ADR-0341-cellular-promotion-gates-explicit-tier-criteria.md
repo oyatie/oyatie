@@ -2,6 +2,7 @@
 id: ADR-0341
 title: Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator
 status: Proposed
+planning_impact: true
 date: 2026-05-21
 owner_team:
   - council-architecture
