@@ -3,6 +3,14 @@ microservice:
   cargoPackage: oya-community
   tenantClass: contributor
 
+workloadLabels:
+  tenantId: fd001-dogfood
+  costCenter: fd001-backbone
+  workloadClass: app
+  regulatoryPack: generic
+  dogfoodSubstrate: oyatie-cloud
+  productGoal: fd-001
+
 replicaCount: 2
 
 podRuntime:

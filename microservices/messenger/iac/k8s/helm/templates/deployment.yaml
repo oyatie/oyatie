@@ -8,6 +8,12 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     oyatie.com/adr-0349: argocd-managed
     oyatie.com/cargo-package: {{ .Values.microservice.cargoPackage | quote }}
+    oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+    oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+    oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+    oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+    oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+    oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -20,6 +26,12 @@ spec:
         app.kubernetes.io/part-of: oyatie-microservices
         istio.io/dataplane-mode: ambient
         oyatie.com/tenant-class: {{ .Values.microservice.tenantClass | quote }}
+        oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+        oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+        oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+        oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+        oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+        oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
       annotations:
         cosign.sigstore.dev/required: {{ .Values.image.cosign.required | quote }}
         oyatie.com/image-digest: {{ .Values.image.digest | quote }}
