@@ -13,3 +13,4 @@ pub(crate) mod submit;
 pub(crate) mod supply_chain;
 pub(crate) mod vcs;
 pub(crate) mod verify;
+pub(crate) mod verify_affected;
