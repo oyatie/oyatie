@@ -5854,7 +5854,7 @@
   "ideal_production_roadmap": {
     "_doc": "Ideal long-term 0->100 production roadmap for the Oyatie Cloud hyperscaler platform + tenant microservices. Authority: this section + ADR-0358. Strangler-fig migration; Bazel rules_rust build graph + oya governance overlay; production-100 bar defined collaboratively in P-DEFINE. Research-grounded (Google TAP/Bazel RBE, Amazon Apollo staged rollout, Microsoft rings, Oracle blue-green, Nygard ADR immutability). Honest: this is a roadmap-spec; no production/hyperscaler-maturity claim until P-DEFINE bar evidence is green.",
     "authoring_adr": "ADR-0358",
-    "posture": "strangler-fig: spec ideal target + contracts first; build alongside; migrate service-by-service behind contracts; trunk always shippable; parallel lanes; cut over only when green",
+    "posture": "Layered migration: the cloud-* SUBSTRATE (production-100 product) is built GREENFIELD (new IaaS/PaaS, per plan/hyperscaler-grade-cloud-platform-greenfield-plan.md phases P0-P10); EXISTING product microservices (FD-001 enterprise/workflow/backbone) are STRANGLER-FIG migrated onto the proven substrate behind contracts (ADR-0358). Trunk always shippable; parallel lanes; cut over only when green.",
     "toolchain_target": {
       "build_graph": "Bazel rules_rust (crate_universe; Cargo.toml stays dependency SSOT)",
       "remote": "remote build execution + hermetic remote cache (sccache->SeaweedFS today; bazel RBE target)",
@@ -5883,7 +5883,23 @@
           "security_exit": "Cedar default-deny universal gate (ADR-0243); tenant isolation proven for BOTH shared (logical: cell+Cedar+per-tenant-encryption) and dedicated (physical cell pinning); cosign-signed images verified at admission via Kubewarden (ADR-0181); 0 critical/high CVE (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263).",
           "cost_exit": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344); mandatory quota/metering/billing resource contract per resource type.",
           "ci_cd_exit": "Jenkins = sole CI, green (ADR-0359); ArgoCD progressive delivery (canary -> bake -> automatic metric-gated rollback) proven on cloud-* deploys; merge-queue speculative+batch (ADR-0111); local oya verify mirror green (ADR-0346).",
-          "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json)."
+          "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json).",
+          "quality_evidence_kits": [
+            "overload/fairness/load-shedding (request-cost classes, retry budgets, queue limits) \u2014 AWS load-shedding",
+            "shuffle-sharded tenant isolation (assignment policy + correlated-blast-radius + noisy-neighbor drills) \u2014 AWS shuffle sharding",
+            "privacy/data-governance (personal-data inventory, residency, retention, deletion, export, redaction) \u2014 NIST Privacy Framework; KR/JP/US/EU packs",
+            "automated canary + Production-Readiness-Review (one-cell canary, automated eval, rollback triggers) \u2014 Google SRE",
+            "FOCUS-compatible cost-and-usage export (allocation dims, invoice reconciliation) \u2014 FOCUS 1.3+",
+            "Kubernetes Pod Security Standards admission gate (restricted/baseline; privileged needs owner/expiry/mitigation)",
+            "abuse/fraud/DDoS readiness (signup/payment risk, suspension workflow, ingress protection, customer-safe comms)"
+          ],
+          "maturity_ladder": "L0 prototype -> L1..L6 -> L7 global hyperscaler; each level preserves prior-level evidence; breadth expansion forbidden without preserved evidence; 100 target sits at the defined ladder level with all gates green on measured evidence (no marketing claim before evidence).",
+          "definition_of_done": "Every changeset: respects path-envelope; produces acceptance-criteria evidence; ships narrowest verification command; declares public-contract/telemetry/security/rollback impact; is consumable by dependents; source-version hygiene clean. Phase checkpoint promotes only when all changesets satisfy DoD or are explicitly deferred.",
+          "evidence_packs_preview_to_ga": [
+            "reliability pack (SLO history, incident readiness, scale tests)",
+            "security/compliance pack (review, KR/JP/US/EU evidence, pen-test)",
+            "performance/scale/cost pack (load, FOCUS cost, optimization)"
+          ]
         }
       },
       {
@@ -5990,6 +6006,26 @@
     "non_claims": [
       "Roadmap-spec only; no production readiness, hyperscaler maturity, Bazel adoption, RBE, or measured SLO/DR is implemented or claimed here.",
       "production-100 bar is intentionally undefined until P-DEFINE completes; no GA/production claim until its evidence is green."
-    ]
+    ],
+    "incorporated_from_greenfield_plan": {
+      "source_docs": [
+        "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
+        "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
+        "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md",
+        "plan/hyperscaler-grade-cloud-platform-quality-review.md"
+      ],
+      "adopted": [
+        "L0-L7 maturity ladder + evidence-preservation rule (no breadth expansion without preserved prior-level evidence)",
+        "seven quality-evidence kits as production-100 gates (overload/fairness, shuffle-shard isolation, privacy/data-governance, canary+PRR, FOCUS cost export, K8s PSS, abuse/fraud/DDoS)",
+        "universal Definition of Done for every changeset (path-envelope, acceptance evidence, narrowest-verify, contract/telemetry/security/rollback impact, source hygiene)",
+        "phase-checkpoint promotion rule + evidence packs (reliability / security-compliance / performance-scale-cost) for preview->GA",
+        "staged physical/network substrate ladder (bootstrap->colo pilot->regional colo->owned region->backbone->hardware lifecycle)",
+        "parallel batch matrix + worktree-lane path-envelope isolation model",
+        "standards-hygiene re-check cadence before production commitments",
+        "16-service initial catalog anchor (cross-ref specs/cloud-resource-catalog-target.json)"
+      ],
+      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); we bind Bazel rules_rust + Jenkins (ADR-0358/0359) as the implementation of that contract. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission."
+    },
+    "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, Argo) against official/upstream before each production commitment; quarterly otherwise."
   }
 }
