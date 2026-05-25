@@ -170,7 +170,7 @@ artifacts regardless of authority tier. Code comments, commit messages, and
 inline doc-strings are out of scope and remain governed by existing per-lane
 review checks.
 
-## Decision Summary
+## Decision
 
 The substance bar is hereby canonical doctrine. Every in-scope artifact must
 clear all of the following before its containing pull request becomes
@@ -207,6 +207,13 @@ Each of S-1..S-8 corresponds to a CI check authored within the
 `oya-governance-no-template-stamping`, `oya-governance-doc-density-floor`,
 `oya-governance-doc-bespoke-ratio`, and `oya-governance-substance-bar-spectrum-binding`
 crates. Section D-9 details the crate authorship plan.
+
+## Consequences
+
+Documentation changes now fail fast when they substitute template-shaped volume
+for artifact-specific reasoning. Authors pay a higher up-front evidence cost,
+but reviewers and downstream agents receive ADRs, plans, and service documents
+whose claims can be traced to bespoke context instead of generic scaffolding.
 
 ## Detailed Mechanics
 

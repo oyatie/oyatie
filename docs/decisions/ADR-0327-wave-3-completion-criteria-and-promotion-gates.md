@@ -201,7 +201,7 @@ there.
   slices themselves were the subject of the substance-bar failure that
   triggered the W2 remediation wave.
 
-## Decision Summary
+## Decision
 
 An ADR exists in one of five named states:
 
@@ -247,6 +247,13 @@ Wave-3 is `complete` when every member ADR is in `Accepted` state, the
 wave's evidence ledger is finalised, the wave's multispectrum cluster-
 level verdict is signed, and the wave's promotion event is emitted on
 the audit chain.
+
+## Consequences
+
+Wave-3 ADRs no longer become complete by publication alone; they require
+explicit promotion evidence, audit-chain emission, and gate-level proof.
+Agents gain a clearer closeout target, while incomplete or stale evidence keeps
+the ADR cluster in Proposed state until the named promotion bar is met.
 
 ## Detailed Mechanics
 

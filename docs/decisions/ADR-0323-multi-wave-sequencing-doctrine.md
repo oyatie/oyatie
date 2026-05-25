@@ -166,7 +166,7 @@ It does not govern:
 - Per-microservice feature work bounded to one lane and ≤3 files.
 - Routine dependency updates without contract changes.
 
-## Decision Summary
+## Decision
 
 A wave is the named unit of work delivery. Each wave has:
 
@@ -188,6 +188,13 @@ Waves are sequential within a lane (no two in-flight waves overlap on the
 same governance lane). Waves are concurrent across lanes provided the
 authority-chain invariants of ADR-0145 hold (no cross-lane forced
 coupling).
+
+## Consequences
+
+Large documentation and governance efforts trade one-shot fan-out speed for
+bounded wave cadence, evidence freshness, and lower merge-queue contention.
+Teams can still run independent lanes concurrently, but a single lane must land
+one verified wave before opening the next overlapping wave.
 
 ## Detailed Mechanics
 

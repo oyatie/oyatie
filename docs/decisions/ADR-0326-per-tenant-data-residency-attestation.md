@@ -180,7 +180,7 @@ context dimension.
   five business days while engineering manually verified the residency
   configuration.
 
-## Decision Summary
+## Decision
 
 Residency is a first-class tenant attribute with four named tiers:
 
@@ -210,6 +210,13 @@ enforcement` at provisioning and at every subsequent placement decision
 (failover, scaling, migration). Cross-border transfers are gated by
 `oya-governance-residency-cross-border-bar` Cedar fragments that consult
 the tenant's attestation and the requested operation's residency footprint.
+
+## Consequences
+
+Residency moves from an implicit deployment preference to an auditable tenant
+attribute enforced during provisioning, failover, scaling, and cross-border
+operations. This raises operational complexity but gives compliance packs and
+tenant contracts a concrete placement and evidence mechanism.
 
 ## Detailed Mechanics
 

@@ -143,7 +143,7 @@ the CI mechanisms that detect them.
   a template body; required four-PR remediation before the W3-G ADR cluster
   could land.
 
-## Decision Summary
+## Decision
 
 The following are CATEGORICALLY forbidden as authoring mechanisms for
 substantive content artifacts:
@@ -179,6 +179,13 @@ The doctrine is enforced through three complementary mechanisms:
    commit hook detect script-driven write patterns and BLOCK them.
 3. **Template-stamping detector** (per ADR-0322 §D-7) — body-level
    detection of the symptoms of an undetected script.
+
+## Consequences
+
+Substantive artifacts must be authored as decisions, not generated as
+near-duplicate bodies. Mechanical edits remain allowed for non-substantive
+maintenance, but ADRs, PRDs, journey documents, and service narratives must
+carry explicit provenance and artifact-specific analysis.
 
 ## Detailed Mechanics
 

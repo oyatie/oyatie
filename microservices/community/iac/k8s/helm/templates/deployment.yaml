@@ -50,13 +50,13 @@ spec:
               value: {{ .Values.config.imagePromotionPolicy | quote }}
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /ready
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /health
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20

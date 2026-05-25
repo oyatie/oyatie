@@ -258,6 +258,29 @@ Verification:
 - `cargo test` across shared protocol parity kernel plus the 4 touched API packages.
 - `cargo clippy` across the same packages with `-D warnings`.
 - `cargo fmt --check` across the same packages.
+
+### CS-BACKBONE-REST-PROBE-READINESS-001 — REST probe readiness and Kubernetes probe path alignment
+Scope:
+- `crates/oya-messenger-message-stream-rest/**`
+- `crates/oya-mail-mailbox-store-rest/**`
+- `crates/oya-social-post-composition-rest/**`
+- `crates/oya-community-post-store-rest/**`
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/templates/deployment.yaml`
+- `microservices/{mail,community}/contracts/openapi/*.yaml`
+- evidence and task tracking.
+
+Acceptance:
+- Messenger, mail, social, and community REST crates expose framework-free `GET /health` liveness and `GET /ready` readiness dispatch functions.
+- Liveness returns a minimal 200 response and explicitly does not claim downstream SQL/outbox/policy/OTel readiness.
+- Readiness returns 200 only when caller-supplied dependency evidence is ready, otherwise 503; this keeps readiness testable before a Hyper/Kubernetes runtime exists.
+- Mail and community OpenAPI contracts declare `/health` and `/ready` so all four backbone services have consistent probe routes.
+- Helm readiness probes point at `/ready`, and liveness probes point at `/health`, matching the declared REST probe routes instead of undeclared `/healthz`/`/livez` paths.
+
+Verification:
+- `cargo test` across the 4 touched REST packages.
+- `cargo check`, `cargo clippy -D warnings`, and `cargo fmt --check` across the same packages.
+- YAML parse for the 4 OpenAPI contracts.
+- Static grep proves the four Helm deployments use `/ready` and `/health` and no longer use `/healthz` or `/livez`.
 - dependency-seam, honest-claims, and diff hygiene.
 
 ### CS-BACKBONE-CI-MATRIX-001 — CI matrix coverage for backbone package slices

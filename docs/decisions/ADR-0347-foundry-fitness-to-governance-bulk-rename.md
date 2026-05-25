@@ -149,7 +149,7 @@ The decision does not delete any existing lane logic; the rename is name-only. T
 
 2026-05-21.
 
-## A. Context
+## Context
 
 ### A.1 Named pressure: anachronistic ownership label after ADR-0335 foundry retirement
 
@@ -231,7 +231,7 @@ The prefix is established. The rename is not introducing new terminology; it is 
 - **A.9.10** Does not introduce a `oya-foundry-*` legacy-allowlist exception. The bulk rename is total; no `oya-foundry-fitness-*` remnants are permitted outside the historical-context paragraphs of ADR-0335 + this ADR.
 - **A.9.11** Does not modify the `oya-shared-*` or `oya-cloud-*` prefix doctrine; only the foundry-fitness → governance rename is in scope.
 
-## B. Decision
+## Decision
 
 ### B.1 Decision statement
 
@@ -315,7 +315,7 @@ B2.034. The rename inventory file at `.omc/state/oya-foundry-fitness-rename-inve
 - This ADR does not introduce new dependencies; the rename is name-only.
 - This ADR does not change branch-protection contract semantics; only gate-name strings rename.
 
-## C. Consequences
+## Consequences
 
 ### C.1 Positive consequences
 
