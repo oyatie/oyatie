@@ -34,9 +34,9 @@ from `pr-review.yml`/`ci-failure-fix-loop.yml` to the Jenkins pipeline closure, 
       live branch-protection API swap (else PRs stall) — sequencing, deploy-time.
 - [ ] Semgrep rules license risk is real → default to **Opengrep** (open rules) or
       repo-owned rules; never vendor the proprietary registry rules.
-- [ ] Jenkins plugin licenses (mixed GPL/EPL) are allowlisted at the infra layer.
+- [ ] Jenkins plugin licenses (mixed GPL / Eclipse Public License) are allowlisted at the infra layer.
 
-## MVP Scope (this lane, committed in-code)
+## Minimum first slice (this lane, committed in-code)
 **In:** ADR-0361 (cutover); a shared Jenkins library + one reference
 `microservices/<ms>/ci/Jenkinsfile` lane + root orchestrator with the mandatory stage
 order; the repointed closure gate (TDD); branch-protection context swap; deletion of

@@ -21,7 +21,7 @@
     "managed_by": "JCasC-only (configuration-as-code plugin; numExecutors=0 on controller)",
     "license_class": "Contributor (MIT)",
     "forbidden_alternatives": ["jenkins-x", "tekton", "spinnaker", "circleci", "travis", "buildkite-saas"],
-    "github_actions_parity": "Every microservices/<ms>/ci/Jenkinsfile lane mirrors the .github/workflows CI matrix; enforced by oya-governance-jenkins-github-actions-parity (ADR-0349 E.1) and ADR-0346 oya verify CI-mirror."
+    "github_actions_parity": "RETIRED per ADR-0361: GitHub Actions removed entirely; Jenkins is the sole CI. No Actions<->Jenkins parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) remains the lane authority."
   },
   "ephemeral_agents": {
     "provider": "Jenkins kubernetes plugin clouds",
@@ -64,7 +64,7 @@
     "deploy_audit": "ArgoCD-driven deploy emits audit-chain rows (ADR-0349 E.5 / ADR-0263)."
   },
   "ci_lane": {
-    "parity_gate": "oya-governance-jenkins-github-actions-parity",
+    "parity_gate": "RETIRED (ADR-0361): no Actions<->Jenkins parity; Jenkins is the sole CI",
     "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/Jenkinsfile and the JCasC agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
     "verify_mirror": "ADR-0346 oya verify --ci-required"
   },

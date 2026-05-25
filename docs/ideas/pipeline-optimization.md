@@ -53,7 +53,7 @@ re-runs work the lane already did?
       in `ci-farm-substrate-canonical.json`).
 - [ ] ADR-0111 merge-queue projected state is implemented enough to gate on.
 
-## MVP Scope (highest leverage, pre-Bazel)
+## minimum-first-slice Scope (highest leverage, pre-Bazel)
 - (1) + (2): a `cargo metadata`-driven affected set that skips cargo entirely for
   docs/evidence/spec-only diffs and runs only rdeps for crate diffs, plus oya
   verify consuming the lane's test results instead of re-running them. This alone

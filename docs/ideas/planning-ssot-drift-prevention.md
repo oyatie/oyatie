@@ -13,7 +13,7 @@ Binding lives in each ADR's own frontmatter (`planning_impact: true` + `masterpl
 - [ ] "Planning impact" has a crisp definition (changes sequencing / scope / surface set) so the tag isn't a rubber-stamp — require reviewer sign-off in the ADR.
 - [ ] Existing master-plan-completion + planning-closure gates can be extended rather than duplicated.
 
-## MVP Scope
+## Minimum first slice
 In: `planning-ssot-coverage` gate (bidirectional ADR↔masterplan + spec↔root-hub + supersession-aware); one-time `planning_impact` tagging pass on planning ADRs; bind the unbound wave-3 ADRs (incl ADR-0357) + ci-farm spec + deferred-surfaces into a structured `planning_authority` masterplan section. Out: auto-generating plan.md/todo.md (fast-follow).
 
 ## Not Doing (and Why)
