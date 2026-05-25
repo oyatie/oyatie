@@ -20,7 +20,11 @@ purpose: Forward-policy — no new suite, bundle, or vertical-grouping µservice
 
 ## Status
 
-Accepted — 2026-05-17.
+Accepted — 2026-05-17. **Amended 2026-05-25 by ADR-0362**: the grandfather
+clause (existing suites "out of scope … remain as authored") and the rejected
+alternative "Retire suite as a brand-layer concept too" are **superseded** — all
+grouping is now retired entirely (flat-only), and the `no-new-suite-bundles` lane
+this ADR specified is implemented for real as the `no-grouping` gate.
 
 ## Context
 

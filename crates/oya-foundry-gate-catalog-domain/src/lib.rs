@@ -61,6 +61,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "documentation-system",
     "adr-citation",
     "brand-residue",
+    "no-grouping",
     "api-semver",
     "supply-chain",
     "pr-traceability",
