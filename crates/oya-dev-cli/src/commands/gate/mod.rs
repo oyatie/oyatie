@@ -6,6 +6,11 @@ mod master_plan_completion_audit;
 mod milestone_audit;
 mod product_index;
 mod product_prd_json;
+// O7 (ADR-0360): content-addressed gate-result cache mechanism. Adopted per-gate
+// (opt-in via GateInputs::Declared); not yet wired into a specific gate, so the
+// public surface is intentionally unused for now.
+#[allow(dead_code)]
+mod result_cache;
 mod run_all;
 mod stage0_application_shell_prereqs;
 
