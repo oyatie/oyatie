@@ -1,0 +1,115 @@
+# Oyatie CI farm — Jenkins controller (LOCAL k3s / colima profile)
+# Realizes EXE-CI-FARM-SUBSTRATE-CANONICAL (ADR-0349) for a single-node local
+# cluster. JCasC-only; numExecutors=0 on the controller; ephemeral Kubernetes
+# agents in the oya-ci-jenkins namespace.
+#
+# LOCAL-vs-PRODUCTION deltas (intentionally simplified here — see README.md):
+#   - runtimeClass kata-cloud-hypervisor (ADR-0338)  -> omitted; k3s default runc
+#   - Karpenter elastic node autoscaling (ADR-0198)  -> omitted; single colima node
+#   - cosign-required digest-pinned agent image      -> public rust image (local only)
+#   - sccache -> SeaweedFS S3 remote cache           -> wired as env, backend deployed separately
+#   - OpenBao-bound S3 credentials                   -> local k8s Secret placeholder
+# None of these deltas change the controller/agent/JCasC contract; they are the
+# capacity/hardening layer that only the real multi-node farm provides.
+
+controller:
+  # JCasC-only: the controller schedules, it does not execute (spec: numExecutors=0).
+  numExecutors: 0
+  serviceType: ClusterIP        # local: reach via `kubectl port-forward`; no LoadBalancer
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - configuration-as-code
+    - credentials-binding
+    - cloudbees-folder
+    - pipeline-stage-view
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  JCasC:
+    defaultConfig: true
+    # Contribute ONLY the kubernetes agent cloud. numExecutors (=0) and the
+    # systemMessage are owned by the chart's defaultConfig block; redefining
+    # them here triggers JCasC's error-on-conflict merge (boot failure).
+    configScripts:
+      oya-ci-farm: |
+        jenkins:
+          clouds:
+            - kubernetes:
+                name: "oya-ci-kubernetes"
+                namespace: "oya-ci-jenkins"
+                jenkinsUrl: "http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080"
+                # websocket: agents tunnel inbound over the 8080 HTTP service, so no
+                # separate JNLP TCP:50000 endpoint resolution is required.
+                webSocket: true
+                containerCapStr: "20"           # spec container_cap: safety ceiling, not a fixed pool
+                connectTimeout: 60
+                readTimeout: 60
+                templates:
+                  - name: "rust-ci"
+                    namespace: "oya-ci-jenkins"
+                    label: "oya-rust-ci"
+                    yamlMergeStrategy: "override"
+                    # sccache -> SeaweedFS remote cache env (spec remote_build_cache.agent_env).
+                    # Credentials are NOT inlined: bound from the seaweedfs-s3 Secret.
+                    yaml: |
+                      apiVersion: v1
+                      kind: Pod
+                      spec:
+                        # Run as UID 1000 (the jenkins workspace owner) so the durable
+                        # task can write the workspace. Numeric UID satisfies non-root,
+                        # and dropping ALL caps is safe because we own the workspace
+                        # (root + drop-ALL strips CAP_DAC_OVERRIDE -> cannot write).
+                        securityContext:
+                          runAsNonRoot: true
+                          runAsUser: 1000
+                          fsGroup: 1000
+                        containers:
+                          - name: rust
+                            image: rust:1-bookworm
+                            command: ["sleep"]
+                            args: ["infinity"]
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities:
+                                drop: ["ALL"]
+                            env:
+                              - name: RUSTC_WRAPPER
+                                value: "sccache"
+                              - name: SCCACHE_BUCKET
+                                value: "oya-ci-sccache-shared-prod"
+                              - name: SCCACHE_ENDPOINT
+                                value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
+                              - name: SCCACHE_S3_USE_SSL
+                                value: "false"
+                              - name: SCCACHE_REGION
+                                value: "oya-local"
+                              - name: CARGO_INCREMENTAL
+                                value: "0"
+                            resources:
+                              requests:
+                                cpu: "500m"
+                                memory: "1Gi"
+                              limits:
+                                cpu: "2"
+                                memory: "4Gi"
+
+persistence:
+  enabled: true
+  storageClass: "local-path"   # k3s default provisioner
+  size: "8Gi"
+
+agent:
+  # Agent pods are defined by the JCasC pod template above; disable the chart's
+  # default inline agent so the JCasC kubernetes cloud is the single source of truth.
+  enabled: false
+
+rbac:
+  create: true
+serviceAccount:
+  create: true
