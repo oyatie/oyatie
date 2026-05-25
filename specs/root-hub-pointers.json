@@ -1036,6 +1036,20 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-target",
       "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating REST(OpenAPI 3.2.0)+gRPC(proto3)+GraphQL SDL; GraphQL first-class derived not hand-maintained; api-contract-ssot-drift gate. Pulsar launch-primary; Kubewarden default. Target spec; no generators/runtime claimed."
+    },
+    "cloud_authorization_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-authorization-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud authorization target (P-TARGET): Cedar as universal gate for the control plane + cloud-* resources (ADR-0243); default-deny; KR/JP/US/EU pack overlays; references cedar-policy/fragment schemas. Target spec; no runtime."
+    },
+    "cloud_observability_slo_target": {
+      "kind": "spec",
+      "current_path": "/specs/cloud-observability-slo-target.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "Cloud observability+SLO target (P-TARGET): OpenTelemetry + measured SLOs + burn-rate + agentic SLO-gated promotion (ADR-0130/0340) for the cloud-* substrate. Target spec; no measured evidence claimed."
     }
   },
   "by_kind": {

@@ -5828,7 +5828,9 @@
       "specs/master-plan-sequencing.json",
       "specs/planning-closure-contract.json",
       "specs/cloud-control-plane-canonical.json",
-      "specs/api-contract-ssot-canonical.json"
+      "specs/api-contract-ssot-canonical.json",
+      "specs/cloud-authorization-target.json",
+      "specs/cloud-observability-slo-target.json"
     ],
     "projections": [
       "tasks/plan.md",
@@ -5891,7 +5893,9 @@
         "deliverable": "Vertical-slice nesting (ADR-0357); contracts SSOT (OpenAPI 3.2.0/AsyncAPI 3.1.0/proto3, CS-LAUNCH-API-CONTRACT-SSOT-001); Cedar policy; observability/SLO substrate; cloud-* substrate + tenant microservice target shapes.",
         "artifacts": [
           "specs/cloud-control-plane-canonical.json",
-          "specs/api-contract-ssot-canonical.json"
+          "specs/api-contract-ssot-canonical.json",
+          "specs/cloud-authorization-target.json",
+          "specs/cloud-observability-slo-target.json"
         ]
       },
       {
