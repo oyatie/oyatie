@@ -1962,7 +1962,7 @@
     "Review hardening required non-empty policy decision ids and trace context refs before audit/cache mutation; oya-ontology-query-engine-usecase now has 8 tests including missing policy/trace invalid-input coverage.",
     "Added oya-intelligence-providers-adapter-openai with RED-first tests; adapter builds metadata-only OpenAI Responses API envelopes, rejects raw secret-shaped credential handles, distinguishes 429 vs 5xx provider outcomes, and keeps prompt/output/credential bytes out of envelopes and evidence refs.",
     "Self-review hardening tightened OpenAI adapter validation: blank safety identifier refs fail config, content refs must be opaque metadata refs before envelope creation, route evidence refs must be present, and provider status/evidence refs reject unsafe secret-like metadata.",
-    "Added oya-intelligence-credential-resolver-domain with RED-first tests; domain validates OpenBao provider-BYOK SecretReference paths, rejects tenant/provider drift and raw secret-shaped material, issues ≤60s opaque CredentialHandle metadata, and redacts handle/signature refs from Debug output.",
+    "Added oya-intelligence-credential-resolver-domain with RED-first tests; domain validates OpenBao provider-BYOK SecretReference paths, rejects tenant/provider drift and raw secret-shaped material, issues \u226460s opaque CredentialHandle metadata, and redacts handle/signature refs from Debug output.",
     "Self-review hardening rejected ambiguous leading/trailing whitespace around SecretReference inputs, tenant ids, handle ids, and signature refs so the domain does not silently canonicalize potentially unsafe credential metadata.",
     "Added oya-intelligence-credential-resolver-usecase with RED-first tests; usecase resolves SecretReference metadata via injected sidecar port, caches only unexpired tenant/provider/audience-bound handles, denies stale idempotent replay, validates sidecar handle binding before caching, emits metadata-only audit events, and records rotation-triggered cache eviction without runtime OpenBao I/O.",
     "Self-review hardening detected that a rotated credential could evict the live cache while leaving an old idempotent receipt replayable; resolver replay now also requires the handle to remain authoritative in the cache, and the 8-test usecase suite proves rotation-invalidated replay denies without another sidecar call.",
@@ -2542,5 +2542,6 @@
     ]
   },
   "slice_count": 80,
-  "foundation_package_count": 85
+  "foundation_package_count": 85,
+  "change_id": "CS-BACKBONE-MICROSERVICES-FOUNDATION-20260523"
 }
