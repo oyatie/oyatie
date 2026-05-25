@@ -849,6 +849,26 @@ Verification:
 - `OYA_VERIFY_RUNNING=1 cargo nextest run --workspace --no-fail-fast`.
 - `./bin/oya verify --ci-required` records D-4 nextest as pass and remains non-green on D-5/D-6 lanes.
 
+### CS-BACKBONE-GATEWAY-HTTPROUTE-001 — Static Gateway API HTTPRoute chart exposure
+Scope:
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/templates/httproute.yaml`.
+- `microservices/{messenger,mail,social,community}/iac/k8s/helm/values.yaml`.
+- `.github/workflows/backbone-microservices-ci.yml` path filters and static smoke coverage.
+- Evidence/task tracking for the static Gateway API route seam.
+
+Acceptance:
+- Messenger, mail, social, and community Helm charts include an optional `gateway.networking.k8s.io/v1` `HTTPRoute` template attaching to a pack-owned HTTPS Gateway parent and routing only the OpenAPI base path to the in-namespace Service.
+- Values declare explicit default hostnames/path prefixes aligned with the current OpenAPI server surfaces: messenger/social `/api/v1`, mail/community `/v1`.
+- The route template annotates its OpenAPI contract, TLS/ECH/PQC manifest references, and audit-chain event class while remaining disabled by default to avoid accidental exposure before Gateway/DNS/TLS provisioning.
+- Backbone GitHub Actions path filters and governance smoke now cover Helm chart changes and check the static HTTPRoute template shape.
+- Honest non-claim: these are chart-ready static HTTPRoute templates only; no live Gateway, DNS record, TLS termination, ECH publication, PQC certificate issuance, or production route rollout is claimed.
+
+Verification:
+- YAML parse of the four updated `values.yaml` files.
+- Static HTTPRoute template checks for `apiVersion`, `kind`, `parentRefs`, `backendRefs`, OpenAPI/TLS/ECH/PQC annotations, disabled-by-default values, and service/path/hostname coverage.
+- Backbone governance smoke Ruby command parses values and asserts HTTPRoute template shape.
+- dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -859,7 +879,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoints plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, and acknowledgements beyond framework-free implemented write-route dispatch, static messenger/community edge WAF/ECH/PQC manifests, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoints plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, and acknowledgements beyond framework-free implemented write-route dispatch, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.

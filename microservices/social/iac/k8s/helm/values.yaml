@@ -26,6 +26,25 @@ service:
   port: 8080
   targetPort: 8080
 
+gateway:
+  # Disabled by default so chart installation does not accidentally expose a
+  # service before a pack-owned Gateway listener, DNS record, ECH config, and
+  # PQC/classical certificate are provisioned and audited.
+  enabled: false
+  routeNameSuffix: http
+  parentRef:
+    name: oyatie-public-edge
+    namespace: oya-gateway
+    sectionName: https
+  hostnames:
+    - social-kr.oyatie.dev
+  pathPrefix: /api/v1
+  tlsTermination: parent-gateway-tls13-ech-pqc
+  openapiContract: microservices/social/contracts/openapi/social.yaml
+  echConfigRef: microservices/social/iac/ech-config.yaml
+  pqcCertificateRef: microservices/social/iac/pqc-cert.yaml
+  nonClaim: static-httproute-template-only-no-live-gateway-dns-tls-or-cloud-rollout
+
 config:
   environment: production
   auditChainEnabled: true
