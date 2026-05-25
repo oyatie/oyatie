@@ -5863,9 +5863,31 @@
       {
         "id": "P-DEFINE",
         "title": "Define production-100 exit bar",
-        "status": "open",
+        "status": "proposed-bar-awaiting-ratification",
         "parallel": "no (gates all)",
-        "deliverable": "Collaboratively define: scale targets, compliance packs, deployment model (ADR-0254), first production workload (FD-001 candidate), SLO/DR/security/cost exit gates. No production claim until green."
+        "deliverable": "Collaboratively define: scale targets, compliance packs, deployment model (ADR-0254), first production workload (FD-001 candidate), SLO/DR/security/cost exit gates. No production claim until green.",
+        "production_100_bar": {
+          "_status": "PROPOSED for ratification \u2014 recommended values grounded in FD-001 (masterplan), ADR-0254 deployment spectrum, KR localization pack, hyperscaler-gates.json. Adjust before P-TARGET starts.",
+          "deployment_model": "shared-cloud multi-tenant, oyatie-operated cells (ADR-0254); logical isolation via cell + Cedar + per-tenant encryption",
+          "first_production_workload": "FD-001 narrow vertical slice: Cloud IAM + Cloud KMS + Cloud Secrets substrate serving ONE enterprise tenant service end-to-end (recommend Accounting or HR) as the first live tenant \u2014 not the whole suite",
+          "scale_targets_initial": {
+            "tenants": "10 paid + demo-trial",
+            "rps_p99": "1k sustained / 5k burst per core service",
+            "regions": "1 primary + 1 DR region",
+            "cells": ">=2 per region (no single-cell global bottleneck, ADR-0248)"
+          },
+          "compliance_gate": "KR pack mandatory (Labor Standards/4\ub300\ubcf4\ud5d8/HomeTax/K-GAAP/PIPA/ISMS-P) + baseline SOC2/ISO27001 design-level; EU/US deferred to post-100",
+          "slo_exit_gates": {
+            "availability": "99.9% per core service, measured (not declared)",
+            "latency": "per-microservice manifest SLO targets green (ADR-0340)",
+            "error_budget": "burn-rate alerting + agentic SLO-gated promotion wired"
+          },
+          "dr_exit_gates": "RTO/RPO matrix per ADR-0343 with at least one executed restore/failover drill (evidence, not claim)",
+          "security_exit_gates": "Cedar default-deny enforced; cosign-signed images (ADR-0181) verified at admission (Kubewarden); 0 critical/high CVEs (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263)",
+          "cost_exit_gate": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344)",
+          "ci_cd_exit_gate": "Jenkins sole CI green (ADR-0359); ArgoCD progressive delivery (canary->bake->auto-rollback) proven on the first workload; merge-queue speculative (ADR-0111)",
+          "master_exit_rule": "'production-ready'/'hyperscaler-mature' claims stay blocked_until_required_evidence_is_green; 100 = all the above gates GREEN with measured evidence on the first production workload"
+        }
       },
       {
         "id": "P-TARGET",
