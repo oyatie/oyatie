@@ -887,6 +887,23 @@ Verification:
 - Backbone CI governance smoke parses the new catalog row.
 - dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-REST-JSON-WRITE-BINDING-001 — Stateless REST JSON write binding over Hyper
+Scope:
+- `crates/oya-shared-backbone-rest-runtime-adapter/**` JSON body/header binding for stateless write routes.
+- `registry/dependency-rationales.json` adapter-layer `serde_json` allowance for this runtime edge only.
+- Task/evidence tracking.
+
+Acceptance:
+- The shared REST runtime adapter parses bounded Hyper-collected JSON bodies at the adapter edge and maps them into existing service-owned typed REST dispatchers for messenger post-message, mail submit-message, social publish-post, and community create-post.
+- Common request context is supplied through explicit headers (`x-oya-scope-ref`, `x-oya-context-kind`, `x-oya-principal-ref`, `Idempotency-Key`, `x-oya-policy-decision-ref`, `x-request-id`) and missing/invalid context fails closed with 400.
+- Path/body identifier drift fails closed before the typed handler runs.
+- Community vote/moderation routes remain explicit 501 stateful-write-plan-required seams because they require backing post/ledger state; no database/broker/live deployment claim is made.
+- Local TCP loopback tests execute all four stateless JSON write routes over Hyper and assert service receipt event types.
+
+Verification:
+- Focused cargo check/test/clippy/fmt for `oya-shared-backbone-rest-runtime-adapter`.
+- dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -897,7 +914,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, stateful community vote/moderation HTTP binding, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, stateless JSON write binding over local Hyper, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.

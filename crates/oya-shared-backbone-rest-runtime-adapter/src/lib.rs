@@ -3,21 +3,26 @@
 //! This crate binds the framework-free REST catalogs for messenger, mail,
 //! social, and community into transport-neutral routers that the canonical
 //! Hyper runtime adapter can serve without this crate importing Hyper directly.
-//! It is intentionally honest about the current seam: probes and contract-only
-//! OpenAPI routes are runtime-dispatchable; typed write-plan routes remain
-//! implemented in their protocol-neutral REST crates but are not yet
-//! JSON-body-bound in this generic runtime adapter.
+//! It is intentionally honest about the current seam: probes, contract-only
+//! OpenAPI routes, and the stateless typed write routes are
+//! runtime-dispatchable; stateful write-plan routes remain explicit
+//! `501` seams until a backing read/write store is composed.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::sync::Arc;
+use std::{fmt::Write as _, sync::Arc};
 
+use oya_community_post_store_api::{CommunityApiMode, CreatePostRequest};
 use oya_community_post_store_rest as community_rest;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HyperRuntimeError, ServerConfig, serve_listener};
+use oya_mail_mailbox_store_api::{DmarcApiAction, MailApiEnvelope};
 use oya_mail_mailbox_store_rest as mail_rest;
+use oya_messenger_message_stream_api::MessengerApiEnvelope;
 use oya_messenger_message_stream_rest as messenger_rest;
+use oya_social_post_composition_api::SocialApiArtifactKind;
 use oya_social_post_composition_rest as social_rest;
+use serde_json::Value;
 use tokio::net::TcpListener;
 
 /// Handler shape expected by the canonical Hyper adapter. Kept as a local type
@@ -64,6 +69,7 @@ pub struct BackboneRestReadinessDependency {
 pub enum RuntimeRouteHandlerKind {
     Probe,
     ContractOnly,
+    JsonWrite,
     TypedWritePlan,
 }
 
@@ -82,6 +88,7 @@ pub struct BackboneRestRouter {
     pub route_count: usize,
     pub probe_route_count: usize,
     pub contract_only_route_count: usize,
+    pub json_write_route_count: usize,
     pub typed_write_plan_route_count: usize,
     pub non_claim: &'static str,
 }
@@ -184,7 +191,8 @@ pub fn route_runtime_catalog(
 /// Build a Hyper-runtime-compatible router for a service's whole OpenAPI route
 /// catalog. Every route is registered; response semantics remain honest:
 /// probes dispatch to the service probe handler, contract-only routes return
-/// 501, and typed write-plan routes return a typed-binding-required 501.
+/// 501, stateless write routes parse JSON and call the service-owned typed
+/// dispatcher, and stateful write-plan routes return a typed-plan-required 501.
 pub fn build_backbone_rest_router(
     microservice: BackboneRestMicroservice,
     dependencies: Vec<BackboneRestReadinessDependency>,
@@ -193,12 +201,14 @@ pub fn build_backbone_rest_router(
     let mut router: Router<BackboneRestSyncHandler> = Router::new();
     let mut probe_route_count = 0;
     let mut contract_only_route_count = 0;
+    let mut json_write_route_count = 0;
     let mut typed_write_plan_route_count = 0;
 
     for route in routes.iter().copied() {
         match route.handler_kind {
             RuntimeRouteHandlerKind::Probe => probe_route_count += 1,
             RuntimeRouteHandlerKind::ContractOnly => contract_only_route_count += 1,
+            RuntimeRouteHandlerKind::JsonWrite => json_write_route_count += 1,
             RuntimeRouteHandlerKind::TypedWritePlan => typed_write_plan_route_count += 1,
         }
         let method =
@@ -222,8 +232,9 @@ pub fn build_backbone_rest_router(
         route_count: routes.len(),
         probe_route_count,
         contract_only_route_count,
+        json_write_route_count,
         typed_write_plan_route_count,
-        non_claim: "local Hyper loopback/runtime binding only; no production gateway, TLS, or JSON write-body binding claim",
+        non_claim: "local Hyper loopback/runtime binding only; no production gateway, TLS, database, broker, or stateful write-route claim",
     })
 }
 
@@ -276,6 +287,7 @@ fn dispatch_runtime_route(
     match route.handler_kind {
         RuntimeRouteHandlerKind::Probe => dispatch_probe_route(route, dependencies),
         RuntimeRouteHandlerKind::ContractOnly => contract_only_response(route, request),
+        RuntimeRouteHandlerKind::JsonWrite => dispatch_json_write_route(route, request),
         RuntimeRouteHandlerKind::TypedWritePlan => typed_write_plan_response(route, request),
     }
 }
@@ -358,18 +370,676 @@ fn contract_only_response(route: BackboneRestRuntimeRoute, request: &HttpRequest
     json_response(501, body)
 }
 
+#[derive(Debug)]
+enum JsonWriteBindingError {
+    MissingHeader {
+        name: &'static str,
+    },
+    MissingPathCapture {
+        name: &'static str,
+    },
+    BodyNotJson {
+        reason: String,
+    },
+    BodyNotObject,
+    MissingField {
+        name: &'static str,
+    },
+    InvalidField {
+        name: &'static str,
+        expected: &'static str,
+    },
+    PathBodyDrift {
+        field: &'static str,
+        path_value: String,
+        body_value: String,
+    },
+    Handler {
+        reason: String,
+    },
+}
+
+impl JsonWriteBindingError {
+    fn status_code(&self) -> u16 {
+        match self {
+            JsonWriteBindingError::Handler { .. } => 422,
+            _ => 400,
+        }
+    }
+
+    fn code(&self) -> &'static str {
+        match self {
+            JsonWriteBindingError::MissingHeader { .. } => "missing_header",
+            JsonWriteBindingError::MissingPathCapture { .. } => "missing_path_capture",
+            JsonWriteBindingError::BodyNotJson { .. } => "invalid_json",
+            JsonWriteBindingError::BodyNotObject => "body_not_object",
+            JsonWriteBindingError::MissingField { .. } => "missing_field",
+            JsonWriteBindingError::InvalidField { .. } => "invalid_field",
+            JsonWriteBindingError::PathBodyDrift { .. } => "path_body_drift",
+            JsonWriteBindingError::Handler { .. } => "handler_rejected",
+        }
+    }
+
+    fn detail(&self) -> String {
+        match self {
+            JsonWriteBindingError::MissingHeader { name } => {
+                format!("required header `{name}` is missing or empty")
+            }
+            JsonWriteBindingError::MissingPathCapture { name } => {
+                format!("required path capture `{name}` is missing")
+            }
+            JsonWriteBindingError::BodyNotJson { reason } => {
+                format!("request body is not valid JSON: {reason}")
+            }
+            JsonWriteBindingError::BodyNotObject => {
+                "request body must be a JSON object".to_string()
+            }
+            JsonWriteBindingError::MissingField { name } => {
+                format!("required JSON field `{name}` is missing")
+            }
+            JsonWriteBindingError::InvalidField { name, expected } => {
+                format!("JSON field `{name}` must be {expected}")
+            }
+            JsonWriteBindingError::PathBodyDrift {
+                field,
+                path_value,
+                body_value,
+            } => format!(
+                "JSON field `{field}` value `{body_value}` does not match path value `{path_value}`"
+            ),
+            JsonWriteBindingError::Handler { reason } => {
+                format!("typed REST handler rejected the request: {reason}")
+            }
+        }
+    }
+}
+
+fn dispatch_json_write_route(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+) -> HttpResponse {
+    match route.microservice {
+        BackboneRestMicroservice::Messenger => dispatch_messenger_json_write(route, request),
+        BackboneRestMicroservice::Mail => dispatch_mail_json_write(route, request),
+        BackboneRestMicroservice::Social => dispatch_social_json_write(route, request),
+        BackboneRestMicroservice::Community => dispatch_community_json_write(route, request),
+    }
+    .unwrap_or_else(|error| json_write_error_response(route, request, error))
+}
+
+fn dispatch_messenger_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let channel_id = path_capture(request, "channel_id")?;
+    reject_path_body_drift(&body, "channel_id", &channel_id)?;
+    let context = messenger_context(request)?;
+    let rest_request = messenger_rest::PostMessageRestRequest {
+        channel_id,
+        message_id: required_string(&body, "message_id")?,
+        author_ref: required_string(&body, "author_ref")?,
+        envelope: messenger_envelope(required_value(&body, "envelope")?)?,
+        retention_policy_id: required_string(&body, "retention_policy_id")?,
+        legal_hold_ids: string_array_or_empty(&body, "legal_hold_ids")?,
+    };
+    let response = messenger_rest::dispatch_write_route(
+        route.method,
+        route.path,
+        context,
+        messenger_rest::MessengerWriteRouteRequest::PostMessage(rest_request),
+    )
+    .map_err(|error| JsonWriteBindingError::Handler {
+        reason: format!("{error:?}"),
+    })?;
+    match response.body {
+        messenger_rest::MessengerWriteRouteResponse::PostMessage(receipt) => {
+            Ok(json_write_success_response(JsonWriteReceipt {
+                route,
+                status_code: response.status_code,
+                resource_field: "message_id",
+                resource_id: &receipt.message_id,
+                event_type: receipt.event_type,
+                audit_correlation_id: &receipt.audit_correlation_id,
+                idempotency_key: &receipt.idempotency_key,
+                policy_decision_ref: &receipt.policy_decision_ref,
+                extra: Some(("channel_id", receipt.channel_id.as_str())),
+            }))
+        }
+    }
+}
+
+fn dispatch_mail_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let context = mail_context(request)?;
+    let rest_request = mail_rest::SubmitMessageRestRequest {
+        message_id: required_string(&body, "message_id")?,
+        mailbox_id: required_string(&body, "mailbox_id")?,
+        subject_ref: required_string(&body, "subject_ref")?,
+        envelope: mail_envelope(required_value(&body, "envelope")?)?,
+        retention_policy_id: required_string(&body, "retention_policy_id")?,
+    };
+    let response = mail_rest::dispatch_write_route(
+        route.method,
+        route.path,
+        context,
+        mail_rest::MailWriteRouteRequest::SubmitMessage(rest_request),
+    )
+    .map_err(|error| JsonWriteBindingError::Handler {
+        reason: format!("{error:?}"),
+    })?;
+    match response.body {
+        mail_rest::MailWriteRouteResponse::SubmitMessage(receipt) => {
+            Ok(json_write_success_response(JsonWriteReceipt {
+                route,
+                status_code: response.status_code,
+                resource_field: "message_id",
+                resource_id: &receipt.message_id,
+                event_type: receipt.event_type,
+                audit_correlation_id: &receipt.audit_correlation_id,
+                idempotency_key: &receipt.idempotency_key,
+                policy_decision_ref: &receipt.policy_decision_ref,
+                extra: Some(("dmarc_action", dmarc_action_name(receipt.dmarc_action))),
+            }))
+        }
+    }
+}
+
+fn dispatch_social_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let context = social_context(request)?;
+    let rest_request = social_rest::PublishPostRestRequest {
+        post_id: required_string(&body, "post_id")?,
+        creator_ref: required_string(&body, "creator_ref")?,
+        media_refs: string_array_or_empty(&body, "media_refs")?,
+        kind: social_artifact_kind(&required_string(&body, "kind")?)?,
+        workflow_consent_ref: optional_string(&body, "workflow_consent_ref")?,
+    };
+    let response = social_rest::dispatch_write_route(
+        route.method,
+        route.path,
+        context,
+        social_rest::SocialWriteRouteRequest::PublishPost(rest_request),
+    )
+    .map_err(|error| JsonWriteBindingError::Handler {
+        reason: format!("{error:?}"),
+    })?;
+    match response.body {
+        social_rest::SocialWriteRouteResponse::PublishPost(receipt) => {
+            Ok(json_write_success_response(JsonWriteReceipt {
+                route,
+                status_code: response.status_code,
+                resource_field: "post_id",
+                resource_id: &receipt.post_id,
+                event_type: receipt.event_type,
+                audit_correlation_id: &receipt.audit_correlation_id,
+                idempotency_key: &receipt.idempotency_key,
+                policy_decision_ref: &receipt.policy_decision_ref,
+                extra: None,
+            }))
+        }
+    }
+}
+
+fn dispatch_community_json_write(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+) -> Result<HttpResponse, JsonWriteBindingError> {
+    let body = json_body(request)?;
+    let space_id = path_capture(request, "space_id")?;
+    reject_path_body_drift(&body, "space_id", &space_id)?;
+    let context = community_context(request)?;
+    let rest_request = CreatePostRequest {
+        post_id: required_string(&body, "post_id")?,
+        thread_id: required_string(&body, "thread_id")?,
+        mode: community_mode(&required_string(&body, "mode")?)?,
+        routine_display_ref: required_string(&body, "routine_display_ref")?,
+        audit_author_ref: required_string(&body, "audit_author_ref")?,
+        disclosure_policy_ref: optional_string(&body, "disclosure_policy_ref")?,
+        body_ref: required_string(&body, "body_ref")?,
+        retention_policy_id: required_string(&body, "retention_policy_id")?,
+    };
+    let response = community_rest::dispatch_write_route(
+        route.method,
+        route.path,
+        context,
+        community_rest::CommunityWriteRouteRequest::CreatePost(rest_request),
+    )
+    .map_err(|error| JsonWriteBindingError::Handler {
+        reason: format!("{error:?}"),
+    })?;
+    match response.body {
+        community_rest::CommunityWriteRouteResponse::CreatePost(receipt) => {
+            Ok(json_write_success_response(JsonWriteReceipt {
+                route,
+                status_code: response.status_code,
+                resource_field: "post_id",
+                resource_id: &receipt.post_id,
+                event_type: receipt.event_type,
+                audit_correlation_id: &receipt.audit_correlation_id,
+                idempotency_key: &receipt.idempotency_key,
+                policy_decision_ref: &receipt.policy_decision_ref,
+                extra: Some(("space_id", space_id.as_str())),
+            }))
+        }
+        community_rest::CommunityWriteRouteResponse::CastVote(_)
+        | community_rest::CommunityWriteRouteResponse::ApplyModerationAction(_) => {
+            unreachable!("stateful community routes are not classified as JsonWrite")
+        }
+    }
+}
+
+struct JsonWriteReceipt<'a> {
+    route: BackboneRestRuntimeRoute,
+    status_code: u16,
+    resource_field: &'a str,
+    resource_id: &'a str,
+    event_type: &'a str,
+    audit_correlation_id: &'a str,
+    idempotency_key: &'a str,
+    policy_decision_ref: &'a str,
+    extra: Option<(&'a str, &'a str)>,
+}
+
+fn json_write_success_response(receipt: JsonWriteReceipt<'_>) -> HttpResponse {
+    let mut body = format!(
+        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"runtime_handler\":\"json_write\",\"status_code\":{},\"{}\":\"{}\",\"event_type\":\"{}\",\"audit_correlation_id\":\"{}\",\"idempotency_key\":\"{}\",\"policy_decision_ref\":\"{}\",\"non_claim\":\"local stateless write handler only; no database, broker, or live deployment claim\"",
+        receipt.route.microservice.slug(),
+        receipt.route.method,
+        receipt.route.path,
+        receipt.status_code,
+        json_string_escape(receipt.resource_field),
+        json_string_escape(receipt.resource_id),
+        json_string_escape(receipt.event_type),
+        json_string_escape(receipt.audit_correlation_id),
+        json_string_escape(receipt.idempotency_key),
+        json_string_escape(receipt.policy_decision_ref)
+    );
+    if let Some((name, value)) = receipt.extra {
+        body.push_str(&format!(
+            ",\"{}\":\"{}\"",
+            json_string_escape(name),
+            json_string_escape(value)
+        ));
+    }
+    body.push('}');
+    json_response(receipt.status_code, body)
+}
+
+fn json_write_error_response(
+    route: BackboneRestRuntimeRoute,
+    request: &HttpRequest,
+    error: JsonWriteBindingError,
+) -> HttpResponse {
+    let status_code = error.status_code();
+    let body = format!(
+        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"matched_template\":\"{}\",\"runtime_handler\":\"json_write\",\"status_code\":{},\"error_code\":\"{}\",\"reason\":\"{}\"}}",
+        route.microservice.slug(),
+        route.method,
+        route.path,
+        json_string_escape(request.matched_template.as_deref().unwrap_or(route.path)),
+        status_code,
+        error.code(),
+        json_string_escape(&error.detail())
+    );
+    json_response(status_code, body)
+}
+
 fn typed_write_plan_response(
     route: BackboneRestRuntimeRoute,
     request: &HttpRequest,
 ) -> HttpResponse {
     let body = format!(
-        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"matched_template\":\"{}\",\"runtime_handler\":\"typed_write_plan_required\",\"status_code\":501,\"reason\":\"typed protocol-neutral write dispatcher exists; generic Hyper JSON-body binding is not claimed by this adapter\"}}",
+        "{{\"microservice\":\"{}\",\"method\":\"{}\",\"path\":\"{}\",\"matched_template\":\"{}\",\"runtime_handler\":\"typed_write_plan_required\",\"status_code\":501,\"reason\":\"stateful typed write route requires backing read/write state; generic JSON binding is intentionally not claimed for this route\"}}",
         route.microservice.slug(),
         route.method,
         route.path,
         json_string_escape(request.matched_template.as_deref().unwrap_or(route.path))
     );
     json_response(501, body)
+}
+
+fn json_body(request: &HttpRequest) -> Result<Value, JsonWriteBindingError> {
+    let value: Value = serde_json::from_slice(&request.body).map_err(|error| {
+        JsonWriteBindingError::BodyNotJson {
+            reason: error.to_string(),
+        }
+    })?;
+    if value.is_object() {
+        Ok(value)
+    } else {
+        Err(JsonWriteBindingError::BodyNotObject)
+    }
+}
+
+fn required_value<'a>(
+    body: &'a Value,
+    name: &'static str,
+) -> Result<&'a Value, JsonWriteBindingError> {
+    body.get(name)
+        .ok_or(JsonWriteBindingError::MissingField { name })
+}
+
+fn required_string(body: &Value, name: &'static str) -> Result<String, JsonWriteBindingError> {
+    let value = required_value(body, name)?;
+    match value.as_str().map(str::trim) {
+        Some(value) if !value.is_empty() => Ok(value.to_string()),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name,
+            expected: "a non-empty string",
+        }),
+    }
+}
+
+fn optional_string(
+    body: &Value,
+    name: &'static str,
+) -> Result<Option<String>, JsonWriteBindingError> {
+    match body.get(name) {
+        None | Some(Value::Null) => Ok(None),
+        Some(value) => match value.as_str().map(str::trim) {
+            Some(value) if !value.is_empty() => Ok(Some(value.to_string())),
+            _ => Err(JsonWriteBindingError::InvalidField {
+                name,
+                expected: "null or a non-empty string",
+            }),
+        },
+    }
+}
+
+fn bool_or_false(body: &Value, name: &'static str) -> Result<bool, JsonWriteBindingError> {
+    match body.get(name) {
+        None | Some(Value::Null) => Ok(false),
+        Some(value) => value.as_bool().ok_or(JsonWriteBindingError::InvalidField {
+            name,
+            expected: "a boolean",
+        }),
+    }
+}
+
+fn string_array_or_empty(
+    body: &Value,
+    name: &'static str,
+) -> Result<Vec<String>, JsonWriteBindingError> {
+    let Some(value) = body.get(name) else {
+        return Ok(Vec::new());
+    };
+    let Value::Array(items) = value else {
+        return Err(JsonWriteBindingError::InvalidField {
+            name,
+            expected: "an array of non-empty strings",
+        });
+    };
+    items
+        .iter()
+        .map(|item| match item.as_str().map(str::trim) {
+            Some(value) if !value.is_empty() => Ok(value.to_string()),
+            _ => Err(JsonWriteBindingError::InvalidField {
+                name,
+                expected: "an array of non-empty strings",
+            }),
+        })
+        .collect()
+}
+
+fn path_capture(
+    request: &HttpRequest,
+    name: &'static str,
+) -> Result<String, JsonWriteBindingError> {
+    request
+        .path_captures
+        .get(name)
+        .filter(|value| !value.trim().is_empty())
+        .cloned()
+        .ok_or(JsonWriteBindingError::MissingPathCapture { name })
+}
+
+fn reject_path_body_drift(
+    body: &Value,
+    field: &'static str,
+    path_value: &str,
+) -> Result<(), JsonWriteBindingError> {
+    if let Some(body_value) = optional_string(body, field)?
+        && body_value != path_value
+    {
+        return Err(JsonWriteBindingError::PathBodyDrift {
+            field,
+            path_value: path_value.to_string(),
+            body_value,
+        });
+    }
+    Ok(())
+}
+
+fn required_header(
+    request: &HttpRequest,
+    names: &[&'static str],
+) -> Result<String, JsonWriteBindingError> {
+    for name in names {
+        if let Some(value) = header_value(request, name).map(str::trim)
+            && !value.is_empty()
+        {
+            return Ok(value.to_string());
+        }
+    }
+    Err(JsonWriteBindingError::MissingHeader { name: names[0] })
+}
+
+fn header_value<'a>(request: &'a HttpRequest, name: &str) -> Option<&'a str> {
+    request.headers.get(name).map(String::as_str).or_else(|| {
+        request
+            .headers
+            .iter()
+            .find_map(|(key, value)| key.eq_ignore_ascii_case(name).then_some(value.as_str()))
+    })
+}
+
+fn scope_header(request: &HttpRequest) -> Result<String, JsonWriteBindingError> {
+    required_header(
+        request,
+        &[
+            "x-oya-scope-ref",
+            "x-oya-tenant-scope-ref",
+            "x-oya-tenant-id",
+        ],
+    )
+}
+
+fn principal_header(request: &HttpRequest) -> Result<String, JsonWriteBindingError> {
+    required_header(request, &["x-oya-principal-ref"])
+}
+
+fn idempotency_header(request: &HttpRequest) -> Result<String, JsonWriteBindingError> {
+    required_header(
+        request,
+        &[
+            "idempotency-key",
+            "x-idempotency-key",
+            "x-oya-idempotency-key",
+        ],
+    )
+}
+
+fn policy_header(request: &HttpRequest) -> Result<String, JsonWriteBindingError> {
+    required_header(request, &["x-oya-policy-decision-ref"])
+}
+
+fn request_id_header(request: &HttpRequest) -> Result<String, JsonWriteBindingError> {
+    required_header(request, &["x-request-id", "x-oya-request-id"])
+}
+
+fn messenger_context(
+    request: &HttpRequest,
+) -> Result<messenger_rest::MessengerRestContext, JsonWriteBindingError> {
+    Ok(messenger_rest::MessengerRestContext {
+        scope_org_id: scope_header(request)?,
+        context_kind: messenger_context_kind(&required_header(request, &["x-oya-context-kind"])?)?,
+        principal_ref: principal_header(request)?,
+        idempotency_key: idempotency_header(request)?,
+        policy_decision_ref: policy_header(request)?,
+        request_id: request_id_header(request)?,
+    })
+}
+
+fn messenger_context_kind(
+    value: &str,
+) -> Result<messenger_rest::RestContextKind, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "personal" => Ok(messenger_rest::RestContextKind::Personal),
+        "professional" | "work" => Ok(messenger_rest::RestContextKind::Professional),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "x-oya-context-kind",
+            expected: "one of personal, professional, work",
+        }),
+    }
+}
+
+fn mail_context(
+    request: &HttpRequest,
+) -> Result<mail_rest::MailRestContext, JsonWriteBindingError> {
+    Ok(mail_rest::MailRestContext {
+        tenant_id: scope_header(request)?,
+        context_kind: mail_context_kind(&required_header(request, &["x-oya-context-kind"])?)?,
+        principal_ref: principal_header(request)?,
+        idempotency_key: idempotency_header(request)?,
+        policy_decision_ref: policy_header(request)?,
+        request_id: request_id_header(request)?,
+    })
+}
+
+fn mail_context_kind(value: &str) -> Result<mail_rest::MailRestContextKind, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "personal" => Ok(mail_rest::MailRestContextKind::Personal),
+        "professional" | "work" => Ok(mail_rest::MailRestContextKind::Professional),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "x-oya-context-kind",
+            expected: "one of personal, professional, work",
+        }),
+    }
+}
+
+fn social_context(
+    request: &HttpRequest,
+) -> Result<social_rest::SocialRestContext, JsonWriteBindingError> {
+    Ok(social_rest::SocialRestContext {
+        scope_org_id: scope_header(request)?,
+        context_kind: social_context_kind(&required_header(request, &["x-oya-context-kind"])?)?,
+        principal_ref: principal_header(request)?,
+        idempotency_key: idempotency_header(request)?,
+        policy_decision_ref: policy_header(request)?,
+        request_id: request_id_header(request)?,
+    })
+}
+
+fn social_context_kind(
+    value: &str,
+) -> Result<social_rest::SocialRestContextKind, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "personal" => Ok(social_rest::SocialRestContextKind::Personal),
+        "professional" | "work" => Ok(social_rest::SocialRestContextKind::Professional),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "x-oya-context-kind",
+            expected: "one of personal, professional, work",
+        }),
+    }
+}
+
+fn community_context(
+    request: &HttpRequest,
+) -> Result<community_rest::CommunityRestContext, JsonWriteBindingError> {
+    Ok(community_rest::CommunityRestContext {
+        tenant_scope_ref: scope_header(request)?,
+        principal_ref: principal_header(request)?,
+        idempotency_key: idempotency_header(request)?,
+        policy_decision_ref: policy_header(request)?,
+        request_id: request_id_header(request)?,
+    })
+}
+
+fn messenger_envelope(value: &Value) -> Result<MessengerApiEnvelope, JsonWriteBindingError> {
+    let kind = required_string(value, "kind")?;
+    match normalized_token(&kind).as_str() {
+        "personal_e2e" => Ok(MessengerApiEnvelope::PersonalE2e {
+            envelope_ref: required_string(value, "envelope_ref")?,
+        }),
+        "tenant_dek" => Ok(MessengerApiEnvelope::TenantDek {
+            dek_ref: required_string(value, "dek_ref")?,
+            four_eyes: bool_or_false(value, "four_eyes")?,
+        }),
+        "cross_org" => Ok(MessengerApiEnvelope::CrossOrg {
+            local_dek_ref: required_string(value, "local_dek_ref")?,
+            partner_scope_ref: required_string(value, "partner_scope_ref")?,
+            partner_dek_ref: required_string(value, "partner_dek_ref")?,
+            partner_ediscovery_allowed: bool_or_false(value, "partner_ediscovery_allowed")?,
+        }),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "envelope.kind",
+            expected: "one of personal_e2e, tenant_dek, cross_org",
+        }),
+    }
+}
+
+fn mail_envelope(value: &Value) -> Result<MailApiEnvelope, JsonWriteBindingError> {
+    let kind = required_string(value, "kind")?;
+    match normalized_token(&kind).as_str() {
+        "personal_client_only" => Ok(MailApiEnvelope::PersonalClientOnly {
+            envelope_ref: required_string(value, "envelope_ref")?,
+        }),
+        "tenant_dek" => Ok(MailApiEnvelope::TenantDek {
+            dek_ref: required_string(value, "dek_ref")?,
+        }),
+        "imported" => Ok(MailApiEnvelope::Imported {
+            source_hash: required_string(value, "source_hash")?,
+            evidence_ref: required_string(value, "evidence_ref")?,
+        }),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "envelope.kind",
+            expected: "one of personal_client_only, tenant_dek, imported",
+        }),
+    }
+}
+
+fn social_artifact_kind(value: &str) -> Result<SocialApiArtifactKind, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "feed_post" => Ok(SocialApiArtifactKind::FeedPost),
+        "story" => Ok(SocialApiArtifactKind::Story),
+        "collaborative_post" => Ok(SocialApiArtifactKind::CollaborativePost),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "kind",
+            expected: "one of feed_post, story, collaborative_post",
+        }),
+    }
+}
+
+fn community_mode(value: &str) -> Result<CommunityApiMode, JsonWriteBindingError> {
+    match normalized_token(value).as_str() {
+        "reddit" => Ok(CommunityApiMode::Reddit),
+        "teamblind" => Ok(CommunityApiMode::Teamblind),
+        "handshake" => Ok(CommunityApiMode::Handshake),
+        "knowledge_base" => Ok(CommunityApiMode::KnowledgeBase),
+        _ => Err(JsonWriteBindingError::InvalidField {
+            name: "mode",
+            expected: "one of reddit, teamblind, handshake, knowledge_base",
+        }),
+    }
+}
+
+fn dmarc_action_name(value: DmarcApiAction) -> &'static str {
+    match value {
+        DmarcApiAction::Accept => "accept",
+        DmarcApiAction::Quarantine => "quarantine",
+        DmarcApiAction::Reject => "reject",
+    }
+}
+
+fn normalized_token(value: &str) -> String {
+    value.trim().replace('-', "_").to_ascii_lowercase()
 }
 
 fn json_response(status_code: u16, body: String) -> HttpResponse {
@@ -379,17 +1049,24 @@ fn json_response(status_code: u16, body: String) -> HttpResponse {
 }
 
 fn json_string_escape(input: &str) -> String {
-    input
-        .chars()
-        .flat_map(|ch| match ch {
-            '\\' => "\\\\".chars().collect::<Vec<_>>(),
-            '"' => "\\\"".chars().collect::<Vec<_>>(),
-            '\n' => "\\n".chars().collect::<Vec<_>>(),
-            '\r' => "\\r".chars().collect::<Vec<_>>(),
-            '\t' => "\\t".chars().collect::<Vec<_>>(),
-            _ => vec![ch],
-        })
-        .collect()
+    let mut escaped = String::with_capacity(input.len());
+    for ch in input.chars() {
+        match ch {
+            '\\' => escaped.push_str("\\\\"),
+            '"' => escaped.push_str("\\\""),
+            '\n' => escaped.push_str("\\n"),
+            '\r' => escaped.push_str("\\r"),
+            '\t' => escaped.push_str("\\t"),
+            '\u{08}' => escaped.push_str("\\b"),
+            '\u{0c}' => escaped.push_str("\\f"),
+            '\u{00}'..='\u{1f}' => {
+                write!(&mut escaped, "\\u{:04x}", ch as u32)
+                    .expect("writing to an in-memory string cannot fail");
+            }
+            _ => escaped.push(ch),
+        }
+    }
+    escaped
 }
 
 fn route_registration_error(
@@ -412,7 +1089,7 @@ fn classify_messenger_route(route: &messenger_rest::OpenApiRoute) -> RuntimeRout
     } else if route.handler_status == messenger_rest::RouteHandlerStatus::ContractOnly {
         RuntimeRouteHandlerKind::ContractOnly
     } else {
-        RuntimeRouteHandlerKind::TypedWritePlan
+        RuntimeRouteHandlerKind::JsonWrite
     }
 }
 
@@ -424,7 +1101,7 @@ fn classify_mail_route(route: &mail_rest::OpenApiRoute) -> RuntimeRouteHandlerKi
     } else if route.handler_status == mail_rest::RouteHandlerStatus::ContractOnly {
         RuntimeRouteHandlerKind::ContractOnly
     } else {
-        RuntimeRouteHandlerKind::TypedWritePlan
+        RuntimeRouteHandlerKind::JsonWrite
     }
 }
 
@@ -436,7 +1113,7 @@ fn classify_social_route(route: &social_rest::OpenApiRoute) -> RuntimeRouteHandl
     } else if route.handler_status == social_rest::RouteHandlerStatus::ContractOnly {
         RuntimeRouteHandlerKind::ContractOnly
     } else {
-        RuntimeRouteHandlerKind::TypedWritePlan
+        RuntimeRouteHandlerKind::JsonWrite
     }
 }
 
@@ -447,6 +1124,10 @@ fn classify_community_route(route: &community_rest::OpenApiRoute) -> RuntimeRout
         RuntimeRouteHandlerKind::Probe
     } else if route.handler_status == community_rest::RouteHandlerStatus::ContractOnly {
         RuntimeRouteHandlerKind::ContractOnly
+    } else if route.method == community_rest::CREATE_POST_METHOD
+        && route.path == community_rest::CREATE_POST_ROUTE
+    {
+        RuntimeRouteHandlerKind::JsonWrite
     } else {
         RuntimeRouteHandlerKind::TypedWritePlan
     }
@@ -519,22 +1200,44 @@ mod tests {
         }
     }
 
+    fn json_request(method: HttpMethod, path: &str, body: &str) -> HttpRequest {
+        let mut request = request(method, path);
+        request.headers = common_headers("idem-json", "req-json");
+        request.body = body.as_bytes().to_vec();
+        request
+    }
+
+    fn common_headers(idempotency_key: &str, request_id: &str) -> BTreeMap<String, String> {
+        BTreeMap::from([
+            ("x-oya-scope-ref".to_string(), "tenant:t".to_string()),
+            ("x-oya-context-kind".to_string(), "professional".to_string()),
+            ("x-oya-principal-ref".to_string(), "user:u".to_string()),
+            ("idempotency-key".to_string(), idempotency_key.to_string()),
+            (
+                "x-oya-policy-decision-ref".to_string(),
+                "cedar:allow".to_string(),
+            ),
+            ("x-request-id".to_string(), request_id.to_string()),
+        ])
+    }
+
     #[test]
     fn route_catalog_registers_every_openapi_route_with_honest_counts() {
         let expected = [
-            (BackboneRestMicroservice::Messenger, 26, 2, 23, 1),
-            (BackboneRestMicroservice::Mail, 17, 2, 14, 1),
-            (BackboneRestMicroservice::Social, 27, 2, 24, 1),
-            (BackboneRestMicroservice::Community, 24, 2, 19, 3),
+            (BackboneRestMicroservice::Messenger, 26, 2, 23, 1, 0),
+            (BackboneRestMicroservice::Mail, 17, 2, 14, 1, 0),
+            (BackboneRestMicroservice::Social, 27, 2, 24, 1, 0),
+            (BackboneRestMicroservice::Community, 24, 2, 19, 1, 2),
         ];
 
-        for (service, total, probes, contract_only, typed_write_plan) in expected {
+        for (service, total, probes, contract_only, json_write, typed_write_plan) in expected {
             let built = build_backbone_rest_router(service, Vec::new()).unwrap();
             assert_eq!(built.microservice, service);
             assert_eq!(built.router.count(), total);
             assert_eq!(built.route_count, total);
             assert_eq!(built.probe_route_count, probes);
             assert_eq!(built.contract_only_route_count, contract_only);
+            assert_eq!(built.json_write_route_count, json_write);
             assert_eq!(built.typed_write_plan_route_count, typed_write_plan);
             assert!(built.non_claim.contains("no production gateway"));
         }
@@ -581,12 +1284,110 @@ mod tests {
     }
 
     #[test]
-    fn typed_write_route_does_not_fake_generic_json_binding() {
+    fn json_write_route_calls_service_owned_typed_handler() {
         let built =
-            build_backbone_rest_router(BackboneRestMicroservice::Social, Vec::new()).unwrap();
+            build_backbone_rest_router(BackboneRestMicroservice::Messenger, Vec::new()).unwrap();
         let chain = empty_middleware_chain();
         let response = dispatch_backbone_rest_request(
-            request(HttpMethod::Post, "/posts"),
+            json_request(
+                HttpMethod::Post,
+                "/channels/channel-a/messages",
+                r#"{"message_id":"msg-1","author_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:1","four_eyes":true},"retention_policy_id":"retention:default","legal_hold_ids":["hold:1"]}"#,
+            ),
+            &built.router,
+            &chain,
+        );
+        let body = String::from_utf8(response.body).unwrap();
+
+        assert_eq!(response.status, 201);
+        assert!(body.contains("\"runtime_handler\":\"json_write\""));
+        assert!(body.contains("\"event_type\":\"messenger.message.sent\""));
+        assert!(body.contains("\"channel_id\":\"channel-a\""));
+        assert!(body.contains("no database, broker, or live deployment claim"));
+    }
+
+    #[test]
+    fn json_write_rejects_path_body_identifier_drift() {
+        let built =
+            build_backbone_rest_router(BackboneRestMicroservice::Messenger, Vec::new()).unwrap();
+        let chain = empty_middleware_chain();
+        let response = dispatch_backbone_rest_request(
+            json_request(
+                HttpMethod::Post,
+                "/channels/channel-a/messages",
+                r#"{"channel_id":"channel-b","message_id":"msg-1","author_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:1","four_eyes":true},"retention_policy_id":"retention:default"}"#,
+            ),
+            &built.router,
+            &chain,
+        );
+        let body = String::from_utf8(response.body).unwrap();
+
+        assert_eq!(response.status, 400);
+        assert!(body.contains("\"error_code\":\"path_body_drift\""));
+    }
+
+    #[test]
+    fn json_write_accepts_case_insensitive_http_headers() {
+        let built =
+            build_backbone_rest_router(BackboneRestMicroservice::Messenger, Vec::new()).unwrap();
+        let chain = empty_middleware_chain();
+        let mut request = json_request(
+            HttpMethod::Post,
+            "/channels/channel-a/messages",
+            r#"{"message_id":"msg-1","author_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:1","four_eyes":true},"retention_policy_id":"retention:default"}"#,
+        );
+        request.headers = BTreeMap::from([
+            ("X-Oya-Scope-Ref".to_string(), "tenant:t".to_string()),
+            ("X-Oya-Context-Kind".to_string(), "professional".to_string()),
+            ("X-Oya-Principal-Ref".to_string(), "user:u".to_string()),
+            ("Idempotency-Key".to_string(), "idem-case".to_string()),
+            (
+                "X-Oya-Policy-Decision-Ref".to_string(),
+                "cedar:allow".to_string(),
+            ),
+            ("X-Request-Id".to_string(), "req-case".to_string()),
+        ]);
+        let response = dispatch_backbone_rest_request(request, &built.router, &chain);
+        let body = String::from_utf8(response.body).unwrap();
+
+        assert_eq!(response.status, 201);
+        assert!(body.contains("\"idempotency_key\":\"idem-case\""));
+        assert!(body.contains("\"audit_correlation_id\":\"req-case\""));
+    }
+
+    #[test]
+    fn json_write_error_response_escapes_control_characters() {
+        let built =
+            build_backbone_rest_router(BackboneRestMicroservice::Messenger, Vec::new()).unwrap();
+        let chain = empty_middleware_chain();
+        let response = dispatch_backbone_rest_request(
+            json_request(
+                HttpMethod::Post,
+                "/channels/channel-a/messages",
+                r#"{"channel_id":"channel-\u0001","message_id":"msg-1","author_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:1","four_eyes":true},"retention_policy_id":"retention:default"}"#,
+            ),
+            &built.router,
+            &chain,
+        );
+        let body = String::from_utf8(response.body).unwrap();
+        let parsed: Value = serde_json::from_str(&body).unwrap();
+
+        assert_eq!(response.status, 400);
+        assert_eq!(parsed["error_code"], "path_body_drift");
+        assert!(body.contains("\\u0001"));
+    }
+
+    #[test]
+    fn stateful_write_plan_route_remains_honest_501() {
+        let built =
+            build_backbone_rest_router(BackboneRestMicroservice::Community, Vec::new()).unwrap();
+        let chain = empty_middleware_chain();
+        let response = dispatch_backbone_rest_request(
+            json_request(
+                HttpMethod::Post,
+                "/posts/post-1/vote",
+                r#"{"post_id":"post-1","voter_ref":"user:u","direction":"up"}"#,
+            ),
             &built.router,
             &chain,
         );
@@ -594,7 +1395,7 @@ mod tests {
 
         assert_eq!(response.status, 501);
         assert!(body.contains("typed_write_plan_required"));
-        assert!(body.contains("generic Hyper JSON-body binding is not claimed"));
+        assert!(body.contains("backing read/write state"));
     }
 
     #[tokio::test]
@@ -642,6 +1443,69 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn loopback_clients_execute_stateless_json_write_routes_over_tcp() {
+        let cases = [
+            (
+                BackboneRestMicroservice::Messenger,
+                "POST",
+                "/channels/channel-a/messages",
+                r#"{"message_id":"msg-1","author_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:1","four_eyes":true},"retention_policy_id":"retention:default"}"#,
+                "messenger.message.sent",
+            ),
+            (
+                BackboneRestMicroservice::Mail,
+                "POST",
+                "/messages",
+                r#"{"message_id":"mail-1","mailbox_id":"mailbox:inbox","subject_ref":"user:u","envelope":{"kind":"tenant_dek","dek_ref":"dek:mail"},"retention_policy_id":"retention:mail"}"#,
+                "mail.message.submitted",
+            ),
+            (
+                BackboneRestMicroservice::Social,
+                "POST",
+                "/posts",
+                r#"{"post_id":"post-1","creator_ref":"user:u","kind":"feed_post","media_refs":["media:1"],"workflow_consent_ref":"workflow:consent"}"#,
+                "social.post.created",
+            ),
+            (
+                BackboneRestMicroservice::Community,
+                "POST",
+                "/spaces/space-a/posts",
+                r#"{"space_id":"space-a","post_id":"post-1","thread_id":"thread:1","mode":"reddit","routine_display_ref":"display:user","audit_author_ref":"user:u","body_ref":"body:1","retention_policy_id":"retention:community"}"#,
+                "community.post.created",
+            ),
+        ];
+
+        for (service, method, path, body, event_type) in cases {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let addr = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move {
+                serve_backbone_rest_microservice_listener(
+                    listener,
+                    service,
+                    vec![BackboneRestReadinessDependency {
+                        name: "postgres",
+                        ready: true,
+                    }],
+                    ServerConfig::default(),
+                )
+                .await
+            });
+
+            let response =
+                raw_http_json_request(addr, method, path, body, "idem-loop", "req-loop").await;
+            assert!(
+                response.starts_with("HTTP/1.1 20"),
+                "{} {path} response was {response:?}",
+                service.slug()
+            );
+            assert!(response.contains("\"runtime_handler\":\"json_write\""));
+            assert!(response.contains(event_type));
+
+            server.abort();
+        }
+    }
+
     async fn raw_http_request(addr: SocketAddr, method: &str, path: &str) -> String {
         let method = method.to_string();
         let path = path.to_string();
@@ -652,6 +1516,37 @@ mod tests {
                 .unwrap();
             let request =
                 format!("{method} {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+            stream.write_all(request.as_bytes()).unwrap();
+            let mut response = String::new();
+            stream.read_to_string(&mut response).unwrap();
+            response
+        })
+        .await
+        .unwrap()
+    }
+
+    async fn raw_http_json_request(
+        addr: SocketAddr,
+        method: &str,
+        path: &str,
+        body: &str,
+        idempotency_key: &str,
+        request_id: &str,
+    ) -> String {
+        let method = method.to_string();
+        let path = path.to_string();
+        let body = body.to_string();
+        let idempotency_key = idempotency_key.to_string();
+        let request_id = request_id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let mut stream = TcpStream::connect(addr).unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let request = format!(
+                "{method} {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\nContent-Type: application/json\r\nContent-Length: {}\r\nX-Oya-Scope-Ref: tenant:t\r\nX-Oya-Context-Kind: professional\r\nX-Oya-Principal-Ref: user:u\r\nIdempotency-Key: {idempotency_key}\r\nX-Oya-Policy-Decision-Ref: cedar:allow\r\nX-Request-Id: {request_id}\r\n\r\n{body}",
+                body.len()
+            );
             stream.write_all(request.as_bytes()).unwrap();
             let mut response = String::new();
             stream.read_to_string(&mut response).unwrap();

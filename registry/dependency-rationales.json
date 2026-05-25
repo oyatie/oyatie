@@ -160,7 +160,7 @@
       "owner_team": "council-architecture",
       "rationale": "JSON ser/de. Strictly adapter-layer; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime).",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "adapter-layer crates",
+      "isolated_in_crate": "adapter-layer crates, including oya-shared-backbone-rest-runtime-adapter for bounded JSON body binding at the HTTP runtime edge",
       "allowed_crates": [
         "oya-check-authz-tier-discipline",
         "oya-check-dependency-seam",
@@ -178,6 +178,7 @@
         "oya-policy-cedar-domain",
         "oya-resolve-scorecards-app",
         "oya-search-index-vector-domain",
+        "oya-shared-backbone-rest-runtime-adapter",
         "oya-shared-oidc-client-kernel",
         "oya-shared-scim-server-kernel",
         "oya-shared-webauthn-server-kernel",
