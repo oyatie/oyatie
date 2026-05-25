@@ -1,0 +1,6 @@
+[package]
+name = "oya-workflow-engine-state-machine-kernel"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

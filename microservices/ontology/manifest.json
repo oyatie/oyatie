@@ -7,9 +7,7 @@
     "demo_trial",
     "paid"
   ],
-  "paid_billing_components_emitted": [
-
-  ],
+  "paid_billing_components_emitted": [],
   "bounded_contexts": [
     {
       "name": "ontology-substrate",
@@ -28,6 +26,8 @@
         "oya-ontology-object-type-registry-kernel",
         "oya-ontology-object-type-registry-usecase",
         "oya-ontology-pillar-domain",
+        "oya-ontology-query-engine-domain",
+        "oya-ontology-query-engine-usecase",
         "oya-ontology-query-engine-adapter-clickhouse",
         "oya-ontology-sdk"
       ]
@@ -306,10 +306,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_signals": "INV-FOUR-reference-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -376,7 +376,7 @@
     "il5",
     "DORA"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
   "owner_team": "axis-ontology",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [
@@ -528,9 +528,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "oci-guest",
@@ -556,5 +554,24 @@
       "version_pin": "v1",
       "tenant_class_scope": "paid"
     }
-  ]
+  ],
+  "quality_gates": {
+    "foundation_targeted_tests": [
+      "cargo test -p oya-ontology-kernel -p oya-ontology-query-engine-domain -p oya-ontology-query-engine-usecase -p oya-saas-workflow-kernel -p oya-saas-workflow-domain -p oya-saas-workflow-app -p oya-workflow-engine-event-bus-kernel -p oya-workflow-engine-event-bus-domain -p oya-workflow-engine-event-bus-usecase -p oya-workflow-engine-event-bus-api -p oya-workflow-engine-event-bus-rest -p oya-workflow-engine-event-bus-worker -p oya-workflow-engine-event-bus-sdk -p oya-workflow-engine-event-bus-app -p oya-workflow-engine-event-bus-adapter -p oya-workflow-engine-event-bus-adapter-postgres -p oya-workflow-engine-event-bus-adapter-valkey -p oya-workflow-engine-event-bus-adapter-kafka -p oya-workflow-engine-event-bus-adapter-redpanda -p oya-workflow-engine-event-bus-adapter-nats -p oya-workflow-engine-event-bus-adapter-pulsar -p oya-workflow-engine-execution-engine-kernel -p oya-workflow-engine-execution-engine-domain -p oya-workflow-engine-execution-engine-usecase -p oya-workflow-engine-execution-engine-adapter -p oya-workflow-engine-execution-engine-adapter-postgres -p oya-workflow-engine-execution-engine-api -p oya-workflow-engine-execution-engine-rest -p oya-workflow-engine-execution-engine-worker -p oya-workflow-engine-execution-engine-sdk -p oya-workflow-engine-execution-engine-app -p oya-workflow-engine-trigger-orchestrator-kernel -p oya-workflow-engine-trigger-orchestrator-domain -p oya-workflow-engine-trigger-orchestrator-usecase -p oya-workflow-engine-trigger-orchestrator-api -p oya-workflow-engine-trigger-orchestrator-rest -p oya-workflow-engine-trigger-orchestrator-worker -p oya-workflow-engine-trigger-orchestrator-sdk -p oya-workflow-engine-trigger-orchestrator-app -p oya-workflow-engine-state-machine-kernel -p oya-workflow-engine-state-machine-domain -p oya-workflow-engine-state-machine-usecase -p oya-workflow-engine-state-machine-api -p oya-workflow-engine-state-machine-adapter -p oya-workflow-engine-state-machine-adapter-postgres -p oya-workflow-studio-visual-canvas-kernel -p oya-workflow-studio-dsl-emitter-domain -p oya-workflow-studio-dsl-loader-domain -p oya-workflow-studio-policy-preview-domain -p oya-intelligence-model-routing-kernel -p oya-intelligence-model-routing-domain -p oya-intelligence-model-routing-usecase -p oya-intelligence-assist-draft-kernel -p oya-intelligence-assist-draft-domain -p oya-intelligence-assist-draft-usecase -p oya-intelligence-assist-draft-adapter -p oya-intelligence-assist-draft-api -p oya-intelligence-assist-draft-rest -p oya-intelligence-assist-draft-worker -p oya-intelligence-guardrails-kernel -p oya-intelligence-guardrails-domain -p oya-intelligence-guardrails-usecase -p oya-intelligence-context-aware-retrieval-kernel -p oya-intelligence-context-aware-retrieval-domain -p oya-intelligence-context-aware-retrieval-usecase -p oya-intelligence-context-aware-retrieval-adapter -p oya-intelligence-context-aware-retrieval-worker -p oya-intelligence-eval-kernel -p oya-intelligence-eval-domain -p oya-intelligence-eval-usecase -p oya-intelligence-eval-adapter -p oya-intelligence-eval-worker -p oya-intelligence-attribution-kernel -p oya-intelligence-attribution-domain -p oya-intelligence-attribution-usecase -p oya-intelligence-attribution-adapter -p oya-intelligence-attribution-worker -p oya-intelligence-dispatch-usecase -p oya-intelligence-providers-adapter-openai -p oya-intelligence-credential-resolver-domain -p oya-intelligence-credential-resolver-usecase -p oya-intelligence-credential-resolver-adapter -p oya-intelligence-audit-tap-usecase -p oya-intelligence-audit-tap-adapter -p oya-intelligence-audit-tap-worker"
+    ],
+    "foundation_lint": [
+      "cargo clippy -p <touched-foundation-crate> --all-targets -- -D warnings"
+    ],
+    "hyperscaler_claim_policy": "preview-foundation only; no hyperscaler-grade production claim until specs/hyperscaler-gates.json gates have current runtime, CI/CD, operational, SLO, supply-chain, rollback, and Oya VCS promotion evidence."
+  },
+  "hyperscaler_claims": {
+    "claim_status": "not_claimed",
+    "honest_claim_scope": "source-level foundation primitives and tests only",
+    "required_before_hyperscaler_claim": [
+      "fresh ./bin/oya verify --ci-required output",
+      "hyperscaler-maturity-claims and hyperscaler-arch-invariants gates green for the exact surface",
+      "runtime deployment, SLO, rollback, runbook, threat-model, and supply-chain evidence",
+      "Oya VCS verify/done/promote evidence"
+    ]
+  }
 }

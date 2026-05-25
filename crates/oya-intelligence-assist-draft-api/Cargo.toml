@@ -1,0 +1,9 @@
+[package]
+name = "oya-intelligence-assist-draft-api"
+version = "0.1.0"
+edition = "2024"
+license = "Proprietary"
+publish = false
+
+[dependencies]
+oya-intelligence-assist-draft-adapter = { path = "../oya-intelligence-assist-draft-adapter" }

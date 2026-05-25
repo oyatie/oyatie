@@ -4375,6 +4375,240 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-assist-draft-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-assist-draft-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-assist-draft-api"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-assist-draft-adapter",
+]
+
+[[package]]
+name = "oya-intelligence-assist-draft-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-assist-draft-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-assist-draft-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-assist-draft-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-assist-draft-api",
+]
+
+[[package]]
+name = "oya-intelligence-assist-draft-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-assist-draft-domain",
+]
+
+[[package]]
+name = "oya-intelligence-assist-draft-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-assist-draft-adapter",
+]
+
+[[package]]
+name = "oya-intelligence-attribution-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-attribution-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-attribution-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-attribution-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-attribution-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-attribution-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-attribution-domain",
+]
+
+[[package]]
+name = "oya-intelligence-attribution-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-attribution-adapter",
+ "oya-intelligence-attribution-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-audit-tap-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-audit-tap-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-audit-tap-usecase"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-audit-tap-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-audit-tap-adapter",
+]
+
+[[package]]
+name = "oya-intelligence-context-aware-retrieval-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-context-aware-retrieval-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-context-aware-retrieval-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-context-aware-retrieval-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-context-aware-retrieval-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-context-aware-retrieval-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-context-aware-retrieval-domain",
+]
+
+[[package]]
+name = "oya-intelligence-context-aware-retrieval-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-context-aware-retrieval-adapter",
+ "oya-intelligence-context-aware-retrieval-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-credential-resolver-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-credential-resolver-domain",
+ "oya-intelligence-credential-resolver-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-credential-resolver-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-credential-resolver-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-credential-resolver-domain",
+]
+
+[[package]]
+name = "oya-intelligence-dispatch-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-guardrails-domain",
+ "oya-intelligence-model-routing-domain",
+]
+
+[[package]]
+name = "oya-intelligence-eval-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-eval-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-eval-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-eval-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-eval-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-eval-domain",
+]
+
+[[package]]
+name = "oya-intelligence-eval-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-eval-adapter",
+ "oya-intelligence-eval-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-guardrails-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-guardrails-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-guardrails-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-guardrails-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-guardrails-domain",
+]
+
+[[package]]
+name = "oya-intelligence-model-routing-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-model-routing-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-model-routing-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-model-routing-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-model-routing-domain",
+]
+
+[[package]]
+name = "oya-intelligence-providers-adapter-openai"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-dispatch-usecase",
+ "oya-intelligence-model-routing-domain",
+]
+
+[[package]]
 name = "oya-json-kernel"
 version = "0.1.0"
 
@@ -4421,6 +4655,23 @@ name = "oya-ontology-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-ontology-query-engine-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-ontology-kernel",
+]
+
+[[package]]
+name = "oya-ontology-query-engine-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-ontology-kernel",
+ "oya-ontology-query-engine-domain",
 ]
 
 [[package]]
@@ -5109,6 +5360,313 @@ name = "oya-warehouse-inventory-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-api",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter-kafka"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-adapter",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter-nats"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-adapter",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-adapter",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter-pulsar"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-adapter",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter-redpanda"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-adapter",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-adapter-valkey"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-adapter",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-api"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-app"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-sdk",
+ "oya-workflow-engine-event-bus-worker",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-kernel",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-workflow-engine-event-bus-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-api",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-sdk"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-rest",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-domain",
+]
+
+[[package]]
+name = "oya-workflow-engine-event-bus-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-event-bus-api",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-adapter-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-api"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-app"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-adapter",
+ "oya-workflow-engine-execution-engine-rest",
+ "oya-workflow-engine-execution-engine-sdk",
+ "oya-workflow-engine-execution-engine-worker",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-kernel",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-adapter",
+ "oya-workflow-engine-execution-engine-api",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-sdk"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-adapter",
+ "oya-workflow-engine-execution-engine-rest",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-domain",
+]
+
+[[package]]
+name = "oya-workflow-engine-execution-engine-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-execution-engine-adapter",
+ "oya-workflow-engine-execution-engine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-state-machine-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-state-machine-kernel",
+ "oya-workflow-engine-state-machine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-state-machine-adapter-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-state-machine-kernel",
+ "oya-workflow-engine-state-machine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-state-machine-api"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-state-machine-domain",
+ "oya-workflow-engine-state-machine-kernel",
+ "oya-workflow-engine-state-machine-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-state-machine-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-state-machine-kernel",
+]
+
+[[package]]
+name = "oya-workflow-engine-state-machine-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-workflow-engine-state-machine-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-state-machine-domain",
+ "oya-workflow-engine-state-machine-kernel",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-api"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-usecase",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-app"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-rest",
+ "oya-workflow-engine-trigger-orchestrator-sdk",
+ "oya-workflow-engine-trigger-orchestrator-worker",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-kernel",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-api",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-sdk"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-rest",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-domain",
+]
+
+[[package]]
+name = "oya-workflow-engine-trigger-orchestrator-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-engine-trigger-orchestrator-api",
+]
+
+[[package]]
+name = "oya-workflow-studio-dsl-emitter-domain"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-workflow-studio-dsl-loader-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-studio-dsl-emitter-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-workflow-studio-policy-preview-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-workflow-studio-dsl-emitter-domain",
+ "serde",
+]
+
+[[package]]
+name = "oya-workflow-studio-visual-canvas-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

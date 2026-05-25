@@ -235,6 +235,14 @@
       "migration_phase": "complete",
       "purpose": "Ontology + Knowledge Graph merged product PRD. Typed-entity schema layer (Bominal-ADR-0106) + 3-layer KG runtime (semantic/kinetic/dynamic). Ontology+Workflow jointly form ecosystem-as-a-product backbone."
     },
+    "prd_intelligence": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/intelligence.json",
+      "absorbing_manifest": "/microservices/intelligence/manifest.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "foundry-absorbed-wave-15I",
+      "purpose": "Intelligence product PRD — AI substrate authority after Foundry retirement per ADR-0335; covers provider routing, guardrails, eval, attribution, credential resolution, audit tap, assist-draft, and context-aware retrieval for later cloud-service integration."
+    },
     "audit_kg_robustness": {
       "kind": "audit",
       "current_path": "/registry/kg-audit/index.json",
