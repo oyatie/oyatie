@@ -19,6 +19,7 @@ use std::{env, time::Duration};
 
 pub const LIVE_POSTGRES_ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
 pub const LIVE_POSTGRES_DATABASE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
+pub const LIVE_POSTGRES_APP_DATABASE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
 pub const LIVE_POSTGRES_REQUIRE_TLS_ENV: &str = "OYA_BACKBONE_POSTGRES_REQUIRE_TLS";
 pub const LIVE_POSTGRES_REQUIRE_CITUS_ENV: &str = "OYA_BACKBONE_REQUIRE_CITUS";
 const LIVE_RLS_SCHEMA: &str = "oya_live_rls_probe";
@@ -63,6 +64,9 @@ pub enum LivePostgresRlsHarnessError {
     MissingDatabaseUrl {
         database_url_env: &'static str,
     },
+    MissingAppDatabaseUrl {
+        app_database_url_env: &'static str,
+    },
     InvalidBooleanEnv {
         env_name: &'static str,
         value: String, // data_class: INTERNAL_ONLY
@@ -73,6 +77,14 @@ pub enum LivePostgresRlsHarnessError {
     RlsIsolationFailed {
         tenant_scope_ref: String, // data_class: INTERNAL_ONLY
         visible_rows: i64,
+    },
+    AppRoleBypassesRls {
+        role_name: String, // data_class: INTERNAL_ONLY
+        rolsuper: bool,
+        rolbypassrls: bool,
+    },
+    AppRoleMatchesSetupRole {
+        role_name: String, // data_class: INTERNAL_ONLY
     },
 }
 
@@ -116,9 +128,10 @@ pub struct SqlxExecutionPlanSummary {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LivePostgresRlsHarnessConfig {
-    pub database_url: String, // data_class: INTERNAL_ONLY
-    pub require_tls: bool,    // data_class: INTERNAL_ONLY
-    pub require_citus: bool,  // data_class: INTERNAL_ONLY
+    pub database_url: String,     // data_class: INTERNAL_ONLY
+    pub app_database_url: String, // data_class: INTERNAL_ONLY
+    pub require_tls: bool,        // data_class: INTERNAL_ONLY
+    pub require_citus: bool,      // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -130,6 +143,15 @@ pub struct LivePostgresRlsProbeReport {
     pub no_tenant_visible_count: i64,
     pub citus_distribution_checked: bool,
     pub rls_policy_checked: bool,
+    pub app_role_checked: bool,
+    pub app_role_name: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct LivePostgresRoleInfo {
+    name: String, // data_class: INTERNAL_ONLY
+    rolsuper: bool,
+    rolbypassrls: bool,
 }
 
 pub struct SqlxPostgresBatchExecutor {
@@ -221,6 +243,11 @@ impl LivePostgresRlsHarnessConfig {
                 database_url_env: LIVE_POSTGRES_DATABASE_URL_ENV,
             },
         )?;
+        let app_database_url = lookup(LIVE_POSTGRES_APP_DATABASE_URL_ENV).ok_or(
+            LivePostgresRlsHarnessError::MissingAppDatabaseUrl {
+                app_database_url_env: LIVE_POSTGRES_APP_DATABASE_URL_ENV,
+            },
+        )?;
         let require_tls = lookup(LIVE_POSTGRES_REQUIRE_TLS_ENV)
             .as_deref()
             .map(|value| parse_env_bool(LIVE_POSTGRES_REQUIRE_TLS_ENV, value))
@@ -233,10 +260,12 @@ impl LivePostgresRlsHarnessConfig {
             .unwrap_or(false);
         let config = Self {
             database_url,
+            app_database_url,
             require_tls,
             require_citus,
         };
         config.connection_config()?;
+        config.app_connection_config()?;
         Ok(config)
     }
 
@@ -248,19 +277,48 @@ impl LivePostgresRlsHarnessConfig {
             live_probe_pool_config(self.require_tls)?,
         )
     }
+
+    pub fn app_connection_config(
+        &self,
+    ) -> Result<SqlxPostgresConnectionConfig, SqlxPostgresCommandError> {
+        SqlxPostgresConnectionConfig::new(
+            self.app_database_url.clone(),
+            live_probe_pool_config(self.require_tls)?,
+        )
+    }
 }
 
 pub async fn run_live_postgres_rls_probe(
     config: &LivePostgresRlsHarnessConfig,
 ) -> Result<LivePostgresRlsProbeReport, LivePostgresRlsHarnessError> {
-    let connection = config.connection_config()?;
-    let executor = SqlxPostgresBatchExecutor::connect(&connection).await?;
-    let pool = executor.pool.clone();
-    setup_live_rls_probe_schema(&pool, config.require_citus).await?;
-    let report =
-        run_live_rls_probe_in_schema(&executor, &pool, config.require_citus, config.require_tls)
-            .await;
-    let cleanup = cleanup_live_rls_probe_schema(&pool).await;
+    let setup_connection = config.connection_config()?;
+    let app_connection = config.app_connection_config()?;
+    let setup_executor = SqlxPostgresBatchExecutor::connect(&setup_connection).await?;
+    let app_executor = SqlxPostgresBatchExecutor::connect(&app_connection).await?;
+    let setup_pool = setup_executor.pool.clone();
+    let app_pool = app_executor.pool.clone();
+    let setup_role = current_database_role(&setup_pool).await?;
+    let app_role = validate_live_rls_app_role(&app_pool).await?;
+    ensure_distinct_live_rls_roles(&setup_role, &app_role)?;
+
+    if let Err(error) = setup_live_rls_probe_schema(&setup_pool, config.require_citus).await {
+        let _cleanup_error = cleanup_live_rls_probe_schema(&setup_pool).await.err();
+        return Err(error);
+    }
+    if let Err(error) = grant_live_rls_probe_privileges(&setup_pool, &app_role.name).await {
+        let _cleanup_error = cleanup_live_rls_probe_schema(&setup_pool).await.err();
+        return Err(error);
+    }
+
+    let report = run_live_rls_probe_in_schema(
+        &app_executor,
+        &app_pool,
+        config.require_citus,
+        config.require_tls,
+        app_role.name,
+    )
+    .await;
+    let cleanup = cleanup_live_rls_probe_schema(&setup_pool).await;
     match (report, cleanup) {
         (Ok(report), Ok(())) => Ok(report),
         (Err(error), _) => Err(error),
@@ -450,11 +508,79 @@ async fn citus_extension_available(pool: &PgPool) -> Result<bool, LivePostgresRl
     Ok(available)
 }
 
+async fn current_database_role(
+    pool: &PgPool,
+) -> Result<LivePostgresRoleInfo, LivePostgresRlsHarnessError> {
+    let (name, rolsuper, rolbypassrls) = sqlx::query_as::<_, (String, bool, bool)>(
+        "SELECT current_user::text, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user",
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok(LivePostgresRoleInfo {
+        name,
+        rolsuper,
+        rolbypassrls,
+    })
+}
+
+async fn validate_live_rls_app_role(
+    pool: &PgPool,
+) -> Result<LivePostgresRoleInfo, LivePostgresRlsHarnessError> {
+    let role = current_database_role(pool).await?;
+    ensure_live_rls_app_role(role)
+}
+
+fn ensure_live_rls_app_role(
+    role: LivePostgresRoleInfo,
+) -> Result<LivePostgresRoleInfo, LivePostgresRlsHarnessError> {
+    if role.rolsuper || role.rolbypassrls {
+        return Err(LivePostgresRlsHarnessError::AppRoleBypassesRls {
+            role_name: role.name,
+            rolsuper: role.rolsuper,
+            rolbypassrls: role.rolbypassrls,
+        });
+    }
+    Ok(role)
+}
+
+fn ensure_distinct_live_rls_roles(
+    setup_role: &LivePostgresRoleInfo,
+    app_role: &LivePostgresRoleInfo,
+) -> Result<(), LivePostgresRlsHarnessError> {
+    if setup_role.name == app_role.name {
+        return Err(LivePostgresRlsHarnessError::AppRoleMatchesSetupRole {
+            role_name: app_role.name.clone(),
+        });
+    }
+    Ok(())
+}
+
+async fn grant_live_rls_probe_privileges(
+    pool: &PgPool,
+    app_role_name: &str,
+) -> Result<(), LivePostgresRlsHarnessError> {
+    let schema = quote_identifier(LIVE_RLS_SCHEMA);
+    let table = quote_identifier(LIVE_RLS_TABLE);
+    let app_role = quote_identifier(app_role_name);
+    for sql in [
+        format!("GRANT USAGE ON SCHEMA {schema} TO {app_role}"),
+        format!("GRANT SELECT, INSERT ON TABLE {schema}.{table} TO {app_role}"),
+    ] {
+        sqlx::query(&sql).execute(pool).await?;
+    }
+    Ok(())
+}
+
+fn quote_identifier(identifier: &str) -> String {
+    format!("\"{}\"", identifier.replace('"', "\"\""))
+}
+
 async fn run_live_rls_probe_in_schema(
     executor: &SqlxPostgresBatchExecutor,
     pool: &PgPool,
     citus_distribution_checked: bool,
     require_tls: bool,
+    app_role_name: String,
 ) -> Result<LivePostgresRlsProbeReport, LivePostgresRlsHarnessError> {
     executor
         .execute_batch(&live_probe_insert_plan(
@@ -488,6 +614,8 @@ async fn run_live_rls_probe_in_schema(
         no_tenant_visible_count,
         citus_distribution_checked,
         rls_policy_checked: true,
+        app_role_checked: true,
+        app_role_name,
     })
 }
 
@@ -689,6 +817,18 @@ mod tests {
                 database_url_env: LIVE_POSTGRES_DATABASE_URL_ENV,
             })
         );
+        assert_eq!(
+            LivePostgresRlsHarnessConfig::from_env_map(env_lookup(&[
+                (LIVE_POSTGRES_ENABLE_ENV, "true"),
+                (
+                    LIVE_POSTGRES_DATABASE_URL_ENV,
+                    "postgres://postgres:postgres@localhost/oyatie",
+                ),
+            ])),
+            Err(LivePostgresRlsHarnessError::MissingAppDatabaseUrl {
+                app_database_url_env: LIVE_POSTGRES_APP_DATABASE_URL_ENV,
+            })
+        );
 
         let config = LivePostgresRlsHarnessConfig::from_env_map(env_lookup(&[
             (LIVE_POSTGRES_ENABLE_ENV, "yes"),
@@ -696,14 +836,30 @@ mod tests {
                 LIVE_POSTGRES_DATABASE_URL_ENV,
                 "postgres://postgres:postgres@localhost/oyatie",
             ),
+            (
+                LIVE_POSTGRES_APP_DATABASE_URL_ENV,
+                "postgres://oyatie_app:postgres@localhost/oyatie",
+            ),
             (LIVE_POSTGRES_REQUIRE_TLS_ENV, "false"),
             (LIVE_POSTGRES_REQUIRE_CITUS_ENV, "on"),
         ]))
         .unwrap();
 
+        assert_eq!(
+            config.app_database_url,
+            "postgres://oyatie_app:postgres@localhost/oyatie"
+        );
         assert!(!config.require_tls);
         assert!(config.require_citus);
         assert_eq!(config.connection_config().unwrap().pool.max_connections, 2);
+        assert_eq!(
+            config
+                .app_connection_config()
+                .unwrap()
+                .pool
+                .application_name,
+            "oyatie-live-rls-probe"
+        );
     }
 
     #[test]
@@ -732,6 +888,75 @@ mod tests {
         );
     }
 
+    #[test]
+    fn quote_identifier_escapes_embedded_quotes_for_role_grants() {
+        assert_eq!(quote_identifier("oyatie_app"), "\"oyatie_app\"");
+        assert_eq!(quote_identifier("tenant\"runtime"), "\"tenant\"\"runtime\"");
+    }
+
+    #[test]
+    fn rejects_live_rls_app_roles_that_can_bypass_rls() {
+        let normal_role = LivePostgresRoleInfo {
+            name: "oyatie_app".into(),
+            rolsuper: false,
+            rolbypassrls: false,
+        };
+        assert_eq!(
+            ensure_live_rls_app_role(normal_role.clone()),
+            Ok(normal_role)
+        );
+
+        assert_eq!(
+            ensure_live_rls_app_role(LivePostgresRoleInfo {
+                name: "postgres".into(),
+                rolsuper: true,
+                rolbypassrls: false,
+            }),
+            Err(LivePostgresRlsHarnessError::AppRoleBypassesRls {
+                role_name: "postgres".into(),
+                rolsuper: true,
+                rolbypassrls: false,
+            })
+        );
+        assert_eq!(
+            ensure_live_rls_app_role(LivePostgresRoleInfo {
+                name: "rls_break_glass".into(),
+                rolsuper: false,
+                rolbypassrls: true,
+            }),
+            Err(LivePostgresRlsHarnessError::AppRoleBypassesRls {
+                role_name: "rls_break_glass".into(),
+                rolsuper: false,
+                rolbypassrls: true,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_live_rls_app_role_that_matches_setup_role() {
+        let setup_role = LivePostgresRoleInfo {
+            name: "oyatie_setup".into(),
+            rolsuper: false,
+            rolbypassrls: false,
+        };
+        let app_role = LivePostgresRoleInfo {
+            name: "oyatie_app".into(),
+            rolsuper: false,
+            rolbypassrls: false,
+        };
+        assert_eq!(
+            ensure_distinct_live_rls_roles(&setup_role, &app_role),
+            Ok(())
+        );
+
+        assert_eq!(
+            ensure_distinct_live_rls_roles(&setup_role, &setup_role),
+            Err(LivePostgresRlsHarnessError::AppRoleMatchesSetupRole {
+                role_name: "oyatie_setup".into(),
+            })
+        );
+    }
+
     #[tokio::test]
     async fn live_postgres_rls_probe_runs_when_enabled_by_environment() {
         let config = match LivePostgresRlsHarnessConfig::from_env() {
@@ -750,6 +975,8 @@ mod tests {
         assert_eq!(report.tenant_b_visible_count, 1);
         assert_eq!(report.no_tenant_visible_count, 0);
         assert!(report.rls_policy_checked);
+        assert!(report.app_role_checked);
+        assert!(!report.app_role_name.trim().is_empty());
         assert_eq!(report.citus_distribution_checked, config.require_citus);
     }
 }

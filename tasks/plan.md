@@ -561,7 +561,7 @@ Scope:
 - task/evidence tracking.
 
 Acceptance:
-- SQLx adapter exposes an environment-gated live harness controlled by `OYA_BACKBONE_LIVE_POSTGRES`, `OYA_BACKBONE_POSTGRES_URL`, `OYA_BACKBONE_POSTGRES_REQUIRE_TLS`, and optional `OYA_BACKBONE_REQUIRE_CITUS`.
+- SQLx adapter exposes an environment-gated live harness controlled by `OYA_BACKBONE_LIVE_POSTGRES`, setup/admin URL `OYA_BACKBONE_POSTGRES_URL`, runtime app URL `OYA_BACKBONE_POSTGRES_APP_URL`, `OYA_BACKBONE_POSTGRES_REQUIRE_TLS`, and optional `OYA_BACKBONE_REQUIRE_CITUS`.
 - Harness creates a disposable probe schema/table, enables and forces PostgreSQL row-level security, creates a tenant policy based on the same `oyatie.tenant_id` transaction setting used by production write plans, inserts two tenant rows through `SqlxPostgresBatchExecutor`, and proves tenant A, tenant B, and unset-tenant visibility counts.
 - When Citus is required, the harness first verifies the `citus` extension is installed and then calls `create_distributed_table(..., 'tenant_id', colocate_with => 'none')` before inserting probe rows.
 - Default local/CI tests skip the live probe unless explicitly enabled, while still compile-checking the async harness, env parsing, generated insert plan, and safety gates.
@@ -571,6 +571,24 @@ Verification:
 - `cargo test` / `cargo clippy -D warnings` / `cargo fmt --check` for `oya-shared-postgres-command-adapter-sqlx`.
 - broad backbone cargo check/test/clippy/fmt with the harness compile-checked in every per-service matrix.
 - cargo-deny, dependency-seam, honest-claims, diff hygiene, and Oya VCS verify/done/promote.
+
+### CS-BACKBONE-LIVE-POSTGRES-RLS-APP-ROLE-001 — App-role-separated live Postgres RLS probe
+Scope:
+- `crates/oya-shared-postgres-command-adapter-sqlx/src/lib.rs`
+- task/evidence tracking.
+
+Acceptance:
+- Env-gated live RLS config requires a separate runtime app database URL (`OYA_BACKBONE_POSTGRES_APP_URL`) in addition to the setup/admin URL (`OYA_BACKBONE_POSTGRES_URL`) so the setup role can own DDL while the probe's writes/reads run through tenant-runtime privileges.
+- The live probe validates the runtime app role with `pg_roles` and fails before any isolation claim when `current_user` is a PostgreSQL superuser, has `BYPASSRLS`, or matches the setup/DDL role.
+- Probe setup grants only schema usage plus table `SELECT`/`INSERT` privileges to the quoted app role; tenant inserts and tenant/no-tenant visibility counts use the app pool, while cleanup stays on the setup/admin pool.
+- Report output records that the app role check ran and the checked app role name, without storing credentials or database URLs.
+- Honest non-claim: this proves a local disposable PostgreSQL app-role-separated RLS probe can run when explicitly enabled; it does not claim Citus distribution/rebalance, backup/restore, workload migrations, production rollout, live Oyatie Cloud substrate, or tenant production data-plane SLOs.
+
+Verification:
+- TDD red compile failure for missing `OYA_BACKBONE_POSTGRES_APP_URL`, `MissingAppDatabaseUrl`, `app_connection_config`, quoted role grants, and app-role report fields before implementation.
+- `cargo test` / `cargo check` / `cargo clippy -D warnings` / `cargo fmt --check` for `oya-shared-postgres-command-adapter-sqlx`.
+- Env-gated disposable Postgres 16 run with setup role `postgres`, app role `oya_rls_app`, `OYA_BACKBONE_REQUIRE_CITUS=false`, and `OYA_BACKBONE_POSTGRES_REQUIRE_TLS=false`.
+- dependency-seam, honest-claims, diff hygiene, and Oya VCS verify/done/promote.
 
 ### CS-BACKBONE-TRANSACTIONAL-OUTBOX-001 — Transactional outbox command seam
 Scope:
