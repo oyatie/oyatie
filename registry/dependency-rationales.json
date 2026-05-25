@@ -233,7 +233,7 @@
       "owner_team": "council-architecture",
       "rationale": "Async runtime (rt-multi-thread + net + timers). No realistic alternative for async HTTP server and bounded worker delay wiring in Rust today. Adapter/runtime crates declare it; domain/kernel/usecase crates stay runtime-free.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary), oya-shared-transactional-outbox-runtime-tokio-app for bounded outbox poller sleep, oya-shared-backbone-grpc-transport-adapter tests for local tonic loopback, oya-shared-postgres-command-adapter-sqlx tests for env-gated live Postgres/RLS harness, and cell-runtime main.rs entry",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary), oya-shared-transactional-outbox-runtime-tokio-app for bounded outbox poller sleep, oya-shared-backbone-grpc-transport-adapter tests for local tonic loopback, oya-shared-backbone-rest-runtime-adapter tests/runtime listener helper for local Hyper REST loopback, oya-shared-postgres-command-adapter-sqlx tests for env-gated live Postgres/RLS harness, and cell-runtime main.rs entry",
       "allowed_crates": [
         "oya-foundry-claude-account-adapter",
         "oya-foundry-codex-account-adapter",
@@ -243,6 +243,7 @@
         "oya-http-runtime-hyper-adapter",
         "oya-ops-workspace-shell-app",
         "oya-shared-backbone-grpc-transport-adapter",
+        "oya-shared-backbone-rest-runtime-adapter",
         "oya-shared-postgres-command-adapter-sqlx",
         "oya-shared-transactional-outbox-runtime-tokio-app"
       ]

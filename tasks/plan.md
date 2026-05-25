@@ -869,6 +869,24 @@ Verification:
 - Backbone governance smoke Ruby command parses values and asserts HTTPRoute template shape.
 - dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
 
+### CS-BACKBONE-REST-HYPER-RUNTIME-001 — Shared REST Hyper loopback runtime adapter
+Scope:
+- `crates/oya-http-runtime-hyper-adapter/src/lib.rs` listener-bound serve entrypoint.
+- `crates/oya-shared-backbone-rest-runtime-adapter/**` shared runtime adapter crate.
+- `Cargo.toml`, `registry/catalog/oya-shared-backbone-rest-runtime-adapter.yaml`, backbone GitHub Actions/Jenkins matrices, and task/evidence tracking.
+
+Acceptance:
+- Messenger, mail, social, and community OpenAPI route catalogs are all registered into the canonical Hyper runtime seam via a shared adapter crate without importing Hyper outside `oya-http-runtime-hyper-adapter`.
+- `/health` and `/ready` dispatch through the service-owned probe handlers; contract-only OpenAPI routes return explicit 501 responses; typed write-plan routes remain honest 501 responses that state generic Hyper JSON-body binding is not yet claimed.
+- A local TCP loopback test reaches all four REST service catalogs through Hyper for liveness and contract-only routes.
+- The backbone package matrices include the shared REST runtime adapter in every microservice lane.
+- Honest non-claim: this proves local Hyper loopback/runtime binding only; it is not production Gateway/TLS rollout evidence and does not claim generic JSON write-body execution.
+
+Verification:
+- Focused cargo check/test/clippy/fmt for `oya-http-runtime-hyper-adapter` and `oya-shared-backbone-rest-runtime-adapter`.
+- Backbone CI governance smoke parses the new catalog row.
+- dependency-seam, honest-claims, diff hygiene, full `./bin/oya verify --ci-required`, and Oya VCS verify/done/promote.
+
 ### PR closeout — isolated worktree branch to `dev`
 
 - Branch: `agent/backbone-microservices-20260523T081210Z`.
@@ -879,7 +897,7 @@ Verification:
 ## Remaining non-claims
 
 Still pending before the full objective can honestly be called complete:
-- Broader contract-only REST/OpenAPI endpoints plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, and acknowledgements beyond framework-free implemented write-route dispatch, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
+- Broader contract-only REST/OpenAPI endpoint implementation plus live vendor broker, live production gateway/TLS rollout evidence, deployed outbox pollers/publishers, and acknowledgements beyond framework-free implemented write-route dispatch, shared REST Hyper loopback/runtime catalog binding, static messenger/community edge WAF/ECH/PQC manifests, static disabled-by-default Gateway API HTTPRoute chart templates, transport planning metadata, local tonic loopback server/client seams, local HTTP broker publish/executor seams, transactional outbox command/drain seams, and recording acknowledgement contracts.
 - Live Postgres/Citus RLS integration runs, backup/restore drills, and Citus rebalance evidence beyond generated write batches, execution contracts, the compile-checked SQLx executor adapter seam, and the env-gated live RLS/Citus harness.
 - Live Cedar PDP deployment and service-gateway enforcement evidence beyond the in-process evaluator/conformance pack.
 - Live OpenTelemetry collector deployment, production SLO burn alert firing evidence, and production backpressure/circuit-breaker drills beyond the in-process runtime metrics exercise, Prometheus adapter tests, and env-gated OTLP/HTTP exporter harness.

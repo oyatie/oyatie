@@ -299,6 +299,23 @@ pub async fn serve(
     let listener = TcpListener::bind(addr)
         .await
         .map_err(|error| HyperRuntimeError::Bind(error.to_string()))?;
+    serve_listener(listener, router, chain, config).await
+}
+
+/// Serve using an already-bound `TcpListener`.
+///
+/// This is intentionally separate from `serve(addr, ...)` so tests and
+/// higher-level composition crates can bind `127.0.0.1:0`, capture the
+/// selected socket address, and prove real TCP/Hyper loopback behavior without
+/// hard-coding ports or importing Hyper directly. Production binaries may also
+/// pre-bind sockets via supervisor/systemd-style activation and still keep all
+/// Hyper-family dependencies concentrated in this crate.
+pub async fn serve_listener(
+    listener: TcpListener,
+    router: Arc<Router<SyncHandler>>,
+    chain: Arc<MiddlewareChain<HttpRequest, HttpResponse>>,
+    config: ServerConfig,
+) -> Result<(), HyperRuntimeError> {
     let config = Arc::new(config);
     loop {
         let (stream, _peer) = match listener.accept().await {

@@ -9,6 +9,7 @@ members = [
   "crates/oya-shared-backbone-proto-contracts-kernel",
   "crates/oya-shared-backbone-grpc-generated-adapter",
   "crates/oya-shared-backbone-grpc-transport-adapter",
+  "crates/oya-shared-backbone-rest-runtime-adapter",
   "crates/oya-shared-transactional-outbox-kernel",
   "crates/oya-shared-transactional-outbox-adapter-sqlx",
   "crates/oya-shared-transactional-outbox-dispatch-app",
