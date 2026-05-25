@@ -1029,6 +1029,13 @@
       "target_path_after_md_retirement": "same",
       "migration_phase": "p-target",
       "purpose": "Cloud Control Plane canonical target architecture (P-TARGET): resource model (Org->...->Resource), ORN, API Gateway->Resource Registry->Operation Ledger->Workflow/Reconciler->OpenTofu/operators/Argo, per-resource quota/billing/audit contract, durable long-running operations, nine control-plane facets. Target spec; no runtime claimed."
+    },
+    "api_contract_ssot_canonical": {
+      "kind": "spec",
+      "current_path": "/specs/api-contract-ssot-canonical.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "p-target",
+      "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating REST(OpenAPI 3.2.0)+gRPC(proto3)+GraphQL SDL; GraphQL first-class derived not hand-maintained; api-contract-ssot-drift gate. Pulsar launch-primary; Kubewarden default. Target spec; no generators/runtime claimed."
     }
   },
   "by_kind": {
