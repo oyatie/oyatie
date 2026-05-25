@@ -55,6 +55,12 @@ spec:
     metadata:
       labels: { app: git-server }
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000                  # so uid 1000 can write the gitdata volume
+        seccompProfile: { type: RuntimeDefault }
       initContainers:
         - name: seed-repo
           image: alpine/git:2.47.2
@@ -75,23 +81,38 @@ spec:
               git commit -m "seed gitops demo"
               git remote add origin /srv/git/oya-demo.git
               git push origin HEAD:refs/heads/main
+          # Writes only to mounted volumes (/srv/git, /tmp), so a read-only root
+          # filesystem is safe; runs as the image's user with all caps dropped.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+            seccompProfile: { type: RuntimeDefault }
           volumeMounts:
             - { name: gitdata, mountPath: /srv/git }
             - { name: manifests, mountPath: /manifests }
+            - { name: tmp, mountPath: /tmp }
       containers:
         - name: git-daemon
-          # alpine/git lacks the daemon subcommand; add git + git-daemon then serve.
-          image: alpine:3.20
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              apk add --no-cache git git-daemon >/dev/null 2>&1
-              exec git daemon --reuseaddr --export-all --base-path=/srv/git --verbose
+          # Prebaked image (git-server.Dockerfile): git-daemon is installed at
+          # BUILD time, so this runs non-root with a read-only root filesystem.
+          # No runtime apk-add (the prior anti-pattern). Build/load per the
+          # Dockerfile header before applying on the farm.
+          image: oya-git-server:local
+          imagePullPolicy: IfNotPresent
           ports: [{ name: git, containerPort: 9418 }]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+            seccompProfile: { type: RuntimeDefault }
           volumeMounts:
             - { name: gitdata, mountPath: /srv/git }
+            - { name: tmp, mountPath: /tmp }
       volumes:
         - name: gitdata
+          emptyDir: {}
+        - name: tmp                      # writable scratch for readOnlyRootFilesystem
           emptyDir: {}
         - name: manifests
           configMap:

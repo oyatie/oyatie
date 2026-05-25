@@ -41,6 +41,22 @@ def call(Map cfg = [:]) {
           sh "./bin/oya verify ${verifyMode}"
         }
 
+        // --- agentic-VCS admission + provider-execution (mandatory) --------
+        // These two stages produce the `oya-vcs-admission` and
+        // `oya-vcs-provider-execution` reported status contexts (both are
+        // branch-protection required checks per reported-status-contexts.json).
+        // The admission gate-app reads THIS pipeline file to confirm both gates
+        // are wired; provider-execution emits the live provider proof bundle.
+        stage('oya-vcs-admission') {
+          // Install Trivy (Apache-2.0) via the Rust supply-chain installer
+          // before admission, then run the admission gate-app.
+          sh 'cargo run -q -p oya-dev-cli -- supply-chain install-trivy'
+          sh 'cargo run -q -p oya-foundry-vcs-admission-gate-app'
+        }
+        stage('oya-vcs-provider-execution') {
+          sh 'cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json'
+        }
+
         // --- build + supply chain (mandatory) ------------------------------
         stage('SBOM: cyclonedx + syft') {
           sh 'cargo cyclonedx --format json --override-filename target/sbom-cargo || true'

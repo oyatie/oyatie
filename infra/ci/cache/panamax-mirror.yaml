@@ -65,9 +65,12 @@ spec:
               fi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities: { drop: ["ALL"] }
+            seccompProfile: { type: RuntimeDefault }
           volumeMounts:
             - { name: mirror, mountPath: /mirror }
+            - { name: tmp, mountPath: /tmp }
       containers:
         - name: panamax
           image: panamaxrs/panamax:1.0.7   # pin a real published tag before apply
@@ -77,7 +80,9 @@ spec:
             - { name: http, containerPort: 8080 }
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities: { drop: ["ALL"] }
+            seccompProfile: { type: RuntimeDefault }
           readinessProbe:
             httpGet: { path: /, port: 8080 }
             initialDelaySeconds: 5
@@ -88,12 +93,15 @@ spec:
             periodSeconds: 20
           volumeMounts:
             - { name: mirror, mountPath: /mirror }
+            - { name: tmp, mountPath: /tmp }
           resources:
             requests: { cpu: "200m", memory: "512Mi" }
             limits:   { cpu: "1",    memory: "2Gi" }
       volumes:
         - name: mirror
           persistentVolumeClaim: { claimName: panamax-mirror-data }
+        - name: tmp                      # writable scratch for readOnlyRootFilesystem
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

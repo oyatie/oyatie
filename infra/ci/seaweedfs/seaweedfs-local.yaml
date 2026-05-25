@@ -77,7 +77,9 @@ spec:
             - { name: volume, containerPort: 8080 }
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities: { drop: ["ALL"] }
+            seccompProfile: { type: RuntimeDefault }
           readinessProbe:
             httpGet: { path: /status, port: 8333 }
             initialDelaySeconds: 5
@@ -85,12 +87,15 @@ spec:
           volumeMounts:
             - { name: data, mountPath: /data }
             - { name: s3cfg, mountPath: /etc/seaweedfs }
+            - { name: tmp, mountPath: /tmp }
           resources:
             requests: { cpu: "200m", memory: "512Mi" }
             limits: { cpu: "1", memory: "2Gi" }
       volumes:
         - name: data
           persistentVolumeClaim: { claimName: seaweedfs-data }
+        - name: tmp                      # writable scratch for readOnlyRootFilesystem
+          emptyDir: {}
         - name: s3cfg
           secret:
             secretName: seaweedfs-s3
