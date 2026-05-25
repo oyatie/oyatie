@@ -1,0 +1,109 @@
+# infra/ci-farm/cache/panamax-mirror.yaml
+# ============================================================================
+# O3 — Panamax sparse-registry crate-download mirror (ADR-0360, part O3).
+#
+# Panamax (panamax-rs/panamax) mirrors crates.io and serves the cargo SPARSE
+# protocol over HTTP, so CI agents fetch the registry index + .crate files from
+# inside the cluster instead of crates.io. This caches DOWNLOADS; sccache caches
+# COMPILATION — the two are complementary (see README.md). Agents point at this
+# mirror via cargo-config-sample.toml source-replacement (sparse+http://…/index/).
+#
+# Namespace: oya-ci-jenkins (same as the Jenkins controller + agents + SeaweedFS).
+#
+# LOCAL-vs-PRODUCTION deltas (honest):
+#   - LOCAL: single replica, one RWO PVC, served plain HTTP in-cluster, manual sync.
+#   - PROD: HA / multiple replicas behind the Service, larger persistent volume,
+#     periodic `panamax sync` (CronJob) to track upstream, and TLS at the ingress.
+#   - No mirror hit-rate or download-latency is claimed; this stands the mirror up.
+# ----------------------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: panamax-mirror-data
+  namespace: oya-ci-jenkins
+  labels:
+    app: panamax-mirror
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path        # k3s default provisioner (local profile)
+  resources:
+    requests:
+      # A full crates.io mirror is large; the local profile sizes for a working
+      # subset. Production sizes for the full index + crate corpus + headroom.
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: panamax-mirror
+  namespace: oya-ci-jenkins
+  labels:
+    app: panamax-mirror
+spec:
+  replicas: 1                          # LOCAL: single replica. PROD: HA (see README).
+  selector:
+    matchLabels: { app: panamax-mirror }
+  template:
+    metadata:
+      labels: { app: panamax-mirror }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000                  # own the PVC so the mirror dir is writable
+      # init: `panamax init` lays out the mirror dir on first run if empty, then
+      # the main container serves it. `panamax sync` (a CronJob in prod) refreshes.
+      initContainers:
+        - name: panamax-init
+          image: panamaxrs/panamax:1.0.7   # pin a real published tag before apply
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eux
+              if [ ! -f /mirror/mirror.toml ]; then
+                panamax init /mirror
+              fi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: mirror, mountPath: /mirror }
+      containers:
+        - name: panamax
+          image: panamaxrs/panamax:1.0.7   # pin a real published tag before apply
+          # `panamax serve` exposes the sparse index + crate files over HTTP.
+          command: ["panamax", "serve", "/mirror"]
+          ports:
+            - { name: http, containerPort: 8080 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: 8080 }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - { name: mirror, mountPath: /mirror }
+          resources:
+            requests: { cpu: "200m", memory: "512Mi" }
+            limits:   { cpu: "1",    memory: "2Gi" }
+      volumes:
+        - name: mirror
+          persistentVolumeClaim: { claimName: panamax-mirror-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: panamax
+  namespace: oya-ci-jenkins
+  labels:
+    app: panamax-mirror
+spec:
+  selector: { app: panamax-mirror }
+  ports:
+    # In-cluster sparse endpoint: sparse+http://panamax.oya-ci-jenkins.svc.cluster.local:8080/index/
+    - { name: http, port: 8080, targetPort: 8080 }

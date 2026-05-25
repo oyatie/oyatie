@@ -1,0 +1,47 @@
+# infra/ci-farm/cache/cargo-config-sample.toml
+# ============================================================================
+# O3 — SAMPLE cargo config: source-replacement to the Panamax sparse mirror.
+# (ADR-0360, part O3.)
+#
+# !!! SAMPLE ONLY — DO NOT COMMIT TO THE REPO ROOT !!!
+# This is applied at the AGENT level (dropped at $CARGO_HOME/config.toml inside the
+# CI agent, e.g. /opt/cargo/config.toml), NOT at the repository root .cargo/config.toml.
+# Keeping it agent-level means:
+#   - developer machines and other consumers are unaffected (they hit crates.io),
+#   - the in-cluster mirror endpoint never leaks into the committed repo, and
+#   - the agent image / pod template owns the cache wiring (single source of truth).
+#
+# It points cargo's `crates-io` source at the in-cluster Panamax mirror serving the
+# SPARSE protocol (panamax-mirror.yaml). Combined with the warm read-only
+# /opt/cargo registry baked in the agent image, the build path makes no public
+# crates.io round-trips.
+#
+# LOCAL-vs-PRODUCTION deltas (honest):
+#   - LOCAL: plain http:// in-cluster Service DNS; SeaweedFS-backed sccache.
+#   - PROD: same shape; the mirror endpoint may sit behind TLS/ingress, and the
+#     S3 sccache backend + RO/RW creds come from external-secrets ← OpenBao.
+#   - Nothing is claimed measured; this is the wiring sample.
+# ----------------------------------------------------------------------------
+
+# Replace the default crates.io registry with the in-cluster Panamax sparse index.
+# `sparse+http://…/index/` selects the SPARSE protocol (not the old git index).
+[source.crates-io]
+replace-with = "panamax-mirror"
+
+[source.panamax-mirror]
+registry = "sparse+http://panamax.oya-ci-jenkins.svc.cluster.local:8080/index/"
+
+# Reinforce the O3 invariants at the cargo level (also set as env in the agent
+# image / pod templates; harmless to restate, useful as documentation here).
+[build]
+# Incremental artifacts are machine/path-specific and poison a shared cache.
+incremental = false
+
+# RUSTC_WRAPPER=sccache is set as ENV in the agent image (Dockerfile) and pod
+# templates rather than here, so the same config works whether or not sccache is
+# present. Uncomment to pin it via cargo config instead:
+# rustc-wrapper = "sccache"
+
+# Network politeness on the sparse protocol (mirror is in-cluster and fast).
+[net]
+retry = 3

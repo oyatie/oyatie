@@ -1,0 +1,90 @@
+# infra/ci-farm/agent-image/kyverno-verify-agent-image.yaml
+# ============================================================================
+# O5 — Scoped Kyverno verifyImages policy for the CI agent image (ADR-0360, O5).
+#
+# This is a NEW, NARROWLY-SCOPED ClusterPolicy. It does NOT touch the existing
+# infra/kyverno/policies/require-signed-images.yaml (which is gate-validated and
+# scoped to `ghcr.io/oyatie/*` keyless app images). This one is scoped ONLY to the
+# CI agent image reference and runs in the oya-ci-jenkins agent namespace, so it
+# verifies the build-and-sign.sh signature on the digest-pinned agent image
+# without affecting any other workload.
+#
+# verifyImages contract:
+#   - required: true       -> a matching image with NO valid signature is REJECTED
+#                             (fail-closed; never admit an unsigned CI agent).
+#   - mutateDigest: true   -> Kyverno resolves the verified tag to its digest and
+#                             rewrites the pod spec to the @sha256 digest, so what
+#                             RUNS is exactly what was VERIFIED (defeats tag re-point
+#                             TOCTOU). build-and-sign.sh already signs by digest;
+#                             this guarantees the cluster pins to it at admission.
+#   - imageReferences      -> scoped to the agent repo ONLY. Other images on these
+#                             pods (none expected) are out of this policy's scope.
+#
+# Attestor: cosign KEY placeholder below. If the farm signs KEYLESS (build-and-sign
+# preferred mode), replace the `keys` attestor with a `keyless` block mirroring
+# require-signed-images.yaml (issuer https://token.actions.githubusercontent.com +
+# subjectRegExp + rekor). Both forms are valid; pick the one matching how the image
+# is actually signed. Key mode shown here for the colo/air-gapped fallback.
+#
+# LOCAL-vs-PRODUCTION deltas (honest):
+#   - This policy is meant for the PRODUCTION farm cluster (Kyverno installed,
+#     enforce mode). The local k3s/colima profile intentionally does NOT install
+#     Kyverno or enforce signatures (it runs the public rust image) — see
+#     infra/ci-farm/README.md and values-local.yaml deltas. Apply this only where
+#     the agent image is actually built+signed.
+#   - The cosign public key below is a PLACEHOLDER. Fill the real verification key
+#     (or switch to keyless) before applying; an empty/placeholder key fails closed.
+# ----------------------------------------------------------------------------
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-ci-agent-image
+  labels:
+    oyatie.com/admission-adapter: kyverno
+    oyatie.com/default-admission: "false"
+  annotations:
+    oyatie.com/first-class-adapter: "true"
+    oyatie.com/scope: ci-farm-agent-image-only
+    policies.kyverno.io/description: >-
+      ADR-0360 O5: admit only the cosign-signed, digest-pinned CI agent image in
+      the oya-ci-jenkins namespace. Scoped to the agent repo; does not affect the
+      cluster-wide require-signed-oyatie-images policy.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: verify-ci-agent-image-signature
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+              # Scope: ONLY the ephemeral CI agent pods.
+              namespaces: ["oya-ci-jenkins"]
+      verifyImages:
+        # Scoped to the agent image reference ONLY. No wildcard over other repos.
+        - imageReferences:
+            - "registry.oyatie.dev/ci/rust-agent*"
+          required: true            # fail-closed: unsigned/unknown => REJECT
+          mutateDigest: true        # pin verified tag -> digest at admission
+          verifyDigest: true
+          attestors:
+            - count: 1
+              entries:
+                # --- KEY attestor (fallback for colo/air-gapped) -----------------
+                # Replace with the REAL cosign public key that matches COSIGN_KEY
+                # used in build-and-sign.sh. Placeholder => fails closed.
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      <PINNED_COSIGN_PUBLIC_KEY__REPLACE_ME>
+                      -----END PUBLIC KEY-----
+                    # If the keyed signature is logged to Rekor, point at it; for a
+                    # pure offline key, remove the rekor block.
+                    rekor:
+                      url: "https://rekor.sigstore.dev"
+                # --- KEYLESS attestor (preferred; uncomment + fill, remove key) ---
+                # - keyless:
+                #     issuer: "https://token.actions.githubusercontent.com"
+                #     subjectRegExp: "https://github.com/oyatie/.+/.github/workflows/.+@refs/.+"
+                #     rekor:
+                #       url: "https://rekor.sigstore.dev"
