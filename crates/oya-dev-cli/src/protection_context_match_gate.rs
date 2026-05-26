@@ -574,7 +574,7 @@ mod tests {
         ];
         let applied = vec![
             "oya-governance-protection-context-match".to_string(),
-            "oya-pr-review".to_string(),
+            "stale-applied-check".to_string(),
         ];
         let error = validate_required_status_checks_match(
             &canonical,
@@ -585,15 +585,11 @@ mod tests {
         .unwrap_err();
         assert!(error.contains("branch `dev` diverge"));
         assert!(
-            error.contains(
-                "missing from applied branch-protection config: oya-governance-protection-context-match"
-            ),
+            error.contains("missing from applied branch-protection config: oya-pr-review"),
             "{error}"
         );
         assert!(
-            error.contains(
-                "extra in applied branch-protection config: oya-governance-protection-context-match"
-            ),
+            error.contains("extra in applied branch-protection config: stale-applied-check"),
             "{error}"
         );
     }
