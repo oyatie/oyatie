@@ -58,16 +58,72 @@
       "risk_class": "medium"
     }
   ],
-  "slos": [],
+  "slos": [
+    {
+      "name": "llm-gateway-availability",
+      "sli": "availability",
+      "file": "microservices/llm-gateway/slos/availability.openslo.yaml"
+    },
+    {
+      "name": "llm-gateway-ttft",
+      "sli": "time-to-first-token",
+      "role": "headline",
+      "file": "microservices/llm-gateway/slos/ttft.openslo.yaml"
+    },
+    {
+      "name": "llm-gateway-end-to-end-latency",
+      "sli": "end-to-end-latency-non-stream",
+      "file": "microservices/llm-gateway/slos/end-to-end-latency.openslo.yaml"
+    },
+    {
+      "name": "llm-gateway-error-rate",
+      "sli": "error-rate",
+      "file": "microservices/llm-gateway/slos/error-rate.openslo.yaml"
+    },
+    {
+      "name": "llm-gateway-completeness",
+      "sli": "stream-completeness",
+      "file": "microservices/llm-gateway/slos/completeness.openslo.yaml"
+    }
+  ],
+  "slos_non_claim": "OpenSLO objects are AUTHORED design targets (provisional starting hypotheses per the research brief §4; no official vendor SLO exists for TTFT/latency). CS-LLM-GATEWAY-AGENT-DISPATCH-001 has no measured/burning SLO; targets are replaced with measured baselines once the gateway is live.",
   "ips": [
     {
       "id": "CS-LLM-GATEWAY-AGENT-DISPATCH-001",
       "title": "Clean-room LLM key-pool reverse-proxy agent-dispatch gateway (kernel state machine + axum SSE-passthrough rest adapter, OpenBao-sourced keys, two-realm constant-time auth, Prometheus metrics, hash-only logging)",
       "acceptance_status": "implemented-local-foundation",
       "file": "crates/oya-llm-gateway-rest/src/proxy.rs"
+    },
+    {
+      "id": "IP-001-llm-gateway-design",
+      "title": "LLM Gateway production design-spec package (PRD, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, Cedar, OpenSLO, runbooks, threat-model + design dossier)",
+      "acceptance_status": "design-spec-authored",
+      "file": "microservices/llm-gateway/IP-001-llm-gateway-design.md"
     }
   ],
-  "regulatory_packs": [],
+  "regulatory_packs": [
+    {
+      "pack_id": "EU-AI-ACT-2024-HIGH-RISK",
+      "applies_because": "The gateway brokers AI inference; EU-resident tenants' prompts/completions may constitute high-risk processing requiring complete, immutable invocation audit (every model call recorded).",
+      "controls": ["audit-evidence-emission", "data-residency"]
+    },
+    {
+      "pack_id": "KR-PIPA-2023-amendment",
+      "applies_because": "KR-resident tenant prompts/completions may carry personal information; body-spill and audit are KR-region pinned with no cross-region movement.",
+      "controls": ["data-residency"]
+    },
+    {
+      "pack_id": "SOC2-T2",
+      "applies_because": "Immutable, hash-chained, access-controlled audit with alert-if-disabled provides the security/availability control evidence for the inference egress chokepoint.",
+      "controls": ["audit-evidence-emission", "operational-boundaries"]
+    },
+    {
+      "pack_id": "ISO27001-2022",
+      "applies_because": "Vault-only secrets, constant-time auth, hash-only logging, per-tenant isolation, and access-controlled audit map to ISO 27001 Annex A controls for a credential-brokering proxy.",
+      "controls": ["threat-model", "data-residency", "audit-evidence-emission"]
+    }
+  ],
+  "regulatory_packs_non_claim": "regulatory_packs declare the data-residency/audit packs the DESIGNED gateway is built to satisfy (prompts/completions may carry tenant PII). CS-LLM-GATEWAY-AGENT-DISPATCH-001 makes no live-deployment compliance-attestation claim; pack controls are design-stage per IP-001.",
   "lts_pins": {
     "axum": "0.8.x",
     "tokio": "1.x",
@@ -94,6 +150,11 @@
       "id": "ADR-0090",
       "title": "Hyper canonical HTTP backbone",
       "scope": "repo"
+    },
+    {
+      "id": "ADR-0373",
+      "title": "LLM gateway production design: provider-abstraction + canonical OpenAI-compatible surface, key-pool resilience state machine + per-tenant pools honoring Retry-After, Bedrock-shaped immutable audit + default-off body logging, OpenSLO SLI set",
+      "scope": "microservice"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -103,8 +164,22 @@
     "error_budget_burn": "not_claimed_runtime — no OpenSLO target or burn-rate alert is authored for CS-LLM-GATEWAY-AGENT-DISPATCH-001."
   },
   "audit_chain": {
-    "enabled": false,
-    "seal_events": []
+    "enabled": true,
+    "seal_events": [
+      "llm_invocation_audit",
+      "key_pool_refresh",
+      "key_blacklisted",
+      "provider_breaker_open",
+      "budget_exceeded"
+    ],
+    "reference_schema": "aws-bedrock-model-invocation-log",
+    "body_spill": "default-off; per-tenant opt-in; redacted, residency-pinned object store referenced by prompt_uri/completion_uri",
+    "hash_chain_target": "evidence/audit-chain.jsonl",
+    "design_refs": [
+      "microservices/llm-gateway/design/audit-evidence-emission.md",
+      "microservices/llm-gateway/contracts/llm-gateway.asyncapi.yaml"
+    ],
+    "non_claim": "audit_chain.enabled declares the DESIGNED production posture (ADR-0373). CS-LLM-GATEWAY-AGENT-DISPATCH-001 does not yet implement runtime audit-chain persistence; emission lands with the rest-crate wiring (IP-001 T6)."
   },
   "secrets_substrate": {
     "provider": "openbao",
