@@ -165,7 +165,7 @@ of the relax-merge hack (the gateway removes the required-checks half).
   registration, HMAC secret, commit-signing, deploy).
 - SLOs: `microservices/ci-webhook-gateway/slos/ci-webhook-gateway.openslo.yaml`.
 
-## Open question (UNRESOLVED — for the user)
+## Orchestrator authority — RESOLVED 2026-05-26 (founder decision: Jenkins-as-orchestrator)
 
 **Orchestrator authority: Jenkins-as-orchestrator vs the Intelligence-service
 as a dogfood orchestrator.** This ADR builds the *trigger* and the *dispatch
@@ -185,9 +185,13 @@ past the first kick:
   a control-plane dependency on Intelligence for every merge, and risks the
   layering concern (an orchestrator that depends on the service it orchestrates).
 
-The gateway's `PipelineDispatcher` trait is intentionally agnostic so EITHER can
-be wired without changing the receiver. This decision is left to the user; it is
-NOT resolved here.
+**Decision (2026-05-26, founder): Jenkins-as-orchestrator.** Jenkins sequences
+admission → gates → reviewer → merge, riding ADR-0361's Jenkins-native posture —
+the fastest path to retiring the admin-relax-merge seam. The gateway's
+`PipelineDispatcher` trait stays intentionally agnostic, so migrating
+orchestration into the Intelligence dogfood (the ADR-0368 north star) remains a
+cheap, reversible follow-up that does not touch the receiver — recorded as a
+future evolution, not a commitment here.
 
 ## Verification
 
