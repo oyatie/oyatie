@@ -3,13 +3,13 @@
 - purpose: Verify `docs/decisions/INDEX.md` enumerates every ADR file and rejects gaps in the numbering sequence.
 - enforces: STANDARD/adr-index; existing crate `oya-foundry-adr-index-kernel` (EXISTING; extend with verdict).
 - kernel_crate: `oya-foundry-adr-index-kernel` (EXISTING) — `AdrIndexRow { adr_id, path, status }`, verdict `AdrIndexFitnessReport { adrs_checked }`.
-- runner_path: `tools/oya-foundry-fitness-adr-index`
+- runner_path: `tools/oya-governance-adr-index`
 - inputs: `docs/decisions/INDEX.md`, `docs/decisions/ADR-*.md`.
 - failure_modes:
   - ADR file present but no index row
   - index row points at missing file
   - numbering gap (ADR-0050 -> ADR-0052)
-- ci_invocation: `cargo run -p oya-foundry-fitness-adr-index`
+- ci_invocation: `cargo run -p oya-governance-adr-index`
 - runtime_budget: 250 ms
 - severity: HIGH
 - kernel_sketch:

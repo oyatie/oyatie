@@ -3,7 +3,7 @@
 //! Walks every row in `registry/vcs/changeset-event-log.json` and
 //! asserts that the `to_state` (and `from_state` when present) value
 //! belongs to the closed 13-value `ChangesetState` enum per ADR-0110.
-//! Lane id: `oya-foundry-fitness-changeset-state-enum-closed`.
+//! Lane id: `oya-governance-changeset-state-enum-closed`.
 //!
 //! The validator in
 //! `changeset_state_monotonicity_gate::validate_changeset_state_monotonicity_gate`

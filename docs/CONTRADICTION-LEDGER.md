@@ -48,7 +48,7 @@ doc_status: published
 | `LEDG-006` | Codex §15 | Foundry RAG before Search Substrate is a shortcut compromising tenant/data invariants | Foundry + Search | `DESIGN.md §3 no-shortcut clause` (added 2026-05-09); split into `Foundry-Retrieval-Contract` (preview) and live RAG (post-Search-Substrate) | RESOLUTION_DRAFTED | `axis-foundry` + `axis-search` | W-Foundry-Preview live-pilot |
 | `LEDG-007` | Codex §9 | Cross-axis contracts in DESIGN §10 incomplete (missed Cloud↔Search, Search↔Ads, Foundry↔Cloud, Foundry↔Search, Tenant↔Ads/Analytics, Revenue/Tax) | All cross-axis | `DESIGN.md §10` (6 new contract rows added 2026-05-09 + 1 contract-registry source-of-truth) | RESOLVED | `council-architecture` | W-Foundation |
 | `LEDG-008` | `rename-and-contradiction.md` H7 + H9 + H10 | Master plan + ADR-0001 enumerate 5-6 arms with no cloud/search/ads/agent-runtime axes; ADR-0013 + ADR-0040 need new-axis horizon | Cross-cutting | New ADR required: "Axis admission contract" | OPEN | `council-architecture` | W-Foundation |
-| `LEDG-009` | `gap-docs-project.md` J-001 | Client-supplied tenant auth in Emergency / Medical / Records services (X-Tenant-ID header) is a tenant isolation breach | SaaS + Vertical (healthcare) | Replace header-derivation with token-bound tenant resolution; gate via `oya-foundry-fitness-tenant-isolation` | OPEN | `platform-tenancy-identity` + `vertical-healthcare` | W-Foundation |
+| `LEDG-009` | `gap-docs-project.md` J-001 | Client-supplied tenant auth in Emergency / Medical / Records services (X-Tenant-ID header) is a tenant isolation breach | SaaS + Vertical (healthcare) | Replace header-derivation with token-bound tenant resolution; gate via `oya-governance-tenant-isolation` | OPEN | `platform-tenancy-identity` + `vertical-healthcare` | W-Foundation |
 | `LEDG-010` | `gap-docs-project.md` J-002 | Single-cluster OCI cloud posture contradicts AWS-class cloud claim | Cloud | Cell architecture ADR (planned P0) + region/AZ/cell taxonomy expansion | OPEN | `axis-cloud` | W-Cloud-Preview |
 | `LEDG-011` | `gap-docs-project.md` J-003 | Zero accepted search ADRs while Search is now a first-class axis | Search | Author search axis ADR cluster (crawler, index, ranker, SERP, safety, public-corpus rights) | OPEN | `axis-search` | W-Search-Preview |
 | `LEDG-012` | `gap-docs-project.md` J-004 | ClickHouse placeholder + no DP gateway; analytics axis can't enforce DUB | Analytics | Build in-house event router + DP/k-anonymity budget per [PRIVACY-PROGRAM §2.2.6](PRIVACY-PROGRAM.md) | OPEN | `axis-ads-analytics` | W-Analytics-Privacy-Substrate |
@@ -72,7 +72,7 @@ doc_status: published
 | `LEDG-025` | `team-charters` review | `platform-api-sdk` vs per-axis public API ownership ambiguity | Cross-cutting | `RACI-OWNERSHIP.md` clarification; ADR-0040 gate ownership | OPEN | `council-architecture` |
 | `LEDG-026` | `team-charters` review | `axis-foundry` fitness-functions vs axis-team autonomy (power asymmetry) | Foundry + all axes | `RACI-OWNERSHIP.md` 5-business-day fitness-fn dispute process | OPEN | `council-architecture` |
 | `LEDG-027` | `team-charters` review | `vertical-agriculture` ↔ `vertical-food` traceability handoff | Vertical (agriculture + food) | `DESIGN.md §10` new contract `TRACEABILITY_HANDOFF`; ownership: `council-architecture` | OPEN | `council-architecture` |
-| `LEDG-028` | `team-charters` review | Cloud IAM vs platform-tenancy-identity IAM lockstep | Cloud + SaaS | `oya-foundry-fitness-iam-lockstep` fitness function | OPEN | `axis-cloud` + `platform-tenancy-identity` |
+| `LEDG-028` | `team-charters` review | Cloud IAM vs platform-tenancy-identity IAM lockstep | Cloud + SaaS | `oya-governance-iam-lockstep` fitness function | OPEN | `axis-cloud` + `platform-tenancy-identity` |
 | `LEDG-029` | `team-charters` review | `council-privacy` secretariat conflict of interest (`platform-privacy-dub` drafts ADRs + runs governance) | Privacy | Council chair rotation policy; chair cannot be from `platform-privacy-dub` | OPEN | `council-privacy` |
 
 ### 3.3 MED + LOW (cosmetic / forensic — abbreviated)
@@ -118,7 +118,7 @@ Each batch tag groups contradictions for parallel resolution.
 
 When a future contradiction is detected by:
 
-- `oya-foundry-fitness-cohesion` (cross-axis contract drift detector)
+- `oya-governance-cohesion` (cross-axis contract drift detector)
 - A reviewer manually flagging via `gh issue` with `kind:contradiction`
 - A new ADR explicitly identifying a prior decision conflict
 - A regulator update that conflicts with prior posture
@@ -141,4 +141,4 @@ When a future contradiction is detected by:
 
 ---
 
-> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.
+> **§Note (2026-05-21 transition):** References to `oya-governance-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

@@ -65,12 +65,12 @@
   "summary": "P7 removed the two ADR-0052 DELETE-class Bominal ultragoal active-path ephemera files after all three gates were green, then reconciled one stale absent KEEP evidence-file row found during code review.",
   "validation": [
     {
-      "command": "standalone oya-foundry-fitness-archive-orphan before/after deletion",
+      "command": "standalone oya-governance-archive-orphan before/after deletion",
       "evidence": "archive-orphan ok: archives_checked=15 archive_files_present=15 originals_absent=15 inbound_refs_checked=0",
       "status": "passed"
     },
     {
-      "command": "standalone oya-foundry-fitness-banned-primitives",
+      "command": "standalone oya-governance-banned-primitives",
       "evidence": "banned-primitives ok: sources_checked=25 fences_checked=25 usages_checked=0 documented_exceptions=0",
       "status": "passed"
     },
@@ -80,7 +80,7 @@
       "status": "passed"
     },
     {
-      "command": "cargo test -p oya-foundry-fitness-archive-orphan-kernel --all-features",
+      "command": "cargo test -p oya-governance-archive-orphan-kernel --all-features",
       "evidence": "./scripts/check.sh passed after stage0 helpers, cargo check/clippy, cargo-nextest 1327/1327, repoctl, quality-lanes, glossary, architecture boundary 165 crates, cargo deny, and machine-readable JSON parse checks.",
       "status": "passed_full_workspace_closeout"
     },

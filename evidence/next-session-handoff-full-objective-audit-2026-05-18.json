@@ -7,7 +7,7 @@
   "result": "literal_handoff_items_covered",
   "remaining_required_handoff_work": [],
   "scope_guardrails": [
-    "Task 37 follows the handoff's explicit per-lane compatibility-window rule; no bulk rename of existing oya-foundry-fitness-* lanes was performed.",
+    "Task 37 follows the handoff's explicit per-lane compatibility-window rule; no bulk rename of existing oya-governance-* lanes was performed.",
     "oya git implements the doubt-driven scope cut from ADR-0223: drop-in git shell-out plus ledger emission only; no implicit state machine, no auto-PR on push, and no conflict-radar v1.",
     "Unrelated infra/oci worktree edits were left untouched.",
     "Registry-authority cross-checking for ontology projections remains tracked as separate GA debt; task 22's blocker promotion now enforces manifest declaration completeness."

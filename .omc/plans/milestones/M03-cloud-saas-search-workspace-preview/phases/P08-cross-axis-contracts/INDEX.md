@@ -35,7 +35,7 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §10. Cohes
 4 agents; one per row-cluster.
 
 ## Symbols-touched
-`contracts/{openapi,proto,asyncapi}/cross-axis/`, `crates/oya-foundry-fitness-cross-axis-<a>-<b>-kernel`.
+`contracts/{openapi,proto,asyncapi}/cross-axis/`, `crates/oya-governance-cross-axis-<a>-<b>-kernel`.
 
 ## Agent-handoff
 ```

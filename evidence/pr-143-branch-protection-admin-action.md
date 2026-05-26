@@ -10,25 +10,25 @@ status: admin_action_required
 
 ## Summary
 
-Branch protection on `dev` requires status checks named `oya-foundry-fitness-*`. Per handoff Q2 + ADR-0128 + ADR-0133, `oya-foundry-fitness-*` naming was retired in favor of the `governance` µservice. PR #143's commits no longer emit checks under the old names — therefore PR #143 cannot merge under current branch-protection rules without admin action.
+Branch protection on `dev` requires status checks named `oya-governance-*`. Per handoff Q2 + ADR-0128 + ADR-0133, `oya-governance-*` naming was retired in favor of the `governance` µservice. PR #143's commits no longer emit checks under the old names — therefore PR #143 cannot merge under current branch-protection rules without admin action.
 
 This document is `documented` (not `green`) on the merge-admissibility report because it requires repo admin scope, not self-fixable in the PR.
 
 ## Affected check names (likely still required on dev)
 
-Inferred from `.github/workflows/oya-foundry-fitness-*.yml` files on origin/dev:
+Inferred from `.github/workflows/oya-governance-*.yml` files on origin/dev:
 
 | Old check name (retired) | New equivalent |
 |---|---|
-| `oya-foundry-fitness-supply-chain` | `oya-governance-supply-chain` (via `microservices/governance/` IP-NNN — handoff #13/#18) |
-| `oya-foundry-fitness-cohesion` | `oya-governance-authority-cohesion` |
-| `oya-foundry-fitness-api-semver` | `oya-governance-api-semver` |
-| `oya-foundry-fitness-protection-context-match` | `oya-governance-protection-context-match` |
-| `oya-foundry-fitness-aspirational-enforcement` | `oya-governance-aspirational-enforcement` (handoff #13) |
-| `oya-foundry-fitness-evidence-secret-scan` | `oya-governance-evidence-secret-scan` |
-| `oya-foundry-fitness-honest-claims` | `oya-governance-honest-claims` (handoff #13) |
-| `oya-foundry-fitness-master-plan-completion` | `oya-governance-master-plan-completion` |
-| `oya-foundry-fitness-sequential-pr-merge-conflicts` | `oya-governance-sequential-pr-merge-conflicts` |
+| `oya-governance-supply-chain` | `oya-governance-supply-chain` (via `microservices/governance/` IP-NNN — handoff #13/#18) |
+| `oya-governance-cohesion` | `oya-governance-authority-cohesion` |
+| `oya-governance-api-semver` | `oya-governance-api-semver` |
+| `oya-governance-protection-context-match` | `oya-governance-protection-context-match` |
+| `oya-governance-aspirational-enforcement` | `oya-governance-aspirational-enforcement` (handoff #13) |
+| `oya-governance-evidence-secret-scan` | `oya-governance-evidence-secret-scan` |
+| `oya-governance-honest-claims` | `oya-governance-honest-claims` (handoff #13) |
+| `oya-governance-master-plan-completion` | `oya-governance-master-plan-completion` |
+| `oya-governance-sequential-pr-merge-conflicts` | `oya-governance-sequential-pr-merge-conflicts` |
 
 ## Admin command (run as repo admin)
 
@@ -36,7 +36,7 @@ Inferred from `.github/workflows/oya-foundry-fitness-*.yml` files on origin/dev:
 gh api -X PATCH repos/{OWNER}/{REPO}/branches/dev/protection \
   --input <(gh api repos/{OWNER}/{REPO}/branches/dev/protection \
     | jq '.required_status_checks.contexts |= map(
-        gsub("oya-foundry-fitness-"; "oya-governance-")
+        gsub("oya-governance-"; "oya-governance-")
       )')
 ```
 
@@ -48,7 +48,7 @@ gh api repos/{OWNER}/{REPO}/branches/dev/protection \
   | grep -E '^oya-(foundry-fitness|governance)-'
 ```
 
-Expected: zero `oya-foundry-fitness-*` rows.
+Expected: zero `oya-governance-*` rows.
 
 ## Rollback if PR #143 must merge before admin action
 

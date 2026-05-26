@@ -21,8 +21,8 @@ Record IP-008 as retired: the one-time archive payload and executable archive-or
 ## Retired-symbols
 ```
 bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/::RetiredArchiveDir
-crates/oya-foundry-fitness-archive-orphan-kernel::RetiredKernel
-tools/oya-foundry-fitness-archive-orphan-app::RetiredApp
+crates/oya-governance-archive-orphan-kernel::RetiredKernel
+tools/oya-governance-archive-orphan-app::RetiredApp
 ```
 Naming justification: `RetiredArchiveDir`, `RetiredKernel`, and `RetiredApp` are ledger-only names that preserve IP-008 traceability without keeping executable workspace members.
 

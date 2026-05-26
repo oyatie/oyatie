@@ -63,7 +63,7 @@ JUSTIFICATION:
 
 ### Out-of-scope
 
-- `oya-foundry-fitness-plan-hierarchy` CI gate — owned by M02-P02+ phases; not touched here.
+- `oya-governance-plan-hierarchy` CI gate — owned by M02-P02+ phases; not touched here.
 - Any product-µservice crates — this phase only touches foundry and shared check crates.
 - grit server-side protocol changes — grit v0.3.0 consumed as installed binary.
 

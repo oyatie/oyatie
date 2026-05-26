@@ -33,7 +33,7 @@ const MULTISPECTRUM_REVIEW: &str = "specs/multispectrum-review.json";
 const GITOPS_VCS_REPLACEMENT: &str = "specs/gitops-vcs-replacement.json";
 const BRANCH_PROTECTION_YAML: &str = ".github/branch-protection.yaml";
 // ADR-0361: the retired GitHub Actions workflows (pr-tests.yml +
-// oya-foundry-fitness-supply-chain.yml) are superseded by the single
+// oya-governance-supply-chain.yml) are superseded by the single
 // Jenkins-native pipeline lane. Both admission checks now read the
 // canonical pipeline source, which declares the oya-vcs-admission and
 // oya-vcs-provider-execution stages.

@@ -12,7 +12,7 @@ purpose: |
   autonomy-ceiling guardrails (per `autonomy-ceiling.md`).
 lift_target: oyatie/docs/standards/security-review.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-supply-chain
+enforced_by: oya-governance-supply-chain
 companion_docs:
   - docs/SECURITY-PROGRAM.md
   - docs/standards/data-class.md
@@ -69,9 +69,9 @@ Per-PR reviewer-agent checklist (security-class changes):
 
 | Tool | Owner | Scope | CI lane |
 |---|---|---|---|
-| `cargo-audit` ([RustSec](https://rustsec.org/)) | Rust Secure Code WG | RustSec advisory DB scan | `oya-foundry-fitness-cargo-audit` |
-| `cargo-deny` ([Embark](https://embarkstudios.github.io/cargo-deny/)) | Embark | license + advisory + source + duplicate-version | `oya-foundry-fitness-license` |
-| `cargo-vet` ([Mozilla](https://mozilla.github.io/cargo-vet/)) | Mozilla | human-audit trail for third-party crates | `oya-foundry-fitness-cargo-vet` |
+| `cargo-audit` ([RustSec](https://rustsec.org/)) | Rust Secure Code WG | RustSec advisory DB scan | `oya-governance-cargo-audit` |
+| `cargo-deny` ([Embark](https://embarkstudios.github.io/cargo-deny/)) | Embark | license + advisory + source + duplicate-version | `oya-governance-license` |
+| `cargo-vet` ([Mozilla](https://mozilla.github.io/cargo-vet/)) | Mozilla | human-audit trail for third-party crates | `oya-governance-cargo-vet` |
 | `cargo-auditable` | Rust Secure Code | SBOM embedded in binary | release pipeline |
 
 Rules:
@@ -121,7 +121,7 @@ Per [`image-discipline.md`](image-discipline.md) and
    [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../specs/lts-versions-verified-2026-05-12.md));
    the v3 `--bundle` contract is mandatory.
 
-Lane: `oya-foundry-fitness-supply-chain` validates signed + SBOM-attached +
+Lane: `oya-governance-supply-chain` validates signed + SBOM-attached +
 provenance-attested on every artifact emit.
 
 Sources: [Wiz — SLSA Framework](https://www.wiz.io/academy/application-security/slsa-framework),
@@ -158,7 +158,7 @@ Every capability binding declares T1 / T2 / T3 / T4 per
 - OpenBao is the primary store (per
   [`dependency-policy.md`](dependency-policy.md) §5).
 - Secret rotation: ≤ 90 days for symmetric keys; ≤ 30 days for service
-  account tokens. The lane `oya-foundry-fitness-secret-rotation` opens an
+  account tokens. The lane `oya-governance-secret-rotation` opens an
   issue when a stored secret exceeds its TTL.
 - No secrets in logs, traces, or audit-chain payloads; the
   `silent-failure-hunter` reviewer agent + `gitleaks` + `trufflehog` scan

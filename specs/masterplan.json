@@ -730,7 +730,7 @@
         "ADR-0093",
         "ADR-0094"
       ],
-      "fitness_lanes": [
+      "governance_lanes": [
         "oya-check-dependency-seam-discipline",
         "oya-check-replacement-parity",
         "oya-check-distroless-deployment-bar"

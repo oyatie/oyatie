@@ -25,9 +25,9 @@ Current implementation shape:
 
 - kernel crate: `crates/oya-governance-banned-primitives-kernel`
 - direct runner: `tools/oya-governance-banned-primitives-app`
-- gate runner: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`
-- workflow context: `oya-foundry-fitness-banned-primitives`
-- quality lane: `registry/quality/lanes.yaml::oya-foundry-fitness-banned-primitives`
+- gate runner: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives`
+- workflow context: `oya-governance-banned-primitives`
+- quality lane: `registry/quality/lanes.yaml::oya-governance-banned-primitives`
 - branch-protection row: `.github/branch-protection.yaml::branches.dev.required_status_checks`
 
 ## Acceptance
@@ -35,7 +35,7 @@ Current implementation shape:
 - `check_documented_genuine_need(...)` remains the kernel enforcement function.
 - `scan_agent_instruction_file(...)` parses fenced `agent-instructions` source blocks and emits typed primitive usage records.
 - `scan_command_invocation(...)` parses sanitized command-log records and emits typed primitive usage records.
-- `oya gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives` is part of `oya gate run-all`.
+- `oya gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives` is part of `oya gate run-all`.
 - `quality-lanes`, `protection-context-match`, `aspirational-enforcement`, and `planning-closure` remain green after the lane is registered.
 
 ## Exit evidence

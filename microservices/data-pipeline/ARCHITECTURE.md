@@ -224,7 +224,7 @@ ADR-0247 absorbs Foundry under Cedar. Data-pipeline implements this by:
 - Requiring Foundry actions to carry `principal.foundry_lane` evidence (the lane name explicitly named).
 - Restricting Foundry from operations that would create unbounded agentic loops without human review: marketplace publish (IP-036, IP-037), dead-letter replay execute, semantic metric publish to marketplace, continuous schedule lease renewal beyond a threshold.
 - Rate-limiting Foundry actions per tenant (e.g., max 5 concurrent CDK authoring cases per tenant).
-- Naming the foundry-fitness lane retirement: per the 2026-05-20 directive, the `oya-foundry-fitness-*` lanes are renamed to `oya-governance-*` in this microservice's CI configuration; the rename is tracked in active migration IPs rather than executed in-line.
+- Naming the foundry-fitness lane retirement: per the 2026-05-20 directive, the `oya-governance-*` lanes are renamed to `oya-governance-*` in this microservice's CI configuration; the rename is tracked in active migration IPs rather than executed in-line.
 
 ### §F.7 time-coordination (HLC default per ADR-0252)
 

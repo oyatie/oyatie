@@ -29,7 +29,7 @@
     {
       "adr": "ADR-0247",
       "adherence": "PASS_WITH_CONCERN",
-      "notes": "Self-hosting / Foundry dissolution is internally coherent and supersedes ADR-0136 + ADR-0136-amendment cleanly. BC redistribution to Workflow Engine + Intelligence + audit-chain + policy-engine matches the substrates' actual primitives. CONCERN: `owners:` retains `axis-foundry` even while dissolving the Foundry µservice — this is a transition-period seam; bundle should declare the axis decommission timeline explicitly. The `oya-foundry-fitness-*` → `oya-governance-*` lane rename (per ADR-0246 D-11 and recent git log entries 'Move catalog-records onto the governance lane prefix') is in-flight; ADR-0247 should reference the migration ledger."
+      "notes": "Self-hosting / Foundry dissolution is internally coherent and supersedes ADR-0136 + ADR-0136-amendment cleanly. BC redistribution to Workflow Engine + Intelligence + audit-chain + policy-engine matches the substrates' actual primitives. CONCERN: `owners:` retains `axis-foundry` even while dissolving the Foundry µservice — this is a transition-period seam; bundle should declare the axis decommission timeline explicitly. The `oya-governance-*` → `oya-governance-*` lane rename (per ADR-0246 D-11 and recent git log entries 'Move catalog-records onto the governance lane prefix') is in-flight; ADR-0247 should reference the migration ledger."
     },
     {
       "adr": "ADR-0248",

@@ -28,8 +28,8 @@
     "Cargo.toml",
     "crates/oya-governance-adr-shape-kernel/Cargo.toml",
     "crates/oya-governance-adr-shape-kernel/src/lib.rs",
-    "tools/oya-foundry-fitness-adr-shape/Cargo.toml",
-    "tools/oya-foundry-fitness-adr-shape/src/main.rs",
+    "tools/oya-governance-adr-shape/Cargo.toml",
+    "tools/oya-governance-adr-shape/src/main.rs",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-001-data-use-boundary-adr.md",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/INDEX.md",
     "/specs/masterplan.json"
@@ -70,7 +70,7 @@
       "status": "pass"
     },
     {
-      "command": "rustfmt --check crates/oya-governance-adr-shape-kernel/src/lib.rs tools/oya-foundry-fitness-adr-shape/src/main.rs",
+      "command": "rustfmt --check crates/oya-governance-adr-shape-kernel/src/lib.rs tools/oya-governance-adr-shape/src/main.rs",
       "status": "pass",
       "summary": "uses rustfmt.toml edition=2024 style_edition=2024"
     },
@@ -84,7 +84,7 @@
       "status": "pass"
     },
     {
-      "command": "cargo check -p oya-foundry-fitness-adr-shape",
+      "command": "cargo check -p oya-governance-adr-shape",
       "status": "pass"
     },
     {
@@ -93,7 +93,7 @@
       "summary": "6 passed; 0 failed"
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-adr-shape",
+      "command": "cargo run -p oya-governance-adr-shape",
       "status": "pass",
       "summary": "adr-shape ok: adrs_checked=67"
     },

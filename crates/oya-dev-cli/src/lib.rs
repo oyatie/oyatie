@@ -576,7 +576,7 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
         path,
         "docs/GLOSSARY.md"
             | "docs/ADR-INDEX.md"
-            | "docs/fitness-lanes/glossary-vocabulary.md"
+            | "docs/governance-lanes/glossary-vocabulary.md"
             | "docs/MISTAKES-LEDGER.md"
             | "docs/ADR-CONSOLIDATION-PLAN.md"
             | "docs/ADR-LEGACY-REGRESSION-MAPPING.md"

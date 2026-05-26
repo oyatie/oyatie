@@ -35,7 +35,7 @@
       "severity": "MAJOR",
       "file": "crates/oya-vcs-changeset-state-app/src/main.rs:62-72 + crates/oya-vcs-changeset-state-kernel/src/lib.rs:200-213",
       "issue": "Ed25519 signature is a wave-A stub (`ed25519-stub:<base64>`) AND the kernel explicitly says it does NOT verify signatures. Every downstream gate that the ADRs describe as 'signed + audited' (canary verdict, rewind log, override row) currently has NO crypto. At hyperscaler trust boundaries (cross-cell, cross-tenant, post-incident audit), an unsigned event log is indistinguishable from a tampered one — and there is no CI lane that flags 'still on stub' so the placeholder can persist silently into wave-B.",
-      "remediation": "Add an oya-foundry-fitness-changeset-state-signature-stub-detector lane NOW (wave-A) that fails CI when any production-target event row carries signature prefix `ed25519-stub:`. The lane permits stubs only in `target=dev` rows, blocks them at staging promotion. This forces wave-B to land real signing before any production event log row exists."
+      "remediation": "Add an oya-governance-changeset-state-signature-stub-detector lane NOW (wave-A) that fails CI when any production-target event row carries signature prefix `ed25519-stub:`. The lane permits stubs only in `target=dev` rows, blocks them at staging promotion. This forces wave-B to land real signing before any production event log row exists."
     },
     {
       "severity": "MAJOR",

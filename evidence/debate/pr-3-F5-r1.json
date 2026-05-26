@@ -24,7 +24,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": ".github/workflows/oya-foundry-fitness-supply-chain.yml:62-90; GitHub PR #3 statusCheckRollup",
+      "file": ".github/workflows/oya-governance-supply-chain.yml:62-90; GitHub PR #3 statusCheckRollup",
       "issue": "The release-artifact attestation lane was intentionally skipped in the successful status rollup. That may be acceptable for PR-only changes, but the PR also changed release/SBOM/SLSA workflow surfaces, so the quality evidence does not prove release-attestation behavior end to end.",
       "remediation": "Run the release-artifact attestation/SBOM/SLSA path on a release-capable ref or attach an explicit non-release applicability decision that names which changed workflow files were not exercised."
     }

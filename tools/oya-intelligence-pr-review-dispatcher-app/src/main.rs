@@ -5,7 +5,7 @@
 //! Binary entry point for `oya-intelligence-pr-review-dispatcher-app`.
 //!
 //! Invoked from `.github/workflows/pr-review.yml` after the required-check
-//! workflows (`pr-tests`, `oya-foundry-fitness-supply-chain`) converge
+//! workflows (`pr-tests`, `oya-governance-supply-chain`) converge
 //! green. Reads per-facet findings written by the subagent panel (when
 //! the subagent runtime lands) and writes:
 //!

@@ -176,7 +176,7 @@
       "guardrails": [
         "M01 status flipped from 'complete' to 'in-progress' because 15 scaffolded + 2 split-required ex-M-CC IPs need closeout. This is correct per status-honesty (M01 is no longer fully complete now that it inherits ex-M-CC's in-progress work).",
         "54 legitimate-historical M-CC strings remain in evidence/, docs/CHANGELOG, narrative prose. Do not sweep these in a follow-up unless user directs — they're historical citations of past slices.",
-        "Branch protection (.github/branch-protection.yaml) was NOT updated to include 'oya-foundry-fitness-master-plan-completion' as required — that's still F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION from slice 2, unchanged.",
+        "Branch protection (.github/branch-protection.yaml) was NOT updated to include 'oya-governance-master-plan-completion' as required — that's still F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION from slice 2, unchanged.",
         "Pre-existing placeholder-debt drift on origin/dev (line 204 of docs/products/_TEMPLATE.md) preserved; filed F-PLACEHOLDER-TEMPLATE-DRIFT."
       ]
     }

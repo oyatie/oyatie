@@ -65,7 +65,7 @@ Every state-mutating RPC in `cloud-billing.proto` returns a response containing 
 - GetFxLockResponse.audit (FX lock is itself an evidence event)
 - RetryDunningResponse.audit
 
-A response missing `AuditChainHeader` would fail the proto3 compile-time `oya-foundry-fitness-audit-chain-completeness` lint (per ADR-0263 §C-2 lint registration).
+A response missing `AuditChainHeader` would fail the proto3 compile-time `oya-governance-audit-chain-completeness` lint (per ADR-0263 §C-2 lint registration).
 
 ### §C.2 AuditChainHeader fields
 

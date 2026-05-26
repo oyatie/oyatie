@@ -20,12 +20,12 @@ Ratchet 7 fitness lanes WARN→BLOCK per wave.
 ## Symbols-to-grit-claim
 ```
 crates/oya-governance-claim-ceiling-kernel/src/lib.rs::ratchet
-crates/oya-foundry-fitness-authority-cohesion-kernel/src/lib.rs::ratchet
+crates/oya-governance-authority-cohesion-kernel/src/lib.rs::ratchet
 crates/oya-governance-bypass-kernel/src/lib.rs::ratchet
 crates/oya-governance-pr-traceability-kernel/src/lib.rs::ratchet
 crates/oya-governance-pre-push-kernel/src/lib.rs::ratchet
 crates/oya-governance-quality-lane-kernel/src/lib.rs::ratchet
-crates/oya-governance-cohesion-fitness-kernel/src/lib.rs::ratchet
+crates/oya-governance-cohesion-kernel/src/lib.rs::ratchet
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -35,7 +35,7 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 ## Acceptance-test-commands
 ```
 cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo run -p oya-governance-cohesion -- <owning-crate-glob>
 scripts/check.sh
 ```
 

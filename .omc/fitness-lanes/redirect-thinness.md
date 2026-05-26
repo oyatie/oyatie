@@ -1,15 +1,15 @@
 # Fitness Lane: redirect-thinness
 
 - purpose: Verify "redirect-only" doc files stay thin (single canonical pointer + redirect header only) and never accumulate content.
-- enforces: STANDARD/redirect-shape; AGENTS.md fitness-lane `oya-foundry-fitness-redirect-thinness`.
-- kernel_crate: `oya-foundry-fitness-redirect-thinness-kernel` — `RedirectDoc { path, byte_size, body_line_count }`, verdict `RedirectThinnessFitnessReport { docs_checked }`.
-- runner_path: `tools/oya-foundry-fitness-redirect-thinness`
+- enforces: STANDARD/redirect-shape; AGENTS.md fitness-lane `oya-governance-redirect-thinness`.
+- kernel_crate: `oya-governance-redirect-thinness-kernel` — `RedirectDoc { path, byte_size, body_line_count }`, verdict `RedirectThinnessFitnessReport { docs_checked }`.
+- runner_path: `tools/oya-governance-redirect-thinness`
 - inputs: docs with `redirect_to:` front-matter; size budget registry.
 - failure_modes:
   - redirect file > 30 body lines
   - redirect file has H1 other than `# Moved`
   - redirect target unresolved
-- ci_invocation: `cargo run -p oya-foundry-fitness-redirect-thinness`
+- ci_invocation: `cargo run -p oya-governance-redirect-thinness`
 - runtime_budget: 200 ms
 - severity: MED
 - kernel_sketch:

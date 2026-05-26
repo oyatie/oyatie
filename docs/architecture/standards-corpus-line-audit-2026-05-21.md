@@ -161,7 +161,7 @@ Template-class and non-Standard files included for completeness (they are exempt
 - Diátaxis quadrant declaration (reference / tutorial / how-to / explanation)
 - RFC-2119 normative discipline throughout
 - Frontmatter shape with `doc_class:` key (same as above)
-- Enforcement lane `oya-foundry-fitness-doc-style` (or `oya-governance-doc-style` post-ADR-0132)
+- Enforcement lane `oya-governance-doc-style` (or `oya-governance-doc-style` post-ADR-0132)
 
 ### 1.3 Key canonical decisions applicable to this audit
 
@@ -499,18 +499,18 @@ While minor, version strings in standards are consumed by CI generators. An inco
 
 ### 3.13 Enforcement-lane prefix drift
 
-**Canonical directive:** Per ADR-0132, new governance CI lane names carry the prefix `oya-governance-*`. Existing `oya-foundry-fitness-*` lanes are retained until each is individually renamed in its own migration IP.
+**Canonical directive:** Per ADR-0132, new governance CI lane names carry the prefix `oya-governance-*`. Existing `oya-governance-*` lanes are retained until each is individually renamed in its own migration IP.
 
-The following files reference `oya-foundry-fitness-*` lanes that appear to have been authored or substantially revised after the ADR-0132 cutoff date and may need the newer prefix:
+The following files reference `oya-governance-*` lanes that appear to have been authored or substantially revised after the ADR-0132 cutoff date and may need the newer prefix:
 
 | File | Lane name referenced | Note |
 |---|---|---|
-| `multispectrum-review-v2.4.0-cadence.md` | `oya-foundry-fitness-multispectrum-*` | Accepted 2026-05-20, after ADR-0132 |
-| `testing.md` | `oya-foundry-fitness-test-evidence` | Date 2026-05-12 |
-| `observability.md` | `oya-foundry-fitness-otel-emit` | Older |
+| `multispectrum-review-v2.4.0-cadence.md` | `oya-governance-multispectrum-*` | Accepted 2026-05-20, after ADR-0132 |
+| `testing.md` | `oya-governance-test-evidence` | Date 2026-05-12 |
+| `observability.md` | `oya-governance-otel-emit` | Older |
 | `image-discipline.md` | `F-PENDING-IMAGE-DISCIPLINE` | Pre-ADR-0132 |
-| `on-call.md` | `oya-foundry-fitness-runbook-index-resolves` | Older |
-| `security-review.md` | `oya-foundry-fitness-supply-chain` | Older |
+| `on-call.md` | `oya-governance-runbook-index-resolves` | Older |
+| `security-review.md` | `oya-governance-supply-chain` | Older |
 
 **Note:** This is informational only (P3). ADR-0132 explicitly states existing lanes are retained until migrated. No action required until the migration IP for each lane runs.
 
@@ -562,8 +562,8 @@ An Accepted standard MUST NOT contain placeholder marker fields, PENDING enforce
 | `error-handling.md` | `F-PENDING-SILENT-FAILURE` enforcement | P2 |
 | `fintech-compliance.md` | "Open questions" section with explicit placeholder marker items | P2 |
 | `image-discipline.md` | `F-PENDING-IMAGE-DISCIPLINE` and `F-PENDING-CONTAINER-BASE` | P2 |
-| `on-call.md` | `planned_enforcement_ref: oya-foundry-fitness-runbook-index-resolves` with no shipping timeline | P2 |
-| `release-management.md` | `planned_enforcement_ref: oya-foundry-fitness-flag-debt` | P2 |
+| `on-call.md` | `planned_enforcement_ref: oya-governance-runbook-index-resolves` with no shipping timeline | P2 |
+| `release-management.md` | `planned_enforcement_ref: oya-governance-flag-debt` | P2 |
 
 ### 4.5 Superseded references without markers
 
@@ -1199,7 +1199,7 @@ Referenced by `testing.md` as a companion doc. Confirm the file exists and is no
 
 **R-P3-03 | Audit enforcement-lane prefix post-ADR-0132**
 
-When migrating existing `oya-foundry-fitness-*` lanes per ADR-0132 migration IPs, update the `enforced_by:` fields in the corresponding Standard files at the same time.
+When migrating existing `oya-governance-*` lanes per ADR-0132 migration IPs, update the `enforced_by:` fields in the corresponding Standard files at the same time.
 
 **R-P3-04 | Normalize `hyperscaler-invariant-conformance.md` doc_class**
 

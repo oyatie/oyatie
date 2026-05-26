@@ -21,34 +21,34 @@ related:
 ## Core (apply to every change class)
 
 - [ ] **D1** All `pre-flight-checklist.md` items checked. *Verification:* per-item reviewer audit on PR.
-- [ ] **D2** Affected canonical docs updated in same PR per `docs/DOC-CATALOG.md`. *Lane:* `oya-foundry-fitness-doc-catalog`.
-- [ ] **D3** New ADRs (if any) authored from `/templates/adr-template.md`. *Lane:* `oya-foundry-fitness-adr-shape`.
-- [ ] **D4** New runbooks (if any) authored from `/templates/runbook-template.md`; discoverable in `docs/RUNBOOKS-INDEX.md`. *Lane:* `oya-foundry-fitness-runbook-index-resolves`.
-- [ ] **D5** New capabilities (if any) ship record + eval set + autonomy tier + audit topic + Cosign signing. *Lane:* `oya-foundry-fitness-capability-publish`.
-- [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-foundry-fitness-data-class`.
-- [ ] **D7** Per-PR fitness lanes pass: `oya-foundry-fitness-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
+- [ ] **D2** Affected canonical docs updated in same PR per `docs/DOC-CATALOG.md`. *Lane:* `oya-governance-doc-catalog`.
+- [ ] **D3** New ADRs (if any) authored from `/templates/adr-template.md`. *Lane:* `oya-governance-adr-shape`.
+- [ ] **D4** New runbooks (if any) authored from `/templates/runbook-template.md`; discoverable in `docs/RUNBOOKS-INDEX.md`. *Lane:* `oya-governance-runbook-index-resolves`.
+- [ ] **D5** New capabilities (if any) ship record + eval set + autonomy tier + audit topic + Cosign signing. *Lane:* `oya-governance-capability-publish`.
+- [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
+- [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
 - [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
 - [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
 - [ ] **D11** `cargo deny check` passes. *Verification:* output.
 - [ ] **D12** `oya verify` passes. *Verification:* output.
-- [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-foundry-fitness-perf-evidence`.
-- [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-foundry-fitness-schema-migration`.
+- [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
+- [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
-- [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-foundry-fitness-audit-emission`.
-- [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-foundry-fitness-mistakes-ledger-cite`.
-- [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-foundry-fitness-changelog-row`.
+- [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-governance-audit-emission`.
+- [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-governance-mistakes-ledger-cite`.
+- [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-governance-changelog-row`.
 
 ## Per-change-class additions
 
 ### feature
-- [ ] DD authored per `/templates/design-doc-template.md` and accepted before any IP claim. *Lane:* `oya-foundry-fitness-design-doc-shape` (advisory until DD-lane lifts).
-- [ ] Eval set / property tests / fuzz scaffolding present for new parser/serializer paths. *Lane:* `oya-foundry-fitness-qa-coverage`.
-- [ ] Feature-flag wired; canary rollout planned per `docs/RELEASE-MANAGEMENT.md`. *Lane:* `oya-foundry-fitness-release-readiness`.
+- [ ] DD authored per `/templates/design-doc-template.md` and accepted before any IP claim. *Lane:* `oya-governance-design-doc-shape` (advisory until DD-lane lifts).
+- [ ] Eval set / property tests / fuzz scaffolding present for new parser/serializer paths. *Lane:* `oya-governance-qa-coverage`.
+- [ ] Feature-flag wired; canary rollout planned per `docs/RELEASE-MANAGEMENT.md`. *Lane:* `oya-governance-release-readiness`.
 
 ### bugfix
-- [ ] Regression test added that fails on the buggy commit and passes on the fix. *Lane:* `oya-foundry-fitness-qa-coverage`.
-- [ ] `MFL-NNNN` row added if class of bug is recurrence-prone. *Lane:* `oya-foundry-fitness-mistakes-ledger-cite`.
+- [ ] Regression test added that fails on the buggy commit and passes on the fix. *Lane:* `oya-governance-qa-coverage`.
+- [ ] `MFL-NNNN` row added if class of bug is recurrence-prone. *Lane:* `oya-governance-mistakes-ledger-cite`.
 
 ### refactor
 - [ ] Public API surface unchanged (per `cargo public-api`). *Command:* `cargo public-api --diff`.
@@ -56,11 +56,11 @@ related:
 - [ ] Linus good-taste audit row in `## Code Review`. *(advisory)*
 
 ### migration
-- [ ] Schema up + down + dry-run + per-tenant + per-cell rollback shipped. *Lane:* `oya-foundry-fitness-schema-migration`.
-- [ ] Inventory row added per `/templates/checklists/inventory-update-checklist.md`. *Lane:* `oya-foundry-fitness-inventory-tracker`.
+- [ ] Schema up + down + dry-run + per-tenant + per-cell rollback shipped. *Lane:* `oya-governance-schema-migration`.
+- [ ] Inventory row added per `/templates/checklists/inventory-update-checklist.md`. *Lane:* `oya-governance-inventory-tracker`.
 
 ### docs
-- [ ] `docs/DOC-CATALOG.md` trigger event named in PR `## Issue`. *Lane:* `oya-foundry-fitness-doc-catalog`.
+- [ ] `docs/DOC-CATALOG.md` trigger event named in PR `## Issue`. *Lane:* `oya-governance-doc-catalog`.
 - [ ] `doc-style-reviewer` agent verdict captured. *Lane:* `guard-pr-merge-review.mjs`.
 
 ### chore
@@ -69,25 +69,25 @@ related:
 
 ### capability
 - [ ] Capability record at `registry/capability-templates/<id>.yaml` validates against schema. *Lane:* `capability-schema-validator`.
-- [ ] Eval set (golden + adversarial + linguistic) min-pass-rate met. *Lane:* `oya-foundry-fitness-capability-publish`.
-- [ ] Cedar policy + runtime gate present when tier ≥ T2. *Lane:* `oya-foundry-fitness-autonomy-ceiling`.
-- [ ] Cosign keyless OIDC signature + Syft SBOM + SLSA L2+ provenance attested. *Lane:* `oya-foundry-fitness-supply-chain`.
+- [ ] Eval set (golden + adversarial + linguistic) min-pass-rate met. *Lane:* `oya-governance-capability-publish`.
+- [ ] Cedar policy + runtime gate present when tier ≥ T2. *Lane:* `oya-governance-autonomy-ceiling`.
+- [ ] Cosign keyless OIDC signature + Syft SBOM + SLSA L2+ provenance attested. *Lane:* `oya-governance-supply-chain`.
 
 ### plugin
-- [ ] Plugin manifest validates. *Lane:* `oya-foundry-fitness-plugin-manifest`.
-- [ ] No external network calls outside declared allowlist. *Lane:* `oya-foundry-fitness-plugin-network`.
+- [ ] Plugin manifest validates. *Lane:* `oya-governance-plugin-manifest`.
+- [ ] No external network calls outside declared allowlist. *Lane:* `oya-governance-plugin-network`.
 
 ### runbook
-- [ ] `docs/RUNBOOKS-INDEX.md` entry added; row resolves to real file. *Lane:* `oya-foundry-fitness-runbook-index-resolves`.
+- [ ] `docs/RUNBOOKS-INDEX.md` entry added; row resolves to real file. *Lane:* `oya-governance-runbook-index-resolves`.
 - [ ] `last_verified` date set; drill ETA noted. *(advisory)*
 
 ### ADR
-- [ ] `adr-template.md` shape complete (Decision/Drivers/Alternatives/Why-chosen/Consequences/Follow-ups). *Lane:* `oya-foundry-fitness-adr-shape`.
-- [ ] `docs/ADR-INDEX.md` updated. *Lane:* `oya-foundry-fitness-adr-citation`.
+- [ ] `adr-template.md` shape complete (Decision/Drivers/Alternatives/Why-chosen/Consequences/Follow-ups). *Lane:* `oya-governance-adr-shape`.
+- [ ] `docs/ADR-INDEX.md` updated. *Lane:* `oya-governance-adr-citation`.
 
 ### pack-update (regional pack)
-- [ ] Regulator-watch impact named per pack. *Lane:* `oya-foundry-fitness-compliance-matrix`.
-- [ ] `regional-packs/<pack>/` updated. *Lane:* `oya-foundry-fitness-pack-coverage`.
+- [ ] Regulator-watch impact named per pack. *Lane:* `oya-governance-compliance-matrix`.
+- [ ] `regional-packs/<pack>/` updated. *Lane:* `oya-governance-pack-coverage`.
 
 ## Loop-cancellation re-walk
 

@@ -658,7 +658,7 @@ mod tests {
     #[test]
     fn scan_command_invocation_allows_sanctioned_bin_oya_git_surface() {
         let scan = scan_command_invocation(CommandInvocation {
-            source: "registry/fitness-corpora/banned-primitives/command-log.v1.jsonl".into(),
+            source: "registry/governance-corpora/banned-primitives/command-log.v1.jsonl".into(),
             line: 1,
             command: "bin/oya git status --short".into(),
         });
@@ -669,7 +669,7 @@ mod tests {
     #[test]
     fn scan_command_invocation_rejects_direct_git_status() {
         let scan = scan_command_invocation(CommandInvocation {
-            source: "registry/fitness-corpora/banned-primitives/reject-direct-git.jsonl".into(),
+            source: "registry/governance-corpora/banned-primitives/reject-direct-git.jsonl".into(),
             line: 1,
             command: "git status --short".into(),
         });
@@ -681,7 +681,7 @@ mod tests {
     #[test]
     fn scan_command_invocation_rejects_hard_banned_even_with_rationale() {
         let scan = scan_command_invocation(CommandInvocation {
-            source: "registry/fitness-corpora/banned-primitives/reject-manual-push.jsonl".into(),
+            source: "registry/governance-corpora/banned-primitives/reject-manual-push.jsonl".into(),
             line: 1,
             command: "git push origin dev rationale: ICM-1".into(),
         });
@@ -690,7 +690,8 @@ mod tests {
         assert_eq!(
             check_documented_genuine_need(&required_sources(), &scan.usages, &["ICM-1".into()]),
             Err(BannedPrimitivesFitnessError::HardBannedPrimitive {
-                path: "registry/fitness-corpora/banned-primitives/reject-manual-push.jsonl".into(),
+                path: "registry/governance-corpora/banned-primitives/reject-manual-push.jsonl"
+                    .into(),
                 line: 1,
                 primitive: PrimitiveKind::ManualPush,
             })

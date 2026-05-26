@@ -206,7 +206,7 @@ See ADR-NNNN-grit-icm-as-sanctioned-primitives.md and the spec at
 
 ---
 
-## Draft 5 — `oya-foundry-fitness-portfolio-citation` lane logic (A1 scaffold)
+## Draft 5 — `oya-governance-portfolio-citation` lane logic (A1 scaffold)
 
 The lane validates two invariants:
 
@@ -260,11 +260,11 @@ pub fn verify(
 }
 ```
 
-Lane runner (out-of-kernel) reads the two PRD files, extracts citation blocks via a small markdown-frontmatter parser, calls `verify`, and exits non-zero on incomplete. Lives at `tools/oya-foundry-fitness-portfolio-citation/`.
+Lane runner (out-of-kernel) reads the two PRD files, extracts citation blocks via a small markdown-frontmatter parser, calls `verify`, and exits non-zero on incomplete. Lives at `tools/oya-governance-portfolio-citation/`.
 
 ---
 
-## Draft 6 — `oya-foundry-fitness-banned-primitives` lane logic (A5 scaffold)
+## Draft 6 — `oya-governance-banned-primitives` lane logic (A5 scaffold)
 
 The lane greps agent-instruction sections of these files for banned tokens:
 
@@ -287,7 +287,7 @@ for f in TARGETED_FILES:
 exit_nonzero if any_violation else exit_zero
 ```
 
-Lane lives at `tools/oya-foundry-fitness-banned-primitives/`; kernel at `crates/oya-governance-banned-primitives-kernel/` for the matcher logic (pure, deterministic).
+Lane lives at `tools/oya-governance-banned-primitives/`; kernel at `crates/oya-governance-banned-primitives-kernel/` for the matcher logic (pure, deterministic).
 
 ---
 

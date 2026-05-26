@@ -1030,7 +1030,7 @@ const REQUIRED_PRIORITY_SURFACES: &[&str] = &[
     "workflow-studio",
     "workflow-engine",
     "integration-connector-catalog",
-    "foundry-pipeline",
+    "governance-pipeline",
     "oya-vcs-admission",
     "ci-cd-toolchain",
     "development-cycle",

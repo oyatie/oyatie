@@ -238,56 +238,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.create" | Resource::"branch:agent/foundry-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.bind_branch" | Resource::"scope:microservices/foundry/**" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.claim_scope" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.edit" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.sync_dev" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.create" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.bind_branch" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.claim_scope" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.edit" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.sync_dev" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.create" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.bind_branch" | Resource::"worktree:../oyatie-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.claim_scope" | Resource::"branch:agent/foundry-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.edit" | Resource::"scope:microservices/foundry/**" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.sync_dev" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.create" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.bind_branch" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.claim_scope" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.edit" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.sync_dev" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.create" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.bind_branch" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.claim_scope" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.edit" | Resource::"worktree:../oyatie-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.sync_dev" | Resource::"branch:agent/foundry-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.create" | Resource::"scope:microservices/foundry/**" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.bind_branch" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.claim_scope" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.edit" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.sync_dev" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.create" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.bind_branch" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.claim_scope" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.edit" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.sync_dev" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.create" | Resource::"worktree:../oyatie-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.bind_branch" | Resource::"branch:agent/foundry-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.claim_scope" | Resource::"scope:microservices/foundry/**" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.edit" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.sync_dev" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.create" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.bind_branch" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.claim_scope" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.edit" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.sync_dev" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.create" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.bind_branch" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.claim_scope" | Resource::"worktree:../oyatie-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.edit" | Resource::"branch:agent/foundry-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.sync_dev" | Resource::"scope:microservices/foundry/**" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.create" | Resource::"branch:agent/foundry-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.bind_branch" | Resource::"scope:microservices/foundry/**" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.claim_scope" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.edit" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.worktree.sync_dev" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.create" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.bind_branch" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.claim_scope" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.edit" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.worktree.sync_dev" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.create" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.bind_branch" | Resource::"worktree:../oyatie-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.claim_scope" | Resource::"branch:agent/foundry-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.edit" | Resource::"scope:microservices/foundry/**" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.worktree.sync_dev" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.create" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.bind_branch" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.claim_scope" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.edit" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.worktree.sync_dev" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.create" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.bind_branch" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.claim_scope" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.edit" | Resource::"worktree:../oyatie-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.worktree.sync_dev" | Resource::"branch:agent/foundry-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.create" | Resource::"scope:microservices/foundry/**" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.bind_branch" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.claim_scope" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.edit" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.worktree.sync_dev" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.create" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.bind_branch" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.claim_scope" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.edit" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.worktree.sync_dev" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.create" | Resource::"worktree:../oyatie-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.bind_branch" | Resource::"branch:agent/foundry-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.claim_scope" | Resource::"scope:microservices/foundry/**" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.edit" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.worktree.sync_dev" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.create" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.bind_branch" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.claim_scope" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.edit" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.worktree.sync_dev" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.create" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.bind_branch" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.claim_scope" | Resource::"worktree:../oyatie-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.edit" | Resource::"branch:agent/foundry-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.worktree.sync_dev" | Resource::"scope:microservices/foundry/**" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-pipeline-isolation-worktree | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -296,7 +296,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0116" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -308,7 +308,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0116" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -320,7 +320,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0116" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -332,7 +332,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0116" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -610,7 +610,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Two docs lanes edit independent microservice specs. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.worktree.create.
 3. Resource: Resource::"worktree:../oyatie-*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0116, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0116, and evidence_hash presence.
 5. State: The active phase is lane_requested; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-WORKTREE-CREATED seals the state-changing fact before observability emission finalizes.
@@ -642,7 +642,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A lane attempts to edit an unclaimed policy file and admission refuses. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.worktree.bind_branch.
 3. Resource: Resource::"branch:agent/foundry-*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0116, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0116, and evidence_hash presence.
 5. State: The active phase is worktree_created; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-BRANCH-BOUND seals the state-changing fact before observability emission finalizes.
@@ -674,7 +674,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A stale worktree is retained until its terminal event is known. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.worktree.claim_scope.
 3. Resource: Resource::"scope:microservices/foundry/**" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0116, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0116, and evidence_hash presence.
 5. State: The active phase is branch_bound; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-SCOPE-CLAIMED seals the state-changing fact before observability emission finalizes.
@@ -706,7 +706,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A branch is rebound after dev fast-forward with no data loss. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.worktree.edit.
 3. Resource: Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0116, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0116, and evidence_hash presence.
 5. State: The active phase is scope_claimed; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-SAFE-PATHS-EVALUATED seals the state-changing fact before observability emission finalizes.
@@ -738,7 +738,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Concurrent-safe path annotation permits generated catalog churn. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.worktree.sync_dev.
 3. Resource: Resource::"repo:oyatie/microservices/foundry" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0116, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0116, and evidence_hash presence.
 5. State: The active phase is edits_made; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-WORKTREE-RETIRED seals the state-changing fact before observability emission finalizes.

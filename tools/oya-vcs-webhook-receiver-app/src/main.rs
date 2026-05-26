@@ -276,7 +276,7 @@ fn print_outcome(outcome: &DispatchOutcome) {
         }
         DispatchOutcome::ConflictingPriorOutcomes => {
             println!(
-                "conflicting-prior-outcomes: integrity anomaly — see oya-foundry-fitness-webhook-delivery-log-monotonic lane"
+                "conflicting-prior-outcomes: integrity anomaly — see oya-governance-webhook-delivery-log-monotonic lane"
             );
         }
     }

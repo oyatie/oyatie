@@ -56,7 +56,7 @@
       "claim_id": "OPS-OPERATIONAL-DELIVERED",
       "claim_short": "ops.oyatie.com hyperscaler-mature DELIVERED",
       "evidence_required": [
-        "all §11 V-rows lifecycle-promoted to verified-by-existing-CI (artifact in HEAD + lane status=active in registry/quality/lanes.yaml + ci-fitness-lanes.yml job tracked + green CI run URL recorded)",
+        "all §11 V-rows lifecycle-promoted to verified-by-existing-CI (artifact in HEAD + lane status=active in registry/quality/lanes.yaml + ci-governance-lanes.yml job tracked + green CI run URL recorded)",
         "Wave 5 IP-X10/X11/X12 dispatched + landed",
         "Waves 5.5/5.6/5.7/6/7 sub-plans authored + Accepted + dispatched + landed per absolute-date deadlines"
       ],
@@ -73,7 +73,7 @@
       "evidence_required": [
         "k6 14-route mixed perf script in HEAD at tests/perf/14-route-mixed.k6.js",
         "k6 run results stored as artifact with p99 metric",
-        "PR-time perf lane wired in .github/workflows/ci-fitness-lanes.yml AND tracked in HEAD AND lane status=active in registry/quality/lanes.yaml"
+        "PR-time perf lane wired in .github/workflows/ci-governance-lanes.yml AND tracked in HEAD AND lane status=active in registry/quality/lanes.yaml"
       ],
       "evidence_class_required": [
         "operational",

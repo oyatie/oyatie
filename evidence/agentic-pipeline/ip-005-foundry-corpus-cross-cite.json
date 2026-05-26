@@ -2,9 +2,9 @@
   "changed_files": [
     "docs/products/foundry/PHASE-00-SPEC.md",
     "docs/products/foundry/PRD.md",
-    ".omc/fitness-lanes/portfolio-citation.md",
+    ".omc/governance-lanes/portfolio-citation.md",
     "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
-    "tools/oya-foundry-fitness-portfolio-citation/src/main.rs"
+    "tools/oya-governance-portfolio-citation/src/main.rs"
   ],
   "claim": {
     "agent": "codex-autopilot-p01-ip005",
@@ -13,7 +13,7 @@
     "grit_claimed_symbols": [
       "crates/oya-governance-portfolio-citation-kernel/src/lib.rs::verify",
       "crates/oya-governance-portfolio-citation-kernel/src/lib.rs::verify_foundry_corpus",
-      "tools/oya-foundry-fitness-portfolio-citation/src/main.rs::run"
+      "tools/oya-governance-portfolio-citation/src/main.rs::run"
     ],
     "scaffold_lock_closed_icm_id": "01KRK6M68J04EAKHAPFJHZN9KY",
     "scaffold_lock_open_icm_id": "01KRK66HN2BFBS8BMGK7P9WY76"
@@ -69,7 +69,7 @@
   "summary": "Foundry PHASE-00-SPEC contract surface was verified, the Foundry PRD now cross-cites the required Bominal Foundry corpus sources, and the portfolio-citation lane validates the Foundry corpus citation gate.",
   "validation": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-governance-portfolio-citation-kernel/src/lib.rs tools/oya-foundry-fitness-portfolio-citation/src/main.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-governance-portfolio-citation-kernel/src/lib.rs tools/oya-governance-portfolio-citation/src/main.rs",
       "status": "passed"
     },
     {
@@ -78,12 +78,12 @@
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-portfolio-citation/src/main.rs --extern oya_governance_portfolio_citation_kernel=/tmp/oyatie-ip005-verification/liboya_governance_portfolio_citation_kernel.rlib",
+      "command": "rustc --edition 2021 -D warnings --test tools/oya-governance-portfolio-citation/src/main.rs --extern oya_governance_portfolio_citation_kernel=/tmp/oyatie-ip005-verification/liboya_governance_portfolio_citation_kernel.rlib",
       "evidence": "4 tests passed; 0 failed",
       "status": "passed"
     },
     {
-      "command": "/tmp/oyatie-ip005-verification/oya-foundry-fitness-portfolio-citation --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md --foundry-prd docs/products/foundry/PRD.md",
+      "command": "/tmp/oyatie-ip005-verification/oya-governance-portfolio-citation --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md --foundry-prd docs/products/foundry/PRD.md",
       "evidence": "portfolio-citation ok: citations_checked=2 oyatie_cites_bominal=true bominal_cites_oyatie=true foundry_sources_present=3/3",
       "status": "passed"
     },
@@ -100,13 +100,13 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-portfolio-citation -- --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md --foundry-prd docs/products/foundry/PRD.md",
+      "command": "cargo run -p oya-governance-portfolio-citation -- --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md --foundry-prd docs/products/foundry/PRD.md",
       "exit_code": 101,
       "status": "blocked"
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- docs/products/foundry",
+      "command": "cargo run -p oya-governance-cohesion -- docs/products/foundry",
       "exit_code": 101,
       "status": "blocked"
     },

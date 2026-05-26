@@ -243,56 +243,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.plan" | Resource::"agent-role:executor" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.execute" | Resource::"agent-role:claude-opus" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.review" | Resource::"agent-role:codex" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.verify" | Resource::"agent-role:reviewer" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:verifier" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.plan" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.execute" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.review" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.verify" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.invoke_claude_opus" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.plan" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.execute" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.review" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.verify" | Resource::"agent-role:planner" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:executor" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.plan" | Resource::"agent-role:claude-opus" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.execute" | Resource::"agent-role:codex" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.review" | Resource::"agent-role:reviewer" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.verify" | Resource::"agent-role:verifier" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.invoke_claude_opus" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.plan" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.execute" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.review" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.verify" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.invoke_claude_opus" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.plan" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.execute" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.review" | Resource::"agent-role:planner" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.verify" | Resource::"agent-role:executor" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:claude-opus" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.plan" | Resource::"agent-role:codex" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.execute" | Resource::"agent-role:reviewer" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.review" | Resource::"agent-role:verifier" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.verify" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.invoke_claude_opus" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.plan" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.execute" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.review" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.verify" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.invoke_claude_opus" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.plan" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.execute" | Resource::"agent-role:planner" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.review" | Resource::"agent-role:executor" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.verify" | Resource::"agent-role:claude-opus" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:codex" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.plan" | Resource::"agent-role:reviewer" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.execute" | Resource::"agent-role:verifier" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.review" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.verify" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.invoke_claude_opus" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.plan" | Resource::"agent-role:executor" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.execute" | Resource::"agent-role:claude-opus" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.review" | Resource::"agent-role:codex" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.verify" | Resource::"agent-role:reviewer" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:verifier" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.plan" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.execute" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.review" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.verify" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.invoke_claude_opus" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.plan" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.execute" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.review" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.verify" | Resource::"agent-role:planner" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:executor" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.plan" | Resource::"agent-role:claude-opus" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.execute" | Resource::"agent-role:codex" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.review" | Resource::"agent-role:reviewer" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.verify" | Resource::"agent-role:verifier" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.invoke_claude_opus" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.plan" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.execute" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.review" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.verify" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.invoke_claude_opus" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.plan" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.execute" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.review" | Resource::"agent-role:planner" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.verify" | Resource::"agent-role:executor" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:claude-opus" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.plan" | Resource::"agent-role:codex" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.execute" | Resource::"agent-role:reviewer" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.review" | Resource::"agent-role:verifier" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.verify" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.invoke_claude_opus" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.plan" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.execute" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.review" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.verify" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.invoke_claude_opus" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.plan" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.execute" | Resource::"agent-role:planner" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.review" | Resource::"agent-role:executor" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.verify" | Resource::"agent-role:claude-opus" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.invoke_claude_opus" | Resource::"agent-role:codex" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.plan" | Resource::"agent-role:reviewer" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.execute" | Resource::"agent-role:verifier" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.review" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.verify" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.invoke_claude_opus" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=agent-types-and-roles | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -301,7 +301,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -313,7 +313,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -325,7 +325,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -337,7 +337,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -615,7 +615,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Planner decomposes a docs substrate slice and Codex authors it. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.agent.plan.
 3. Resource: Resource::"agent-role:planner" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is intake; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-ROLE-ROUTED seals the state-changing fact before observability emission finalizes.
@@ -647,7 +647,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Claude Opus performs adversarial architecture review for a broad change. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.agent.execute.
 3. Resource: Resource::"agent-role:executor" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is planner; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-HANDOFF-RECORDED seals the state-changing fact before observability emission finalizes.
@@ -679,7 +679,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Executor owns bounded files and verifier owns final evidence. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.agent.review.
 3. Resource: Resource::"agent-role:claude-opus" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is claude_opus; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-EXECUTION-STARTED seals the state-changing fact before observability emission finalizes.
@@ -711,7 +711,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Reviewer-agent requests changes and Codex returns to implementation. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.agent.verify.
 3. Resource: Resource::"agent-role:codex" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is codex; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-REVIEW-RECORDED seals the state-changing fact before observability emission finalizes.
@@ -743,7 +743,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Human override is rare, signed, justified, and alarmed. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.agent.invoke_claude_opus.
 3. Resource: Resource::"agent-role:reviewer" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is executor; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-HUMAN-OVERRIDE-USED seals the state-changing fact before observability emission finalizes.

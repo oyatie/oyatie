@@ -117,8 +117,8 @@ Before `grit claim`, the agent **MUST**:
 $ cargo nextest run -p oya-intelligence-adapter-anthropic-compat-api --all-features    # expect: PASS, 0 failures
 $ cargo clippy -p oya-intelligence-adapter-anthropic-compat-api -- -D warnings         # expect: PASS, 0 warnings
 $ cargo deny check                                                                # expect: PASS
-$ oya gate validate oya-foundry-fitness-compat-api-shape-binding                  # expect: PASS (response shape matches Anthropic OpenAPI)
-$ oya gate validate oya-foundry-fitness-provider-coupling                         # expect: PASS (no provider imports outside adapter)
+$ oya gate validate oya-governance-compat-api-shape-binding                  # expect: PASS (response shape matches Anthropic OpenAPI)
+$ oya gate validate oya-governance-provider-coupling                         # expect: PASS (no provider imports outside adapter)
 $ oya-tooling-agent-read run-evidence "scripts/smoke/anthropic-compat-smoke.sh"   # expect: 200 OK + valid Messages-API JSON + SSE stream replays
 $ docker buildx build --target distroless-debian13 -t oya-foundry-anthropic-compat:test # expect: image < 25 MiB
 ```

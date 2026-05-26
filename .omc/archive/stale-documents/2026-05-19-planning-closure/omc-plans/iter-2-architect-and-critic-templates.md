@@ -63,7 +63,7 @@ Specifically verify:
 - A6 hook/skill enumeration present (Critic #3 from iter-1).
 - A9 explicitly Critic-attested (Critic #4 from iter-1).
 - P3.5 phantom-path correction (the `oyatie/.omx/ultragoal/` line in inventory).
-- New `oya-foundry-fitness-archive-orphan` lane defined (Arch rev #3).
+- New `oya-governance-archive-orphan` lane defined (Arch rev #3).
 - Demo symbols pinned to `CloudBillingEventIngestAppStatus` + `CloudBillingMeterUnitRecord` (Arch rev #6).
 
 Verdict: APPROVE | ITERATE | REJECT.

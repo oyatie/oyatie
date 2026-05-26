@@ -12,9 +12,9 @@
   "policy_adherence_triggered": true,
   "scope": [
     ".github/branch-protection.yaml",
-    ".github/workflows/oya-foundry-fitness-banned-primitives.yml",
-    ".omc/fitness-lanes/INDEX.md",
-    ".omc/fitness-lanes/banned-primitives.md",
+    ".github/workflows/oya-governance-banned-primitives.yml",
+    ".omc/governance-lanes/INDEX.md",
+    ".omc/governance-lanes/banned-primitives.md",
     ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/",
     ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
     "Cargo.lock",
@@ -274,12 +274,12 @@
       "summary": "verify-evidence ratchet accepted; no warnings/blocking_errors/forbidden_uses; no persisted bundle artifact emitted by current CLI."
     },
     {
-      "command": "bin/oya vcs --format json done --agent fd001-fitness --controller-promote --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
+      "command": "bin/oya vcs --format json done --agent fd001-fitness --controller-promote --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
       "status": "accepted",
       "summary": "emit-change-bundle ratchet accepted for source-corpus scope; closeout_mode=controller-promote; no warnings/blocking_errors/forbidden_uses; no persisted bundle artifact emitted by current CLI."
     },
     {
-      "command": "bin/oya vcs --format json promote --agent fd001-fitness --bundle cb-cs-fitness-001-banned-primitives-2026-05-19 --environment ci-preview --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
+      "command": "bin/oya vcs --format json promote --agent fd001-fitness --bundle cb-cs-fitness-001-banned-primitives-2026-05-19 --environment ci-preview --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
       "status": "accepted",
       "summary": "promote-bundle ratchet accepted for ci-preview/source-corpus scope; no warnings/blocking_errors/forbidden_uses; no hosted deployment claim."
     }

@@ -118,7 +118,7 @@ docs/architecture/standards-corpus-line-audit-2026-05-21.md
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md
 docs/architecture/adr-corpus-line-audit-2026-05-21.md
 docs/architecture/wave-3-final-scorecard-2026-05-20.md
-docs/fitness-lanes/archive-orphan.md
+docs/governance-lanes/archive-orphan.md
 docs/templates/capability-record-template-v2.yaml
 docs/templates/runbook-template-v2.md
 docs/localization-packs/kr/pack.yaml
@@ -1995,7 +1995,7 @@ docs/quality/ai-slop-defense/impossible-to-fail-environment-spec.md:| Agent cras
 docs/quality/ai-slop-defense/impossible-to-fail-environment-spec.md:| Agent loops on a failing test | `oya-governance-test-flake` (new) — caps retries; `icm` raises a "stuck-agent" signal; council-architecture pages. |
 docs/quality/ai-slop-defense/defense-in-depth-architecture.md:  reviewer runs the Code Review checklist; verdict logged in `icm`.
 docs/quality/ai-slop-defense/additional-tooling-recommendations.md:| **Reviewer-agent verdict** | Independent LLM reviews PR; verdict logged to `icm`. Disagreement → council-architecture. | HIGH | `oya-governance-reviewer-verdict` | ADR-XXX-reviewer-agent |
-docs/CHANGELOG.md:- Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.
+docs/CHANGELOG.md:- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.
 docs/CHANGELOG.md:- Recorded the M01-P01-IP-001 scaffold-claim fallback after grit returned the known new/doc-symbol FK failure.
 docs/CHANGELOG.md:- Added `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and executable script to prove two session-less `grit` agents can claim non-overlapping symbols in one file.
 docs/CHANGELOG.md:- Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
@@ -2362,18 +2362,18 @@ docs/advanced-cicd/branch-pipeline/agent-roles-spec.md:**Action.** Claims symbol
 docs/advanced-cicd/branch-pipeline/agent-roles-spec.md:**Sanctioned tools.** Full `grit` + `icm` + `oya-tooling-agent-read` (`grit claim`, `grit done`).
 docs/advanced-cicd/branch-pipeline/agent-roles-spec.md:**Sanctioned tools.** `grit` + `icm` + `oya-tooling-agent-read`. Direct `git push --signed origin staging:prod` permitted under Directive 12 with logged rationale.
 docs/advanced-cicd/branch-pipeline/agent-roles-spec.md:Verdict recorded via `icm store -t pr-review-verdicts` per Directive 12; without the record, `oya-governance-pr-review-verdict-present` blocks promotion.
-docs/advanced-cicd/branch-pipeline/fitness-lanes-for-branch-pipeline.md:**Evaluation logic.** Returns PASS when, for every change-class invoked by the PR's file-glob, a verdict record exists in `icm topic pr-review-verdicts` keyed by `pr-<id>,<reviewer-name>` with `verdict ∈ {APPROVE, REQUEST_CHANGES, COMMENT}`. Returns FAIL if any required reviewer has no verdict recorded.
-docs/advanced-cicd/branch-pipeline/fitness-lanes-for-branch-pipeline.md:**Evaluation logic.** Walks every reviewer-agent comment on the originating PR (recorded in `icm topic pr-review-comments`). For each comment, checks one of: (a) `resolved: true` annotation present; OR (b) a follow-up commit on `origin/dev` (subsequently auto-promoted to staging) references the comment id (via commit message `Closes-comment: <id>` trailer). Returns FAIL with the unresolved comment ids if any.
+docs/advanced-cicd/branch-pipeline/governance-lanes-for-branch-pipeline.md:**Evaluation logic.** Returns PASS when, for every change-class invoked by the PR's file-glob, a verdict record exists in `icm topic pr-review-verdicts` keyed by `pr-<id>,<reviewer-name>` with `verdict ∈ {APPROVE, REQUEST_CHANGES, COMMENT}`. Returns FAIL if any required reviewer has no verdict recorded.
+docs/advanced-cicd/branch-pipeline/governance-lanes-for-branch-pipeline.md:**Evaluation logic.** Walks every reviewer-agent comment on the originating PR (recorded in `icm topic pr-review-comments`). For each comment, checks one of: (a) `resolved: true` annotation present; OR (b) a follow-up commit on `origin/dev` (subsequently auto-promoted to staging) references the comment id (via commit message `Closes-comment: <id>` trailer). Returns FAIL with the unresolved comment ids if any.
 docs/advanced-cicd/branch-pipeline/INDEX.md:`dev-promoter`, `staging-promoter`, `prod-promoter` — plus the rescoped `staging-fixer`. All distroless; all Cosign-keyless-signed; all icm-topic-emitting per role spec §2-5.
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:## 3. Layer 0 — worktree (`.grit/worktrees/<agent-id>/`)
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:**CI policy:** none at the layer boundary. The agent's local-dev clone is just a local copy of `origin/dev`; `grit done` is the atomic merge primitive. Agents may sync local-dev to/from `origin/dev` (fetch + rebase + merge) at any time without ceremony.
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:**Lanes that run:** all BLOCKER + HIGH lanes from §2 on the PR HEAD (the local-dev tip targeting `origin/dev`). The PR opens automatically when the agent declares `grit done` (or via `dev-promoter` orchestration).
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:**Promotion gate semantics:** the **5 staging → prod gates** all green. Per-gate evidence stored as signed icm records. `prod-promoter` evaluates and fires automatically (except Directive-12 carve-out classes).
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
 docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md:| 0 | per-agent worktree (`.grit/worktrees/<agent-id>/`) | the agent doing the work | n/a (private workspace) | only the agent itself |
 docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md:| 1 | agent local dev clone (the agent's local copy of `origin/dev`) | `grit done --agent <id>` (atomic, treats as sync with origin/dev) | **none** — autonomous sync | only the agent itself |
 docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md:    W["agent worktree<br/>(.grit/worktrees/<id>/)"]
@@ -2630,11 +2630,11 @@ docs/release/branch-pipeline/agent-roles-spec.md:Verdict recorded via `icm store
 docs/release/branch-pipeline/agent-roles-spec.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all promoter agents use `grit` + `icm` + `oya-tooling-agent-read`; direct tool invocations logged via `icm store -t direct-tool-invocations`.
 docs/release/branch-pipeline/playbooks-by-axis-stage.md:> **Status:** Accepted. **Owner:** `axis-foundry` + per-axis leads. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 docs/release/branch-pipeline/playbooks-by-axis-stage.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — per-axis promotion evidence stored via `icm store -t axis-promotions`; all sanctioned tool usage.
-docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
-docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md:**Evaluation logic.** Returns PASS when, for every change-class invoked by the PR's file-glob, a verdict record exists in `icm topic pr-review-verdicts` keyed by `pr-<id>,<reviewer-name>` with `verdict ∈ {APPROVE, REQUEST_CHANGES, COMMENT}`. Returns FAIL if any required reviewer has no verdict recorded.
-docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md:**Evaluation logic.** Walks every reviewer-agent comment on the originating PR (recorded in `icm topic pr-review-comments`). For each comment, checks one of: (a) `resolved: true` annotation present; OR (b) a follow-up commit on `origin/dev` (subsequently auto-promoted to staging) references the comment id (via commit message `Closes-comment: <id>` trailer). Returns FAIL with the unresolved comment ids if any.
-docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md:Every lane ships as a binary in a distroless container per [Directive 5](../../../docs/MASTERPLAN.md). Lane logic lives in `crates/oya-governance-<lane-name>/`; invoked by the CI runner kernel (per [`ci-policy-per-branch.md`](ci-policy-per-branch.md) §1). Lane output is JSON conforming to the schemas above; ingested by `oya-governance-aggregator` for cross-lane reporting. Evidence stored via `icm store -t fitness-lane-results` per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
-docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — lane evidence stored via `icm store`; all lane invocations use sanctioned primitives.
+docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
+docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md:**Evaluation logic.** Returns PASS when, for every change-class invoked by the PR's file-glob, a verdict record exists in `icm topic pr-review-verdicts` keyed by `pr-<id>,<reviewer-name>` with `verdict ∈ {APPROVE, REQUEST_CHANGES, COMMENT}`. Returns FAIL if any required reviewer has no verdict recorded.
+docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md:**Evaluation logic.** Walks every reviewer-agent comment on the originating PR (recorded in `icm topic pr-review-comments`). For each comment, checks one of: (a) `resolved: true` annotation present; OR (b) a follow-up commit on `origin/dev` (subsequently auto-promoted to staging) references the comment id (via commit message `Closes-comment: <id>` trailer). Returns FAIL with the unresolved comment ids if any.
+docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md:Every lane ships as a binary in a distroless container per [Directive 5](../../../docs/MASTERPLAN.md). Lane logic lives in `crates/oya-governance-<lane-name>/`; invoked by the CI runner kernel (per [`ci-policy-per-branch.md`](ci-policy-per-branch.md) §1). Lane output is JSON conforming to the schemas above; ingested by `oya-governance-aggregator` for cross-lane reporting. Evidence stored via `icm store -t fitness-lane-results` per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
+docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — lane evidence stored via `icm store`; all lane invocations use sanctioned primitives.
 docs/release/branch-pipeline/INDEX.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sibling:** [`../progressive-delivery/`](../progressive-delivery/). **ADR:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 docs/release/branch-pipeline/INDEX.md:`dev-promoter`, `staging-promoter`, `prod-promoter` — plus the rescoped `staging-fixer`. All distroless; all Cosign-keyless-signed; all icm-topic-emitting per role spec §2-5. Sanctioned primitives per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md): `grit` + `icm` + `oya-tooling-agent-read`.
 docs/release/branch-pipeline/ci-policy-per-branch.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
@@ -2643,13 +2643,13 @@ docs/release/branch-pipeline/ci-policy-per-branch.md:**CI policy:** none at the 
 docs/release/branch-pipeline/ci-policy-per-branch.md:**Lanes that run:** all BLOCKER + HIGH lanes from §2 on the PR HEAD (the local-dev tip targeting `origin/dev`). The PR opens automatically when the agent declares `grit done` (or via `dev-promoter` orchestration).
 docs/release/branch-pipeline/ci-policy-per-branch.md:**Promotion gate semantics:** the **5 staging → prod gates** all green. Per-gate evidence stored as signed icm records. `prod-promoter` evaluates and fires automatically (except Directive-12 carve-out classes).
 docs/release/branch-pipeline/ci-policy-per-branch.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all CI invocations use sanctioned primitives; direct `gh` usage under Directive 12 with `icm store -t direct-tool-invocations`.
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability stage transitions recorded via `icm store -t capability-stage-transitions`; all sanctioned tool usage.
+docs/release/branch-pipeline/governance-pipeline-mirror.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
+docs/release/branch-pipeline/governance-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
+docs/release/branch-pipeline/governance-pipeline-mirror.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability stage transitions recorded via `icm store -t capability-stage-transitions`; all sanctioned tool usage.
 docs/release/branch-pipeline/branch-pipeline-architecture.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Supersedes:** [ADR-0041](../../decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md).
 docs/release/branch-pipeline/branch-pipeline-architecture.md:| 0 | per-agent worktree (`.grit/worktrees/<agent-id>/`) | the agent doing the work | n/a (private workspace) | only the agent itself |
 docs/release/branch-pipeline/branch-pipeline-architecture.md:| 1 | agent local dev clone (the agent's local copy of `origin/dev`) | `grit done --agent <id>` (atomic, treats as sync with origin/dev) | **none** — autonomous sync | only the agent itself |
@@ -3086,7 +3086,7 @@ docs/architecture/memory-spec-runbook-audit-2026-05-21.md:    - `flat-crates-mov
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md:- **Memory** (`feedback_deprecate_external_agent_coord_tooling.md`): grit/rtk/icm/vox are deprecated as of 2026-05-16.
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md:- **Memory** (10+ non-superseded files): Still prescribe grit/rtk/icm usage in procedure sections.
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md:- **Runbooks** (`grit-session-bug-upstream.md`): References grit as if still in use.
-docs/architecture/ip-corpus-line-audit-2026-05-21.md:1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-foundry-fitness-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
+docs/architecture/ip-corpus-line-audit-2026-05-21.md:1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
 docs/architecture/ip-corpus-line-audit-2026-05-21.md:### §2.4 Retired tooling (grit / rtk / icm / vox)
 docs/architecture/ip-corpus-line-audit-2026-05-21.md:**0 IP-body hits.** The IP corpus is clean of grit/rtk/icm/vox references per [[deprecate-external-agent-coord-tooling]]. The `oya vcs` references in §2.2 are the residual: they came from the same era but were independently retired by the [[oya-git-canonical-2026-05-18]] sub-doctrine.
 docs/architecture/ip-corpus-line-audit-2026-05-21.md:| grit / rtk / icm / vox | 0 | 0 | n/a |
@@ -3154,7 +3154,7 @@ docs/architecture/product-graph.html:    bench: 'rtk-ai/grit | AWS Bedrock Guard
 docs/architecture/wave-3-retrospective-2026-05-20.md:CI gate 13 pass condition: no Object Graph, grit/icm/rtk/vox, or stale layer enum usage unless historical context is marked.
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:| 31 | P1 | anti-pattern corpus | retired external tooling (grit/rtk/icm/oya vcs): 2369 hits | `docs/CHANGELOG.md:238` | 3-J |
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:| retired external tooling (grit/rtk/icm/oya vcs) | 2369 | docs/CHANGELOG.md:238; docs/GLOSSARY.md:568; docs/DOC-COVERAGE.md:206; docs/MASTERPLAN.md:96; docs/bootstrap.md:164 |
-docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.`
+docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.`
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:### §11.5 retired external tooling (grit/rtk/icm/oya vcs)
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:- `docs/bootstrap.md:164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)`
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:| docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md | 17 | 0 | 0 | 0 | 1 | 7 | CRITICAL |
@@ -3180,39 +3180,39 @@ docs/architecture/six-hops-reachability-audit-2026-05-20.md:| 11 | `docs/decisio
 docs/architecture/keystone-bundle-2026-05-20-synthesis.md:3. **Memory retired-tool propagation (P0):** 10+ memories still instruct grit/rtk/icm/vox usage
 docs/architecture/keystone-bundle-2026-05-20-synthesis.md:| `claude-code-harness.md` describes retired grit/icm/rtk tooling per ADR-0116 | **TRUE P0** | Phase-2 action: tombstone with `Status: Superseded by ADR-0116`. |
 docs/architecture/keystone-bundle-2026-05-20-synthesis.md:| `agent-instructions-discipline.md` §2 + §10 retain grit/icm references | **TRUE P0** | Phase-2 action: surgical Edit to remove grit/icm; replace with `oya git`. |
-docs/fitness-lanes/banned-primitives.md:- purpose: Verify fenced agent-instruction sections invoke the sanctioned primitive triad (`grit`, `icm`, `oya-tooling-agent-read`) and that any documented direct VCS / forge exception carries an icm rationale.
-docs/fitness-lanes/banned-primitives.md:- adr_citations: ADR-0053 (sanctioned primitives — defines {grit, icm, oya-tooling-agent-read} as the closed set; direct git/gh requires icm-documented rationale)
-docs/fitness-lanes/banned-primitives.md:- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/agents/**/*.md`, `docs/standards/agent-instructions-discipline.md`, `.omc/**/*.md` files that contain `<!-- agent-instructions:start -->`, and icm rationale store dump.
-docs/fitness-lanes/banned-primitives.md:  - fenced agent block names a direct VCS / forge primitive without an icm rationale id
-docs/fitness-lanes/banned-primitives.md:  - rationale id not in icm store
-docs/fitness-lanes/agent-completion-checklist.md:- purpose: Verify every grit-done event has a matching icm-store and audit-chain emission triple.
-docs/fitness-lanes/agent-completion-checklist.md:- adr_citations: ADR-0054 (scaffold-claim pattern — grit-done events must be paired with icm-store and audit emission to close the coordination loop)
-docs/fitness-lanes/agent-completion-checklist.md:- inputs: grit log, icm log, audit-chain ledger.
-docs/fitness-lanes/agent-completion-checklist.md:  - grit-done with no icm-store
-docs/fitness-lanes/agent-completion-checklist.md:  - icm-store with no audit row
-docs/fitness-lanes/agent-completion-checklist.md:  - duplicate audit emission for same grit-done
-docs/fitness-lanes/agent-completion-checklist.md:        let icm = t.icm_store_id.as_ref().ok_or_else(|| AgentCompletionChecklistFitnessError::MissingIcmStore {
-docs/fitness-lanes/agent-completion-checklist.md:            grit_done_id: t.grit_done_id.clone(), icm_store_id: icm.clone(),
-docs/fitness-lanes/scaffold-claim-pattern.md:- purpose: Verify every newly-scaffolded crate follows ADR-0054 icm-coordination-lock pattern (claim id + completion stamp).
-docs/fitness-lanes/scaffold-claim-pattern.md:- adr_citations: ADR-0054 (scaffold-claim pattern — defines the icm-coordination-lock sequence; this lane enforces its structural claim+stamp invariant for every new crate)
-docs/fitness-lanes/scaffold-claim-pattern.md:- inputs: new-crate diff list, icm-claim dump.
-docs/fitness-lanes/agentic-navigability.md:- purpose: Verify every non-trivial directory has an `INDEX.md`, predictable naming, and grit-claim symbols on key entry points.
-docs/fitness-lanes/agentic-navigability.md:- inputs: directory snapshot, naming-rule registry, grit-claim symbol map.
-docs/fitness-lanes/claim-ceiling.md:- purpose: Verify no agent holds more concurrent grit-claims than the configured ceiling per session.
-docs/fitness-lanes/claim-ceiling.md:- adr_citations: ADR-0054 (scaffold-claim pattern — defines icm-coordination-lock as the claim mechanism; ceiling enforcement prevents runaway concurrent scaffolds)
-docs/fitness-lanes/claim-ceiling.md:- inputs: grit-claim ledger snapshot, ceiling-policy registry.
-docs/fitness-lanes/INDEX.md:| direct-tool-invocation-audit | new-directive | Directive 12 (icm record) | oya-governance-direct-tool-invocation-kernel | tools/oya-governance-direct-tool-invocation-audit | `cargo run -p oya-governance-direct-tool-invocation-audit` | 800 | HIGH |
-docs/fitness-lanes/archive-orphan.md:- former_scope: Verified Bominal ultragoal orchestration-glue ARCHIVE rows under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/`, absent active originals, and zero living references outside authority/provenance docs.
-docs/fitness-lanes/archive-orphan.md:- replacement: Foundry pipeline admission + projected-merge-state + conflict-kernel under M01-P18, with ADR-0116 retiring grit/rtk/icm/vox-era coordination surfaces.
-docs/fitness-lanes/direct-tool-invocation-audit.md:- purpose: Verify every direct git/gh invocation in agent prompts/sessions has a matching icm-record entry.
-docs/fitness-lanes/direct-tool-invocation-audit.md:- enforces: Directive 12 (MASTERPLAN) — every git/gh has icm record.
-docs/fitness-lanes/direct-tool-invocation-audit.md:- adr_citations: ADR-0053 (sanctioned primitives — direct git/gh invocations outside sanctioned primitives must carry icm-documented rationale per Directive 12)
-docs/fitness-lanes/direct-tool-invocation-audit.md:- inputs: session transcripts, icm record dump.
-docs/fitness-lanes/direct-tool-invocation-audit.md:  - session log shows `git push` with no icm row
-docs/fitness-lanes/direct-tool-invocation-audit.md:  - icm row references missing session
-docs/fitness-lanes/direct-tool-invocation-audit.md:  - duplicated icm row id for distinct commands
-docs/fitness-lanes/bypass.md:- purpose: Verify no code or doc circumvents a fitness lane via `#[allow]`, `// fitness-skip`, `<!-- fitness-skip -->`, or env-flag without an ADR + icm record.
-docs/fitness-lanes/bypass.md:  - `// fitness-skip` with no ADR/icm reference
+docs/governance-lanes/banned-primitives.md:- purpose: Verify fenced agent-instruction sections invoke the sanctioned primitive triad (`grit`, `icm`, `oya-tooling-agent-read`) and that any documented direct VCS / forge exception carries an icm rationale.
+docs/governance-lanes/banned-primitives.md:- adr_citations: ADR-0053 (sanctioned primitives — defines {grit, icm, oya-tooling-agent-read} as the closed set; direct git/gh requires icm-documented rationale)
+docs/governance-lanes/banned-primitives.md:- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/agents/**/*.md`, `docs/standards/agent-instructions-discipline.md`, `.omc/**/*.md` files that contain `<!-- agent-instructions:start -->`, and icm rationale store dump.
+docs/governance-lanes/banned-primitives.md:  - fenced agent block names a direct VCS / forge primitive without an icm rationale id
+docs/governance-lanes/banned-primitives.md:  - rationale id not in icm store
+docs/governance-lanes/agent-completion-checklist.md:- purpose: Verify every grit-done event has a matching icm-store and audit-chain emission triple.
+docs/governance-lanes/agent-completion-checklist.md:- adr_citations: ADR-0054 (scaffold-claim pattern — grit-done events must be paired with icm-store and audit emission to close the coordination loop)
+docs/governance-lanes/agent-completion-checklist.md:- inputs: grit log, icm log, audit-chain ledger.
+docs/governance-lanes/agent-completion-checklist.md:  - grit-done with no icm-store
+docs/governance-lanes/agent-completion-checklist.md:  - icm-store with no audit row
+docs/governance-lanes/agent-completion-checklist.md:  - duplicate audit emission for same grit-done
+docs/governance-lanes/agent-completion-checklist.md:        let icm = t.icm_store_id.as_ref().ok_or_else(|| AgentCompletionChecklistFitnessError::MissingIcmStore {
+docs/governance-lanes/agent-completion-checklist.md:            grit_done_id: t.grit_done_id.clone(), icm_store_id: icm.clone(),
+docs/governance-lanes/scaffold-claim-pattern.md:- purpose: Verify every newly-scaffolded crate follows ADR-0054 icm-coordination-lock pattern (claim id + completion stamp).
+docs/governance-lanes/scaffold-claim-pattern.md:- adr_citations: ADR-0054 (scaffold-claim pattern — defines the icm-coordination-lock sequence; this lane enforces its structural claim+stamp invariant for every new crate)
+docs/governance-lanes/scaffold-claim-pattern.md:- inputs: new-crate diff list, icm-claim dump.
+docs/governance-lanes/agentic-navigability.md:- purpose: Verify every non-trivial directory has an `INDEX.md`, predictable naming, and grit-claim symbols on key entry points.
+docs/governance-lanes/agentic-navigability.md:- inputs: directory snapshot, naming-rule registry, grit-claim symbol map.
+docs/governance-lanes/claim-ceiling.md:- purpose: Verify no agent holds more concurrent grit-claims than the configured ceiling per session.
+docs/governance-lanes/claim-ceiling.md:- adr_citations: ADR-0054 (scaffold-claim pattern — defines icm-coordination-lock as the claim mechanism; ceiling enforcement prevents runaway concurrent scaffolds)
+docs/governance-lanes/claim-ceiling.md:- inputs: grit-claim ledger snapshot, ceiling-policy registry.
+docs/governance-lanes/INDEX.md:| direct-tool-invocation-audit | new-directive | Directive 12 (icm record) | oya-governance-direct-tool-invocation-kernel | tools/oya-governance-direct-tool-invocation-audit | `cargo run -p oya-governance-direct-tool-invocation-audit` | 800 | HIGH |
+docs/governance-lanes/archive-orphan.md:- former_scope: Verified Bominal ultragoal orchestration-glue ARCHIVE rows under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/`, absent active originals, and zero living references outside authority/provenance docs.
+docs/governance-lanes/archive-orphan.md:- replacement: Foundry pipeline admission + projected-merge-state + conflict-kernel under M01-P18, with ADR-0116 retiring grit/rtk/icm/vox-era coordination surfaces.
+docs/governance-lanes/direct-tool-invocation-audit.md:- purpose: Verify every direct git/gh invocation in agent prompts/sessions has a matching icm-record entry.
+docs/governance-lanes/direct-tool-invocation-audit.md:- enforces: Directive 12 (MASTERPLAN) — every git/gh has icm record.
+docs/governance-lanes/direct-tool-invocation-audit.md:- adr_citations: ADR-0053 (sanctioned primitives — direct git/gh invocations outside sanctioned primitives must carry icm-documented rationale per Directive 12)
+docs/governance-lanes/direct-tool-invocation-audit.md:- inputs: session transcripts, icm record dump.
+docs/governance-lanes/direct-tool-invocation-audit.md:  - session log shows `git push` with no icm row
+docs/governance-lanes/direct-tool-invocation-audit.md:  - icm row references missing session
+docs/governance-lanes/direct-tool-invocation-audit.md:  - duplicated icm row id for distinct commands
+docs/governance-lanes/bypass.md:- purpose: Verify no code or doc circumvents a fitness lane via `#[allow]`, `// fitness-skip`, `<!-- fitness-skip -->`, or env-flag without an ADR + icm record.
+docs/governance-lanes/bypass.md:  - `// fitness-skip` with no ADR/icm reference
 docs/bootstrap.md:- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)
 docs/templates/adr-template-v2.md:  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
 docs/templates/implementation-plan-template.md:  Canonical Implementation Plan shape for every IP under `.omc/plans/milestones/M*/phases/P*/IP-NNN-<slug>.md`. Built to final shape from day one (Master Plan principle 3). Names real `file::Identifier` grit-claim symbols, enumerates agent prerequisites, acceptance test commands, done criteria, rollback, next-IP pointer, and icm-store payload.

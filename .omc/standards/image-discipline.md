@@ -12,7 +12,7 @@ purpose: |
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
 lift_target: oyatie/docs/standards/image-discipline.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-image-discipline
+enforced_by: oya-governance-image-discipline
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/release-management.md
@@ -61,7 +61,7 @@ Sources: [distroless support policy](https://github.com/GoogleContainerTools/dis
 | `latest` tag, any image | non-reproducible |
 | Self-hosted FROM scratch with manual cert bundles | distroless ships the cert bundle |
 
-Lane: `oya-foundry-fitness-container-base` refuses production manifests
+Lane: `oya-governance-container-base` refuses production manifests
 that pull from the forbidden list. Build-stage usage is allowed (multi-
 stage with FROM gcr.io/distroless/... as final stage).
 
@@ -128,7 +128,7 @@ Required rules:
 
 ## 5. Image-size budget
 
-Per-binary budget enforced by `oya-foundry-fitness-image-discipline`:
+Per-binary budget enforced by `oya-governance-image-discipline`:
 
 | Binary class | Compressed budget | Decompressed budget |
 |---|---|---|
@@ -209,7 +209,7 @@ Policy expectation:
 - Image MUST carry SLSA-L2 provenance.
 - Image MUST be pinned by digest (no tags).
 
-Lane: `oya-foundry-fitness-release-supply-chain` (per DOC-CATALOG.md §4).
+Lane: `oya-governance-release-supply-chain` (per DOC-CATALOG.md §4).
 
 ## 10. Trivy scan gate
 

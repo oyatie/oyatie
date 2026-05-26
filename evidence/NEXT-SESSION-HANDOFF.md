@@ -38,7 +38,7 @@ authority: This file is the canonical entry point. Conflicts: this file > pointe
 ## 2. IMMEDIATE NEXT ACTIONS (in order)
 
 1. **Wait for GH #144 nextest** to complete; if green → `gh pr merge 144 --squash --delete-branch` (CI fix loop already wired). Multispectrum + Code Review section for #144 may need to be added BEFORE merge per contract path; user has previously chosen "Full contract path" — replicate for #144.
-2. **Audit 12 new lane IDs from PR-143** in `registry/quality/lanes.yaml` — verify none use `oya-foundry-fitness-*` prefix (per fitness→governance retirement). If any do, queue rename into task #37 fan-out.
+2. **Audit 12 new lane IDs from PR-143** in `registry/quality/lanes.yaml` — verify none use `oya-governance-*` prefix (per fitness→governance retirement). If any do, queue rename into task #37 fan-out.
 3. **Switch main worktree to `dev`** to clear orphaned local branch (`oya-microservice-flat-layout-buildout-2026-05-17` is deleted upstream; local copy is stale). Note: another worktree at `/private/tmp/oyatie-deployment-rust-consolidation` currently has `dev` checked out — coordinate or just `git fetch origin && git checkout -B work-2026-05-18 origin/dev` to a new local branch off latest dev.
 4. **Commit this handoff to dev** in a tiny follow-up PR (the handoff lives in main worktree which is on orphaned branch; it needs to land in dev to be discoverable by future sessions).
 
@@ -115,7 +115,7 @@ Per ADR-0221 (Agentic Development Pipeline Hardening — landed in PR-143):
 | `oya-governance-version-pin-source-citation` | Every version pin cites WebSearch/Context7/upstream URL | Hook at `tools/hooks/spec-version-pin-suggester.sh`; needs CI wiring |
 | `oya-governance-buildability-line-count` | µservice docs ≥50 lines (ADR-0212 buildability bar) | Hook at `tools/hooks/buildability-line-count.sh`; needs CI wiring |
 
-(NOTE: per the fitness→governance rename, prefix is `oya-governance-*` not `oya-foundry-fitness-*` for these NEW lanes.)
+(NOTE: per the fitness→governance rename, prefix is `oya-governance-*` not `oya-governance-*` for these NEW lanes.)
 
 ## 4. STALE-INFO TABLE — DO NOT USE
 
@@ -134,7 +134,7 @@ Per ADR-0221 (Agentic Development Pipeline Hardening — landed in PR-143):
 | gVisor primary | Cloud Hypervisor primary per ADR-0147 |
 | MinIO / Vault / Redis / Terraform / Gatekeeper / Cluster Autoscaler | SeaweedFS / OpenBao / Valkey 8.1 / OpenTofu / Kyverno / Karpenter |
 | Plugin marketplace user-level install | Repo-vendored `tools/agent-skills/` (PR #144) |
-| `fitness` glossary term — RETIRED 2026-05-18 | `governance` glossary (ADR-0132). NEW lanes use `oya-governance-*` prefix. Existing `oya-foundry-fitness-*` lanes kept compat-window until per-lane migration IPs (task #37) |
+| `fitness` glossary term — RETIRED 2026-05-18 | `governance` glossary (ADR-0132). NEW lanes use `oya-governance-*` prefix. Existing `oya-governance-*` lanes kept compat-window until per-lane migration IPs (task #37) |
 
 ## 5. DOCTRINES (apply throughout, do not relitigate)
 

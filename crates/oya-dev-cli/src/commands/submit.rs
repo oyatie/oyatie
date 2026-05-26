@@ -13,7 +13,7 @@
 //! Per [[feedback_no_exceptions_canonical]], `oya submit` is the
 //! single canonical shipping command. The retired manual sequence
 //! (`cargo run … -- verify && git push && gh pr create`) is no longer
-//! sanctioned; the [`oya-foundry-fitness-retired-vocabulary`] lane
+//! sanctioned; the [`oya-governance-retired-vocabulary`] lane
 //! catches re-introductions in docs.
 //!
 //! Naming justification: top-level subcommand `submit` (kebab-case);

@@ -6,7 +6,7 @@ purpose: |
   Canonical PR body for every change. 5 author-owned H2 sections plus a lead-owned `## Code Review` added at merge time. Dual-audience: identical content readable by both reviewer agents and human reviewers. Enforces RFC-2119 normative form where requirements are stated.
 lift_target: oyatie/docs/templates/pull-request-template.md
 supersedes: docs/templates/pull-request-template.md
-enforcing_fitness_lane: oya-foundry-fitness-pr-shape (delegates to `traceability-validator`)
+enforcing_fitness_lane: oya-governance-pr-shape (delegates to `traceability-validator`)
 owner_team: axis-foundry + council-architecture
 related:
   - docs/AGENTS.md  # §PR shape + §Done-Definition

@@ -12,7 +12,7 @@ purpose: |
   forward-reference sentinel in `docs/AGENTS.md` canonical doc map.
 lift_target: oyatie/docs/standards/on-call.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-runbook-index-resolves
+enforced_by: oya-governance-runbook-index-resolves
 companion_docs:
   - docs/INCIDENT-MANAGEMENT.md
   - docs/SLO-CATALOG.md
@@ -67,7 +67,7 @@ Rules:
 1. Every public surface in `docs/SPEC.md` has an SLO entry (lane:
    `slo-surface-coverage`).
 2. Every paging alert resolves to **exactly one runbook URL** in the alert
-   body. Lane: `oya-foundry-fitness-alert-runbook-link`.
+   body. Lane: `oya-governance-alert-runbook-link`.
 3. Suppressed alerts MUST have an expiry timestamp; auto-renewal is
    forbidden. Suppression > 7 days requires team-lead approval logged
    to icm.
@@ -109,10 +109,10 @@ Required runbook shape (per `templates/runbook-template.md`):
 
 Lanes:
 
-- `oya-foundry-fitness-runbook-discoverability` — every runbook indexed.
-- `oya-foundry-fitness-runbook-orphan-check` — no runbook references a
+- `oya-governance-runbook-discoverability` — every runbook indexed.
+- `oya-governance-runbook-orphan-check` — no runbook references a
   deleted SLO or capability.
-- `oya-foundry-fitness-runbook-freshness` — `Last verified` within cadence.
+- `oya-governance-runbook-freshness` — `Last verified` within cadence.
 
 ## 4. Escalation paths
 

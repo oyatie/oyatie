@@ -43,7 +43,7 @@ session_outcome: 14 PRs landed (#126-140); next: integrate with PR #143 µservic
 My session is riddled with `specs/products/*` paths, `sub_products[]` arrays, "Connect product", "Enterprise suite" framing — all contradict ADR-0132's no-product no-suite forward direction.
 
 ### 2. "Fitness ARE the Governance" — wording reconciliation
-Confirmed in `microservices/governance/PRD.md`: "The historical `oya-foundry-fitness-*` working name retires here; the canonical name is `governance`". My crates + ADR-0128 + standards docs + score-cards all reference retired `oya-foundry-fitness-*` naming. Must remap to `microservices/governance/` IP-NNN structure.
+Confirmed in `microservices/governance/PRD.md`: "The historical `oya-governance-*` working name retires here; the canonical name is `governance`". My crates + ADR-0128 + standards docs + score-cards all reference retired `oya-governance-*` naming. Must remap to `microservices/governance/` IP-NNN structure.
 
 ## 18 items to add (in dispatch order)
 
@@ -93,9 +93,9 @@ Confirmed in `microservices/governance/PRD.md`: "The historical `oya-foundry-fit
 **13. F-FITNESS-IS-GOVERNANCE-MIGRATION** — wording reconciliation:
 - Migrate `crates/oya-check-aspirational-enforcement/` into `microservices/governance/` per IP-002/003 tier-a batch migration pattern
 - Migrate `crates/oya-check-honest-claims/` into `microservices/governance/`
-- Update ADR-0128 `enforced_by` fields from `oya-foundry-fitness-*` to governance µservice IP-NNN refs
+- Update ADR-0128 `enforced_by` fields from `oya-governance-*` to governance µservice IP-NNN refs
 - Update score-cards lane names
-- Update standards docs (PR #134) F-PENDING-* citations from `oya-foundry-fitness-*` to governance µservice
+- Update standards docs (PR #134) F-PENDING-* citations from `oya-governance-*` to governance µservice
 - Cross-reference governance µservice FR-11 (hyperscaler-maturity-claim-gate) + FR-12 (retired-vocabulary lane)
 
 ### High (gates downstream work)
@@ -154,7 +154,7 @@ Before #143 merges, verify:
 
 1. **F-ADR-0008/0015 open-questions content** — these ADRs have live unresolved questions in accepted status. Resolving them requires user input on the actual unresolved decisions (BEHAVIORAL_TENANT_PRODUCT cross-tenant aggregate flow; sub-context naming inside an axis). Do not autonomously resolve.
 
-2. **Governance µservice retiring `oya-foundry-fitness-*` naming** — does this also retire the required CI context names on dev branch protection (`oya-foundry-fitness-supply-chain`, `oya-foundry-fitness-cohesion`, `oya-foundry-fitness-api-semver`, `oya-foundry-fitness-protection-context-match`)? If yes, branch protection needs admin-scope re-config to point at governance µservice's IP-NNN check names.
+2. **Governance µservice retiring `oya-governance-*` naming** — does this also retire the required CI context names on dev branch protection (`oya-governance-supply-chain`, `oya-governance-cohesion`, `oya-governance-api-semver`, `oya-governance-protection-context-match`)? If yes, branch protection needs admin-scope re-config to point at governance µservice's IP-NNN check names.
 
 3. **F-MERGE-QUEUE-WEBHOOK-POLLER-WIRING** (ADR-0124 phase 2) — depends on Wave-B webhook receiver deployment. Still external-blocker?
 

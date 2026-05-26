@@ -14,7 +14,7 @@
   "change_class_id": "CC-4",
   "git_sha": "825cedfbc106",
   "freshness_unix": 1778812200,
-  "summary": "Slice 6a: migrate the 3 obvious-durable unnamed subdirs (audits, claim-matrix, graph = 32 files). Audits merge with existing evidence/audits/; claim-matrix and graph become subscoped under registry/. 506 files across 7 remaining subdirs (plans 345 + advanced-cicd 46 + fitness-lanes 66 + agent-kickoff 11 + automation 19 + standards 17 + goals 2) deferred to bounded FixupTasks because per-file durable/ephemera/sprawl classification requires content reading beyond mechanical migration scope.",
+  "summary": "Slice 6a: migrate the 3 obvious-durable unnamed subdirs (audits, claim-matrix, graph = 32 files). Audits merge with existing evidence/audits/; claim-matrix and graph become subscoped under registry/. 506 files across 7 remaining subdirs (plans 345 + advanced-cicd 46 + governance-lanes 66 + agent-kickoff 11 + automation 19 + standards 17 + goals 2) deferred to bounded FixupTasks because per-file durable/ephemera/sprawl classification requires content reading beyond mechanical migration scope.",
   "migrated_now": {
     "audits": {
       "files": 29,
@@ -46,7 +46,7 @@
         "advanced-cicd",
         "agent-kickoff",
         "automation",
-        "fitness-lanes",
+        "governance-lanes",
         "standards"
       ],
       "rationale": "TG3 standards-sprawl pattern applies \u2014 likely restate JSON specs"

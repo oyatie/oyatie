@@ -21,12 +21,12 @@ related_adrs: [ADR-0041, ADR-0050]
 
 | Lane ID | Status | Severity | Scope | What it verifies |
 |---|---|---|---|---|
-| `oya-foundry-fitness-semver-discipline` | **NEW** | BLOCKER | every PR touching `crates/oya-*/src/**` | cargo-semver-checks clean against `origin/prod` baseline per [`crate-versioning-spec.md`](crate-versioning-spec.md) |
-| `oya-foundry-fitness-api-version-stability` | **NEW** | BLOCKER | every PR touching `contracts/openapi/**` | No removal / type change / rename in stable path-versions per [`api-versioning-spec.md`](api-versioning-spec.md) §6 |
-| `oya-foundry-fitness-version-eol-warning` | **NEW** | HIGH (BLOCKER on EOL day) | nightly + per-PR | 90-day pre-EOL warning emitted per [`version-eol-policy.md`](version-eol-policy.md) §3 |
-| `oya-foundry-fitness-release-branch-cut` | **NEW** | BLOCKER | release-cherry-pick agent invocation | Tag + branch + workspace version + lanes-green pre-cut all consistent per [`release-branch-cut-spec.md`](release-branch-cut-spec.md) §3 |
-| `oya-foundry-fitness-cherry-pick-trail` | **NEW** | HIGH | release branch commits | Every commit on `release/X.Y` traces to a prod SHA via the agent's evidence chain per [`release-cherry-pick-agent-spec.md`](release-cherry-pick-agent-spec.md) §8 |
-| `oya-foundry-fitness-deprecation-notice` | **NEW** | BLOCKER | breaking-change PRs | 180-day sunset row present in SUNSET-LEDGER + ADR + dual reviewer-agent approval per [`breaking-change-process.md`](breaking-change-process.md) §4-§6 |
+| `oya-governance-semver-discipline` | **NEW** | BLOCKER | every PR touching `crates/oya-*/src/**` | cargo-semver-checks clean against `origin/prod` baseline per [`crate-versioning-spec.md`](crate-versioning-spec.md) |
+| `oya-governance-api-version-stability` | **NEW** | BLOCKER | every PR touching `contracts/openapi/**` | No removal / type change / rename in stable path-versions per [`api-versioning-spec.md`](api-versioning-spec.md) §6 |
+| `oya-governance-version-eol-warning` | **NEW** | HIGH (BLOCKER on EOL day) | nightly + per-PR | 90-day pre-EOL warning emitted per [`version-eol-policy.md`](version-eol-policy.md) §3 |
+| `oya-governance-release-branch-cut` | **NEW** | BLOCKER | release-cherry-pick agent invocation | Tag + branch + workspace version + lanes-green pre-cut all consistent per [`release-branch-cut-spec.md`](release-branch-cut-spec.md) §3 |
+| `oya-governance-cherry-pick-trail` | **NEW** | HIGH | release branch commits | Every commit on `release/X.Y` traces to a prod SHA via the agent's evidence chain per [`release-cherry-pick-agent-spec.md`](release-cherry-pick-agent-spec.md) §8 |
+| `oya-governance-deprecation-notice` | **NEW** | BLOCKER | breaking-change PRs | 180-day sunset row present in SUNSET-LEDGER + ADR + dual reviewer-agent approval per [`breaking-change-process.md`](breaking-change-process.md) §4-§6 |
 
 ## 2. Lane wiring
 
@@ -48,7 +48,7 @@ post-release / nightly:
 All lanes run inside `oya-foundry-quality-lane-kernel` (existing) and emit
 signed evidence rows to D14 per ADR-0050.
 
-## 3. `oya-foundry-fitness-semver-discipline` (NEW · BLOCKER)
+## 3. `oya-governance-semver-discipline` (NEW · BLOCKER)
 
 Inputs: PR diff against `origin/prod`, per-crate `Cargo.toml`, public-API
 manifest.
@@ -64,7 +64,7 @@ Checks:
 
 Outputs: PR comment with the SemVer report; D14 evidence row.
 
-## 4. `oya-foundry-fitness-api-version-stability` (NEW · BLOCKER)
+## 4. `oya-governance-api-version-stability` (NEW · BLOCKER)
 
 Inputs: PR diff on `contracts/openapi/**`, prior commit's OpenAPI spec,
 `x-stability` / `x-introduced` / `x-deprecated` / `x-sunset` fields.
@@ -80,7 +80,7 @@ Checks:
 
 Outputs: structured diff report; BLOCKER if any check fails.
 
-## 5. `oya-foundry-fitness-version-eol-warning` (NEW · HIGH)
+## 5. `oya-governance-version-eol-warning` (NEW · HIGH)
 
 Runs nightly via cron + per-PR for PRs targeting a release branch.
 
@@ -95,7 +95,7 @@ Checks:
 
 Outputs: nightly digest in `docs/release/EOL-DIGEST.md`; D14 row.
 
-## 6. `oya-foundry-fitness-release-branch-cut` (NEW · BLOCKER)
+## 6. `oya-governance-release-branch-cut` (NEW · BLOCKER)
 
 Invoked at branch-cut time by the `release-cherry-pick` agent or operator.
 
@@ -110,7 +110,7 @@ Checks:
 
 Outputs: success → cut proceeds; failure → cut refused, operator paged.
 
-## 7. `oya-foundry-fitness-cherry-pick-trail` (NEW · HIGH)
+## 7. `oya-governance-cherry-pick-trail` (NEW · HIGH)
 
 Runs weekly + on every cherry-pick commit.
 
@@ -124,7 +124,7 @@ Checks:
 
 Outputs: divergence report; HIGH severity findings.
 
-## 8. `oya-foundry-fitness-deprecation-notice` (NEW · BLOCKER)
+## 8. `oya-governance-deprecation-notice` (NEW · BLOCKER)
 
 Runs on every PR with `breaking_change: true` frontmatter.
 

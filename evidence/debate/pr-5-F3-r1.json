@@ -11,7 +11,7 @@
       "severity": "BLOCKER",
       "file": "tools/oya-vcs-changeset-state-app/src/main.rs:218-226",
       "issue": "stub_signature() returns base64(changeset_id:to_state) with the ed25519-stub: prefix. ADR-0110 §'Event log shape' specifies the signature is the canonical anti-tamper field and consumers MUST verify it before trusting a transition. The stub is (a) deterministic so any attacker who knows changeset_id+to_state forges a valid stub; (b) identical for legitimate retries so it provides zero replay distinction; (c) merged into a registry file that other agents already consume. The TODO(wave-B) comment is honest but the artifact is in production now - any downstream check that 'verifies' signature.starts_with('ed25519-stub:') gives a false sense of security. Adversary playbook: append any to_state row with a hand-crafted ed25519-stub:<base64> string, the app/validator accepts it.",
-      "remediation": "Either (a) gate the app behind a feature flag so it refuses to run in production until real Ed25519 lands, OR (b) make the signature field carry a clearly invalid placeholder like 'UNSIGNED-WAVE-A' and have validate_monotonic_event_log refuse rows with that placeholder once any row in the log carries a real signature. Add a fitness lane oya-foundry-fitness-changeset-state-signature-real that hard-fails if any 'ed25519-stub:' row exists after 2026-07-01."
+      "remediation": "Either (a) gate the app behind a feature flag so it refuses to run in production until real Ed25519 lands, OR (b) make the signature field carry a clearly invalid placeholder like 'UNSIGNED-WAVE-A' and have validate_monotonic_event_log refuse rows with that placeholder once any row in the log carries a real signature. Add a fitness lane oya-governance-changeset-state-signature-real that hard-fails if any 'ed25519-stub:' row exists after 2026-07-01."
     },
     {
       "severity": "BLOCKER",
@@ -41,7 +41,7 @@
       "severity": "MAJOR",
       "file": ".github/branch-protection.yaml:33-66",
       "issue": "oya-pr-review is dropped from required_status_checks until 2026-06-15 OR 5 consecutive APPROVEs. The 5-consecutive-APPROVE counter is implicit - there is no automated mechanism shown to track or restore the rule. The TIME-BOUNDED comment is informational only; nothing prevents the deadline from silently slipping and the gate remaining permanently disabled. Combined with the unconditional promotion workflows (BLOCKER #2), this means the multispectrum reviewer-agent (the entire point of M01-P17) has zero blocking authority over what lands on production.",
-      "remediation": "Add a fitness lane oya-foundry-fitness-protection-pr-review-restoration that hard-fails after 2026-06-15 if the rule is still commented out. Add a counter file registry/vcs/oya-pr-review-approve-streak.json that the dispatcher increments on each APPROVE and reset on REJECT; lane fails if streak >= 5 and rule still disabled."
+      "remediation": "Add a fitness lane oya-governance-protection-pr-review-restoration that hard-fails after 2026-06-15 if the rule is still commented out. Add a counter file registry/vcs/oya-pr-review-approve-streak.json that the dispatcher increments on each APPROVE and reset on REJECT; lane fails if streak >= 5 and rule still disabled."
     },
     {
       "severity": "MAJOR",
@@ -65,7 +65,7 @@
       "severity": "MAJOR",
       "file": "crates/oya-dev-cli/src/changeset_state_enum_closed_gate.rs:60-70 and changeset_state_monotonicity_gate.rs:58-65",
       "issue": "Both gate validators treat 'file does not exist' as success with events_checked=0. An attacker (or buggy CI runner) who silently deletes registry/vcs/changeset-event-log.json bypasses BOTH lanes - the monotonicity invariant and the closed-enum invariant become vacuously true. Same for empty file. There is no canonical 'log must exist after first claim' assertion anywhere in the lane definitions.",
-      "remediation": "Add a flag --require-non-empty (default ON in CI, OFF for local dev). When ON, missing-or-empty log fails with explicit 'no events found in registry/vcs/changeset-event-log.json - was the file deleted?'. Add a parallel oya-foundry-fitness-changeset-event-log-presence lane that asserts the file exists + is non-empty whenever a PR has any rust changes."
+      "remediation": "Add a flag --require-non-empty (default ON in CI, OFF for local dev). When ON, missing-or-empty log fails with explicit 'no events found in registry/vcs/changeset-event-log.json - was the file deleted?'. Add a parallel oya-governance-changeset-event-log-presence lane that asserts the file exists + is non-empty whenever a PR has any rust changes."
     },
     {
       "severity": "MAJOR",

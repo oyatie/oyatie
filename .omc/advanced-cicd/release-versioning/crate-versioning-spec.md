@@ -9,7 +9,7 @@ purpose: |
   lockstep until W-Foundry-Preview, independent thereafter, with cargo-semver-checks
   enforcement in CI and a breaking-change ADR gate.
 lift_target: oyatie/docs/release/crate-versioning-spec.md
-enforced_by: oya-foundry-fitness-semver-discipline
+enforced_by: oya-governance-semver-discipline
 related_adrs: [ADR-0041, ADR-0050]
 ---
 
@@ -43,7 +43,7 @@ combinatorial skew problem during pre-GA.
 ### 2.2 Phase B — independent (post W-Foundry-Preview)
 
 Per-crate `version = "X.Y.Z"`. Crates may bump on their own cadence once:
-- `oya-foundry-fitness-semver-discipline` is green for 60 days across the crate.
+- `oya-governance-semver-discipline` is green for 60 days across the crate.
 - A per-crate `CHANGELOG.md` exists.
 - The crate has shipped at least one `1.0.0` release.
 
@@ -72,7 +72,7 @@ Per SemVer §9. Order: `alpha.N` < `beta.N` < `rc.N` < `<release>`.
 
 ## 5. `cargo-semver-checks` CI integration
 
-Lane: [`oya-foundry-fitness-semver-discipline`](enforcement-lanes.md) (BLOCKER).
+Lane: [`oya-governance-semver-discipline`](enforcement-lanes.md) (BLOCKER).
 
 ```bash
 # in CI per crate

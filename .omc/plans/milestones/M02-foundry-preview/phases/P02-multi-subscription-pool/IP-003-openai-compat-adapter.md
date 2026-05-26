@@ -108,7 +108,7 @@ Before `grit claim`, the agent **MUST**:
 $ cargo nextest run -p oya-intelligence-adapter-openai-compat-api --all-features       # expect: PASS, 0 failures
 $ cargo clippy -p oya-intelligence-adapter-openai-compat-api -- -D warnings            # expect: PASS, 0 warnings
 $ cargo deny check                                                                # expect: PASS
-$ oya gate validate oya-foundry-fitness-compat-api-shape-binding                  # expect: PASS (response shape matches OpenAI OpenAPI)
+$ oya gate validate oya-governance-compat-api-shape-binding                  # expect: PASS (response shape matches OpenAI OpenAPI)
 $ oya-tooling-agent-read run-evidence "scripts/smoke/openai-compat-smoke.sh"      # expect: async-openai-rs client smoke + LangChain smoke pass
 $ docker buildx build --target distroless-debian13 -t oya-foundry-openai-compat:test # expect: image < 25 MiB
 ```

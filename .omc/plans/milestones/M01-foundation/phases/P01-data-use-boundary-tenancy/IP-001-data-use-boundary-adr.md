@@ -31,7 +31,7 @@ M01-P08 (agentic-pipeline cutover) ≥ P5 merged.
 ## Acceptance-test-commands
 ```
 node scripts/validate-adr-shape.mjs docs/decisions/ADR-0008-data-use-boundary.md
-cargo run -p oya-foundry-fitness-adr-shape
+cargo run -p oya-governance-adr-shape
 ```
 
 ## Done-criteria
@@ -64,10 +64,10 @@ Fresh gates:
 - `python3 -m json.tool docs/machine-readable/decisions.json` → pass.
 - `node scripts/validate-adr-shape.mjs docs/decisions/ADR-0008-data-use-boundary.md` → pass.
 - `node --check scripts/validate-adr-shape.mjs` → pass.
-- `rustfmt --check crates/oya-governance-adr-shape-kernel/src/lib.rs tools/oya-foundry-fitness-adr-shape/src/main.rs` → pass via `rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`).
-- `cargo check -p oya-governance-adr-shape-kernel` and `cargo check -p oya-foundry-fitness-adr-shape` → pass.
+- `rustfmt --check crates/oya-governance-adr-shape-kernel/src/lib.rs tools/oya-governance-adr-shape/src/main.rs` → pass via `rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`).
+- `cargo check -p oya-governance-adr-shape-kernel` and `cargo check -p oya-governance-adr-shape` → pass.
 - `cargo test -p oya-governance-adr-shape-kernel` → 6 passed.
-- `cargo run -p oya-foundry-fitness-adr-shape` → `adr-shape ok: adrs_checked=67`.
+- `cargo run -p oya-governance-adr-shape` → `adr-shape ok: adrs_checked=67`.
 - `cargo metadata --no-deps --format-version 1` → `packages=162 workspace_members=162`.
 - Content assertions → `decisions.json` total 67, status counts Accepted 31 / Proposed 36, next ADR-0091, privacy token `FINANCIAL_KR`, rustfmt 2024 pinned.
 

@@ -203,7 +203,7 @@ crate depends on either.
 ## ICM coordination
 
 Scaffold-lock window OPEN/CLOSE pair logged in `scaffold-locks-oyatie`
-(per ADR-0054), tagged `oya-foundry-fitness-sunset-lifecycle,ADR-0108`.
+(per ADR-0054), tagged `oya-governance-sunset-lifecycle,ADR-0108`.
 
 ## Next-IP-pointer
 

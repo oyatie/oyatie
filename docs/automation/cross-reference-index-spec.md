@@ -42,7 +42,7 @@ doc_status: published
 ## 3. Output schema (the `docs/CROSS-REFERENCE-INDEX.md` table)
 
 ```markdown
-| path | purpose | doc-class | owner | lifecycle | consumer-fitness-lanes | last_verified |
+| path | purpose | doc-class | owner | lifecycle | consumer-governance-lanes | last_verified |
 |---|---|---|---|---|---|---|
 | docs/CONSTITUTION.md | Mission, decision rights, prohibitions, amendments | Constitutional | council-architecture | quarterly + on-amendment | authority-cohesion, adr-citation | 2026-05-12 |
 | docs/DOC-CATALOG.md | Per-doc lifecycle protocol and trigger taxonomy | Operating-Contract | council-architecture | quarterly | doc-catalog, doc-freshness | 2026-05-09 |

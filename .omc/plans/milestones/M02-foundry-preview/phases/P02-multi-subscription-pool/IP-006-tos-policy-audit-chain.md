@@ -135,8 +135,8 @@ Before `grit claim`, the agent **MUST**:
 $ cargo nextest run -p oya-foundry-policy-kernel --all-features                  # expect: PASS, 0 failures
 $ cargo clippy -p oya-foundry-policy-kernel -- -D warnings                       # expect: PASS, 0 warnings
 $ cargo deny check                                                               # expect: PASS
-$ oya gate validate oya-foundry-fitness-tos-acknowledgment                       # expect: PASS
-$ oya gate validate oya-foundry-fitness-pool-routing-honor                       # expect: PASS
+$ oya gate validate oya-governance-tos-acknowledgment                       # expect: PASS
+$ oya gate validate oya-governance-pool-routing-honor                       # expect: PASS
 $ oya-tooling-agent-read run-evidence "scripts/smoke/audit-chain-pool-routing.sh" # expect: 100 routing decisions → 100 EVT-PROVIDER-POOL-ROUTING entries in audit ledger
 ```
 

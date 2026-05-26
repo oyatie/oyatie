@@ -13,7 +13,7 @@ purpose: |
   emission on every cross-axis flow).
 lift_target: oyatie/docs/standards/observability.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-otel-emit
+enforced_by: oya-governance-otel-emit
 companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/on-call.md
@@ -48,7 +48,7 @@ Every `oya-*` service binary emits telemetry via the **OpenTelemetry SDK**
   - Honeycomb for high-cardinality query.
   - Datadog only when the regional pack mandates a vendor SaaS.
 
-Lane: `oya-foundry-fitness-otel-emit` validates every service has an OTLP
+Lane: `oya-governance-otel-emit` validates every service has an OTLP
 exporter wired and emits the three pillars.
 
 Sources: [OpenTelemetry Collector docs](https://opentelemetry.io/docs/collector/),
@@ -112,7 +112,7 @@ Every log line carries:
 | `audit.evt_id` | ULID | on audit emission | `EVT-*` correlation |
 
 No secrets in `message` or any field; redacted by the `tracing-subscriber`
-filter layer at edge. Lane: `oya-foundry-fitness-log-schema` validates
+filter layer at edge. Lane: `oya-governance-log-schema` validates
 the JSON shape on golden fixtures.
 
 ## 4. Audit-chain `EVT-*` emission contract
@@ -142,7 +142,7 @@ Every `EVT-*` record carries `evt_id` (ULID), `timestamp`, `service`,
 `tenant_id` (if applicable), `actor_id`, `trace_id`, and a topic-specific
 payload. Records are JSON, hash-chained, persisted under audit shards.
 
-Lane: `oya-foundry-fitness-audit-emission` validates that every
+Lane: `oya-governance-audit-emission` validates that every
 cross-pillar code path emits the required topic.
 
 ## 5. Exemplars (trace ↔ metric correlation)
@@ -156,7 +156,7 @@ Per Honeycomb-style observability:
 - Cost: low if cardinality is bounded; high if trace_id is leaked into
   label sets (do NOT label-on-trace-id).
 
-The lane `oya-foundry-fitness-exemplar-coverage` checks that latency
+The lane `oya-governance-exemplar-coverage` checks that latency
 histograms on hot paths emit exemplars.
 
 ## 6. Retention defaults

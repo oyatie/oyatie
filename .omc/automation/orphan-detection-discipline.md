@@ -6,12 +6,12 @@ authority_tier: 2
 status: pending approval
 purpose: |
   Every file/dir/JSON in the repo carries a `purpose:` field. The
-  `oya-foundry-fitness-orphan-detection` lane (HIGH severity) sweeps every
+  `oya-governance-orphan-detection` lane (HIGH severity) sweeps every
   `**/*.md`, `**/*.json`, `**/*.toml` and fails any PR that introduces a file
   without a declared purpose, or that leaves a file referenced nowhere. No
   orphans in `main`.
 lift_target: oyatie/docs/automation/orphan-detection-discipline.md
-enforced_by: oya-foundry-fitness-orphan-detection
+enforced_by: oya-governance-orphan-detection
 extends_crates:
   - oya-foundry-readme-doc-coverage-kernel
   - oya-foundry-catalog-kernel
@@ -53,7 +53,7 @@ Given the file inventory under scope:
 2. For each in-scope file, check that it is referenced by ≥ 1 other file OR is itself a root anchor (`MASTERPLAN.md`, `README.md`, `docs/INDEX.md`, repo-root `Cargo.toml`).
 3. Orphans = in-scope files with zero inbound references and not a root anchor.
 
-## 5. Validation gates (`oya-foundry-fitness-orphan-detection`)
+## 5. Validation gates (`oya-governance-orphan-detection`)
 
 1. **Purpose declaration.** Every in-scope file declares `purpose:` (HIGH).
 2. **Orphan ban.** Every in-scope file has ≥ 1 inbound reference (HIGH).
@@ -74,7 +74,7 @@ Given the file inventory under scope:
 When the lane fails on a PR, the bot comments:
 
 ```
-oya-foundry-fitness-orphan-detection: HIGH
+oya-governance-orphan-detection: HIGH
 
 The following files lack a `purpose:` frontmatter field:
 - crates/oya-foundry-new-feature-kernel/Cargo.toml

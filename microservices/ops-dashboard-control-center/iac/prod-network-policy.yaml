@@ -44,7 +44,7 @@ spec:
     # Allow Foundry pipeline reads (CI scope)
     - fromEndpoints:
         - matchLabels:
-            app: foundry-pipeline
+            app: governance-pipeline
             namespace: foundry
       toPorts:
         - ports:

@@ -16,7 +16,7 @@
     {
       "name": "oya-governance-tos-policy-kernel",
       "role": "kernel",
-      "bnf_justification": "oya-<microservice:foundry>-<bc:fitness-tos-policy>-<layer:kernel>; v4.1 conformant \u2014 extends the `oya-foundry-fitness-*-kernel` family; layer=kernel: pure ToSAcknowledgment value types + pooling_policy_check decision function + pure-record audit event emission. New crate (not an extension of `oya-foundry-policy-kernel` which doesn't exist yet \u2014 only `oya-intelligence-policy-domain` does) per ICM scaffold-lock 01KRMC1M5Y99AMDZJB69JGT9QY.",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:fitness-tos-policy>-<layer:kernel>; v4.1 conformant \u2014 extends the `oya-governance-*-kernel` family; layer=kernel: pure ToSAcknowledgment value types + pooling_policy_check decision function + pure-record audit event emission. New crate (not an extension of `oya-foundry-policy-kernel` which doesn't exist yet \u2014 only `oya-intelligence-policy-domain` does) per ICM scaffold-lock 01KRMC1M5Y99AMDZJB69JGT9QY.",
       "purpose": "Gate pool-membership > 1 on a non-revoked per-(tenant, provider) ToS-ack. Emit EVT-PROVIDER-POOL-ROUTING audit-chain entry per routing decision with redacted account suffixes.",
       "linus_good_taste": "ToS-ack is binary \u2014 present (a row with tenant_id, provider, version, accepted_at, accepted_by, evidence_hash) or absent. One predicate, one verdict, no 'we'll prompt later' branch."
     }

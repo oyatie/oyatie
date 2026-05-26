@@ -32,7 +32,7 @@
 
 1. **Node 20 EOL (Oct 2025)** — AGENTS.md still references Node 20; current LTS is 24 per lts-versions-verified-2026-05-12.md. **Fix:** Update to Node 24; cite lts-versions-verified in AGENTS.md.
 
-2. **Hyperscaler-best-practices adoption gaps** — Three top-rank gaps from hyperscaler-best-practices-2026-05-12.md are undocumented: (a) build-artifact signing/SBOM/SLSA provenance (missing `oya-foundry-fitness-supply-chain` lane); (b) progressive-delivery rail (missing feature-flag substrate); (c) cargo-vet audit trail (missing from standards/code-style.md). **Fix:** Update TOOLCHAIN.md with supply-chain section; add cargo-vet + feature-flag details.
+2. **Hyperscaler-best-practices adoption gaps** — Three top-rank gaps from hyperscaler-best-practices-2026-05-12.md are undocumented: (a) build-artifact signing/SBOM/SLSA provenance (missing `oya-governance-supply-chain` lane); (b) progressive-delivery rail (missing feature-flag substrate); (c) cargo-vet audit trail (missing from standards/code-style.md). **Fix:** Update TOOLCHAIN.md with supply-chain section; add cargo-vet + feature-flag details.
 
 3. **Workspace axis missing from DESIGN.md Plane × Axis matrix** — PRD/ROADMAP reference W-Workspace-Preview (7 axes) but DESIGN.md §2 matrix shows only 6 axes. **Fix:** Update matrix to 7 axes; add Workspace rows.
 
@@ -157,7 +157,7 @@ Oyatie's 408-file docs tree has **47 files with HIGH or BLOCKER findings (11.5%)
 
 **Top-3 themes:** Forward-reference debt (wave-1 sentinels unresolved across CONSTITUTION, PRD, README, DESIGN, ROADMAP); missing MASTERPLAN + hyperscaler-best-practices cites (zero references despite being authority anchors); LTS version drift (Rust 1.78 vs 1.95, Node 20 vs 24, cargo-deny 0.19 MSRV gap, debian12 → debian13 migration pending).
 
-**Hyperscaler-best-practices adoption gaps:** Three top-rank items from hyperscaler-best-practices-2026-05-12.md are undocumented: build-artifact signing/SBOM/SLSA (missing `oya-foundry-fitness-supply-chain` lane); progressive-delivery rail (no feature-flag substrate); cargo-vet audit trail (missing from standards). Update TOOLCHAIN.md systematically.
+**Hyperscaler-best-practices adoption gaps:** Three top-rank items from hyperscaler-best-practices-2026-05-12.md are undocumented: build-artifact signing/SBOM/SLSA (missing `oya-governance-supply-chain` lane); progressive-delivery rail (no feature-flag substrate); cargo-vet audit trail (missing from standards). Update TOOLCHAIN.md systematically.
 
 **Timeline:** All BLOCKERs must land before W-Foundry-Preview gate; HIGH items before W-Foundation gate; MED items rolled into per-wave doc-freshness passes.
 

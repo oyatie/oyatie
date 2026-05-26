@@ -10,7 +10,7 @@ purpose: |
   >365 days = BLOCKER. Auto-generate a refresh-PR template when a threshold is
   crossed. Extends the existing `oya-foundry-runbook-freshness-kernel`.
 lift_target: oyatie/docs/automation/runbook-freshness-pipeline.md
-enforced_by: oya-foundry-fitness-runbook-freshness
+enforced_by: oya-governance-runbook-freshness
 extends_crates:
   - oya-foundry-runbook-freshness-kernel
   - oya-foundry-runbook-index-kernel
@@ -80,7 +80,7 @@ The extant kernel handles the HIGH threshold; this pipeline extends to advisory 
 <auto-summarized commit diff against runbook path>
 ```
 
-## 7. Validation gates (extending `oya-foundry-fitness-runbook-freshness`)
+## 7. Validation gates (extending `oya-governance-runbook-freshness`)
 
 The existing kernel's errors remain authoritative. New gate additions:
 
@@ -90,5 +90,5 @@ The existing kernel's errors remain authoritative. New gate additions:
 ## 8. Out-of-scope
 
 - Runbook content quality (covered by `oya-foundry-runbook-index-kernel` discoverability checks).
-- Per-Sev playbook completeness (covered by `oya-foundry-fitness-slo-coverage-kernel`).
-- Incident postmortem freshness (covered by `oya-foundry-fitness-incident-template-completeness`).
+- Per-Sev playbook completeness (covered by `oya-governance-slo-coverage-kernel`).
+- Incident postmortem freshness (covered by `oya-governance-incident-template-completeness`).

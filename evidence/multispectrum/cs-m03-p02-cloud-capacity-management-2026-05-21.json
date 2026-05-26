@@ -65,7 +65,7 @@
       "evidence": "Data-class fitness validation passed: 1590 fields checked, 1302 annotated, 288 legacy unannotated."
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob> (legacy scaffold discovery)",
+      "command": "cargo run -p oya-governance-cohesion -- <owning-crate-glob> (legacy scaffold discovery)",
       "status": "failed-as-expected",
       "evidence": "Generated scaffold command does not map to a current workspace package; IP-003 acceptance commands were corrected to the current oya-dev-cli cohesion gate."
     },

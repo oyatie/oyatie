@@ -85,7 +85,7 @@ Files missing both sections (P1 — agents cannot easily extract actionable guid
 | `feedback_deprecate_external_agent_coord_tooling.md` | Tooling policy | No labelled Why/How (body is imperative) |
 | `feedback_doc_coverage_enforced.md` | CI/doc policy | No labelled sections |
 | `feedback_flat_product_catalog.md` | Architecture | No labelled sections |
-| `feedback_foundry_pipeline_canonical.md` | Workflow | No labelled sections |
+| `feedback_governance_pipeline_canonical.md` | Workflow | No labelled sections |
 | `feedback_glossary_ontology_not_object_graph.md` | Glossary | No labelled sections |
 | `feedback_glossary_shared_not_platform.md` | Glossary | No labelled sections |
 | `feedback_grit_claim_work_done.md` | SUPERSEDED | No labelled sections (superseded, lower urgency) |
@@ -535,7 +535,7 @@ Per documentation-rigor.md §2: "every step has … audit-stream tag emitted." T
     - Single-line purpose field in `_meta`.
 
 13. **Add `Why:` and `How to apply:` to high-priority memory files** (P1-MEM-06)
-    - Priority subset: `feedback_naming_justification.md`, `feedback_no_silent_regression.md`, `feedback_foundry_pipeline_canonical.md`, `feedback_self_merge_via_contract_path.md`, `feedback_oya_git_canonical_2026_05_18.md`, `feedback_layer_enum_adr_0105_13_canonical.md`.
+    - Priority subset: `feedback_naming_justification.md`, `feedback_no_silent_regression.md`, `feedback_governance_pipeline_canonical.md`, `feedback_self_merge_via_contract_path.md`, `feedback_oya_git_canonical_2026_05_18.md`, `feedback_layer_enum_adr_0105_13_canonical.md`.
 
 14. **Fix `feedback_grit_claim_work_done.md` description** (P1-MEM-07)
     - Change description to: `"SUPERSEDED 2026-05-16 by [[deprecate-external-agent-coord-tooling]] — grit/rtk/icm retired; Foundry pipeline is the canonical agentic workflow"`

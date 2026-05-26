@@ -11,7 +11,7 @@ final_shape_compliance: true
 dependency_additions: []
 source_audit: ../../../../../../evidence/audits/pipeline-maturity-audit-2026-05-15.md
 audit_blocker_ref: "Top blocker #2: no `oya gate run-all` aggregator + no `oya` CLI binary on disk"
-purpose: Ship the top-level `oya` CLI binary that wraps `claim/work/verify/done/promote` plus a `gate run-all` subcommand that fans out across every `oya-foundry-fitness-*-kernel`. Ends the silent `git`/`gh` bypass and closes pipeline stages 1, 3, and 4 simultaneously.
+purpose: Ship the top-level `oya` CLI binary that wraps `claim/work/verify/done/promote` plus a `gate run-all` subcommand that fans out across every `oya-governance-*-kernel`. Ends the silent `git`/`gh` bypass and closes pipeline stages 1, 3, and 4 simultaneously.
 ---
 
 # M01-P17-IP-002 — `oya` CLI binary + `oya gate run-all` aggregator
@@ -37,10 +37,10 @@ purpose: Ship the top-level `oya` CLI binary that wraps `claim/work/verify/done/
 
 ## Scope
 
-Kernels exist (`oya-vcs-cli-ratchet-kernel`, `-promotion-controller-kernel`, 30+ `oya-foundry-fitness-*-kernel` crates) but no top-level binary an agent can invoke. Today agents fall back to direct `git` + `gh`, which silently violates `CLAUDE.md::sanctioned_primitives`. This IP scaffolds `tools/oya-cli/` as a thin wrapper crate that:
+Kernels exist (`oya-vcs-cli-ratchet-kernel`, `-promotion-controller-kernel`, 30+ `oya-governance-*-kernel` crates) but no top-level binary an agent can invoke. Today agents fall back to direct `git` + `gh`, which silently violates `CLAUDE.md::sanctioned_primitives`. This IP scaffolds `tools/oya-cli/` as a thin wrapper crate that:
 
 - Exposes top-level subcommands: `oya claim`, `oya work`, `oya verify`, `oya done`, `oya promote`, `oya gate`, `oya audit`.
-- `oya gate run-all` fans out across every registered `oya-foundry-fitness-*-kernel` and emits a single rollup report (JSON + human-readable).
+- `oya gate run-all` fans out across every registered `oya-governance-*-kernel` and emits a single rollup report (JSON + human-readable).
 - Each subcommand dispatches into the existing kernel; binary holds zero domain logic.
 - Provides a `--dry-run` flag for agent preflight before claim.
 

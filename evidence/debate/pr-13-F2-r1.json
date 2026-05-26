@@ -11,7 +11,7 @@
     "ADR-0118 follows canonical retirement pattern (Decision, Rejected alternatives, Replacement, Verification, supersedes chain) rather than rip-and-replace",
     "Atomic deletion: workspace members, Cargo.lock, registry/catalog (3 yaml files), backrefs in ADR-0104/0107, INDEX, CHANGELOG, and IP-008 evidence JSON all updated in one PR — zero dangling references",
     "Lane is correctly classified as one-time cutover gate (bootstrap Lambda pattern), not steady-state CI, justifying full removal over rename",
-    "Historical traceability preserved in both docs/fitness-lanes/archive-orphan.md and .omc/fitness-lanes/archive-orphan.md with retired_on/retired_by frontmatter",
+    "Historical traceability preserved in both docs/governance-lanes/archive-orphan.md and .omc/governance-lanes/archive-orphan.md with retired_on/retired_by frontmatter",
     "IP-008 hierarchy placement is correct: lane is owned by M01-P08-IP-008, so retirement record lives in same IP file (milestone>phase>impl-plan compliance)",
     "Replacement gate (M01-P18 admission + projected-merge-state + conflict-kernel) is named but not cross-referenced to the four specific failure_modes the retired lane caught"
   ],

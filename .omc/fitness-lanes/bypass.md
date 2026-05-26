@@ -1,15 +1,15 @@
 # Fitness Lane: bypass
 
 - purpose: Verify no code or doc circumvents a fitness lane via `#[allow]`, `// fitness-skip`, `<!-- fitness-skip -->`, or env-flag without an ADR + icm record.
-- enforces: STANDARD/no-silent-bypass; AGENTS.md fitness-lane `oya-foundry-fitness-bypass`.
+- enforces: STANDARD/no-silent-bypass; AGENTS.md fitness-lane `oya-governance-bypass`.
 - kernel_crate: `oya-foundry-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
-- runner_path: `tools/oya-foundry-fitness-bypass`
+- runner_path: `tools/oya-governance-bypass`
 - inputs: every source/doc file, registry of allowed bypass directives + justification ADR ids.
 - failure_modes:
   - `// fitness-skip` with no ADR/icm reference
   - `#[allow(clippy::all)]` at module level
   - `<!-- fitness-skip:* -->` whose ADR is `proposed`
-- ci_invocation: `cargo run -p oya-foundry-fitness-bypass`
+- ci_invocation: `cargo run -p oya-governance-bypass`
 - runtime_budget: 700 ms
 - severity: BLOCKER
 - kernel_sketch:

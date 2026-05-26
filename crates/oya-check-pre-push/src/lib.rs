@@ -10,7 +10,7 @@
 //!
 //! Naming justification: the crate name `oya-check-pre-push` remains
 //! stable across the `repoctl` retirement so the fitness-lane id
-//! `oya-foundry-fitness-pre-push` (registered in
+//! `oya-governance-pre-push` (registered in
 //! `registry/quality/lanes.yaml`, the branch-protection required
 //! status check, and the IP-C extracted catalog) stays unchanged
 //! per `feedback_no_silent_regression`. The lane semantics (local-side

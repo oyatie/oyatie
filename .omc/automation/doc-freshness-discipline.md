@@ -7,11 +7,11 @@ status: pending approval
 purpose: |
   Define the per-doc-class staleness budget for every Oyatie doc, auto-PR
   generator when a threshold is crossed, and the
-  `oya-foundry-fitness-doc-freshness` lane that enforces it: BLOCKER for
+  `oya-governance-doc-freshness` lane that enforces it: BLOCKER for
   Constitutional + Operating-Contract; HIGH for Reference; Decision-Record is
   never-stale; Working-Draft has 30-day budget.
 lift_target: oyatie/docs/automation/doc-freshness-discipline.md
-enforced_by: oya-foundry-fitness-doc-freshness
+enforced_by: oya-governance-doc-freshness
 extends_crates:
   - oya-foundry-runbook-freshness-kernel
   - oya-foundry-doc-catalog-kernel
@@ -73,7 +73,7 @@ Decision-Record docs are exempt from `last_verified:` / `next_review:` requireme
 - mdbook chapter `docs/site/src/operations/doc-health.md` (per-doc-class freshness landscape).
 - Auto-generated refresh PRs (one per breached doc) using `docs/templates/doc-refresh-pr.md`.
 
-## 7. Validation gates (`oya-foundry-fitness-doc-freshness`)
+## 7. Validation gates (`oya-governance-doc-freshness`)
 
 1. **Frontmatter completeness.** Every Tier-1/Tier-2 doc has `doc_class:`, `last_verified:`, `next_review:`, `owner:` (BLOCKER).
 2. **Class validity.** `doc_class:` ∈ the five allowed values (BLOCKER).

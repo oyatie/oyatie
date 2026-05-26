@@ -15,7 +15,7 @@ purpose: |
   `docs/AGENTS.md` §During-change discipline.
 lift_target: oyatie/docs/standards/testing.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-test-evidence
+enforced_by: oya-governance-test-evidence
 companion_docs:
   - docs/QA-TEST-STRATEGY.md
   - docs/standards/code-style-rust.md
@@ -134,7 +134,7 @@ Mandatory on:
 - The audit-chain shard parser (per ADR-0003 / DOC-CATALOG lane
   `audit-chain-replay`).
 
-Lane: `oya-foundry-fitness-fuzz-coverage` refuses PRs that add `unsafe`
+Lane: `oya-governance-fuzz-coverage` refuses PRs that add `unsafe`
 without a `fuzz_targets/<symbol>.rs` harness, and refuses parser changes
 without a regression case.
 
@@ -167,7 +167,7 @@ each consumer crate run a contract test that:
 3. Asserts the schema-vs-types parity (per `spec-contract-mirror` lane in
    [DOC-CATALOG.md](../DOC-CATALOG.md) §4).
 
-Adding a consumer without a contract test = `oya-foundry-fitness-contract-coverage`
+Adding a consumer without a contract test = `oya-governance-contract-coverage`
 fail.
 
 ## 8. Coverage budget — `cargo-llvm-cov`
@@ -179,7 +179,7 @@ fail.
 - Coverage is **advisory** at PR time and **enforced** at wave-gate
   reviews; a regression of >5 percentage points blocks the wave.
 
-The lane `oya-foundry-fitness-coverage-delta` runs on every PR and emits
+The lane `oya-governance-coverage-delta` runs on every PR and emits
 a comment with deltas; merge-blocking is reserved for the wave gate.
 
 ## 9. Flaky-test 14-day SLA
@@ -191,7 +191,7 @@ Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 6:
    otherwise).
 2. The fix SLA is **14 calendar days**.
 3. Day 7: assignee receives a reminder via icm; day 12: incident commander
-   escalates; day 14: the lane `oya-foundry-fitness-flaky-sla` opens a
+   escalates; day 14: the lane `oya-governance-flaky-sla` opens a
    blocking PR check on the owning crate.
 4. Resolution requires either fix (delete `#[ignore]`) or retirement
    (delete the test with ADR-tracked rationale).
@@ -209,11 +209,11 @@ Per [`docs/AGENTS.md`](../AGENTS.md) Done-Definition:
 
 This standard adds:
 
-- `oya-foundry-fitness-test-evidence` — nextest evidence pasted in PR.
-- `oya-foundry-fitness-fuzz-coverage` — fuzz harness mandatory where named.
-- `oya-foundry-fitness-mutation-budget` — nightly mutation budget on
+- `oya-governance-test-evidence` — nextest evidence pasted in PR.
+- `oya-governance-fuzz-coverage` — fuzz harness mandatory where named.
+- `oya-governance-mutation-budget` — nightly mutation budget on
   kernel/domain.
-- `oya-foundry-fitness-flaky-sla` — 14-day SLA enforcement.
+- `oya-governance-flaky-sla` — 14-day SLA enforcement.
 
 ## 11. Anti-patterns
 

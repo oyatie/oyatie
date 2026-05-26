@@ -1,15 +1,15 @@
 # Fitness Lane: adr-citation
 
 - purpose: Verify every architectural assertion in canonical docs cites an ADR by id.
-- enforces: STANDARD/adr-citation; AGENTS.md fitness-lane `oya-foundry-fitness-adr-citation`.
+- enforces: STANDARD/adr-citation; AGENTS.md fitness-lane `oya-governance-adr-citation`.
 - kernel_crate: `oya-foundry-adr-citation-kernel` (EXISTING crate; extend with verdict struct) — `AssertionCitation { document_path, line, adr_id }`, verdict `AdrCitationFitnessReport { assertions_checked, adrs_resolved }`.
-- runner_path: `tools/oya-foundry-fitness-adr-citation`
+- runner_path: `tools/oya-governance-adr-citation`
 - inputs: `docs/**/*.md`, `docs/decisions/ADR-*.md` index.
 - failure_modes:
   - assertion line includes "MUST" without `ADR-####` citation
   - cited ADR id does not resolve to a file
   - cited ADR is in `superseded` state
-- ci_invocation: `cargo run -p oya-foundry-fitness-adr-citation`
+- ci_invocation: `cargo run -p oya-governance-adr-citation`
 - runtime_budget: 800 ms
 - severity: BLOCKER
 - kernel_sketch:

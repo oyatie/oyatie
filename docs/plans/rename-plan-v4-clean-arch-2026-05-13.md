@@ -1690,7 +1690,7 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
    load-bearing lane); (b) whether the BLOCKER-flip strategy for
    check crates (Shard 1 step 15) introduces a chicken-and-egg if a
    check crate's BLOCKER mode would fail the Shard 1 merge itself; (c)
-   whether `.omc/fitness-lanes/` directory should be renamed
+   whether `.omc/governance-lanes/` directory should be renamed
    `.omc/check-rules/` atomically with Shard 1.
 
 Secondary surfaces (lower probe priority):
@@ -2307,7 +2307,7 @@ window.
   `docs/RELEASE-MANAGEMENT.md`
 - `docs/research/hyperscaler-best-practices-2026-05-12.md`
 - Product/team docs under `docs/teams/`, `docs/products/`
-- `.omc/fitness-lanes/` directory (decision in Shard 0 per §10 question 3:
+- `.omc/governance-lanes/` directory (decision in Shard 0 per §10 question 3:
   rename to `.omc/check-rules/` atomically; or hold the doc rename for a
   post-Shard-1 follow-up — defer to Codex iter-1 pressure-test)
 
@@ -2318,7 +2318,7 @@ window.
 - `crates/oya-tooling-cli-dev-runtime/src/commands/repoctl.rs:43`
   (default value of `cli_manifest_path`) — runtime default, MUST update
 
-**Check crate set** (replaces v3 `.omc/fitness-lanes/`):
+**Check crate set** (replaces v3 `.omc/governance-lanes/`):
 - 6 new check crates scaffolded fresh in Shard 0; populated in Shard 1
   (see §1, §3.3.2 footer)
 - 29 fitness crates renamed to `oya-check-*` namespace per §3.3.2

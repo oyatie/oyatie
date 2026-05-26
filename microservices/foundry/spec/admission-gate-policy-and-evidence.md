@@ -238,56 +238,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.receive_bundle" | Resource::"evidence:evidence/multispectrum/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.check_scope" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.evaluate_policy" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.validate_evidence" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.validate_status" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.receive_bundle" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.check_scope" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.evaluate_policy" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.validate_evidence" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.validate_status" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.receive_bundle" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.check_scope" | Resource::"admission:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.evaluate_policy" | Resource::"evidence:evidence/multispectrum/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.validate_evidence" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.validate_status" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.receive_bundle" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.check_scope" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.evaluate_policy" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.validate_evidence" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.validate_status" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.receive_bundle" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.check_scope" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.evaluate_policy" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.validate_evidence" | Resource::"admission:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.validate_status" | Resource::"evidence:evidence/multispectrum/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.receive_bundle" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.check_scope" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.evaluate_policy" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.validate_evidence" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.validate_status" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.receive_bundle" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.check_scope" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.evaluate_policy" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.validate_evidence" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.validate_status" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.receive_bundle" | Resource::"admission:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.check_scope" | Resource::"evidence:evidence/multispectrum/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.evaluate_policy" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.validate_evidence" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.validate_status" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.receive_bundle" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.check_scope" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.evaluate_policy" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.validate_evidence" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.validate_status" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.receive_bundle" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.check_scope" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.evaluate_policy" | Resource::"admission:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.validate_evidence" | Resource::"evidence:evidence/multispectrum/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.validate_status" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.receive_bundle" | Resource::"evidence:evidence/multispectrum/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.check_scope" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.evaluate_policy" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.validate_evidence" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.admission.validate_status" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.receive_bundle" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.check_scope" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.evaluate_policy" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.validate_evidence" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.admission.validate_status" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.receive_bundle" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.check_scope" | Resource::"admission:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.evaluate_policy" | Resource::"evidence:evidence/multispectrum/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.validate_evidence" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.admission.validate_status" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.receive_bundle" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.check_scope" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.evaluate_policy" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.validate_evidence" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.admission.validate_status" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.receive_bundle" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.check_scope" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.evaluate_policy" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.validate_evidence" | Resource::"admission:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.admission.validate_status" | Resource::"evidence:evidence/multispectrum/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.receive_bundle" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.check_scope" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.evaluate_policy" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.validate_evidence" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.admission.validate_status" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.receive_bundle" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.check_scope" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.evaluate_policy" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.validate_evidence" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.admission.validate_status" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.receive_bundle" | Resource::"admission:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.check_scope" | Resource::"evidence:evidence/multispectrum/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.evaluate_policy" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.validate_evidence" | Resource::"policy:microservices/foundry/policy/*.cedar" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.admission.validate_status" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.receive_bundle" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.check_scope" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.evaluate_policy" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.validate_evidence" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.admission.validate_status" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.receive_bundle" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.check_scope" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.evaluate_policy" | Resource::"admission:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.validate_evidence" | Resource::"evidence:evidence/multispectrum/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.admission.validate_status" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=admission-gate-policy-and-evidence | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -296,7 +296,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -308,7 +308,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -320,7 +320,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -332,7 +332,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -610,7 +610,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A doc-only changeset with correct evidence is admitted. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.admission.receive_bundle.
 3. Resource: Resource::"admission:foundry-dev" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is bundle_received; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-ADMISSION-BUNDLE-RECEIVED seals the state-changing fact before observability emission finalizes.
@@ -642,7 +642,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A branch touches Foundry decisions and is refused for owner mismatch. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.admission.check_scope.
 3. Resource: Resource::"evidence:evidence/multispectrum/*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is scope_checked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-ADMISSION-POLICY-EVALUATED seals the state-changing fact before observability emission finalizes.
@@ -674,7 +674,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A missing multispectrum file triggers fix_requested. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.admission.evaluate_policy.
 3. Resource: Resource::"status-check:required/*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is policy_checked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-ADMISSION-EVIDENCE-VALIDATED seals the state-changing fact before observability emission finalizes.
@@ -706,7 +706,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A required CI check is absent and admission holds. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.admission.validate_evidence.
 3. Resource: Resource::"policy:microservices/foundry/policy/*.cedar" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is evidence_checked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-ADMISSION-REFUSED seals the state-changing fact before observability emission finalizes.
@@ -738,7 +738,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A Cedar deny from safe-paths beats a permissive role grant. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.admission.validate_status.
 3. Resource: Resource::"repo:oyatie/microservices/foundry" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is status_checked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-ADMISSION-ACCEPTED seals the state-changing fact before observability emission finalizes.

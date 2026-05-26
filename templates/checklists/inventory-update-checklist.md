@@ -5,7 +5,7 @@ status: pending approval
 purpose: |
   Inventory ledger update at every cutover / migration phase. Records source → archive → tombstone transitions for files, crates, contracts, and capabilities. Lifts from `.omc/scratch/inventory-draft-oyatie-cutover.md` shape.
 lift_target: oyatie/docs/checklists/inventory-update.md
-enforcing_fitness_lane: oya-foundry-fitness-inventory-tracker
+enforcing_fitness_lane: oya-governance-inventory-tracker
 owner_team: axis-foundry
 related:
   - .omc/scratch/inventory-draft-oyatie-cutover.md
@@ -15,7 +15,7 @@ related:
 
 # Inventory Update Checklist
 
-> Append a row to the active inventory ledger for every artifact moved, archived, or deleted in a cutover / migration phase. The row is the audit row; absent rows are flagged by `oya-foundry-fitness-inventory-tracker`.
+> Append a row to the active inventory ledger for every artifact moved, archived, or deleted in a cutover / migration phase. The row is the audit row; absent rows are flagged by `oya-governance-inventory-tracker`.
 
 ## When to update
 
@@ -38,7 +38,7 @@ related:
   archive_path: archive/pre-grit-cutover-2026-05-12/... | null
   tombstone:
     enabled: true | false
-    forbid_recreation_lane: oya-foundry-fitness-legacy-path-recreation
+    forbid_recreation_lane: oya-governance-legacy-path-recreation
   bootstrap_window: true | false
   invocation:
     primitive: grit | icm | oya-tooling-agent-read | human-orchestrator-carve-out
@@ -72,9 +72,9 @@ related:
 ## Post-action
 
 - [ ] **I9** Append the row to the active inventory ledger (path TBD on lift: e.g., `docs/inventory/active-ledger.yaml`).
-- [ ] **I10** Verify audit chain emitted `EVT-INV-<ulid>`. *Lane:* `oya-foundry-fitness-audit-emission`.
-- [ ] **I11** Confirm tombstone: if `action: archive | delete`, `oya-foundry-fitness-legacy-path-recreation` lane refuses any future recreation at `source_path`.
-- [ ] **I12** Confirm symmetry: if `action: move`, both `source_path` (now absent) and `target_path` (now present) are honored by the appropriate lanes. *Lane:* `oya-foundry-fitness-inventory-tracker`.
+- [ ] **I10** Verify audit chain emitted `EVT-INV-<ulid>`. *Lane:* `oya-governance-audit-emission`.
+- [ ] **I11** Confirm tombstone: if `action: archive | delete`, `oya-governance-legacy-path-recreation` lane refuses any future recreation at `source_path`.
+- [ ] **I12** Confirm symmetry: if `action: move`, both `source_path` (now absent) and `target_path` (now present) are honored by the appropriate lanes. *Lane:* `oya-governance-inventory-tracker`.
 - [ ] **I13** Update the IP `§Symbols to grit-claim` if grit symbols moved with the file (per ADR-0054-grit-scaffold-claim-pattern).
 - [ ] **I14** Update `docs/CHANGELOG.md` if a canonical doc was moved/archived/deleted.
 
@@ -91,7 +91,7 @@ related:
   archive_path: archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl
   tombstone:
     enabled: true
-    forbid_recreation_lane: oya-foundry-fitness-legacy-path-recreation
+    forbid_recreation_lane: oya-governance-legacy-path-recreation
   bootstrap_window: false
   invocation:
     primitive: oya-tooling-agent-read
@@ -109,4 +109,4 @@ related:
 - Skipping the row because "it's a small file" — every action gets a row.
 - Bundling multiple actions in one row — one action per row, one rationale per row.
 - Bootstrap-window invocation without `bootstrap_window: true` flag — auto-fails the lane.
-- Recreating a legacy retired path — `oya-foundry-fitness-legacy-path-recreation` refuses; escalate per `escalation-checklist.md` to amend the inventory if intentional.
+- Recreating a legacy retired path — `oya-governance-legacy-path-recreation` refuses; escalate per `escalation-checklist.md` to amend the inventory if intentional.

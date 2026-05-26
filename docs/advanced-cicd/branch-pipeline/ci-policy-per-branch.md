@@ -32,7 +32,7 @@ Every CI lane is invoked through `oya-foundry-ci-runner-kernel` (NEW) + per-prov
 - `oya-foundry-ci-runner-adapter-1es` — Microsoft 1ES templated pipelines.
 - `oya-foundry-ci-runner-adapter-gitlab-ci` — GitLab pipeline trigger.
 
-Swap a provider = change one workspace dep. Lane definitions live in `contracts/fitness-lanes/*.yaml`; the adapter translates to provider-native config at deploy time.
+Swap a provider = change one workspace dep. Lane definitions live in `contracts/governance-lanes/*.yaml`; the adapter translates to provider-native config at deploy time.
 
 ## 2. The lane catalogue
 

@@ -22,7 +22,7 @@ hyperscaler_practices_inherited:
   - slsa-l2
   - feature-flags-canary
 lift_target: oyatie/docs/products/foundry/phases/P02-multi-subscription-pool/INDEX.md
-enforced_by: oya-foundry-fitness-plan-hierarchy
+enforced_by: oya-governance-plan-hierarchy
 length_cap: 80
 ---
 
@@ -37,12 +37,12 @@ the existing Phase 00 `ProviderAccount` state machine without duplicating accoun
 
 ## Acceptance
 
-1. ProviderAccountPool pure kernel ships with state-machine integration; gates `oya-foundry-fitness-pool-routing-honor` (BLOCKER).
-2. Anthropic-compat `POST /v1/messages` + `GET /v1/messages/count_tokens` adapter operational; gate `oya-foundry-fitness-compat-api-shape-binding` (BLOCKER).
+1. ProviderAccountPool pure kernel ships with state-machine integration; gates `oya-governance-pool-routing-honor` (BLOCKER).
+2. Anthropic-compat `POST /v1/messages` + `GET /v1/messages/count_tokens` adapter operational; gate `oya-governance-compat-api-shape-binding` (BLOCKER).
 3. OpenAI-compat `POST /v1/chat/completions` + `POST /v1/embeddings` + `GET /v1/models` adapter operational; same gate.
-4. OAuth subscription-token capture flow stores only `SecretReference`; gate `oya-foundry-fitness-secret-rotation` + `silent-failure-hunter` (BLOCKER).
-5. Upstream-API drift lane `oya-foundry-fitness-upstream-api-drift` runs nightly; auto-PR on BREAKING.
-6. ToS-acknowledgment record required before pool-membership > 1; gate `oya-foundry-fitness-tos-acknowledgment` (BLOCKER).
+4. OAuth subscription-token capture flow stores only `SecretReference`; gate `oya-governance-secret-rotation` + `silent-failure-hunter` (BLOCKER).
+5. Upstream-API drift lane `oya-governance-upstream-api-drift` runs nightly; auto-PR on BREAKING.
+6. ToS-acknowledgment record required before pool-membership > 1; gate `oya-governance-tos-acknowledgment` (BLOCKER).
 
 ## Implementation Plans
 
@@ -65,7 +65,7 @@ the existing Phase 00 `ProviderAccount` state machine without duplicating accoun
 - `crates/oya-foundry-agent-runtime/src/foundry/auth.rs` (extended)
 - `crates/oya-foundry-policy-kernel/` (extended with ToS-ack)
 - `crates/oya-governance-upstream-api-drift-kernel/` (new)
-- `tools/oya-foundry-fitness-upstream-api-drift/` (new; nightly runner)
+- `tools/oya-governance-upstream-api-drift/` (new; nightly runner)
 - `contracts/foundry-compat-anthropic-v1.openapi.yaml` (new)
 - `contracts/foundry-compat-openai-v1.openapi.yaml` (new)
 - `docs/products/foundry/PHASE-02-SPEC.md` (new — lifted from this phase)
@@ -73,5 +73,5 @@ the existing Phase 00 `ProviderAccount` state machine without duplicating accoun
 ## Agent-handoff (icm event at phase complete)
 
 ```
-icm store -t phase-handoff -c "P02-multi-subscription-pool complete at <git-sha>; IPs merged: IP-001..IP-006; ccproxy-api parity matrix attached; next phase: P03-gates-validators-evidence; gate: oya-foundry-fitness-pool-routing-honor + -tos-acknowledgment + -compat-api-shape-binding + -upstream-api-drift" -i high -k "M02,P02,multi-subscription-pool,ccproxy-parity,handoff"
+icm store -t phase-handoff -c "P02-multi-subscription-pool complete at <git-sha>; IPs merged: IP-001..IP-006; ccproxy-api parity matrix attached; next phase: P03-gates-validators-evidence; gate: oya-governance-pool-routing-honor + -tos-acknowledgment + -compat-api-shape-binding + -upstream-api-drift" -i high -k "M02,P02,multi-subscription-pool,ccproxy-parity,handoff"
 ```

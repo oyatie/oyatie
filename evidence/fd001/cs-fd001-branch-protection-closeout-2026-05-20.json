@@ -64,52 +64,52 @@
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-banned-primitives",
+        "name": "oya-governance-banned-primitives",
         "run_id": 26188418368,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-aspirational-enforcement",
+        "name": "oya-governance-aspirational-enforcement",
         "run_id": 26188418361,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-honest-claims",
+        "name": "oya-governance-honest-claims",
         "run_id": 26188418425,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-api-semver",
+        "name": "oya-governance-api-semver",
         "run_id": 26188418369,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-cohesion",
+        "name": "oya-governance-cohesion",
         "run_id": 26188418366,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-supply-chain",
+        "name": "oya-governance-supply-chain",
         "run_id": 26188418364,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-master-plan-completion",
+        "name": "oya-governance-master-plan-completion",
         "run_id": 26188418426,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-changeset-state",
+        "name": "oya-governance-changeset-state",
         "run_id": 26188418363,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-evidence-secret-scan",
+        "name": "oya-governance-evidence-secret-scan",
         "run_id": 26188418359,
         "conclusion": "success"
       },
       {
-        "name": "oya-foundry-fitness-sequential-pr-merge-conflicts",
+        "name": "oya-governance-sequential-pr-merge-conflicts",
         "run_id": 26188673688,
         "conclusion": "success"
       }
@@ -156,7 +156,7 @@
       "evidence": "2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives",
       "status": "passed",
       "evidence": "1585 files, 18 sources, 18 fences, 3 command-log records, 0 usages, 0 documented exceptions."
     },

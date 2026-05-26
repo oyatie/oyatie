@@ -5,7 +5,7 @@ status: pending approval
 purpose: |
   The agent's last 5 actions before `grit done`. Closes the agentic-navigation contract. Walked at the end of every agent session that modified the repo.
 lift_target: oyatie/docs/checklists/agent-completion.md
-enforcing_fitness_lane: oya-foundry-fitness-banned-primitives + oya-foundry-fitness-audit-emission
+enforcing_fitness_lane: oya-governance-banned-primitives + oya-governance-audit-emission
 owner_team: axis-foundry
 related:
   - .omc/plans/MASTERPLAN.md
@@ -51,7 +51,7 @@ icm store \
 
 ## C3. Update inventory ledger (if migration-class)
 
-Per `/templates/checklists/inventory-update-checklist.md` — append a row to the active inventory ledger naming: source path, target path, archive path (if any), tombstone (if delete), audit emission ID, agent or human orchestrator. *Lane:* `oya-foundry-fitness-inventory-tracker`.
+Per `/templates/checklists/inventory-update-checklist.md` — append a row to the active inventory ledger naming: source path, target path, archive path (if any), tombstone (if delete), audit emission ID, agent or human orchestrator. *Lane:* `oya-governance-inventory-tracker`.
 
 ## C4. Audit-chain emission
 
@@ -61,7 +61,7 @@ Confirm:
 - (If capability publish) `oya.foundry.capability.invoked` topic registered.
 - (If runbook author) `oya.ops.runbook.invoked` topic resolvable.
 
-Paste the `EVT-*` IDs into PR `## Evidence`. *Lane:* `oya-foundry-fitness-audit-emission`.
+Paste the `EVT-*` IDs into PR `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 
 ## C5. Grit done
 

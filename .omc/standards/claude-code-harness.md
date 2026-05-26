@@ -14,7 +14,7 @@ purpose: |
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
 lift_target: oyatie/docs/standards/claude-code-harness.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-banned-primitives
+enforced_by: oya-governance-banned-primitives
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/multi-agent-tool-map.md
@@ -65,7 +65,7 @@ Direct `git` / `gh` invocation inside agent fences is **permitted** when:
    ```
    **BEFORE** the invocation.
 
-The revised lane `oya-foundry-fitness-banned-primitives` catches
+The revised lane `oya-governance-banned-primitives` catches
 **undocumented** `git` / `gh` calls in agent-instruction sections, not all
 calls. Repeat invocations (≥ 5 same-shape in 30 days) auto-emit a
 migration-candidate row in `docs/MISTAKES-LEDGER.md`.
@@ -185,7 +185,7 @@ Custom OMC subagents (per AGENTS.md §OMC): `executor`, `architect`,
 ## 8. Boundaries
 
 - Claude Code MUST NOT edit `~/.claude/` from a project session — user-
-  machine state. The lane `oya-foundry-fitness-user-machine-guard` checks.
+  machine state. The lane `oya-governance-user-machine-guard` checks.
 - Claude Code MUST NOT touch the read-only reference path
   `/Users/home/Documents/GitHub/claude-code`.
 - Local `AGENTS.md` files under sub-directories MAY narrow context but

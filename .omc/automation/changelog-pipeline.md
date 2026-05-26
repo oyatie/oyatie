@@ -7,10 +7,10 @@ status: pending approval
 purpose: |
   Every PR that touches a canonical doc (Tier-1 or Tier-2 per DOC-CATALOG.md)
   auto-emits a `docs/CHANGELOG.md` row. The row is templated from the PR body +
-  commit metadata; the `oya-foundry-fitness-changelog-row` lane fails the PR if
+  commit metadata; the `oya-governance-changelog-row` lane fails the PR if
   the row is missing or malformed. CHANGELOG drift dies at the door.
 lift_target: oyatie/docs/automation/changelog-pipeline.md
-enforced_by: oya-foundry-fitness-changelog-row
+enforced_by: oya-governance-changelog-row
 extends_crates:
   - oya-foundry-pr-traceability-kernel
   - oya-foundry-doc-catalog-kernel
@@ -55,7 +55,7 @@ Rows are grouped by date descending; multiple rows per day are allowed.
 | On-merge | Row finalized (PR number + merge SHA filled in if `PR-NNNN` was placeholder). |
 | Nightly | Sweep CHANGELOG for duplicate rows, out-of-order dates, missing ADR citations on doc.adr_index touches. |
 
-## 5. Validation gates (`oya-foundry-fitness-changelog-row`)
+## 5. Validation gates (`oya-governance-changelog-row`)
 
 1. **Row presence.** Every Tier-1/Tier-2 doc touch produces a corresponding row in the same PR (BLOCKER).
 2. **Row schema.** Row parses against the shape above; missing fields → BLOCKER.

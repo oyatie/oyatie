@@ -259,56 +259,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.claim" | Resource::"branch:agent/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.verify" | Resource::"pr:base/dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.done" | Resource::"environment:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.subscribe" | Resource::"environment:staging" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.promote" | Resource::"environment:production" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.claim" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.verify" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.done" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.subscribe" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.promote" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.claim" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.verify" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.done" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.subscribe" | Resource::"cli:./bin/oya vcs" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.promote" | Resource::"branch:agent/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.claim" | Resource::"pr:base/dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.verify" | Resource::"environment:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.done" | Resource::"environment:staging" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.subscribe" | Resource::"environment:production" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.promote" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.claim" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.verify" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.done" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.subscribe" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.promote" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.claim" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.verify" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.done" | Resource::"cli:./bin/oya vcs" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.subscribe" | Resource::"branch:agent/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.promote" | Resource::"pr:base/dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.claim" | Resource::"environment:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.verify" | Resource::"environment:staging" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.done" | Resource::"environment:production" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.subscribe" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.promote" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.claim" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.verify" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.done" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.subscribe" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.promote" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.claim" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.verify" | Resource::"cli:./bin/oya vcs" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.done" | Resource::"branch:agent/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.subscribe" | Resource::"pr:base/dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.promote" | Resource::"environment:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.claim" | Resource::"environment:staging" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.verify" | Resource::"environment:production" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.done" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.subscribe" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.promote" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.claim" | Resource::"branch:agent/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.verify" | Resource::"pr:base/dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.done" | Resource::"environment:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.subscribe" | Resource::"environment:staging" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.vcs.promote" | Resource::"environment:production" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.claim" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.verify" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.done" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.subscribe" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.vcs.promote" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.claim" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.verify" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.done" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.subscribe" | Resource::"cli:./bin/oya vcs" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.vcs.promote" | Resource::"branch:agent/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.claim" | Resource::"pr:base/dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.verify" | Resource::"environment:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.done" | Resource::"environment:staging" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.subscribe" | Resource::"environment:production" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.vcs.promote" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.claim" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.verify" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.done" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.subscribe" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.vcs.promote" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.claim" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.verify" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.done" | Resource::"cli:./bin/oya vcs" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.subscribe" | Resource::"branch:agent/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.vcs.promote" | Resource::"pr:base/dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.claim" | Resource::"environment:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.verify" | Resource::"environment:staging" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.done" | Resource::"environment:production" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.subscribe" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.vcs.promote" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.claim" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.verify" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.done" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.subscribe" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.vcs.promote" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.claim" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.verify" | Resource::"cli:./bin/oya vcs" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.done" | Resource::"branch:agent/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.subscribe" | Resource::"pr:base/dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.vcs.promote" | Resource::"environment:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.claim" | Resource::"environment:staging" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.verify" | Resource::"environment:production" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.done" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.subscribe" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.vcs.promote" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=vcs-orchestrator-end-to-end | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -317,7 +317,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0113" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -329,7 +329,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0113" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -341,7 +341,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0113" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -353,7 +353,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0113" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -631,7 +631,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A doc-only Foundry substrate change moves claim to promote. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.vcs.claim.
 3. Resource: Resource::"cli:./bin/oya vcs" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0113, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0113, and evidence_hash presence.
 5. State: The active phase is claim; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-VCS-CLAIMED seals the state-changing fact before observability emission finalizes.
@@ -663,7 +663,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Local verify fails and the changeset never enters pr_open. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.vcs.verify.
 3. Resource: Resource::"branch:agent/*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0113, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0113, and evidence_hash presence.
 5. State: The active phase is work; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-VCS-VERIFIED seals the state-changing fact before observability emission finalizes.
@@ -695,7 +695,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Orchestrator crashes after PR creation and resumes idempotently. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.vcs.done.
 3. Resource: Resource::"pr:base/dev" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0113, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0113, and evidence_hash presence.
 5. State: The active phase is verify; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-VCS-DONE-KICKED-OFF seals the state-changing fact before observability emission finalizes.
@@ -727,7 +727,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Human override changes reviewed to rejected with signature. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.vcs.subscribe.
 3. Resource: Resource::"environment:dev" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0113, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0113, and evidence_hash presence.
 5. State: The active phase is done; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-VCS-PROMOTED seals the state-changing fact before observability emission finalizes.
@@ -759,7 +759,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Promotion to dev succeeds while staging remains deferred. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.vcs.promote.
 3. Resource: Resource::"environment:staging" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0113, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0113, and evidence_hash presence.
 5. State: The active phase is pr_open; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-VCS-OVERRIDDEN seals the state-changing fact before observability emission finalizes.

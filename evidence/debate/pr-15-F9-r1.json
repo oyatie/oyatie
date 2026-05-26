@@ -8,7 +8,7 @@
   "gates_passed": [
     {
       "gate": "ci-checks-all-green",
-      "evidence": "gh pr view 15 --json statusCheckRollup: 14 checks, 13 SUCCESS, 1 SKIPPED (oya-foundry-fitness-release-artifact-attestation — correctly skipped for non-release PR). cargo-fmt, cargo-clippy, cargo-check, cargo-nextest, oya-vcs-admission all SUCCESS."
+      "evidence": "gh pr view 15 --json statusCheckRollup: 14 checks, 13 SUCCESS, 1 SKIPPED (oya-governance-release-artifact-attestation — correctly skipped for non-release PR). cargo-fmt, cargo-clippy, cargo-check, cargo-nextest, oya-vcs-admission all SUCCESS."
     },
     {
       "gate": "foundry-capability-schema-gate-path-updated",

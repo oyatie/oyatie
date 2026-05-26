@@ -5,7 +5,7 @@
 //! `crates/`, `tools/`, `scripts/`), passing each file to the
 //! [`oya_check_retired_vocabulary`] kernel.
 //!
-//! Lane id: `oya-foundry-fitness-retired-vocabulary`. The lane fails
+//! Lane id: `oya-governance-retired-vocabulary`. The lane fails
 //! fast on any drift hit, surfacing every file:line:term row at once
 //! so the fix-up commit covers them in a single sweep.
 //!

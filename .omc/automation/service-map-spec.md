@@ -10,7 +10,7 @@ purpose: |
   workspace metadata + `oya-foundry-cohesion-fitness-kernel` contract records +
   rustdoc link graph. Lift to `docs/visualization/service-map.md` as D2 + SVG.
 lift_target: oyatie/docs/visualization/service-map.md
-enforced_by: oya-foundry-fitness-service-map
+enforced_by: oya-governance-service-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-intelligence-architecture-map-kernel
@@ -86,7 +86,7 @@ For the mdbook chapter, the equivalent Mermaid `graph TB` is emitted alongside. 
 
 The pipeline also emits per-layer subviews `docs/visualization/service-map-<layer>.svg` for layer-specific deep-dives.
 
-## 5. Validation gates (`oya-foundry-fitness-service-map`)
+## 5. Validation gates (`oya-governance-service-map`)
 
 1. **Layer declaration.** Every workspace crate has `[package.metadata.oyatie.layer]` (BLOCKER).
 2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on a `runtime`/`adapter`/`api`/`app` crate (BLOCKER). A `runtime` crate MUST NOT depend on an `adapter`/`api`/`app` crate. The pipeline enforces the strict DAG ordering.

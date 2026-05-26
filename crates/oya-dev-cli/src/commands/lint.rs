@@ -24,7 +24,7 @@ const REQUIRED_P03_KERNEL_CRATES: &[&str] = &[
     "oya-governance-pr-traceability-kernel",
     "oya-governance-pre-push-kernel",
     "oya-governance-quality-lane-kernel",
-    "oya-governance-cohesion-fitness-kernel",
+    "oya-governance-cohesion-kernel",
     "oya-intelligence-bypass-ledger-kernel",
 ];
 

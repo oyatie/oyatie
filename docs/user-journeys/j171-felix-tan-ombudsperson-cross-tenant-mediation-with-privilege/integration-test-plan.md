@@ -279,7 +279,7 @@ Intern-buildable plan: stand up the three-tenant fixture (`priscilla-lim-persona
 ## CI integration
 
 - Lane: `lean-a7-ombudsperson-privilege-cross-tenant`
-- Owner: `oya-foundry-fitness-cross-tenant-boundary` (under governance rename per ADR-0132)
+- Owner: `oya-governance-cross-tenant-boundary` (under governance rename per ADR-0132)
 - Gate: BLOCKER day 1 (cross-tenant privilege is a Linus-grade no-silent-regression class)
 - Cadence: every PR touching messenger + drive + audit-chain + community + governance + compliance
 - Coverage requirements: 20 tests above pass with 0 failures; cross-test invariants verified.

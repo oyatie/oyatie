@@ -19,7 +19,7 @@ related:
   - docs/agents/CROSS-REFERENCE-INDEX.md
   - docs/standards/INDEX.md
   - docs/templates/INDEX.md
-  - docs/fitness-lanes/
+  - docs/governance-lanes/
 doc_status: published
 ---
 

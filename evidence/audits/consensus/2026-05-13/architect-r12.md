@@ -9,7 +9,7 @@ n/a
 ## Fix-Closure Audit (architect r11 + critic r3 carry-over)
 1. §3.0 Viable Options added:           PASS — §3.0 exists with α/β/γ/δ matrix and decision at lines 49-58.
 2. oya-workflow.openapi.yaml removed:   PASS — `rg oya-workflow` returns no hits; workflow refs use `contracts/workflow.openapi.yaml` at lines 134, 273, 311, 483, 492, 497.
-3. workflow.openapi.yaml demoted to WT: PASS — lines 483 and 492 explicitly say `contracts/workflow.openapi.yaml` is WT/untracked and not HEAD; `git ls-files -- contracts/workflow.openapi.yaml` returned empty. Same for `.github/workflows/ci-fitness-lanes.yml`.
+3. workflow.openapi.yaml demoted to WT: PASS — lines 483 and 492 explicitly say `contracts/workflow.openapi.yaml` is WT/untracked and not HEAD; `git ls-files -- contracts/workflow.openapi.yaml` returned empty. Same for `.github/workflows/ci-governance-lanes.yml`.
 4. §5 11→12 fragments / 13 probes:      PASS — §5 row says "ALL 12 NEW FRAGMENTS / 13 probes" at line 248; Step 1a-1 repeats 12 fragments / 13 probes at lines 291-293.
 5. §5 probe (a) predicate aligned:      PASS — §5 multi-party probe (a) uses `resource.state == Approved && resource.execute_operation_id != null` at line 253, matching Rule 2 at line 207.
 6. §12 ✅ → 🟢 wholesale + premise:      PASS — §12 premise retires ✅ semantics at line 505; §12 rows use 🟢/🟡/🔴 at lines 510-583. Remaining ✅ are historical consensus-log text at line 434, not §12 capability status.
@@ -26,5 +26,5 @@ n/a
 ## Honest-Introspection Self-Check
 - Rule (i)   honest-claims:      PASS — §12/§14 use PLANNED/NOT DELIVERED framing and "NOT yet implemented in HEAD" at lines 505, 589, 607, 687-694.
 - Rule (ii)  Linus-grade:        FAIL — no-silent-regression bar catches stale predicate line 359 and inconsistent S3 gap math line 682.
-- Rule (iii) verified-claims:    PASS — HEAD check used `git ls-files`; tracked: `docs/CONSTITUTION.md`, `docs/MASTERPLAN.md`, `registry/quality/lanes.yaml`; untracked as honestly demoted: `contracts/workflow.openapi.yaml`, `.github/workflows/ci-fitness-lanes.yml`, `contracts/ops-workspace-shell.openapi.yaml`, `docs/standards/workspace-surfaces.md`, `docs/standards/cedar-policy-inventory.md`, `crates/oya-workflow-engine-kernel/src/{ports.rs,lib.rs}`. `contracts/oya-workflow.openapi.yaml` absent.
+- Rule (iii) verified-claims:    PASS — HEAD check used `git ls-files`; tracked: `docs/CONSTITUTION.md`, `docs/MASTERPLAN.md`, `registry/quality/lanes.yaml`; untracked as honestly demoted: `contracts/workflow.openapi.yaml`, `.github/workflows/ci-governance-lanes.yml`, `contracts/ops-workspace-shell.openapi.yaml`, `docs/standards/workspace-surfaces.md`, `docs/standards/cedar-policy-inventory.md`, `crates/oya-workflow-engine-kernel/src/{ports.rs,lib.rs}`. `contracts/oya-workflow.openapi.yaml` absent.
 - Rule (iv)  honest-introspection: FAIL — §14 honestly says S3 not achieved, but the live-gap count/status fields do not match the §14.1 surface because #20 is both NEW/LIVE and subtracted at line 682.

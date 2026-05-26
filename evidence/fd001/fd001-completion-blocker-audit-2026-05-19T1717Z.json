@@ -102,12 +102,12 @@
           "cargo-nextest",
           "oya-vcs-admission",
           "oya-vcs-provider-execution",
-          "oya-foundry-fitness-supply-chain",
-          "oya-foundry-fitness-cohesion",
-          "oya-foundry-fitness-api-semver",
-          "oya-foundry-fitness-honest-claims",
-          "oya-foundry-fitness-aspirational-enforcement",
-          "oya-foundry-fitness-banned-primitives",
+          "oya-governance-supply-chain",
+          "oya-governance-cohesion",
+          "oya-governance-api-semver",
+          "oya-governance-honest-claims",
+          "oya-governance-aspirational-enforcement",
+          "oya-governance-banned-primitives",
           "oya-governance-protection-context-match",
           "oya-governance-dependency-seam",
           "oya-pr-review"
@@ -119,21 +119,21 @@
           "cargo-nextest",
           "oya-vcs-admission",
           "oya-vcs-provider-execution",
-          "oya-foundry-fitness-supply-chain",
-          "oya-foundry-fitness-cohesion",
-          "oya-foundry-fitness-api-semver",
-          "oya-foundry-fitness-protection-context-match"
+          "oya-governance-supply-chain",
+          "oya-governance-cohesion",
+          "oya-governance-api-semver",
+          "oya-governance-protection-context-match"
         ],
         "missing_from_live": [
-          "oya-foundry-fitness-aspirational-enforcement",
-          "oya-foundry-fitness-banned-primitives",
-          "oya-foundry-fitness-honest-claims",
+          "oya-governance-aspirational-enforcement",
+          "oya-governance-banned-primitives",
+          "oya-governance-honest-claims",
           "oya-governance-dependency-seam",
           "oya-governance-protection-context-match",
           "oya-pr-review"
         ],
         "extra_in_live": [
-          "oya-foundry-fitness-protection-context-match"
+          "oya-governance-protection-context-match"
         ]
       },
       "source": "/tmp/fd001-default-canonical-and-remaining-gates-20260519T171509Z.log",
@@ -191,7 +191,7 @@
       "id": "live-branch-protection-drift",
       "type": "external_admin_branch_protection",
       "blocking": true,
-      "summary": "Live dev required_status_checks diverge from canonical config: missing governance/pr-review contexts and still includes stale oya-foundry-fitness-protection-context-match.",
+      "summary": "Live dev required_status_checks diverge from canonical config: missing governance/pr-review contexts and still includes stale oya-governance-protection-context-match.",
       "evidence": [
         "/tmp/fd001-default-canonical-and-remaining-gates-20260519T171509Z.log"
       ],
@@ -203,12 +203,12 @@
           "cargo-nextest",
           "oya-vcs-admission",
           "oya-vcs-provider-execution",
-          "oya-foundry-fitness-supply-chain",
-          "oya-foundry-fitness-cohesion",
-          "oya-foundry-fitness-api-semver",
-          "oya-foundry-fitness-honest-claims",
-          "oya-foundry-fitness-aspirational-enforcement",
-          "oya-foundry-fitness-banned-primitives",
+          "oya-governance-supply-chain",
+          "oya-governance-cohesion",
+          "oya-governance-api-semver",
+          "oya-governance-honest-claims",
+          "oya-governance-aspirational-enforcement",
+          "oya-governance-banned-primitives",
           "oya-governance-protection-context-match",
           "oya-governance-dependency-seam",
           "oya-pr-review"
@@ -220,21 +220,21 @@
           "cargo-nextest",
           "oya-vcs-admission",
           "oya-vcs-provider-execution",
-          "oya-foundry-fitness-supply-chain",
-          "oya-foundry-fitness-cohesion",
-          "oya-foundry-fitness-api-semver",
-          "oya-foundry-fitness-protection-context-match"
+          "oya-governance-supply-chain",
+          "oya-governance-cohesion",
+          "oya-governance-api-semver",
+          "oya-governance-protection-context-match"
         ],
         "missing_from_live": [
-          "oya-foundry-fitness-aspirational-enforcement",
-          "oya-foundry-fitness-banned-primitives",
-          "oya-foundry-fitness-honest-claims",
+          "oya-governance-aspirational-enforcement",
+          "oya-governance-banned-primitives",
+          "oya-governance-honest-claims",
           "oya-governance-dependency-seam",
           "oya-governance-protection-context-match",
           "oya-pr-review"
         ],
         "extra_in_live": [
-          "oya-foundry-fitness-protection-context-match"
+          "oya-governance-protection-context-match"
         ]
       },
       "authority_needed": [

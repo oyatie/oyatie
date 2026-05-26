@@ -18,7 +18,7 @@ ITERATE
 - Verification concreteness:       PASS
 
 ## User-Mandated-Rule Check
-- (i)   honest-claims:           FAIL — §14.3 is fixed, but §12 still contains stale current-version claims: §12 premise says it classifies "Wave 5 v14", and §12.9 says "Wave 5 v14 alone is hyperscaler-mature-PLANNED". In a v16 pending-approval plan, this is a real stale-version defect in the headline maturity claim. Path checks: `git ls-files` returns tracked `docs/MASTERPLAN.md` and `registry/quality/lanes.yaml`; it returns no path for this v16 plan, Wave 2/3/4 plan files, `contracts/workflow.openapi.yaml`, `.github/workflows/ci-fitness-lanes.yml`, or future Wave 5.5/5.6/5.7 paths, matching the plan's prerequisite-gated posture but increasing the need for exact version wording.
+- (i)   honest-claims:           FAIL — §14.3 is fixed, but §12 still contains stale current-version claims: §12 premise says it classifies "Wave 5 v14", and §12.9 says "Wave 5 v14 alone is hyperscaler-mature-PLANNED". In a v16 pending-approval plan, this is a real stale-version defect in the headline maturity claim. Path checks: `git ls-files` returns tracked `docs/MASTERPLAN.md` and `registry/quality/lanes.yaml`; it returns no path for this v16 plan, Wave 2/3/4 plan files, `contracts/workflow.openapi.yaml`, `.github/workflows/ci-governance-lanes.yml`, or future Wave 5.5/5.6/5.7 paths, matching the plan's prerequisite-gated posture but increasing the need for exact version wording.
 - (ii)  Linus-grade:             PASS (S3a plan-stage stop reachable at v16 — the loop can terminate on APPROVE+APPROVE across the 9 plan criteria without waiting for S3b operational dispatch closure)
 - (iii) verified-claims:         PASS
 - (iv)  honest-introspection:    PASS

@@ -25,7 +25,7 @@ Ship 5 products on hyper/tokio FIRST; phase out AFTER ontology v1 stable. Plan s
 
 1. Systematic phase-out > immediate replacement.
 2. Conscious debt > accidental debt. Every dep named/layered/owned with a replacement target.
-3. Seams = lane crate + `fitness-lanes/*.md` + CI job — not doc paragraphs.
+3. Seams = lane crate + `governance-lanes/*.md` + CI job — not doc paragraphs.
 4. Public APIs are wrapper types only. No `hyper::Request`/`tokio::JoinHandle`/`bytes::Bytes` outside `adapter`-layer crates.
 5. Phase-out is triggered, not scheduled.
 6. Machine-evaluable triggers > judgment calls.
@@ -300,7 +300,7 @@ The kernel is reusable (other lanes can validate trigger ASTs in tests without f
 
 ### Lane naming precedent (unchanged)
 
-`oya-check-dependency-seam-discipline` (runner; layer=`runtime`). Companion kernel `oya-foundry-fitness-dependency-seam-kernel` (deferred). ADR-0092 codifies split.
+`oya-check-dependency-seam-discipline` (runner; layer=`runtime`). Companion kernel `oya-governance-dependency-seam-kernel` (deferred). ADR-0092 codifies split.
 
 ### Composite scope — 8 sub-checks (unchanged from R4)
 
@@ -486,7 +486,7 @@ New files unchanged from R4. **Schema additions per round 5:** `default_evaluato
 ```
 INDEX.md @ 4d6bf91b51671e37076b2a8c15f0f950cdb3ba56 = 64 lanes
     (30 BLOCKER + 28 HIGH + 6 MED + 0 LOW;
-     verified via grep '^| [a-z]' .omc/fitness-lanes/INDEX.md | wc -l
+     verified via grep '^| [a-z]' .omc/governance-lanes/INDEX.md | wc -l
      against the SHA-pinned content at commit 4d6bf91)
 
 Net new lanes in this plan = 3:
@@ -500,7 +500,7 @@ Expected post-W0 lane count = 67 (30 + 3 BLOCKER soak; HIGH/MED unchanged).
 If `INDEX.md` drifts between round-5 emit and W0 Step 7 merge, Step 7 re-anchors against the new merge-base SHA and recomputes `expected = <new-baseline> + 3`. The composite lane sub-check `fitness-lane-index-coverage` validates this delta against the SHA-anchored emit metadata.
 
 - **Tool:** `oya-dev-cli gate validate fitness-lane-index --baseline-sha 4d6bf91b51671e37076b2a8c15f0f950cdb3ba56`.
-- **Outputs:** updated `.omc/fitness-lanes/INDEX.md` to **67 lanes**; `/registry/tech-debt-ledger-review-template.md`.
+- **Outputs:** updated `.omc/governance-lanes/INDEX.md` to **67 lanes**; `/registry/tech-debt-ledger-review-template.md`.
 - **Verification:** composite at `error`, green on `main`; review-contract sub-check arms; first quarterly review scheduled.
 
 ### Step 8 — Ops-binary cloud-native code-changes (M; DRI) — unchanged from R4
@@ -688,7 +688,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`.
 | `oya-check-distroless-deployment-bar` | authored Step 5 | `runtime` | Lane runner. |
 | `oya-check-replacement-parity` | authored W1+ | `runtime` | Lane runner. |
 | `oya-dev-cli` | referenced | `app` | Top-level CLI binary. |
-| `oya-foundry-fitness-dependency-seam-kernel` | deferred (post-W0) | `kernel` | Pure policy value-object. |
+| `oya-governance-dependency-seam-kernel` | deferred (post-W0) | `kernel` | Pure policy value-object. |
 
 **Removed from R4 §18.A audit (Critic MAJOR #2 fix):** the hedged row `oya-runtime-cgroup-runtime (renamed from *-domain if pre-existing)`. `find crates -maxdepth 1 -name '*cgroup*'` at commit `4d6bf91b` returns zero matches. No such crate; no row. cgroup probing in `oya-check-distroless-deployment-bar` (§19.5) is in-process via `/sys/fs/cgroup` reads; no dedicated crate needed.
 
@@ -701,7 +701,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`.
 - rejects missing (BLOCKER);
 - rejects any value outside the canonical 5 (BLOCKER);
 - rejects `oya-check-*` with layer ≠ `runtime`;
-- rejects `oya-foundry-fitness-*-kernel` with layer ≠ `kernel`;
+- rejects `oya-governance-*-kernel` with layer ≠ `kernel`;
 - **rejects any runtime→adapter edge** (canonical DAG invariant per `service-map-spec.md` §5; reads `cargo metadata --no-deps`, walks each runtime-layer crate's deps, asserts no dep declares `layer = "adapter"`). Note: `adapter→runtime` is the post-Critic-CRITICAL-#1 composition shape (hyper-adapter composes middleware-runtime) and IS allowed per §3.D.
 
 ### §18.D — Bootstrap reality

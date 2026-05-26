@@ -13,7 +13,7 @@
     "Path-rename only: no new code, no new trust-boundary crossing, no new privileged path.",
     "dev-cli loaders preserve identical parse + schema validation logic; only default PathBuf string moved.",
     "Capability YAML records continue to validate against registry/quality/capability-record.schema.json (unchanged).",
-    "ADR-0003 audit-chain contract intact: evidence_emission_topic field, runtime guard, and oya-foundry-fitness-evidence-contract CI lane still enforced -- the lane's trigger path is updated to registry/capability-templates/ but enforcement semantics are identical.",
+    "ADR-0003 audit-chain contract intact: evidence_emission_topic field, runtime guard, and oya-governance-evidence-contract CI lane still enforced -- the lane's trigger path is updated to registry/capability-templates/ but enforcement semantics are identical.",
     "ADR-0007 Cedar authoritative policy + persona tier model intact: cedar_policy path string moved, but file-loading, policy-authority, and runtime-gate enforcement are unchanged.",
     "ADR-0050 automation-first + ADR-0052 inventory: documentation-only path updates, no carve-out.",
     "No secrets, API keys, tokens, passwords, or credentials introduced in the diff (only PR-15 author own 'secret-store' CLI flag mention is pre-existing).",

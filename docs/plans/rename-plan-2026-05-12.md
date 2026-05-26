@@ -17,7 +17,7 @@ companion_docs:
   - docs/standards/crate-naming-convention.md
   - docs/standards/clean-architecture.md
   - docs/audits/convention-audit-2026-05-12.md
-  - .omc/fitness-lanes/architecture-conventions.md
+  - .omc/governance-lanes/architecture-conventions.md
 related_adrs:
   - ADR-0015
   - ADR-0017

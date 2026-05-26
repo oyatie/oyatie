@@ -624,7 +624,7 @@ The canonical algorithm in `oya-payroll-run-domain` is jurisdiction-agnostic. Th
 
 ```mermaid
 flowchart LR
-    PR[PR opened] --> CI[GitHub Actions ci-fitness-lanes]
+    PR[PR opened] --> CI[GitHub Actions ci-governance-lanes]
     CI --> CheckCov[oya-check-documentation --workspace --report-only<br/>post-M02-P22: --blocker]
     CheckCov --> ReadWS[Read workspace.metadata.oya.microservices]
     CheckCov --> ReadMP[Read MASTERPLAN §2.1 catalog]

@@ -27,7 +27,7 @@ This IP refactors workflows to:
 - Keep `continue-on-error: false` (the default) so each job still FAILS the workflow if it fails — but `if: always()` ensures every gate still RUNS.
 - Set `strategy.fail-fast: false` on all matrix jobs (e.g. multi-toolchain matrix).
 - Confirm `[profile.ci].fail-fast = false` in `.config/nextest.toml` (already set per audit Stage 6).
-- Add a fitness lane `oya-foundry-fitness-workflow-surface-coverage-kernel` that BLOCKS any workflow file where a `needs:` chain would suppress another gate's signal.
+- Add a fitness lane `oya-governance-workflow-surface-coverage-kernel` that BLOCKS any workflow file where a `needs:` chain would suppress another gate's signal.
 
 ## Dependencies
 
@@ -38,15 +38,15 @@ None at planning level — Wave-1 IP, can ship in parallel with IP-001. (Impleme
 - `.github/workflows/pr-tests.yml` has no `needs:` chains gating fitness-class jobs against build-class jobs.
 - All matrix jobs declare `strategy.fail-fast: false`.
 - A test PR with deliberately seeded fmt-failure + clippy-failure + nextest-failure surfaces all three failures in cycle 1 (not three sequential cycles).
-- New fitness lane `oya-foundry-fitness-workflow-surface-coverage-kernel` BLOCKS a deliberate regression PR that re-adds a suppressive `needs:` chain.
+- New fitness lane `oya-governance-workflow-surface-coverage-kernel` BLOCKS a deliberate regression PR that re-adds a suppressive `needs:` chain.
 - Evidence at `/evidence/pipeline-maturity-glue/ip-007-surface-all-failures.json` includes a triple-failure CI run with all three failures reported in cycle 1.
 
 ## Symbols to grit-claim
 
 - `.github/workflows/pr-tests.yml::*` (refactor `needs:` + add `if: always()`)
 - `.config/nextest.toml::profile.ci` (verify `fail-fast = false`, no change expected)
-- `crates/oya-foundry-fitness-workflow-surface-coverage-kernel/src/lib.rs::evaluate`
-- `tools/oya-foundry-fitness-workflow-surface-coverage-app/src/main.rs::main`
+- `crates/oya-governance-workflow-surface-coverage-kernel/src/lib.rs::evaluate`
+- `tools/oya-governance-workflow-surface-coverage-app/src/main.rs::main`
 - `registry/fitness-lane-registry.json::workflow-surface-coverage`
 
 ## Exit evidence

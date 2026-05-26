@@ -190,15 +190,15 @@ mod tests {
 
     #[test]
     fn accepts_contexts_matched_across_multiple_workflows() {
-        let contexts = vec![s("cargo-fmt"), s("oya-foundry-fitness-supply-chain")];
+        let contexts = vec![s("cargo-fmt"), s("oya-governance-supply-chain")];
         let workflows = vec![
             workflow(
                 "pr-tests.yml",
                 &["cargo-fmt", "cargo-clippy", "cargo-check"],
             ),
             workflow(
-                "oya-foundry-fitness-supply-chain.yml",
-                &["oya-foundry-fitness-supply-chain"],
+                "oya-governance-supply-chain.yml",
+                &["oya-governance-supply-chain"],
             ),
         ];
         let report = validate_protection_context_match(&contexts, &workflows)

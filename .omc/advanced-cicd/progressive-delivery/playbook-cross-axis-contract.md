@@ -8,8 +8,8 @@ purpose: |
   Cross-axis contract changes; require all consumer axes to canary in lockstep.
 lift_target: oyatie/docs/playbooks/playbook-cross-axis-contract.md
 enforced_by:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0011, ADR-0012, ADR-0037]
 ---
 
@@ -56,7 +56,7 @@ Removing a contract field / version:
 3. Block removal if any consumer still calls the deprecated field with > 0 calls in last 7 d.
 4. After zero-call window, remove via separate release.
 
-`oya-foundry-fitness-api-semver` (existing) gates this.
+`oya-governance-api-semver` (existing) gates this.
 
 ## 6. Consumer-axis canary independence
 
@@ -72,7 +72,7 @@ Per stage, emit a single D14 artefact aggregating:
 - Cohort intersection results.
 - Lockstep verdict (promote / hold / abort).
 
-Stored in `oya-foundry-evidence-kernel`; verified by `oya-foundry-fitness-rollback-evidence`.
+Stored in `oya-foundry-evidence-kernel`; verified by `oya-governance-rollback-evidence`.
 
 ## 8. Rollback
 

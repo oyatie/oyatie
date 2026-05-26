@@ -10,7 +10,7 @@ purpose: |
   ADR-INDEX.md are forbidden after generation. A pre-commit hook verifies index
   matches the source set; CI re-verifies; out-of-sync rejects.
 lift_target: oyatie/docs/automation/adr-index-pipeline.md
-enforced_by: oya-foundry-fitness-adr-index
+enforced_by: oya-governance-adr-index
 extends_crates:
   - oya-foundry-adr-index-kernel
   - oya-foundry-adr-citation-kernel
@@ -61,7 +61,7 @@ tags:
 | Per-PR | CI re-runs generation; PR fails if generated output differs from committed. |
 | Nightly | Sweep for orphan ADRs (file under `decisions/` not in index) and missing supersession targets. |
 
-## 5. Validation gates (`oya-foundry-fitness-adr-index`)
+## 5. Validation gates (`oya-governance-adr-index`)
 
 1. **No hand edits.** Generated output character-identical to committed file (BLOCKER).
 2. **Frontmatter completeness.** Every ADR has all required fields; missing field → BLOCKER with file path.

@@ -11,7 +11,7 @@
   },
   "missing_crates": [
     {
-      "crate": "oya-foundry-fitness-banned-primitives",
+      "crate": "oya-governance-banned-primitives",
       "citation_count": 10,
       "max_severity": "critical",
       "cited_by": [
@@ -22,7 +22,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-inventory-tracker",
+      "crate": "oya-governance-inventory-tracker",
       "citation_count": 8,
       "max_severity": "high",
       "cited_by": [
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-supply-chain",
+      "crate": "oya-governance-supply-chain",
       "citation_count": 8,
       "max_severity": "medium",
       "cited_by": [
@@ -42,7 +42,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cohesion",
+      "crate": "oya-governance-cohesion",
       "citation_count": 6,
       "max_severity": "medium",
       "cited_by": [
@@ -54,7 +54,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-license",
+      "crate": "oya-governance-license",
       "citation_count": 6,
       "max_severity": "medium",
       "cited_by": [
@@ -64,7 +64,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-api-semver",
+      "crate": "oya-governance-api-semver",
       "citation_count": 5,
       "max_severity": "medium",
       "cited_by": [
@@ -75,7 +75,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-archive-orphan",
+      "crate": "oya-governance-archive-orphan",
       "citation_count": 5,
       "max_severity": "high",
       "cited_by": [
@@ -84,7 +84,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-purpose-audit",
+      "crate": "oya-governance-purpose-audit",
       "citation_count": 5,
       "max_severity": "high",
       "cited_by": [
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-data-class",
+      "crate": "oya-governance-data-class",
       "citation_count": 4,
       "max_severity": "critical",
       "cited_by": [
@@ -103,7 +103,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-flat-crates",
+      "crate": "oya-governance-flat-crates",
       "citation_count": 4,
       "max_severity": "high",
       "cited_by": [
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-lts-dependency",
+      "crate": "oya-governance-lts-dependency",
       "citation_count": 4,
       "max_severity": "critical",
       "cited_by": [
@@ -123,7 +123,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-adr-shape",
+      "crate": "oya-governance-adr-shape",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -131,7 +131,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-authoritative-tracked",
+      "crate": "oya-governance-authoritative-tracked",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-build-vs-buy",
+      "crate": "oya-governance-build-vs-buy",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -147,7 +147,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-canary-signal-emission",
+      "crate": "oya-governance-canary-signal-emission",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -155,7 +155,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-changeset-cost-budget-monthly",
+      "crate": "oya-governance-changeset-cost-budget-monthly",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -163,7 +163,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-glossary",
+      "crate": "oya-governance-glossary",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -172,7 +172,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-merge-queue-ref-hygiene",
+      "crate": "oya-governance-merge-queue-ref-hygiene",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -180,7 +180,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-pack",
+      "crate": "oya-governance-pack",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -189,7 +189,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-plane",
+      "crate": "oya-governance-plane",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -197,7 +197,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-portfolio-citation",
+      "crate": "oya-governance-portfolio-citation",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -205,7 +205,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-predictable-naming",
+      "crate": "oya-governance-predictable-naming",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -240,7 +240,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-audit-emission",
+      "crate": "oya-governance-audit-emission",
       "citation_count": 2,
       "max_severity": "critical",
       "cited_by": [
@@ -249,7 +249,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-canary-emergency-rewind-frequency",
+      "crate": "oya-governance-canary-emergency-rewind-frequency",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -257,7 +257,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-changeset-state-enum-closed",
+      "crate": "oya-governance-changeset-state-enum-closed",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -265,7 +265,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-changeset-state-monotonicity",
+      "crate": "oya-governance-changeset-state-monotonicity",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -273,7 +273,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-dcim-substrate",
+      "crate": "oya-governance-dcim-substrate",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -282,7 +282,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-error-boundary",
+      "crate": "oya-governance-error-boundary",
       "citation_count": 2,
       "max_severity": "critical",
       "cited_by": [
@@ -291,7 +291,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-event-router-completeness",
+      "crate": "oya-governance-event-router-completeness",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -299,7 +299,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-event-schema",
+      "crate": "oya-governance-event-schema",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -307,7 +307,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-evidence-contract",
+      "crate": "oya-governance-evidence-contract",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -315,7 +315,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-freeze-window-kernel",
+      "crate": "oya-governance-freeze-window-kernel",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -323,7 +323,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-license-policy",
+      "crate": "oya-governance-license-policy",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -332,7 +332,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-mobile-native",
+      "crate": "oya-governance-mobile-native",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -340,7 +340,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-override-frequency-alarming",
+      "crate": "oya-governance-override-frequency-alarming",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-scaffold-claim-pattern",
+      "crate": "oya-governance-scaffold-claim-pattern",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -356,7 +356,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-secret-rotation-lifecycle",
+      "crate": "oya-governance-secret-rotation-lifecycle",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -364,7 +364,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-webhook-stuck",
+      "crate": "oya-governance-webhook-stuck",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -372,7 +372,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-workflow-cohesion",
+      "crate": "oya-governance-workflow-cohesion",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -421,7 +421,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-adapter-with-no-importer",
+      "crate": "oya-governance-adapter-with-no-importer",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -429,7 +429,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-adr-template",
+      "crate": "oya-governance-adr-template",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -437,7 +437,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-ads-gate-singleton",
+      "crate": "oya-governance-ads-gate-singleton",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -445,7 +445,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-agent-authoring",
+      "crate": "oya-governance-agent-authoring",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -453,7 +453,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-agent-instructions-fence",
+      "crate": "oya-governance-agent-instructions-fence",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -461,7 +461,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-architecture-conventions",
+      "crate": "oya-governance-architecture-conventions",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -469,7 +469,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-archive-orphan-app",
+      "crate": "oya-governance-archive-orphan-app",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -477,7 +477,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-archive-orphan-kernel",
+      "crate": "oya-governance-archive-orphan-kernel",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -485,7 +485,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-autonomy-ceiling",
+      "crate": "oya-governance-autonomy-ceiling",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -493,7 +493,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-branch-age",
+      "crate": "oya-governance-branch-age",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -501,7 +501,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-canary-thresholds-tuned",
+      "crate": "oya-governance-canary-thresholds-tuned",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -509,7 +509,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-capability-publish",
+      "crate": "oya-governance-capability-publish",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -517,7 +517,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-catalog-records",
+      "crate": "oya-governance-catalog-records",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -525,7 +525,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cedar-coverage",
+      "crate": "oya-governance-cedar-coverage",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -533,7 +533,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cell-routing",
+      "crate": "oya-governance-cell-routing",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -541,7 +541,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-clippy-pedantic",
+      "crate": "oya-governance-clippy-pedantic",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -549,7 +549,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cloud-surface",
+      "crate": "oya-governance-cloud-surface",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -557,7 +557,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-container-base",
+      "crate": "oya-governance-container-base",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -565,7 +565,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-contract-orphan",
+      "crate": "oya-governance-contract-orphan",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -573,7 +573,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cross-microservice-call",
+      "crate": "oya-governance-cross-microservice-call",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -581,7 +581,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-data-use-boundary",
+      "crate": "oya-governance-data-use-boundary",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -589,7 +589,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-direct-tool-rationale",
+      "crate": "oya-governance-direct-tool-rationale",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -597,7 +597,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-doc-cadence",
+      "crate": "oya-governance-doc-cadence",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -605,7 +605,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-doc-catalog",
+      "crate": "oya-governance-doc-catalog",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -613,7 +613,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-doc-privacy-program",
+      "crate": "oya-governance-doc-privacy-program",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -621,7 +621,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-dsr-cascade",
+      "crate": "oya-governance-dsr-cascade",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -629,7 +629,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-dual-audience",
+      "crate": "oya-governance-dual-audience",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -637,7 +637,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-eventing-topic",
+      "crate": "oya-governance-eventing-topic",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -645,7 +645,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-fitness-",
+      "crate": "oya-governance-fitness-",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -653,7 +653,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-flag-debt",
+      "crate": "oya-governance-flag-debt",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -661,7 +661,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-hook-self-test",
+      "crate": "oya-governance-hook-self-test",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -669,7 +669,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-horizontal-scale",
+      "crate": "oya-governance-horizontal-scale",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -677,7 +677,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-iam-lockstep",
+      "crate": "oya-governance-iam-lockstep",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -685,7 +685,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-image-discipline",
+      "crate": "oya-governance-image-discipline",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -693,7 +693,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-naming-convention",
+      "crate": "oya-governance-naming-convention",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -701,7 +701,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-no-unwrap-prod",
+      "crate": "oya-governance-no-unwrap-prod",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -709,7 +709,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-otel-emit",
+      "crate": "oya-governance-otel-emit",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -717,7 +717,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-override-justification",
+      "crate": "oya-governance-override-justification",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -725,7 +725,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-product-prd",
+      "crate": "oya-governance-product-prd",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -733,7 +733,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-regulatory-binding",
+      "crate": "oya-governance-regulatory-binding",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -741,7 +741,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-renovate-config",
+      "crate": "oya-governance-renovate-config",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -749,7 +749,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-runbook-index-resolves",
+      "crate": "oya-governance-runbook-index-resolves",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -757,7 +757,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-silent-failure",
+      "crate": "oya-governance-silent-failure",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -765,7 +765,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-substrate-forking",
+      "crate": "oya-governance-substrate-forking",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -773,7 +773,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-tenant-isolation",
+      "crate": "oya-governance-tenant-isolation",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -781,7 +781,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-tenant-shape",
+      "crate": "oya-governance-tenant-shape",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -789,7 +789,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-test-evidence",
+      "crate": "oya-governance-test-evidence",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -797,7 +797,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-tool-map-cohesion",
+      "crate": "oya-governance-tool-map-cohesion",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -805,7 +805,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-unsafe-kani",
+      "crate": "oya-governance-unsafe-kani",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -813,7 +813,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-user-machine-guard",
+      "crate": "oya-governance-user-machine-guard",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -821,7 +821,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-vertical-override-pack",
+      "crate": "oya-governance-vertical-override-pack",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -829,7 +829,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-webhook-delivery-log-monotonic",
+      "crate": "oya-governance-webhook-delivery-log-monotonic",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -839,7 +839,7 @@
   ],
   "truly_missing": [
     {
-      "crate": "oya-foundry-fitness-banned-primitives",
+      "crate": "oya-governance-banned-primitives",
       "citation_count": 10,
       "max_severity": "critical",
       "cited_by": [
@@ -850,7 +850,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-inventory-tracker",
+      "crate": "oya-governance-inventory-tracker",
       "citation_count": 8,
       "max_severity": "high",
       "cited_by": [
@@ -858,7 +858,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-license",
+      "crate": "oya-governance-license",
       "citation_count": 6,
       "max_severity": "medium",
       "cited_by": [
@@ -868,7 +868,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-archive-orphan",
+      "crate": "oya-governance-archive-orphan",
       "citation_count": 5,
       "max_severity": "high",
       "cited_by": [
@@ -877,7 +877,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-purpose-audit",
+      "crate": "oya-governance-purpose-audit",
       "citation_count": 5,
       "max_severity": "high",
       "cited_by": [
@@ -886,7 +886,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-data-class",
+      "crate": "oya-governance-data-class",
       "citation_count": 4,
       "max_severity": "critical",
       "cited_by": [
@@ -896,7 +896,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-flat-crates",
+      "crate": "oya-governance-flat-crates",
       "citation_count": 4,
       "max_severity": "high",
       "cited_by": [
@@ -906,7 +906,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-lts-dependency",
+      "crate": "oya-governance-lts-dependency",
       "citation_count": 4,
       "max_severity": "critical",
       "cited_by": [
@@ -916,7 +916,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-adr-shape",
+      "crate": "oya-governance-adr-shape",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -924,7 +924,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-authoritative-tracked",
+      "crate": "oya-governance-authoritative-tracked",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -932,7 +932,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-build-vs-buy",
+      "crate": "oya-governance-build-vs-buy",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -940,7 +940,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-canary-signal-emission",
+      "crate": "oya-governance-canary-signal-emission",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -948,7 +948,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-changeset-cost-budget-monthly",
+      "crate": "oya-governance-changeset-cost-budget-monthly",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -956,7 +956,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-glossary",
+      "crate": "oya-governance-glossary",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -965,7 +965,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-merge-queue-ref-hygiene",
+      "crate": "oya-governance-merge-queue-ref-hygiene",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -973,7 +973,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-pack",
+      "crate": "oya-governance-pack",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -982,7 +982,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-plane",
+      "crate": "oya-governance-plane",
       "citation_count": 3,
       "max_severity": "medium",
       "cited_by": [
@@ -990,7 +990,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-portfolio-citation",
+      "crate": "oya-governance-portfolio-citation",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -998,7 +998,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-predictable-naming",
+      "crate": "oya-governance-predictable-naming",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -1033,7 +1033,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-audit-emission",
+      "crate": "oya-governance-audit-emission",
       "citation_count": 2,
       "max_severity": "critical",
       "cited_by": [
@@ -1042,7 +1042,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-canary-emergency-rewind-frequency",
+      "crate": "oya-governance-canary-emergency-rewind-frequency",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1050,7 +1050,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-changeset-state-enum-closed",
+      "crate": "oya-governance-changeset-state-enum-closed",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1058,7 +1058,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-changeset-state-monotonicity",
+      "crate": "oya-governance-changeset-state-monotonicity",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1066,7 +1066,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-dcim-substrate",
+      "crate": "oya-governance-dcim-substrate",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1075,7 +1075,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-error-boundary",
+      "crate": "oya-governance-error-boundary",
       "citation_count": 2,
       "max_severity": "critical",
       "cited_by": [
@@ -1084,7 +1084,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-event-router-completeness",
+      "crate": "oya-governance-event-router-completeness",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1092,7 +1092,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-event-schema",
+      "crate": "oya-governance-event-schema",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1100,7 +1100,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-evidence-contract",
+      "crate": "oya-governance-evidence-contract",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1108,7 +1108,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-freeze-window-kernel",
+      "crate": "oya-governance-freeze-window-kernel",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -1116,7 +1116,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-license-policy",
+      "crate": "oya-governance-license-policy",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1125,7 +1125,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-mobile-native",
+      "crate": "oya-governance-mobile-native",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -1133,7 +1133,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-override-frequency-alarming",
+      "crate": "oya-governance-override-frequency-alarming",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -1141,7 +1141,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-scaffold-claim-pattern",
+      "crate": "oya-governance-scaffold-claim-pattern",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -1149,7 +1149,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-secret-rotation-lifecycle",
+      "crate": "oya-governance-secret-rotation-lifecycle",
       "citation_count": 2,
       "max_severity": "high",
       "cited_by": [
@@ -1157,7 +1157,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-webhook-stuck",
+      "crate": "oya-governance-webhook-stuck",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1165,7 +1165,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-workflow-cohesion",
+      "crate": "oya-governance-workflow-cohesion",
       "citation_count": 2,
       "max_severity": "medium",
       "cited_by": [
@@ -1214,7 +1214,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-adapter-with-no-importer",
+      "crate": "oya-governance-adapter-with-no-importer",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -1222,7 +1222,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-adr-template",
+      "crate": "oya-governance-adr-template",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1230,7 +1230,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-ads-gate-singleton",
+      "crate": "oya-governance-ads-gate-singleton",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1238,7 +1238,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-agent-authoring",
+      "crate": "oya-governance-agent-authoring",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1246,7 +1246,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-agent-instructions-fence",
+      "crate": "oya-governance-agent-instructions-fence",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1254,7 +1254,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-architecture-conventions",
+      "crate": "oya-governance-architecture-conventions",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1262,7 +1262,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-archive-orphan-app",
+      "crate": "oya-governance-archive-orphan-app",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -1270,7 +1270,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-archive-orphan-kernel",
+      "crate": "oya-governance-archive-orphan-kernel",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -1278,7 +1278,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-autonomy-ceiling",
+      "crate": "oya-governance-autonomy-ceiling",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1286,7 +1286,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-branch-age",
+      "crate": "oya-governance-branch-age",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1294,7 +1294,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-canary-thresholds-tuned",
+      "crate": "oya-governance-canary-thresholds-tuned",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1302,7 +1302,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-capability-publish",
+      "crate": "oya-governance-capability-publish",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1310,7 +1310,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-catalog-records",
+      "crate": "oya-governance-catalog-records",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1318,7 +1318,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cedar-coverage",
+      "crate": "oya-governance-cedar-coverage",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1326,7 +1326,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cell-routing",
+      "crate": "oya-governance-cell-routing",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1334,7 +1334,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-clippy-pedantic",
+      "crate": "oya-governance-clippy-pedantic",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1342,7 +1342,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cloud-surface",
+      "crate": "oya-governance-cloud-surface",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1350,7 +1350,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-container-base",
+      "crate": "oya-governance-container-base",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1358,7 +1358,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-contract-orphan",
+      "crate": "oya-governance-contract-orphan",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1366,7 +1366,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cross-microservice-call",
+      "crate": "oya-governance-cross-microservice-call",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1374,7 +1374,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-data-use-boundary",
+      "crate": "oya-governance-data-use-boundary",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1382,7 +1382,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-direct-tool-rationale",
+      "crate": "oya-governance-direct-tool-rationale",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1390,7 +1390,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-doc-cadence",
+      "crate": "oya-governance-doc-cadence",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1398,7 +1398,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-doc-catalog",
+      "crate": "oya-governance-doc-catalog",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1406,7 +1406,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-doc-privacy-program",
+      "crate": "oya-governance-doc-privacy-program",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1414,7 +1414,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-dsr-cascade",
+      "crate": "oya-governance-dsr-cascade",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1422,7 +1422,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-dual-audience",
+      "crate": "oya-governance-dual-audience",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1430,7 +1430,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-eventing-topic",
+      "crate": "oya-governance-eventing-topic",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1438,7 +1438,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-fitness-",
+      "crate": "oya-governance-fitness-",
       "citation_count": 1,
       "max_severity": "high",
       "cited_by": [
@@ -1446,7 +1446,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-flag-debt",
+      "crate": "oya-governance-flag-debt",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1454,7 +1454,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-hook-self-test",
+      "crate": "oya-governance-hook-self-test",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1462,7 +1462,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-horizontal-scale",
+      "crate": "oya-governance-horizontal-scale",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1470,7 +1470,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-iam-lockstep",
+      "crate": "oya-governance-iam-lockstep",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1478,7 +1478,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-image-discipline",
+      "crate": "oya-governance-image-discipline",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1486,7 +1486,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-naming-convention",
+      "crate": "oya-governance-naming-convention",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1494,7 +1494,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-no-unwrap-prod",
+      "crate": "oya-governance-no-unwrap-prod",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1502,7 +1502,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-otel-emit",
+      "crate": "oya-governance-otel-emit",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1510,7 +1510,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-override-justification",
+      "crate": "oya-governance-override-justification",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1518,7 +1518,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-product-prd",
+      "crate": "oya-governance-product-prd",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1526,7 +1526,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-regulatory-binding",
+      "crate": "oya-governance-regulatory-binding",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1534,7 +1534,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-renovate-config",
+      "crate": "oya-governance-renovate-config",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1542,7 +1542,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-runbook-index-resolves",
+      "crate": "oya-governance-runbook-index-resolves",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1550,7 +1550,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-silent-failure",
+      "crate": "oya-governance-silent-failure",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1558,7 +1558,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-substrate-forking",
+      "crate": "oya-governance-substrate-forking",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1566,7 +1566,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-tenant-isolation",
+      "crate": "oya-governance-tenant-isolation",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1574,7 +1574,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-tenant-shape",
+      "crate": "oya-governance-tenant-shape",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1582,7 +1582,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-test-evidence",
+      "crate": "oya-governance-test-evidence",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1590,7 +1590,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-tool-map-cohesion",
+      "crate": "oya-governance-tool-map-cohesion",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1598,7 +1598,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-unsafe-kani",
+      "crate": "oya-governance-unsafe-kani",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1606,7 +1606,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-user-machine-guard",
+      "crate": "oya-governance-user-machine-guard",
       "citation_count": 1,
       "max_severity": "critical",
       "cited_by": [
@@ -1614,7 +1614,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-vertical-override-pack",
+      "crate": "oya-governance-vertical-override-pack",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1622,7 +1622,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-webhook-delivery-log-monotonic",
+      "crate": "oya-governance-webhook-delivery-log-monotonic",
       "citation_count": 1,
       "max_severity": "medium",
       "cited_by": [
@@ -1632,7 +1632,7 @@
   ],
   "workflow_only_no_crate": [
     {
-      "crate": "oya-foundry-fitness-supply-chain",
+      "crate": "oya-governance-supply-chain",
       "citation_count": 8,
       "max_severity": "medium",
       "cited_by": [
@@ -1644,7 +1644,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-cohesion",
+      "crate": "oya-governance-cohesion",
       "citation_count": 6,
       "max_severity": "medium",
       "cited_by": [
@@ -1656,7 +1656,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-api-semver",
+      "crate": "oya-governance-api-semver",
       "citation_count": 5,
       "max_severity": "medium",
       "cited_by": [

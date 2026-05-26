@@ -64,7 +64,7 @@
   "admin_prerequisite_blocker_still_open": {
     "blocker": "branch_protection_check_names",
     "owner": "repo_admin",
-    "action": "Rename 9 required status checks on dev from oya-foundry-fitness-* to oya-governance-*",
+    "action": "Rename 9 required status checks on dev from oya-governance-* to oya-governance-*",
     "playbook": "evidence/pr-143-branch-protection-admin-action.md"
   },
   "next_steps_in_order": [

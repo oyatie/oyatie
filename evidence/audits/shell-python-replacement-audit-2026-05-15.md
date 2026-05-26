@@ -55,7 +55,7 @@
 
 10. **`scripts/install-trivy-ci.sh`** (28 LOC) — category B — purpose: install pinned Trivy 0.70.0 binary on CI runner with sha256 verification. Replacement: **`tools/oya-install-trivy-app` Rust binary** invoked from `.github/workflows/pr-tests.yml:122` + `supply-chain.yml:34`. Estimated effort: **S (under 30 min)** — `reqwest` + `sha2` + `tar`; ~80 LOC Rust. ⚠️ **External-facing flag**: CI workflows directly reference this path — replacement requires a same-PR workflow update.
 
-11. **`scripts/supply-chain-adr0039.sh`** (78 LOC) — category B — purpose: ADR-0039 release-time supply-chain lane; runs `trivy fs`/`trivy config`/SBOM emit, then `cosign sign`/`cosign verify`/`cosign attest` against signed evidence. Replacement: **`oya-supply-chain-adr0039-app` crate** (or extend an existing release-lane crate); shells out to `trivy` + `cosign` (canonical external tools). Estimated effort: **M (1-3 hr)** — straight-line tool wrapper with deterministic args; awk YAML-parsing block on lines 24-43 becomes `serde_yaml` parse of `registry/release/images.yaml`. ⚠️ **External-facing flag**: `.github/workflows/oya-foundry-fitness-supply-chain.yml:54` references this path.
+11. **`scripts/supply-chain-adr0039.sh`** (78 LOC) — category B — purpose: ADR-0039 release-time supply-chain lane; runs `trivy fs`/`trivy config`/SBOM emit, then `cosign sign`/`cosign verify`/`cosign attest` against signed evidence. Replacement: **`oya-supply-chain-adr0039-app` crate** (or extend an existing release-lane crate); shells out to `trivy` + `cosign` (canonical external tools). Estimated effort: **M (1-3 hr)** — straight-line tool wrapper with deterministic args; awk YAML-parsing block on lines 24-43 becomes `serde_yaml` parse of `registry/release/images.yaml`. ⚠️ **External-facing flag**: `.github/workflows/oya-governance-supply-chain.yml:54` references this path.
 
 12. **`scripts/hooks/pre-push-repoctl.sh`** (3 LOC) — category B — purpose: thin shell wrapper that invokes `cargo run -p oya-dev-cli --bin repoctl -- pre-push "$@"`. Replacement: **delete and replace with a `.git/hooks/pre-push` symlink to `cargo run -p oya-dev-cli --bin repoctl -- pre-push`** OR install hook directly via `oya-dev-cli hook install`. Estimated effort: **S (under 5 min)** — trivial deletion.
 
@@ -76,7 +76,7 @@
 ### Workflows (no standalone shell to replace)
 
 - `.github/workflows/pr-tests.yml` lines 122, 127: invokes B-10 + B-3 (replace those, workflow auto-flips).
-- `.github/workflows/oya-foundry-fitness-supply-chain.yml` lines 34, 36, 54: invokes B-10 + B-4 + B-11.
+- `.github/workflows/oya-governance-supply-chain.yml` lines 34, 36, 54: invokes B-10 + B-4 + B-11.
 - Other workflows (`cosign.yml`, `sbom.yml`, `slsa.yml`, `release-musl.yml`, `release-evidence-pack.yml`, `_template-*.yml`) contain only `cargo`/`gh`/native-action `run:` blocks — no `.sh`/`.py` references and no embedded heredoc logic that warrants separate replacement.
 
 ---
@@ -121,9 +121,9 @@
 |---|---|---|
 | `scripts/check.sh` | `docs/AGENTS.md`, multiple ADRs, `docs/standards/*.md` cite as the pre-merge gate runner. | Add `gate run-all` Rust subcommand; keep `scripts/check.sh` as a 3-line `exec`-style wrapper for one release; cite in ADR; sunset in next minor. |
 | `scripts/install-trivy-ci.sh` | `.github/workflows/pr-tests.yml`, `supply-chain.yml`. | Replace in same PR as B-10 (workflow + script flip together). |
-| `scripts/supply-chain-adr0039.sh` | `.github/workflows/oya-foundry-fitness-supply-chain.yml`, ADR-0039, release runbooks. | Same-PR workflow update; ADR amendment recording the Rust replacement crate. |
+| `scripts/supply-chain-adr0039.sh` | `.github/workflows/oya-governance-supply-chain.yml`, ADR-0039, release runbooks. | Same-PR workflow update; ADR amendment recording the Rust replacement crate. |
 | `scripts/check-oya-vcs-admission.sh` | `.github/branch-protection.yaml`, `.github/workflows/pr-tests.yml`. | Same-PR update of branch-protection + workflow + script removal. |
-| `scripts/check-oya-vcs-provider-execution.sh` | `.github/branch-protection.yaml`, `.github/workflows/oya-foundry-fitness-supply-chain.yml`. | Same-PR update. |
+| `scripts/check-oya-vcs-provider-execution.sh` | `.github/branch-protection.yaml`, `.github/workflows/oya-governance-supply-chain.yml`. | Same-PR update. |
 | `scripts/hooks/pre-push-repoctl.sh` | Local-developer git hooks (no CI binding). | Delete and document `cargo run -p oya-dev-cli --bin repoctl -- pre-push` as the canonical hook command. **Update 2026-05-15:** `oya verify` top-level subcommand added as the canonical local-developer fold (per user directive "pre-push should really just be part of some other check/validate"). Full deletion of the .sh + retirement of the `repoctl pre-push` binary surface requires updating the `oya-check-pre-push` contract kernel (currently encodes `repoctl pre-push` as `CANONICAL_PRE_PUSH_COMMAND`); tracked as follow-up to avoid colliding with concurrent contract-kernel work. |
 
 All other in-scope scripts are internal-only.

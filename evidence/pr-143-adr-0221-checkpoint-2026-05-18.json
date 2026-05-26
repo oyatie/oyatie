@@ -74,7 +74,7 @@
       "crates_to_author": [
         "crates/oya-intelligence-architecture-map-kernel — walks Cargo workspace + contracts + manifests; emits Mermaid + C4 diagrams",
         "crates/oya-intelligence-architecture-map-app — composition root binary",
-        "crates/oya-foundry-fitness-architecture-map-freshness — CI fails if architecture map stale > 24h"
+        "crates/oya-governance-architecture-map-freshness — CI fails if architecture map stale > 24h"
       ],
       "output": "evidence/architecture-map-*.svg + docs/diagrams/*.mmd",
       "trigger_pr": "PR-148 (Foundry agentic toolchain extension wave) per close-out plan follow_up_pr_roadmap"

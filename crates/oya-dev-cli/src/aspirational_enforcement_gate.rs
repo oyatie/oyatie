@@ -108,6 +108,7 @@ pub(crate) fn validate_aspirational_enforcement_gate(
             &args.branch_protection,
             &args.branch,
         )?,
+        declared_lane_ids: read_declared_lane_ids(&args.quality_lanes)?,
     };
     let known_crates = surfaces.crate_names.len();
     let workflow_contexts = surfaces.workflow_contexts.len();
@@ -314,6 +315,25 @@ fn collect_workflow_contexts(contents: &str, contexts: &mut BTreeSet<String>) {
     }
 }
 
+// All lane ids declared in the registry, regardless of status. Used to
+// distinguish real (declared) governance lanes from planned/aspirational lane
+// references (undeclared) per ADR-0362 (a).
+fn read_declared_lane_ids(quality_lanes: &Path) -> Result<BTreeSet<String>, String> {
+    let contents = fs::read_to_string(quality_lanes).map_err(|error| {
+        format!(
+            "aspirational-enforcement quality-lanes registry unreadable {}: {error}",
+            quality_lanes.display()
+        )
+    })?;
+    let mut ids = BTreeSet::new();
+    for line in contents.lines() {
+        if let Some(id) = line.trim().strip_prefix("- id:") {
+            ids.insert(normalize_yaml_scalar(id));
+        }
+    }
+    Ok(ids)
+}
+
 fn read_active_quality_lane_contexts(quality_lanes: &Path) -> Result<BTreeSet<String>, String> {
     let contents = fs::read_to_string(quality_lanes).map_err(|error| {
         format!(
@@ -350,7 +370,7 @@ fn insert_active_quality_lane(
     let Some(status) = status.as_ref() else {
         return;
     };
-    if status == "active" && id.starts_with("oya-foundry-fitness-") {
+    if status == "active" && id.starts_with("oya-governance-") {
         contexts.insert(id.to_string());
     }
 }

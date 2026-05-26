@@ -12,7 +12,7 @@ entry_gate: "All Wave-A (P01\u2013P11), Wave-B (P12\u2013P16), Wave-C (P17\u2013
   rows emitted for all preceding phases.\n"
 exit_gate: 'All 14 CI fitness lanes flipped from --report-only to BLOCKER in
 
-  .github/workflows/ci-fitness-lanes.yml; Application B2B shell (oya-application-shell-app)
+  .github/workflows/ci-governance-lanes.yml; Application B2B shell (oya-application-shell-app)
 
   deploys without error to OCI ARM64 Always Free (Stage 0); sibling team can scaffold
 
@@ -62,7 +62,7 @@ M02 is declared complete only when all three goals are achieved and ICM phase-co
 
 | Deliverable | Description |
 |---|---|
-| `.github/workflows/ci-fitness-lanes.yml` | Flip all 14 lanes: remove `--report-only` flags; add `exit-on-violation: true` |
+| `.github/workflows/ci-governance-lanes.yml` | Flip all 14 lanes: remove `--report-only` flags; add `exit-on-violation: true` |
 | `docs/architecture/m02-exit-checklist.md` | Per-gate checklist artifact: each gate checked + evidence reference |
 | `docs/runbooks/sibling-team-onboarding.md` | Step-by-step runbook: grit claim → scaffold product vertical → ship → grit done |
 | `oya gate validate planes --all` | Gate command confirming all 9 planes pass with BLOCKER lanes active |
@@ -135,7 +135,7 @@ grit done --agent sibling-test                        # exit 0; no merge conflic
 ## Clean Architecture Compliance
 
 This phase modifies only:
-- GitHub Actions workflow YAML (`.github/workflows/ci-fitness-lanes.yml`) — flip flags
+- GitHub Actions workflow YAML (`.github/workflows/ci-governance-lanes.yml`) — flip flags
 - Documentation files (`docs/architecture/`, `docs/runbooks/`) — evidence + runbook
 
 No new Rust crates. No new schemas. The phase is purely operational + evidence.
@@ -153,7 +153,7 @@ None.
 ## Grit Claim Symbols
 
 ```
-.github/workflows/ci-fitness-lanes.yml::fitness-lanes-blocker
+.github/workflows/ci-governance-lanes.yml::governance-lanes-blocker
 docs/architecture/m02-exit-checklist.md::M02ExitChecklist
 docs/runbooks/sibling-team-onboarding.md::SiblingOnboardingRunbook
 ```

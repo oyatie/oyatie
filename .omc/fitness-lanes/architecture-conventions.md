@@ -1,4 +1,4 @@
-# Fitness Lane — `oya-foundry-fitness-architecture-conventions`
+# Fitness Lane — `oya-governance-architecture-conventions`
 
 **Severity:** BLOCKER (Top-5)
 **Status:** Proposed
@@ -10,7 +10,7 @@
 This lane is the **combined** enforcement surface for the two
 architecture standards: crate-naming grammar **and** layered-architecture
 dependency direction. It supersedes the proposed-but-never-shipped lane
-`oya-foundry-fitness-naming-convention` (renamed per scope expansion of
+`oya-governance-naming-convention` (renamed per scope expansion of
 2026-05-12 directive).
 
 ## 0. Why combined
@@ -26,7 +26,7 @@ build with a single composite report.
 ## 1. Implementation language — Rust
 
 The lane is implemented in Rust as a small workspace binary,
-**`oya-foundry-fitness-architecture-conventions-kernel`** (proposed
+**`oya-governance-architecture-conventions-kernel`** (proposed
 crate), packaged with a thin `[[bin]]` runner under
 `oya-tooling-dev-runtime` (per
 [rename plan step 9](../../docs/plans/rename-plan-2026-05-12.md#2-sub-plan-b-rename-9-crates)).
@@ -38,7 +38,7 @@ crate), packaged with a thin `[[bin]]` runner under
 | Time-to-ship | hours | days |
 | Ergonomics on `Cargo.toml` parsing | brittle (TOML edge cases) | first-class (`toml` crate) |
 | Cross-platform CI parity | bash + `grep -P` differs Linux/macOS | identical |
-| Integration with existing foundry lanes | bolt-on | first-class (`oya-foundry-fitness-*` corpus) |
+| Integration with existing foundry lanes | bolt-on | first-class (`oya-governance-*` corpus) |
 | Reuses existing workspace primitives | none | reuses `oya-foundry-cargo-prefix-kernel`, `oya-foundry-catalog-kernel` |
 
 The kernel is **<400 LOC** (parser + classifier + edge-walker) and lands
@@ -149,7 +149,7 @@ The lane emits two artifacts:
    schema:
    ```json
    {
-     "lane": "oya-foundry-fitness-architecture-conventions",
+     "lane": "oya-governance-architecture-conventions",
      "ran_at": "2026-05-12T11:00:00Z",
      "totals": {"green": 81, "amber": 22, "red": 37},
      "rows": [
@@ -165,7 +165,7 @@ The lane emits two artifacts:
 
 ```yaml
 # .github/workflows/architecture-conventions.yml (sketch)
-name: oya-foundry-fitness-architecture-conventions
+name: oya-governance-architecture-conventions
 on: [pull_request, push]
 jobs:
   conventions:
@@ -174,7 +174,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with: { toolchain: "1.95.0" }
-      - run: cargo run --bin oya-foundry-fitness-architecture-conventions \
+      - run: cargo run --bin oya-governance-architecture-conventions \
              -- --workspace-root . --emit-json evidence/architecture-conventions.json
       - if: github.event_name == 'pull_request'
         uses: actions/github-script@v7  # post PR comment from report.md
@@ -225,7 +225,7 @@ class against a fixture corpus:
   asserts the audit numbers (81 GREEN / 22 AMBER / 37 RED on 2026-05-12)
   to detect snapshot drift.
 
-The lane's own crate `oya-foundry-fitness-architecture-conventions-kernel`
+The lane's own crate `oya-governance-architecture-conventions-kernel`
 MUST itself be GREEN under its own rules (bootstrap consistency).
 
 ## 8. Failure classes — cross-reference

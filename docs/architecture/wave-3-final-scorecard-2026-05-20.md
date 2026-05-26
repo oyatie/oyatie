@@ -4650,7 +4650,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: present; lines=21; control markers=0
 - coverage: pipeline=0 checkpoint=0 supervisor=0 evidence=0
 - named gaps: low Foundry pipeline marker density; verification path thin
-### Foundry spec `docs/foundry/foundry-pipeline-substrate-checkpoint-2026-05-20.md`
+### Foundry spec `docs/foundry/governance-pipeline-substrate-checkpoint-2026-05-20.md`
 - status: present; lines=44; control markers=21
 - coverage: pipeline=4 checkpoint=4 supervisor=0 evidence=4
 - named gaps: none named; retain in regression audit
@@ -4666,7 +4666,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: present; lines=19; control markers=7
 - coverage: pipeline=0 checkpoint=0 supervisor=6 evidence=0
 - named gaps: low Foundry pipeline marker density; verification path thin
-### Foundry spec `docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md`
+### Foundry spec `docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md`
 - status: present; lines=154; control markers=45
 - coverage: pipeline=7 checkpoint=0 supervisor=0 evidence=9
 - named gaps: verification path thin

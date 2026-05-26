@@ -314,7 +314,7 @@ mod tests {
             workspace_ref: "oya-m02-m03-fanout",
             head_sha: "abc123",
             run_url: "https://github.com/jason931225/oyatie/actions/runs/9",
-            workflow_name: "oya-foundry-fitness-supply-chain",
+            workflow_name: "oya-governance-supply-chain",
             mode: Mode::Ci,
             trivy_sarif_path: "target/oya-vcs-provider-execution/trivy.sarif",
             trivy_sarif_digest: "sha256:trivy",

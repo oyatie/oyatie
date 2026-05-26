@@ -13,7 +13,7 @@ purpose: |
   `docs/README.md`.
 lift_target: oyatie/docs/standards/doc-style.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-doc-style
+enforced_by: oya-governance-doc-style
 companion_docs:
   - docs/DOC-CATALOG.md
   - docs/STANDARDS-AND-TEMPLATES.md
@@ -46,7 +46,7 @@ A canonical doc MUST declare its quadrant in frontmatter `doc_class:` (one of
 `Tutorial`, `HowTo`, `Reference`, `Explanation`) OR a `doc_class` from the
 catalog (e.g., `Standard`, `Operating-Contract`, `Constitution`, `RunbookIndex`)
 that maps unambiguously to one quadrant. The lane
-`oya-foundry-fitness-doc-class-diataxis` rejects pages whose body shape
+`oya-governance-doc-class-diataxis` rejects pages whose body shape
 contradicts the declared quadrant (e.g., a `Reference` doc with a tutorial
 preamble).
 
@@ -90,7 +90,7 @@ The mechanical contract:
   project CLAUDE.md / RTK convention; agents inside `<!-- agent-instructions
   -->` blocks call the same primitive through their harness.
 
-The lane `oya-foundry-fitness-dual-audience` checks that every fenced block has
+The lane `oya-governance-dual-audience` checks that every fenced block has
 adjacent plain-English prose of ≥ 2 sentences explaining the intent.
 
 ## 4. Frontmatter shape per doc-class
@@ -127,7 +127,7 @@ Per-doc-class additions:
 - **ADRs**: `adr_id:`, `status: <Proposed|Accepted|Superseded|Retired>`,
   `supersedes:`, `superseded_by:`, `decision_drivers:`, `consequences:`.
 
-The lane `oya-foundry-fitness-frontmatter-shape` validates per-doc-class
+The lane `oya-governance-frontmatter-shape` validates per-doc-class
 required keys.
 
 ## 5. Heading hierarchy
@@ -151,7 +151,7 @@ required keys.
 - **Code blocks**: SHOULD wrap at 100 cols; long shell pipelines MAY use
   backslash continuation.
 
-The `oya-foundry-fitness-line-length` lane is **advisory** (warn-only) — it
+The `oya-governance-line-length` lane is **advisory** (warn-only) — it
 surfaces violations as PR comments but does not block merge.
 
 ## 7. Voice and tone

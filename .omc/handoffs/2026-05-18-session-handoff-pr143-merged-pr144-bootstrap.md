@@ -24,7 +24,7 @@ session_dates: 2026-05-18 single session
 5. `oya-git-verbs` (task #38) — scope-shrunk drop-in git surface + ledger emission (per ADR-0223 cuts)
 6. `oya-git-hooks` (task #36) — cross-agent (Claude/Codex/Gemini) verb suggestion + event consumption
 7. **Substrate doctrines PR** (was "PR-144" internally) — ADR-0215..0220 promotion + identity multi-context-split + Tenant Admin Console
-8. `fitness-governance-rename` (task #37, per-lane IPs) — retire `oya-foundry-fitness-*` prefix
+8. `fitness-governance-rename` (task #37, per-lane IPs) — retire `oya-governance-*` prefix
 9. `adr-0173-dedup` (task #40) — rename saga-compensation file; sed-sweep 5 cites
 10. **Arm 4 ADR-0221 CI gates** — vacuous-green / orphan-citation / version-pin / buildability-line-count (under `oya-governance-*` prefix, not fitness)
 

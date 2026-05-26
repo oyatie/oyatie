@@ -11,7 +11,7 @@
     "bulk_sweep_performed": false,
     "per_lane_ips_queued": 41
   },
-  "rationale": "The handoff explicitly keeps existing oya-foundry-fitness-* lanes in a compatibility window until per-lane migration IPs land. This audit avoids a bulk rename that could silently break workflow contexts or branch-protection checks.",
+  "rationale": "The handoff explicitly keeps existing oya-governance-* lanes in a compatibility window until per-lane migration IPs land. This audit avoids a bulk rename that could silently break workflow contexts or branch-protection checks.",
   "validation_commands": [
     "jq empty microservices/governance/lane-prefix-migration-task-37.json",
     "jq empty evidence/task-37-fitness-to-governance-prefix-audit-2026-05-18.json",

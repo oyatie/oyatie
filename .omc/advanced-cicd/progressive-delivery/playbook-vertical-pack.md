@@ -8,8 +8,8 @@ purpose: |
   Vertical-pack updates (healthcare/fintech/etc.) with DPIA refresh per pack.
 lift_target: oyatie/docs/playbooks/playbook-vertical-pack.md
 enforced_by:
-  - oya-foundry-fitness-data-class
-  - oya-foundry-fitness-cohort-honor
+  - oya-governance-data-class
+  - oya-governance-cohort-honor
 related_adrs: [ADR-0033, ADR-0034, ADR-0038]
 ---
 
@@ -43,7 +43,7 @@ Every regulated-pack update triggers a DPIA refresh:
 4. Tenant DPA amendment (or notice-only update for non-material changes).
 5. DPIA artefact stored as D14 evidence; trust portal updated ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
 
-`oya-foundry-fitness-data-class` (existing) verifies DPIA presence.
+`oya-governance-data-class` (existing) verifies DPIA presence.
 
 ## 4. Cohort gating (regulated-only)
 
@@ -61,7 +61,7 @@ Sequence:
 
 ## 5. Per-vertical pack approval
 
-Each pack has a named approver (per-vertical compliance officer). Approval is gated by D14 emit; no auto-approval. PR-blocking lane `oya-foundry-fitness-data-class` requires the approver field.
+Each pack has a named approver (per-vertical compliance officer). Approval is gated by D14 emit; no auto-approval. PR-blocking lane `oya-governance-data-class` requires the approver field.
 
 ## 6. Rollback
 

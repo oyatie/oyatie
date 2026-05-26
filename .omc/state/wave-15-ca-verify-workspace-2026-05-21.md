@@ -91,7 +91,7 @@ Workspace-crate-layout µservices, per `specs/crate-naming-audit.json` §"adopte
 
 | µservice | Status | Crate inventory | Disposition |
 |---|---|---|---|
-| **`foundry`** | RETIRED 2026-05-21 per ADR-0335 → absorbed by `intelligence` µservice | 125 crates including 67 `-kernel`, 20 `-domain`, 15 `-adapter`, 7 `-app`, 7 `-api`, 7 `-adapter-<backend>` (per ADOPT-PAT-02), 2 `-usecase`. The fitness-check sub-family inside foundry (`oya-foundry-fitness-*-kernel`, 25+ crates) collides with the separate `oya-check-*` check-family (ADR-0105 ADOPT-PAT-01) — same shape, different prefix. | These 125 crates will rename to `oya-intelligence-*` per ADR-0335 absorption. The `oya-foundry-fitness-*-kernel` sub-family should fold into the canonical `oya-check-*` prefix (ADOPT-PAT-01) on rename. Massive rename IP suite — outside this audit's READ-ONLY scope but flagged as the largest workspace-layout cleanup cost in the entire repo. |
+| **`foundry`** | RETIRED 2026-05-21 per ADR-0335 → absorbed by `intelligence` µservice | 125 crates including 67 `-kernel`, 20 `-domain`, 15 `-adapter`, 7 `-app`, 7 `-api`, 7 `-adapter-<backend>` (per ADOPT-PAT-02), 2 `-usecase`. The fitness-check sub-family inside foundry (`oya-governance-*-kernel`, 25+ crates) collides with the separate `oya-check-*` check-family (ADR-0105 ADOPT-PAT-01) — same shape, different prefix. | These 125 crates will rename to `oya-intelligence-*` per ADR-0335 absorption. The `oya-governance-*-kernel` sub-family should fold into the canonical `oya-check-*` prefix (ADOPT-PAT-01) on rename. Massive rename IP suite — outside this audit's READ-ONLY scope but flagged as the largest workspace-layout cleanup cost in the entire repo. |
 | **`cell`** | RETIRED 2026-05-21 per ADR-0333 → cellular architecture is a PATTERN not a service, absorbed into `tenancy` (assignment), `cloud-iac` (provisioning + registry), `observability` (health / blast-radius), `oya-shuffle-sharding` Rust crate (algorithm), `api-gateway` (routing), `audit-chain` (cell-scoped audit) | 1 crate: `oya-cell-domain` (depends on `oya-data-boundary-kernel`) | The single remaining `oya-cell-domain` crate should retire per ADR-0333 absorption mapping. Its dependents must be repointed at the absorbing µservice's crates. Single rename / removal IP. |
 
 ---
@@ -169,7 +169,7 @@ Per ADR-0131 §"Migration cost quantification" each migration IP averages ~50 fi
 
 ### Retirement crate-cleanup (2 IPs — already on track via ADR-0335 / ADR-0333)
 
-15. **IP-WV15-CA-VERIFY-WORKSPACE-015-foundry-crate-rename-to-intelligence.md** — Rename 125 `oya-foundry-*` crates to `oya-intelligence-*` per ADR-0335 absorption mapping. Fold `oya-foundry-fitness-*-kernel` sub-family into canonical `oya-check-*` (ADOPT-PAT-01). Massive multi-commit IP; phased by sub-family.
+15. **IP-WV15-CA-VERIFY-WORKSPACE-015-foundry-crate-rename-to-intelligence.md** — Rename 125 `oya-foundry-*` crates to `oya-intelligence-*` per ADR-0335 absorption mapping. Fold `oya-governance-*-kernel` sub-family into canonical `oya-check-*` (ADOPT-PAT-01). Massive multi-commit IP; phased by sub-family.
 
 16. **IP-WV15-CA-VERIFY-WORKSPACE-016-cell-domain-crate-retirement.md** — Remove `oya-cell-domain` and repoint dependents at the absorbing µservices per ADR-0333 (`tenancy` for assignment, `cloud-iac` for provisioning, etc.).
 

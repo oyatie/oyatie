@@ -1,15 +1,15 @@
 # Fitness Lane: license
 
 - purpose: Verify every workspace crate declares an SPDX-valid `Apache-2.0` license.
-- enforces: STANDARD/repo-license-policy; AGENTS.md fitness-lane `oya-foundry-fitness-license`.
-- kernel_crate: `oya-foundry-fitness-license-kernel` — `CrateLicense { crate_id, license_expression, manifest_path }`, verdict `LicenseFitnessReport { crates_checked, missing, invalid }`.
-- runner_path: `tools/oya-foundry-fitness-license`
+- enforces: STANDARD/repo-license-policy; AGENTS.md fitness-lane `oya-governance-license`.
+- kernel_crate: `oya-governance-license-kernel` — `CrateLicense { crate_id, license_expression, manifest_path }`, verdict `LicenseFitnessReport { crates_checked, missing, invalid }`.
+- runner_path: `tools/oya-governance-license`
 - inputs: workspace `Cargo.toml`, every crate `Cargo.toml`, SPDX allowlist.
 - failure_modes:
   - crate omits `license` key
   - crate uses `MIT OR Apache-2.0` dual-license without allowance
   - non-SPDX string (e.g., "Proprietary")
-- ci_invocation: `cargo run -p oya-foundry-fitness-license`
+- ci_invocation: `cargo run -p oya-governance-license`
 - runtime_budget: 200 ms
 - severity: BLOCKER
 - kernel_sketch:

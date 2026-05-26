@@ -22,6 +22,12 @@ pub struct KnownEnforcementSurfaces {
     pub workflow_contexts: BTreeSet<String>, // data_class: INTERNAL_ONLY
     pub quality_lane_contexts: BTreeSet<String>, // data_class: INTERNAL_ONLY
     pub branch_required_contexts: BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// All lane ids DECLARED in the quality-lane registry (any status). A
+    /// binding enforcement claim that references a governance lane NOT declared
+    /// here is treated as advisory/planned (a future lane), not a violation —
+    /// only declared-but-unresolved lanes fail (ADR-0362 (a): planned refs are
+    /// advisory regardless of prefix). data_class: INTERNAL_ONLY
+    pub declared_lane_ids: BTreeSet<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -124,7 +130,13 @@ where
                             fix: "add the crate or mark the claim advisory/proposed".to_string(),
                         });
                     }
-                } else if token.starts_with("oya-foundry-fitness-") {
+                } else if token.starts_with("oya-governance-")
+                    && known.declared_lane_ids.contains(&token)
+                {
+                    // Only DECLARED governance lanes are validated. A binding
+                    // claim referencing an undeclared oya-governance-* lane is a
+                    // planned/future lane => advisory (falls through, no
+                    // violation), per ADR-0362 (a).
                     if !known.workflow_contexts.contains(&token) {
                         violations.push(AspirationalViolation {
                             path: document.path.clone(),
@@ -180,7 +192,7 @@ where
 
 fn enforcement_tokens(line: &str) -> BTreeSet<String> {
     let mut tokens = BTreeSet::new();
-    for prefix in ["oya-foundry-fitness-", "oya-check-"] {
+    for prefix in ["oya-governance-", "oya-check-"] {
         let mut start = 0usize;
         while let Some(relative_index) = line[start..].find(prefix) {
             let token_start = start + relative_index;
@@ -270,9 +282,16 @@ mod tests {
     fn known() -> KnownEnforcementSurfaces {
         KnownEnforcementSurfaces {
             crate_names: BTreeSet::from(["oya-check-real".to_string()]),
-            workflow_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
-            quality_lane_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
-            branch_required_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
+            workflow_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
+            quality_lane_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
+            branch_required_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
+            // Both declared lanes; "missing" is declared-but-unresolved so the
+            // missing-* violation tests still fire, while undeclared tokens are
+            // advisory (ADR-0362 (a)).
+            declared_lane_ids: BTreeSet::from([
+                "oya-governance-real".to_string(),
+                "oya-governance-missing".to_string(),
+            ]),
         }
     }
 
@@ -287,7 +306,7 @@ mod tests {
     fn accepts_binding_claims_with_real_surfaces() {
         let report = validate_aspirational_enforcement(
             [doc(
-                "enforced_by: oya-check-real\nrequired check: oya-foundry-fitness-real\n",
+                "enforced_by: oya-check-real\nrequired check: oya-governance-real\n",
             )],
             &known(),
         )
@@ -299,7 +318,7 @@ mod tests {
     fn accepts_planned_missing_lane_mentions() {
         let report = validate_aspirational_enforcement(
             [doc(
-                "candidate validator oya-foundry-fitness-missing remains planned and advisory\n",
+                "candidate validator oya-governance-missing remains planned and advisory\n",
             )],
             &known(),
         )
@@ -308,10 +327,25 @@ mod tests {
     }
 
     #[test]
+    fn treats_undeclared_governance_enforced_by_as_advisory() {
+        // ADR-0362 (a): a binding `enforced_by:` claim referencing an
+        // oya-governance-* lane that is NOT declared in the registry is a
+        // planned/future lane => advisory, not a violation.
+        let report = validate_aspirational_enforcement(
+            [doc("enforced_by: oya-governance-doc-rigor\n")],
+            &known(),
+        )
+        .expect("undeclared governance lane ref is advisory, not a violation");
+        // The token is seen on a binding line (counted) but not flagged, because
+        // the lane is undeclared => treated as planned/advisory.
+        assert_eq!(report.binding_mentions, 1);
+    }
+
+    #[test]
     fn accepts_non_binding_workflow_mentions() {
         let report = validate_aspirational_enforcement(
             [doc(
-                "workflow catalog documents oya-foundry-fitness-missing as future context\n",
+                "workflow catalog documents oya-governance-missing as future context\n",
             )],
             &known(),
         )
@@ -340,7 +374,7 @@ mod tests {
     #[test]
     fn rejects_missing_workflow_contexts() {
         let violations = validate_aspirational_enforcement(
-            [doc("required check: oya-foundry-fitness-missing\n")],
+            [doc("required check: oya-governance-missing\n")],
             &known(),
         )
         .unwrap_err();
@@ -355,15 +389,14 @@ mod tests {
     fn rejects_missing_quality_lane_contexts() {
         let known = KnownEnforcementSurfaces {
             crate_names: BTreeSet::new(),
-            workflow_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
+            workflow_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
             quality_lane_contexts: BTreeSet::new(),
             branch_required_contexts: BTreeSet::new(),
+            declared_lane_ids: BTreeSet::from(["oya-governance-real".to_string()]),
         };
-        let violations = validate_aspirational_enforcement(
-            [doc("enforced_by: oya-foundry-fitness-real\n")],
-            &known,
-        )
-        .unwrap_err();
+        let violations =
+            validate_aspirational_enforcement([doc("enforced_by: oya-governance-real\n")], &known)
+                .unwrap_err();
         assert_eq!(
             violations[0].kind,
             AspirationalIssueKind::MissingQualityLane
@@ -374,13 +407,14 @@ mod tests {
     fn rejects_missing_branch_required_contexts() {
         let known = KnownEnforcementSurfaces {
             crate_names: BTreeSet::new(),
-            workflow_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
-            quality_lane_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
+            workflow_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
+            quality_lane_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
             branch_required_contexts: BTreeSet::new(),
+            declared_lane_ids: BTreeSet::from(["oya-governance-real".to_string()]),
         };
         let violations = validate_aspirational_enforcement(
             [doc(
-                "branch protection required check: oya-foundry-fitness-real\n",
+                "branch protection required check: oya-governance-real\n",
             )],
             &known,
         )
@@ -396,7 +430,7 @@ mod tests {
     fn rejects_negated_advisory_binding_claims() {
         let violations = validate_aspirational_enforcement(
             [doc(
-                "required check: oya-foundry-fitness-missing is active, not advisory\n",
+                "required check: oya-governance-missing is active, not advisory\n",
             )],
             &known(),
         )
@@ -431,7 +465,7 @@ mod tests {
     #[test]
     fn rejects_same_indent_yaml_required_check_claims() {
         let violations = validate_aspirational_enforcement(
-            [doc("required check:\n- oya-foundry-fitness-missing\n")],
+            [doc("required check:\n- oya-governance-missing\n")],
             &known(),
         )
         .unwrap_err();
@@ -446,12 +480,13 @@ mod tests {
     fn rejects_same_indent_yaml_required_status_claims_without_branch_context() {
         let known = KnownEnforcementSurfaces {
             crate_names: BTreeSet::new(),
-            workflow_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
-            quality_lane_contexts: BTreeSet::from(["oya-foundry-fitness-real".to_string()]),
+            workflow_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
+            quality_lane_contexts: BTreeSet::from(["oya-governance-real".to_string()]),
             branch_required_contexts: BTreeSet::new(),
+            declared_lane_ids: BTreeSet::from(["oya-governance-real".to_string()]),
         };
         let violations = validate_aspirational_enforcement(
-            [doc("required status:\n- oya-foundry-fitness-real\n")],
+            [doc("required status:\n- oya-governance-real\n")],
             &known,
         )
         .unwrap_err();

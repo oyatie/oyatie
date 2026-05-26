@@ -35,7 +35,7 @@ cargo run -q -p oya-dev-cli -- gate validate cohesion
 oya verify --ci-required
 ```
 
-Legacy scaffold note: the generated `cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>` and `scripts/check.sh` commands do not map to current workspace packages/files; current canonical equivalents are `oya-dev-cli -- gate validate cohesion` and `oya verify --ci-required`.
+Legacy scaffold note: the generated `cargo run -p oya-governance-cohesion -- <owning-crate-glob>` and `scripts/check.sh` commands do not map to current workspace packages/files; current canonical equivalents are `oya-dev-cli -- gate validate cohesion` and `oya verify --ci-required`.
 
 ## Done-criteria
 - All acceptance-test commands return 0.

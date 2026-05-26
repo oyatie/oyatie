@@ -9,7 +9,7 @@ purpose: |
   Source: MASTERPLAN.md §3 + each milestone INDEX.md + each phase INDEX.md.
   Lift to `docs/visualization/roadmap.md`. Auto-derived; no hand-painted Gantt.
 lift_target: oyatie/docs/visualization/roadmap.md
-enforced_by: oya-foundry-fitness-roadmap-viz
+enforced_by: oya-governance-roadmap-viz
 extends_crates:
   - oya-intelligence-architecture-map-kernel
   - oya-intelligence-mdbook-kernel
@@ -88,9 +88,9 @@ A Mermaid `xychart-beta` showing cumulative phase completion over time, broken b
 Each wave gate is rendered as a diamond node containing:
 - Wave id (e.g. `W-Foundry-Preview`).
 - Gate criteria list (lifted verbatim from `docs/ROADMAP.md` §2 row).
-- Current pass/fail state (from `oya-foundry-fitness-lane-rollup` aggregate).
+- Current pass/fail state (from `oya-governance-lane-rollup` aggregate).
 
-## 6. Validation gates (`oya-foundry-fitness-roadmap-viz`)
+## 6. Validation gates (`oya-governance-roadmap-viz`)
 
 1. **Frontmatter completeness.** Every milestone/phase INDEX has the required date/duration fields (BLOCKER).
 2. **DAG validity.** `start_after:` references resolve; no cycles (BLOCKER).

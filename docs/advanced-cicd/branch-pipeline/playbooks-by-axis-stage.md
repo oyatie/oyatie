@@ -65,7 +65,7 @@ Per-axis differentiation of the four-layer pipeline. Every axis follows the same
 | Stage | Cadence | Notable |
 |---|---|---|
 | local-dev → origin/dev | event-driven; reviewer-agent dispatch includes `capability-reviewer` for capability changes | reviewer: `capability-reviewer` (BLOCKER) for capability changes |
-| origin/dev → staging | autonomous; capability `stage: dev` → `stage: staging` in lockstep per [`foundry-pipeline-mirror.md`](foundry-pipeline-mirror.md) | eval-harness sweep runs autonomously post-merge; demotion on `evidence: fail` |
+| origin/dev → staging | autonomous; capability `stage: dev` → `stage: staging` in lockstep per [`governance-pipeline-mirror.md`](governance-pipeline-mirror.md) | eval-harness sweep runs autonomously post-merge; demotion on `evidence: fail` |
 | staging → prod | weekly target; M=24h canary; N=3 CI runs | **reviewer re-affirm REQUIRED** for `capability-reviewer` (uses post-canary eval data) |
 
 **Hot-fix tolerance.** Agent-runtime breaking changes (per ADR-0040 cadence table) go blue/green not canary. Capability cutovers (irreversible publish) also blue/green. Both require `requires_human_signoff: true`.

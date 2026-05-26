@@ -963,7 +963,7 @@
       "status": "complete",
       "acceptance_snippet": "",
       "deps_snippet": "",
-      "title": "oya-foundry-fitness-architecture-map-freshness lane"
+      "title": "oya-governance-architecture-map-freshness lane"
     },
     {
       "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-001-branch-protection-deploy",
@@ -1049,7 +1049,7 @@
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-008-banned-primitives-fitness-check",
       "status": "scaffolded",
-      "acceptance_snippet": "- `crates/oya-governance-banned-primitives-kernel/src/lib.rs::evaluate` exists with `(command_log, allow_list, sunset_state) -> Vec<Violation>` signature. - `tools/oya-foundry-fitness-banned-prim...",
+      "acceptance_snippet": "- `crates/oya-governance-banned-primitives-kernel/src/lib.rs::evaluate` exists with `(command_log, allow_list, sunset_state) -> Vec<Violation>` signature. - `tools/oya-governance-banned-prim...",
       "deps_snippet": "- IP-002 (`oya` CLI) \u2014 the lane registers into `oya gate run-all`. - IP-003 (mistakes-ledger) \u2014 repeat offenders generat...",
       "title": "Banned-primitives fitness check (catches grit/git bypass; auto-flips when grit retires)"
     },

@@ -17,7 +17,7 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §12 (regio
 ## Acceptance
 - Regional pack ADR Accepted; `crates/oya-regional-pack-domain` shipped.
 - Initial pack roster (per DESIGN §12.4): KR + JP + US + EU + IN + BR + KSA + UAE + ANZ + SG seam contracts published.
-- `oya-foundry-fitness-flat-crates-guard` lane green: every workspace crate under `crates/oya-*`, every workspace crate has `registry/catalog/<crate>.yaml`, retired top-level roots stay absent, role-boundary graph validates.
+- `oya-governance-flat-crates-guard` lane green: every workspace crate under `crates/oya-*`, every workspace crate has `registry/catalog/<crate>.yaml`, retired top-level roots stay absent, role-boundary graph validates.
 
 ## Implementation Plans
 | IP | Title | Status | File |

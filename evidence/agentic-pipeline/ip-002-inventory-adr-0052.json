@@ -27,7 +27,7 @@
       "summary": "226 path rows have Archived at values and closed-set classifications; helper target row present; stale oya-agent-read and DELETE-if-discovered wording absent."
     },
     {
-      "command": "cargo test -p oya-foundry-fitness-cohesion --all-features",
+      "command": "cargo test -p oya-governance-cohesion --all-features",
       "status": "blocked-pre-existing",
       "exit_code": 101,
       "summary": "workspace metadata fails before package test discovery because crates/oya-tenancy-kernel/Cargo.toml is missing"

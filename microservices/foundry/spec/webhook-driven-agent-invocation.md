@@ -256,56 +256,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.receive" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.verify_hmac" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.dedup" | Resource::"router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.route" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.invoke" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.receive" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.verify_hmac" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.dedup" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.route" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.invoke" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.receive" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.verify_hmac" | Resource::"endpoint:/webhook/github" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.dedup" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.route" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.invoke" | Resource::"router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.receive" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.verify_hmac" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.dedup" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.route" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.invoke" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.receive" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.verify_hmac" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.dedup" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.route" | Resource::"endpoint:/webhook/github" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.invoke" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.receive" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.verify_hmac" | Resource::"router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.dedup" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.route" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.invoke" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.receive" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.verify_hmac" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.dedup" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.route" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.invoke" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.receive" | Resource::"endpoint:/webhook/github" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.verify_hmac" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.dedup" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.route" | Resource::"router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.invoke" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.receive" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.verify_hmac" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.dedup" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.route" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.invoke" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.receive" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.verify_hmac" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.dedup" | Resource::"endpoint:/webhook/github" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.route" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.invoke" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.receive" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.verify_hmac" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.dedup" | Resource::"router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.webhook.route" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.agent.invoke" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.receive" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.verify_hmac" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.dedup" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.webhook.route" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.agent.invoke" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.receive" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.verify_hmac" | Resource::"endpoint:/webhook/github" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.dedup" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.webhook.route" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.agent.invoke" | Resource::"router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.receive" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.verify_hmac" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.dedup" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.webhook.route" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.agent.invoke" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.receive" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.verify_hmac" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.dedup" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.webhook.route" | Resource::"endpoint:/webhook/github" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.agent.invoke" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.receive" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.verify_hmac" | Resource::"router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.dedup" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.webhook.route" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.agent.invoke" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.receive" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.verify_hmac" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.dedup" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.webhook.route" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.agent.invoke" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.receive" | Resource::"endpoint:/webhook/github" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.verify_hmac" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.dedup" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.webhook.route" | Resource::"router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.agent.invoke" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.receive" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.verify_hmac" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.dedup" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.webhook.route" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.agent.invoke" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.receive" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.verify_hmac" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.dedup" | Resource::"endpoint:/webhook/github" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.webhook.route" | Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.agent.invoke" | Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=webhook-driven-agent-invocation | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -314,7 +314,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0112" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -326,7 +326,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0112" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -338,7 +338,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0112" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -350,7 +350,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0112" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -628,7 +628,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: pull_request.opened routes to the VCS orchestrator. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.webhook.receive.
 3. Resource: Resource::"endpoint:/webhook/github" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0112, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0112, and evidence_hash presence.
 5. State: The active phase is delivery_received; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-WEBHOOK-RECEIVED seals the state-changing fact before observability emission finalizes.
@@ -660,7 +660,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: workflow_run failure routes to the CI fix-loop dispatcher. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.webhook.verify_hmac.
 3. Resource: Resource::"secret:sref://openbao/oya/foundry/github-webhook-secret" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0112, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0112, and evidence_hash presence.
 5. State: The active phase is hmac_verified; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-WEBHOOK-HMAC-VERIFIED seals the state-changing fact before observability emission finalizes.
@@ -692,7 +692,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Duplicate delivery is accepted once and no-ops on retry. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.webhook.dedup.
 3. Resource: Resource::"delivery-log:registry/vcs/webhook-delivery-log.json" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0112, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0112, and evidence_hash presence.
 5. State: The active phase is delivery_deduped; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-WEBHOOK-DEDUPED seals the state-changing fact before observability emission finalizes.
@@ -724,7 +724,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: HMAC failure is rejected before dedup poisoning. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.webhook.route.
 3. Resource: Resource::"router:registry/vcs/event-router.yaml" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0112, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0112, and evidence_hash presence.
 5. State: The active phase is router_matched; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-INVOKED seals the state-changing fact before observability emission finalizes.
@@ -756,7 +756,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Unknown event/action is logged as routing_failed. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.agent.invoke.
 3. Resource: Resource::"repo:oyatie/microservices/foundry" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0112, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0112, and evidence_hash presence.
 5. State: The active phase is agent_invoked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-WEBHOOK-QUARANTINED seals the state-changing fact before observability emission finalizes.

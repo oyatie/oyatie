@@ -27,7 +27,7 @@ companion_docs:
   - docs/standards/dependency-policy.md
   - docs/audits/convention-audit-2026-05-12.md
   - docs/plans/rename-plan-2026-05-12.md
-  - .omc/fitness-lanes/architecture-conventions.md
+  - .omc/governance-lanes/architecture-conventions.md
   - docs/research/hyperscaler-best-practices-2026-05-12.md
 related_adrs:
   - ADR-0015
@@ -38,7 +38,7 @@ related_adrs:
 authority_chain_declaration: |
   /specs/decision-principles.json + /specs/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > docs/standards/crate-naming-convention.md ≡ THIS DOC
-  > .omc/fitness-lanes/architecture-conventions.md
+  > .omc/governance-lanes/architecture-conventions.md
 ---
 
 # Clean Architecture
@@ -188,7 +188,7 @@ The lane uses two mechanisms, layered:
    `[package.metadata.oya].role`, and refuses any cross-layer edge
    forbidden by the table above. The lane is implemented in Rust as a
    small workspace binary that reads `cargo metadata --no-deps`. See
-   [`.omc/fitness-lanes/architecture-conventions.md`](../../.omc/fitness-lanes/architecture-conventions.md).
+   [`.omc/governance-lanes/architecture-conventions.md`](../../.omc/governance-lanes/architecture-conventions.md).
 
 A single failing edge is a CI blocker. Severity = **BLOCKER**, lane
 position Top-5.

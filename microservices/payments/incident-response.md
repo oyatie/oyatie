@@ -148,7 +148,7 @@ CEO + Legal (Sev-0 with regulatory implications)
 - Post-mortem complete within **5 business days** of incident close.
 - Blameless format per Google SRE Workbook ch. 13.
 - Posted to `docs/post-mortems/<YYYYMMDD>-payments-<slug>.md`.
-- Action items tracked in `oya-foundry-pipeline://post-mortem-action-items`.
+- Action items tracked in `oya-governance-pipeline://post-mortem-action-items`.
 
 ## §8. Communication templates
 

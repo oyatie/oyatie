@@ -145,4 +145,4 @@ This file does not own:
 
 ## 10. Lift target
 
-`oyatie/docs/release/branch-pipeline/foundry-pipeline-mirror.md` on approval.
+`oyatie/docs/release/branch-pipeline/governance-pipeline-mirror.md` on approval.

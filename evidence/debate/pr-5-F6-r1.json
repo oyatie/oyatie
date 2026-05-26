@@ -9,7 +9,7 @@
   "findings": [
     {
       "severity": "MAJOR",
-      "file": "PR #5 body lines 1,14-25; Cargo.toml:69-70; .github/workflows/oya-foundry-fitness-changeset-state.yml:1-68",
+      "file": "PR #5 body lines 1,14-25; Cargo.toml:69-70; .github/workflows/oya-governance-changeset-state.yml:1-68",
       "issue": "The PR body says '4 ADRs ... no code', 'Each wave-A is a separate PR', and 'No code changes in this PR', but the merge added two workspace crates, dev-cli gate wiring, a new CI workflow, promotion workflows, and P11 implementation-plan files. The simpler alternative was the one the PR itself described: land an ADR-only decision record, then land Wave-A implementation in separate PRs with normal code/test evidence. Combining them makes it impossible to know whether reviewers accepted design, implementation, or both.",
       "remediation": "Retroactively split/reconcile the scope: either revert implementation/workflow pieces into follow-up Wave-A PRs, or amend the change record to classify PR #5 as an implementation changeset with code-level verification and multispectrum evidence. For future ADR packs, enforce docs-only PRs by excluding Cargo/workflow/source changes."
     },

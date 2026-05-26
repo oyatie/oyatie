@@ -10,7 +10,7 @@ purpose: |
   (change-class-reviewer + api-stability-reviewer), and major-version bump on
   next release cut. Calibrated between AWS (12 months) and Stripe (never-break).
 lift_target: oyatie/docs/release/breaking-change-process.md
-enforced_by: oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-api-version-stability
+enforced_by: oya-governance-deprecation-notice, oya-governance-api-version-stability
 related_adrs: [ADR-0041, ADR-0050]
 ---
 
@@ -59,7 +59,7 @@ migration_guide: docs/release/migrate-foundry-v1-to-v2.md
 ```
 
 Missing or inconsistent frontmatter → CI fails via
-`oya-foundry-fitness-deprecation-notice` (BLOCKER).
+`oya-governance-deprecation-notice` (BLOCKER).
 
 ## 4. ADR template (`/templates/ADR-BREAKING-CHANGE.md`)
 

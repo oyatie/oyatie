@@ -3,13 +3,13 @@
 - purpose: Verify `.github/CODEOWNERS` mirrors the catalog + RACI owner_axis values for every canonical path.
 - enforces: STANDARD/codeowners-mirror; existing crate `oya-foundry-codeowners-mirror-kernel` (EXISTING).
 - kernel_crate: `oya-foundry-codeowners-mirror-kernel` (EXISTING) — `OwnerRule { path, owner_axis }`, verdict `CodeownersMirrorFitnessReport { rules_checked }`.
-- runner_path: `tools/oya-foundry-fitness-codeowners-mirror`
+- runner_path: `tools/oya-governance-codeowners-mirror`
 - inputs: `.github/CODEOWNERS`, catalog rows, RACI rows.
 - failure_modes:
   - canonical path has no CODEOWNERS rule
   - CODEOWNERS owner differs from catalog owner_axis
   - rule references unknown owner team
-- ci_invocation: `cargo run -p oya-foundry-fitness-codeowners-mirror`
+- ci_invocation: `cargo run -p oya-governance-codeowners-mirror`
 - runtime_budget: 300 ms
 - severity: HIGH
 - kernel_sketch:

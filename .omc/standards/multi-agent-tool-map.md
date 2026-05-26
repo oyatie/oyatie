@@ -14,7 +14,7 @@ purpose: |
   `docs/AGENTS.md` §Per-agent appendices (Gemini).
 lift_target: oyatie/docs/standards/multi-agent-tool-map.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-tool-map-cohesion
+enforced_by: oya-governance-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/claude-code-harness.md
@@ -90,7 +90,7 @@ the agent MUST use only the triad + the canonical tool surface above:
 | Gemini CLI | `read_file`, `write_file`, `replace`, `run_shell_command`, `glob`, `search_file_content` | Direct `git`/`gh` per Directive 12 | sandbox-escape commands |
 | OMC subagent | inherits Claude Code's surface | inherits Claude Code's exceptions | inherits Claude Code's bans |
 
-The lane `oya-foundry-fitness-tool-map-cohesion` validates that the
+The lane `oya-governance-tool-map-cohesion` validates that the
 per-harness sanctioned set in each agent appendix matches this table.
 
 ## 4. Per-harness invocation surface (commands)

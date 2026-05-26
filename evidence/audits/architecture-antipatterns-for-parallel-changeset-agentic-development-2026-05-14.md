@@ -82,7 +82,7 @@ admission semantics.
 
 **Fix**: extend the ICM scaffold-claim template to require declared
 `SymbolId` values, not just paths. Lane-level enforcement via a new
-fitness kernel `oya-foundry-fitness-icm-claim-scope-kernel` (proposed
+fitness kernel `oya-governance-icm-claim-scope-kernel` (proposed
 M01-P08-IP-012, not yet split into the masterplan).
 
 ---
@@ -101,7 +101,7 @@ duplicating already-done implementation. This session avoided that by
 checking tests first; a less careful agent would have rewritten ~6 P00
 crates from scratch.
 
-**Fix**: add a fitness kernel `oya-foundry-fitness-ip-status-truth-kernel`
+**Fix**: add a fitness kernel `oya-governance-ip-status-truth-kernel`
 that, for each `status: complete` IP, asserts (a) referenced crates
 exist, (b) targeted tests exist + pass, (c) decision-log row is
 non-empty. Status flips from any other state to `complete` should only
@@ -155,7 +155,7 @@ ChangeSets that the merge queue rejects, wasting build cycles.
 **Fix**: add `dependencies:` array to the IP frontmatter schema (the
 field is already in `master-plan-sequencing.json#ledger_required_fields`
 but most IP files leave it empty). A new fitness kernel (proposed
-`oya-foundry-fitness-ip-dependency-edges-kernel`) checks that every
+`oya-governance-ip-dependency-edges-kernel`) checks that every
 IP's `dependencies` list resolves to existing IPs and that the implied
 DAG is acyclic.
 

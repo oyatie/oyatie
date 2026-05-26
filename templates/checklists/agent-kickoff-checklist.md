@@ -5,7 +5,7 @@ status: pending approval
 purpose: |
   The agent's first 5 actions before claiming any symbol. Encodes the agentic-navigation contract from `.omc/plans/MASTERPLAN.md §6`. Walked at the start of every agent session that intends to modify the repo.
 lift_target: oyatie/docs/checklists/agent-kickoff.md
-enforcing_fitness_lane: oya-foundry-fitness-banned-primitives (audits the first `grit claim` was preceded by the kickoff icm-read)
+enforcing_fitness_lane: oya-governance-banned-primitives (audits the first `grit claim` was preceded by the kickoff icm-read)
 owner_team: axis-foundry
 related:
   - .omc/plans/MASTERPLAN.md
@@ -62,7 +62,7 @@ The claim emits `EVT-GRIT-CLAIM` to the audit chain automatically. Confirm via `
 ## Hard rules
 
 - **No `git`, no `gh`** outside the documented carve-out (see `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md §Cutover bootstrap window` + `§Glossary §Human orchestrator`). If a workflow appears to require `git`/`gh`, emit `BLOCKED_ON_HUMAN_ORCHESTRATOR`.
-- **No claim before the masterplan read.** `oya-foundry-fitness-banned-primitives` audits the sequence: kickoff icm-read → masterplan read → grit claim. Out-of-order sequences fail the lane.
+- **No claim before the masterplan read.** `oya-governance-banned-primitives` audits the sequence: kickoff icm-read → masterplan read → grit claim. Out-of-order sequences fail the lane.
 - **No silent retry.** If `grit claim` fails, run `icm store -t errors-resolved -c "<failure mode>" -i high -k "grit,claim"` BEFORE retrying.
 
 ## Stop conditions

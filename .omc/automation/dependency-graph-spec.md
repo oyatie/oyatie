@@ -10,7 +10,7 @@ purpose: |
   `parent:` and `depends_on:` frontmatter. Lift to
   `docs/visualization/dependency-graph.md` as Graphviz dot (SVG fidelity).
 lift_target: oyatie/docs/visualization/dependency-graph.md
-enforced_by: oya-foundry-fitness-dep-graph
+enforced_by: oya-governance-dep-graph
 extends_crates:
   - oya-intelligence-architecture-map-kernel
   - oya-foundry-pr-traceability-kernel
@@ -94,7 +94,7 @@ Each IP node embeds an SVG `<title>` element with:
 - Estimated parallelism
 - Linked ADRs
 
-## 5. Validation gates (`oya-foundry-fitness-dep-graph`)
+## 5. Validation gates (`oya-governance-dep-graph`)
 
 1. **Parent referential integrity.** Every `parent:` resolves to an existing file (BLOCKER).
 2. **depends_on referential integrity.** Every `depends_on:` entry resolves to an existing IP/phase/milestone file (BLOCKER).

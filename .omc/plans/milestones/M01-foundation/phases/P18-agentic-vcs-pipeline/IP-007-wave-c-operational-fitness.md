@@ -25,39 +25,39 @@ purpose: Land the operational fitness lanes that detect drift, alarm anomalies, 
 
 Six new fitness lanes spread across the ADRs in this phase:
 
-1. **`oya-foundry-fitness-changeset-cost-budget-monthly`** — per
+1. **`oya-governance-changeset-cost-budget-monthly`** — per
    ADR-0110/0113. Asserts cumulative monthly spend per team stays
    under the team-budget cap (sourced from
    `registry/teams/budgets.yaml`). Alarms when burn rate
    indicates the team will exceed before month-end.
 
-2. **`oya-foundry-fitness-override-justification`** — per ADR-0113.
+2. **`oya-governance-override-justification`** — per ADR-0113.
    Asserts every `oya vcs override` event has a justification
    ≥40 chars AND a valid human signing-key signature. Refuses
    override events that fail either.
 
-3. **`oya-foundry-fitness-override-frequency-alarming`** — per
+3. **`oya-governance-override-frequency-alarming`** — per
    ADR-0113. Alarms when monthly override count per
    `(team, product)` pair exceeds threshold (default 3/month).
    Signal that the agent verdicts are unreliable + needs human
    triage.
 
-4. **`oya-foundry-fitness-webhook-stuck`** — per ADR-0112. Alarms
+4. **`oya-governance-webhook-stuck`** — per ADR-0112. Alarms
    when `agent_invocation_failed` retries exceed `MAX_RETRIES = 3`
    for any delivery_id within 24h.
 
-5. **`oya-foundry-fitness-webhook-delivery-log-monotonic`** — per
+5. **`oya-governance-webhook-delivery-log-monotonic`** — per
    ADR-0112. Asserts no delivery_id appears twice with
    conflicting dedup outcomes (e.g., `accepted` then
    `deduplicated` is fine; `accepted` then `routing_failed` is
    an anomaly).
 
-6. **`oya-foundry-fitness-canary-thresholds-tuned`** — per
+6. **`oya-governance-canary-thresholds-tuned`** — per
    ADR-0114. Asserts every product's `registry/canary/thresholds.yaml`
    entry has been reviewed in the last 90 days (`reviewed_at`
    field). Stale config = false-rollback risk = alarm.
 
-7. **`oya-foundry-fitness-canary-emergency-rewind-frequency`** —
+7. **`oya-governance-canary-emergency-rewind-frequency`** —
    per ADR-0114. Alarms when emergency-rewind frequency exceeds
    2/30 days; signal that canary controller is unreliable.
 
@@ -79,7 +79,7 @@ Six new fitness lanes spread across the ADRs in this phase:
 - `registry/teams/budgets.yaml` is initialized (1 row per active
   team, default $50/team/month).
 - All lanes wired in `registry/quality/lanes.yaml` as new rows.
-- The new `oya-foundry-fitness-protection-context-match` lane
+- The new `oya-governance-protection-context-match` lane
   (landed in PR #4) is now required-checked alongside the 6
   new lanes once wave-C lanes have 7 days of clean operation.
 

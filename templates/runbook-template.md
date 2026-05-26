@@ -6,7 +6,7 @@ purpose: |
   Diátaxis-aligned operational runbook. Dual-audience: identical text readable by an on-call agent (Foundry runbook-execution capability) and a human on-call engineer. Symptom → diagnostic → mitigation → postmortem link → SLO impact. Every alert resolves to a runbook URL; every runbook is exec-readable.
 lift_target: oyatie/docs/templates/runbook-template.md
 supersedes: docs/templates/runbook-template.md
-enforcing_fitness_lane: oya-foundry-fitness-runbook-index-resolves
+enforcing_fitness_lane: oya-governance-runbook-index-resolves
 owner_team: ops-sre-reliability
 related:
   - docs/RUNBOOKS-INDEX.md

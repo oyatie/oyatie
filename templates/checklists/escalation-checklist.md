@@ -5,7 +5,7 @@ status: pending approval
 purpose: |
   When an agent halts and emits `BLOCKED_ON_HUMAN_ORCHESTRATOR`. The autonomy directive minimizes this set: every documented case is one the system genuinely cannot resolve mechanically. New escalation classes require an ADR; council reviews quarterly to shrink the set.
 lift_target: oyatie/docs/checklists/escalation.md
-enforcing_fitness_lane: oya-foundry-fitness-banned-primitives (audits halt events)
+enforcing_fitness_lane: oya-governance-banned-primitives (audits halt events)
 owner_team: council-architecture
 related:
   - docs/AGENTS.md
@@ -34,16 +34,16 @@ The full list of sanctioned escalation classes (steady-state):
 **Trigger:** SLO burn rate crosses 14x; or audit-chain emission failure; or tenant-boundary breach attempt; or regulator notification window opens. **Resolution:** Halt all in-flight agent work; page incident commander per `docs/INCIDENT-MANAGEMENT.md §Escalation`. *Target collapse: no — Sev-1/2 always human-led.*
 
 ### E4. Risky-action confirmation
-**Trigger:** Action that would (a) force-push to `main`, (b) hard-reset another worker's branch, (c) downgrade a package, (d) migrate to shared infra without explicit user scope, (e) send external messages. *(Per `docs/AGENTS.md §Boundaries`.)* **Resolution:** Halt; request explicit user authorization scoped to the action. **Mechanical prevention candidate:** Already enforced by `oya-foundry-fitness-bypass`; the halt is the **prevention** working as designed.
+**Trigger:** Action that would (a) force-push to `main`, (b) hard-reset another worker's branch, (c) downgrade a package, (d) migrate to shared infra without explicit user scope, (e) send external messages. *(Per `docs/AGENTS.md §Boundaries`.)* **Resolution:** Halt; request explicit user authorization scoped to the action. **Mechanical prevention candidate:** Already enforced by `oya-governance-bypass`; the halt is the **prevention** working as designed.
 
 ### E5. Stale forward-reference resolution
-**Trigger:** Agent encounters `<!-- forward-reference: wave-N -->` pointing at an artifact that should exist by current wave but doesn't. **Resolution:** Halt; emit issue to wave-owner team; do not silently invent the missing artifact. **Mechanical prevention candidate:** Tighter `oya-foundry-fitness-forward-reference` wave-window enforcement. *Target collapse: yes.*
+**Trigger:** Agent encounters `<!-- forward-reference: wave-N -->` pointing at an artifact that should exist by current wave but doesn't. **Resolution:** Halt; emit issue to wave-owner team; do not silently invent the missing artifact. **Mechanical prevention candidate:** Tighter `oya-governance-forward-reference` wave-window enforcement. *Target collapse: yes.*
 
 ### E6. IP frontmatter `final_shape_compliance: false`
 **Trigger:** Agent picks an IP whose frontmatter declares MVP-shaped scope. **Resolution:** Refuse to claim; route to council-architecture for IP rewrite. **Mechanical prevention candidate:** None (intentional — `final_shape_compliance: false` would itself violate Master Plan principle 3; the IP should never exist in this state).
 
 ### E7. Capability tier uplift beyond Cedar policy
-**Trigger:** Capability requires T2 → T3 uplift, but the Cedar policy + runtime gate is absent or insufficient. **Resolution:** Halt; route to ops-security + axis-foundry to author the Cedar policy + runtime check. **Mechanical prevention:** `oya-foundry-fitness-autonomy-ceiling` already refuses the uplift; the halt is the prevention.
+**Trigger:** Capability requires T2 → T3 uplift, but the Cedar policy + runtime gate is absent or insufficient. **Resolution:** Halt; route to ops-security + axis-foundry to author the Cedar policy + runtime check. **Mechanical prevention:** `oya-governance-autonomy-ceiling` already refuses the uplift; the halt is the prevention.
 
 ### E8. Cross-axis contract decline
 **Trigger:** Consumer-axis team declines a cross-axis contract change without an alternative path. **Resolution:** Halt; council-architecture mediates per `cross-axis-contract-change-checklist.md`. *Target collapse: no — design conflict is human-mediated.*

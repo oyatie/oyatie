@@ -8,9 +8,9 @@ purpose: |
   Rollout strategy for Foundry capability publishes — eval-set + canary + cohort + audit-chain + Cosign-signed.
 lift_target: oyatie/docs/playbooks/playbook-foundry.md
 enforced_by:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-shadow-diff
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-shadow-diff
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0020, ADR-0021, ADR-0024, ADR-0039]
 ---
 
@@ -64,10 +64,10 @@ Per publish, emit:
 
 ## 8. Anti-patterns
 
-- Publishing without eval-set baseline → blocked by `oya-foundry-fitness-cohesion`.
+- Publishing without eval-set baseline → blocked by `oya-governance-cohesion`.
 - Publishing without Cosign signature → blocked by supply-chain lane.
-- Skipping dark-launch on replay-affecting capability → blocked by `oya-foundry-fitness-shadow-diff`.
-- Canary against a single provider when capability has multiple adapters → blocked by lane (`oya-foundry-fitness-canary-required`).
+- Skipping dark-launch on replay-affecting capability → blocked by `oya-governance-shadow-diff`.
+- Canary against a single provider when capability has multiple adapters → blocked by lane (`oya-governance-canary-required`).
 
 ## 9. Hyperscaler equivalent
 

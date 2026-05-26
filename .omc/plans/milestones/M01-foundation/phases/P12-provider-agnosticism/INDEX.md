@@ -13,7 +13,7 @@ purpose: Provider-specific code lives in `oya-<context>-adapter-<provider>-*` cr
 Per MASTERPLAN §2 Directive 4. The Foundry multi-provider adapter pattern (Claude/OpenAI/Gemini) is the canonical implementation; Cloud/KMS/storage/network/observability/secrets/identity follow.
 
 ## Acceptance
-- `oya-foundry-fitness-provider-coupling` lane CI-blocks provider-specific imports outside adapter crates.
+- `oya-governance-provider-coupling` lane CI-blocks provider-specific imports outside adapter crates.
 - Per-kernel ≥ 2 provider adapters (e.g., Cloud KMS ships AWS-KMS + GCP-KMS + OpenBao adapters; Cloud Storage ships S3 + GCS + Azure-Blob adapters).
 - Adapter-substitution test: kernel API contract identical regardless of adapter; integration tests run against ≥ 2 adapters.
 

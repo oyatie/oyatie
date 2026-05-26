@@ -307,8 +307,8 @@ Enforced by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-ve
   oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify;
   oya-governance-oya-verify-exit-code-contract.
 
-ADR-0347: every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
-  bulk-rename pull request; the deterministic inventory path is .omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json.
+ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
+  bulk-rename pull request; the deterministic inventory path is .omc/state/oya-governance-rename-inventory-2026-05-21.json.
 Enforced by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary;
   oya-governance-rename-inventory-presence.
 

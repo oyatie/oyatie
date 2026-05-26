@@ -174,7 +174,7 @@ Translation pipeline: `oya doc translate` invokes Foundry capabilities to draft 
 
 ## 9. Doc generation pipeline (CI lane)
 
-The CI lane `oya-foundry-fitness-docs` is active as a documentation-system
+The CI lane `oya-governance-docs` is active as a documentation-system
 contract guard. `oya doc rustdoc`, `oya doc openapi`, `oya doc mdbook`, and
 `oya doc adr-index` are now active generator checks.
 Rustdoc uses an isolated `target/oya-rustdoc-check` directory and a rustup-pinned

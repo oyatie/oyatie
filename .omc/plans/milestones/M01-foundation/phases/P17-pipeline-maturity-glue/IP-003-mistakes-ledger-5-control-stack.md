@@ -30,7 +30,7 @@ Memory directive `feedback_repeat_mistake_prevention.md` mandates 5 permanent co
 - `docs/runbooks/sanctioned-primitives/preflight.md` exists, lists every agent-callable command, references the ledger template, and is referenced from `docs/AGENTS.md`.
 - `docs/templates/mistakes-ledger-row-template.md` exists with strict fields: `date`, `mistake-class`, `first-occurrence-evidence`, `second-occurrence-evidence`, `5-control-ids`, `prevention-evidence`.
 - `crates/oya-governance-mistakes-ledger-kernel` exists with `(ledger_rows, current_pr_diff, current_command_log) -> Vec<Violation>` signature.
-- `tools/oya-foundry-fitness-mistakes-ledger-app` exists as the binary surface.
+- `tools/oya-governance-mistakes-ledger-app` exists as the binary surface.
 - ICM hook: a small `tools/oya-icm-mistakes-ledger-hook` watches for PR-close events and posts a ledger-row template if the PR had ≥2 CI cycles.
 - Citation-probe: extends an existing citation lane to require `mistakes-ledger:<row-id>` citation on any commit that fixes a repeat-class failure.
 - All 5 controls are registered in `registry/fitness-lane-registry.json` and visible from `oya gate run-all`.
@@ -42,7 +42,7 @@ Memory directive `feedback_repeat_mistake_prevention.md` mandates 5 permanent co
 - `docs/runbooks/sanctioned-primitives/preflight.md::*`
 - `docs/templates/mistakes-ledger-row-template.md::*`
 - `crates/oya-governance-mistakes-ledger-kernel/src/lib.rs::evaluate`
-- `tools/oya-foundry-fitness-mistakes-ledger-app/src/main.rs::main`
+- `tools/oya-governance-mistakes-ledger-app/src/main.rs::main`
 - `tools/oya-icm-mistakes-ledger-hook/src/main.rs::main`
 - `registry/fitness-lane-registry.json::mistakes-ledger`
 - `registry/mistakes-ledger.json::*` (new — the actual ledger data store)

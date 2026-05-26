@@ -337,7 +337,7 @@ oya-foundry-supervisor-conformance --cli claude-code,codex-cli,gemini-cli --mess
 
 # fitness lanes
 oya-governance-predictable-naming-kernel run --paths crates/oya-foundry-supervisor-*
-oya-foundry-fitness-pool-routing-honor run
+oya-governance-pool-routing-honor run
 lean-a5-doc-coverage run --product foundry/supervisor
 lean-a10-no-silent-regression run --base origin/main --head HEAD
 ```

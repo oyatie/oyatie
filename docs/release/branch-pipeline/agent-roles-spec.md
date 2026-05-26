@@ -134,7 +134,7 @@ Reviewer agents render verdicts on PRs at the **local-dev → origin/dev** bound
 
 ## 7. Anti-scope
 
-This file does not own reviewer-agent **implementations** (those live in `docs/AGENTS.md`); does not own **fitness-lane SLAs** beyond naming them (those live in [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md)); does not own **progressive-delivery mechanics** (those live in [`../progressive-delivery/`](../progressive-delivery/)).
+This file does not own reviewer-agent **implementations** (those live in `docs/AGENTS.md`); does not own **fitness-lane SLAs** beyond naming them (those live in [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md)); does not own **progressive-delivery mechanics** (those live in [`../progressive-delivery/`](../progressive-delivery/)).
 
 ## 8. ADR citations
 
