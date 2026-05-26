@@ -41,8 +41,6 @@ mod canonical_base_neutrality_gate;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
-mod changeset_state_enum_closed_gate;
-mod changeset_state_monotonicity_gate;
 mod cloud_iac_cell_topology_gate;
 mod cloud_iac_gitops_evidence_gate;
 mod cloud_iac_helm_chart_gate;
@@ -132,12 +130,6 @@ pub(crate) use catalog_contract_gates::{
 pub(crate) use catalog_registry::read_catalog_records;
 pub(crate) use cedar_fragment_coverage_gate::{
     parse_cedar_fragment_coverage_validate_args, validate_cedar_fragment_coverage_gate,
-};
-pub(crate) use changeset_state_enum_closed_gate::{
-    parse_changeset_state_enum_closed_validate_args, validate_changeset_state_enum_closed_gate,
-};
-pub(crate) use changeset_state_monotonicity_gate::{
-    parse_changeset_state_monotonicity_validate_args, validate_changeset_state_monotonicity_gate,
 };
 pub(crate) use cloud_iac_cell_topology_gate::{
     parse_cloud_iac_cell_topology_validate_args, validate_cloud_iac_cell_topology_gate,
@@ -328,13 +320,11 @@ pub fn run_cli_from_env() -> ExitCode {
         Some("doc") => commands::doc::run(args.collect(), &usage()),
         Some("catalog") => commands::catalog::run(args.collect(), &usage()),
         Some("gate") => commands::gate::run(args.collect(), &usage()),
-        Some("git") => commands::git::run(args.collect(), &usage()),
         Some("lint") => commands::lint::run(args.collect(), &usage()),
         Some("onprem") => commands::onprem::run(args.collect(), &usage()),
         Some("ops") => commands::ops::run(args.collect(), &usage()),
         Some("submit") => commands::submit::run(args.collect(), &usage()),
         Some("supply-chain") => commands::supply_chain::run(args.collect(), &usage()),
-        Some("vcs") => commands::vcs::run(args.collect(), &usage()),
         Some("verify") => commands::verify::run(args.collect(), &usage()),
         Some("merge-queue") => commands::merge_queue::run(args.collect(), &usage()),
         _ => {
@@ -345,11 +335,10 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--ci-required] [--include-deferred] [--skip-fmt] [--skip-check] [--skip-clippy] [--skip-nextest] [--skip-gate-run-all]   # canonical local pre-push/pre-PR entry; --ci-required runs the full CI mirror\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → oya git push → open/extend PR\n       oya cleanup retired-and-renumber --plan <path> --renumber-map <path> [--apply]\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--ci-required] [--include-deferred] [--skip-fmt] [--skip-check] [--skip-clippy] [--skip-nextest] [--skip-gate-run-all]   # canonical local pre-push/pre-PR entry; --ci-required runs the full CI mirror\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → git push → open/extend PR\n       oya cleanup retired-and-renumber --plan <path> --renumber-map <path> [--apply]\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya onprem <plan|install|uninstall|doctor> [--repo-root <.>] [--format <text|json>]"
         + "\n       oya ops <oci-a1-capacity-retry|oci-readiness-probe|onprem-bring-up> [ops-specific args]"
-        + "\n       oya git <git-subcommand> [git-specific args]   # drop-in git surface with local .oya ledger side channel"
         + "\n       oya vcs [--format <text|json>] [--policy <observe|warn|enforce>] [--evidence-command <shell-command>] <claim|work|verify|done|status|symbols|queue|watch|promote> [vcs-specific args]"
         + "\n       oya gate validate foundation-bypass [--ledger <registry/foundation-bypasses>] [--now-epoch-days <days>]"
         + "\n       oya gate validate audit-chain-replay [--shards-dir <registry/audit-chain/shards>]"
@@ -430,8 +419,6 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate stage0-prereqs [--repo-root <.>] [--self-test]"
         + "\n       oya gate validate deployment-ops-contract [--repo-root <.>] [--contract <specs/deployment-ops-contract.json>] [--makefile <Makefile>]"
         + "\n       oya gate validate milestone-audit [--repo-root <.>] [--audit <registry/milestone-audit/index.json>]"
-        + "\n       oya gate validate changeset-state-monotonicity [--log <registry/vcs/changeset-event-log.json>]"
-        + "\n       oya gate validate changeset-state-enum-closed [--log <registry/vcs/changeset-event-log.json>]"
         + "\n       oya gate run-all [--include-deferred] [--ci-required]"
         + "\n       oya verify [--include-deferred] [--ci-required]   # local-developer fold of `gate run-all`; canonical pre-push/pre-PR entry"
 }

@@ -5,21 +5,21 @@ than duplicating strings. Keep sections machine-parseable (no nested bullets).
 
 ---
 
-## VCS / Git Cutover
+## VCS / Git
 
-Canonical git invocation target:
-  oya git <git-subcommand>
-  cargo run --quiet -p oya-dev-cli -- git <git-subcommand>
+Canonical: plain `git`. The `oya git` wrapper and the `oya vcs` ratchet are
+RETIRED per ADR-0363 (substrate = git + Jenkins + self-hosted Forgejo). They no
+longer exist as commands — do NOT use them.
 
-Current coordination ratchet compatibility surface:
-  oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote>
-  cargo run --quiet -p oya-dev-cli -- vcs <claim|work|verify|done|status|symbols|queue|watch|promote>
+Coordination (per agent lane):
+  isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
+  commit and push on that lane
+  open a PR against `dev`             # enters the governance pipeline
+  Jenkins CI + `oya gate run-all` + reviewer APPROVE gate merge readiness
 
-Cutover note: task #38 landed true drop-in `oya git <git-subcommand>` behavior;
-task #36 owns advisory cross-agent hook suggestions toward that surface.
-Do not treat the current `oya vcs status` ratchet as `git status`.
+`oya` is a governance-gate engine only: `oya gate ...`, `oya verify [--ci-required]`.
 
-Authority: ADR-0223 checkpoint, feedback_oya_git_canonical_2026_05_18
+Authority: ADR-0363 (retire bespoke agentic-VCS; Forgejo substrate; oya = gate engine)
 
 ---
 

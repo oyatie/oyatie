@@ -52,7 +52,7 @@ not the first deliverable.
 - [ ] `specs/tenant-model.json` already defines the `oyatie:` self-tenant principal shape — validate
       it covers workload (service) principals, not just human/customer tenants.
 
-## MVP Scope (the first proof)
+## Minimum scope (the first proof)
 **In:** Forgejo + Jenkins commit-status (T1); intelligence crate colocation (T2); `oya-identity-*`
 OIDC issuer/verifier + principal + Cedar authz-gate; one deployed service-to-service authenticated
 token exchange with audit evidence.

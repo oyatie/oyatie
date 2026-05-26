@@ -5,13 +5,11 @@ pub(crate) mod codex_thread_sweep;
 pub(crate) mod demo;
 pub(crate) mod doc;
 pub(crate) mod gate;
-pub(crate) mod git;
 pub(crate) mod lint;
 pub(crate) mod onprem;
 pub(crate) mod ops;
 pub(crate) mod submit;
 pub(crate) mod supply_chain;
-pub(crate) mod vcs;
 pub(crate) mod verify;
 pub(crate) mod verify_affected;
 // O6 (ADR-0360): speculative merge-queue algorithm (ADR-0111), wired as

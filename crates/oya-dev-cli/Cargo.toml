@@ -93,8 +93,6 @@ oya-check-layered-architecture-discipline = { path = "../oya-check-layered-archi
 oya-check-client-stack-discipline = { path = "../oya-check-client-stack-discipline" }
 oya-intelligence-step-file-adapter = { path = "../oya-intelligence-step-file-adapter" }
 oya-intelligence-step-domain = { path = "../oya-intelligence-step-domain" }
-oya-vcs-cli-ratchet-kernel = { path = "../oya-vcs-cli-ratchet-kernel" }
-oya-vcs-changeset-state-kernel = { path = "../oya-vcs-changeset-state-kernel" }
 oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
 oya-audit-chain-file-adapter = { path = "../oya-audit-chain-file-adapter" }
 oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
