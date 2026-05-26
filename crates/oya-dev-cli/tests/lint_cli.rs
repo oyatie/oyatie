@@ -108,21 +108,21 @@ fn phase00_fixture_root() -> PathBuf {
             .as_nanos()
     ));
     for crate_name in [
-        "oya-foundry-account-kernel",
-        "oya-foundry-account-domain",
+        "oya-intelligence-account-kernel",
+        "oya-intelligence-account-domain",
         "oya-foundry-account-app",
         "oya-foundry-account-adapter-codex-cli",
         "oya-foundry-account-adapter-claude-code",
         "oya-foundry-account-adapter-gemini-cli",
         "oya-foundry-account-adapter-openbao",
         "oya-foundry-account-runtime",
-        "oya-foundry-fitness-claim-ceiling-kernel",
-        "oya-foundry-fitness-bypass-kernel",
-        "oya-foundry-fitness-pr-traceability-kernel",
-        "oya-foundry-fitness-pre-push-kernel",
-        "oya-foundry-fitness-quality-lane-kernel",
-        "oya-foundry-fitness-cohesion-fitness-kernel",
-        "oya-foundry-bypass-ledger-kernel",
+        "oya-governance-claim-ceiling-kernel",
+        "oya-governance-bypass-kernel",
+        "oya-governance-pr-traceability-kernel",
+        "oya-governance-pre-push-kernel",
+        "oya-governance-quality-lane-kernel",
+        "oya-governance-cohesion-fitness-kernel",
+        "oya-intelligence-bypass-ledger-kernel",
     ] {
         let crate_dir = root.join("crates").join(crate_name);
         fs::create_dir_all(crate_dir.join("src")).expect("crate src created");

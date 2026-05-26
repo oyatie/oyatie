@@ -12,7 +12,7 @@
   "perf_budget_class": "warm-path",
   "perf_budget_class_justification": "tick_once is a periodic supervisor loop (cadence = heartbeat_interval_secs, not sub-millisecond). The four declared budgets (idle-tick p95 \u226425 tok, restart p95 \u22641500ms, RSS \u226464MiB, watchdog-kill p95 \u22645000ms) are consistent with warm-path characterisation. The watchdog-kill sub-path is cold-path (error recovery). v5 SettingsRenderer::verify introduces filesystem I/O into snapshot() which is called at step 2 of every tick_once \u2014 this threatens to push the snapshot() sub-path from warm toward cold, especially at N>1 accounts.",
   "benchmark_attached": true,
-  "benchmark_id": "crates/oya-foundry-supervisor-app/benches/heartbeat.rs",
+  "benchmark_id": "crates/oya-intelligence-supervisor-app/benches/heartbeat.rs",
   "benchmark_harness": "std::time::Instant (zero-dep, no criterion \u2014 Branch Y constraint, \u00a7B.1 + \u00a7A.5 note)",
   "regression_baseline": "first-impl-baseline",
   "regression_baseline_justification": "All four new crates (supervisor-kernel, supervisor-app, jsonl-supervisor-adapter, supervisor-conformance) are net-new scaffold artifacts \u2014 no prior implementation exists. The heartbeat.rs harness will produce first-run values that become the baseline. There is no claude-heartbeat-equivalent historical series to compare against; the 'reference shape' (Siigari/claude-heartbeat) is a behavioural reference, not a numeric perf baseline. The first cargo-bench run at branch-Y supervisor-v4 baseline establishes the floor.",

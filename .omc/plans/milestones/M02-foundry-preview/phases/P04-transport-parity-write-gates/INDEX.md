@@ -29,7 +29,7 @@ Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`]
 3 agents; transports disjoint per crate.
 
 ## Symbols-touched
-`crates/oya-foundry-api-{rest,graphql,sse,websocket}-*`, `contracts/openapi/foundry/`, `contracts/asyncapi/foundry/`.
+`crates/oya-intelligence-api-{rest,graphql,sse,websocket}-*`, `contracts/openapi/foundry/`, `contracts/asyncapi/foundry/`.
 
 ## Agent-handoff
 ```

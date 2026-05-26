@@ -144,7 +144,7 @@
       ],
       "named_fix_ips": [
         "M-CC-arch-fixup-IP-001 (re-role 4 kernels to domain or invert)",
-        "M-CC-arch-fixup-IP-002 (extract oya-foundry-api-kernel for transport siblings)"
+        "M-CC-arch-fixup-IP-002 (extract oya-intelligence-api-kernel for transport siblings)"
       ]
     },
     "test_flakes": {

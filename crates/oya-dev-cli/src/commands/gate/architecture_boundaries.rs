@@ -9,7 +9,7 @@
 //! `commands/gate/...`); handler `validate_architecture_boundaries`
 //! (snake_case verb). Conforms to ADR-0105/0106/0107 v4 BNF and the
 //! 13-value layer enum at
-//! `crates/oya-foundry-fitness-predictable-naming-kernel::ALLOWED_ROLES`.
+//! `crates/oya-governance-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
 //! Validates four invariants from the legacy Python heredoc:
 //! 1. Every workspace package uses the `oya-` prefix.
@@ -697,10 +697,10 @@ fn expect_self_test_bad_prefix() -> Result<(), Vec<String>> {
 }
 
 fn expect_self_test_wrong_workspace_path() -> Result<(), Vec<String>> {
-    let (mut wrong_pkg, wrong_rec) = fixture_package("oya-foundry-api", "api", &[], "crates");
+    let (mut wrong_pkg, wrong_rec) = fixture_package("oya-intelligence-api", "api", &[], "crates");
     wrong_pkg.manifest_path = fixture_repo_root()
         .join("services")
-        .join("oya-foundry-api")
+        .join("oya-intelligence-api")
         .join("Cargo.toml");
     let packages = vec![wrong_pkg];
     let catalog: BTreeMap<_, _> = [wrong_rec].into_iter().collect();
@@ -708,7 +708,7 @@ fn expect_self_test_wrong_workspace_path() -> Result<(), Vec<String>> {
     assert_self_test(
         "wrong workspace path",
         &errors,
-        Some("must live at crates/oya-foundry-api"),
+        Some("must live at crates/oya-intelligence-api"),
     )
 }
 

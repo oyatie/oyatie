@@ -20,7 +20,7 @@ Ship authoritative-tracked lane that walks docs/AGENTS.md authoritative list and
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-authoritative-tracked-kernel/src/lib.rs::check
+crates/oya-governance-authoritative-tracked-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -7,20 +7,20 @@
   "timestamp_iso": "2026-05-19T23:53:02Z",
   "agent_id": "codex-oyatie-fd001",
   "scope": [
-    "crates/oya-foundry-route-policy-kernel/src/lib.rs",
+    "crates/oya-intelligence-route-policy-kernel/src/lib.rs",
     "evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json"
   ],
   "claimed_scopes": [
     {
-      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize Foundry route-policy default residency marker for canonical base\",\"scopes\":[\"crates/oya-foundry-route-policy-kernel/src/lib.rs::canonical_base_neutral_default_residency_constraint\",\"crates/oya-foundry-route-policy-kernel/src/lib.rs::canonical_base_neutral_route_explanation_tests\",\"evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize Foundry route-policy default residency marker for canonical base\",\"scopes\":[\"crates/oya-intelligence-route-policy-kernel/src/lib.rs::canonical_base_neutral_default_residency_constraint\",\"crates/oya-intelligence-route-policy-kernel/src/lib.rs::canonical_base_neutral_route_explanation_tests\",\"evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
       "status": "accepted"
     }
   ],
   "summary": "Canonical-base neutrality cleanup for the Foundry route-policy kernel: replace the launch-jurisdiction default residency marker with a product-level tenant-home-region default while preserving pure selector behavior and route audit explanations.",
   "baseline_diff": {
-    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs failed with 1 file checked and 2 jurisdiction leaks: default required_residency_region KR and route explanation assertion residency=KR.",
+    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-route-policy-kernel/src/lib.rs failed with 1 file checked and 2 jurisdiction leaks: default required_residency_region KR and route explanation assertion residency=KR.",
     "red_test": "updated route explanation default-residency regression test failed before implementation: 8 passed, 1 failed; expected residency=tenant-home-region while implementation still emitted KR.",
-    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs passed: 1 file checked, 0 jurisdiction leaks.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-route-policy-kernel/src/lib.rs passed: 1 file checked, 0 jurisdiction leaks.",
     "after_full": "full canonical-base-neutrality still fails with 196 files checked and 284 jurisdiction leaks outside this ChangeSet; first remaining file crates/oya-metering-domain/src/lib.rs.",
     "delta": "2 fewer full-gate jurisdiction leaks, from 286 after the Foundry policy vertical-pack slice to 284 after this slice; no scanner carve-outs or coverage weakening."
   },
@@ -31,37 +31,37 @@
       "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-targeted-before.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-intelligence-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-targeted-before.txt",
       "status": "failed-before-fix",
       "evidence": "1 file checked, 2 jurisdiction leaks: KR default residency and residency=KR explanation assertion"
     },
     {
-      "command": "cargo test -q -p oya-foundry-route-policy-kernel --all-features 2>&1 | tee /tmp/cs-route-policy-cbn-red-test.txt",
+      "command": "cargo test -q -p oya-intelligence-route-policy-kernel --all-features 2>&1 | tee /tmp/cs-route-policy-cbn-red-test.txt",
       "status": "failed-before-fix",
       "evidence": "regression failed before implementation: 8 passed, 1 failed; assertion expected residency=tenant-home-region"
     },
     {
-      "command": "cargo test -q -p oya-foundry-route-policy-kernel --all-features 2>&1 | tee /tmp/cs-route-policy-cbn-test.txt",
+      "command": "cargo test -q -p oya-intelligence-route-policy-kernel --all-features 2>&1 | tee /tmp/cs-route-policy-cbn-test.txt",
       "status": "passed",
       "evidence": "route-policy kernel tests passed: 9 passed, 0 failed"
     },
     {
-      "command": "cargo fmt -q -p oya-foundry-route-policy-kernel --check 2>&1 | tee /tmp/cs-route-policy-cbn-fmt.txt",
+      "command": "cargo fmt -q -p oya-intelligence-route-policy-kernel --check 2>&1 | tee /tmp/cs-route-policy-cbn-fmt.txt",
       "status": "passed",
       "evidence": "rustfmt check exited 0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-route-policy-kernel --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-route-policy-cbn-clippy.txt",
+      "command": "cargo clippy -q -p oya-intelligence-route-policy-kernel --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-route-policy-cbn-clippy.txt",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-targeted-after.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-intelligence-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-targeted-after.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     },
     {
-      "command": "rg -n '\\bKR\\b|residency=KR' crates/oya-foundry-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-token-scan.txt || true",
+      "command": "rg -n '\\bKR\\b|residency=KR' crates/oya-intelligence-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-token-scan.txt || true",
       "status": "passed",
       "evidence": "no KR/residency=KR tokens matched in claimed source file"
     },
@@ -81,7 +81,7 @@
       "evidence": "evidence JSON parsed successfully"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-foundry-route-policy-kernel/src/lib.rs evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json 2>&1 | tee /tmp/cs-route-policy-cbn-diff-check.txt",
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-intelligence-route-policy-kernel/src/lib.rs evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json 2>&1 | tee /tmp/cs-route-policy-cbn-diff-check.txt",
       "status": "passed",
       "evidence": "diff whitespace check exited 0"
     },
@@ -149,7 +149,7 @@
     }
   },
   "changed_files": [
-    "crates/oya-foundry-route-policy-kernel/src/lib.rs",
+    "crates/oya-intelligence-route-policy-kernel/src/lib.rs",
     "evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json"
   ],
   "remaining_risks": [

@@ -17,8 +17,8 @@ ITERATE. The Architect correctly identified 4 load-bearing violations and 8 revi
 
 ## Concurrence with Architect violations
 - V1 (P2 chicken-and-egg): **CONFIRM**. Verified `tools/` does not exist; `grit symbols | grep Cargo.toml` returns 0.
-- V2 (P3 chicken-and-egg): **CONFIRM**. Same FK problem for `oya-foundry-fitness-portfolio-citation-kernel`.
-- V3 (P10 chicken-and-egg): **CONFIRM**. Same FK problem for `oya-foundry-fitness-authoritative-tracked-kernel`.
+- V2 (P3 chicken-and-egg): **CONFIRM**. Same FK problem for `oya-governance-portfolio-citation-kernel`.
+- V3 (P10 chicken-and-egg): **CONFIRM**. Same FK problem for `oya-governance-authoritative-tracked-kernel`.
 - V4 (ADR §Decision false during P1-P2): **CONFIRM**. `oya-agent-read` does not exist during P1-P2; ADR closed-set claim is literally false.
 
 ## Additional Critic findings

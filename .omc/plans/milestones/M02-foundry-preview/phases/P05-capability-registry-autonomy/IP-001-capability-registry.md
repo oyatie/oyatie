@@ -19,9 +19,9 @@ Ship capability registry with ≥50 capabilities publishable.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-capability-registry-kernel/src/lib.rs::Capability
-crates/oya-foundry-capability-registry-kernel/src/lib.rs::CapabilityId
-crates/oya-foundry-capability-registry-app/src/lib.rs::publish
+crates/oya-intelligence-capability-registry-kernel/src/lib.rs::Capability
+crates/oya-intelligence-capability-registry-kernel/src/lib.rs::CapabilityId
+crates/oya-intelligence-capability-registry-app/src/lib.rs::publish
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

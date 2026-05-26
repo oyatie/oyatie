@@ -1902,17 +1902,17 @@ crates/oya-governance-capability-tier-coverage/tests/scaffold_contract.rs:use oy
 crates/oya-governance-capability-tier-coverage/tests/scaffold_contract.rs:    ENFORCED_RULE, EnforcementStatus, RULE_ID, enforce_capability_tier_coverage,
 crates/oya-governance-capability-tier-coverage/tests/scaffold_contract.rs:    let outcome = enforce_capability_tier_coverage(".").expect("scaffold should report metadata");
 crates/oya-governance-capability-tier-coverage/src/lib.rs:pub fn enforce_capability_tier_coverage(
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:        capability_tier: AutonomyTier,
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:/// Rule: capability is allowed iff `capability_tier <= ceiling`.
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:pub fn check_tier(capability_tier: AutonomyTier, ceiling: AutonomyTier) -> CeilingVerdict {
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:    if capability_tier <= ceiling {
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:            capability_tier,
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:                capability_tier,
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs:                assert_eq!(capability_tier, AutonomyTier::T4Actuate);
-crates/oya-foundry-supervisor-security-adapter/src/lib.rs:            bridge_capability_tier(cap.autonomy_tier),
-crates/oya-foundry-supervisor-security-adapter/src/lib.rs:                capability_tier,
-crates/oya-foundry-supervisor-security-adapter/src/lib.rs:                capability_tier, ceiling
-crates/oya-foundry-supervisor-security-adapter/src/lib.rs:fn bridge_capability_tier(tier: CapabilityTier) -> CeilingTier {
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:        capability_tier: AutonomyTier,
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:/// Rule: capability is allowed iff `capability_tier <= ceiling`.
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:pub fn check_tier(capability_tier: AutonomyTier, ceiling: AutonomyTier) -> CeilingVerdict {
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:    if capability_tier <= ceiling {
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:            capability_tier,
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:                capability_tier,
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs:                assert_eq!(capability_tier, AutonomyTier::T4Actuate);
+crates/oya-intelligence-supervisor-security-adapter/src/lib.rs:            bridge_capability_tier(cap.autonomy_tier),
+crates/oya-intelligence-supervisor-security-adapter/src/lib.rs:                capability_tier,
+crates/oya-intelligence-supervisor-security-adapter/src/lib.rs:                capability_tier, ceiling
+crates/oya-intelligence-supervisor-security-adapter/src/lib.rs:fn bridge_capability_tier(tier: CapabilityTier) -> CeilingTier {
 specs/root-hub-pointers.json:    "spec_capability_tier_schema": {
 specs/ontology-projection-schema.json:    "capability_tier_id",
 specs/ontology-projection-schema.json:    "capability_tier_id": {
@@ -3436,11 +3436,11 @@ specs/masterplan.json:            "title": "Agentic-Pipeline Cutover (Oya VCS So
 specs/masterplan.json:                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
 specs/masterplan.json:                "title": "File upstream grit session bug (P9)",
 tools/hook-bootstrap/README.md:TOOL_INPUT='{"command":"grit done"}' bash tools/hooks/stale-tool-suggester.sh
-tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs:        ".grit",
-tools/oya-foundry-vcs-merge-queue-fix-loop-app/Cargo.toml:# IP plan symbol-claims (M01-P17-IP-006 §"Symbols to grit-claim") listed
+tools/oya-vcs-provider-execution-gate-app/src/main.rs:        ".grit",
+tools/oya-vcs-merge-queue-fix-loop-app/Cargo.toml:# IP plan symbol-claims (M01-P17-IP-006 §"Symbols to grit-claim") listed
 tools/agent-skills/INHERITANCE.md:| `/specs/master-plan-sequencing.json` | Forbidden primitives | Includes grit/rtk/icm/vox retirement + `oya vcs` canonical. Supersedes any external mention. |
-tools/oya-foundry-vcs-ci-fix-loop-dispatcher-app/Cargo.toml:# IP plan symbol-claims (M01-P17-IP-005 §"Symbols to grit-claim") listed
-tools/oya-foundry-vcs-ci-fix-loop-dispatcher-app/src/event.rs:    /// (or the equivalent grit-scaffold fallback per ADR-0054 during the
+tools/oya-vcs-ci-fix-loop-dispatcher-app/Cargo.toml:# IP plan symbol-claims (M01-P17-IP-005 §"Symbols to grit-claim") listed
+tools/oya-vcs-ci-fix-loop-dispatcher-app/src/event.rs:    /// (or the equivalent grit-scaffold fallback per ADR-0054 during the
 tools/oya-xtask-metadata-augment-app/tests/icm_round_trip.rs:// Per Condition 3 of iter-3 final fold: mint a synthetic token via `icm store`,
 tools/oya-xtask-metadata-augment-app/tests/icm_round_trip.rs:// recall via `icm recall -f json`, parse the JSON array, and assert equality
 tools/oya-xtask-metadata-augment-app/tests/icm_round_trip.rs:// This test is gated by the presence of the `icm` binary. If `icm` is not on
@@ -3466,7 +3466,7 @@ tools/hooks/_canonical-primitives.md:1. Using `grit done` instead of Oya policy 
 tools/hooks/stale-tool-suggester.sh:# Purpose:  When a Bash command references retired tools (grit, rtk, icm, vox)
 tools/hooks/stale-tool-suggester.sh:for tool in grit rtk icm vox; do
 tools/hooks/session-start-context-inject.sh:    echo "RETIRED:   grit, rtk, icm, vox  (ADR-0116)"
-tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml:# IP-004-reviewer-agent-auto-dispatch.md §"Symbols to grit-claim"). That
+tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml:# IP-004-reviewer-agent-auto-dispatch.md §"Symbols to grit-claim"). That
 
 ~~~
 

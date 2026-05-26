@@ -80,7 +80,7 @@
       "evidence": "No whitespace/diff hygiene errors."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "passed",
       "evidence": "Admission gate passed after audit-chain JSONL row covered the ChangeSet id."
     }
@@ -230,7 +230,7 @@
       "timestamp_iso": "2026-05-20T21:12:06Z",
       "finding": "AUDIT_CHAIN_MISSING_CHANGE_ID",
       "repair": "Append evidence/audit-chain.jsonl row containing the ChangeSet id and update F9 audit-chain coverage fields.",
-      "follow_up_verification": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "follow_up_verification": "cargo run -q -p oya-vcs-admission-gate-app",
       "follow_up_verification_status": "passed"
     }
   ]

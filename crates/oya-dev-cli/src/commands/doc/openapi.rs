@@ -3,8 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_foundry_api_semver_domain::validate_api_semver;
-use oya_foundry_openapi_domain::{
+use oya_intelligence_api_semver_domain::validate_api_semver;
+use oya_intelligence_openapi_domain::{
     OpenApiContractMirrorLocation, OpenApiContractMirrorReport, OpenApiDocument,
     OpenApiRuntimeBinding, OpenApiRuntimeParityReport, OpenApiRuntimeSource, OpenApiSchemaBinding,
     OpenApiSchemaParityReport, OpenApiSourceReport, validate_openapi_contract_mirror,

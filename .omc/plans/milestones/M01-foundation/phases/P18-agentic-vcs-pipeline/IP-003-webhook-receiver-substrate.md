@@ -20,9 +20,9 @@ purpose: Land the HTTP webhook receiver that turns the pipeline from poll-driven
 
 Implement ADR-0112 wave-A:
 
-- New kernel `oya-foundry-webhook-receiver-kernel` — pure-domain
+- New kernel `oya-vcs-webhook-receiver-kernel` — pure-domain
   HMAC verification + dedup-table parser. No HTTP.
-- New app `oya-foundry-webhook-receiver-app` — HTTP receiver at
+- New app `oya-vcs-webhook-receiver-app` — HTTP receiver at
   `/webhook/github`. Verifies `X-Hub-Signature-256` HMAC against
   OpenBao-stored secret. Dedups by `X-GitHub-Delivery` against
   `registry/vcs/webhook-delivery-log.json` (7-day TTL). Routes per
@@ -61,9 +61,9 @@ which requires repo admin access at deploy time.
 
 ## Symbols to grit-claim
 
-- `crates/oya-foundry-webhook-receiver-kernel/src/lib.rs::*`
-- `tools/oya-foundry-webhook-receiver-app/src/main.rs::main`
-- `tools/oya-foundry-webhook-receiver-app/src/{routing,dedup,hmac,postback}.rs::*`
+- `crates/oya-vcs-webhook-receiver-kernel/src/lib.rs::*`
+- `tools/oya-vcs-webhook-receiver-app/src/main.rs::main`
+- `tools/oya-vcs-webhook-receiver-app/src/{routing,dedup,hmac,postback}.rs::*`
 - `registry/vcs/event-router.yaml::*`
 - `registry/vcs/webhook-delivery-log.json::*` (empty)
 

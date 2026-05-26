@@ -95,5 +95,5 @@ When drift is detected and reconciled:
 ## References
 
 - **ADR-0008:** Data use boundary + privacy classes
-- **Account kernel:** `crates/oya-foundry-account-kernel/src/lib.rs` (SecretReference def)
+- **Account kernel:** `crates/oya-intelligence-account-kernel/src/lib.rs` (SecretReference def)
 - **v5 Plan § B.2:** Public API (kernel contracts)

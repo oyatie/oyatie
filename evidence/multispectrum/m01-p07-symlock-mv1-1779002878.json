@@ -10,8 +10,8 @@
   "reviewer_id_overlap_across_facets": "NONE",
   "executor_topology_compliant": true,
   "termination_reason": "consensus_reached",
-  "scope": "LockHolderId merge-variant delta-1 into oya-foundry-vcs-kernel::lock_holder",
-  "crate": "oya-foundry-vcs-kernel",
+  "scope": "LockHolderId merge-variant delta-1 into oya-vcs-kernel::lock_holder",
+  "crate": "oya-vcs-kernel",
   "module": "lock_holder",
   "new_types": ["LockHolderId"],
   "tests_added": 8,
@@ -33,8 +33,8 @@
     "F5_quality": {
       "considered": true,
       "findings": [
-        "22 unit tests + 8 integration tests pass under cargo test -p oya-foundry-vcs-kernel after rebase onto the #110 queue head.",
-        "cargo clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings clean on all targets.",
+        "22 unit tests + 8 integration tests pass under cargo test -p oya-vcs-kernel after rebase onto the #110 queue head.",
+        "cargo clippy -p oya-vcs-kernel --all-targets -- -D warnings clean on all targets.",
         "rustfmt 1.95.0 --check passes on both modified files."
       ],
       "fixuptasks": []
@@ -43,7 +43,7 @@
       "considered": true,
       "findings": [
         "LockHolderId follows the <Domain><Role><Kind> BNF pattern consistent with SymbolId, ClaimState, LeaseState.",
-        "Module name lock_holder matches the snake_case file-per-module convention in oya-foundry-vcs-kernel.",
+        "Module name lock_holder matches the snake_case file-per-module convention in oya-vcs-kernel.",
         "from_wire constructor uses the project-canonical name (not the banned from_str)."
       ],
       "fixuptasks": []
@@ -52,7 +52,7 @@
       "considered": true,
       "findings": [
         "LockHolderId is pure kernel: no I/O, no Git, no network, no serde — consistent with the crate's stated purity contract.",
-        "Merged into the existing oya-foundry-vcs-kernel crate per merge-into-existing-crates execution variant.",
+        "Merged into the existing oya-vcs-kernel crate per merge-into-existing-crates execution variant.",
         "Re-exported at crate root so downstream consumers (changebundle-kernel, scheduler) get it without importing the sub-module."
       ],
       "fixuptasks": []
@@ -61,11 +61,11 @@
   "commands": {
     "cargo_check": {
       "status": "pass",
-      "summary": "cargo check -p oya-foundry-vcs-kernel — 1 crate compiled"
+      "summary": "cargo check -p oya-vcs-kernel — 1 crate compiled"
     },
     "cargo_clippy": {
       "status": "pass",
-      "summary": "cargo clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings — clean after rebase"
+      "summary": "cargo clippy -p oya-vcs-kernel --all-targets -- -D warnings — clean after rebase"
     },
     "cargo_test": {
       "status": "pass",

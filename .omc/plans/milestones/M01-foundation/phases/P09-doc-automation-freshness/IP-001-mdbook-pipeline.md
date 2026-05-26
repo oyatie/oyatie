@@ -19,8 +19,8 @@ Ship mdbook kernel that walks rustdoc + OpenAPI + ADR-INDEX + frontmatter.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-mdbook-kernel/src/lib.rs::walk_sources
-crates/oya-foundry-mdbook-kernel/src/lib.rs::publish_site
+crates/oya-intelligence-mdbook-kernel/src/lib.rs::walk_sources
+crates/oya-intelligence-mdbook-kernel/src/lib.rs::publish_site
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -16,7 +16,7 @@
   ],
   "local_gates": [
     "master-plan-completion: PASS (unchanged from prior slices)",
-    "oya-foundry-vcs-admission-gate-app: PASS"
+    "oya-vcs-admission-gate-app: PASS"
   ],
   "facets": {
     "F1_linus": {

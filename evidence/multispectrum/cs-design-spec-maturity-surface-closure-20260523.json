@@ -118,8 +118,8 @@
     "nextest_run_id": "f1821185-4f91-4f75-89a9-ef2dd78afb27",
     "nextest_summary": "4311 tests run: 4311 passed, 1 skipped",
     "remaining_failed_lanes": [
-      "cargo run -q -p oya-foundry-vcs-admission-gate-app (missing trivy)",
-      "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json (missing trivy)",
+      "cargo run -q -p oya-vcs-admission-gate-app (missing trivy)",
+      "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json (missing trivy)",
       "bash scripts/github-actions-required-secrets-check.sh (missing gh)"
     ],
     "log": "/tmp/gate-run-all-after-design-spec-maturity-surface-closure.log"

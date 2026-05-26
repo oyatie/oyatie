@@ -2,7 +2,7 @@
   "$schema_ref": "/specs/knowledge-graph-schema.json",
   "_artifact_id": "architecture-map",
   "_meta": {
-    "emitter": "oya-foundry-architecture-map-app::build_map",
+    "emitter": "oya-intelligence-architecture-map-app::build_map",
     "purpose": "Generated architecture graph of crates, contracts, registries, and ownership edges for repository navigation and drift checks."
   },
   "nodes": [
@@ -987,49 +987,49 @@
       "label": "oya-finance-library-kernel"
     },
     {
-      "id": "crates/oya-foundry-adapter-domain",
+      "id": "crates/oya-intelligence-adapter-domain",
       "kind": "crate",
-      "label": "oya-foundry-adapter-domain"
+      "label": "oya-intelligence-adapter-domain"
     },
     {
-      "id": "crates/oya-foundry-api-semver-domain",
+      "id": "crates/oya-intelligence-api-semver-domain",
       "kind": "crate",
-      "label": "oya-foundry-api-semver-domain"
+      "label": "oya-intelligence-api-semver-domain"
     },
     {
-      "id": "crates/oya-foundry-architecture-map-app",
+      "id": "crates/oya-intelligence-architecture-map-app",
       "kind": "crate",
-      "label": "oya-foundry-architecture-map-app"
+      "label": "oya-intelligence-architecture-map-app"
     },
     {
-      "id": "crates/oya-foundry-architecture-map-kernel",
+      "id": "crates/oya-intelligence-architecture-map-kernel",
       "kind": "crate",
-      "label": "oya-foundry-architecture-map-kernel"
+      "label": "oya-intelligence-architecture-map-kernel"
     },
     {
-      "id": "crates/oya-foundry-bypass-domain",
+      "id": "crates/oya-intelligence-bypass-domain",
       "kind": "crate",
-      "label": "oya-foundry-bypass-domain"
+      "label": "oya-intelligence-bypass-domain"
     },
     {
-      "id": "crates/oya-foundry-capability-domain",
+      "id": "crates/oya-intelligence-capability-domain",
       "kind": "crate",
-      "label": "oya-foundry-capability-domain"
+      "label": "oya-intelligence-capability-domain"
     },
     {
-      "id": "crates/oya-foundry-cargo-prefix-domain",
+      "id": "crates/oya-intelligence-cargo-prefix-domain",
       "kind": "crate",
-      "label": "oya-foundry-cargo-prefix-domain"
+      "label": "oya-intelligence-cargo-prefix-domain"
     },
     {
-      "id": "crates/oya-foundry-catalog-domain",
+      "id": "crates/oya-intelligence-catalog-domain",
       "kind": "crate",
-      "label": "oya-foundry-catalog-domain"
+      "label": "oya-intelligence-catalog-domain"
     },
     {
-      "id": "crates/oya-foundry-cloud-mutation-domain",
+      "id": "crates/oya-intelligence-cloud-mutation-domain",
       "kind": "crate",
-      "label": "oya-foundry-cloud-mutation-domain"
+      "label": "oya-intelligence-cloud-mutation-domain"
     },
     {
       "id": "crates/oya-foundry-eval-application",
@@ -1037,29 +1037,29 @@
       "label": "oya-foundry-eval-application"
     },
     {
-      "id": "crates/oya-foundry-eval-domain",
+      "id": "crates/oya-governance-eval-domain",
       "kind": "crate",
-      "label": "oya-foundry-eval-domain"
+      "label": "oya-governance-eval-domain"
     },
     {
-      "id": "crates/oya-foundry-evidence-domain",
+      "id": "crates/oya-intelligence-evidence-domain",
       "kind": "crate",
-      "label": "oya-foundry-evidence-domain"
+      "label": "oya-intelligence-evidence-domain"
     },
     {
-      "id": "crates/oya-foundry-evidence-file-adapter",
+      "id": "crates/oya-intelligence-evidence-file-adapter",
       "kind": "crate",
-      "label": "oya-foundry-evidence-file-adapter"
+      "label": "oya-intelligence-evidence-file-adapter"
     },
     {
-      "id": "crates/oya-foundry-mcp-gateway-domain",
+      "id": "crates/oya-intelligence-mcp-gateway-domain",
       "kind": "crate",
-      "label": "oya-foundry-mcp-gateway-domain"
+      "label": "oya-intelligence-mcp-gateway-domain"
     },
     {
-      "id": "crates/oya-foundry-mdbook-domain",
+      "id": "crates/oya-intelligence-mdbook-domain",
       "kind": "crate",
-      "label": "oya-foundry-mdbook-domain"
+      "label": "oya-intelligence-mdbook-domain"
     },
     {
       "id": "crates/oya-foundry-meta-rest",
@@ -1072,14 +1072,14 @@
       "label": "oya-foundry-metadata-augment-cli"
     },
     {
-      "id": "crates/oya-foundry-openapi-domain",
+      "id": "crates/oya-intelligence-openapi-domain",
       "kind": "crate",
-      "label": "oya-foundry-openapi-domain"
+      "label": "oya-intelligence-openapi-domain"
     },
     {
-      "id": "crates/oya-foundry-policy-domain",
+      "id": "crates/oya-intelligence-policy-domain",
       "kind": "crate",
-      "label": "oya-foundry-policy-domain"
+      "label": "oya-intelligence-policy-domain"
     },
     {
       "id": "crates/oya-foundry-policy-rest",
@@ -1097,24 +1097,24 @@
       "label": "oya-foundry-registry-rest"
     },
     {
-      "id": "crates/oya-foundry-run-domain",
+      "id": "crates/oya-intelligence-run-domain",
       "kind": "crate",
-      "label": "oya-foundry-run-domain"
+      "label": "oya-intelligence-run-domain"
     },
     {
-      "id": "crates/oya-foundry-run-file-adapter",
+      "id": "crates/oya-intelligence-run-file-adapter",
       "kind": "crate",
-      "label": "oya-foundry-run-file-adapter"
+      "label": "oya-intelligence-run-file-adapter"
     },
     {
-      "id": "crates/oya-foundry-step-domain",
+      "id": "crates/oya-intelligence-step-domain",
       "kind": "crate",
-      "label": "oya-foundry-step-domain"
+      "label": "oya-intelligence-step-domain"
     },
     {
-      "id": "crates/oya-foundry-step-file-adapter",
+      "id": "crates/oya-intelligence-step-file-adapter",
       "kind": "crate",
-      "label": "oya-foundry-step-file-adapter"
+      "label": "oya-intelligence-step-file-adapter"
     },
     {
       "id": "crates/oya-identity-app",

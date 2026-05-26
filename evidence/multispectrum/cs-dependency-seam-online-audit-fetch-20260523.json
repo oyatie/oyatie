@@ -109,8 +109,8 @@
     "remaining_failed_lanes": [
       "design-spec-maturity-claims",
       "layered-architecture-discipline",
-      "cargo run -q -p oya-foundry-vcs-admission-gate-app (missing trivy)",
-      "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json (missing trivy)",
+      "cargo run -q -p oya-vcs-admission-gate-app (missing trivy)",
+      "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json (missing trivy)",
       "bash scripts/github-actions-required-secrets-check.sh (missing gh)"
     ],
     "log": "/tmp/gate-run-all-after-dependency-seam-online-audit.log"

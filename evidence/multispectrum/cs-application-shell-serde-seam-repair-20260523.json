@@ -111,12 +111,12 @@
       "cargo check --workspace --all-targets --keep-going",
       "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
       "cargo nextest run --workspace --no-fail-fast",
-      "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json"
+      "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json"
     ],
     "nextest_run_id": "83f09abf-46e0-4a75-b411-a9e097efc5bd",
     "nextest_summary": "4317 tests passed, 1 skipped",
     "failed_lanes": [
-      "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "cargo run -q -p oya-vcs-admission-gate-app",
       "bash scripts/github-actions-required-secrets-check.sh"
     ],
     "failure_reason": "Provider admission is now past the trivy missing-tool blocker but fails on missing audit-chain coverage for pre-existing evidence/multispectrum/cs-application-shell-full-dashboard-20260523.json change_id CS-APPLICATION-SHELL-FULL-DASHBOARD-20260523. Required-secrets still lacks repo/auth context."

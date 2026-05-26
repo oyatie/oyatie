@@ -132,7 +132,7 @@ pub enum QualityLaneError {
 ///
 /// `wired_commands` is the substring-tolerant catalog of canonical
 /// commands the gate aggregator wires (sourced from
-/// `oya-foundry-gate-catalog-domain::all_canonical_commands_rendered`).
+/// `oya-governance-gate-catalog-domain::all_canonical_commands_rendered`).
 /// This replaces the legacy `check_script_contents: &str` parameter
 /// which read `scripts/check.sh`'s body verbatim — the canonical
 /// catalog crate now owns that data per the `.sh-removal` chain IP-C

@@ -19,7 +19,7 @@ Wire architecture-map output into mdbook publishing pipeline.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-mdbook-kernel/src/lib.rs::wire_architecture_map
+crates/oya-intelligence-mdbook-kernel/src/lib.rs::wire_architecture_map
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

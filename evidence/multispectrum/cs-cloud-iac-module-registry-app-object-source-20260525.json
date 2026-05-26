@@ -82,7 +82,7 @@
       "summary": "Scoped fmt/check/clippy quality gates passed."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture; ./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog; ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog; ./bin/oya gate validate api-semver --contracts-dir contracts; ./bin/oya gate validate planning-closure; ./bin/oya gate validate license-policy --workspace Cargo.toml; manifest JSON parse",
+      "command": "cargo test -p oya-governance-gate-catalog-domain -- --nocapture; ./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog; ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog; ./bin/oya gate validate api-semver --contracts-dir contracts; ./bin/oya gate validate planning-closure; ./bin/oya gate validate license-policy --workspace Cargo.toml; manifest JSON parse",
       "result": "PASS",
       "log": "/tmp/cs-cloud-iac-module-registry-app-object-source-governance-core.log",
       "summary": "Gate-catalog domain tests, catalog validation, architecture-boundaries, api-semver, planning-closure, license-policy, and manifest JSON parsing passed."

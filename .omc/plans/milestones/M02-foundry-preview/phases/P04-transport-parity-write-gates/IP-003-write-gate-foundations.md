@@ -20,8 +20,8 @@ Author ADR-XXXX Foundry write-gate foundations (Phase 05 contract).
 ## Symbols-to-grit-claim
 ```
 docs/decisions/ADR-XXXX-foundry-write-gate-foundations.md::Decision
-crates/oya-foundry-write-gate-kernel/src/lib.rs::WriteGate
-crates/oya-foundry-write-gate-kernel/src/lib.rs::ApprovalEnvelope
+crates/oya-intelligence-write-gate-kernel/src/lib.rs::WriteGate
+crates/oya-intelligence-write-gate-kernel/src/lib.rs::ApprovalEnvelope
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

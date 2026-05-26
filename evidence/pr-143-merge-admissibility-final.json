@@ -37,7 +37,7 @@
       "id": "round-2-MB-1",
       "title": "Fix-D's new gates wired into dispatcher",
       "status": "green",
-      "resolution": "Wired eu-ai-act-annex-iii-refusal + slsa-l3-evidence-grounded + otel-trace-propagation + ontology-projection-coverage + audit-chain-seal-coverage into crates/oya-dev-cli/src/commands/gate/mod.rs (5 new dispatcher arms). Added to AGGREGATED_VALIDATE_LANES in oya-foundry-gate-catalog-domain (57 lanes total, up from 52). Added to registry/quality/lanes.yaml (5 new lane entries).",
+      "resolution": "Wired eu-ai-act-annex-iii-refusal + slsa-l3-evidence-grounded + otel-trace-propagation + ontology-projection-coverage + audit-chain-seal-coverage into crates/oya-dev-cli/src/commands/gate/mod.rs (5 new dispatcher arms). Added to AGGREGATED_VALIDATE_LANES in oya-governance-gate-catalog-domain (57 lanes total, up from 52). Added to registry/quality/lanes.yaml (5 new lane entries).",
       "verification": "cargo run -p oya-dev-cli -- gate validate {otel-trace-propagation,ontology-projection-coverage,audit-chain-seal-coverage} → SUCCESS with advisory findings surfaced; gate validate eu-ai-act-annex-iii-refusal + slsa-l3-evidence-grounded → strict mode wired"
     },
     {

@@ -4,7 +4,7 @@ Per-driver account list for `oya-foundry-supervisor`. Each `.toml` file declares
 
 ## Schema
 
-Defined at [`schema.json`](./schema.json) (JSON Schema 2020-12). The canonical parser is `crates/oya-foundry-settings-template-kernel/src/account_kernel.rs:48`.
+Defined at [`schema.json`](./schema.json) (JSON Schema 2020-12). The canonical parser is `crates/oya-intelligence-settings-template-kernel/src/account_kernel.rs:48`.
 
 ### Row shape (TOML)
 
@@ -70,11 +70,11 @@ wc -l registry/accounts/*.toml | tail -1 | awk '{print $1}'
 
 ```sh
 # Validate a single file (exit 0 = valid)
-cargo run -p oya-foundry-supervisor-app -- --validate-accounts registry/accounts/claude.example.toml
+cargo run -p oya-intelligence-supervisor-app -- --validate-accounts registry/accounts/claude.example.toml
 
 # Validate all
 for f in registry/accounts/*.toml; do
-  cargo run -p oya-foundry-supervisor-app -- --validate-accounts "$f"
+  cargo run -p oya-intelligence-supervisor-app -- --validate-accounts "$f"
 done
 ```
 

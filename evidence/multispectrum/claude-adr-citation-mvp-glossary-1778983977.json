@@ -22,7 +22,7 @@
     "adr-citation: PASS (was failing pre-edit on ADR-0122 line 9; now 723 documents / 7795 citations / 124 allowed ADRs)",
     "glossary-vocabulary: PASS (was failing pre-edit with cascade of 4 ForbiddenToken errors + 1 NewWarningOutsideBaseline; now 723 documents / 467 casing warnings / 1034 uncited acronym warnings)",
     "placeholder-debt: PASS (unchanged; 723 documents / 1083 open / 661 records)",
-    "oya-foundry-vcs-admission-gate-app: PASS"
+    "oya-vcs-admission-gate-app: PASS"
   ],
   "facets": {
     "F1_linus": {

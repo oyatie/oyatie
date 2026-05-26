@@ -406,7 +406,7 @@ Sweep results: 34 hits across crates/, all narrowly-scoped:
   allow would break the test's intent. KEEP — test-side deprecated-API
   coverage is canonical (proves deprecated APIs still work pending
   sunset).
-- 1 × `#[allow(dead_code)]` in `oya-foundry-policy-api/src/lib.rs:970`
+- 1 × `#[allow(dead_code)]` in `oya-intelligence-policy-api/src/lib.rs:970`
   on `fn data_class_label(...)` — small helper used elsewhere; verify
   separately. KEEP-WITH-REVIEW (not in this audit's scope; flagged for
   predictable-naming or dead-code lane).

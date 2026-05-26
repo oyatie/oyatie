@@ -19,7 +19,7 @@ Ship SecretStorePort + local OpenBao default adapter; integration + fake-in-memo
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-account-domain/src/lib.rs::SecretStorePort
+crates/oya-intelligence-account-domain/src/lib.rs::SecretStorePort
 crates/oya-foundry-account-adapter-openbao/src/lib.rs::OpenBaoAdapter
 crates/oya-foundry-account-adapter-openbao/src/lib.rs::store_secret_reference
 ```

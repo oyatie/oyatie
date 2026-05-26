@@ -14,7 +14,7 @@ planned_enforcement_ref: oya-governance-audit-chain-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-foundry-evidence-kernel
-  - oya-foundry-architecture-map-kernel
+  - oya-intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md

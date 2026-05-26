@@ -7,14 +7,14 @@
     "phase": "P02-multi-subscription-pool",
     "produced_at": "2026-05-14",
     "auditor": "claude-a1-m02p02",
-    "scope": "crates/oya-foundry-adapter-anthropic-compat-api",
+    "scope": "crates/oya-intelligence-adapter-anthropic-compat-api",
     "purpose": "Auto-backfilled purpose for m02-p02-ip-002-anthropic-compat-adapter.json"
   },
   "ip_id": "IP-002-anthropic-compat-adapter",
   "role": "api",
   "crates_created": [
     {
-      "name": "oya-foundry-adapter-anthropic-compat-api",
+      "name": "oya-intelligence-adapter-anthropic-compat-api",
       "role": "api",
       "bnf_justification": "oya-<microservice:foundry>-<bc:adapter-anthropic-compat>-<layer:api>; v4.1 conformant; bounded-context=adapter-anthropic-compat keeps Anthropic-shape passthrough isolated from upstream provider primitive adapters; layer=api per workspace 12-layer enum (HTTP route surface, request/response types, translator).",
       "purpose": "Anthropic /v1/messages + /v1/messages/count_tokens passthrough. Translates Anthropic shape \u2194 internal CapabilityInvokeRequest, emits Anthropic-style SSE event sequence (message_start, content_block_start, \u2026, message_stop).",

@@ -47,7 +47,7 @@
     "cargo_check_workspace_all_features": {
       "status": "pass"
     },
-    "cargo_test_oya_foundry_vcs_kernel": {
+    "cargo_test_oya_vcs_kernel": {
       "status": "pass"
     }
   },

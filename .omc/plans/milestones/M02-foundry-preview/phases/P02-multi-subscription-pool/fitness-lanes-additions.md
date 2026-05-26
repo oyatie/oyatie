@@ -17,7 +17,7 @@ length_cap: 120
 
 - **Owner:** axis-foundry.
 - **Severity:** BLOCKER (PR cannot merge if lane red).
-- **Trigger:** every PR touching `crates/oya-foundry-provider-pool-kernel/**`, `crates/oya-foundry-policy-kernel/**`, or `crates/oya-foundry-adapter-*-compat-api/**`.
+- **Trigger:** every PR touching `crates/oya-intelligence-provider-pool-kernel/**`, `crates/oya-foundry-policy-kernel/**`, or `crates/oya-foundry-adapter-*-compat-api/**`.
 - **Check:** simulated routing decision sequence (100 deterministic inputs) → assert every emitted `EVT-PROVIDER-POOL-ROUTING` audit event carries (a) the account_id returned by `pick_account`, (b) the routing_reason, (c) a non-null `tos_ack_ref` when `pool_size > 1`, (d) the trace_id propagated from the inbound request. Any silent account switch (i.e., adapter calls a ProviderAccount not named in the decision) fails the lane.
 - **Implementation:** `tools/oya-foundry-fitness-pool-routing-honor/src/main.rs`.
 - **Acceptance:** `oya gate validate oya-foundry-fitness-pool-routing-honor` exit code 0; CI lane name matches the gate name.

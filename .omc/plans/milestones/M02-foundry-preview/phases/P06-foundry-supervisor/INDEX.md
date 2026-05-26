@@ -20,16 +20,16 @@ Multi-account, multi-provider session supervisor implementing the hook + inbox/o
 
 | Crate | Layer | Purpose |
 |-------|-------|---------|
-| `oya-foundry-supervisor-kernel` | kernel (L1) | Value types, port traits, pure decision logic |
-| `oya-foundry-supervisor-app` | app (L5) | Daemon binary, call chain, hyper webhook |
-| `oya-foundry-jsonl-supervisor-adapter` | adapter (L4) | File-backed InboxStore + OutboxSink |
+| `oya-intelligence-supervisor-kernel` | kernel (L1) | Value types, port traits, pure decision logic |
+| `oya-intelligence-supervisor-app` | app (L5) | Daemon binary, call chain, hyper webhook |
+| `oya-intelligence-jsonl-supervisor-adapter` | adapter (L4) | File-backed InboxStore + OutboxSink |
 | `oya-foundry-supervisor-conformance` | conformance | build.rs seed + read-back tests |
-| `oya-foundry-settings-template-kernel` | kernel (L1) | Settings template value types (v5 delta) |
-| `oya-foundry-settings-template-adapter` | adapter (L4) | Per-provider settings renderer (v5 delta) |
-| `oya-foundry-claude-account-adapter` | adapter (L4) | Claude CLI driver |
-| `oya-foundry-codex-account-adapter` | adapter (L4) | Codex CLI driver |
-| `oya-foundry-gemini-account-adapter` | adapter (L4) | Gemini CLI driver |
-| `oya-foundry-supervisor-security-adapter` | adapter (L4) | OpenBao + Cedar bridge |
+| `oya-intelligence-settings-template-kernel` | kernel (L1) | Settings template value types (v5 delta) |
+| `oya-intelligence-settings-template-adapter` | adapter (L4) | Per-provider settings renderer (v5 delta) |
+| `oya-intelligence-claude-account-adapter` | adapter (L4) | Claude CLI driver |
+| `oya-intelligence-codex-account-adapter` | adapter (L4) | Codex CLI driver |
+| `oya-intelligence-gemini-account-adapter` | adapter (L4) | Gemini CLI driver |
+| `oya-intelligence-supervisor-security-adapter` | adapter (L4) | OpenBao + Cedar bridge |
 
 ## Wave sequence ✅
 

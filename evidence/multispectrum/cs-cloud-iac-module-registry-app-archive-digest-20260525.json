@@ -67,7 +67,7 @@
       "summary": "Scoped HTTP/Cloud IaC test matrix and Rust quality gates passed: API 10, app 8, domain 7, REST 4, runtime 10, router 27, Hyper adapter 24; fmt/check/clippy passed."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture; ./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog; ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog; ./bin/oya gate validate api-semver --contracts-dir contracts; ./bin/oya gate validate planning-closure; ./bin/oya gate validate license-policy --workspace Cargo.toml; JSON parse manifest/evidence",
+      "command": "cargo test -p oya-governance-gate-catalog-domain -- --nocapture; ./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog; ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog; ./bin/oya gate validate api-semver --contracts-dir contracts; ./bin/oya gate validate planning-closure; ./bin/oya gate validate license-policy --workspace Cargo.toml; JSON parse manifest/evidence",
       "result": "PASS",
       "log": "/tmp/cs-cloud-iac-module-registry-app-archive-digest-governance-core.log",
       "summary": "Gate-catalog domain tests, catalog validation, architecture-boundaries, api-semver, planning-closure, license-policy, and JSON parsing passed."

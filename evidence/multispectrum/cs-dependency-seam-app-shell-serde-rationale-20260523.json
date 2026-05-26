@@ -27,7 +27,7 @@
       "summary": "Current app-shell source had clippy::too_many_arguments diagnostics in prototype view functions; SSR clippy also found a needless return in render_envelope.rs. These were fixed without changing runtime semantics. The overwritten green gate log and terminal transcript capture the final state."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "transient_fail_before_rerun",
       "summary": "First provider-admission attempt failed in Trivy SARIF emission with a walk-dir error on test-results while that directory was being materialized; rerun passed without source changes.",
       "evidence": "/tmp/cs-app-shell-serde-policy-provider-admission.log"
@@ -94,7 +94,7 @@
       "evidence": "/tmp/dependency-seam-app-shell-serde-policy-green.json"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass_on_rerun",
       "summary": "Provider admission passed after a transient first Trivy scan failed while test-results was being created; rerun metadata/authority checks, provider execution, cargo tests, and CLI smoke passed.",
       "evidence": "/tmp/cs-app-shell-serde-policy-provider-admission-rerun.log"

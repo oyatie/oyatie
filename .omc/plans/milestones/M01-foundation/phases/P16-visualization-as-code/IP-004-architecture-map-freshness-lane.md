@@ -19,7 +19,7 @@ Lane blocks PRs that change source-of-truth without regenerating visualizations.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-architecture-map-freshness-kernel/src/lib.rs::check
+crates/oya-governance-architecture-map-freshness-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

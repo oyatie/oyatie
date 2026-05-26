@@ -26,7 +26,7 @@ Per MASTERPLAN §2 Directive 10. Fresh agent should navigate the tree without or
 2 agents.
 
 ## Symbols-touched
-`crates/oya-foundry-fitness-agentic-navigability-kernel`, `crates/oya-foundry-fitness-predictable-naming-kernel`.
+`crates/oya-governance-agentic-navigability-kernel`, `crates/oya-governance-predictable-naming-kernel`.
 
 ## Agent-handoff
 ```

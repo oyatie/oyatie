@@ -6,7 +6,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Specify the pure value-object kernel `oya-foundry-architecture-map-kernel`
+  Specify the pure value-object kernel `oya-intelligence-architecture-map-kernel`
   that walks the Cargo workspace + `contracts/` + `docs/products/` and emits
   three renderings of the system architecture: Mermaid (inline mdbook), D2
   (richer service maps via terrastruct/d2), Graphviz (DAG fallback / SVG fidelity).
@@ -14,7 +14,7 @@ purpose: |
 planned_enforcement_ref: oya-governance-architecture-map-freshness
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-mdbook-kernel
   - oya-foundry-catalog-kernel
 companion_docs:
   - INDEX.md
@@ -23,7 +23,7 @@ companion_docs:
 doc_status: published
 ---
 
-# Visualization spec: `oya-foundry-architecture-map-kernel`
+# Visualization spec: `oya-intelligence-architecture-map-kernel`
 
 > **ADRs:** ADR-0052, ADR-0053, ADR-0054.
 

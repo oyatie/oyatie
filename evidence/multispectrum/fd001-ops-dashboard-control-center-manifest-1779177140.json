@@ -163,7 +163,7 @@
       "summary": "no whitespace errors"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed; trivy cargo vulnerabilities=0; terraform/kubernetes misconfigurations=0"
     }

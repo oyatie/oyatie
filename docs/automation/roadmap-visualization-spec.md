@@ -11,8 +11,8 @@ purpose: |
   Lift to `docs/visualization/roadmap.md`. Auto-derived; no hand-painted Gantt.
 planned_enforcement_ref: oya-governance-roadmap-viz
 extends_crates:
-  - oya-foundry-architecture-map-kernel
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-architecture-map-kernel
+  - oya-intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
   - dependency-graph-spec.md

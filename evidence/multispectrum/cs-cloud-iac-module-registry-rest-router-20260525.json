@@ -63,7 +63,7 @@
       "summary": "Scoped Cloud IaC REST/API/domain formatting, check, and clippy passed with warnings denied."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed after adding the oya-cloud-iac-rest catalog record."
     },

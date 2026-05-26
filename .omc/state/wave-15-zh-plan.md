@@ -90,8 +90,8 @@ Count: 17
 Count: 289
 
 - `crates/oya-application-app/tests/foundry_autonomy_ceiling_caps.rs`
-- `crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs`
-- `crates/oya-foundry-supervisor-security-adapter/src/lib.rs`
+- `crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs`
+- `crates/oya-intelligence-supervisor-security-adapter/src/lib.rs`
 - `crates/oya-governance-capability-tier-coverage/Cargo.toml`
 - `crates/oya-governance-capability-tier-coverage/README.md`
 - `crates/oya-governance-capability-tier-coverage/src/lib.rs`
@@ -556,7 +556,7 @@ Count: 175
 - `tools/hooks/_canonical-primitives.md`
 - `tools/hooks/session-start-context-inject.sh`
 - `tools/hooks/stale-tool-suggester.sh`
-- `tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs`
+- `tools/oya-vcs-provider-execution-gate-app/src/main.rs`
 - `tools/oya-xtask-metadata-augment-app/tests/icm_round_trip.rs`
 
 ## Pass B edit: deleted ADR citation rewrites

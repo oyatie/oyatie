@@ -68,7 +68,7 @@ circuit-breaker invariants).
 | `crates/oya-dev-cli/src/chaos_engineering_catalog_gate.rs` | create — file-reading runner |
 | `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
 | `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add match arm |
-| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | edit — append `"chaos-engineering-catalog"` |
+| `crates/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"chaos-engineering-catalog"` |
 | `.github/branch-protection.yaml` | edit — add to dev required-status-checks |
 | `microservices/governance/catalog/oya-check-chaos-engineering-catalog.yaml` | create — catalog entry |
 | `microservices/cloud-iac/iac/helm/chaos-mesh/Chart.yaml` | create — Helm chart skeleton |

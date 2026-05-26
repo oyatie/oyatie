@@ -1,0 +1,17 @@
+[package]
+name = "oya-governance-dependency-status-lifecycle-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-governance-dependency-status-lifecycle-app"
+path = "src/main.rs"
+
+[dependencies]
+oya-governance-lifecycle-kernel = { path = "../../crates/oya-governance-lifecycle-kernel" }
+
+[lints]
+workspace = true

@@ -11,7 +11,7 @@ final_shape_compliance: true
 dependency_additions: []
 source_audit: ../../../../../../evidence/audits/pipeline-maturity-audit-2026-05-15.md
 audit_amendment_ref: "Amendment 2026-05-15 §B: Merge-queue fix-loop integration"
-upstream_kernel: oya-foundry-vcs-review-mergequeue-kernel
+upstream_kernel: oya-vcs-review-mergequeue-kernel
 purpose: When a parked PR's fix lands, queue position is preserved, speculative rebase + re-CI runs against current queue HEAD, other PRs in queue keep flowing, concurrent fix-loops converge, bounded retry per PR enforces eviction on exhaustion.
 ---
 

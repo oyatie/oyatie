@@ -119,7 +119,7 @@
       "log": "evidence/fd001/cs-fd001-baseline-planning-data-class-gate-unification-admission-evidence-fix.log"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "result": "PASS metadata and authority checks; cargo tests + CLI smoke",
       "log": "evidence/fd001/cs-fd001-baseline-planning-data-class-gate-unification-admission-evidence-fix.log"
     },

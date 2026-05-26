@@ -26,28 +26,28 @@ the ChangeSet/IP boundary that owns the fix.
 ### A1. Kernel crates re-export business types from domain
 **Evidence**: `scripts/check-architecture-boundaries.sh` reported 8
 kernel→domain forbidden edges this session:
-- 6 provider-adapter kernels pulled `ProviderFamily` + `SecretReference` from `oya-foundry-account-domain`.
-- `oya-foundry-usage-window-kernel` re-exports `UsageWindow`/`UsageWindowError`/`UsageWindowKind`.
-- `oya-foundry-route-policy-kernel` re-exports `AccountError`/`AccountId`/`AccountState`/`ProviderAccount`/`RouteExplanation`.
-- `oya-foundry-dashboard-kernel` + `oya-foundry-dashboard-dry-run-kernel` pull `AccountState`/`ProviderAccount`/`RouteExplanation`.
+- 6 provider-adapter kernels pulled `ProviderFamily` + `SecretReference` from `oya-intelligence-account-domain`.
+- `oya-intelligence-usage-window-kernel` re-exports `UsageWindow`/`UsageWindowError`/`UsageWindowKind`.
+- `oya-intelligence-route-policy-kernel` re-exports `AccountError`/`AccountId`/`AccountState`/`ProviderAccount`/`RouteExplanation`.
+- `oya-intelligence-dashboard-kernel` + `oya-intelligence-dashboard-dry-run-kernel` pull `AccountState`/`ProviderAccount`/`RouteExplanation`.
 
-**Blast radius**: any ChangeSet that touches `oya-foundry-account-domain` transitively read-locks at least 10 downstream kernels. Two agents working on adjacent provider adapters serialized on this edge.
+**Blast radius**: any ChangeSet that touches `oya-intelligence-account-domain` transitively read-locks at least 10 downstream kernels. Two agents working on adjacent provider adapters serialized on this edge.
 
-**Fix (already partial)**: M02-P00-IP-004 (new fixup IP this session) moved identity types `AccountId`/`SessionId`/`ProviderFamily`/`SecretReference` into `oya-foundry-account-kernel`; closed 6 of 8 violations.
+**Fix (already partial)**: M02-P00-IP-004 (new fixup IP this session) moved identity types `AccountId`/`SessionId`/`ProviderFamily`/`SecretReference` into `oya-intelligence-account-kernel`; closed 6 of 8 violations.
 
 **Remaining FixupTask** (`01KRM3Z3Z6V8DVRVTRYT0Y4T87`): 4 kernels still re-exporting business types. Two paths:
 - Re-role those crates as `domain` in `registry/catalog/<name>.yaml`.
-- OR define narrow ports in `oya-foundry-account-kernel` + invert dependencies.
+- OR define narrow ports in `oya-intelligence-account-kernel` + invert dependencies.
 
 ### A2. Sibling adapters depend on each other
 **Evidence**: 3 forbidden adapter→adapter edges:
-- `oya-foundry-api-graphql-adapter → oya-foundry-api-rest-adapter`
-- `oya-foundry-api-sse-adapter → oya-foundry-api-rest-adapter`
-- `oya-foundry-api-websocket-adapter → oya-foundry-api-rest-adapter`
+- `oya-intelligence-api-graphql-adapter → oya-intelligence-api-rest-adapter`
+- `oya-intelligence-api-sse-adapter → oya-intelligence-api-rest-adapter`
+- `oya-intelligence-api-websocket-adapter → oya-intelligence-api-rest-adapter`
 
 **Blast radius**: REST adapter changes write-lock 3 sibling transport adapters; multi-protocol agents cannot work in parallel on adjacent transports.
 
-**Fix**: extract shared transport types into a new `oya-foundry-api-kernel` (kernel role) that all 4 transport adapters consume. Each transport then evolves independently.
+**Fix**: extract shared transport types into a new `oya-intelligence-api-kernel` (kernel role) that all 4 transport adapters consume. Each transport then evolves independently.
 
 ---
 
@@ -62,7 +62,7 @@ file/crate" — losing the per-symbol parallelism that the AST kernel
 
 **Blast radius**: one ChangeSet touching `crates/X/src/lib.rs::foo`
 read-locks every other symbol in that file for any contemporaneous
-agent. With 1000+ symbol crates (e.g., `oya-foundry-vcs-kernel` at 995 LOC), this is a serialization point.
+agent. With 1000+ symbol crates (e.g., `oya-vcs-kernel` at 995 LOC), this is a serialization point.
 
 **Fix**: M01-P07 IP-001 + IP-009 already ship the contract (SymbolId
 + AstIndex + claim_compatibility). The remaining work is the upstream
@@ -164,7 +164,7 @@ DAG is acyclic.
 ## E. Tooling antipatterns the user already corrected this session
 
 ### E1. Mixed-language coordination scripts (`.sh`, `.mjs`, `.py`)
-**Status**: User directive 2026-05-14 — "no shellscript no mjs etc all rust" — enforced. `.mjs` merge-gate retired and replaced with `oya-foundry-fitness-pr-merge-gate-kernel` in the same session. Going forward every new check/lane/coordination primitive must be a Rust crate, not a shell/JS/Python script.
+**Status**: User directive 2026-05-14 — "no shellscript no mjs etc all rust" — enforced. `.mjs` merge-gate retired and replaced with `oya-governance-pr-merge-gate-kernel` in the same session. Going forward every new check/lane/coordination primitive must be a Rust crate, not a shell/JS/Python script.
 
 **Why it was an antipattern**: shell/Node scripts can't participate
 in the cargo workspace test graph, semver checks, deny.toml policy,
@@ -181,7 +181,7 @@ because they have no SymbolId.
 | M01-P08-IP-013 | agentic-pipeline-cutover | IP-status-truth kernel (C1 + C2 fix) | 1 new crate, ~200 LOC, ~12 tests |
 | M01-P08-IP-014 | agentic-pipeline-cutover | IP-dependency-edges kernel (D2 fix) | 1 new crate, ~150 LOC, ~10 tests |
 | M-CC-architecture-fixup-IP-001 | new arch-cleanup phase | Re-role usage-window/route-policy/dashboard kernels (A1 residual) | 4 catalog yaml edits + downstream import sweep, ~30 LOC churn |
-| M-CC-architecture-fixup-IP-002 | new arch-cleanup phase | Extract `oya-foundry-api-kernel` for shared transport types (A2 fix) | 1 new crate, ~200 LOC, plus 3 adapter Cargo.toml + import edits |
+| M-CC-architecture-fixup-IP-002 | new arch-cleanup phase | Extract `oya-intelligence-api-kernel` for shared transport types (A2 fix) | 1 new crate, ~200 LOC, plus 3 adapter Cargo.toml + import edits |
 
 ## G. Closing observations (Linus good-taste row)
 

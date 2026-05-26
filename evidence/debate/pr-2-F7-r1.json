@@ -5,7 +5,7 @@
   "facet_name": "Security and misuse resistance",
   "findings": [
     {
-      "file": "crates/oya-foundry-rag-api/src/lib.rs:766-775",
+      "file": "crates/oya-intelligence-rag-api/src/lib.rs:766-775",
       "issue": "F7 facet concurrence: Authorization for citation retrieval only checks tenant/principal plus the generic foundry.rag.retrieve surface. It does not bind the authorization decision to namespace, capability_id, or search_index_id, so a broad surface grant can authorize citations for…",
       "remediation": "Add decision-scope fields for namespace, capability_id, and search_index_id (or an equivalent signed authorization input hash), reject drift before retrieval, and add regression tests for cross-capability/index denial.",
       "severity": "MAJOR"

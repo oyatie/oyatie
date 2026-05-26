@@ -15,15 +15,15 @@
   "checks": [
     {
       "id": "C1_pr_review_dispatcher_kebab_bnf",
-      "claim": "tools/oya-foundry-pr-review-dispatcher-app conforms to BNF v4.1",
+      "claim": "tools/oya-intelligence-pr-review-dispatcher-app conforms to BNF v4.1",
       "finding": "PASS",
-      "evidence": "Parses as oya-<foundry>-<pr-review-dispatcher (3 bc-tokens)>-<app (layer enum)>; all kebab-tokens match [a-z][a-z0-9]*; slot-2 'foundry' is registered microservice; 'app' is in closed 12-layer enum; package name = directory name. NOTE: PR #13 only MODIFIES tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml (2/-2) — the crate itself was introduced earlier (PR #3 / commit 27fe6705). The naming was already audited in that prior PR."
+      "evidence": "Parses as oya-<foundry>-<pr-review-dispatcher (3 bc-tokens)>-<app (layer enum)>; all kebab-tokens match [a-z][a-z0-9]*; slot-2 'foundry' is registered microservice; 'app' is in closed 12-layer enum; package name = directory name. NOTE: PR #13 only MODIFIES tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml (2/-2) — the crate itself was introduced earlier (PR #3 / commit 27fe6705). The naming was already audited in that prior PR."
     },
     {
       "id": "C2_naming_justification_one_liner",
       "claim": "pr-review-dispatcher-app carries one-line naming-justification per feedback_naming_justification",
       "finding": "PASS_EXCEEDS",
-      "evidence": "tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml header at commit 59534679 contains a multi-line justification block citing BNF v4.1 grammar, slot-2 microservice registration, bc-token analysis, 12-layer-enum membership of 'app', sibling pattern, and the IP-plan literal divergence rationale. Exceeds the one-line minimum required by [[feedback_naming_justification]]."
+      "evidence": "tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml header at commit 59534679 contains a multi-line justification block citing BNF v4.1 grammar, slot-2 microservice registration, bc-token analysis, 12-layer-enum membership of 'app', sibling pattern, and the IP-plan literal divergence rationale. Exceeds the one-line minimum required by [[feedback_naming_justification]]."
     },
     {
       "id": "C3_adr_0118_filename_canonical",
@@ -48,7 +48,7 @@
   "minor_observations": [
     {
       "id": "O1",
-      "note": "Reviewer-task brief asserts 'PR #13 introduces tools/oya-foundry-pr-review-dispatcher-app/ (new tool)'. The diff and merge commit show the tool is pre-existing and only the Cargo.toml is modified (+2/-2). This does not affect naming-adherence outcome but the brief's framing was imprecise."
+      "note": "Reviewer-task brief asserts 'PR #13 introduces tools/oya-intelligence-pr-review-dispatcher-app/ (new tool)'. The diff and merge commit show the tool is pre-existing and only the Cargo.toml is modified (+2/-2). This does not affect naming-adherence outcome but the brief's framing was imprecise."
     }
   ],
   "blocking_findings": [],

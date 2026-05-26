@@ -83,7 +83,7 @@
       "summary": "Scoped touched HTTP and Cloud IaC crates passed clippy with warnings denied."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "command": "cargo test -p oya-governance-gate-catalog-domain -- --nocapture",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed after updating the oya-cloud-iac-app catalog record."
     },

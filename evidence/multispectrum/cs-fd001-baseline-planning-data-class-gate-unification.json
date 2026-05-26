@@ -136,7 +136,7 @@
       "summary": "Submit mirror reached 88/89 lanes; only oya-foundry-vcs-admission failed because this evidence file lacked change_id."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed after adding change_id and audit-chain coverage."
     },

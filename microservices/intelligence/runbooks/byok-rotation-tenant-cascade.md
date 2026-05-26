@@ -73,7 +73,7 @@ doc_status: published
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_INTELLIGENCE_BYOK_ROTATION_TENANT_CASCADE_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops intelligence byok-rotation-tenant-cascade status --cell $CELL --tenant $TENANT --output json`.
 15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate intelligence-byok-rotation-tenant-cascade --production-snapshot --cell $CELL`.
-16. Run crate smoke test: `cargo test -p oya-foundry-adapter-openai-api-kernel byok_rotation_tenant_cascade -- --nocapture`.
+16. Run crate smoke test: `cargo test -p oya-intelligence-adapter-openai-api-kernel byok_rotation_tenant_cascade -- --nocapture`.
 17. Check API contract smoke: `curl -s https://intelligence.internal.oyatie.dev/v1/intelligence/byok-rotation-tenant-cascade/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/intelligence/iac/k8s/deployment.yaml && sed -n '1,180p' microservices/intelligence/iac/k8s/deployment.yaml`.
 19. Inspect feature flags: `oya flags get oya.intelligence.byok_rotation_tenant_cascade.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
@@ -149,16 +149,16 @@ provider-credential BYOK Rotation Tenant Cascade incident decision tree (ADR-025
 
 ## Resolution
 1. Identify code owner path: `rg "byok_rotation_tenant_cascade|IntelligenceBYOKRotationTenantCascadeCritical|intelligence.byok_rotation_tenant_cascade.incident_state" crates microservices/intelligence -g "!microservices/intelligence/runbooks/**"`.
-2. Patch domain invariant: `edit oya-foundry-adapter-openai-api-kernel where byok_rotation_tenant_cascade state transition is validated`.
+2. Patch domain invariant: `edit oya-intelligence-adapter-openai-api-kernel where byok_rotation_tenant_cascade state transition is validated`.
 3. Patch API guard: `edit microservices/intelligence/contracts/openapi/intelligence.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit microservices/intelligence/policy/provider-routing.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/intelligence/iac/k8s/deployment.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-foundry-adapter-openai-api-kernel byok_rotation_tenant_cascade_incident_regression -- --nocapture`.
+6. Add regression test: `cargo test -p oya-intelligence-adapter-openai-api-kernel byok_rotation_tenant_cascade_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate intelligence-byok-rotation-tenant-cascade --fixture incident-byok-rotation-tenant-cascade.json`.
 8. Add SLO assertion: `update microservices/intelligence/slos/dispatch-api-availability.openslo.yaml with alert IntelligenceBYOKRotationTenantCascadeCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/intelligence/dashboards/provider-latency-heatmap.json with oya_intelligence_byok_rotation_tenant_cascade_error_ratio, oya_intelligence_byok_rotation_tenant_cascade_lag_seconds, and oya_intelligence_byok_rotation_tenant_cascade_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-foundry-adapter-openai-api-kernel --all-targets`.
-11. Run targeted tests: `cargo test -p oya-foundry-adapter-openai-api-kernel --all-features`.
+10. Rebuild affected crate: `cargo check -p oya-intelligence-adapter-openai-api-kernel --all-targets`.
+11. Run targeted tests: `cargo test -p oya-intelligence-adapter-openai-api-kernel --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate intelligence-policy --microservice intelligence`.
 13. Deploy canary: `oya deploy canary --microservice intelligence --component intelligence-byok-rotation-tenant-cascade-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_intelligence_byok_rotation_tenant_cascade_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
@@ -170,10 +170,10 @@ provider-credential BYOK Rotation Tenant Cascade incident decision tree (ADR-025
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-foundry-adapter-openai-api-kernel`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `oya-foundry-rag-api`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `oya-foundry-rag-endpoint-kernel`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `oya-foundry-eval-domain`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-intelligence-adapter-openai-api-kernel`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-intelligence-rag-api`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-intelligence-rag-endpoint-kernel`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-governance-eval-domain`: inspect for `byok_rotation_tenant_cascade` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `microservices/intelligence/contracts/openapi/intelligence.yaml`: verify request/response or event contract only when incident evidence points there.
 - `microservices/intelligence/contracts/asyncapi/intelligence-events.yaml`: verify request/response or event contract only when incident evidence points there.
 - `microservices/intelligence/contracts/proto/intelligence.proto`: verify request/response or event contract only when incident evidence points there.

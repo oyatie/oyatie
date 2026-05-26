@@ -9,20 +9,20 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions:
-  - crates/oya-foundry-fitness-sunset-lifecycle-kernel
-  - tools/oya-foundry-fitness-sunset-lifecycle-app
+  - crates/oya-governance-sunset-lifecycle-kernel
+  - tools/oya-governance-sunset-lifecycle-app
 adr_anchor: docs/decisions/ADR-0108-sunset-lifecycle-automation.md
 related_adrs:
   - docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
   - docs/decisions/ADR-0083-rust-error-handling-tier-decision.md
   - docs/decisions/ADR-0109-lifecycle-automation-framework.md
 naming_justification:
-  oya-foundry-fitness-sunset-lifecycle-kernel: |
+  oya-governance-sunset-lifecycle-kernel: |
     v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:sunset-lifecycle>-<layer:kernel>`;
     13-layer-enum suffix `kernel` (ADR-0105 Amendment 1); port-in-kernel, I/O-free
     check function per ADR-0056; Tier 1 library per ADR-0083 (no `.unwrap()`
     outside `#[cfg(test)]`, kernel-local `Date` type — zero non-std deps).
-  oya-foundry-fitness-sunset-lifecycle-app: |
+  oya-governance-sunset-lifecycle-app: |
     v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:sunset-lifecycle>-<layer:app>`;
     13-layer-enum suffix `app` (ADR-0107 §"Amendment 2026-05-15 — no-exception
     canonical naming"); composition-root binary tool surface; Tier 2 per ADR-0083.
@@ -54,12 +54,12 @@ no-exceptions doctrine.
 
 ## Naming justification (per `feedback_naming_justification`)
 
-- `oya-foundry-fitness-sunset-lifecycle-kernel` — v4 BNF compliant:
+- `oya-governance-sunset-lifecycle-kernel` — v4 BNF compliant:
   product=`foundry`, facet=`fitness`, topic=`sunset-lifecycle`,
   layer=`kernel`. 13-layer-enum suffix `kernel` per ADR-0105 §"Amendment
   1". I/O-free port-in-kernel per ADR-0056 §"Layer semantics > kernel".
   Zero non-std deps (kernel-local `Date` type) — honors ADR-0083 Tier 1.
-- `oya-foundry-fitness-sunset-lifecycle-app` — v4 BNF compliant:
+- `oya-governance-sunset-lifecycle-app` — v4 BNF compliant:
   product=`foundry`, facet=`fitness`, topic=`sunset-lifecycle`,
   layer=`app`. 13-layer-enum suffix `app` per ADR-0107 §"Amendment
   2026-05-15 — no-exception canonical naming" (every `tools/` crate
@@ -69,14 +69,14 @@ no-exceptions doctrine.
 ## Symbols-to-grit-claim
 
 ```
-crates/oya-foundry-fitness-sunset-lifecycle-kernel/src/lib.rs::evaluate
-crates/oya-foundry-fitness-sunset-lifecycle-kernel/src/lib.rs::SunsetClause
-crates/oya-foundry-fitness-sunset-lifecycle-kernel/src/lib.rs::LifecycleState
-crates/oya-foundry-fitness-sunset-lifecycle-kernel/src/lib.rs::Violation
-tools/oya-foundry-fitness-sunset-lifecycle-app/src/main.rs::main
-tools/oya-foundry-fitness-sunset-lifecycle-app/src/main.rs::discover_adr
-tools/oya-foundry-fitness-sunset-lifecycle-app/src/main.rs::discover_specs
-tools/oya-foundry-fitness-sunset-lifecycle-app/src/main.rs::discover_cargo_metadata
+crates/oya-governance-sunset-lifecycle-kernel/src/lib.rs::evaluate
+crates/oya-governance-sunset-lifecycle-kernel/src/lib.rs::SunsetClause
+crates/oya-governance-sunset-lifecycle-kernel/src/lib.rs::LifecycleState
+crates/oya-governance-sunset-lifecycle-kernel/src/lib.rs::Violation
+tools/oya-governance-sunset-lifecycle-app/src/main.rs::main
+tools/oya-governance-sunset-lifecycle-app/src/main.rs::discover_adr
+tools/oya-governance-sunset-lifecycle-app/src/main.rs::discover_specs
+tools/oya-governance-sunset-lifecycle-app/src/main.rs::discover_cargo_metadata
 ```
 
 Scaffold-claim via ICM `scaffold-locks-oyatie` per ADR-0054 — window
@@ -108,11 +108,11 @@ honored; M01-P09 INDEX read.
 
 ```
 PATH="/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH" \
-  cargo test -p oya-foundry-fitness-sunset-lifecycle-kernel
+  cargo test -p oya-governance-sunset-lifecycle-kernel
 PATH="/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH" \
-  cargo test -p oya-foundry-fitness-sunset-lifecycle-app
+  cargo test -p oya-governance-sunset-lifecycle-app
 PATH="/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH" \
-  cargo run -q -p oya-foundry-fitness-sunset-lifecycle-app -- --now 2026-05-15
+  cargo run -q -p oya-governance-sunset-lifecycle-app -- --now 2026-05-15
 ```
 
 ## Done-criteria

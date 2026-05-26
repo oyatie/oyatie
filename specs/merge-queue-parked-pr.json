@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/merge-queue-parked-pr.json",
   "title": "MergeQueueParkedPrStateMachine",
-  "description": "State-machine spec for the merge-queue parked-PR + fix-loop integration shipped by M01-P17-IP-006. Companion to the kernel modules parked_state, pr_retry_budget, speculative_rebase, fairness, scheduler in crates/oya-foundry-vcs-review-mergequeue-kernel.",
+  "description": "State-machine spec for the merge-queue parked-PR + fix-loop integration shipped by M01-P17-IP-006. Companion to the kernel modules parked_state, pr_retry_budget, speculative_rebase, fairness, scheduler in crates/oya-vcs-review-mergequeue-kernel.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MERGE-QUEUE-PARKED-PR",
@@ -17,7 +17,7 @@
       "/specs/iterative-fix-loop.json",
       "/specs/ci-fix-loop-context-bundle.json"
     ],
-    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-foundry-vcs-review-mergequeue-kernel."
+    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-vcs-review-mergequeue-kernel."
   },
   "state_machine": {
     "states": [
@@ -156,13 +156,13 @@
     }
   },
   "kernel_module_map": {
-    "parked_state": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/parked_state.rs",
-    "pr_retry_budget": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/pr_retry_budget.rs",
-    "speculative_rebase": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/speculative_rebase.rs",
-    "fairness": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/fairness.rs",
-    "scheduler": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/scheduler.rs"
+    "parked_state": "crates/oya-vcs-review-mergequeue-kernel/src/parked_state.rs",
+    "pr_retry_budget": "crates/oya-vcs-review-mergequeue-kernel/src/pr_retry_budget.rs",
+    "speculative_rebase": "crates/oya-vcs-review-mergequeue-kernel/src/speculative_rebase.rs",
+    "fairness": "crates/oya-vcs-review-mergequeue-kernel/src/fairness.rs",
+    "scheduler": "crates/oya-vcs-review-mergequeue-kernel/src/scheduler.rs"
   },
-  "integration_crate": "tools/oya-foundry-vcs-merge-queue-fix-loop-app",
+  "integration_crate": "tools/oya-vcs-merge-queue-fix-loop-app",
   "concurrent_fix_loops": {
     "allowed": true,
     "convergence": "Multiple parked PRs may have fix-loop agents running in parallel. The scheduler serializes ONLY the final landing (one PR merges per tick); other parked PRs stay parked. Concurrent fix-loops do NOT deadlock — proof: see test `concurrent_fix_loops_converge_one_merges_other_re_parks` in scheduler.rs."

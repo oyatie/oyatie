@@ -287,7 +287,7 @@
 
   "verification": {
     "cargo_build_touched_crates": {
-      "scope": ["oya-check-layered-architecture-discipline", "oya-check-client-stack-discipline", "oya-dev-cli", "oya-gen-microservice-manifests-app", "oya-foundry-gate-catalog-domain"],
+      "scope": ["oya-check-layered-architecture-discipline", "oya-check-client-stack-discipline", "oya-dev-cli", "oya-gen-microservice-manifests-app", "oya-governance-gate-catalog-domain"],
       "verdict": "PASS — 0 errors, 4 pre-existing warnings in oya-dev-cli (Fix-O vendor-lockin-discipline dead code; unrelated to this dispatch)"
     },
     "cargo_clippy_touched_crates": {
@@ -304,7 +304,7 @@
       "oya_check_layered_architecture_discipline": "10/10 PASS",
       "oya_check_client_stack_discipline": "13/13 PASS",
       "oya_dev_cli_gate_cli": "161/161 PASS",
-      "oya_foundry_gate_catalog_domain": "16/16 PASS",
+      "oya_governance_gate_catalog_domain": "16/16 PASS",
       "total": "200/200 PASS across touched test suites"
     },
     "manifest_schema_well_formed": "PASS — python3 json.load() succeeds on specs/microservices/manifest-schema.json",

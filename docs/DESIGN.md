@@ -296,7 +296,7 @@ After step 7, Foundry can fan out *parallel* capability authorship across all si
 
 | Contract | Owners | Consumers |
 |---|---|---|
-| Capability invocation API (`oya-foundry-api`) | Foundry | Every axis (SaaS workflows, vertical runbooks, cloud control-plane mutators, search index ops, ad-campaign mutators) |
+| Capability invocation API (`oya-intelligence-api`) | Foundry | Every axis (SaaS workflows, vertical runbooks, cloud control-plane mutators, search index ops, ad-campaign mutators) |
 | Autonomy-ceiling enforcement (`oya-foundry-policy`) | Foundry + ADR-0050 governance | Every regulated capability across all axes |
 | Evidence-chain emission (`oya-foundry-evidence`, ties to ADR-0003) | Foundry + audit subsystem | Every axis that touches regulated data |
 | Capability registry (`oya-foundry-registry`, projection from `registry/catalog/`) | Foundry + Foundry catalog | Every axis (every capability they expose) |
@@ -533,7 +533,7 @@ This is the table that is auditable. Every entry is an inter-axis contract; any 
 |---|---|---|---|---|
 | `Tenant` kernel | SaaS | All others | `oya-platform-tenant-kernel` | All-axis review; ADR amendment if shape changes |
 | `Identity / RBAC / Cedar policy` | SaaS | All others | `oya-platform-identity-kernel` + Cedar | Cross-axis review; security-reviewer agent |
-| `Capability invocation` | Foundry | All others | `oya-foundry-api` + `contracts/openapi/foundry/capability-v1.yaml` | Foundry review + the consuming axis review |
+| `Capability invocation` | Foundry | All others | `oya-intelligence-api` + `contracts/openapi/foundry/capability-v1.yaml` | Foundry review + the consuming axis review |
 | `Autonomy ceiling policy` | Foundry + Governance (ADR-0050) | All regulated capabilities | `oya-foundry-policy-kernel` | Governance + security review |
 | `Audit-chain event` | Audit subsystem (per ADR-0003) | All emitters | `oya-platform-audit-chain-kernel` + event schema | Audit + downstream-consumer review |
 | `Capability registry record` | Foundry catalog | Foundry, all axes | `registry/catalog/<crate>.yaml` (any future relocation requires a catalog protocol update) | Catalog gate + consuming-axis review |

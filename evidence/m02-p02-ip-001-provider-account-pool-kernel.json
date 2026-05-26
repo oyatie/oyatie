@@ -7,14 +7,14 @@
     "phase": "P02-multi-subscription-pool",
     "produced_at": "2026-05-14",
     "auditor": "claude-a1-m02p02",
-    "scope": "crates/oya-foundry-provider-pool-kernel",
+    "scope": "crates/oya-intelligence-provider-pool-kernel",
     "purpose": "Auto-backfilled purpose for m02-p02-ip-001-provider-account-pool-kernel.json"
   },
   "ip_id": "IP-001-provider-account-pool-kernel",
   "role": "kernel",
   "crates_created": [
     {
-      "name": "oya-foundry-provider-pool-kernel",
+      "name": "oya-intelligence-provider-pool-kernel",
       "role": "kernel",
       "bnf_justification": "oya-<microservice:foundry>-<bc:provider-pool>-<layer:kernel>; v4.1 conformant; provider-pool is a bounded context within the foundry \u00b5service; layer=kernel because the crate ships pure value types + the deterministic pick_account decision function with zero I/O and zero async.",
       "purpose": "ProviderAccountPool pure value-type kernel coordinating rotation across multiple ProviderAccount records (P00). Rust counterpart to ccproxy-api credential_balancer/manager.py.",

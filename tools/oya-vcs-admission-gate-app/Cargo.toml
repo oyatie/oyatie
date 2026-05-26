@@ -1,0 +1,26 @@
+[package]
+name = "oya-vcs-admission-gate-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+vertical = "foundry"
+bounded_context = "vcs-admission-gate"
+kind = "shared"
+layer = "app"
+purpose = "Composition root for the oya-vcs-admission required-check. Loads root-hub pointers, master-plan sequencing, multispectrum review, gitops-vcs replacement spec, branch-protection + workflow surface, cargo metadata, and audit-chain coverage; feeds them into the admission-gate kernel; runs targeted Oya VCS package tests and CLI smoke."
+lifecycle.stage = "scaffolded"
+
+[[bin]]
+name = "oya-vcs-admission-gate-app"
+path = "src/main.rs"
+
+[dependencies]
+oya-vcs-admission-gate-kernel = { path = "../../crates/oya-vcs-admission-gate-kernel" }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

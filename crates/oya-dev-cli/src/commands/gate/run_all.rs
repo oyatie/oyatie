@@ -27,7 +27,7 @@
 use std::path::Path;
 use std::process::{Command, ExitCode, Stdio};
 
-use oya_foundry_gate_catalog_domain::{
+use oya_governance_gate_catalog_domain::{
     AGGREGATED_VALIDATE_LANES, BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT,
     CI_REQUIRED_PREFLIGHT_COMMANDS, DEPENDENCY_SEAM_EVIDENCE,
 };
@@ -242,19 +242,19 @@ fn run_ci_required_preflight_command(command: &str) -> bool {
             child.args(["nextest", "run", "--workspace", "--no-fail-fast"]);
             child
         }
-        "cargo run -q -p oya-foundry-vcs-admission-gate-app" => {
+        "cargo run -q -p oya-vcs-admission-gate-app" => {
             let mut child = cargo_with_ci_env();
-            child.args(["run", "-q", "-p", "oya-foundry-vcs-admission-gate-app"]);
+            child.args(["run", "-q", "-p", "oya-vcs-admission-gate-app"]);
             child
         }
-        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json" =>
+        "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json" =>
         {
             let mut child = cargo_with_ci_env();
             child.args([
                 "run",
                 "-q",
                 "-p",
-                "oya-foundry-vcs-provider-execution-gate-app",
+                "oya-vcs-provider-execution-gate-app",
                 "--",
                 "--mode",
                 "ci",

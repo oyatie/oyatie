@@ -8,7 +8,7 @@ execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/dependency-status-lifecycle.json
-  - tools/oya-foundry-fitness-dependency-status-lifecycle-app
+  - tools/oya-governance-dependency-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect third-party deps whose deprecation has not advanced to removal by the declared deadline.
 ---
@@ -27,7 +27,7 @@ violations=0
 Fresh kernel; dependency-status docs populate as ADR-0064 (LTS dependency policy) compliance lands.
 
 ## Done-criteria (Wave A)
-- `cargo run -q -p oya-foundry-fitness-dependency-status-lifecycle-app -- --warn-only` succeeds (vacuous baseline).
+- `cargo run -q -p oya-governance-dependency-status-lifecycle-app -- --warn-only` succeeds (vacuous baseline).
 
 ## Ratchet plan
 - Wave A: kernel ready; vacuous baseline.

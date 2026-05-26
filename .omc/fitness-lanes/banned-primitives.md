@@ -3,10 +3,10 @@
 - purpose: Verify fenced `agent-instructions` sections use the Oya VCS / `oya git` sanctioned surface and verify the sanitized tracked command-log corpus never records direct VCS / forge / manual branch operations.
 - enforces: `specs/master-plan-sequencing.json::forbidden_primitives` and `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
 - activation: Active required check for `dev` once this ChangeSet promotes; workflow, branch-protection, quality lane, and `oya gate run-all` wiring are part of CS-FITNESS-001.
-- kernel_crate: `oya-foundry-fitness-banned-primitives-kernel` — `scan_agent_instruction_file(...)`, `scan_command_invocation(...)`, plus `check_documented_genuine_need(...)`.
-- runner_path: `tools/oya-foundry-fitness-banned-primitives-app`
+- kernel_crate: `oya-governance-banned-primitives-kernel` — `scan_agent_instruction_file(...)`, `scan_command_invocation(...)`, plus `check_documented_genuine_need(...)`.
+- runner_path: `tools/oya-governance-banned-primitives-app`
 - gate_invocation: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`
-- direct_runner_invocation: `cargo run -q -p oya-foundry-fitness-banned-primitives-app --`
+- direct_runner_invocation: `cargo run -q -p oya-governance-banned-primitives-app --`
 - inputs: `AGENTS.md`, `CLAUDE.md`, `docs/**/*.md`, `.omc/**/*.md`, plus YAML / JSON / TOML files under those roots that contain `<!-- agent-instructions:start -->` fences; sanitized JSONL command corpus under `registry/fitness-corpora/banned-primitives/*.jsonl`.
 - failure_modes:
   - `AGENTS.md`, `CLAUDE.md`, or `docs/AGENTS.md` lacks an `agent-instructions` fence

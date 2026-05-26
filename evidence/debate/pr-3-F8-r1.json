@@ -18,7 +18,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": ".github/workflows/pr-review.yml:97-105 and tools/oya-foundry-pr-review-dispatcher-app/src/main.rs:220-248",
+      "file": ".github/workflows/pr-review.yml:97-105 and tools/oya-intelligence-pr-review-dispatcher-app/src/main.rs:220-248",
       "issue": "The workflow invokes the dispatcher in its default external mode and never fails the job when subagent_runtime_pending is true. With missing/incomplete facet evidence, the dispatcher can still write an APPROVE-shaped rollup/admission event while marking the panel pending.",
       "remediation": "Run the inline review runtime or pre-materialize the full facet panel, and make the workflow fail closed on subagent_runtime_pending=true before writing merge-queue admission."
     },

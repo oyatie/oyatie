@@ -51,7 +51,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-2026-05-1
 - Cons: 3× the operational surface (3 systemd units, 3 inbox roots, 3 cursors); duplicates routing/usage call chain; violates "one decision per message".
 - Cons: makes the multi-account fan-out plumbing harder, not easier.
 
-**Option C — In-process driver inside `oya-foundry-dashboard-app`.**
+**Option C — In-process driver inside `oya-intelligence-dashboard-app`.**
 + Pros: zero new binary; reuses dashboard projection.
 - Cons: dashboard is the *read* plane; embedding `fork+exec` violates inward-only flow and breaks the 12-layer cohesion lane.
 - Cons: any subprocess hang takes the dashboard read API with it.
@@ -68,7 +68,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-2026-05-1
 - **Integration (jsonl adapter ↔ kernel)** — single-writer cursor invariants, crash mid-fsync recovery (cursor never advances past unflushed data), atomic-rename under concurrent producers.
 - **E2E matrix** — 3 CLIs × ≥ 2 accounts × {API-key mode, subscription mode} × ≥ 1 message each; verify no silent-switch, no double-spend, audit chain complete.
 - **Observability** — `dashboard-kernel` projects `session`, `inbox_depth`, `outbox_tail`, `idle_ticks_total`, `watchdog_kills_total`, `dead_letters_total`; smoke asserts every row visible read-only and 405 on write.
-- **Perf budget** — idle tick **≤ 25 tokens p95**; restart latency **p95 ≤ 1.5 s**; supervisor RSS **≤ 64 MiB** at 200 inbox depth; cursor write **≤ 1 ms p99** on local nvme. Bench harness lives in `crates/oya-foundry-supervisor-app/benches/`.
+- **Perf budget** — idle tick **≤ 25 tokens p95**; restart latency **p95 ≤ 1.5 s**; supervisor RSS **≤ 64 MiB** at 200 inbox depth; cursor write **≤ 1 ms p99** on local nvme. Bench harness lives in `crates/oya-intelligence-supervisor-app/benches/`.
 
 ---
 
@@ -78,13 +78,13 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-2026-05-1
 
 Naming-justification (v4 BNF + 12-layer enum):
 
-1. **`oya-foundry-supervisor-kernel`** — *kernel layer.* Pure types/traits, std + `core` only. BNF: `oya-<product:foundry>-<service:supervisor>-<layer:kernel>`. 12-layer enum: `kernel`. Cohesion: zero I/O, no `tokio`.
+1. **`oya-intelligence-supervisor-kernel`** — *kernel layer.* Pure types/traits, std + `core` only. BNF: `oya-<product:foundry>-<service:supervisor>-<layer:kernel>`. 12-layer enum: `kernel`. Cohesion: zero I/O, no `tokio`.
 2. **`oya-foundry-supervisor-adapter-jsonl`** — *adapter layer.* Reference file-backed inbox/outbox. BNF: `oya-<product>-<service>-<role:adapter>-<medium:jsonl>`. 12-layer enum: `adapter`. Cohesion: only filesystem I/O + `tokio::fs`.
-3. **`oya-foundry-supervisor-app`** — *app layer.* Daemon entrypoint that composes (a) `supervisor-kernel`, (b) `supervisor-adapter-jsonl`, (c) the 3 CLI driver impls, (d) `route-policy-kernel`, (e) `usage-window-kernel`, (f) `provider-pool-kernel`, (g) `evidence-domain`, (h) `dashboard-kernel` projection. BNF: `oya-<product>-<service>-<role:app>`. 12-layer enum: `app`. Cohesion: composition only — no business logic.
+3. **`oya-intelligence-supervisor-app`** — *app layer.* Daemon entrypoint that composes (a) `supervisor-kernel`, (b) `supervisor-adapter-jsonl`, (c) the 3 CLI driver impls, (d) `route-policy-kernel`, (e) `usage-window-kernel`, (f) `provider-pool-kernel`, (g) `evidence-domain`, (h) `dashboard-kernel` projection. BNF: `oya-<product>-<service>-<role:app>`. 12-layer enum: `app`. Cohesion: composition only — no business logic.
 
 Surface expansions (no new crate):
-- `oya-foundry-route-policy-kernel` — add `select_account_for_message()` returning `SessionTicket` (carries the existing `RouteExplanation` + the new fields).
-- `oya-foundry-usage-window-kernel` — add `try_reserve_for(ticket, projected_tokens) -> Reservation { Reserved | RefuseRetryAfter(Duration) | HardDeny(reason) }` and `observed_spend(ticket, actual_tokens)`.
+- `oya-intelligence-route-policy-kernel` — add `select_account_for_message()` returning `SessionTicket` (carries the existing `RouteExplanation` + the new fields).
+- `oya-intelligence-usage-window-kernel` — add `try_reserve_for(ticket, projected_tokens) -> Reservation { Reserved | RefuseRetryAfter(Duration) | HardDeny(reason) }` and `observed_spend(ticket, actual_tokens)`.
 
 Adapter impls (no new crate; impl lives in the existing CLI adapter):
 - `oya-foundry-account-adapter-claude-code` — `impl SessionDriver` (native stop-hook).
@@ -94,10 +94,10 @@ Adapter impls (no new crate; impl lives in the existing CLI adapter):
 ### B.2 Public contracts (rough compilable shape)
 
 ```rust
-// oya-foundry-supervisor-kernel/src/lib.rs
+// oya-intelligence-supervisor-kernel/src/lib.rs
 
-pub use oya_foundry_account_kernel::{AccountId, ProviderFamily, SessionId};
-pub use oya_foundry_capability_registry_kernel::AutonomyTier;
+pub use oya_intelligence_account_kernel::{AccountId, ProviderFamily, SessionId};
+pub use oya_intelligence_capability_registry_kernel::AutonomyTier;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SessionTicket {
@@ -175,7 +175,7 @@ pub trait SessionDriver: Send + Sync + 'static {
 
 Process tree:
 ```
-oya-foundry-supervisor-app (parent, long-lived, systemd-managed)
+oya-intelligence-supervisor-app (parent, long-lived, systemd-managed)
 ├── inbox reader task     (single-writer cursor; tokio task)
 ├── outbox writer task    (single-writer; tokio task)
 ├── dispatcher task       (consumes InboxItem → SessionDriver)
@@ -244,7 +244,7 @@ Acceptance gate: a conformance test crate validates each adapter against the sam
 
 ### B.7 Hyper integration (no new HTTP stack)
 
-Webhook receiver + cron trigger are **routes registered on the existing `oya-foundry-api-rest-adapter`** (hyper). The supervisor crate exposes a `RestRoutes` value (path + handler closure list) that `dashboard-app` mounts at boot. No axum, no tower-http, no warp — this is enforced by `fitness-banned-primitives-kernel`.
+Webhook receiver + cron trigger are **routes registered on the existing `oya-intelligence-api-rest-adapter`** (hyper). The supervisor crate exposes a `RestRoutes` value (path + handler closure list) that `dashboard-app` mounts at boot. No axum, no tower-http, no warp — this is enforced by `fitness-banned-primitives-kernel`.
 
 Routes added:
 - `POST /v1/supervisor/inbox` — enqueue (auth via existing Cedar policy on `foundry.supervisor.inject_message`).
@@ -262,7 +262,7 @@ Routes added:
 | `foundry.supervisor.dead_letter`   | T3           | `deadletter.cedar` | Quarantine |
 | `foundry.supervisor.dashboard_read`| T1           | `read.cedar`   | Read-only projection |
 
-All rows registered via existing `oya-foundry-capability-registry-app` at boot — supervisor does **not** invent a registration mechanism.
+All rows registered via existing `oya-intelligence-capability-registry-app` at boot — supervisor does **not** invent a registration mechanism.
 
 ### B.9 Phase plan — M02 fan-in (NOT a new phase)
 
@@ -288,7 +288,7 @@ ADRs:
 - `ADR-00AA-supervisor-jsonl-durability.md` — single-writer cursor, atomic-rename, fsync invariants, crash recovery.
 
 Doc-coverage (ADR-0063 mandates the full suite per crate):
-- `crates/oya-foundry-supervisor-kernel/docs/{overview,prd,api,operations,security,observability,compatibility}.md`
+- `crates/oya-intelligence-supervisor-kernel/docs/{overview,prd,api,operations,security,observability,compatibility}.md`
 - Same suite for `-adapter-jsonl` and `-app`.
 - `docs/foundry/supervisor/overview.md` — cross-crate operator narrative.
 
@@ -296,9 +296,9 @@ Doc-coverage (ADR-0063 mandates the full suite per crate):
 
 Build:
 ```
-rtk cargo build -p oya-foundry-supervisor-kernel
+rtk cargo build -p oya-intelligence-supervisor-kernel
 rtk cargo build -p oya-foundry-supervisor-adapter-jsonl
-rtk cargo build -p oya-foundry-supervisor-app
+rtk cargo build -p oya-intelligence-supervisor-app
 ```
 
 Conformance:
@@ -308,12 +308,12 @@ rtk cargo test -p oya-foundry-supervisor-conformance --features claude,codex,gem
 
 E2E live-smoke matrix (3 CLI × ≥ 2 accounts × {api, subscription} × ≥ 1 msg):
 ```
-rtk cargo run -p oya-foundry-supervisor-app -- e2e-matrix --config tests/e2e/supervisor.toml
+rtk cargo run -p oya-intelligence-supervisor-app -- e2e-matrix --config tests/e2e/supervisor.toml
 ```
 
 Bench harness (acceptance numbers):
 ```
-rtk cargo bench -p oya-foundry-supervisor-app -- idle_tick restart_latency rss_at_depth_200
+rtk cargo bench -p oya-intelligence-supervisor-app -- idle_tick restart_latency rss_at_depth_200
 ```
 
 Acceptance: idle tick **≤ 25 tokens p95**, restart latency **p95 ≤ 1.5 s**, RSS **≤ 64 MiB** at 200 inbox depth.
@@ -332,22 +332,22 @@ CI lanes that MUST be green:
 
 Merge order (each row = one `grit claim --intent ... <file::Identifier>`):
 
-1. `crates/oya-foundry-supervisor-kernel/src/lib.rs::SessionTicket`
-2. `crates/oya-foundry-supervisor-kernel/src/lib.rs::SessionDriver`
-3. `crates/oya-foundry-supervisor-kernel/src/lib.rs::InboxSource`
-4. `crates/oya-foundry-supervisor-kernel/src/lib.rs::OutboxSink`
-5. `crates/oya-foundry-supervisor-kernel/src/lib.rs::HeartbeatPolicy`
+1. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SessionTicket`
+2. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SessionDriver`
+3. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::InboxSource`
+4. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::OutboxSink`
+5. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::HeartbeatPolicy`
 6. `crates/oya-foundry-supervisor-adapter-jsonl/src/lib.rs::JsonlInbox`
 7. `crates/oya-foundry-supervisor-adapter-jsonl/src/lib.rs::JsonlOutbox`
-8. `crates/oya-foundry-route-policy-kernel/src/lib.rs::select_account_for_message`
-9. `crates/oya-foundry-usage-window-kernel/src/lib.rs::try_reserve_for`
-10. `crates/oya-foundry-usage-window-kernel/src/lib.rs::observed_spend`
+8. `crates/oya-intelligence-route-policy-kernel/src/lib.rs::select_account_for_message`
+9. `crates/oya-intelligence-usage-window-kernel/src/lib.rs::try_reserve_for`
+10. `crates/oya-intelligence-usage-window-kernel/src/lib.rs::observed_spend`
 11. `crates/oya-foundry-account-adapter-claude-code/src/lib.rs::ClaudeCodeSessionDriver`
 12. `crates/oya-foundry-account-adapter-codex-cli/src/lib.rs::CodexCliSessionDriver`
 13. `crates/oya-foundry-account-adapter-gemini-cli/src/lib.rs::GeminiCliSessionDriver`
-14. `crates/oya-foundry-supervisor-app/src/lib.rs::SupervisorDaemon`
-15. `crates/oya-foundry-supervisor-app/src/lib.rs::rest_routes`
-16. `crates/oya-foundry-capability-registry-app/src/lib.rs::register_supervisor_rows`
+14. `crates/oya-intelligence-supervisor-app/src/lib.rs::SupervisorDaemon`
+15. `crates/oya-intelligence-supervisor-app/src/lib.rs::rest_routes`
+16. `crates/oya-intelligence-capability-registry-app/src/lib.rs::register_supervisor_rows`
 
 Each claim unit lands its own ADR/doc deltas where applicable. `grit done --agent <id>` is the merge primitive per ADR-0054.
 
@@ -360,7 +360,7 @@ Each claim unit lands its own ADR/doc deltas where applicable. `grit done --agen
 3. **Multi-account fan-out**: live-smoke completes ≥ 2 accounts × ≥ 2 providers × ≥ 1 message each, with `RouteExplanation` rows in the audit chain showing distinct decisions; `check_silent_switch` green.
 4. **Usage-window deny path**: at the (N+1)th message that would breach `reserve_remaining_pct`, `usage_window_kernel` returns `HardDeny`; outbox shows `HardDeny` row; audit run/step emitted; capability tier demotion fired when failure rate threshold crossed.
 5. **Perf**: idle tick ≤ 25 tokens p95, restart latency p95 ≤ 1.5 s, RSS ≤ 64 MiB at inbox depth 200 — all in committed bench output.
-6. **Hyper-only**: webhook + cron served by `oya-foundry-api-rest-adapter`; no new HTTP crate; `fitness-banned-primitives-kernel` lane green.
+6. **Hyper-only**: webhook + cron served by `oya-intelligence-api-rest-adapter`; no new HTTP crate; `fitness-banned-primitives-kernel` lane green.
 7. **Doc + ADR + naming-justification**: 4 ADRs landed; doc-suite present for all 3 new crates; lean-a5 + lean-a10 + 7 fitness lanes green.
 8. **Dashboard projection**: new rows (`session`, `inbox_depth`, `outbox_tail`, `idle_ticks_total`, `watchdog_kills_total`, `dead_letters_total`) visible read-only; **405** on any write.
 9. **No raw secrets in inbox/outbox**: only `SecretReference` (`sref://...`) traversed; `account-domain` silent-switch detection assertion green in conformance suite.

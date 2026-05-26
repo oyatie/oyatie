@@ -213,7 +213,7 @@ The lane validates two invariants:
 1. `oyatie/docs/PRD.md` contains a citation block referencing `bominal/docs/consolidated/PRD.md` as portfolio parent.
 2. `bominal/docs/consolidated/PRD.md` contains a citation block referencing `oyatie/docs/PRD.md` as canonical implementation home.
 
-Pseudo-implementation (Rust, lives at `crates/oya-foundry-fitness-portfolio-citation-kernel/`):
+Pseudo-implementation (Rust, lives at `crates/oya-governance-portfolio-citation-kernel/`):
 
 ```rust
 //! Foundry portfolio-citation fitness lane.
@@ -287,7 +287,7 @@ for f in TARGETED_FILES:
 exit_nonzero if any_violation else exit_zero
 ```
 
-Lane lives at `tools/oya-foundry-fitness-banned-primitives/`; kernel at `crates/oya-foundry-fitness-banned-primitives-kernel/` for the matcher logic (pure, deterministic).
+Lane lives at `tools/oya-foundry-fitness-banned-primitives/`; kernel at `crates/oya-governance-banned-primitives-kernel/` for the matcher logic (pure, deterministic).
 
 ---
 

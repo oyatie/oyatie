@@ -8,7 +8,7 @@
   "branch": "agent/durable-goal-status-honesty",
   "session_id": "claude-durable-goal-master-plan-completion-2026-05-16",
   "agent_id": "claude-durable-goal-master-plan-completion",
-  "task": "Wire NEXT-004 status-honesty hard gate (master-plan-completion) as per-PR CI lane. Gate logic was already implemented at crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs and registered in crates/oya-foundry-gate-catalog-domain::AGGREGATED_VALIDATE_LANES (line 92), so `oya verify --include-deferred` already runs it locally. This slice adds: (1) per-PR workflow file, (2) lanes.yaml registry row, (3) ci-lanes.md human-readable mirror row. Branch-protection required_status_checks inclusion is admin-scope follow-up (F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION). Also files F-MASTERPLAN-INDEX-SYNC for the 22-IP drift between specs/masterplan.json (150 IPs) and .omc/plans/ source (172 IPs).",
+  "task": "Wire NEXT-004 status-honesty hard gate (master-plan-completion) as per-PR CI lane. Gate logic was already implemented at crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs and registered in crates/oya-governance-gate-catalog-domain::AGGREGATED_VALIDATE_LANES (line 92), so `oya verify --include-deferred` already runs it locally. This slice adds: (1) per-PR workflow file, (2) lanes.yaml registry row, (3) ci-lanes.md human-readable mirror row. Branch-protection required_status_checks inclusion is admin-scope follow-up (F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION). Also files F-MASTERPLAN-INDEX-SYNC for the 22-IP drift between specs/masterplan.json (150 IPs) and .omc/plans/ source (172 IPs).",
   "artifacts_touched": [
     ".github/workflows/oya-foundry-fitness-master-plan-completion.yml (NEW; per-PR required-check workflow; mirrors oya-foundry-fitness-cohesion.yml shape)",
     "registry/quality/lanes.yaml (one row added under per-pr stage after loop-recovery-patterns)",
@@ -132,7 +132,7 @@
   },
   "commands": {
     "master_plan_completion_local_run": {"status": "pass", "summary": "cargo run -p oya-dev-cli -- gate validate master-plan-completion: 78 phases, 150 implementation plans validated"},
-    "admission_gate_app_run": {"status": "pass", "summary": "cargo run -q -p oya-foundry-vcs-admission-gate-app: metadata + authority + cargo tests + CLI smoke PASS"},
+    "admission_gate_app_run": {"status": "pass", "summary": "cargo run -q -p oya-vcs-admission-gate-app: metadata + authority + cargo tests + CLI smoke PASS"},
     "fixuptasks_appended": {"status": "pass", "summary": "F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION + F-MASTERPLAN-INDEX-SYNC appended to registry/fixuptasks.jsonl"}
   },
   "council_consensus": {

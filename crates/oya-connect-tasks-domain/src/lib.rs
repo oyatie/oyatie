@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_foundry_capability_domain::AutonomyTier;
+use oya_intelligence_capability_domain::AutonomyTier;
 
 const TASK_STORE_SCHEMA_VERSION: u32 = 1;
 const TASK_SCHEMA_VERSION: u32 = 1;

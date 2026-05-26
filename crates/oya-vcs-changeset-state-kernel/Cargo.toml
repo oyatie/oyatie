@@ -1,0 +1,25 @@
+[package]
+name = "oya-vcs-changeset-state-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+vertical = "foundry"
+bounded_context = "vcs-changeset-state"
+kind = "shared"
+layer = "kernel"
+purpose = "Pure-domain port-in-kernel for the agentic-VCS changeset state machine (ADR-0110): closed 13-value ChangesetState enum, ChangesetEvent shape, and monotonic-event-log validator. No I/O; std-only deps."
+lifecycle.stage = "scaffolded"
+
+[dependencies]
+
+[lib]
+name = "oya_vcs_changeset_state_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

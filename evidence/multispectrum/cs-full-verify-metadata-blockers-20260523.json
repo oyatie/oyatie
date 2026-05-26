@@ -102,8 +102,8 @@
         "design-spec-maturity-claims \u2014 81 missing service-surface maturity declarations",
         "dependency-seam \u2014 1 blocking diagnostic in run-all context",
         "layered-architecture-discipline \u2014 16 MeshTierUnderclaimed manifest violations",
-        "cargo run -q -p oya-foundry-vcs-admission-gate-app \u2014 missing required provider proof tool trivy",
-        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json \u2014 missing required provider proof tool trivy",
+        "cargo run -q -p oya-vcs-admission-gate-app \u2014 missing required provider proof tool trivy",
+        "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json \u2014 missing required provider proof tool trivy",
         "bash scripts/github-actions-required-secrets-check.sh \u2014 required command not found: gh"
       ]
     },

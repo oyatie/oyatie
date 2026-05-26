@@ -20,10 +20,10 @@ purpose: |
   rationale logged). ccproxy-api has no automated drift lane; this is net-new and brings
   oyatie to hyperscaler-bar API-stability discipline (Directive 6).
 grit_claim_symbols:
-  - "crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::detect_drift"
-  - "crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::DriftReport"
-  - "crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::DriftSeverity"
-  - "crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::DriftEntry"
+  - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::detect_drift"
+  - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftReport"
+  - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftSeverity"
+  - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftEntry"
   - "tools/oya-foundry-fitness-upstream-api-drift/src/main.rs::run"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
@@ -63,11 +63,11 @@ the suggested contract delta and reviewer-agent handoff (`api-shape-reviewer`).
 ## Symbols to grit-claim
 
 ```
-crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::detect_drift
-crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::DriftReport
-crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::DriftSeverity
-crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs::DriftEntry
-crates/oya-foundry-fitness-upstream-api-drift-kernel/src/registry.rs::UpstreamRegistry
+crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::detect_drift
+crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftReport
+crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftSeverity
+crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftEntry
+crates/oya-governance-upstream-api-drift-kernel/src/registry.rs::UpstreamRegistry
 tools/oya-foundry-fitness-upstream-api-drift/src/main.rs::run
 .github/workflows/upstream-api-drift.yml::oya-foundry-fitness-upstream-api-drift
 ```
@@ -113,8 +113,8 @@ Before `grit claim`, the agent **MUST**:
 ## Acceptance test commands
 
 ```
-$ cargo nextest run -p oya-foundry-fitness-upstream-api-drift-kernel --all-features # expect: PASS, 0 failures
-$ cargo clippy -p oya-foundry-fitness-upstream-api-drift-kernel -- -D warnings      # expect: PASS, 0 warnings
+$ cargo nextest run -p oya-governance-upstream-api-drift-kernel --all-features # expect: PASS, 0 failures
+$ cargo clippy -p oya-governance-upstream-api-drift-kernel -- -D warnings      # expect: PASS, 0 warnings
 $ cargo deny check                                                                   # expect: PASS
 $ oya gate validate oya-foundry-fitness-upstream-api-drift                           # expect: PASS
 $ oya-tooling-agent-read run-evidence "scripts/smoke/drift-simulation.sh"            # expect: mutated-upstream-spec → DriftReport with severity=Breaking + correct entry list

@@ -11,7 +11,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/manifest.json",
     "tasks/plan.md",
     "tasks/todo.md",
@@ -50,7 +50,7 @@
       "summary": "9 focused tests passed, covering parser defaults/unknown flags, coherent fixtures, manifest context drift, manifest application_kind drift, concrete repoURL overclaim, missing ServerSideApply, credential markers, and run-all catalog membership."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed after adding cloud-iac-gitops-evidence to AGGREGATED_VALIDATE_LANES."
     },
@@ -65,12 +65,12 @@
       "summary": "Existing Cloud IaC module catalog gate remains green: 6 modules and 8 files checked."
     },
     {
-      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain",
+      "command": "cargo check -p oya-dev-cli -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "Scoped Rust check passed."
     },
     {
-      "command": "cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings",
+      "command": "cargo clippy -p oya-dev-cli -p oya-governance-gate-catalog-domain --all-targets -- -D warnings",
       "result": "PASS",
       "summary": "Scoped clippy passed with warnings denied."
     },

@@ -57,7 +57,7 @@
       "id": "A2-PR13-04",
       "severity": "MAJOR",
       "title": "Amended ADRs lack explicit 'Amended by' annotation",
-      "evidence": "ADR-0104 diff replaces inline reference text only (`'Mechanical-prevention candidate landed separately as oya-foundry-fitness-adapter-with-no-importer-kernel; do not extend the retired archive-orphan lane (ADR-0118).'`). ADR-0107 diff edits three table cells inline. Neither ADR adds a top-level `Amended by: ADR-0118 (2026-05-16)` header line in frontmatter or a 'Status' / 'Amendments' section.",
+      "evidence": "ADR-0104 diff replaces inline reference text only (`'Mechanical-prevention candidate landed separately as oya-governance-adapter-with-no-importer-kernel; do not extend the retired archive-orphan lane (ADR-0118).'`). ADR-0107 diff edits three table cells inline. Neither ADR adds a top-level `Amended by: ADR-0118 (2026-05-16)` header line in frontmatter or a 'Status' / 'Amendments' section.",
       "impact": "Doc-style standard for amendment provenance is bypassed. Readers cannot tell from header that ADR-0104/0107 were modified post-acceptance; supersedes/amends chains in machine-readable decisions.json miss the amendment direction (ADR-0118 has supersedes=[ADR-0052] but no relation back from ADR-0104/0107).",
       "fix": "Add `amended_by: [ADR-0118]` and `amended_on: [2026-05-16]` to ADR-0104 and ADR-0107 frontmatter, plus an 'Amendments' section at the end of each ADR body summarizing the inline edit and linking ADR-0118. Mirror in decisions.json."
     },

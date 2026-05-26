@@ -46,16 +46,16 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-15 — Fitness lane `oya-foundry-fitness-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
 
-- Added `crates/oya-foundry-fitness-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-foundry-fitness-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
+- Added `crates/oya-governance-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-governance-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
 - Kernel exposes `Date`, `SunsetClause`, `LifecycleState` (5 variants: PRE_SUNSET / SUNSET_REACHED / DEPRECATED / REMOVAL_REACHED / MISSING_FIELDS), `Violation`, `evaluate(clauses, now, reached_milestones)`, `effective_deprecation_at`, `effective_removal_at`. Canonical sub-rule defaults: `deprecation_at = sunset_at + 30 days`, `removal_at = effective_deprecation_at + 90 days`. 11 kernel unit tests + 7 dev-CLI tests pass.
-- Workspace members updated (`crates/oya-foundry-fitness-sunset-lifecycle-kernel`, `tools/oya-foundry-fitness-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
+- Workspace members updated (`crates/oya-governance-sunset-lifecycle-kernel`, `tools/oya-governance-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
 - ADR-0108 anchors the machine-readable schema (`sunset_at` OR `sunset_milestone`, plus optional `deprecation_at`, `removal_at`, `sunset_topic`); complements ADR-0037 (runtime-side per-tenant `DeprecationUsed` events) and ADR-0109 (generic lifecycle-automation framework). Scaffold-lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — Fitness lane `oya-foundry-fitness-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
 
-- Added `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-foundry-fitness-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
+- Added `crates/oya-governance-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-foundry-fitness-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
 - Kernel exposes `WorkspaceCrate`, `Violation`, `AdapterImporterReport`, and `check`; port-in-kernel per ADR-0056 (filesystem walking lives in the dev-CLI). 8 kernel unit tests + 3 dev-CLI parser tests pass.
-- Workspace members updated (`crates/oya-foundry-fitness-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
+- Workspace members updated (`crates/oya-governance-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
 - Implements ADR-0104 Consequences §4 mechanical-prevention candidate; scaffold lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
@@ -165,7 +165,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-14 — M01-P08-IP-012 authoritative-tracked lane
 
-- Added `oya-foundry-fitness-authoritative-tracked-kernel` and `tools/oya-foundry-fitness-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
+- Added `oya-governance-authoritative-tracked-kernel` and `tools/oya-foundry-fitness-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
 - The runner parses the canonical doc map, accepts tracked directories through tracked children, and fails on missing, ignored, or untracked authoritative artifacts.
 - Corrected `docs/AGENTS.md` masterplan authority pointer to current tracked `docs/MASTERPLAN.md` after the lane exposed an untracked future-target pointer.
 - Updated the IP-012 good-taste row with the single typed-list behavior.
@@ -269,12 +269,12 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-12 — Foundry RAG retrieve API contract
 
-- Added the stable `foundry.rag.retrieve` REST boundary via `oya-foundry-rag-api`, enforcing tenant/index namespace binding, Foundry authorization evidence, idempotent retrieval semantics, privacy-program data-class allowlists, and purpose-bound consent receipts before citation return.
+- Added the stable `foundry.rag.retrieve` REST boundary via `oya-intelligence-rag-api`, enforcing tenant/index namespace binding, Foundry authorization evidence, idempotent retrieval semantics, privacy-program data-class allowlists, and purpose-bound consent receipts before citation return.
 - Registered `contracts/openapi/foundry/rag-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
 
 ## 2026-05-12 — Foundry capability publish API contract
 
-- Added the stable `foundry.capability.publish` REST boundary via `oya-foundry-registry-api`, enforcing path/body capability binding, Cedar authorization evidence, idempotent publish semantics, typed capability schema projection, provider/cost validation, and signed passing eval gates.
+- Added the stable `foundry.capability.publish` REST boundary via `oya-intelligence-registry-api`, enforcing path/body capability binding, Cedar authorization evidence, idempotent publish semantics, typed capability schema projection, provider/cost validation, and signed passing eval gates.
 - Registered `contracts/openapi/foundry/registry-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
 
 ## 2026-05-12 — Foundry autonomy ceiling policy publish API contract

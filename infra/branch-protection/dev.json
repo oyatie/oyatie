@@ -4,7 +4,7 @@
   "branch": "dev",
   "required_status_checks": {
     "strict": false,
-    "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade. The own-merge-queue (oya-foundry-vcs-review-mergequeue-kernel) handles ordering via file-overlap clustering; GitHub-side up-to-date enforcement is unnecessary and harmful at scale.",
+    "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade. The own-merge-queue (oya-vcs-review-mergequeue-kernel) handles ordering via file-overlap clustering; GitHub-side up-to-date enforcement is unnecessary and harmful at scale.",
     "contexts": [
       "cargo-fmt",
       "cargo-check",

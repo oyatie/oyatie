@@ -26,15 +26,15 @@ states) plus the three terminal-fail states (`abandoned`, `rejected`,
   (ADR-0361; the retired GitHub Actions job is superseded).
 - Every `to_state` value MUST be one of the 13 closed-enum values
   emitted by `ChangesetState::as_wire()` in
-  `crates/oya-foundry-vcs-changeset-state-kernel`. Drift is caught by
+  `crates/oya-vcs-changeset-state-kernel`. Drift is caught by
   the `oya-foundry-fitness-changeset-state-enum-closed` CI lane.
 
 ### Writer
 
-The canonical writer is `oya-foundry-vcs-changeset-state-app`:
+The canonical writer is `oya-vcs-changeset-state-app`:
 
 ```text
-cargo run -q -p oya-foundry-vcs-changeset-state-app -- \
+cargo run -q -p oya-vcs-changeset-state-app -- \
     append --changeset cs_<ulid> --to-state opened \
     --emitted-by <agent-id> [--evidence k=v,k=v]
 ```
@@ -51,7 +51,7 @@ real-Ed25519-keyed wiring is wave-B.
 ## `event-router.yaml`
 
 Canonical `(event, action [, conclusion]) -> Foundry-agent` mapping
-consumed by `oya-foundry-webhook-receiver-app` per ADR-0112
+consumed by `oya-vcs-webhook-receiver-app` per ADR-0112
 §"Event-router table". The receiver verifies HMAC, dedups, then looks
 up the routed agent against this table. New rows MUST go through an
 ADR amendment (no silent additions). Completeness is asserted by the
@@ -96,7 +96,7 @@ Every appended row is shaped:
 ```
 
 The 7-day TTL is applied at lookup time inside
-`oya-foundry-webhook-receiver-kernel::find_dedup_status`; expired rows
+`oya-vcs-webhook-receiver-kernel::find_dedup_status`; expired rows
 are reported as `Expired` so the GC + fresh-route path runs without
 appending a duplicate. Monotonic invariant (no `delivery_id` appearing
 twice with conflicting outcomes) is asserted by the

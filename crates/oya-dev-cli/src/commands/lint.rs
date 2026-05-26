@@ -8,8 +8,8 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 const REQUIRED_ACCOUNT_CRATES: &[&str] = &[
-    "oya-foundry-account-kernel",
-    "oya-foundry-account-domain",
+    "oya-intelligence-account-kernel",
+    "oya-intelligence-account-domain",
     "oya-foundry-account-app",
     "oya-foundry-account-adapter-codex-cli",
     "oya-foundry-account-adapter-claude-code",
@@ -19,13 +19,13 @@ const REQUIRED_ACCOUNT_CRATES: &[&str] = &[
 ];
 
 const REQUIRED_P03_KERNEL_CRATES: &[&str] = &[
-    "oya-foundry-fitness-claim-ceiling-kernel",
-    "oya-foundry-fitness-bypass-kernel",
-    "oya-foundry-fitness-pr-traceability-kernel",
-    "oya-foundry-fitness-pre-push-kernel",
-    "oya-foundry-fitness-quality-lane-kernel",
-    "oya-foundry-fitness-cohesion-fitness-kernel",
-    "oya-foundry-bypass-ledger-kernel",
+    "oya-governance-claim-ceiling-kernel",
+    "oya-governance-bypass-kernel",
+    "oya-governance-pr-traceability-kernel",
+    "oya-governance-pre-push-kernel",
+    "oya-governance-quality-lane-kernel",
+    "oya-governance-cohesion-fitness-kernel",
+    "oya-intelligence-bypass-ledger-kernel",
 ];
 
 const REQUIRED_PHASE00_IPS: &[&str] = &[

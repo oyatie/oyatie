@@ -11,7 +11,7 @@ doc_status: published
 ## 12-Layer Placement
 
 ```
-L1: Kernel          ← oya-foundry-supervisor-kernel (THIS CRATE)
+L1: Kernel          ← oya-intelligence-supervisor-kernel (THIS CRATE)
     ├─ SessionTicket (value type)
     ├─ InboxState (enum)
     ├─ SpendRecord (value type)
@@ -24,17 +24,17 @@ L1: Kernel          ← oya-foundry-supervisor-kernel (THIS CRATE)
 
 L2-L3: (reserved for future kernel extensions)
 
-L4: Adapter         ← oya-foundry-jsonl-supervisor-adapter
+L4: Adapter         ← oya-intelligence-jsonl-supervisor-adapter
     ├─ JsonlInboxStore (impl InboxStore)
     ├─ JsonlOutboxSink (impl OutboxSink)
     └─ (dead-letter, peek_lock TTL, fsync)
 
-L4: Adapter         ← oya-foundry-settings-template-adapter
+L4: Adapter         ← oya-intelligence-settings-template-adapter
     ├─ ClaudeRenderer (impl SettingsRenderer)
     ├─ CodexRenderer (impl SettingsRenderer)
     └─ GeminiRenderer (impl SettingsRenderer)
 
-L5: Application     ← oya-foundry-supervisor-app
+L5: Application     ← oya-intelligence-supervisor-app
     ├─ SupervisorApp (daemon)
     ├─ tick_once() (call chain)
     ├─ hyper webhook (MiddlewareChain)
@@ -44,21 +44,21 @@ L5: Application     ← oya-foundry-supervisor-app
 ## Dependency Flow (Inward-Only)
 
 ```
-oya-foundry-supervisor-app
+oya-intelligence-supervisor-app
   │
-  ├─→ oya-foundry-supervisor-kernel (port trait use)
-  ├─→ oya-foundry-jsonl-supervisor-adapter (impl InboxStore)
-  ├─→ oya-foundry-settings-template-adapter (impl SettingsRenderer)
+  ├─→ oya-intelligence-supervisor-kernel (port trait use)
+  ├─→ oya-intelligence-jsonl-supervisor-adapter (impl InboxStore)
+  ├─→ oya-intelligence-settings-template-adapter (impl SettingsRenderer)
   │
   └─→ oya-foundry-account-adapter-* (SessionDriver impls)
 
-oya-foundry-jsonl-supervisor-adapter
-  └─→ oya-foundry-supervisor-kernel (port trait def)
+oya-intelligence-jsonl-supervisor-adapter
+  └─→ oya-intelligence-supervisor-kernel (port trait def)
 
-oya-foundry-settings-template-adapter
-  └─→ oya-foundry-settings-template-kernel (value types)
+oya-intelligence-settings-template-adapter
+  └─→ oya-intelligence-settings-template-kernel (value types)
 
-oya-foundry-supervisor-kernel
+oya-intelligence-supervisor-kernel
   └─→ (no supervisor deps — std only)
 ```
 
@@ -130,7 +130,7 @@ impl RoutePolicy {
     pub fn select(&self, eligible: &[ProviderAccount]) 
         -> Result<AccountId, NoEligibleAccount>
     {
-        // Delegates to oya-foundry-route-policy-kernel
+        // Delegates to oya-intelligence-route-policy-kernel
         // Per ADR-0055: multi-policy composition (round-robin, least-loaded, …)
     }
 }
@@ -139,7 +139,7 @@ impl RoutePolicy {
 ### `UsageEnforcement` Shim
 
 ```rust
-// Similarly, wraps oya-foundry-usage-window-kernel:
+// Similarly, wraps oya-intelligence-usage-window-kernel:
 impl UsageEnforcement {
     pub fn check_limit(&self, ticket: &SessionTicket, spend: &SpendRecord)
         -> Result<(), OverLimit>

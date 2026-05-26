@@ -98,7 +98,7 @@ the workspace `Cargo.toml` files (`grep -r 'path = "../<crate>"'`).
 | # | Current name | Proposed name | Class | Direct consumers | Effort | Risk | Cutover order |
 |---:|---|---|---|---:|:---:|---|---:|
 | 1 | `oya-foundation-app` | `oya-foundation-composition-app` | TOOSHORT | 1 (`oya-tooling-cli-dev-runtime`) | M | low-MED — sole foundation singleton; dep is the dev-runtime CLI; doc cross-refs need update | 8 |
-| 2 | `oya-foundry-api` | `oya-foundry-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
+| 2 | `oya-intelligence-api` | `oya-foundry-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
 | 3 | `oya-foundry-data-class-fitness-kernel` | `oya-foundry-data-class-kernel` *(drop `fitness`; the foundry context already implies fitness)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low — fitness is the foundry context's purpose | 2 |
 | 4 | `oya-foundry-raci-team-coverage-kernel` | `oya-foundry-raci-coverage-kernel` *(drop `team`; RACI implies team)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 3 |
 | 5 | `oya-foundry-readme-doc-coverage-kernel` | `oya-foundry-readme-coverage-kernel` *(README implies doc)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 4 |
@@ -107,18 +107,18 @@ the workspace `Cargo.toml` files (`grep -r 'path = "../<crate>"'`).
 | 8 | `oya-tooling-agent-read` | `oya-tooling-agent-cli-read` *(insert role `cli` before capability `read`)* OR `oya-tooling-agent-read-cli` *(role last)* | NO-ROLE | 0 | S | low — newly-added bin-only crate; not yet imported | 7 |
 | 9 | `oya-tooling-cli-dev-runtime` | `oya-tooling-dev-runtime` *(`cli` and `runtime` are redundant; pick role `runtime`)* OR keep as-is by admitting `cli-dev` as compound | LONG-CAPTAIL | many (workspace dev-binary host) | L | **HIGH** — this is the workspace's primary dev binary (`oya`, `repoctl`); CI scripts, AGENTS.md, docs reference it by name | 9 |
 
-### 2.1 Note on `oya-foundry-api`
+### 2.1 Note on `oya-intelligence-api`
 
-`oya-foundry-api` parses as `context=foundry` + (no feature) + role `api`.
+`oya-intelligence-api` parses as `context=foundry` + (no feature) + role `api`.
 Possible re-interpretations:
 
 1. Insert a feature segment naming the bound surface. The crate's
    `[lib]` exposes the foundry policy binding for external consumers
    (foundry policy ↔ cloud / platform contracts). Proposed:
    `oya-foundry-policy-binding-api` — but this clashes semantically with
-   the existing `oya-foundry-policy-api`. The right answer is probably to
-   **merge** the two into `oya-foundry-policy-api` and retire
-   `oya-foundry-api`. This adds a **MERGE** row to the plan; flagged for
+   the existing `oya-intelligence-policy-api`. The right answer is probably to
+   **merge** the two into `oya-intelligence-policy-api` and retire
+   `oya-intelligence-api`. This adds a **MERGE** row to the plan; flagged for
    architect review.
 2. If the crate truly has a distinct surface, choose a feature segment
    that does not clash (e.g. `oya-foundry-meta-api`).
@@ -146,7 +146,7 @@ scripts will need a coordinated update.
 ## 3. Cutover order — leaves → roots
 
 ```
-1. oya-foundry-api                         (zero/one consumer; cheapest first)
+1. oya-intelligence-api                         (zero/one consumer; cheapest first)
 2. oya-foundry-data-class-fitness-kernel   (1 consumer)
 3. oya-foundry-raci-team-coverage-kernel   (1 consumer)
 4. oya-foundry-readme-doc-coverage-kernel  (1 consumer)

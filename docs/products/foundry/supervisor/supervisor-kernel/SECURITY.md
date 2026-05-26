@@ -208,6 +208,6 @@ pub struct RequestId(pub String);
 - **ADR-0008:** Data use boundary + privacy classes
 - **ADR-0024:** Autonomy tier + Cedar enforcement
 - **ADR-0003:** Audit chain + evidence emission
-- **Kernel source:** `crates/oya-foundry-supervisor-kernel/src/lib.rs`
+- **Kernel source:** `crates/oya-intelligence-supervisor-kernel/src/lib.rs`
 - **v4 Plan § BLOCKER-3:** Audit-chain ADR-0003 conformance + data_class annotations
 - **v6 Plan § BLOCKER-6:** Settings-template renderer symlink defense

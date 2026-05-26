@@ -17,7 +17,7 @@
   ],
   "local_gates": [
     "runbook-freshness: PASS (was failing pre-edit with MissingStatus on grit-parallel-claim-demo.md; now 193 runbooks / 52 severity-scoped / 141 unscoped all valid)",
-    "oya-foundry-vcs-admission-gate-app: PASS"
+    "oya-vcs-admission-gate-app: PASS"
   ],
   "facets": {
     "F1_linus": {

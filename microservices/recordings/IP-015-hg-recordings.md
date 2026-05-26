@@ -23,7 +23,7 @@ eligibility ledger.
 
 - `registry/artifact-capabilities-registry.json`: add HG-RECORDINGS entry
   with the 10 SLO refs + 2 load-bearing correctness refs.
-- `crates/oya-foundry-gate-catalog-domain`: register HG-RECORDINGS in the
+- `crates/oya-governance-gate-catalog-domain`: register HG-RECORDINGS in the
   gate catalog.
 - `microservices/recordings/iac/helm/recordings/templates/prometheusrule.yaml`:
   emit the burn-rate alerts wired to the promotion ledger.
@@ -66,7 +66,7 @@ load_bearing: true
 ## Build Sequence
 
 1. Append HG-RECORDINGS entry to `registry/artifact-capabilities-registry.json`.
-2. Register in `crates/oya-foundry-gate-catalog-domain`.
+2. Register in `crates/oya-governance-gate-catalog-domain`.
 3. Author `microservices/recordings/iac/helm/recordings/templates/prometheusrule.yaml`.
 4. Update `.github/branch-protection.yaml` to require HG-RECORDINGS on `dev`.
 5. Run `cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice recordings`.

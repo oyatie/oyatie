@@ -3,7 +3,7 @@
     "docs/products/foundry/PHASE-00-SPEC.md",
     "docs/products/foundry/PRD.md",
     ".omc/fitness-lanes/portfolio-citation.md",
-    "crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs",
+    "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
     "tools/oya-foundry-fitness-portfolio-citation/src/main.rs"
   ],
   "claim": {
@@ -11,8 +11,8 @@
     "direct_git_or_gh_used_by_agent": false,
     "fallback_lock_reason": "grit claim on doc symbols returned FOREIGN KEY constraint failed; ICM scaffold lock used for docs/lane scope.",
     "grit_claimed_symbols": [
-      "crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs::verify",
-      "crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs::verify_foundry_corpus",
+      "crates/oya-governance-portfolio-citation-kernel/src/lib.rs::verify",
+      "crates/oya-governance-portfolio-citation-kernel/src/lib.rs::verify_foundry_corpus",
       "tools/oya-foundry-fitness-portfolio-citation/src/main.rs::run"
     ],
     "scaffold_lock_closed_icm_id": "01KRK6M68J04EAKHAPFJHZN9KY",
@@ -69,16 +69,16 @@
   "summary": "Foundry PHASE-00-SPEC contract surface was verified, the Foundry PRD now cross-cites the required Bominal Foundry corpus sources, and the portfolio-citation lane validates the Foundry corpus citation gate.",
   "validation": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs tools/oya-foundry-fitness-portfolio-citation/src/main.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-governance-portfolio-citation-kernel/src/lib.rs tools/oya-foundry-fitness-portfolio-citation/src/main.rs",
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs",
+      "command": "rustc --edition 2021 -D warnings --test crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
       "evidence": "5 tests passed; 0 failed",
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-portfolio-citation/src/main.rs --extern oya_foundry_fitness_portfolio_citation_kernel=/tmp/oyatie-ip005-verification/liboya_foundry_fitness_portfolio_citation_kernel.rlib",
+      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-portfolio-citation/src/main.rs --extern oya_governance_portfolio_citation_kernel=/tmp/oyatie-ip005-verification/liboya_governance_portfolio_citation_kernel.rlib",
       "evidence": "4 tests passed; 0 failed",
       "status": "passed"
     },
@@ -94,7 +94,7 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo test -p oya-foundry-fitness-portfolio-citation-kernel --all-features",
+      "command": "cargo test -p oya-governance-portfolio-citation-kernel --all-features",
       "exit_code": 101,
       "status": "blocked"
     },

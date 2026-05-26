@@ -16,7 +16,7 @@
   ],
   "local_gates": [
     "master-plan-completion: PASS (unchanged from prior slice)",
-    "oya-foundry-vcs-admission-gate-app: PASS",
+    "oya-vcs-admission-gate-app: PASS",
     "oya verify --include-deferred: 47/47 lanes green (was 44/47 at session start)"
   ],
   "facets": {

@@ -35,7 +35,7 @@
       "summary": "Normalized workflow evidence and repair evidence parse as JSON."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "Provider admission metadata/authority checks, provider execution, cargo tests, and CLI smoke passed after evidence metadata normalization.",
       "evidence": "/tmp/cs-workflow-cohesion-evidence-metadata-provider-admission.log"

@@ -8,7 +8,7 @@ purpose: Continuous evidence collection during pilot operation; retention measur
 execution_variant: merge-into-existing-crates
 decided_at: "2026-05-17"
 decided_by: user-directive-option-2
-execution_variant_note: "RetentionPolicy + RegulatorySchedule + RetentionDays added as a new module inside oya-foundry-evidence-domain (src/retention_policy.rs); zero new crate scaffolds, zero new workspace deps, std-only."
+execution_variant_note: "RetentionPolicy + RegulatorySchedule + RetentionDays added as a new module inside oya-intelligence-evidence-domain (src/retention_policy.rs); zero new crate scaffolds, zero new workspace deps, std-only."
 ---
 
 # M04-P04 — Evidence + Retention + Audit Pack

@@ -904,8 +904,8 @@
         "toml"
       ],
       "examples": [
-        "crates/oya-foundry-supervisor-kernel",
-        "crates/oya-foundry-settings-template-kernel"
+        "crates/oya-intelligence-supervisor-kernel",
+        "crates/oya-intelligence-settings-template-kernel"
       ],
       "default_capabilities": {
         "enforcement": {
@@ -1037,7 +1037,7 @@
         "rust-crate"
       ],
       "examples": [
-        "crates/oya-foundry-settings-template-adapter/src/lib.rs"
+        "crates/oya-intelligence-settings-template-adapter/src/lib.rs"
       ],
       "default_capabilities": {
         "enforcement": {

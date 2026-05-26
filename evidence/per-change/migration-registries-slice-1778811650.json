@@ -31,17 +31,17 @@
     "pass_b_non_rust": "s|\\.omc/registries|/registries/cross-cutting|g (leading slash for doctrine convention)",
     "rust_files_affected": 9,
     "rust_path_join_call_sites": [
-      "oya-foundry-fitness-architecture-map-freshness-kernel/src/lib.rs:171,181,196",
+      "oya-governance-architecture-map-freshness-kernel/src/lib.rs:171,181,196",
       "oya-dev-cli/src/active_artifact_contract_gate.rs:31,314 (PathBuf::from)",
       "oya-dev-cli/src/cedar_fragment_coverage_gate.rs:35,36 (PathBuf::from)",
       "oya-check-dependency-seam/tests/adversarial_seam_imports.rs:32,63 (base.join)",
       "oya-check-dependency-seam/src/lib.rs:115,354,884 (workspace_root.join)"
     ],
     "rust_doc_comment_call_sites": [
-      "oya-foundry-architecture-map-app/src/lib.rs:7,8,12",
+      "oya-intelligence-architecture-map-app/src/lib.rs:7,8,12",
       "oya-dev-cli/src/commands/gate.rs:16,46,75",
       "oya-check-cedar-fragment-coverage/src/lib.rs:2,10,53",
-      "oya-foundry-architecture-map-kernel/src/lib.rs:25,26,29"
+      "oya-intelligence-architecture-map-kernel/src/lib.rs:25,26,29"
     ]
   },
   "verification": {

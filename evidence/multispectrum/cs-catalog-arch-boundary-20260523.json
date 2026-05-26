@@ -12,7 +12,7 @@
       "./bin/oya gate validate master-plan-completion --master-plan specs/masterplan.json --evidence-dir evidence/multispectrum still failed on completed M01 IP rows with missing evidence JSON refs; this ChangeSet records that as next debt and does not claim it fixed."
     ],
     "root_cause_summary": [
-      "Catalog records used human/status vocabulary that the current oya-foundry-catalog-domain parser does not accept: local-foundation-reviewed, retired-compatibility, plane none, API stability retired/not-applicable, empty data class lists, and AUDIT in privacy data classes.",
+      "Catalog records used human/status vocabulary that the current oya-intelligence-catalog-domain parser does not accept: local-foundation-reviewed, retired-compatibility, plane none, API stability retired/not-applicable, empty data class lists, and AUDIT in privacy data classes.",
       "The workspace contained packages without registry/catalog rows, so architecture-boundaries could not evaluate package roles for the full workspace.",
       "A few new catalog rows initially exposed existing architecture role drift: payments charge grpc/rest/usecase and audit-chain API DTO crates needed catalog roles that reflect current dependency direction until a future code cleanup/inversion ChangeSet can remove the compatibility note."
     ]

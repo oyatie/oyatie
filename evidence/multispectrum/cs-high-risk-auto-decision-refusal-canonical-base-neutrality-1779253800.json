@@ -14,7 +14,7 @@
     "crates/oya-dev-cli/Cargo.toml",
     "crates/oya-dev-cli/src/adr_0145_gates.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "registry/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml (removed)",
     "registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml",
     "registry/quality/lanes.yaml",
@@ -27,15 +27,15 @@
   ],
   "claimed_scopes": [
     {
-      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize high-risk auto-decision refusal gate contract for canonical base\" Cargo.toml::workspace_high_risk_refusal_gate Cargo.lock::workspace_high_risk_refusal_gate crates/oya-check-eu-ai-act-annex-iii-refusal::retire_jurisdiction_named_gate_crate crates/oya-check-high-risk-auto-decision-refusal::canonical_gate_crate crates/oya-dev-cli/Cargo.toml::high_risk_refusal_dependency crates/oya-dev-cli/src/commands/gate/mod.rs::high_risk_refusal_dispatch crates/oya-dev-cli/src/adr_0145_gates.rs::high_risk_refusal_runner crates/oya-foundry-gate-catalog-domain/src/lib.rs::high_risk_refusal_catalog_lane registry/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml::retire_jurisdiction_named_catalog_entry registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml::canonical_catalog_entry registry/quality/lanes.yaml::high_risk_refusal_quality_lane docs/standards/ci-lanes.md::high_risk_refusal_quality_lane_reference specs/capabilities/canonical-tier-schema.json::risk_classification_contract specs/microservices/manifest-schema.json::risk_classification_contract specs/capabilities/eu-ai-act-risk-class-registry.json::risk_anchor_section_contract microservices::risk_classification_field_migration evidence/multispectrum/cs-high-risk-auto-decision-refusal-canonical-base-neutrality-1779253800.json::MultispectrumEvidence",
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize high-risk auto-decision refusal gate contract for canonical base\" Cargo.toml::workspace_high_risk_refusal_gate Cargo.lock::workspace_high_risk_refusal_gate crates/oya-check-eu-ai-act-annex-iii-refusal::retire_jurisdiction_named_gate_crate crates/oya-check-high-risk-auto-decision-refusal::canonical_gate_crate crates/oya-dev-cli/Cargo.toml::high_risk_refusal_dependency crates/oya-dev-cli/src/commands/gate/mod.rs::high_risk_refusal_dispatch crates/oya-dev-cli/src/adr_0145_gates.rs::high_risk_refusal_runner crates/oya-governance-gate-catalog-domain/src/lib.rs::high_risk_refusal_catalog_lane registry/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml::retire_jurisdiction_named_catalog_entry registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml::canonical_catalog_entry registry/quality/lanes.yaml::high_risk_refusal_quality_lane docs/standards/ci-lanes.md::high_risk_refusal_quality_lane_reference specs/capabilities/canonical-tier-schema.json::risk_classification_contract specs/microservices/manifest-schema.json::risk_classification_contract specs/capabilities/eu-ai-act-risk-class-registry.json::risk_anchor_section_contract microservices::risk_classification_field_migration evidence/multispectrum/cs-high-risk-auto-decision-refusal-canonical-base-neutrality-1779253800.json::MultispectrumEvidence",
       "status": "accepted"
     }
   ],
   "summary": "Canonical-base neutrality cleanup for the high-risk auto-decision refusal lane: retire the jurisdiction-named gate crate/catalog/command, register the product-level high-risk-auto-decision-refusal gate, migrate machine risk-class field names, and harden the gate parser for canonical multiline risk classifications plus snake/Pascal Cedar action matching.",
   "baseline_diff": {
-    "before_full": "After the Foundry evidence retention slice, full canonical-base-neutrality still failed with 196 files checked and 290 jurisdiction leaks; the first remaining leak was the jurisdiction-named high-risk refusal catalog lane in crates/oya-foundry-gate-catalog-domain/src/lib.rs.",
+    "before_full": "After the Foundry evidence retention slice, full canonical-base-neutrality still failed with 196 files checked and 290 jurisdiction leaks; the first remaining leak was the jurisdiction-named high-risk refusal catalog lane in crates/oya-governance-gate-catalog-domain/src/lib.rs.",
     "after_targeted_core": "Targeted canonical-base-neutrality over gate catalog, dev-cli dispatch/runner, new gate crate, and risk-class registry passed with 4 files checked and 0 jurisdiction leaks.",
-    "after_full": "Full canonical-base-neutrality still fails with 196 files checked and 289 jurisdiction leaks outside this ChangeSet; first remaining file is crates/oya-foundry-policy-domain/src/lib.rs.",
+    "after_full": "Full canonical-base-neutrality still fails with 196 files checked and 289 jurisdiction leaks outside this ChangeSet; first remaining file is crates/oya-intelligence-policy-domain/src/lib.rs.",
     "delta": "At least 1 fewer full-gate jurisdiction leak, retired the old gate command/package/catalog IDs from active core machine scopes, and replaced malformed intermediate machine names such as risk_class_risk_class/high_risk_risk_anchor_iii with durable product-level names."
   },
   "verification": [
@@ -45,7 +45,7 @@
       "evidence": "8 tests passed; doc-test harness 0 tests passed"
     },
     {
-      "command": "cargo test -q -p oya-foundry-gate-catalog-domain --all-features 2>&1 | tee /tmp/cs-high-risk-refusal-gate-catalog-test.txt",
+      "command": "cargo test -q -p oya-governance-gate-catalog-domain --all-features 2>&1 | tee /tmp/cs-high-risk-refusal-gate-catalog-test.txt",
       "status": "passed",
       "evidence": "19 tests passed"
     },
@@ -55,12 +55,12 @@
       "evidence": "168 tests passed"
     },
     {
-      "command": "cargo fmt -q -p oya-check-high-risk-auto-decision-refusal -p oya-dev-cli -p oya-foundry-gate-catalog-domain --check 2>&1 | tee /tmp/cs-high-risk-refusal-fmt.txt",
+      "command": "cargo fmt -q -p oya-check-high-risk-auto-decision-refusal -p oya-dev-cli -p oya-governance-gate-catalog-domain --check 2>&1 | tee /tmp/cs-high-risk-refusal-fmt.txt",
       "status": "passed",
       "evidence": "rustfmt check exited 0"
     },
     {
-      "command": "cargo clippy -q -p oya-check-high-risk-auto-decision-refusal -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-high-risk-refusal-clippy.txt",
+      "command": "cargo clippy -q -p oya-check-high-risk-auto-decision-refusal -p oya-dev-cli -p oya-governance-gate-catalog-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-high-risk-refusal-clippy.txt",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied"
     },
@@ -70,12 +70,12 @@
       "evidence": "high-risk-auto-decision-refusal: 141 capabilities, 1 claims, 182 cedar fragments, 42 µservices"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-gate-catalog-domain/src/lib.rs --root crates/oya-dev-cli/src/commands/gate/mod.rs --root crates/oya-dev-cli/src/adr_0145_gates.rs --root crates/oya-check-high-risk-auto-decision-refusal/src/lib.rs --root specs/capabilities/eu-ai-act-risk-class-registry.json 2>&1 | tee /tmp/cs-high-risk-refusal-targeted-cbn.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-governance-gate-catalog-domain/src/lib.rs --root crates/oya-dev-cli/src/commands/gate/mod.rs --root crates/oya-dev-cli/src/adr_0145_gates.rs --root crates/oya-check-high-risk-auto-decision-refusal/src/lib.rs --root specs/capabilities/eu-ai-act-risk-class-registry.json 2>&1 | tee /tmp/cs-high-risk-refusal-targeted-cbn.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 4 files checked, 0 jurisdiction leaks"
     },
     {
-      "command": "rg -n \"eu_ai_act_classification|annex_iii_section|eu-ai-act-annex-iii-refusal|oya-check-eu-ai-act-annex-iii-refusal|check-eu-ai-act-annex-iii-refusal|risk_class_risk_class|high_risk_risk_anchor_iii|risk_anchor_iii|eu_ai_act_risk_anchor_iii|eu_ai_act_art22_caveat|eu_ai_act_class\\b|eu_ai_act\\b|ai_act_annex_iii|annex_iii_refusal|pack_override_annex_iii|high_risk_annex_iii|annex_iii_\" Cargo.toml Cargo.lock crates/oya-check-high-risk-auto-decision-refusal crates/oya-dev-cli crates/oya-foundry-gate-catalog-domain registry/catalog registry/quality/lanes.yaml docs/standards/ci-lanes.md specs/capabilities/canonical-tier-schema.json specs/microservices/manifest-schema.json specs/capabilities/eu-ai-act-risk-class-registry.json --glob \"*.{rs,toml,lock,yaml,yml,json,md}\" 2>&1 | tee /tmp/cs-high-risk-refusal-core-token-scan.txt || true",
+      "command": "rg -n \"eu_ai_act_classification|annex_iii_section|eu-ai-act-annex-iii-refusal|oya-check-eu-ai-act-annex-iii-refusal|check-eu-ai-act-annex-iii-refusal|risk_class_risk_class|high_risk_risk_anchor_iii|risk_anchor_iii|eu_ai_act_risk_anchor_iii|eu_ai_act_art22_caveat|eu_ai_act_class\\b|eu_ai_act\\b|ai_act_annex_iii|annex_iii_refusal|pack_override_annex_iii|high_risk_annex_iii|annex_iii_\" Cargo.toml Cargo.lock crates/oya-check-high-risk-auto-decision-refusal crates/oya-dev-cli crates/oya-governance-gate-catalog-domain registry/catalog registry/quality/lanes.yaml docs/standards/ci-lanes.md specs/capabilities/canonical-tier-schema.json specs/microservices/manifest-schema.json specs/capabilities/eu-ai-act-risk-class-registry.json --glob \"*.{rs,toml,lock,yaml,yml,json,md}\" 2>&1 | tee /tmp/cs-high-risk-refusal-core-token-scan.txt || true",
       "status": "passed",
       "evidence": "no old gate IDs, old risk-class keys, or malformed replacement tokens matched in core claimed machine/doc scope"
     },
@@ -107,10 +107,10 @@
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-high-risk-refusal-full-cbn.txt",
       "status": "blocked-preexisting",
-      "evidence": "full gate still fails with 196 files checked, 289 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-policy-domain/src/lib.rs"
+      "evidence": "full gate still fails with 196 files checked, 289 jurisdiction leaks outside claimed scope; first remaining file crates/oya-intelligence-policy-domain/src/lib.rs"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- Cargo.toml Cargo.lock crates/oya-check-high-risk-auto-decision-refusal crates/oya-dev-cli/Cargo.toml crates/oya-dev-cli/src/adr_0145_gates.rs crates/oya-dev-cli/src/commands/gate/mod.rs crates/oya-foundry-gate-catalog-domain/src/lib.rs registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml registry/quality/lanes.yaml docs/standards/ci-lanes.md specs/capabilities/canonical-tier-schema.json specs/microservices/manifest-schema.json specs/capabilities/eu-ai-act-risk-class-registry.json microservices evidence/multispectrum/cs-high-risk-auto-decision-refusal-canonical-base-neutrality-1779253800.json 2>&1 | tee /tmp/cs-high-risk-refusal-diff-check.txt",
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- Cargo.toml Cargo.lock crates/oya-check-high-risk-auto-decision-refusal crates/oya-dev-cli/Cargo.toml crates/oya-dev-cli/src/adr_0145_gates.rs crates/oya-dev-cli/src/commands/gate/mod.rs crates/oya-governance-gate-catalog-domain/src/lib.rs registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml registry/quality/lanes.yaml docs/standards/ci-lanes.md specs/capabilities/canonical-tier-schema.json specs/microservices/manifest-schema.json specs/capabilities/eu-ai-act-risk-class-registry.json microservices evidence/multispectrum/cs-high-risk-auto-decision-refusal-canonical-base-neutrality-1779253800.json 2>&1 | tee /tmp/cs-high-risk-refusal-diff-check.txt",
       "status": "passed",
       "evidence": "diff whitespace check exited 0"
     },
@@ -192,7 +192,7 @@
     "crates/oya-dev-cli/Cargo.toml",
     "crates/oya-dev-cli/src/adr_0145_gates.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "registry/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml (removed)",
     "registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml",
     "registry/quality/lanes.yaml",
@@ -204,7 +204,7 @@
     "evidence/multispectrum/cs-high-risk-auto-decision-refusal-canonical-base-neutrality-1779253800.json"
   ],
   "remaining_risks": [
-    "Full canonical-base-neutrality gate remains red with 289 jurisdiction leaks outside this ChangeSet; next safe slice starts at crates/oya-foundry-policy-domain/src/lib.rs.",
+    "Full canonical-base-neutrality gate remains red with 289 jurisdiction leaks outside this ChangeSet; next safe slice starts at crates/oya-intelligence-policy-domain/src/lib.rs.",
     "catalog validate remains blocked by pre-existing registry/catalog/oya-cloud-compute-functions-api.yaml: InvalidDataClass.",
     "Historical Markdown/IP provenance still contains the old legal lane vocabulary; active core gate/catalog/quality/runtime surfaces were neutralized in this ChangeSet.",
     "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."

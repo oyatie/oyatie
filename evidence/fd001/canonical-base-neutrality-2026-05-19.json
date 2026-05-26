@@ -58,7 +58,7 @@
       "status": "pass"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed after audit-chain coverage row was appended"
     }

@@ -83,7 +83,7 @@ convergence wave.
 - `.github/workflows/pr-review.yml::*` (router trigger added,
   workflow_run kept for 14d)
 - `.github/workflows/ci-failure-fix-loop.yml::*` (same)
-- `tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/{webhook_consumer,fallback_poll}.rs::*`
+- `tools/oya-vcs-merge-queue-fix-loop-app/src/{webhook_consumer,fallback_poll}.rs::*`
 - `crates/oya-dev-cli/src/commands/canary.rs::*` (new module,
   hosts `rollback` + `force-rewind` subcommands)
 - `crates/oya-dev-cli/src/commands/mod.rs::run` (register

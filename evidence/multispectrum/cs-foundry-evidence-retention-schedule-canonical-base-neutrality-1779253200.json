@@ -7,45 +7,45 @@
   "timestamp_iso": "2026-05-20T05:00:00Z",
   "agent_id": "codex-oyatie-fd001",
   "scope": [
-    "crates/oya-foundry-evidence-domain/src/retention_policy.rs",
+    "crates/oya-intelligence-evidence-domain/src/retention_policy.rs",
     "evidence/multispectrum/cs-foundry-evidence-retention-schedule-canonical-base-neutrality-1779253200.json"
   ],
   "claimed_scopes": [
     {
-      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize Foundry evidence retention regulatory schedule names\" crates/oya-foundry-evidence-domain/src/retention_policy.rs::canonical_base_neutral_retention_schedule evidence/multispectrum/cs-foundry-evidence-retention-schedule-canonical-base-neutrality-1779253200.json::MultispectrumEvidence",
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize Foundry evidence retention regulatory schedule names\" crates/oya-intelligence-evidence-domain/src/retention_policy.rs::canonical_base_neutral_retention_schedule evidence/multispectrum/cs-foundry-evidence-retention-schedule-canonical-base-neutrality-1779253200.json::MultispectrumEvidence",
       "status": "accepted"
     }
   ],
   "summary": "Canonical-base neutrality cleanup for Foundry evidence retention: replace jurisdiction-named regulatory schedule variants and tests with product-level retention duties while preserving validated three-year minimums and custom-schedule invariants.",
   "baseline_diff": {
-    "before_retention_policy": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-evidence-domain/src/retention_policy.rs failed with 1 files checked, 3 jurisdiction leaks from EuGdprArticle30 identifiers.",
-    "after_targeted_retention_policy": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-evidence-domain/src/retention_policy.rs passed: 1 files checked, 0 jurisdiction leaks.",
-    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 290 jurisdiction leaks in other files; first remaining file crates/oya-foundry-gate-catalog-domain/src/lib.rs.",
+    "before_retention_policy": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-evidence-domain/src/retention_policy.rs failed with 1 files checked, 3 jurisdiction leaks from EuGdprArticle30 identifiers.",
+    "after_targeted_retention_policy": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-evidence-domain/src/retention_policy.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 290 jurisdiction leaks in other files; first remaining file crates/oya-governance-gate-catalog-domain/src/lib.rs.",
     "delta": "3 fewer full-gate jurisdiction leaks, from 293 after Foundry eval linguistic cohorts to 290 after this slice; no scanner carve-outs or coverage weakening. The non-flagged KoreaPipa variant and test names were also neutralized to avoid preserving jurisdiction-coupled public API labels."
   },
   "verification": [
     {
-      "command": "cargo test -q -p oya-foundry-evidence-domain --all-features 2>&1 | tee /tmp/cs-foundry-evidence-retention-test.txt",
+      "command": "cargo test -q -p oya-intelligence-evidence-domain --all-features 2>&1 | tee /tmp/cs-foundry-evidence-retention-test.txt",
       "status": "passed",
       "evidence": "crate unit tests: 12 passed; integration tests: 7 passed"
     },
     {
-      "command": "cargo fmt -q -p oya-foundry-evidence-domain --check 2>&1 | tee /tmp/cs-foundry-evidence-retention-fmt.txt",
+      "command": "cargo fmt -q -p oya-intelligence-evidence-domain --check 2>&1 | tee /tmp/cs-foundry-evidence-retention-fmt.txt",
       "status": "passed",
       "evidence": "rustfmt check exited 0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-evidence-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-evidence-retention-clippy.txt",
+      "command": "cargo clippy -q -p oya-intelligence-evidence-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-evidence-retention-clippy.txt",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-evidence-domain/src/retention_policy.rs 2>&1 | tee /tmp/cs-foundry-evidence-retention-targeted-cbn.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-intelligence-evidence-domain/src/retention_policy.rs 2>&1 | tee /tmp/cs-foundry-evidence-retention-targeted-cbn.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     },
     {
-      "command": "rg -n \"EuGdprArticle30|KoreaPipa|GDPR|Gdpr|PIPA|Pipa|\\bEU\\b|\\bKR\\b|Korea|Eu\" crates/oya-foundry-evidence-domain/src/retention_policy.rs 2>&1 | tee /tmp/cs-foundry-evidence-retention-token-scan.txt || true",
+      "command": "rg -n \"EuGdprArticle30|KoreaPipa|GDPR|Gdpr|PIPA|Pipa|\\bEU\\b|\\bKR\\b|Korea|Eu\" crates/oya-intelligence-evidence-domain/src/retention_policy.rs 2>&1 | tee /tmp/cs-foundry-evidence-retention-token-scan.txt || true",
       "status": "passed",
       "evidence": "no old jurisdiction schedule tokens matched in the claimed retention policy file"
     },
@@ -60,14 +60,14 @@
       "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-foundry-evidence-domain/src/retention_policy.rs evidence/multispectrum/cs-foundry-evidence-retention-schedule-canonical-base-neutrality-1779253200.json 2>&1 | tee /tmp/cs-foundry-evidence-retention-diff-check.txt",
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-intelligence-evidence-domain/src/retention_policy.rs evidence/multispectrum/cs-foundry-evidence-retention-schedule-canonical-base-neutrality-1779253200.json 2>&1 | tee /tmp/cs-foundry-evidence-retention-diff-check.txt",
       "status": "passed",
       "evidence": "diff whitespace check exited 0"
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-foundry-evidence-retention-full-cbn.txt",
       "status": "blocked-preexisting",
-      "evidence": "full gate still fails with 290 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-gate-catalog-domain/src/lib.rs"
+      "evidence": "full gate still fails with 290 jurisdiction leaks outside claimed scope; first remaining file crates/oya-governance-gate-catalog-domain/src/lib.rs"
     }
   ],
   "facets": {
@@ -146,11 +146,11 @@
     }
   },
   "changed_files": [
-    "crates/oya-foundry-evidence-domain/src/retention_policy.rs",
+    "crates/oya-intelligence-evidence-domain/src/retention_policy.rs",
     "evidence/multispectrum/cs-foundry-evidence-retention-schedule-canonical-base-neutrality-1779253200.json"
   ],
   "remaining_risks": [
-    "Full canonical-base-neutrality gate remains red with 290 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-foundry-gate-catalog-domain/src/lib.rs.",
+    "Full canonical-base-neutrality gate remains red with 290 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-governance-gate-catalog-domain/src/lib.rs.",
     "This intentionally changes public enum variant names inside a pre-GA canonical-base crate to avoid preserving jurisdiction-coupled API labels.",
     "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
   ]

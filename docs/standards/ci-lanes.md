@@ -11,7 +11,7 @@ doc_status: published
 ## 1. Lane catalog
 
 Every CI gate is a named lane. Lanes are catalog-driven: `registry/quality/lanes.yaml` is the source of truth; this doc is the human-readable mirror.
-The registry carries each lane's owner team and `runtime_budget_seconds`; the `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`oya-foundry-gate-catalog-domain`).
+The registry carries each lane's owner team and `runtime_budget_seconds`; the `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`oya-governance-gate-catalog-domain`).
 
 ### 1.1 Foundation gate catalog (W-Foundation; active lanes block any merge; planned lanes preserve roadmap contract)
 

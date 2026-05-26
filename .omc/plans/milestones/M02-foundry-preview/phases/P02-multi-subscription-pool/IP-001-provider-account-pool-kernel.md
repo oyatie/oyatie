@@ -18,11 +18,11 @@ purpose: |
   health logic, refactored to pure value objects so the runtime stays adapter-agnostic
   (MASTERPLAN Directive 4) and final-shape from day one (Directive 3).
 grit_claim_symbols:
-  - "crates/oya-foundry-provider-pool-kernel/src/lib.rs::ProviderAccountPool"
-  - "crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolRoutingStrategy"
-  - "crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolRoutingDecision"
-  - "crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolMembershipChange"
-  - "crates/oya-foundry-provider-pool-kernel/src/lib.rs::pick_account"
+  - "crates/oya-intelligence-provider-pool-kernel/src/lib.rs::ProviderAccountPool"
+  - "crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolRoutingStrategy"
+  - "crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolRoutingDecision"
+  - "crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolMembershipChange"
+  - "crates/oya-intelligence-provider-pool-kernel/src/lib.rs::pick_account"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
@@ -59,13 +59,13 @@ ccproxy-api `credential_balancer/manager.py` lesson applied with stricter typing
 ## Symbols to grit-claim
 
 ```
-crates/oya-foundry-provider-pool-kernel/src/lib.rs::ProviderAccountPool
-crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolRoutingStrategy
-crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolRoutingDecision
-crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolMembershipChange
-crates/oya-foundry-provider-pool-kernel/src/lib.rs::pick_account
-crates/oya-foundry-provider-pool-kernel/src/lib.rs::PoolRoutingReason
-crates/oya-foundry-provider-pool-kernel/src/error.rs::PoolError
+crates/oya-intelligence-provider-pool-kernel/src/lib.rs::ProviderAccountPool
+crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolRoutingStrategy
+crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolRoutingDecision
+crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolMembershipChange
+crates/oya-intelligence-provider-pool-kernel/src/lib.rs::pick_account
+crates/oya-intelligence-provider-pool-kernel/src/lib.rs::PoolRoutingReason
+crates/oya-intelligence-provider-pool-kernel/src/error.rs::PoolError
 ```
 
 Pure value types only — no async, no I/O, no allocator games. All fields carry
@@ -112,7 +112,7 @@ Before `grit claim`, the agent **MUST**:
 2. Read `.omc/plans/MASTERPLAN.md §2` Directives 3, 4, 7 (final-shape, provider-agnostic, Linus).
 3. Read `./INDEX.md` and the ccproxy-api parity matrix at `./ccproxy-api-parity-matrix.md`.
 4. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/decision-principles.json` (DP-01..DP-10).
-5. Confirm no other agent has claimed `crates/oya-foundry-provider-pool-kernel/src/lib.rs::*` via `oya-tooling-agent-read grit-status crates/oya-foundry-provider-pool-kernel`.
+5. Confirm no other agent has claimed `crates/oya-intelligence-provider-pool-kernel/src/lib.rs::*` via `oya-tooling-agent-read grit-status crates/oya-intelligence-provider-pool-kernel`.
 6. Read `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md §B` to inherit the P00 state machine; pool kernel MUST NOT duplicate ProviderAccount-level state.
 <!-- agent-instructions:end -->
 
@@ -121,13 +121,13 @@ Before `grit claim`, the agent **MUST**:
 ## Acceptance test commands
 
 ```
-$ cargo nextest run -p oya-foundry-provider-pool-kernel --all-features            # expect: PASS, 0 failures
-$ cargo clippy -p oya-foundry-provider-pool-kernel --all-features -- -D warnings  # expect: PASS, 0 warnings
-$ cargo-semver-checks check-release -p oya-foundry-provider-pool-kernel           # expect: PASS (kernel is public API)
+$ cargo nextest run -p oya-intelligence-provider-pool-kernel --all-features            # expect: PASS, 0 failures
+$ cargo clippy -p oya-intelligence-provider-pool-kernel --all-features -- -D warnings  # expect: PASS, 0 warnings
+$ cargo-semver-checks check-release -p oya-intelligence-provider-pool-kernel           # expect: PASS (kernel is public API)
 $ cargo deny check                                                                # expect: PASS
 $ oya gate validate oya-foundry-fitness-provider-coupling                         # expect: PASS (no upstream HTTP types here)
 $ oya gate validate oya-foundry-fitness-no-placeholder                            # expect: PASS
-$ oya-tooling-agent-read run-evidence "cargo test -p oya-foundry-provider-pool-kernel -- --nocapture" # expect: 25+ pool-routing property tests green
+$ oya-tooling-agent-read run-evidence "cargo test -p oya-intelligence-provider-pool-kernel -- --nocapture" # expect: 25+ pool-routing property tests green
 ```
 
 Property tests required (proptest):
@@ -151,8 +151,8 @@ Property tests required (proptest):
 ## Rollback procedure
 
 1. Identify rollback boundary: git revert of the new crate scaffold + workspace member removal.
-2. Execute: `grit revert <claim-id>` to release symbols; remove `members = [..., "crates/oya-foundry-provider-pool-kernel"]` row from root `Cargo.toml`; revert PR.
-3. Verify: `cargo check --workspace` green; no downstream crate references `oya-foundry-provider-pool-kernel`.
+2. Execute: `grit revert <claim-id>` to release symbols; remove `members = [..., "crates/oya-intelligence-provider-pool-kernel"]` row from root `Cargo.toml`; revert PR.
+3. Verify: `cargo check --workspace` green; no downstream crate references `oya-intelligence-provider-pool-kernel`.
 4. Postmortem trigger threshold: Sev-3 (kernel-only; no live traffic yet).
 
 ## Next IP pointer

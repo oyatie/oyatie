@@ -29,7 +29,7 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §12 (regio
 2 agents in parallel; disjoint surface.
 
 ## Symbols-touched
-`docs/decisions/ADR-0010-regional-pack-architecture.md`, `crates/oya-regional-pack-domain`, `crates/oya-foundry-cargo-prefix-domain`, and architecture/cargo-prefix gates surfaced through `crates/oya-dev-cli`.
+`docs/decisions/ADR-0010-regional-pack-architecture.md`, `crates/oya-regional-pack-domain`, `crates/oya-intelligence-cargo-prefix-domain`, and architecture/cargo-prefix gates surfaced through `crates/oya-dev-cli`.
 
 ## Agent-handoff
 ```

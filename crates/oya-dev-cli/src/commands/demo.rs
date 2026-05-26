@@ -10,11 +10,11 @@ use oya_application_app::{
 use oya_audit_chain_file_adapter::FileAuditLedger;
 use oya_eventing_domain::Outbox;
 use oya_eventing_file_adapter::FileOutboxStore;
-use oya_foundry_evidence_file_adapter::FileEvidenceChainStore;
-use oya_foundry_run_domain::RunLedger;
-use oya_foundry_run_file_adapter::FileRunLedgerStore;
-use oya_foundry_step_domain::StepLedger;
-use oya_foundry_step_file_adapter::FileStepLedgerStore;
+use oya_intelligence_evidence_file_adapter::FileEvidenceChainStore;
+use oya_intelligence_run_domain::RunLedger;
+use oya_intelligence_run_file_adapter::FileRunLedgerStore;
+use oya_intelligence_step_domain::StepLedger;
+use oya_intelligence_step_file_adapter::FileStepLedgerStore;
 use oya_secrets_domain::{SecretMaterial, SecretRef, SecretVault};
 use oya_secrets_file_adapter::FileSecretStore;
 

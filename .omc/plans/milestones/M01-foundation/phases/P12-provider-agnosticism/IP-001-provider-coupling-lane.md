@@ -19,7 +19,7 @@ Block provider-specific imports outside adapter crates.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-provider-coupling-kernel/src/lib.rs::check
+crates/oya-governance-provider-coupling-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

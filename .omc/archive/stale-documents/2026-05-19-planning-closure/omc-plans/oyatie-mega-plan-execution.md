@@ -130,8 +130,8 @@ The G001-G006 logic already lives in `oya-foundry-agent-runtime` (`domain.rs`, `
 
 | Task | Source (in `oya-foundry-agent-runtime`) | Target crate | Notes |
 |---|---|---|---|
-| P00-01 | `domain.rs` (account-auth types) | `oya-foundry-account-domain` | Pure types; no I/O |
-| P00-02 | `auth.rs` (kernel ports/traits) | `oya-foundry-account-kernel` | Trait definitions only |
+| P00-01 | `domain.rs` (account-auth types) | `oya-intelligence-account-domain` | Pure types; no I/O |
+| P00-02 | `auth.rs` (kernel ports/traits) | `oya-intelligence-account-kernel` | Trait definitions only |
 | P00-03 | use-case orchestration | `oya-foundry-account-app` | Depends on kernel + domain |
 | P00-04 | `providers.rs` (Claude Code provider) | `oya-foundry-account-adapter-claude-code` | Adapter |
 | P00-05 | `providers.rs` (Codex CLI provider) | `oya-foundry-account-adapter-codex-cli` | Adapter |
@@ -194,8 +194,8 @@ rtk cargo test --workspace
 rtk cargo clippy --workspace -- -D warnings
 
 # Wave 1 §2 sweep
-rtk cargo test -p oya-foundry-account-domain
-rtk cargo test -p oya-foundry-account-kernel
+rtk cargo test -p oya-intelligence-account-domain
+rtk cargo test -p oya-intelligence-account-kernel
 rtk cargo test -p oya-foundry-account-app
 rtk cargo test -p oya-foundry-account-adapter-claude-code
 rtk cargo test -p oya-foundry-account-adapter-codex-cli

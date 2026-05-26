@@ -20,7 +20,7 @@
   "baseline_diff": {
     "before": "canonical-base-neutrality --repo-root . --root crates/oya-eventing-domain/src/cloud_event.rs failed with 1 files checked, 5 jurisdiction leaks: cell-us-east-1, Cell-US-East-1, and acme.eu test fixtures.",
     "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-eventing-domain/src/cloud_event.rs passed: 1 files checked, 0 jurisdiction leaks.",
-    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 299 jurisdiction leaks in other files; first remaining file crates/oya-foundry-cloud-mutation-domain/src/lib.rs.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 299 jurisdiction leaks in other files; first remaining file crates/oya-intelligence-cloud-mutation-domain/src/lib.rs.",
     "delta": "5 fewer full-gate jurisdiction leaks, from 304 after platform DSR to 299 after this slice; no scanner carve-outs or topic-policy weakening."
   },
   "verification": [
@@ -67,7 +67,7 @@
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-eventing-cloud-event-full-cbn.txt",
       "status": "blocked-preexisting",
-      "evidence": "full gate still fails with 299 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-cloud-mutation-domain/src/lib.rs"
+      "evidence": "full gate still fails with 299 jurisdiction leaks outside claimed scope; first remaining file crates/oya-intelligence-cloud-mutation-domain/src/lib.rs"
     }
   ],
   "facets": {
@@ -151,7 +151,7 @@
     "evidence/multispectrum/cs-eventing-cloud-event-canonical-base-neutrality-1779251400.json"
   ],
   "remaining_risks": [
-    "Full canonical-base-neutrality gate remains red with 299 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-foundry-cloud-mutation-domain/src/lib.rs.",
+    "Full canonical-base-neutrality gate remains red with 299 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-intelligence-cloud-mutation-domain/src/lib.rs.",
     "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
   ]
 }

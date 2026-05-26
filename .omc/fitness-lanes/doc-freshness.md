@@ -2,7 +2,7 @@
 
 - purpose: Verify every doc respects its doc-class staleness budget (e.g., runbook <= 90d, standard <= 180d, ADR no budget).
 - enforces: Directive 10 (MASTERPLAN) — staleness budget per doc-class.
-- kernel_crate: `oya-foundry-fitness-doc-freshness-kernel` — `DocFreshness { path, doc_class, age_days }`, verdict `DocFreshnessFitnessReport { docs_checked }`.
+- kernel_crate: `oya-governance-doc-freshness-kernel` — `DocFreshness { path, doc_class, age_days }`, verdict `DocFreshnessFitnessReport { docs_checked }`.
 - runner_path: `tools/oya-foundry-fitness-doc-freshness`
 - inputs: catalog rows, git last-touched timestamp.
 - failure_modes:

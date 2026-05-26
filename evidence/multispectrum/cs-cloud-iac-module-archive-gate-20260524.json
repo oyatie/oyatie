@@ -12,7 +12,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/tofu/modules/archive-manifest.json",
     "microservices/cloud-iac/tofu/modules/release-index.json",
     "microservices/cloud-iac/manifest.json",
@@ -88,7 +88,7 @@
       "summary": "Scoped dev-cli check and clippy passed after replacing too-many-argument helper signatures with path/ref structs."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed with cloud-iac-module-archive in AGGREGATED_VALIDATE_LANES."
     },

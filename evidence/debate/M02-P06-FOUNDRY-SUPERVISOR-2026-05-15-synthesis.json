@@ -173,8 +173,8 @@
         "F1",
         "A1-deferred"
       ],
-      "headline": "Crate name `oya-foundry-settings-template-adapter-fs` violates ADR-0056 v4.1 closed 12-layer enum (kernel|domain|application|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk); `fs` is not a member",
-      "evidence": "M2: ADR-0056 v4.1 closed enum + sibling precedent `oya-foundry-jsonl-supervisor-adapter` proves canonical shape = BC-tokens + layer suffix. v5 naming-justification mis-cites layer (called 'adapter-fs = layer #5' \u2014 incorrect). F1 implicitly hits this via 'zero-info wrapper / would-delete' anti-pattern.",
+      "headline": "Crate name `oya-intelligence-settings-template-adapter-fs` violates ADR-0056 v4.1 closed 12-layer enum (kernel|domain|application|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk); `fs` is not a member",
+      "evidence": "M2: ADR-0056 v4.1 closed enum + sibling precedent `oya-intelligence-jsonl-supervisor-adapter` proves canonical shape = BC-tokens + layer suffix. v5 naming-justification mis-cites layer (called 'adapter-fs = layer #5' \u2014 incorrect). F1 implicitly hits this via 'zero-info wrapper / would-delete' anti-pattern.",
       "remediation_fixuptasks": [
         "F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1"
       ]
@@ -428,7 +428,7 @@
     },
     "blocking_actions_before_first_grit_claim": [
       "Apply 12 BLOCKER fixuptasks listed in fixuptask_summary.blocker_fixuptasks",
-      "Rename `oya-foundry-settings-template-adapter-fs` \u2192 `oya-foundry-settings-template-adapter` (BNF v4.1 conformance \u2014 F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1)",
+      "Rename `oya-intelligence-settings-template-adapter-fs` \u2192 `oya-intelligence-settings-template-adapter` (BNF v4.1 conformance \u2014 F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1)",
       "Register 3 templates + 2 crates + 1 lane in registry/artifact-capabilities-registry.json (ADR-0069 conformance \u2014 F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1)",
       "Register SettingsTemplate + SettingsRenderer + HookEvent + McpServerRef in registry/reusable-building-blocks-registry.json (F-REUSABLE-BUILDING-BLOCKS-REGISTER-1)",
       "Add 4 knowledge-graph edges to registry/knowledge-graph-dynamic.json (F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1)",

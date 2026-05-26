@@ -18,13 +18,13 @@
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:30-42,66-72,218-225 and registry/vcs/changeset-event-log.json:1-3",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:30-42,66-72,218-225 and registry/vcs/changeset-event-log.json:1-3",
       "issue": "The canonical changeset event log starts empty and the writer stamps deterministic ed25519-stub signatures plus fixed stub budgets. Those rows are not authoritative audit evidence for promotion/rollback decisions.",
       "remediation": "Keep wave-A rows non-authoritative or block production admission until real signing keys, signature verification, and live budget accounting are wired and covered by replay tests."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:96-111,431-444",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:96-111,431-444",
       "issue": "Append performs read-validate-write with one fixed sibling temp path and no file lock or compare-and-swap. Concurrent emitters can race, overwrite each other's candidate event, or collide on the same temp path.",
       "remediation": "Serialize appends through a lockfile or CAS loop with unique temp files, fsync/rename semantics, and a concurrency regression test that proves no event loss."
     }

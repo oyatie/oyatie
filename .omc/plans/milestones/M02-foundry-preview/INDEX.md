@@ -61,4 +61,4 @@ P00 must complete first (domain types + state machine + secret persistence). Aft
 - Multi-provider adapter pattern (M01-P12) is THE canonical implementation; this milestone validates the principle.
 
 ## Agent-navigability-pointer
-First-claim seed symbol: `crates/oya-foundry-account-kernel/src/lib.rs::ProviderAccount` (after P00 IP-001 scaffold-claim per ADR-0054).
+First-claim seed symbol: `crates/oya-intelligence-account-kernel/src/lib.rs::ProviderAccount` (after P00 IP-001 scaffold-claim per ADR-0054).

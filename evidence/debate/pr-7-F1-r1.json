@@ -9,19 +9,19 @@
   "findings": [
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:459-468 + src/lib.rs:191",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:459-468 + src/lib.rs:191",
       "issue": "`from_paths_or_optional` catches `SecretIo` and retries with `secret_path: None`; `process`/HTTP verification only runs HMAC when `secret` is `Some`. So a production server with a missing secret starts and accepts unsigned webhooks unless `--skip-hmac` is explicitly false but irrelevant. The comments say fail-closed; the code fails open on missing secret.",
       "remediation": "Require a secret for server mode unless an explicit `--local-dev-skip-hmac` mode is selected. Treat missing secret as startup failure for HTTP serving; keep optional secret only for deterministic simulate tests."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:354-430",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:354-430",
       "issue": "The HTTP handler dedups against `state.dispatch.log` but never appends the accepted delivery to `registry/vcs/webhook-delivery-log.json` or any durable store. Redeliveries after startup hit the same stale log and can be accepted again. The idempotency table is read-only theater.",
       "remediation": "Add a single append path for accepted/routing-failed/agent-failed outcomes before returning, with atomic write/lock discipline and tests proving the second delivery deduplicates."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:68-83 + 141-170",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:68-83 + 141-170",
       "issue": "`--secret-ref sref://openbao/...` is documented as the canonical secret reference, but `resolve_secret_ref` merely maps it to `$HOME/.openbao/...`. That is naming-that-lies: the flag looks like OpenBao integration while shipping a file-path shim.",
       "remediation": "Either wire the actual SecretReference/OpenBao resolver now, or rename the current behavior to `--secret-file` and leave `--secret-ref` unsupported until the resolver exists."
     },

@@ -624,7 +624,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
 - `tasks/todo.md`
@@ -645,7 +645,7 @@ Distrusted markers found before correction:
 - RED first: `./bin/oya gate validate cloud-iac-module-catalog --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json` exited `2` before dispatcher implementation because the lane was unknown.
 - GREEN focused tests: `cargo test -p oya-dev-cli cloud_iac_module_catalog -- --nocapture`.
 - GREEN live gate: `./bin/oya gate validate cloud-iac-module-catalog --repo-root . --manifest microservices/cloud-iac/manifest.json --catalog microservices/cloud-iac/tofu/modules/catalog.json`.
-- GREEN closeout: `cargo test -p oya-dev-cli cloud_iac_module_catalog`; `cargo test -p oya-foundry-gate-catalog-domain`; live `./bin/oya gate validate cloud-iac-module-catalog`; scoped check/clippy/fmt; JSON/audit-chain parsing; planning-closure, api-semver, architecture-boundaries, dependency-seam with evidence, scoped honest-claims, retired-vocabulary; default `oya gate run-all` 82/82; full `./bin/oya verify --ci-required` passed after an unrelated app-shell UI/UX evidence audit-chain coverage backfill cleared provider admission.
+- GREEN closeout: `cargo test -p oya-dev-cli cloud_iac_module_catalog`; `cargo test -p oya-governance-gate-catalog-domain`; live `./bin/oya gate validate cloud-iac-module-catalog`; scoped check/clippy/fmt; JSON/audit-chain parsing; planning-closure, api-semver, architecture-boundaries, dependency-seam with evidence, scoped honest-claims, retired-vocabulary; default `oya gate run-all` 82/82; full `./bin/oya verify --ci-required` passed after an unrelated app-shell UI/UX evidence audit-chain coverage backfill cleared provider admission.
 
 ### CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001 — first-class local Oya gate for Argo CD Application evidence templates
 
@@ -655,7 +655,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
 - `tasks/todo.md`
@@ -676,7 +676,7 @@ Distrusted markers found before correction:
 
 - RED first: `./bin/oya gate validate cloud-iac-gitops-evidence --repo-root . --manifest microservices/cloud-iac/manifest.json --templates-root microservices/cloud-iac/iac` exited `2` before dispatcher implementation because the lane was unknown.
 - GREEN focused tests: `cargo test -p oya-dev-cli cloud_iac_gitops_evidence -- --nocapture` (9 tests).
-- GREEN gate-catalog tests: `cargo test -p oya-foundry-gate-catalog-domain`.
+- GREEN gate-catalog tests: `cargo test -p oya-governance-gate-catalog-domain`.
 - GREEN live gate: `./bin/oya gate validate cloud-iac-gitops-evidence --repo-root . --manifest microservices/cloud-iac/manifest.json --templates-root microservices/cloud-iac/iac`.
 - Regression guard: `./bin/oya gate validate cloud-iac-module-catalog` remains green after adding the GitOps evidence gate.
 - GREEN aggregate: `./bin/oya gate run-all` passed 83/83 lanes, including `cloud-iac-gitops-evidence`.
@@ -691,7 +691,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/manifest.json`
 - `microservices/cloud-iac/cell-topology/foundation.json`
 - `tasks/plan.md`
@@ -712,12 +712,12 @@ Distrusted markers found before correction:
 
 - RED first: `./bin/oya gate validate cloud-iac-cell-topology --repo-root . --manifest microservices/cloud-iac/manifest.json --topology microservices/cloud-iac/cell-topology/foundation.json --catalog microservices/cloud-iac/tofu/modules/catalog.json` exited `2` before dispatcher implementation because the lane was unknown.
 - GREEN focused tests: `cargo test -p oya-dev-cli cloud_iac_cell_topology -- --nocapture` passed 8 tests.
-- GREEN gate-catalog tests: `cargo test -p oya-foundry-gate-catalog-domain` passed 19 tests.
+- GREEN gate-catalog tests: `cargo test -p oya-governance-gate-catalog-domain` passed 19 tests.
 - GREEN live gate: `./bin/oya gate validate cloud-iac-cell-topology --repo-root . --manifest microservices/cloud-iac/manifest.json --topology microservices/cloud-iac/cell-topology/foundation.json --catalog microservices/cloud-iac/tofu/modules/catalog.json` passed with 5 contexts, 5 cells, 30 module refs, and 8 files checked.
 - Regression guards: existing `cloud-iac-module-catalog` and `cloud-iac-gitops-evidence` gates remain green.
 - GREEN closeout gates: scoped check/clippy/fmt, JSON parse, dependency-seam strict with this evidence, scoped honest-claims, scoped retired-vocabulary, planning-closure, api-semver, architecture-boundaries, and default `./bin/oya gate run-all` 84/84 passed.
 - Oya VCS lifecycle accepted: `work`, `verify`, `done`, and `promote --environment local-foundry`.
-- Full `./bin/oya verify --ci-required` was attempted and is not green because of unrelated/concurrent repository blockers: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4343 passed / 1 skipped), and D-6 ADR index write passed; D-5 `gate run-all --ci-required` failed only on `oya-foundry-vcs-admission-gate-app` because four unrelated app-shell evidence files are missing audit-chain coverage; D-7 ADR-shape still fails on pre-existing ADR-0322..ADR-0349 section-shape diagnostics.
+- Full `./bin/oya verify --ci-required` was attempted and is not green because of unrelated/concurrent repository blockers: D-1 fmt, D-2 workspace check, D-3 workspace clippy, D-4 workspace nextest (4343 passed / 1 skipped), and D-6 ADR index write passed; D-5 `gate run-all --ci-required` failed only on `oya-vcs-admission-gate-app` because four unrelated app-shell evidence files are missing audit-chain coverage; D-7 ADR-shape still fails on pre-existing ADR-0322..ADR-0349 section-shape diagnostics.
 
 ### CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001 — first-class local OpenTofu init/validate evidence gate
 
@@ -727,7 +727,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/manifest.json`
 - `microservices/cloud-iac/tofu/modules/dns/main.tofu`
 - `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu`
@@ -765,7 +765,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/modules/provenance.json`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
@@ -795,7 +795,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/modules/provider-readiness.json`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
@@ -828,7 +828,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/modules/{cloud-account,dns,k8s-namespace-bootstrap,kms,secrets-bootstrap,vpc}/main.tofu`
 - `microservices/cloud-iac/tofu/modules/provider-readiness.json`
 - `microservices/cloud-iac/tofu/modules/provenance.json`
@@ -861,7 +861,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/provider-locks/foundation/providers.tofu`
 - `microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl`
 - `microservices/cloud-iac/manifest.json`
@@ -895,7 +895,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
@@ -927,7 +927,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/modules/release-index.json`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
@@ -958,7 +958,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/modules/archive-manifest.json`
 - `microservices/cloud-iac/tofu/modules/release-index.json`
 - `microservices/cloud-iac/manifest.json`
@@ -988,7 +988,7 @@ Distrusted markers found before correction:
 - `crates/oya-dev-cli/src/lib.rs`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs`
 - `crates/oya-dev-cli/src/commands/gate/run_all.rs`
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs`
+- `crates/oya-governance-gate-catalog-domain/src/lib.rs`
 - `microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json`
 - `microservices/cloud-iac/manifest.json`
 - `tasks/plan.md`
@@ -1823,7 +1823,7 @@ Repaired state:
 
 Green component evidence:
 
-- `cargo run -q -p oya-foundry-vcs-admission-gate-app` PASS: metadata and authority checks passed; provider execution plus cargo tests and CLI smoke passed.
+- `cargo run -q -p oya-vcs-admission-gate-app` PASS: metadata and authority checks passed; provider execution plus cargo tests and CLI smoke passed.
 - `./bin/oya gate run-all --ci-required` now reaches 87/88 lanes passed; provider admission passes inside run-all.
 - Run-all embedded nextest run `e7cddaa0-9e40-418e-a5c0-5c111c6e038a` passed 4317 tests with 1 skipped.
 

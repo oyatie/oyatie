@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use oya_foundry_vcs_changeset_state_kernel::{
+use oya_vcs_changeset_state_kernel::{
     ChangesetEvent, ChangesetState, CostBudget, MonotonicityReport, validate_monotonic_event_log,
 };
 use serde_json::Value;

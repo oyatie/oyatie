@@ -67,7 +67,7 @@ Adopt **C — hybrid server pre-evaluation + client rendering** with the followi
 5. **Save guard**: the save path re-evaluates Cedar server-side using the canonical spec bytes; the client-rendered overlay is informational. If save-time Cedar denies an operation the client preview permitted, the diagnostic surfaces precisely which policy denied and a refresh of the overlay-decision-bundle is forced. This closes the trust-boundary loop.
 6. **Bundle distribution**: the overlay-decision-bundle is served from the editor REST surface (per-tenant, per-spec-version cache key); the bundle is per-tenant — never broadcast cross-tenant. Cache TTL: bundle is invalidated on (a) spec_version_sha change, (b) tenant policy fragment change, (c) pack-policy upgrade.
 7. **Air-gap degenerate mode**: tenants with `air_gap_eval=true` skip the optimistic stale-overlay render; every overlay refresh is synchronous and blocks the relevant region of the canvas. Throughput trades for tenant-controllability.
-8. **Marker taxonomy** (closed set, governed by `oya-foundry-gate-catalog-domain`): `PII`, `PHI`, `SECRET`, `PCI`, `CROSS_BORDER`, `MISSING_LAWFUL_BASIS`, `MISSING_BAA_COVERAGE`, `REGIONAL_DEGRADATION`, `LICENSE_OVERSEAT`. Extension requires an ADR superseding ADR-WS-0004.
+8. **Marker taxonomy** (closed set, governed by `oya-governance-gate-catalog-domain`): `PII`, `PHI`, `SECRET`, `PCI`, `CROSS_BORDER`, `MISSING_LAWFUL_BASIS`, `MISSING_BAA_COVERAGE`, `REGIONAL_DEGRADATION`, `LICENSE_OVERSEAT`. Extension requires an ADR superseding ADR-WS-0004.
 
 ## Alternatives Considered
 

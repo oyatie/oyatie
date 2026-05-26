@@ -593,7 +593,7 @@ Column semantics:
 - `kind` — `shared` or `vertical`; redundant with the `vertical` column
   for verification (kind == "shared" iff vertical == "shared").
 - `layer` — one of 12 canonical values per §2.2.
-- `layer_evidence` — file:line cite (e.g., `crates/oya-foundry-policy-api/src/main.rs:42 — Router::new()`) OR `cargo metadata` query result OR explicit `PROTOCOL-UNKNOWN, deferred to ADR-0056 §<X>` deferral marker. **NO row may ship as `provisional`** post-iter-3.
+- `layer_evidence` — file:line cite (e.g., `crates/oya-intelligence-policy-api/src/main.rs:42 — Router::new()`) OR `cargo metadata` query result OR explicit `PROTOCOL-UNKNOWN, deferred to ADR-0056 §<X>` deferral marker. **NO row may ship as `provisional`** post-iter-3.
 - `proposed_name` — 3-slot pattern `oya-<shared|vertical>-<bc>-<layer>`.
 - `bc_registry_status` — `REGISTERED` | `PROPOSED-NEW` | `DEPRECATED`.
 - `risk` — 1-5.
@@ -632,7 +632,7 @@ Examples of v4.1 `proposed_name` after translation:
   (BC promoted to slot2; domain noun `tenancy` per ADR-0125)
 - `oya-platform-identity-kernel` → `oya-identity-kernel`
 - `oya-platform-audit-chain-kernel` → `oya-audit-chain-kernel`
-- `oya-foundry-policy-api` → `oya-foundry-policy-rest`
+- `oya-intelligence-policy-api` → `oya-foundry-policy-rest`
 - `oya-cloud-storage-object-api` → `oya-cloud-storage-object-rest`
 - `oya-foundation-app` → `oya-application-app` (B2B shell µservice)
 - `oya-tooling-agent-read` → `oya-codeview-cli`
@@ -696,7 +696,7 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
 - **v3 `*-app` → v4 default `application`**: most v3 app crates are
   use-case orchestrators (not composition-root binaries). EXCEPTION:
   `oya-foundation-app` IS the composition root binary (it wires
-  `oya-foundry-api` + `oya-tooling-cli-dev-runtime` + downstream
+  `oya-intelligence-api` + `oya-tooling-cli-dev-runtime` + downstream
   consumers per `docs/standards/clean-architecture.md`); under the
   12-value enum it is `app`, not `application`. Row 138 reflects this.
 - **v3 `*-adapter-<provider>` → v4 `adapter`**: trait-impl crates stay
@@ -809,28 +809,28 @@ to the flat `check` namespace.
 
 | # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 60 | `oya-foundry-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
-| 61 | `oya-foundry-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-foundry-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 63 | `oya-foundry-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 64 | `oya-foundry-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 65 | `oya-foundry-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 66 | `oya-foundry-evidence-kernel` | `foundry` | `evidence` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-evidence-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 67 | `oya-foundry-evidence-adapter-file` | `foundry` | `evidence-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl; classified `adapter`) | `oya-foundry-evidence-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 68 | `oya-foundry-eval-kernel` | `foundry` | `eval` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-eval-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 60 | `oya-intelligence-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
+| 61 | `oya-foundry-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-intelligence-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 63 | `oya-foundry-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 64 | `oya-foundry-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 65 | `oya-foundry-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 66 | `oya-foundry-evidence-kernel` | `foundry` | `evidence` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-evidence-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 67 | `oya-foundry-evidence-adapter-file` | `foundry` | `evidence-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl; classified `adapter`) | `oya-intelligence-evidence-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 68 | `oya-foundry-eval-kernel` | `foundry` | `eval` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-governance-eval-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 69 | `oya-foundry-eval-app` | `foundry` | `eval` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-eval-application` | PROPOSED-NEW | 2 | est. 5–10 |
-| 70 | `oya-foundry-mcp-gateway-kernel` | `foundry` | `mcp-gateway` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-mcp-gateway-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 71 | `oya-foundry-policy-kernel` | `foundry` | `policy` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-policy-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 72 | `oya-foundry-policy-api` | `foundry` | `policy` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry policy decision API; likely REST request/response) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 73 | `oya-foundry-registry-api` | `foundry` | `registry` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (capability registry CRUD; likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 74 | `oya-foundry-rag-api` | `foundry` | `rag` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (retrieval-augmented generation; streaming retrieval suggests gRPC or SSE-over-HTTP; multi-protocol candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 75 | `oya-foundry-run-kernel` | `foundry` | `run` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-run-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 76 | `oya-foundry-run-adapter-file` | `foundry` | `run-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-run-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 77 | `oya-foundry-step-kernel` | `foundry` | `step` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-step-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 78 | `oya-foundry-step-adapter-file` | `foundry` | `step-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-step-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 79 | `oya-foundry-api-semver-kernel` | `foundry` | `api-semver` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-api-semver-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 80 | `oya-foundry-mdbook-kernel` | `foundry` | `mdbook` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-mdbook-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 81 | `oya-foundry-openapi-kernel` | `foundry` | `openapi` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-openapi-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 82 | `oya-foundry-cargo-prefix-kernel` | `foundry` | `cargo-prefix` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-cargo-prefix-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 70 | `oya-foundry-mcp-gateway-kernel` | `foundry` | `mcp-gateway` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mcp-gateway-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 71 | `oya-foundry-policy-kernel` | `foundry` | `policy` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-policy-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 72 | `oya-intelligence-policy-api` | `foundry` | `policy` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry policy decision API; likely REST request/response) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 73 | `oya-intelligence-registry-api` | `foundry` | `registry` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (capability registry CRUD; likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 74 | `oya-intelligence-rag-api` | `foundry` | `rag` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (retrieval-augmented generation; streaming retrieval suggests gRPC or SSE-over-HTTP; multi-protocol candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 75 | `oya-foundry-run-kernel` | `foundry` | `run` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 76 | `oya-foundry-run-adapter-file` | `foundry` | `run-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 77 | `oya-foundry-step-kernel` | `foundry` | `step` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 78 | `oya-foundry-step-adapter-file` | `foundry` | `step-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 79 | `oya-intelligence-api-semver-kernel` | `foundry` | `api-semver` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-api-semver-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 80 | `oya-intelligence-mdbook-kernel` | `foundry` | `mdbook` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mdbook-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 81 | `oya-foundry-openapi-kernel` | `foundry` | `openapi` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-openapi-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 82 | `oya-foundry-cargo-prefix-kernel` | `foundry` | `cargo-prefix` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cargo-prefix-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 
 > Conformant rows (60, 72, 73, 74) need only metadata-block additions, not
 > renames.
@@ -1457,7 +1457,7 @@ Same shape as v3 §5.2; row counts updated:
 | 5 | For each renamed crate: rewrite `[package] name` AND `[lib] name = "..."` (underscored form) | n/a | R7-equivalent permanent control (renamed from v3 §6 R7) |
 | 6 | Rewrite all dep-edge `path = "../oya-<old>"` entries (est. 200–400 sites) | n/a | xtask traversal per v3 §3.3.1 matrix |
 | 7 | Update 3 CI workflow files (same as v3) — `cargo run -p oya-tooling-cli-dev-runtime` → `cargo run -p oya-dev-cli`; other references per §3 | n/a | Per-workflow grep verification |
-| 8 | Update `scripts/check.sh` (~29 sites), `scripts/hooks/pre-push-repoctl.sh` (1 site), `scripts/check-architecture-boundaries.sh` (3 sites). New: rename references to `oya-foundry-api` and `oya-foundation-app` per §3 rows 138 + 60 | n/a | Verified in §8.1 zero-old-names gate |
+| 8 | Update `scripts/check.sh` (~29 sites), `scripts/hooks/pre-push-repoctl.sh` (1 site), `scripts/check-architecture-boundaries.sh` (3 sites). New: rename references to `oya-intelligence-api` and `oya-foundation-app` per §3 rows 138 + 60 | n/a | Verified in §8.1 zero-old-names gate |
 | 9 | Update `docs/standards/clean-architecture.md` §3 row 35 named-by-identity reference: `oya-platform-data-boundary-kernel` → `oya-data-boundary-domain` | n/a | Same row, new name |
 | 10 | **REWRITE** `docs/standards/crate-naming-convention.md` or mark `status: Superseded by ADR-0056` (decision: rewrite, because the doc carries content beyond the BNF — context table, role table, hyperscaler mapping, etc. — that is salvageable under v4) | n/a | Doc rewritten with v4 BNF + bounded-context-registry policy; ADR-0056 cited |
 | 10b | **CO-EDIT** `docs/standards/code-style-rust.md` lines **11-12, 137-147, 162-177** (per Codex iter-2 D6): replace v3 BNF + 9-value role enum (`kernel/domain/app/api/worker/adapter/runtime/cli/sdk`) declarations with v4 3-slot BNF + 12-value layer enum + canonical decision tree references. Add explicit ADR-0056 cross-reference. | n/a | `code-style-rust.md` no longer conflicts with ADR-0056; verified via `rg -n "role.*::=.*kernel" docs/standards/code-style-rust.md` returning no match |
@@ -1661,7 +1661,7 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
      cross-layer deps); possibly several check-rule type-bundle crates.
    - (b) Which `*-api` crates serve gRPC (candidates: OTLP via
      `oya-cloud-observability-api`; streaming retrieval via
-     `oya-foundry-rag-api`; k8s watch streams via
+     `oya-intelligence-rag-api`; k8s watch streams via
      `oya-compute-k8s-api`)?
    - (c) Which `*-api` crates serve GraphQL (candidates: workspace-axis
      user-facing surfaces — `oya-chat-api`, `oya-drive-api`,

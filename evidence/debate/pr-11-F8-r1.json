@@ -12,19 +12,19 @@
   "findings": [
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:172-202,241-258",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/main.rs:172-202,241-258",
       "issue": "Tick-log and per-tick evidence writes use plain fs::write without atomic rename, lock, or compare-and-swap. Concurrent webhook/fix-loop invocations can clobber merge-queue telemetry and lose convergence evidence.",
       "remediation": "Write tick logs through a locked/atomic persistence adapter with unique temp files, fsync/rename, and a concurrent-run regression test."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs:88-104,142-154",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs:88-104,142-154",
       "issue": "Reposition counts are caller-owned in-memory state even though comments require persistence across calls. A process restart resets the MAX_REPOSITION budget and can postpone the intended human-review park indefinitely.",
       "remediation": "Persist reposition_counts in the merge-queue registry/tick evidence and reload it before every synchronize event; add restart-resume tests around the fourth reposition."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:40-83,186-197",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:40-83,186-197",
       "issue": "Conflict diagnostics rely on heuristic parsing of git merge-tree stdout and can emit Conflict with an empty path list. The error envelope does not preserve exit status, stderr, or a raw-output digest, limiting incident triage for rename/delete/binary conflicts.",
       "remediation": "Capture structured command status, stderr/stdout digest, and raw conflict summary in refusal evidence, with fixtures for rename/delete/binary merge-tree output shapes."
     }

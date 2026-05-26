@@ -111,7 +111,7 @@ spec:
     stage('Oya VCS admission evidence') {
       steps {
         container('rust') {
-          sh 'cargo run -q -p oya-foundry-vcs-admission-gate-app'
+          sh 'cargo run -q -p oya-vcs-admission-gate-app'
         }
       }
     }
@@ -136,7 +136,7 @@ cat > "$evidence_dir/wave-15-ze.json" <<JSON
     "cargo check -p ${CARGO_PACKAGE}",
     "cargo clippy -p ${CARGO_PACKAGE} --all-targets -- -D warnings",
     "cargo nextest run -p ${CARGO_PACKAGE} --no-fail-fast",
-    "cargo run -q -p oya-foundry-vcs-admission-gate-app"
+    "cargo run -q -p oya-vcs-admission-gate-app"
   ],
   "build_url": "${BUILD_URL:-local}",
   "git_commit": "${GIT_COMMIT:-unknown}",

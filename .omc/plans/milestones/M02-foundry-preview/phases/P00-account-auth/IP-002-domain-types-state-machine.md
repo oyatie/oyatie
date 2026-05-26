@@ -19,11 +19,11 @@ Ship ProviderAccount, AuthSession, UsageWindow, SecretReference, ProviderFamily 
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-account-domain/src/lib.rs::ProviderAccount
-crates/oya-foundry-account-domain/src/lib.rs::AuthSession
-crates/oya-foundry-account-domain/src/lib.rs::UsageWindow
-crates/oya-foundry-account-domain/src/lib.rs::SecretReference
-crates/oya-foundry-account-domain/src/lib.rs::ProviderFamily
+crates/oya-intelligence-account-domain/src/lib.rs::ProviderAccount
+crates/oya-intelligence-account-domain/src/lib.rs::AuthSession
+crates/oya-intelligence-account-domain/src/lib.rs::UsageWindow
+crates/oya-intelligence-account-domain/src/lib.rs::SecretReference
+crates/oya-intelligence-account-domain/src/lib.rs::ProviderFamily
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

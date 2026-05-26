@@ -1,6 +1,6 @@
 use std::process::ExitCode;
 
-use oya_foundry_vcs_cli_ratchet_kernel::{
+use oya_vcs_cli_ratchet_kernel::{
     CliRatchetError, CloseoutMode, ControllerAction, EvidenceCommand, ForbiddenPrimitiveUse,
     RatchetDecision, RatchetPolicy, evaluate_command, parse_command,
 };
@@ -231,7 +231,7 @@ fn json_forbidden_uses(values: &[ForbiddenPrimitiveUse]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_foundry_vcs_cli_ratchet_kernel::RatchetStage;
+    use oya_vcs_cli_ratchet_kernel::RatchetStage;
 
     #[test]
     fn parse_vcs_args_accepts_policy_format_and_evidence_command() {

@@ -107,9 +107,9 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 4. specs/capabilities/eu-ai-act-risk-class-registry.json
 5. contracts/openapi/foundry/rag-v1.yaml
 6. contracts/openapi/foundry/rag-v1.meta.yaml
-7. crates/oya-foundry-rag-api/src/lib.rs
-8. crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
-9. crates/oya-foundry-rag-endpoint-kernel/src/lib.rs
+7. crates/oya-intelligence-rag-api/src/lib.rs
+8. crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
+9. crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
 10. microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
 11. microservices/foundry/capabilities/guardrails-classify-prompt.yaml
 12. microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
@@ -128,7 +128,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 
 ### Named playgrounds
 
-1. crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
+1. crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
    - Artifact: write a four-sentence note explaining what this playground proves for AI platform engineer, intelligence microservice.
 2. contracts/openapi/foundry/rag-v1.yaml
    - Artifact: write a four-sentence note explaining what this playground proves for AI platform engineer, intelligence microservice.
@@ -432,7 +432,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-006 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-007: high-risk refusal
-- Read: crates/oya-foundry-rag-api/src/lib.rs
+- Read: crates/oya-intelligence-rag-api/src/lib.rs
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves high-risk refusal without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for high-risk refusal.
@@ -442,7 +442,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-007 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-008: model card completeness
-- Read: crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
+- Read: crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 - Connects to: fairness audit and civil-rights evidence
 - Build or inspect: a minimal artifact that proves model card completeness without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model card completeness.
@@ -452,7 +452,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-008 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-009: model rollback drill
-- Read: crates/oya-foundry-rag-endpoint-kernel/src/lib.rs
+- Read: crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
 - Connects to: Cedar gating for AI capability execution
 - Build or inspect: a minimal artifact that proves model rollback drill without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model rollback drill.
@@ -582,7 +582,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-021 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-022: prompt injection fired
-- Read: crates/oya-foundry-rag-api/src/lib.rs
+- Read: crates/oya-intelligence-rag-api/src/lib.rs
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves prompt injection fired without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for prompt injection fired.
@@ -592,7 +592,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-022 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-023: prompt fence eval regression
-- Read: crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
+- Read: crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 - Connects to: RAG retrieval isolation and context boundary
 - Build or inspect: a minimal artifact that proves prompt fence eval regression without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for prompt fence eval regression.
@@ -602,7 +602,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-023 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-024: EU AI Act tier mutation
-- Read: crates/oya-foundry-rag-endpoint-kernel/src/lib.rs
+- Read: crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
 - Connects to: prompt fences and prompt-injection classifier capability
 - Build or inspect: a minimal artifact that proves EU AI Act tier mutation without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for EU AI Act tier mutation.
@@ -732,7 +732,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-036 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-037: tenant-isolated RAG retrieve
-- Read: crates/oya-foundry-rag-api/src/lib.rs
+- Read: crates/oya-intelligence-rag-api/src/lib.rs
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves tenant-isolated RAG retrieve without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant-isolated RAG retrieve.
@@ -742,7 +742,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-037 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-038: model router policy deny
-- Read: crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
+- Read: crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 - Connects to: fairness audit and civil-rights evidence
 - Build or inspect: a minimal artifact that proves model router policy deny without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model router policy deny.
@@ -752,7 +752,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-038 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-039: provider-BYOK credential selection
-- Read: crates/oya-foundry-rag-endpoint-kernel/src/lib.rs
+- Read: crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
 - Connects to: Cedar gating for AI capability execution
 - Build or inspect: a minimal artifact that proves provider-BYOK credential selection without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for provider-BYOK credential selection.
@@ -882,7 +882,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-051 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-052: human appeal path
-- Read: crates/oya-foundry-rag-api/src/lib.rs
+- Read: crates/oya-intelligence-rag-api/src/lib.rs
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves human appeal path without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for human appeal path.
@@ -892,7 +892,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-052 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-053: GPAI transparency notice
-- Read: crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
+- Read: crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 - Connects to: RAG retrieval isolation and context boundary
 - Build or inspect: a minimal artifact that proves GPAI transparency notice without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for GPAI transparency notice.
@@ -902,7 +902,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-053 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-054: audit-chain output attribution
-- Read: crates/oya-foundry-rag-endpoint-kernel/src/lib.rs
+- Read: crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
 - Connects to: prompt fences and prompt-injection classifier capability
 - Build or inspect: a minimal artifact that proves audit-chain output attribution without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit-chain output attribution.
@@ -1032,7 +1032,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-066 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-067: Cedar gated tool call
-- Read: crates/oya-foundry-rag-api/src/lib.rs
+- Read: crates/oya-intelligence-rag-api/src/lib.rs
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves Cedar gated tool call without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar gated tool call.
@@ -1042,7 +1042,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-067 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-068: cost-aware model route
-- Read: crates/oya-foundry-rag-api/tests/foundry_rag_retrieve_api.rs
+- Read: crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 - Connects to: fairness audit and civil-rights evidence
 - Build or inspect: a minimal artifact that proves cost-aware model route without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for cost-aware model route.
@@ -1052,7 +1052,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-068 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-069: drift signal threshold
-- Read: crates/oya-foundry-rag-endpoint-kernel/src/lib.rs
+- Read: crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
 - Connects to: Cedar gating for AI capability execution
 - Build or inspect: a minimal artifact that proves drift signal threshold without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for drift signal threshold.

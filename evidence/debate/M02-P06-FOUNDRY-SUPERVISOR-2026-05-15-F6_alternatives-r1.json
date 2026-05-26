@@ -51,7 +51,7 @@
     "==DECISION 3: DEP BRANCH (v4 \u00a7A.1.4 \u2014 declared as principle; alternatives not preserved in artifact)==",
     "Y: Zero net-new external deps; sync trait; best-effort durability (CHOSEN).",
     "X [Linus-style]: `rustix` + `async_trait` \u2014 proper async ergonomics, syscall wrappers without `libc` macros. Cost: 2 deps, complicates the no-serde precedent.",
-    "Z [Hyperscaler-style hybrid]: Branch Y for kernel + Branch X for adapter \u2014 kernel stays zero-dep, only `oya-foundry-jsonl-supervisor-adapter` pulls in `rustix` for fsync precision. Cost: bifurcates the workspace dep policy.",
+    "Z [Hyperscaler-style hybrid]: Branch Y for kernel + Branch X for adapter \u2014 kernel stays zero-dep, only `oya-intelligence-jsonl-supervisor-adapter` pulls in `rustix` for fsync precision. Cost: bifurcates the workspace dep policy.",
     "==DECISION 4: SUPERVISOR\u2194CLI NOTIFICATION (v4 \u00a7B.3 \u2014 author did NOT enumerate; F6 supplies)==",
     "A: Stop-hook file-existence polling at 100ms (THE SELECTED PATH).",
     "B [Linus-style \u2014 inotify/kqueue/fsevents]: OS-native file-watcher; push-notification on path creation; sub-ms latency; zero CPU when idle. Cost: per-OS code paths; portability burden \u2014 Linux/macOS/BSD divergence. Existing Rust crate `notify` would violate Branch Y; hand-rolling is feasible but adds ~300 LOC per OS.",

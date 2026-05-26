@@ -11,9 +11,9 @@ The Jenkins `oya-pr-review` lane runs the agent review runtime, then the dispatc
 in deterministic mode in CI:
 
 1. Agent review runtime fan-out:
-   `cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out --mode deterministic-mock`
+   `cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out --mode deterministic-mock`
 2. After runtime fan-out, the dispatcher consumes the verdicts:
-   `cargo run -q -p oya-foundry-pr-review-dispatcher-app`
+   `cargo run -q -p oya-intelligence-pr-review-dispatcher-app`
 3. The lane fails if the runtime still pending flag remains set ("runtime still pending").
 
 The runtime fan-out ALWAYS runs before the dispatcher (the dispatcher consumes the
@@ -35,7 +35,7 @@ The Jenkins `ci-failure-fix-loop` lane:
 
 - trigger: upstream oya-verify build completion (Jenkins upstream-build trigger).
 - trigger: webhook repository-dispatch for the `pr-review-fix-requested` event.
-- Dispatches remediation via `oya-foundry-vcs-ci-fix-loop-dispatcher-app`.
+- Dispatches remediation via `oya-vcs-ci-fix-loop-dispatcher-app`.
 - Surface-all-failures: writes the full `failed-jobs.tsv`; one failure never masks others.
 - On exhaustion it routes to `agent-remediation-required` then `fix-loop-exhausted` —
   automated remediation only.

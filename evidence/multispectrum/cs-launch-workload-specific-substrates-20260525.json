@@ -13,7 +13,7 @@
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
     "crates/oya-dev-cli/src/governance_advisory_lanes.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "specs/platform-architecture.json::platform.data_substrate",
     "specs/masterplan.json::_meta.session_directives_2026_05_25",
     "tasks/plan.md",
@@ -63,7 +63,7 @@
       "status": "passed"
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain && ./bin/oya gate validate planning-closure && JSON parsing",
+      "command": "cargo test -p oya-governance-gate-catalog-domain && ./bin/oya gate validate planning-closure && JSON parsing",
       "log": "/tmp/cs-launch-workload-specific-substrates-catalog-planning-json.log and /tmp/cs-launch-workload-specific-substrates-json-planning-live.log",
       "status": "passed"
     },

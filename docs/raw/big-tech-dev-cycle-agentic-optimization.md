@@ -344,7 +344,7 @@ For each of the seven bottlenecks identified in §1.3, the agentic optimization 
 | Capacity rebalancing | 6–12 weeks (OP1/OP2) | continuous | per-goal budget envelope; cohort-controller reshapes provider concurrency | `BudgetEnvelope` + `CohortController` |
 | Review wait | hours–days | seconds–minutes | verifier-agent + adversarial critic; senior human only on threshold | `oya-foundry-verifier-app` |
 | CI duration | 30–90 min | 3–10 min affected | Rust affected-graph + nextest sharding + sccache + remote cache | per Delivery Fabric PRD § 5 |
-| Approval queues | weeks | seconds–hours | policy envelope evaluated at runtime; human approval only on boundary crossing | `oya-foundry-policy-domain` runtime gate |
+| Approval queues | weeks | seconds–hours | policy envelope evaluated at runtime; human approval only on boundary crossing | `oya-intelligence-policy-domain` runtime gate |
 | Postmortem latency | days–weeks | online | typed-trace incident grader emits RCA during execution | `oya-foundry-incident-grader` |
 | Coordination tax | 15–30% senior eng time | ~0% on routine | event-stream subscriptions replace standups/status meetings | OpenTelemetry `gen_ai.*` + event topics |
 
@@ -383,7 +383,7 @@ Cross-referenced against Claude Code backup analysis Appendix A + Delivery Fabri
 | EvidenceBundle kernel + verifier-app | Appendix A § A.5.5; this report § 4.5; Delivery Fabric PRD § 3.4 | `crates/oya-foundry-evidence-kernel` (PRD'd, not yet) + `-verifier-app` |
 | AgentPodManifest schema + registry | Delivery Fabric PRD § 3.6 | `crates/oya-foundry-pod-kernel` + `-pod-domain` |
 | ChangeSet/PatchSet/Stack kernels | Delivery Fabric PRD § 3.1–3.3 | `crates/oya-foundry-change-kernel` |
-| PolicyEnvelope runtime gate (Cedar) | Appendix A § A.5.3; PRD § 13.3.1 #1 (autonomy ceiling as runtime gate, not docs) | `crates/oya-foundry-policy-domain` (PRD'd) |
+| PolicyEnvelope runtime gate (Cedar) | Appendix A § A.5.3; PRD § 13.3.1 #1 (autonomy ceiling as runtime gate, not docs) | `crates/oya-intelligence-policy-domain` (PRD'd) |
 | Anthropic Claude adapter (api + subscription) | DESIGN § 3.0 | `crates/oya-foundry-adapter-claude-{api,subscription}` |
 | Google Gemini adapter (api + subscription) | DESIGN § 3.0 | `crates/oya-foundry-adapter-gemini-{api,subscription}` |
 | OpenAI Codex/ChatGPT subscription adapter (subscription mode) | DESIGN § 3.0 (api mode lives now) | `crates/oya-foundry-adapter-codex-subscription` |

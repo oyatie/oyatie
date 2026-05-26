@@ -19,8 +19,8 @@ Activate Foundry capabilities for tenant under T1-T3 autonomy ceiling.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-capability-registry-app/src/lib.rs::activate
-crates/oya-foundry-autonomy-ceiling-app/src/lib.rs::enforce_per_tenant
+crates/oya-intelligence-capability-registry-app/src/lib.rs::activate
+crates/oya-intelligence-autonomy-ceiling-app/src/lib.rs::enforce_per_tenant
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

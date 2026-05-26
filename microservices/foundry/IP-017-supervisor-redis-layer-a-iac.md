@@ -72,7 +72,7 @@ cargo run -p oya-dev-cli -- gate validate redis-acl-enforced --microservice foun
 This IP is the `supervisor`-bounded-context slice for `IP-002: Valkey Cluster Layer-A IaC`. The stamped version named a target but did not explain how the slice closes Foundry's product gap: tenant-visible fleet control with kill-switch and capability deployment evidence. The concrete gap is traceability from the implementation plan to real Foundry surfaces: `microservices/foundry/capabilities/supervisor-deploy-capability.yaml`, `microservices/foundry/capabilities/supervisor-engage-kill-switch.yaml`, `microservices/foundry/capabilities/supervisor-query-fleet-state.yaml`, `microservices/foundry/contracts/openapi/supervisor-foundry-supervisor.yaml`, and the policy set `microservices/foundry/policy/supervisor-tenant-scope.cedar`, `microservices/foundry/policy/supervisor-supervisor-isolation.md`, `microservices/foundry/policy/supervisor-ci-scope.cedar`.
 
 ### B. Technical approach
-Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbing. The design starts at the capability or contract boundary, keeps tenant and principal fields in the DTO/event shape, and routes state changes through the `supervisor` policy envelope before any adapter call. The implementation must use existing catalog and crate naming from `microservices/foundry/manifest.json`; the primary implementation anchor is `crates/oya-foundry-supervisor-kernel/src/lib.rs` plus the matching catalog records under `microservices/foundry/catalog/`.
+Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbing. The design starts at the capability or contract boundary, keeps tenant and principal fields in the DTO/event shape, and routes state changes through the `supervisor` policy envelope before any adapter call. The implementation must use existing catalog and crate naming from `microservices/foundry/manifest.json`; the primary implementation anchor is `crates/oya-intelligence-supervisor-kernel/src/lib.rs` plus the matching catalog records under `microservices/foundry/catalog/`.
 
 ### C. Deliverables bound to real artifacts
 - Update or create the exact crate/catalog files named by this IP; do not use `.../` placeholder paths in the final ChangeSet.
@@ -90,7 +90,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 6. Emit or validate SLO/audit evidence through the Foundry evidence path so the ChangeSet can be verified by `oya verify --ci-required` and the service-specific gates.
 
 ### E. Acceptance evidence
-- `cargo test -p <changed-foundry-crate>` or the narrowest crate test covering `crates/oya-foundry-supervisor-kernel/src/lib.rs`.
+- `cargo test -p <changed-foundry-crate>` or the narrowest crate test covering `crates/oya-intelligence-supervisor-kernel/src/lib.rs`.
 - Contract parity for `microservices/foundry/contracts/openapi/supervisor-foundry-supervisor.yaml` and `microservices/foundry/contracts/proto/supervisor-foundry-supervisor.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/foundry/policy/supervisor-tenant-scope.cedar`, `microservices/foundry/policy/supervisor-supervisor-isolation.md`, `microservices/foundry/policy/supervisor-ci-scope.cedar`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/foundry/slos/supervisor-command-propagation.openslo.yaml`, `microservices/foundry/slos/supervisor-fleet-state-freshness.openslo.yaml`; no acceptance by line count alone.

@@ -19,8 +19,8 @@ Ship read-only REST + WebSocket APIs for account/session/usage/routing dashboard
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-dashboard-api/src/lib.rs::readonly_routes
-crates/oya-foundry-dashboard-api/src/lib.rs::reject_write_405
+crates/oya-intelligence-dashboard-api/src/lib.rs::readonly_routes
+crates/oya-intelligence-dashboard-api/src/lib.rs::reject_write_405
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

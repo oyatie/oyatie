@@ -29,23 +29,23 @@
       "notes": "Passed after formatting the owned Rust files."
     },
     {
-      "command": "rustc --edition=2021 --crate-type lib --crate-name oya_foundry_vcs_kernel crates/oya-foundry-vcs-kernel/src/lib.rs --out-dir /tmp/oyatie-ip008-rustc",
+      "command": "rustc --edition=2021 --crate-type lib --crate-name oya_vcs_kernel crates/oya-vcs-kernel/src/lib.rs --out-dir /tmp/oyatie-ip008-rustc",
       "result": "pass",
       "notes": "Manual dependency build for targeted rustc validation; no workspace cargo used."
     },
     {
-      "command": "rustc --edition=2021 --crate-type lib --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip008-rustc --out-dir /tmp/oyatie-ip008-rustc -D warnings",
+      "command": "rustc --edition=2021 --crate-type lib --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip008-rustc --out-dir /tmp/oyatie-ip008-rustc -D warnings",
       "result": "pass",
       "notes": "Targeted library compile with -D warnings."
     },
     {
-      "command": "rustc --edition=2021 --test --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip008-rustc -D warnings -o /tmp/oyatie-ip008-rustc/oya_foundry_vcs_test_standard_gate_lib_tests && /tmp/oyatie-ip008-rustc/oya_foundry_vcs_test_standard_gate_lib_tests --nocapture",
+      "command": "rustc --edition=2021 --test --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip008-rustc -D warnings -o /tmp/oyatie-ip008-rustc/oya_foundry_vcs_test_standard_gate_lib_tests && /tmp/oyatie-ip008-rustc/oya_foundry_vcs_test_standard_gate_lib_tests --nocapture",
       "result": "pass",
       "summary": "7 passed; 0 failed",
       "notes": "Unit tests cover tier resolution, freshness, registry selection, blocking required integration/e2e, stale evidence, advisory-only evidence, generated client and contract accounting, and accepted accounting path."
     },
     {
-      "command": "rustc --edition=2021 --test crates/oya-foundry-vcs-test-standard-gate/tests/gitops_vcs_ip_008.rs --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_kernel.rlib --extern oya_foundry_vcs_test_standard_gate=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_test_standard_gate.rlib -L dependency=/tmp/oyatie-ip008-rustc -D warnings -o /tmp/oyatie-ip008-rustc/gitops_vcs_ip_008_tests && /tmp/oyatie-ip008-rustc/gitops_vcs_ip_008_tests --nocapture",
+      "command": "rustc --edition=2021 --test crates/oya-foundry-vcs-test-standard-gate/tests/gitops_vcs_ip_008.rs --extern oya_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_vcs_kernel.rlib --extern oya_foundry_vcs_test_standard_gate=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_test_standard_gate.rlib -L dependency=/tmp/oyatie-ip008-rustc -D warnings -o /tmp/oyatie-ip008-rustc/gitops_vcs_ip_008_tests && /tmp/oyatie-ip008-rustc/gitops_vcs_ip_008_tests --nocapture",
       "result": "pass",
       "summary": "5 passed; 0 failed",
       "notes": "Integration-style tests cover deploy edge tier resolution, missing e2e fixup, post-rebase stale evidence, advisory-required blocking, and generated-client accounting."

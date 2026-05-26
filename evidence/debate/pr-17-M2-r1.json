@@ -51,7 +51,7 @@
     "PR #5 is the worst-case: 10 high-severity blockers + 45 major findings + r2_redispatch round (only PR requiring redispatch) — this is the ADR-0083 + M01-P17 PR that is foundational to the Foundry pipeline itself; documenting 10 blockers in the foundational PR without remediation is the highest-priority synthesis condition.",
     "73 / 81 r2 files are exactly 39 lines (verified by file-size cluster in meta.json additions field) — uniformity at this scale is mechanically improbable without templated emission.",
     "9 synthesis files vary 136-237 lines — the synthesis layer DOES show per-PR distinct reasoning even where per-facet r1/r2 files do not; the synthesis files are the genuine evidence; r1/r2 files are the schema-compliance shell around them.",
-    "PR claims 'Direct Rust cargo' validation but only invokes one app crate (oya-foundry-vcs-admission-gate-app) — does not run the gate/CI suite per [[feedback_clean_architecture_requirements]] 14 lanes, which is acceptable for an evidence-only PR but should be stated explicitly as scope-bounded validation.",
+    "PR claims 'Direct Rust cargo' validation but only invokes one app crate (oya-vcs-admission-gate-app) — does not run the gate/CI suite per [[feedback_clean_architecture_requirements]] 14 lanes, which is acceptable for an evidence-only PR but should be stated explicitly as scope-bounded validation.",
     "Naming compliance: pr-<N>-<facet>-r<n>.json schema is consistent and justified in PR body per [[feedback_naming_justification]] doctrine — this is the one fully-doctrine-aligned dimension."
   ],
   "uncertainty_areas": [

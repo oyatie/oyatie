@@ -586,7 +586,7 @@ BNF-SB-053. Check `crates/oya-policy-cedar-domain`.
 
 BNF-SB-054. Check `crates/oya-cloud-compute-vm-api`.
 
-BNF-SB-055. Check `crates/oya-foundry-evidence-domain`.
+BNF-SB-055. Check `crates/oya-intelligence-evidence-domain`.
 
 BNF-SB-056. Check `microservices/workflow-engine/contracts/state-machine-v1.openapi.yaml`.
 

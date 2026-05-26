@@ -12,8 +12,8 @@ purpose: |
 lift_target: oyatie/docs/visualization/product-map.md
 enforced_by: oya-foundry-fitness-product-map
 extends_crates:
-  - oya-foundry-architecture-map-kernel
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-architecture-map-kernel
+  - oya-intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md

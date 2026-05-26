@@ -16,7 +16,7 @@
   ],
   "local_gates": [
     "master-plan-completion: PASS (80 phases, 172 implementation plans) — unchanged from prior slice",
-    "oya-foundry-vcs-admission-gate-app: PASS",
+    "oya-vcs-admission-gate-app: PASS",
     "placeholder-debt: PASS (cleared this session via PR #53)"
   ],
   "facets": {

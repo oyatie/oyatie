@@ -12,7 +12,7 @@ purpose: |
   `docs/visualization/dependency-graph.md` as Graphviz dot (SVG fidelity).
 planned_enforcement_ref: oya-governance-dep-graph
 extends_crates:
-  - oya-foundry-architecture-map-kernel
+  - oya-intelligence-architecture-map-kernel
   - oya-foundry-pr-traceability-kernel
 companion_docs:
   - INDEX.md

@@ -78,10 +78,10 @@ crates/oya-tenancy-domain/src/lib.rs:42 — fn validate_tier(tier: &Tier) -> Res
 crates/oya-dsr-application/src/lib.rs:15 — struct CreateDsrUseCase<R: DsrRepository> { ... }
 
 # protocol rest:
-crates/oya-foundry-policy-api/src/main.rs:8 — Router::new().route("/evaluate", post(evaluate_handler))
+crates/oya-intelligence-policy-api/src/main.rs:8 — Router::new().route("/evaluate", post(evaluate_handler))
 
 # protocol grpc:
-crates/oya-foundry-rag-api/src/main.rs:12 — Server::builder().add_service(RagServiceServer::new(svc))
+crates/oya-intelligence-rag-api/src/main.rs:12 — Server::builder().add_service(RagServiceServer::new(svc))
 ```
 
 ---

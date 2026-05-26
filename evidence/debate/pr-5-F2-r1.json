@@ -9,7 +9,7 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": "registry/vcs/changeset-event-log.json:1 + crates/oya-foundry-vcs-changeset-state-app/src/main.rs:431-446",
+      "file": "registry/vcs/changeset-event-log.json:1 + crates/oya-vcs-changeset-state-app/src/main.rs:431-446",
       "issue": "Single global JSON file as the canonical state-of-truth for ALL changesets in the pipeline. Every append rewrites the entire file via read-parse-append-write-rename. At hyperscaler agentic load (N=100s of concurrent changesets, 10+ events each, multiple emitters: orchestrator+IP-004+IP-005+IP-006+2 promotion workflows+canary controller) this is O(N*E) per append, single-writer-serialized, and the rename-on-the-same-file pattern is NOT safe across concurrent writers — fs::rename is atomic per-call but two writers reading-then-writing will silently clobber each other's appends (TOCTOU). There is no fcntl/flock, no compare-and-swap, no per-changeset shard. This is exactly the 'per-instance control plane' anti-pattern called out in the F2 spec.",
       "remediation": "Wave-B MUST shard the event log by changeset_id (e.g., registry/vcs/changeset-events/<bucket>/<changeset_id>.jsonl one-line-per-event append-only with O_APPEND, or move to an actual event store: SQLite WAL per-bucket, Postgres LISTEN/NOTIFY, or DynamoDB conditional-put). The current file shape can stay as a periodic snapshot/index but MUST NOT be the write path. Add an ADR amendment locking the shard key and the writer-CAS contract before any second emitter (IP-004 wave-B) writes."
     },
@@ -33,7 +33,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:62-72 + crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:200-213",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:62-72 + crates/oya-vcs-changeset-state-kernel/src/lib.rs:200-213",
       "issue": "Ed25519 signature is a wave-A stub (`ed25519-stub:<base64>`) AND the kernel explicitly says it does NOT verify signatures. Every downstream gate that the ADRs describe as 'signed + audited' (canary verdict, rewind log, override row) currently has NO crypto. At hyperscaler trust boundaries (cross-cell, cross-tenant, post-incident audit), an unsigned event log is indistinguishable from a tampered one — and there is no CI lane that flags 'still on stub' so the placeholder can persist silently into wave-B.",
       "remediation": "Add an oya-foundry-fitness-changeset-state-signature-stub-detector lane NOW (wave-A) that fails CI when any production-target event row carries signature prefix `ed25519-stub:`. The lane permits stubs only in `target=dev` rows, blocks them at staging promotion. This forces wave-B to land real signing before any production event log row exists."
     },
@@ -57,13 +57,13 @@
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:218-225 + 75-77",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:218-225 + 75-77",
       "issue": "Single-source-of-truth violation: `ChangesetState::ALL`, `as_wire`, and the parser are all reauthored in three places (kernel lib.rs, app main.rs, dev-cli changeset_state_monotonicity_gate.rs). Each event parser (app:321-362, gate:87-133) reimplements identical field extraction. At hyperscaler scale, a new field (or a renamed state) requires touching three parsers in lockstep; one drift = silent acceptance/rejection mismatch between writer and validator. This is the F2 'n-source-of-truth-without-generator' anti-pattern.",
       "remediation": "Move event parsing into the kernel (e.g., `ChangesetEvent::from_json_value`) and delete both copy-paste parsers. Or: derive Serialize/Deserialize on the kernel types via serde (the kernel's 'no external deps beyond std' rule can be relaxed for serde; it's the canonical wire-format library and not a leaky abstraction). The ADR-0056 port-in-kernel discipline does not forbid serde."
     },
     {
       "severity": "MINOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:261-267 + 275-302",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:261-267 + 275-302",
       "issue": "Hand-rolled RFC3339 formatter to avoid chrono/time dep. Sub-second precision is truncated, which means at hyperscaler emit rates (multiple events per second per changeset under fix-loop pressure) the dedup_key `<cs>_<state>_<at>` is NOT unique — two re-emits of the same to_state within one wall-second produce identical dedup_keys, which the kernel will reject as `DuplicateDedupKey`. The kernel's own monotonicity-test (lib.rs:556-570) is the exact failure mode in production.",
       "remediation": "Either format with millisecond precision (truncate to ms not s), or append a per-process monotonic counter to the dedup_key. Cheaper still: depend on `time` 0.3 (single dep, no chrono baggage) and get RFC3339 with sub-second native. The 'dep-thin' justification at line 273 is false economy."
     }

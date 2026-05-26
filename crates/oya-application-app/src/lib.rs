@@ -21,41 +21,41 @@ use oya_data_boundary_kernel::{
     evaluate_data_use,
 };
 use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
-use oya_foundry_adapter_domain::{
+use oya_governance_eval_domain::EvalError;
+pub use oya_governance_eval_domain::{
+    AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
+    REQUIRED_LINGUISTIC_COHORT_LOCALES,
+};
+use oya_identity_domain::{IdentityError, IdpBinding, Token, User, issue_token};
+use oya_intelligence_adapter_domain::{
     AdapterError, CostCeiling, InvocationPolicy, ProviderAuth, ProviderCallReceipt, ProviderId,
     ProviderMode, ProviderProfile, ProviderRoute, ProviderRoutePreference, ProviderRouteRequest,
     SubscriptionBindingRegistry, resolve_route,
 };
-pub use oya_foundry_bypass_domain::{AutonomyBreakGlass, AutonomyBreakGlassInput};
-use oya_foundry_bypass_domain::{BypassError, BypassLedger, BypassLedgerRecord};
-use oya_foundry_capability_domain::CapabilityError;
-pub use oya_foundry_capability_domain::{
+pub use oya_intelligence_bypass_domain::{AutonomyBreakGlass, AutonomyBreakGlassInput};
+use oya_intelligence_bypass_domain::{BypassError, BypassLedger, BypassLedgerRecord};
+use oya_intelligence_capability_domain::CapabilityError;
+pub use oya_intelligence_capability_domain::{
     AutonomyTier, Capability, CapabilityAction, CapabilityCostProfile, CapabilityMcpContract,
     CapabilityRegistry,
 };
-use oya_foundry_eval_domain::EvalError;
-pub use oya_foundry_eval_domain::{
-    AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
-    REQUIRED_LINGUISTIC_COHORT_LOCALES,
-};
-use oya_foundry_evidence_domain::EvidenceError;
-pub use oya_foundry_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
-pub use oya_foundry_mcp_gateway_domain::{
+use oya_intelligence_evidence_domain::EvidenceError;
+pub use oya_intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
+pub use oya_intelligence_mcp_gateway_domain::{
     DISCOVER_SCOPE, McpAccessTokenClaims, McpGatewayDescriptor, McpPrompt, McpRateLimitPolicy,
     McpTool, scope_for_tool_name,
 };
-use oya_foundry_mcp_gateway_domain::{
+use oya_intelligence_mcp_gateway_domain::{
     McpGatewayError, McpPrincipal, McpRateLimiter, McpTenantEndpoint, authorize_tool_call,
     project_capability_tool, validate_access_token,
 };
-use oya_foundry_policy_domain::{
+use oya_intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
 };
-pub use oya_foundry_run_domain::{Run, RunDisposition, RunState};
-use oya_foundry_run_domain::{RunError, RunLedger, RunStart};
-pub use oya_foundry_step_domain::{Step, StepDisposition, StepKind, StepState};
-use oya_foundry_step_domain::{StepError, StepLedger, StepStart};
-use oya_identity_domain::{IdentityError, IdpBinding, Token, User, issue_token};
+pub use oya_intelligence_run_domain::{Run, RunDisposition, RunState};
+use oya_intelligence_run_domain::{RunError, RunLedger, RunStart};
+pub use oya_intelligence_step_domain::{Step, StepDisposition, StepKind, StepState};
+use oya_intelligence_step_domain::{StepError, StepLedger, StepStart};
 use oya_observability_domain::{
     CAPABILITY_INVOCATION_OPERATION_NAME, CapabilityInvocationTraceContext,
     CapabilityInvocationTraceObserver, CapabilityInvocationTraceSpan, FOUNDRY_PROVIDER_NAME,

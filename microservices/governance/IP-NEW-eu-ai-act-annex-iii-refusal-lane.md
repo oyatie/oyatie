@@ -40,7 +40,7 @@ declared Annex III refusal claim has no matching `forbid` rule.
   with the runner that reads files and forwards to the kernel.
 - Wire the new subcommand into `crates/oya-dev-cli/src/commands/gate/mod.rs`.
 - Register the lane in `AGGREGATED_VALIDATE_LANES` in
-  `crates/oya-foundry-gate-catalog-domain/src/lib.rs`.
+  `crates/oya-governance-gate-catalog-domain/src/lib.rs`.
 - Register the lane in `.github/branch-protection.yaml` as a required
   status check on `dev`.
 
@@ -52,7 +52,7 @@ declared Annex III refusal claim has no matching `forbid` rule.
 | `crates/oya-dev-cli/src/eu_ai_act_annex_iii_refusal_gate.rs` | create — file-reading runner |
 | `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
 | `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add `(Some("validate"), Some("regulated-ai-refusal-grounding"))` arm |
-| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | edit — append `"regulated-ai-refusal-grounding"` to `AGGREGATED_VALIDATE_LANES` |
+| `crates/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"regulated-ai-refusal-grounding"` to `AGGREGATED_VALIDATE_LANES` |
 | `.github/branch-protection.yaml` | edit — add to dev's `required_status_checks` |
 | `microservices/governance/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml` | create — catalog entry |
 

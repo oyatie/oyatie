@@ -8,7 +8,7 @@ doc_status: published
 
 # Foundry Supervisor App — README
 
-**Crate:** `oya-foundry-supervisor-app`  
+**Crate:** `oya-intelligence-supervisor-app`  
 **Layer:** Application (12-layer-enum L5)  
 **Wave:** 2d (M02-P06)  
 **Entry point:** `bin/oya-foundry-supervisor` (daemon binary)

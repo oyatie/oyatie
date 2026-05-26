@@ -15,7 +15,7 @@
       "evidence_lines": "60-81",
       "snippet": "for entry in fs::read_dir(capabilities_dir) ... let contents = fs::read_to_string(&path) ...",
       "rule_cited": "ADR-0056 line 177: 'cli — CLI binary or CLI library (subcommand handlers + optional [[bin]])'. Lines 171-174: kernel owns ports+types, domain owns business logic, application owns use cases. fs::read_dir + YAML parse of capability templates is domain/usecase work, not cli work.",
-      "why": "The cli crate directly walks the filesystem and parses capability/eval template YAML. Equivalent kernel + domain crates already exist (oya-foundry-capability-registry-kernel, oya-foundry-capability-domain) — confirming the layer split is canonical, not aspirational. The dev-cli gate should depend on those kernels and call a usecase, not re-implement template-loading at the presentation layer.",
+      "why": "The cli crate directly walks the filesystem and parses capability/eval template YAML. Equivalent kernel + domain crates already exist (oya-intelligence-capability-registry-kernel, oya-intelligence-capability-domain) — confirming the layer split is canonical, not aspirational. The dev-cli gate should depend on those kernels and call a usecase, not re-implement template-loading at the presentation layer.",
       "fix": "Introduce/locate an oya-foundry-capability-template-application (or extend an existing usecase crate) that exposes load_capability_records(capabilities_dir) -> Result<Vec<CapabilityRecord>, _>. The cli gate then calls that usecase and only formats output. Keep the path-default flag in cli (presentation), keep the IO + parse in usecase/adapter."
     },
     {
@@ -37,10 +37,10 @@
   },
   "right_layer_for_template_loading": {
     "current": "cli (oya-dev-cli)",
-    "should_be": "usecase/application crate that depends on oya-foundry-capability-registry-kernel + oya-foundry-capability-domain",
+    "should_be": "usecase/application crate that depends on oya-intelligence-capability-registry-kernel + oya-intelligence-capability-domain",
     "evidence_kernels_already_exist": [
-      "crates/oya-foundry-capability-registry-kernel (referenced by oya-foundry-rag-endpoint-app)",
-      "crates/oya-foundry-capability-domain (CapabilityRecord, AutonomyTier, etc.)"
+      "crates/oya-intelligence-capability-registry-kernel (referenced by oya-intelligence-rag-endpoint-app)",
+      "crates/oya-intelligence-capability-domain (CapabilityRecord, AutonomyTier, etc.)"
     ]
   },
   "pre_commitment_predictions_vs_actual": {

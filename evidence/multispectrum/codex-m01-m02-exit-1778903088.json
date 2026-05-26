@@ -1,6 +1,6 @@
 {
   "architecture_drift_repairs": [
-    "Added oya-foundry-subagent-runtime-usecase and moved shared fanout orchestration there.",
+    "Added oya-intelligence-subagent-runtime-usecase and moved shared fanout orchestration there.",
     "Updated dispatcher apps to depend on usecase, not subagent-runtime-app.",
     "Kept app as composition/root role only; architecture-boundaries still forbids app -> app.",
     "Updated architecture-boundaries to allow app -> usecase and usecase -> kernel/domain only.",

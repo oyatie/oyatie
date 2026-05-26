@@ -6,7 +6,7 @@ use oya_check_quality_lane::{
     QualityLaneDocRow, QualityLaneRecord, QualityLaneStage, QualityLaneStatus,
     validate_quality_lanes,
 };
-use oya_foundry_gate_catalog_domain::all_canonical_commands_rendered;
+use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{clean_yaml_value, list_team_ids, usage};
 
@@ -16,7 +16,7 @@ pub(crate) struct QualityLanesValidateArgs {
     ci_lanes_path: PathBuf,
     /// Optional test-only override for the wired-commands corpus. When
     /// `None` (production default) the kernel sources its wired-commands
-    /// catalog from `oya-foundry-gate-catalog-domain` per the .sh-removal
+    /// catalog from `oya-governance-gate-catalog-domain` per the .sh-removal
     /// chain IP-C. When `Some(path)`, the CLI reads the path verbatim —
     /// used by the integration-test fixtures in `tests/gate_cli.rs` to
     /// exercise rejection paths.

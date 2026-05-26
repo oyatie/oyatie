@@ -39,7 +39,7 @@ RUN cargo build --release --target ${TARGET} --bin ${BIN_NAME} && \
 # --- Stage 2: distroless final --------------------------------------------
 # gcr.io/distroless/static-debian12 has no shell, no package manager, no
 # libc — only ca-certs + tzdata + the binary we ship. Matches the
-# allowlist in `oya-foundry-fitness-image-discipline-kernel`.
+# allowlist in `oya-governance-image-discipline-kernel`.
 FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 
 # Minimal labels: build metadata for SBOM / supply-chain lanes.

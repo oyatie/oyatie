@@ -182,7 +182,7 @@ Rustdoc uses an isolated `target/oya-rustdoc-check` directory and a rustup-pinne
 versioned `contracts/openapi/**/*.yaml` sources, `x-oyatie-data-class`
 annotations on parameters and schema properties, operation-to-runtime bindings in
 [`registry/openapi/runtime-bindings.tsv`](../registry/openapi/runtime-bindings.tsv),
-including the `oya-foundry-api` inbound boundary for the
+including the `oya-intelligence-api` inbound boundary for the
 `foundry.capability.invoke` REST surface and typed runtime response-status parity,
 with runtime-bound operations requiring explicit numeric response keys rather than
 OpenAPI `default` or `1XX`-through-`5XX` ranges and status enums requiring

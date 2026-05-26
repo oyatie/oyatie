@@ -12,13 +12,13 @@
   "findings": [
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:16-20,148-177",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:16-20,148-177",
       "issue": "`sref://openbao/...` is mapped to `$HOME/.openbao/...` by a local resolver while comments say production should use OpenBao. This is a compatibility shim, not a real SecretReference adapter.",
       "remediation": "Wire the real OpenBao SecretReference resolver before production and clearly mark the file resolver local-only in config/ADR."
     },
     {
       "severity": "MAJOR",
-      "file": "registry/vcs/event-router.yaml and tools/oya-foundry-webhook-receiver-app/src/main.rs:412-419",
+      "file": "registry/vcs/event-router.yaml and tools/oya-vcs-webhook-receiver-app/src/main.rs:412-419",
       "issue": "Routing returns an agent name/purpose but does not invoke the dispatcher or persist an invocation request. The webhook receiver accepts events without actually advancing the Foundry pipeline.",
       "remediation": "Emit a durable dispatch request or call the dispatcher seam, and record failures as `agent_invocation_failed` delivery-log rows."
     }

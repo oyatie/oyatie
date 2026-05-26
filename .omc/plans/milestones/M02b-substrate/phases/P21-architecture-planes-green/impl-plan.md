@@ -21,7 +21,7 @@ decided_by: user-directive-option-2
 execution_variant_note: >
   Delta-1 merge-variant: added `plane` module (ArchitecturePlane 9-plane enum,
   ProofLevel L4/L5, PlaneVerdict, UnknownPlane) to the existing
-  oya-foundry-architecture-map-kernel crate. No new workspace crate scaffolded.
+  oya-intelligence-architecture-map-kernel crate. No new workspace crate scaffolded.
   No new workspace-level deps added. 16 new tests; 65 total passing.
   session_id: claude-durable-goal-2026-05-17-p21-agent
 ---

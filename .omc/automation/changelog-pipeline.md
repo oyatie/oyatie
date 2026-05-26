@@ -80,6 +80,6 @@ The author edits the placeholder summary before merge.
 
 ## 8. Out-of-scope
 
-- Source-code-only CHANGELOG (covered by per-crate `CHANGELOG.md` files, owned by `oya-foundry-api-semver-kernel`).
+- Source-code-only CHANGELOG (covered by per-crate `CHANGELOG.md` files, owned by `oya-intelligence-api-semver-kernel`).
 - Marketing-facing release notes (separate `docs/RELEASE-NOTES.md`, hand-curated).
 - ADR-pack CHANGELOG (handled inline in each ADR's status-transition history).

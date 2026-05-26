@@ -11,7 +11,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
     "microservices/cloud-iac/manifest.json",
     "tasks/plan.md",
@@ -76,7 +76,7 @@
       "summary": "Scoped dev-cli check and clippy with warnings denied passed."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed after adding cloud-iac-provider-signature-review to AGGREGATED_VALIDATE_LANES."
     },

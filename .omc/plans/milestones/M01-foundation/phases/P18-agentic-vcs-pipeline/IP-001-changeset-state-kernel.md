@@ -19,9 +19,9 @@ purpose: Land the foundational changeset state machine (12-value closed enum, mo
 
 Implement ADR-0110 wave-A:
 
-- New crate `oya-foundry-vcs-changeset-state-kernel` — closed-enum
+- New crate `oya-vcs-changeset-state-kernel` — closed-enum
   + monotonicity validator (port-in-kernel, pure-domain).
-- New crate `oya-foundry-vcs-changeset-state-app` — runner that
+- New crate `oya-vcs-changeset-state-app` — runner that
   appends signed events to `registry/vcs/changeset-event-log.json`.
 - New CI lane `oya-foundry-fitness-changeset-state-monotonicity`
   — asserts every changeset's event log is monotonic.
@@ -35,7 +35,7 @@ None. Foundation IP. Must land before IP-002/003/004/005.
 ## Acceptance
 
 - 12-value closed enum exposed at
-  `oya_foundry_vcs_changeset_state_kernel::ChangesetState`.
+  `oya_vcs_changeset_state_kernel::ChangesetState`.
 - `validate_monotonic_event_log(events: &[ChangesetEvent])` returns
   `Result<MonotonicityReport, MonotonicityError>` per the kernel
   trait shape.
@@ -49,8 +49,8 @@ None. Foundation IP. Must land before IP-002/003/004/005.
 
 ## Symbols to grit-claim
 
-- `crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs::*`
-- `crates/oya-foundry-vcs-changeset-state-app/src/main.rs::main`
+- `crates/oya-vcs-changeset-state-kernel/src/lib.rs::*`
+- `crates/oya-vcs-changeset-state-app/src/main.rs::main`
 - `registry/vcs/changeset-event-log.json::*` (initial empty)
 - `crates/oya-dev-cli/src/{changeset_state_monotonicity_gate,changeset_state_enum_closed_gate}.rs::*`
 - `crates/oya-dev-cli/src/commands/gate/mod.rs::run` (two new

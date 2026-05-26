@@ -172,7 +172,7 @@ stateDiagram-v2
 - Service: [microservices/finops-portal/](../../../microservices/finops-portal/)
 - Crate family: [crates/oya-eventing-domain/](../../../crates/oya-eventing-domain/)
 - Crate family: [crates/oya-observability-domain/](../../../crates/oya-observability-domain/)
-- Crate family: [crates/oya-foundry-evidence-domain/](../../../crates/oya-foundry-evidence-domain/)
+- Crate family: [crates/oya-intelligence-evidence-domain/](../../../crates/oya-intelligence-evidence-domain/)
 - Standard: [Logging and Tracing](../../standards/logging-tracing.md)
 - Standard: [Observability](../../standards/observability.md)
 - Standard: [Request ID Canonical](../../standards/request-id-canonical.md)

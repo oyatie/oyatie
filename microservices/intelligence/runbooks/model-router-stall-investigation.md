@@ -165,8 +165,8 @@ doc_status: published
 6. Patch audit tap backpressure handling if response waits were unbounded.
 7. Add regression fixture for zero candidate providers.
 8. Add regression fixture for fallback loop.
-9. Run model routing tests: `cargo test -p oya-foundry-route-policy-kernel model_router -- --nocapture`.
-10. Run eval tests: `cargo test -p oya-foundry-eval-domain eval_gate -- --nocapture`.
+9. Run model routing tests: `cargo test -p oya-intelligence-route-policy-kernel model_router -- --nocapture`.
+10. Run eval tests: `cargo test -p oya-governance-eval-domain eval_gate -- --nocapture`.
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-model-router --production-snapshot --cell $CELL`.
 12. Verify route explain: `oya ops intelligence model-router explain --tenant $TENANT --pack $PACK --task assist-draft --expect safe-candidate`.
 13. Close breaker: `oya ops breaker close intelligence-model-router --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

@@ -14,7 +14,7 @@
     "The ergonomic story for `.audit/` is strong: gitignore + untrack means future agent-read sessions stop polluting `git status` automatically; no follow-up scrubbing required (ADR-0117 explicitly notes this).",
     "The `.config/nextest.toml` retention with rationale ('CI requires [profile.ci]') is a debuggability uplift — a future contributor hitting `profile ci not found` can grep for the ADR and find the answer.",
     "No README/CONTRIBUTING entry exists at `infra/kyverno/` to point future contributors at the convention; they must infer from layout. ADR-0117 is the only durable signpost.",
-    "The `ARGO_MANIFEST` constant in tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs lacks a doc comment explaining what reads the file or how the path is also embedded inside application.json itself — small but real debuggability gap.",
+    "The `ARGO_MANIFEST` constant in tools/oya-vcs-provider-execution-gate-app/src/main.rs lacks a doc comment explaining what reads the file or how the path is also embedded inside application.json itself — small but real debuggability gap.",
     "Self-referential `path:` rewrite inside the moved application.json is correctly called out in ADR-0117 as an Argo-consumed live config value (not just a comment) — that explanatory note prevents a future contributor from 'cleaning up' what looks like a stale duplicate."
   ],
   "uncertainty_areas": [
@@ -31,7 +31,7 @@
     },
     {
       "severity": "low",
-      "summary": "`ARGO_MANIFEST` constant in tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs lacks a doc comment explaining its consumer (Argo CD) and the fact that the same path is also embedded inside the manifest's own `path:` field.",
+      "summary": "`ARGO_MANIFEST` constant in tools/oya-vcs-provider-execution-gate-app/src/main.rs lacks a doc comment explaining its consumer (Argo CD) and the fact that the same path is also embedded inside the manifest's own `path:` field.",
       "recommended_action": "Add a one-line `/// Path to the Argo Application manifest; mirrored inside the file's own spec.source.path for Argo CD self-reference.` doc comment above the const.",
       "fixuptask_id": "F-PR12-02"
     },

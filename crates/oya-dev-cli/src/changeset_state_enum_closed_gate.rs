@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use oya_foundry_vcs_changeset_state_kernel::ChangesetState;
+use oya_vcs_changeset_state_kernel::ChangesetState;
 use serde_json::Value;
 
 const USAGE: &str =

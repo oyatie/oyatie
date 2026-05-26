@@ -19,7 +19,7 @@
     "step_2_atomic_parent_side_wiring": {
       "delivered": [
         "11 deps added to crates/oya-dev-cli/Cargo.toml (vendor-lockin already present at line 41)",
-        "12 strings appended to AGGREGATED_VALIDATE_LANES in crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+        "12 strings appended to AGGREGATED_VALIDATE_LANES in crates/oya-governance-gate-catalog-domain/src/lib.rs",
         "12 dispatcher arms added in crates/oya-dev-cli/src/commands/gate/mod.rs",
         "11 advisory validate_*_gate functions authored in crates/oya-dev-cli/src/advisory_lanes_pr143.rs (new module; 626 LOC; 3 unit tests pass; vendor-lockin's function was pre-existing in lib.rs:1114)",
         "12 lane entries appended to registry/quality/lanes.yaml",
@@ -27,7 +27,7 @@
         "2 debt entries added to registry/placeholder-debt/adr-follow-ups.yaml (adr-0167-tenant-cli-commands + adr-0169-webhook-impl)",
         "11 catalog records authored under registry/catalog/ (oya-check-{authz-tier,tenant-cost-labels,backup-retention,vector-store,olap-tier,wasm-runtime,iac-tier,a11y,i18n,compliance-evidence,realtime-transport}.yaml)"
       ],
-      "verify_gate": "PASS — cargo build --workspace exit 0; cargo test -p oya-foundry-gate-catalog-domain 16/16 pass (incl. aggregated_validate_lanes_entries_unique); cargo run -- gate validate authz-tier-discipline emits honest signal (185 cedar files / 0 envoy / 11 findings); cargo run -- gate validate i18n-coverage emits honest signal (1 surface)."
+      "verify_gate": "PASS — cargo build --workspace exit 0; cargo test -p oya-governance-gate-catalog-domain 16/16 pass (incl. aggregated_validate_lanes_entries_unique); cargo run -- gate validate authz-tier-discipline emits honest signal (185 cedar files / 0 envoy / 11 findings); cargo run -- gate validate i18n-coverage emits honest signal (1 surface)."
     },
     "step_3_adr_0211_promotion": {
       "delivered": "docs/decisions/ADR-0211-in-house-tech-stack-policy.md (225 lines, 19 headings, 5 alternatives, 3+3+4 consequences, 9 named industry sources). Resolves orphan citation per ADR-0221 §M-13.",
@@ -73,7 +73,7 @@
     },
     "step_9_final_workspace_verification": {
       "cargo_build_workspace": "PASS (exit 0)",
-      "cargo_test_oya_foundry_gate_catalog_domain": "PASS (16/16 pass)",
+      "cargo_test_oya_governance_gate_catalog_domain": "PASS (16/16 pass)",
       "cargo_test_oya_collab_crdt_portability_kernel": "PASS (3/3 pass)",
       "cargo_fmt_my_new_files": "PASS (advisory_lanes_pr143 + oya-collab-crdt-portability-kernel fmt-clean after auto-fmt)",
       "cargo_fmt_workspace": "PRE-EXISTING DRIFT — 35+ check-* crates from Fix-R/S/T/U batches have pre-existing fmt diffs. Not introduced by close-out. Queued.",
@@ -113,7 +113,7 @@
     "PR-144 — fix oya-check-realtime-transport-tier single_match clippy lint",
     "PR-144 — resolve oya-tenant-cli / oya-dev-cli `oya` binary filename collision",
     "PR-144 — expand 6 plugin-app-store IPs from 135-149 lines to 150+",
-    "PR-148 — architecture-map automation crates (oya-foundry-architecture-map-kernel + app + freshness)"
+    "PR-148 — architecture-map automation crates (oya-intelligence-architecture-map-kernel + app + freshness)"
   ],
 
   "adversarial_audit_verdict": {

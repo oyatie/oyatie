@@ -9,8 +9,8 @@
     "crates/oya-ontology-kernel",
     "crates/oya-ontology-domain",
     "registry/catalog/oya-ontology-kernel.yaml",
-    "registry/catalog/oya-foundry-webhook-receiver-kernel.yaml",
-    "registry/catalog/oya-foundry-webhook-receiver-app.yaml",
+    "registry/catalog/oya-vcs-webhook-receiver-kernel.yaml",
+    "registry/catalog/oya-vcs-webhook-receiver-app.yaml",
     "specs/products/ontology.json",
     "registry/milestone-audit/index.json"
   ],
@@ -102,7 +102,7 @@
       "evidence": "no whitespace errors"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "passed",
       "evidence": "metadata and authority checks passed; cargo tests + CLI smoke passed"
     }

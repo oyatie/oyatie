@@ -88,7 +88,7 @@ Risk-score every sign-in + every sensitive action against contextual signals (im
 
 ## Out of scope (future)
 
-- Active ML model (deferred to oya-foundry-eval-domain integration).
+- Active ML model (deferred to oya-governance-eval-domain integration).
 - Per-tenant custom risk policies.
 
 ## Counterpart references - 014-continuous-risk-scoring

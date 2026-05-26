@@ -12,8 +12,8 @@ purpose: |
   with a Mermaid graph as the primary render.
 planned_enforcement_ref: oya-governance-product-map
 extends_crates:
-  - oya-foundry-architecture-map-kernel
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-architecture-map-kernel
+  - oya-intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md

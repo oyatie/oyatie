@@ -66,22 +66,22 @@
         "kind": "test_fixture_path_update"
       },
       {
-        "path": "crates/oya-foundry-architecture-map-app/src/lib.rs",
+        "path": "crates/oya-intelligence-architecture-map-app/src/lib.rs",
         "delta": "+1/-1",
         "kind": "schema_ref_emitter_update"
       },
       {
-        "path": "crates/oya-foundry-fitness-lifecycle-kernel/src/lib.rs",
+        "path": "crates/oya-governance-lifecycle-kernel/src/lib.rs",
         "delta": "+2/-2",
         "kind": "doc_comment_path_update"
       },
       {
-        "path": "crates/oya-foundry-subagent-runtime-kernel/src/lib.rs",
+        "path": "crates/oya-intelligence-subagent-runtime-kernel/src/lib.rs",
         "delta": "+2/-2",
         "kind": "doc_comment_path_update"
       },
       {
-        "path": "crates/oya-foundry-vcs-admission-gate-kernel/src/lib.rs",
+        "path": "crates/oya-vcs-admission-gate-kernel/src/lib.rs",
         "delta": "+9/-9",
         "kind": "doc_comment_path_update"
       }

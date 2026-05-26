@@ -54,14 +54,14 @@
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/tests/gate_cli.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs"
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs"
   ],
   "claim_boundary": "This change validates the invariant catalog itself. It does not claim product PRDs are actively blocked on INV-* citation until the product PRD validator, fixture-tree tests, pull-request workflow, and branch-protection context land together.",
   "local_verification": [
     "cargo fmt --all -- --check: PASS",
     "cargo check -p oya-dev-cli --tests: PASS",
     "cargo test -p oya-dev-cli hyperscaler_arch_invariants --test gate_cli: PASS, including omitted applicable product-ref negative fixture",
-    "cargo test -p oya-foundry-gate-catalog-domain rendered_form_contains_hyperscaler_architecture_and_maturity_lanes: PASS",
+    "cargo test -p oya-governance-gate-catalog-domain rendered_form_contains_hyperscaler_architecture_and_maturity_lanes: PASS",
     "oya gate validate hyperscaler-arch-invariants: PASS",
     "oya gate validate hyperscaler-maturity-claims: PASS",
     "oya gate validate adr-citation: PASS",

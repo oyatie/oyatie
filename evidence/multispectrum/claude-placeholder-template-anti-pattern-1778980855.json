@@ -19,7 +19,7 @@
   "local_gates": [
     "placeholder-debt: PASS (was failing pre-edit with NewPlaceholderOutsideRegistry on docs/products/_TEMPLATE.md TBD; now passes — 723 documents, 1083 open placeholders, 661 registry records)",
     "master-plan-completion: PASS (80 phases, 172 implementation plans)",
-    "oya-foundry-vcs-admission-gate-app: PASS (metadata, authority, cargo tests, CLI smoke)"
+    "oya-vcs-admission-gate-app: PASS (metadata, authority, cargo tests, CLI smoke)"
   ],
   "facets": {
     "F1_linus": {

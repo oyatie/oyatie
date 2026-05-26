@@ -8,7 +8,7 @@ execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/api-stability-tier-lifecycle.json
-  - tools/oya-foundry-fitness-api-stability-tier-lifecycle-app
+  - tools/oya-governance-api-stability-tier-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 adr_anchor: docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
 purpose: Detect public-API surfaces whose stability tier is missing or whose deprecation has stalled past its removal deadline.
@@ -28,7 +28,7 @@ violations=0
 Fresh kernel; pairs with ADR-0037 (stability tier doctrine). Existing 10 `#[deprecated]` attribute sites become manifest-tracked in the backfill pass.
 
 ## Done-criteria (Wave A)
-- `cargo run -q -p oya-foundry-fitness-api-stability-tier-lifecycle-app -- --warn-only` succeeds.
+- `cargo run -q -p oya-governance-api-stability-tier-lifecycle-app -- --warn-only` succeeds.
 
 ## Ratchet plan
 - Wave A: kernel ready.

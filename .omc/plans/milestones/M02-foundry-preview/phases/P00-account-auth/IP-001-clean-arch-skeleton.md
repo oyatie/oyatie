@@ -17,7 +17,7 @@ purpose: Scaffold the 7 oya-foundry-account-* crates per P00-01.
 ## Acceptance Criteria
 
 - **AC-001**: All 7 `oya-foundry-account-*` crates scaffold successfully and compile with zero errors.
-  - test_id: `cargo check -p oya-foundry-account-kernel -p oya-foundry-account-domain -p oya-foundry-account-app -p oya-foundry-account-adapter-codex-cli -p oya-foundry-account-adapter-claude-code -p oya-foundry-account-adapter-gemini-cli -p oya-foundry-account-adapter-openbao -p oya-foundry-account-runtime`
+  - test_id: `cargo check -p oya-intelligence-account-kernel -p oya-intelligence-account-domain -p oya-foundry-account-app -p oya-foundry-account-adapter-codex-cli -p oya-foundry-account-adapter-claude-code -p oya-foundry-account-adapter-gemini-cli -p oya-foundry-account-adapter-openbao -p oya-foundry-account-runtime`
   - verification_command: `cargo check --workspace --all-features`
 - **AC-002**: Cohesion fitness lane passes for all 7 new crates.
   - test_id: `oya gate validate cohesion`
@@ -29,7 +29,7 @@ purpose: Scaffold the 7 oya-foundry-account-* crates per P00-01.
   - test_id: `oya gate validate supply-chain`
   - verification_command: `cargo run -p oya-dev-cli -- gate validate supply-chain`
 - **AC-005**: `cargo test -p <each-new-crate> --all-features` returns 0 for all 7 crates.
-  - test_id: `cargo nextest run -p oya-foundry-account-kernel --all-features`
+  - test_id: `cargo nextest run -p oya-intelligence-account-kernel --all-features`
   - verification_command: `cargo nextest run --workspace --all-features`
 - **AC-006**: Naming justification BNF v4 comment present in each new crate's `lib.rs`.
   - test_id: `oya gate validate cargo-prefix`
@@ -41,8 +41,8 @@ Scaffold the 7 oya-foundry-account-* crates per P00-01.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-account-kernel/src/lib.rs::placeholder
-crates/oya-foundry-account-domain/src/lib.rs::placeholder
+crates/oya-intelligence-account-kernel/src/lib.rs::placeholder
+crates/oya-intelligence-account-domain/src/lib.rs::placeholder
 crates/oya-foundry-account-app/src/lib.rs::placeholder
 crates/oya-foundry-account-adapter-codex-cli/src/lib.rs::placeholder
 crates/oya-foundry-account-adapter-claude-code/src/lib.rs::placeholder

@@ -24,21 +24,21 @@ The 14 implementation tasks already created in team `foundry-supervisor` (Wave 1
 
 ## A. Pre-scaffold conditions (6) — must land FIRST
 
-### PRE-1 — Rename `oya-foundry-settings-template-adapter-fs` → `oya-foundry-settings-template-adapter`
+### PRE-1 — Rename `oya-intelligence-settings-template-adapter-fs` → `oya-intelligence-settings-template-adapter`
 **Source:** F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1 (CONV-8, M2 + F1)
 **Diff target:** v5 §B.1 crate decomposition + v5 §B.2.2 trait module path + every reference in v5.
 
 **Before** (v5 §B.1):
 ```
-oya-foundry-settings-template-adapter-fs
+oya-intelligence-settings-template-adapter-fs
 ```
 
 **After:**
 ```
-oya-foundry-settings-template-adapter
+oya-intelligence-settings-template-adapter
 ```
 
-**Rationale:** ADR-0056 v4.1 closed 12-layer enum admits `adapter` as final segment; `-fs` is not a recognized layer suffix. Sibling precedent: `oya-foundry-jsonl-supervisor-adapter` (BC-tokens=[jsonl,supervisor] + layer=adapter, no `-fs` suffix). Per project memory `feedback_naming_justification.md`.
+**Rationale:** ADR-0056 v4.1 closed 12-layer enum admits `adapter` as final segment; `-fs` is not a recognized layer suffix. Sibling precedent: `oya-intelligence-jsonl-supervisor-adapter` (BC-tokens=[jsonl,supervisor] + layer=adapter, no `-fs` suffix). Per project memory `feedback_naming_justification.md`.
 
 ---
 
@@ -51,8 +51,8 @@ oya-foundry-settings-template-adapter
 {"artifact_id":"foundry-supervisor-template-claude","artifact_path":"templates/foundry-supervisor/claude.toml","artifact_profile":"template","capability_overrides":{...9 cap rows per ADR-0069...}},
 {"artifact_id":"foundry-supervisor-template-codex","artifact_path":"templates/foundry-supervisor/codex.toml","artifact_profile":"template",...},
 {"artifact_id":"foundry-supervisor-template-gemini","artifact_path":"templates/foundry-supervisor/gemini.toml","artifact_profile":"template",...},
-{"artifact_id":"foundry-supervisor-kernel","artifact_path":"crates/oya-foundry-supervisor-kernel","artifact_profile":"kernel-crate",...},
-{"artifact_id":"foundry-settings-template-kernel","artifact_path":"crates/oya-foundry-settings-template-kernel","artifact_profile":"kernel-crate",...},
+{"artifact_id":"foundry-supervisor-kernel","artifact_path":"crates/oya-intelligence-supervisor-kernel","artifact_profile":"kernel-crate",...},
+{"artifact_id":"foundry-settings-template-kernel","artifact_path":"crates/oya-intelligence-settings-template-kernel","artifact_profile":"kernel-crate",...},
 {"artifact_id":"lean-settings-drift","artifact_path":"registry/quality/lanes/lean-settings-drift.json","artifact_profile":"ci-lane",...},
 {"artifact_id":"oya-dev-cli-settings-drift","artifact_path":"crates/oya-dev-cli/src/commands/settings_drift.rs","artifact_profile":"verifier",...}
 ```
@@ -66,8 +66,8 @@ Each `capability_overrides` declares Enforcement / Verification / Validation / A
 **Diff target:** Add grit unit `v5.20-register-building-blocks` in v5 §B.7.
 
 **New rows in `/registry/reusable-building-blocks-registry.json`:**
-- `SettingsTemplate` @ `crates/oya-foundry-settings-template-kernel/src/lib.rs::SettingsTemplate` — consumers: [oya-foundry-supervisor-app], version: 1, deprecation: null
-- `SettingsRenderer` @ same crate — consumers: [oya-foundry-supervisor-app, oya-foundry-settings-template-adapter]
+- `SettingsTemplate` @ `crates/oya-intelligence-settings-template-kernel/src/lib.rs::SettingsTemplate` — consumers: [oya-intelligence-supervisor-app], version: 1, deprecation: null
+- `SettingsRenderer` @ same crate — consumers: [oya-intelligence-supervisor-app, oya-intelligence-settings-template-adapter]
 - `HookEvent` @ same crate — consumers: [3 driver impls, settings-template-adapter]
 - `McpServerRef` @ same crate — consumers: [settings-template-adapter, anyone wiring MCP servers per-account]
 
@@ -81,8 +81,8 @@ Each `capability_overrides` declares Enforcement / Verification / Validation / A
 
 **New edges in `/registry/knowledge-graph-dynamic.json`:**
 ```
-(oya-foundry-settings-template-kernel) --generates--> (per-account on-disk settings files)
-(oya-foundry-settings-template-kernel) --consumes--> (registry/accounts/*.toml)
+(oya-intelligence-settings-template-kernel) --generates--> (per-account on-disk settings files)
+(oya-intelligence-settings-template-kernel) --consumes--> (registry/accounts/*.toml)
 (lean-settings-drift) --enforces--> (foundry-supervisor-template-*)
 (SettingsRenderer) --reads--> (SecretStorePort @ oya-foundry-account-adapter-openbao)
 ```
@@ -140,7 +140,7 @@ pub enum RendererMode {
 **Source:** F-BENCH-HARNESS-MULTI-SAMPLE-P95-EXACT-1 (CONV-2: F8+F11)
 **Diff target:** v4 §B.1 bench harness + §C.13a-d.
 
-**Change `crates/oya-foundry-supervisor-app/benches/heartbeat.rs`:** Loop ≥200 iterations per metric; collect samples in `Vec<u64>`; `.sort()`; report `vec[(0.95 * len as f64) as usize]` as p95. Each metric emits one JSONL row carrying `samples_count`, `p50`, `p95`, `p99`, `max`. Acceptance rows C.13a-d updated to require `samples_count >= 200`.
+**Change `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs`:** Loop ≥200 iterations per metric; collect samples in `Vec<u64>`; `.sort()`; report `vec[(0.95 * len as f64) as usize]` as p95. Each metric emits one JSONL row carrying `samples_count`, `p50`, `p95`, `p99`, `max`. Acceptance rows C.13a-d updated to require `samples_count >= 200`.
 
 ---
 

@@ -13,9 +13,9 @@
   "created_at": "2026-05-14T10:02:33.337186Z",
   "workspace_changes": [
     "Cargo.toml workspace members registered for four next-antichain crates",
-    "crates/oya-foundry-vcs-lockstore-adapter",
-    "crates/oya-foundry-vcs-changebundle-kernel",
-    "crates/oya-foundry-vcs-polyglot-indexer-adapters",
+    "crates/oya-vcs-lockstore-adapter",
+    "crates/oya-vcs-changebundle-kernel",
+    "crates/oya-vcs-polyglot-indexer-adapters",
     "crates/oya-foundry-vcs-test-standard-gate"
   ],
   "validation": [

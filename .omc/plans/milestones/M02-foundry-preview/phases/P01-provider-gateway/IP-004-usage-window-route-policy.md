@@ -19,9 +19,9 @@ Ship usage windows (5h/1wk/project) and account-route policy (budget + reserve +
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-usage-window-kernel/src/lib.rs::UsageWindow
-crates/oya-foundry-route-policy-kernel/src/lib.rs::RoutePolicy
-crates/oya-foundry-route-policy-kernel/src/lib.rs::explain_route
+crates/oya-intelligence-usage-window-kernel/src/lib.rs::UsageWindow
+crates/oya-intelligence-route-policy-kernel/src/lib.rs::RoutePolicy
+crates/oya-intelligence-route-policy-kernel/src/lib.rs::explain_route
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

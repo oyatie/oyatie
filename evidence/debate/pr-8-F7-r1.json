@@ -12,7 +12,7 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": "tools/oya-foundry-pr-review-dispatcher-app/src/main.rs:99-102,215-248,640-658,820-838; .github/workflows/pr-review.yml:97-104",
+      "file": "tools/oya-intelligence-pr-review-dispatcher-app/src/main.rs:99-102,215-248,640-658,820-838; .github/workflows/pr-review.yml:97-104",
       "issue": "The dispatcher defaults to External runtime mode; the workflow does not pass --runtime-mode; and tests lock the empty-panel behavior as APPROVE with subagent_runtime_pending=true plus a pr-review-approved event. That is a fail-open review signal unless every downstream consumer independently rejects the pending flag.",
       "remediation": "Change missing/incomplete panels to CHANGES_REQUESTED or REJECT at the dispatcher boundary, and make the workflow pass an explicit runtime mode only when a complete panel is produced."
     },
@@ -24,7 +24,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-ci-fix-loop-dispatcher-app/src/main.rs:153-181,190-217",
+      "file": "tools/oya-vcs-ci-fix-loop-dispatcher-app/src/main.rs:153-181,190-217",
       "issue": "The fix-loop dispatcher treats runtime invocation failure as non-fatal and continues dispatching a bundle with subagent_runtime_pending=true. This preserves recovery, but it also emits a next-step path that can be mistaken for an active fix-loop unless admission consistently refuses the pending flag.",
       "remediation": "Make the dispatcher exit non-zero for runtime invocation failure in automated CI, or emit only a blocked/escalation artifact until a real runtime response exists."
     }

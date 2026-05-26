@@ -1,7 +1,7 @@
 {
   "change_id": "claude-m02b-p01-fec-merge-variant-1778996502",
   "change_class_id": "CC-2_adapter_or_infrastructure",
-  "change_class_rationale": "Adds LeanCheckId enum + LeanViolation value-object in a new lean_check.rs module of the existing oya-foundry-fitness-quality-lane-kernel crate. Additive; encodes 4 lean-a* lane identifiers (lean-a1..lean-a4) with stable Ord + Display + CI log-line formatting.",
+  "change_class_rationale": "Adds LeanCheckId enum + LeanViolation value-object in a new lean_check.rs module of the existing oya-governance-quality-lane-kernel crate. Additive; encodes 4 lean-a* lane identifiers (lean-a1..lean-a4) with stable Ord + Display + CI log-line formatting.",
   "spec_version": "2.3.0",
   "freshness_unix": 1778996502,
   "git_sha_base": "<post-dev>",
@@ -10,15 +10,15 @@
   "agent_id": "claude-m02b-p01-fec-merge-variant",
   "task": "M02b/P01-foundry-engine-consolidation merge-variant delta 1 per user 2026-05-17 (option 2). Smallest foundational delta from P01 impl-plan added to existing live crate.",
   "artifacts_touched": [
-    "crates/oya-foundry-fitness-quality-lane-kernel/src/lean_check.rs (NEW; LeanCheckId enum + LeanViolation + Display + lane_tag + all() + tests)",
-    "crates/oya-foundry-fitness-quality-lane-kernel/src/lib.rs (pub mod lean_check + re-exports)",
+    "crates/oya-governance-quality-lane-kernel/src/lean_check.rs (NEW; LeanCheckId enum + LeanViolation + Display + lane_tag + all() + tests)",
+    "crates/oya-governance-quality-lane-kernel/src/lib.rs (pub mod lean_check + re-exports)",
     ".omc/plans/milestones/M02b-substrate/phases/P01-foundry-engine-consolidation/impl-plan.md (execution_variant frontmatter)",
     "evidence/multispectrum/claude-m02b-p01-fec-merge-variant-1778996502.json (this file)",
     "evidence/audit-chain.jsonl (appended row)"
   ],
   "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
   "local_gates": [
-    "cargo nextest -p oya-foundry-fitness-quality-lane-kernel --all-features: 13 passed, 0 skipped",
+    "cargo nextest -p oya-governance-quality-lane-kernel --all-features: 13 passed, 0 skipped",
     "rustfmt 1.95.0 applied to lean_check.rs + lib.rs"
   ],
   "facets": {

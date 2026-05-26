@@ -9,7 +9,7 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:218-226",
+      "file": "tools/oya-vcs-changeset-state-app/src/main.rs:218-226",
       "issue": "stub_signature() returns base64(changeset_id:to_state) with the ed25519-stub: prefix. ADR-0110 §'Event log shape' specifies the signature is the canonical anti-tamper field and consumers MUST verify it before trusting a transition. The stub is (a) deterministic so any attacker who knows changeset_id+to_state forges a valid stub; (b) identical for legitimate retries so it provides zero replay distinction; (c) merged into a registry file that other agents already consume. The TODO(wave-B) comment is honest but the artifact is in production now - any downstream check that 'verifies' signature.starts_with('ed25519-stub:') gives a false sense of security. Adversary playbook: append any to_state row with a hand-crafted ed25519-stub:<base64> string, the app/validator accepts it.",
       "remediation": "Either (a) gate the app behind a feature flag so it refuses to run in production until real Ed25519 lands, OR (b) make the signature field carry a clearly invalid placeholder like 'UNSIGNED-WAVE-A' and have validate_monotonic_event_log refuse rows with that placeholder once any row in the log carries a real signature. Add a fitness lane oya-foundry-fitness-changeset-state-signature-real that hard-fails if any 'ed25519-stub:' row exists after 2026-07-01."
     },
@@ -21,19 +21,19 @@
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:196-216, 261-285",
+      "file": "tools/oya-vcs-changeset-state-app/src/main.rs:196-216, 261-285",
       "issue": "dedup_key construction is `{changeset_id}_{to_state}_{at}` where `at` is second-precision RFC3339 (format_rfc3339_utc deliberately truncates sub-second per the doc comment). ADR-0110 prose shows the example dedup_key carrying milliseconds (`_2026-05-16T01:42:18.443Z`). Two emitters racing on the same changeset_id+to_state within the same wall-clock second will produce identical dedup_keys, and validate_monotonic_event_log will reject the second one with DuplicateDedupKey - which is correct for idempotency but means a hostile (or buggy) dispatcher can DOS the legitimate emitter by always racing first with a different evidence payload. Also: the timestamp comes from SystemTime::now() which is wall-clock and can move backwards (NTP step), so dedup_keys are not even monotonic.",
       "remediation": "Either include a nonce/sequence-counter in dedup_key, OR include the emitted_by principal so distinct emitters cannot collide, OR move to millisecond precision matching the ADR. Use a monotonic clock (Instant) for ordering and SystemTime only for the at field. Add a test that asserts two emitters of the same (changeset_id, to_state) within 1 second produce distinct dedup_keys."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:96-119, 431-446",
-      "issue": "TOCTOU on the event log: run() does read_event_log() -> append candidate -> validate -> write_event_log() with no file lock between read and rename. Two concurrent `oya-foundry-vcs-changeset-state-app append` invocations both read the same N-row log, each computes a fresh N+1 log with a different candidate, both call fs::rename, and the second silently overwrites the first - one event is permanently lost. The rename is atomic against torn writes but provides zero serializability across processes. This is the canonical concurrent-writer hazard; any webhook-driven dispatch (ADR-0112) WILL hit it under load.",
+      "file": "tools/oya-vcs-changeset-state-app/src/main.rs:96-119, 431-446",
+      "issue": "TOCTOU on the event log: run() does read_event_log() -> append candidate -> validate -> write_event_log() with no file lock between read and rename. Two concurrent `oya-vcs-changeset-state-app append` invocations both read the same N-row log, each computes a fresh N+1 log with a different candidate, both call fs::rename, and the second silently overwrites the first - one event is permanently lost. The rename is atomic against torn writes but provides zero serializability across processes. This is the canonical concurrent-writer hazard; any webhook-driven dispatch (ADR-0112) WILL hit it under load.",
       "remediation": "Acquire an advisory lock on registry/vcs/changeset-event-log.lock via fcntl/flock before read_event_log; release after rename. Or use a CAS-style write: re-read the file after taking the lock and ensure the row count matches; abort + retry if not. Add a test that spawns 10 concurrent appends with distinct dedup_keys and asserts all 10 land in the final log."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:147",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:147",
       "issue": "CostBudget.tokens_remaining carries `// data_class: SECRET` annotation while the surrounding usd_remaining and agent_invocations_remaining are INTERNAL_ONLY. Either this is a copy-paste mistake (more likely - the doc comment two lines above says INTERNAL_ONLY) or it is correct and the entire CostBudget struct now has a mixed-classification field that gets serialized via event_to_json (app/main.rs:474) into a public registry file. Same issue on ChangesetEvent.dedup_key (line 172) which is also tagged SECRET while the doc says INTERNAL_ONLY. If the SECRET tag is real, the event log is leaking SECRET data into git history.",
       "remediation": "Reconcile the data_class annotations: either the doc comment is wrong (update doc) or the trailing comment is wrong (downgrade to INTERNAL_ONLY). Add a fitness lane that diffs the doc-comment data_class against the trailing-comment data_class on every annotated field and fails on mismatch."
     },
@@ -45,19 +45,19 @@
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:347",
+      "file": "tools/oya-vcs-changeset-state-app/src/main.rs:347",
       "issue": "parse_event_value uses `obj.get('skipped').and_then(Value::as_bool).unwrap_or(false)` so any non-bool value (string 'true', number 1, null) silently coerces to false. ADR-0110 §'Skip-states' makes `skipped` semantically meaningful (audit can replay canonical skips); silently dropping the flag means an adversary writing `\"skipped\": \"true\"` (string, not bool) bypasses skip-state semantics and the row looks like a non-skip canonical transition. Combined with the stub signature (BLOCKER #1) this is a forged-audit-trail vector.",
       "remediation": "Fail loud: require the skipped field to be either absent or a real bool, return Err on any other shape. Same pattern audit needed for parse_evidence_map (line 410-414) which stringifies non-string values silently, hiding type drift in audit replay."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:301-325",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:301-325",
       "issue": "validate_monotonic_event_log treats a terminal-fail state (Abandoned/Rejected/CostExhausted) as ending the log via the `continue` at line 324, but does NOT actually enforce that no further rows appear after the terminal. The loop continues iterating; subsequent rows are checked only for duplicate dedup_key and BackwardsTransition, but a row with to_state=Working after Abandoned will be accepted as long as Working's ordinal >= last_advancing_ordinal. The doc comment at lines 276-278 says 'after a terminal state the log MUST end' but the code does not enforce it. Adversary can append legitimate-looking activity rows after an Abandoned row to confuse audit replay.",
       "remediation": "Track terminal_seen: bool; after setting terminal_state, any further iteration MUST return Err - introduce a new MonotonicityError::EventAfterTerminal variant. Add a failing fixture that proves the lane catches this (per F3 evidence_required.failing_fixture_added=true)."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:265, 290-302",
+      "file": "tools/oya-vcs-changeset-state-app/src/main.rs:265, 290-302",
       "issue": "format_rfc3339_utc takes `epoch_secs: i64` from `now.as_secs() as i64` - a lossy cast. After year 2262 (i64 nanoseconds overflow handled by Duration::as_secs which returns u64, then cast to i64), the value can become negative and produce a malformed timestamp. More immediately: epoch_day_to_ymd panics-not on negative z handling (z+719468 with z negative + division by 146097 is technically defined but produces wrong year for any test of pre-1970 dates). Tests only cover epoch zero and 2026 - no test for SystemTime that runs before epoch (which can happen on CI runners with broken RTCs).",
       "remediation": "Add explicit bounds-check: if epoch_secs < 0 return Err('clock before UNIX epoch'); if epoch_secs > 32503680000 (year 3000) return Err('clock too far in future'). Test fixture for each."
     },
@@ -75,7 +75,7 @@
     },
     {
       "severity": "MINOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:361-379",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:361-379",
       "issue": "recover_state_from_ordinal has a catch-all `_ => ChangesetState::Produced` that silently saturates to Produced for any ordinal > 9. If a 14th advancing state is later added to the enum without updating both advancing_ordinal AND recover_state_from_ordinal, BackwardsTransition errors will incorrectly report from=Produced for transitions involving the new state. This is the kind of drift the closed-enum lane is meant to catch but doesn't (the lane only checks wire-form strings, not Rust enum coverage).",
       "remediation": "Replace `_ => ChangesetState::Produced` with an explicit exhaustive match on all 10 advancing ordinals + a debug_assert!(ordinal <= 9, ...). Add a compile-time assertion via const fn or static_assertions crate that ChangesetState::ALL.len() == 13."
     },
@@ -93,7 +93,7 @@
     },
     {
       "severity": "MINOR",
-      "file": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:177-194",
+      "file": "tools/oya-vcs-changeset-state-app/src/main.rs:177-194",
       "issue": "parse_evidence_csv splits on comma with no escape mechanism. Any evidence value containing a literal comma (e.g., a commit message, a structured json blob) silently truncates at the first comma and the rest becomes garbage k=v pairs. An adversary controlling evidence content can inject arbitrary keys via crafted values like `legitimate_key=value,injected_key=injected_value`.",
       "remediation": "Either document the CSV escape rule + reject embedded commas, or accept --evidence as a JSON object instead of CSV. Given evidence is typed BTreeMap<String,String> downstream, JSON-object is the natural shape."
     }

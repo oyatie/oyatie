@@ -2,7 +2,7 @@
   "change_id": "pr-8",
   "consensus_points": [
     {
-      "evidence": "tools/oya-foundry-pr-review-dispatcher-app/src/main.rs:99-102,215-248,640-658,820-838; .github/workflows/pr-review.yml:97-104",
+      "evidence": "tools/oya-intelligence-pr-review-dispatcher-app/src/main.rs:99-102,215-248,640-658,820-838; .github/workflows/pr-review.yml:97-104",
       "facets_concurring": [
         "F7"
       ],
@@ -48,7 +48,7 @@
       "facets_concurring": [
         "F1"
       ],
-      "headline": "New active lane `oya-foundry-fitness-merge-queue-ref-hygiene` runs `oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600`, but the app parser in this PR only accepts `--workspace-root`, `--initial-head-sha`, `--now-epoch`, and…",
+      "headline": "New active lane `oya-foundry-fitness-merge-queue-ref-hygiene` runs `oya-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600`, but the app parser in this PR only accepts `--workspace-root`, `--initial-head-sha`, `--now-epoch`, and…",
       "id": "PR8-CONV-4",
       "recommended_remediation": "Implement the GC flags in the app and add a CLI regression test, or mark the lane planned/inactive until the command exists.",
       "remediation_fixuptasks": [
@@ -57,7 +57,7 @@
       "severity": "MAJOR"
     },
     {
-      "evidence": "crates/oya-foundry-subagent-runtime-usecase/src/fanout.rs:14-47 + tools/oya-foundry-pr-review-dispatcher-app/src/fanout.rs:22-112",
+      "evidence": "crates/oya-intelligence-subagent-runtime-usecase/src/fanout.rs:14-47 + tools/oya-intelligence-pr-review-dispatcher-app/src/fanout.rs:22-112",
       "facets_concurring": [
         "F1"
       ],

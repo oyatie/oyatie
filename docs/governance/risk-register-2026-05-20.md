@@ -618,7 +618,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by idempotency and DLQ runbooks.
 - acceptance posture: Reduce; accept duplicate delivery only when idempotency holds.
 - transfer posture: not transferable.
-- microservice mitigations: `oya-eventing-domain`, `oya-foundry-run-domain`, `oya-workflow-engine-domain`, `oya-marketplace-domain`.
+- microservice mitigations: `oya-eventing-domain`, `oya-intelligence-run-domain`, `oya-workflow-engine-domain`, `oya-marketplace-domain`.
 - Cedar policies: `policy.webhook_retry_scope`, `policy.dlq_replay_operator`, `policy.idempotency_key_required`.
 - monitoring: DLQ depth, outbox lag, replay error rate, duplicate command count, downstream throttle.
 - named indicators: backlog age, replay batch size, idempotency reject count, customer webhook 5xx, audit emission lag.
@@ -650,7 +650,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigating through target confirmation and Cedar-scoped claims.
 - acceptance posture: Reduce; no accepted production mutation without typed target evidence.
 - transfer posture: not transferable.
-- microservice mitigations: `oya-foundry-cloud-mutation-domain`, `oya-feature-flags-domain`, `oya-cloud-iac-domain`, `oya-tenant-cli`.
+- microservice mitigations: `oya-intelligence-cloud-mutation-domain`, `oya-feature-flags-domain`, `oya-cloud-iac-domain`, `oya-tenant-cli`.
 - Cedar policies: `policy.cloud_mutation_tenant_target`, `policy.production_change_dual_control`, `policy.agent_claim_scope_bound`.
 - monitoring: cloud mutation audit, feature flag blast radius, agent claim mismatch, environment selector drift.
 - named indicators: dry-run target mismatch, tenant selector ambiguity, environment variable drift, mutation rollback count.
@@ -1134,7 +1134,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by flat layout and doc/catalog gates.
 - acceptance posture: Accept limited preview debt with owner and deadline; reduce structural drift.
 - transfer posture: not transferable.
-- microservice mitigations: `oya-check-flat-crates`, `oya-check-doc-catalog`, `oya-check-adr-citation`, `oya-foundry-gate-catalog-domain`.
+- microservice mitigations: `oya-check-flat-crates`, `oya-check-doc-catalog`, `oya-check-adr-citation`, `oya-governance-gate-catalog-domain`.
 - Cedar policies: `policy.service_promotion_requires_owner`, `policy.preview_debt_expiry`, `policy.capability_publish_evidence_required`.
 - monitoring: service coverage, missing runbooks, test coverage, stale ADR refs, unowned catalog rows.
 - named indicators: new service without SLO, duplicate Cedar fragment, missing incident response, skipped tests, unresolved TODO in canonical spec.

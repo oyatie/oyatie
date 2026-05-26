@@ -31,7 +31,7 @@ Per MASTERPLAN §2 Directive 4. The Foundry multi-provider adapter pattern (Clau
 3 agents.
 
 ## Symbols-touched
-`crates/oya-foundry-fitness-provider-coupling-kernel`, `crates/oya-cloud-*-adapter-*-*`, `tools/oya-adapter-substitution-test`.
+`crates/oya-governance-provider-coupling-kernel`, `crates/oya-cloud-*-adapter-*-*`, `tools/oya-adapter-substitution-test`.
 
 ## Agent-handoff
 ```
