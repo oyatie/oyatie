@@ -3,8 +3,8 @@ role: domain
 capability: workload-identity
 plane: control
 slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY, AUTHENTICATION]
-operational_classes_owned: [AUTHENTICATION]
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
