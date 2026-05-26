@@ -45,7 +45,7 @@ A fresh agent in 7 steps:
 
 - Standards: [`docs/standards/INDEX.md`](../standards/INDEX.md).
 - Templates + checklists: [`docs/templates/INDEX.md`](../templates/INDEX.md) (and `docs/checklists/`).
-- Fitness lanes: [`docs/fitness-lanes/`](../fitness-lanes/) (parallel composer output).
+- Fitness lanes: [`docs/governance-lanes/`](../governance-lanes/) (parallel composer output).
 - Plan hierarchy: [`docs/MASTERPLAN.md`](../MASTERPLAN.md).
 - Operating contract: [`docs/AGENTS.md`](../AGENTS.md).
 - Constitutional frame: [`docs/CONSTITUTION.md`](../CONSTITUTION.md).

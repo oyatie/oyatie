@@ -8,7 +8,7 @@ purpose: |
   Master index of every authoritative doc in the project. Every agent treats this as the
   one-stop lookup table for "which doc governs X". Derived from MASTERPLAN + existing
   oyatie/docs/ + the parallel composer outputs (.omc/standards, .omc/templates,
-  .omc/fitness-lanes).
+  .omc/governance-lanes).
 lift_target: oyatie/docs/agents/CROSS-REFERENCE-INDEX.md
 canonical_authority: docs/CONSTITUTION.md
 related:
@@ -65,7 +65,7 @@ related:
 | `.omc/plans/milestones/<MNN>/phases/<PNN>/IP-*.md` | ImplementationPlan | same path under `docs/` | pending approval per-IP |
 | `.omc/standards/INDEX.md` + `*.md` | StandardsIndex / Standard | `docs/standards/` | pending approval per-standard |
 | `/templates/INDEX.md` + `*.md|yaml|json` | TemplateIndex / Template | `docs/templates/`, `docs/checklists/` | pending approval per-template |
-| `.omc/fitness-lanes/*.md` | FitnessLane | `docs/fitness-lanes/<lane>.md` | pending approval per-lane |
+| `.omc/governance-lanes/*.md` | FitnessLane | `docs/governance-lanes/<lane>.md` | pending approval per-lane |
 | `.omc/agent-kickoff/*.md` (this directory) | AgentKickoff | `docs/agents/*.md` | pending approval |
 
 ## Agent-kickoff files (this directory)
@@ -94,4 +94,4 @@ related:
 
 ## Lane → standard → doc resolution
 
-The complete lane catalog lives at [`.omc/fitness-lanes/`](../fitness-lanes/) (parallel composer output). Each lane's `.md` declares its `governs:` path; this index is the inverse mapping (doc → lane).
+The complete lane catalog lives at [`.omc/governance-lanes/`](../governance-lanes/) (parallel composer output). Each lane's `.md` declares its `governs:` path; this index is the inverse mapping (doc → lane).

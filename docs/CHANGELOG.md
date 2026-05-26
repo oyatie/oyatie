@@ -205,9 +205,9 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - Files landed: `INDEX.md`, `doc-style.md`, `code-style-rust.md`, `error-handling.md`, `testing.md`, `security-review.md`, `on-call.md`, `claude-code-harness.md`, `multi-agent-tool-map.md`, `observability.md`, `release-management.md`, `git-workflow.md`, `dependency-policy.md`, `image-discipline.md`, `data-class.md`, `autonomy-ceiling.md`, `agent-instructions-discipline.md`.
 - Resolves all `<!-- forward-reference: wave-2 -->` sentinels in `docs/AGENTS.md`, `docs/README.md`, and `docs/CONSTITUTION.md` pointing at `standards/*` rows.
 
-## 2026-05-12 — Stage 1 Wave 2: 64 fitness-lane specs lifted to docs/fitness-lanes/
+## 2026-05-12 — Stage 1 Wave 2: 64 fitness-lane specs lifted to docs/governance-lanes/
 
-- 64 fitness-lane catalogue specs lifted from `.omc/fitness-lanes/` to `docs/fitness-lanes/` (64 lane files + INDEX). Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added. ADR-0053 cited in lanes enforcing sanctioned-primitive rules (adapter-kernel, banned-primitives, bypass, cloud-mutation, cutover-bootstrap-window, direct-tool-invocation-audit, provider-agnostic); ADR-0052 cited in portfolio-citation (inventory); ADR-0054 cited in agent-completion-checklist, claim-ceiling, scaffold-claim-pattern. Kernel implementations deferred to Stage 3.
+- 64 fitness-lane catalogue specs lifted from `.omc/governance-lanes/` to `docs/governance-lanes/` (64 lane files + INDEX). Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added. ADR-0053 cited in lanes enforcing sanctioned-primitive rules (adapter-kernel, banned-primitives, bypass, cloud-mutation, cutover-bootstrap-window, direct-tool-invocation-audit, provider-agnostic); ADR-0052 cited in portfolio-citation (inventory); ADR-0054 cited in agent-completion-checklist, claim-ceiling, scaffold-claim-pattern. Kernel implementations deferred to Stage 3.
 
 ## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + docs/checklists/ (25 files)
 
@@ -236,7 +236,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-12 — Stage 1 Wave 2: agent-kickoff layer lifted to docs/agents/ (11 files)
 
 - Lifted all 11 files from `.omc/agent-kickoff/` to `docs/agents/`: INDEX, AGENT-ENTRY-POINT, AGENT-DECISION-TREE, AGENT-TOOL-PROTOCOL, AGENT-COMPLETION-PROTOCOL, AGENT-FAILURE-RECOVERY, AGENT-ICM-TOPIC-CONVENTIONS, CROSS-REFERENCE-INDEX, AGENT-CHEAT-SHEET, HUMAN-OPERATOR-GUIDE, ESCALATION-MATRIX.
-- Per-file transforms: `status: pending approval` → `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; internal references updated from `.omc/standards/` → `docs/standards/`, `/templates/` → `docs/templates/`, `.omc/fitness-lanes/` → `docs/fitness-lanes/`.
+- Per-file transforms: `status: pending approval` → `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; internal references updated from `.omc/standards/` → `docs/standards/`, `/templates/` → `docs/templates/`, `.omc/governance-lanes/` → `docs/governance-lanes/`.
 - Foundation ADRs ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim) cited in each file's frontmatter and body.
 
 ## 2026-05-12 — ADR-0052 Inventory ledger for grit/icm cutover landed

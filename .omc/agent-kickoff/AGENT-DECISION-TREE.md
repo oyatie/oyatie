@@ -18,7 +18,7 @@ related:
   - .omc/agent-kickoff/CROSS-REFERENCE-INDEX.md
   - .omc/standards/INDEX.md
   - /templates/INDEX.md
-  - .omc/fitness-lanes/
+  - .omc/governance-lanes/
 ---
 
 # Agent Decision Tree

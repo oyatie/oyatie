@@ -21,12 +21,12 @@ n/a
 - Fair alternatives in §3:         FAIL — §3 is BC inventory, not viable options; alternatives only appear as terse rejections in §8 lines 385-388.
 - Risk-mitigation clarity (§4):    PASS — All 8 scenarios name prevention and recovery lanes; scenarios 1-8 have concrete lanes/tests/audit rows, though downstream test text has inconsistencies listed above.
 - Acceptance-criteria testability: FAIL — §5 line 242 tests a stale multi-party predicate; §5 line 243 uses stale unsplit lane names and PR-time/deep-load wording inconsistent with §4.
-- Verification concreteness:       FAIL — Many gates name commands/fixtures, but cited workflow/test artifacts are absent from HEAD and some gates are not concrete tracked files (`.github/workflows/ci-fitness-lanes.yml`, k6 script, Cedar probes).
+- Verification concreteness:       FAIL — Many gates name commands/fixtures, but cited workflow/test artifacts are absent from HEAD and some gates are not concrete tracked files (`.github/workflows/ci-governance-lanes.yml`, k6 script, Cedar probes).
 
 ## User-Mandated-Rule Check
 - (i)   honest-claims:           FAIL — §12 still uses ✅ delivered-style row statuses for prerequisite-gated capabilities, despite §12.9's planned-only reframe.
 - (ii)  Linus-grade:             FAIL — Public contract regression gate is not enforceable yet: `registry/quality/lanes.yaml` shows `lean-a10-regression` as `status: planned`, and cited OpenAPI contract paths are not tracked in HEAD.
-- (iii) verified-claims:         FAIL — `git ls-files` verified only `.omc/plans/ralplan-docs-portal-2026-05-13.md`, `.omc/plans/ralplan-ops-portal-2026-05-13.md`, `docs/CONSTITUTION.md`, `docs/DOC-CATALOG.md`, `docs/MASTERPLAN.md`, and `registry/quality/lanes.yaml` from the checked set. Missing from HEAD: current Wave 5 plan, Wave 2-4 companion plans, `contracts/workflow.openapi.yaml`, `contracts/ops-workspace-shell.openapi.yaml`, tenant/user/deployments/docs OpenAPI contracts, all checked Cedar fragments, `.github/workflows/ci-fitness-lanes.yml`, and all checked Wave 5 verification tests/docs/crates.
+- (iii) verified-claims:         FAIL — `git ls-files` verified only `.omc/plans/ralplan-docs-portal-2026-05-13.md`, `.omc/plans/ralplan-ops-portal-2026-05-13.md`, `docs/CONSTITUTION.md`, `docs/DOC-CATALOG.md`, `docs/MASTERPLAN.md`, and `registry/quality/lanes.yaml` from the checked set. Missing from HEAD: current Wave 5 plan, Wave 2-4 companion plans, `contracts/workflow.openapi.yaml`, `contracts/ops-workspace-shell.openapi.yaml`, tenant/user/deployments/docs OpenAPI contracts, all checked Cedar fragments, `.github/workflows/ci-governance-lanes.yml`, and all checked Wave 5 verification tests/docs/crates.
 - (iv)  honest-introspection:    FAIL — §14 has v13-aware entries, but line 669 claims consensus-stage stop can require ≤5 live gaps while §14.1 lists 20, and lines 685-687 retain stale v11 text.
 
 ## Notes

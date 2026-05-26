@@ -8,7 +8,7 @@ purpose: |
   The six new fitness lanes added by this composer, plus the renames/scoping
   adjustments. Each lane: name, severity, scope (which branch / which transition),
   evaluation logic, output schema, escalation. Provider-agnostic lane definitions.
-lift_target: oyatie/docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md
+lift_target: oyatie/docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md
 enforced_by: self-describing
 related_adrs: [ADR-0041, ADR-0050]
 ---
@@ -184,4 +184,4 @@ Every lane ships as a binary in a distroless container per [Directive 5](../../p
 
 ## 11. Lift target
 
-`oyatie/docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md` on approval.
+`oyatie/docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md` on approval.

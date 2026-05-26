@@ -148,7 +148,7 @@ Each gate sits where its input data is available; no gate is invoked before its 
 1. Lift this draft to `oyatie/docs/decisions/registry/placeholder-debt/adr-follow-ups.yaml#four-layer-branch-pipeline (drafting)` (number assigned at lift time).
 2. Update `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md` status to `Superseded-by: ADR-####`.
 3. Implement the three promoter agents + the fixer per [`agent-roles-spec.md`](agent-roles-spec.md). Distroless images per [Directive 5](../../plans/MASTERPLAN.md).
-4. Implement the six new fitness lanes per [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md).
+4. Implement the six new fitness lanes per [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md).
 5. Apply branch-protection rules per [`branch-protection-rules.md`](branch-protection-rules.md) — nightly drift-check enforces.
 6. Extend Foundry capability schema per [`governance-pipeline-mirror.md`](governance-pipeline-mirror.md) §3.
 7. Wave-gate doc update: reflect prod-promotion semantics in `docs/ROADMAP.md`.

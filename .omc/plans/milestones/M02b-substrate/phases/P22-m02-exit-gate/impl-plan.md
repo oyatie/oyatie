@@ -16,14 +16,14 @@ acceptance_lanes:
 - cargo-check
 - cargo-nextest
 - cargo-deny
-purpose: "Removes `--report-only` flags from all 14 fitness lane invocations in `.github/workflows/ci-fitness-lanes.yml`. From this commit forward, any violation detected by any of the 14 lanes causes CI to fail hard, blocking merge."
+purpose: "Removes `--report-only` flags from all 14 fitness lane invocations in `.github/workflows/ci-governance-lanes.yml`. From this commit forward, any violation detected by any of the 14 lanes causes CI to fail hard, blocking merge."
 ---
 # IP-001-flip-lanes-to-blocker: Flip All 14 CI Fitness Lanes from --report-only to BLOCKER
 
 ## Intent
 
 Removes `--report-only` flags from all 14 fitness lane invocations in
-`.github/workflows/ci-fitness-lanes.yml`. From this commit forward, any violation
+`.github/workflows/ci-governance-lanes.yml`. From this commit forward, any violation
 detected by any of the 14 lanes causes CI to fail hard, blocking merge. Simultaneously
 produces `docs/architecture/m02-exit-checklist.md` confirming each gate was verified
 before the flip.
@@ -34,14 +34,14 @@ before the flip.
 
 | Path | Action | Description |
 |---|---|---|
-| `.github/workflows/ci-fitness-lanes.yml` | update | Remove `--report-only` from all 14 lane invocations; set `exit-on-violation: true` where applicable |
+| `.github/workflows/ci-governance-lanes.yml` | update | Remove `--report-only` from all 14 lane invocations; set `exit-on-violation: true` where applicable |
 | `docs/architecture/m02-exit-checklist.md` | create | Per-gate evidence checklist: gate name + evidence reference + status |
 
 ---
 
 ## Code Shape
 
-### `.github/workflows/ci-fitness-lanes.yml` (diff shape)
+### `.github/workflows/ci-governance-lanes.yml` (diff shape)
 
 Before (P20 state — all lanes in report-only mode):
 ```yaml
@@ -253,7 +253,7 @@ canonical-base-neutrality + cross-pack-refusal sub-commands added in iter-5/iter
 | architecture checks BLOCKER | oya-check-architecture (9 sub-cmds incl. canonical-base-neutrality + cross-pack-refusal, no --report-only) | exit 0 |
 | perf-budget BLOCKER | oya-check-perf-budget (no --report-only) | exit 0 |
 | benchmark BLOCKER | oya-check-benchmark (no --report-only) | exit 0 |
-| CI green | GitHub Actions ci-fitness-lanes workflow | all jobs green |
+| CI green | GitHub Actions ci-governance-lanes workflow | all jobs green |
 
 ---
 
@@ -334,7 +334,7 @@ grit claim \
   --agent council-foundry \
   --intent "IP-001-flip-lanes-to-blocker: flip 14 lanes BLOCKER; m02-exit-checklist produced" \
   --ttl 3600 \
-  .github/workflows/ci-fitness-lanes.yml::fitness-lanes-blocker \
+  .github/workflows/ci-governance-lanes.yml::governance-lanes-blocker \
   docs/architecture/m02-exit-checklist.md::M02ExitChecklist \
   docs/runbooks/sibling-team-onboarding.md::SiblingOnboardingRunbook
 ```

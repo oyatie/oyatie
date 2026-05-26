@@ -3718,7 +3718,7 @@ name = "oya-governance-claim-ceiling-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-cohesion-fitness-kernel"
+name = "oya-governance-cohesion-kernel"
 version = "0.1.0"
 
 [[package]]

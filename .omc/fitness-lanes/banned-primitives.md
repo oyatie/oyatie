@@ -5,9 +5,9 @@
 - activation: Active required check for `dev` once this ChangeSet promotes; workflow, branch-protection, quality lane, and `oya gate run-all` wiring are part of CS-FITNESS-001.
 - kernel_crate: `oya-governance-banned-primitives-kernel` — `scan_agent_instruction_file(...)`, `scan_command_invocation(...)`, plus `check_documented_genuine_need(...)`.
 - runner_path: `tools/oya-governance-banned-primitives-app`
-- gate_invocation: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`
+- gate_invocation: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives`
 - direct_runner_invocation: `cargo run -q -p oya-governance-banned-primitives-app --`
-- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/**/*.md`, `.omc/**/*.md`, plus YAML / JSON / TOML files under those roots that contain `<!-- agent-instructions:start -->` fences; sanitized JSONL command corpus under `registry/fitness-corpora/banned-primitives/*.jsonl`.
+- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/**/*.md`, `.omc/**/*.md`, plus YAML / JSON / TOML files under those roots that contain `<!-- agent-instructions:start -->` fences; sanitized JSONL command corpus under `registry/governance-corpora/banned-primitives/*.jsonl`.
 - failure_modes:
   - `AGENTS.md`, `CLAUDE.md`, or `docs/AGENTS.md` lacks an `agent-instructions` fence
   - fenced agent block invokes hard-banned primitives: hook bypass, force push, home-directory mutation, external fetch, forge merge, process kill, manual branch, manual rebase, manual merge, or manual push

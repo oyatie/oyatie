@@ -291,7 +291,7 @@ Top 3 expected pressure-test surfaces for Codex iter-1:
   load-bearing `oya-governance-architecture-conventions-kernel`);
   (b) whether BLOCKER-flip strategy for check crates in Shard 1 step 15
   introduces chicken-and-egg if a check crate's BLOCKER mode would fail
-  the Shard 1 merge itself; (c) whether `.omc/fitness-lanes/` directory
+  the Shard 1 merge itself; (c) whether `.omc/governance-lanes/` directory
   should be renamed `.omc/check-rules/` atomically with Shard 1. — Blocks
   Shard 1 step 15 finalisation.
 

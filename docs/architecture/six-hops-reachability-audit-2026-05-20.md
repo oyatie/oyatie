@@ -222,7 +222,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md` | C1 | 757 | 2 | 6 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/branch-protection-rules.md` | C1 | 757 | 4 | 2 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md` | C1 | 757 | 2 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
-| `docs/advanced-cicd/branch-pipeline/fitness-lanes-for-branch-pipeline.md` | C1 | 757 | 4 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
+| `docs/advanced-cicd/branch-pipeline/governance-lanes-for-branch-pipeline.md` | C1 | 757 | 4 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md` | C1 | 757 | 3 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/playbooks-by-axis-stage.md` | C1 | 757 | 2 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/rollback-mechanics-per-stage.md` | C1 | 757 | 4 | 7 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
@@ -340,71 +340,71 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md` | C74 | 1 | 0 | 0 | weak component C74 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md` | C75 | 1 | 0 | 0 | weak component C75 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/decisions/templates/foundry-phase00-template.md` | C76 | 1 | 0 | 0 | weak component C76 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/INDEX.md` | C1 | 757 | 4 | 0 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
-| `docs/fitness-lanes/adapter-kernel.md` | C77 | 1 | 0 | 0 | weak component C77 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/adr-citation.md` | C78 | 1 | 0 | 0 | weak component C78 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/adr-index.md` | C79 | 1 | 0 | 0 | weak component C79 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/adr-shape.md` | C80 | 1 | 0 | 0 | weak component C80 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/agent-completion-checklist.md` | C81 | 1 | 0 | 0 | weak component C81 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/agentic-navigability.md` | C82 | 1 | 0 | 0 | weak component C82 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/architecture-map-freshness.md` | C83 | 1 | 0 | 0 | weak component C83 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/archive-orphan.md` | C84 | 1 | 0 | 0 | weak component C84 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/audit-emission.md` | C85 | 1 | 0 | 0 | weak component C85 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/authoritative-tracked.md` | C86 | 1 | 0 | 0 | weak component C86 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/authority-cohesion.md` | C87 | 1 | 0 | 0 | weak component C87 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/banned-primitives.md` | C88 | 1 | 0 | 0 | weak component C88 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/brand-residue.md` | C89 | 1 | 0 | 0 | weak component C89 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/bypass.md` | C90 | 1 | 0 | 0 | weak component C90 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/capability-publish.md` | C91 | 1 | 0 | 0 | weak component C91 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cargo-prefix.md` | C92 | 1 | 0 | 0 | weak component C92 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cargo-vet.md` | C93 | 1 | 0 | 0 | weak component C93 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/changelog-row.md` | C94 | 1 | 0 | 0 | weak component C94 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/claim-ceiling.md` | C95 | 1 | 0 | 0 | weak component C95 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/clippy-pedantic.md` | C96 | 1 | 0 | 0 | weak component C96 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cloud-mutation.md` | C97 | 1 | 0 | 0 | weak component C97 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/codeowners-mirror.md` | C98 | 1 | 0 | 0 | weak component C98 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cohesion.md` | C99 | 1 | 0 | 0 | weak component C99 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/constitution-cite.md` | C100 | 1 | 0 | 0 | weak component C100 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cosign-signature.md` | C101 | 1 | 0 | 0 | weak component C101 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cost-budget.md` | C102 | 1 | 0 | 0 | weak component C102 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cross-axis-notify.md` | C103 | 1 | 0 | 0 | weak component C103 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/cutover-bootstrap-window.md` | C104 | 1 | 0 | 0 | weak component C104 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/data-class.md` | C105 | 1 | 0 | 0 | weak component C105 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/diataxis-doc-class.md` | C106 | 1 | 0 | 0 | weak component C106 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/direct-tool-invocation-audit.md` | C107 | 1 | 0 | 0 | weak component C107 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/doc-catalog.md` | C108 | 1 | 0 | 0 | weak component C108 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/doc-freshness.md` | C109 | 1 | 0 | 0 | weak component C109 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/done-definition.md` | C110 | 1 | 0 | 0 | weak component C110 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/evidence-bundle-shape.md` | C111 | 1 | 0 | 0 | weak component C111 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/flat-crates.md` | C112 | 1 | 0 | 0 | weak component C112 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/forward-reference-resolved.md` | C113 | 1 | 0 | 0 | weak component C113 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/foundry-corpus-citation.md` | C114 | 1 | 0 | 0 | weak component C114 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/glossary-vocabulary.md` | C115 | 1 | 0 | 0 | weak component C115 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/glossary.md` | C116 | 1 | 0 | 0 | weak component C116 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/image-size-budget.md` | C117 | 1 | 0 | 0 | weak component C117 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/license.md` | C118 | 1 | 0 | 0 | weak component C118 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/lts-dependency.md` | C119 | 1 | 0 | 0 | weak component C119 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/mdbook-publish.md` | C120 | 1 | 0 | 0 | weak component C120 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/mistakes-ledger-cite.md` | C121 | 1 | 0 | 0 | weak component C121 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/nextest-required.md` | C122 | 1 | 0 | 0 | weak component C122 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/openapi-contract-binding.md` | C123 | 1 | 0 | 0 | weak component C123 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/orphan-detection.md` | C124 | 1 | 0 | 0 | weak component C124 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/perf-evidence.md` | C125 | 1 | 0 | 0 | weak component C125 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/portfolio-citation.md` | C126 | 1 | 0 | 0 | weak component C126 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/pr-shape-strict.md` | C127 | 1 | 0 | 0 | weak component C127 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/pre-flight-checklist.md` | C128 | 1 | 0 | 0 | weak component C128 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/provider-agnostic.md` | C129 | 1 | 0 | 0 | weak component C129 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/raci-completeness.md` | C130 | 1 | 0 | 0 | weak component C130 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/redirect-thinness.md` | C131 | 1 | 0 | 0 | weak component C131 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/runbook-freshness.md` | C132 | 1 | 0 | 0 | weak component C132 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/runbook-index-resolves.md` | C133 | 1 | 0 | 0 | weak component C133 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/sbom-attestation.md` | C134 | 1 | 0 | 0 | weak component C134 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/scaffold-claim-pattern.md` | C135 | 1 | 0 | 0 | weak component C135 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/schema-migration.md` | C136 | 1 | 0 | 0 | weak component C136 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/semver-checks.md` | C137 | 1 | 0 | 0 | weak component C137 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/slsa-provenance.md` | C138 | 1 | 0 | 0 | weak component C138 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/traceability-validator.md` | C139 | 1 | 0 | 0 | weak component C139 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/fitness-lanes/workspace-lints.md` | C140 | 1 | 0 | 0 | weak component C140 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/INDEX.md` | C1 | 757 | 4 | 0 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
+| `docs/governance-lanes/adapter-kernel.md` | C77 | 1 | 0 | 0 | weak component C77 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/adr-citation.md` | C78 | 1 | 0 | 0 | weak component C78 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/adr-index.md` | C79 | 1 | 0 | 0 | weak component C79 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/adr-shape.md` | C80 | 1 | 0 | 0 | weak component C80 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/agent-completion-checklist.md` | C81 | 1 | 0 | 0 | weak component C81 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/agentic-navigability.md` | C82 | 1 | 0 | 0 | weak component C82 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/architecture-map-freshness.md` | C83 | 1 | 0 | 0 | weak component C83 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/archive-orphan.md` | C84 | 1 | 0 | 0 | weak component C84 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/audit-emission.md` | C85 | 1 | 0 | 0 | weak component C85 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/authoritative-tracked.md` | C86 | 1 | 0 | 0 | weak component C86 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/authority-cohesion.md` | C87 | 1 | 0 | 0 | weak component C87 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/banned-primitives.md` | C88 | 1 | 0 | 0 | weak component C88 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/brand-residue.md` | C89 | 1 | 0 | 0 | weak component C89 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/bypass.md` | C90 | 1 | 0 | 0 | weak component C90 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/capability-publish.md` | C91 | 1 | 0 | 0 | weak component C91 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cargo-prefix.md` | C92 | 1 | 0 | 0 | weak component C92 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cargo-vet.md` | C93 | 1 | 0 | 0 | weak component C93 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/changelog-row.md` | C94 | 1 | 0 | 0 | weak component C94 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/claim-ceiling.md` | C95 | 1 | 0 | 0 | weak component C95 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/clippy-pedantic.md` | C96 | 1 | 0 | 0 | weak component C96 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cloud-mutation.md` | C97 | 1 | 0 | 0 | weak component C97 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/codeowners-mirror.md` | C98 | 1 | 0 | 0 | weak component C98 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cohesion.md` | C99 | 1 | 0 | 0 | weak component C99 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/constitution-cite.md` | C100 | 1 | 0 | 0 | weak component C100 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cosign-signature.md` | C101 | 1 | 0 | 0 | weak component C101 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cost-budget.md` | C102 | 1 | 0 | 0 | weak component C102 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cross-axis-notify.md` | C103 | 1 | 0 | 0 | weak component C103 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/cutover-bootstrap-window.md` | C104 | 1 | 0 | 0 | weak component C104 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/data-class.md` | C105 | 1 | 0 | 0 | weak component C105 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/diataxis-doc-class.md` | C106 | 1 | 0 | 0 | weak component C106 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/direct-tool-invocation-audit.md` | C107 | 1 | 0 | 0 | weak component C107 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/doc-catalog.md` | C108 | 1 | 0 | 0 | weak component C108 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/doc-freshness.md` | C109 | 1 | 0 | 0 | weak component C109 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/done-definition.md` | C110 | 1 | 0 | 0 | weak component C110 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/evidence-bundle-shape.md` | C111 | 1 | 0 | 0 | weak component C111 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/flat-crates.md` | C112 | 1 | 0 | 0 | weak component C112 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/forward-reference-resolved.md` | C113 | 1 | 0 | 0 | weak component C113 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/foundry-corpus-citation.md` | C114 | 1 | 0 | 0 | weak component C114 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/glossary-vocabulary.md` | C115 | 1 | 0 | 0 | weak component C115 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/glossary.md` | C116 | 1 | 0 | 0 | weak component C116 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/image-size-budget.md` | C117 | 1 | 0 | 0 | weak component C117 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/license.md` | C118 | 1 | 0 | 0 | weak component C118 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/lts-dependency.md` | C119 | 1 | 0 | 0 | weak component C119 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/mdbook-publish.md` | C120 | 1 | 0 | 0 | weak component C120 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/mistakes-ledger-cite.md` | C121 | 1 | 0 | 0 | weak component C121 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/nextest-required.md` | C122 | 1 | 0 | 0 | weak component C122 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/openapi-contract-binding.md` | C123 | 1 | 0 | 0 | weak component C123 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/orphan-detection.md` | C124 | 1 | 0 | 0 | weak component C124 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/perf-evidence.md` | C125 | 1 | 0 | 0 | weak component C125 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/portfolio-citation.md` | C126 | 1 | 0 | 0 | weak component C126 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/pr-shape-strict.md` | C127 | 1 | 0 | 0 | weak component C127 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/pre-flight-checklist.md` | C128 | 1 | 0 | 0 | weak component C128 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/provider-agnostic.md` | C129 | 1 | 0 | 0 | weak component C129 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/raci-completeness.md` | C130 | 1 | 0 | 0 | weak component C130 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/redirect-thinness.md` | C131 | 1 | 0 | 0 | weak component C131 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/runbook-freshness.md` | C132 | 1 | 0 | 0 | weak component C132 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/runbook-index-resolves.md` | C133 | 1 | 0 | 0 | weak component C133 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/sbom-attestation.md` | C134 | 1 | 0 | 0 | weak component C134 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/scaffold-claim-pattern.md` | C135 | 1 | 0 | 0 | weak component C135 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/schema-migration.md` | C136 | 1 | 0 | 0 | weak component C136 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/semver-checks.md` | C137 | 1 | 0 | 0 | weak component C137 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/slsa-provenance.md` | C138 | 1 | 0 | 0 | weak component C138 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/traceability-validator.md` | C139 | 1 | 0 | 0 | weak component C139 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/governance-lanes/workspace-lints.md` | C140 | 1 | 0 | 0 | weak component C140 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/foundry/supervisor/README.md` | C141 | 4 | 0 | 3 | weak component C141 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/foundry/supervisor/architecture.md` | C141 | 4 | 1 | 0 | weak component C141 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `docs/foundry/supervisor/operations.md` | C141 | 4 | 1 | 0 | weak component C141 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
@@ -589,7 +589,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/release/branch-pipeline/branch-pipeline-architecture.md` | C1 | 757 | 2 | 10 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/branch-protection-rules.md` | C1 | 757 | 3 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/ci-policy-per-branch.md` | C1 | 757 | 2 | 9 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
-| `docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md` | C1 | 757 | 3 | 6 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
+| `docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md` | C1 | 757 | 3 | 6 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/governance-pipeline-mirror.md` | C1 | 757 | 2 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/playbooks-by-axis-stage.md` | C1 | 757 | 1 | 5 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/rollback-mechanics-per-stage.md` | C1 | 757 | 3 | 10 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
@@ -7336,7 +7336,7 @@ Ranking method: for each currently unreachable file, the audit simulated adding 
 | 16 | `docs/release/branch-pipeline/rollback-mechanics-per-stage.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 25 | 3 | 10 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
 | 17 | `docs/release/branch-pipeline/branch-pipeline-architecture.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 25 | 2 | 10 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
 | 18 | `docs/release/branch-pipeline/agent-roles-spec.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 25 | 3 | 7 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
-| 19 | `docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 25 | 3 | 6 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
+| 19 | `docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 25 | 3 | 6 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
 | 20 | `docs/release/branch-pipeline/branch-protection-rules.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 25 | 3 | 3 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
 | 21 | `microservices/payments/README.md` | `docs/README.md` or a new docs microservices index | 24 | 2 | 7 | Service-level hub for `payments`; direct indexing should expose the largest existing local subgraph. |
 | 22 | `microservices/payments/ARCHITECTURE.md` | `microservices/payments/README.md` after that service root becomes reachable | 24 | 10 | 8 | Primary service authority file for `payments`; should be linked from the service root README. |

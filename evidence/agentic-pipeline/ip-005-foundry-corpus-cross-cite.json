@@ -2,7 +2,7 @@
   "changed_files": [
     "docs/products/foundry/PHASE-00-SPEC.md",
     "docs/products/foundry/PRD.md",
-    ".omc/fitness-lanes/portfolio-citation.md",
+    ".omc/governance-lanes/portfolio-citation.md",
     "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
     "tools/oya-governance-portfolio-citation/src/main.rs"
   ],

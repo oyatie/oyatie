@@ -82,7 +82,7 @@ locally and in `pre-commit.ci`.
 ## Layer 2 — Block (PR-time CI)
 
 **Purpose**: authoritative gate. 50+ fitness lanes per
-[`.omc/fitness-lanes/INDEX.md`](../../fitness-lanes/) (current 22 + 20
+[`.omc/governance-lanes/INDEX.md`](../../governance-lanes/) (current 22 + 20
 new from this work + ~10 already-planned).
 
 Mandatory blocking checks (any red = no merge):

@@ -23,8 +23,8 @@
     "adr_0104_amended": "inline_only_no_amendment_header",
     "adr_0107_amended": "inline_only_no_amendment_header",
     "archive_orphan_md_status": "tombstone (Status: Retired, doc_status: retired)",
-    "fitness_lanes_index_updated": true,
-    "fitness_lanes_index_format": "row retained with status=retired, kernel/runner/CI cells set to 'retired'",
+    "governance_lanes_index_updated": true,
+    "governance_lanes_index_format": "row retained with status=retired, kernel/runner/CI cells set to 'retired'",
     "changelog_entry_present": true,
     "changelog_date_format": "2026-05-16 (ISO, matches policy)"
   },
@@ -65,7 +65,7 @@
       "id": "A2-PR13-05",
       "severity": "MINOR",
       "title": "Tombstone retains old 'date: 2026-05-12' status line alongside new retirement metadata",
-      "evidence": "docs/fitness-lanes/archive-orphan.md keeps `- status: Retired` and `- date: 2026-05-12` (original scaffold date) plus `- retired_on: 2026-05-16`. Reasonable but doc-style.md may prefer a single canonical status timestamp.",
+      "evidence": "docs/governance-lanes/archive-orphan.md keeps `- status: Retired` and `- date: 2026-05-12` (original scaffold date) plus `- retired_on: 2026-05-16`. Reasonable but doc-style.md may prefer a single canonical status timestamp.",
       "impact": "Cosmetic; could confuse readers about whether 2026-05-12 is still authoritative.",
       "fix": "Optional: rename `date` field to `created_on` in tombstones to disambiguate."
     }
@@ -79,7 +79,7 @@
   ],
   "ambiguity_risks": [
     {
-      "quote": "The retirement keeps a small historical lane record at `docs/fitness-lanes/archive-orphan.md` and `.omc/fitness-lanes/archive-orphan.md` so IP-008 evidence remains explainable without keeping executable code.",
+      "quote": "The retirement keeps a small historical lane record at `docs/governance-lanes/archive-orphan.md` and `.omc/governance-lanes/archive-orphan.md` so IP-008 evidence remains explainable without keeping executable code.",
       "interpretation_a": "Tombstone is the canonical retired-lane shape — future retirements follow this pattern.",
       "interpretation_b": "One-off historical record for IP-008 only — no general retirement pattern established.",
       "risk_if_wrong": "Without doc-style.md codifying the retired-lane tombstone schema, future retirements will diverge in fields, header, and INDEX placement."

@@ -25,7 +25,7 @@ crates/oya-governance-bypass-kernel/src/lib.rs::ratchet
 crates/oya-governance-pr-traceability-kernel/src/lib.rs::ratchet
 crates/oya-governance-pre-push-kernel/src/lib.rs::ratchet
 crates/oya-governance-quality-lane-kernel/src/lib.rs::ratchet
-crates/oya-governance-cohesion-fitness-kernel/src/lib.rs::ratchet
+crates/oya-governance-cohesion-kernel/src/lib.rs::ratchet
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

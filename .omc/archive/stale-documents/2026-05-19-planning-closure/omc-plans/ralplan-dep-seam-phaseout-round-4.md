@@ -25,7 +25,7 @@ Ship 5 products on hyper/tokio FIRST; phase out AFTER ontology v1 stable. Plan s
 
 1. Systematic phase-out > immediate replacement.
 2. Conscious debt > accidental debt. Every dep named/layered/owned with a replacement target.
-3. Seams = lane crate + `fitness-lanes/*.md` + CI job — not doc paragraphs.
+3. Seams = lane crate + `governance-lanes/*.md` + CI job — not doc paragraphs.
 4. Public APIs are wrapper types only. No `hyper::Request`/`tokio::JoinHandle`/`bytes::Bytes` outside `adapter`-layer crates.
 5. Phase-out is triggered, not scheduled.
 6. Machine-evaluable triggers > judgment calls. `replacement_trigger` = JSON AST; named predicates; CI-queryable; immutability- and staleness-policy explicit.
@@ -473,7 +473,7 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
   - All four renamed crates declare `[package.metadata.oyatie.layer] = "runtime"` (via Step 0).
 
 **Step 2 — Author `oya-check-dependency-seam-discipline` composite lane** (L; Critic)
-- New files: `crates/oya-check-dependency-seam-discipline/` (`[package.metadata.oyatie.layer] = "runtime"`); `.omc/fitness-lanes/dependency-seam-discipline.md`; `crates/oya-dev-cli/src/commands/dependency_seam_gate.rs`; CI job.
+- New files: `crates/oya-check-dependency-seam-discipline/` (`[package.metadata.oyatie.layer] = "runtime"`); `.omc/governance-lanes/dependency-seam-discipline.md`; `crates/oya-dev-cli/src/commands/dependency_seam_gate.rs`; CI job.
 - **Tool:** `cargo run -p oya-check-dependency-seam-discipline -- --mode=composite`.
 - **Outputs:** lane crate `Cargo.toml` with explicit layer metadata; `.omc/reports/dependency-seam-latest.json` (schema enumerates 8 sub-checks: seam + ledger-coverage + freshness + vendor-residue + cve-watch + review-contract + layer-metadata + ledger-transition-monotonicity); `.omc/reports/dependency-seam-{sha}.json` archive.
 - **Verification:** report-only run zero violations on `main` after Step 1; 6 fixture crates (kernel-imports-hyper, build-dep, dev-dep, vendor-residue, missing-layer, backward-transition) trigger expected violations.
@@ -494,7 +494,7 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 **Step 5 — Distroless smoke + `oya-bench-cold-start-harness` + `oya-check-distroless-deployment-bar`** (L; DRI+Critic)
 - New crates: `oya-bench-cold-start-harness` (layer=`runtime`); `oya-check-distroless-deployment-bar` (layer=`runtime`).
 - **Tool:** `cargo run -p oya-bench-cold-start-harness -- --target oya-ops-workspace-shell --port-env PORT`; `cargo run -p oya-check-distroless-deployment-bar`.
-- **Outputs:** `.omc/reports/cold-start-oya-ops-workspace-shell-{sha}.json` (`process_exec_to_first_accept_ms`, `spawn_overhead_ms`); `.omc/fitness-lanes/distroless-deployment-bar.md`.
+- **Outputs:** `.omc/reports/cold-start-oya-ops-workspace-shell-{sha}.json` (`process_exec_to_first_accept_ms`, `spawn_overhead_ms`); `.omc/governance-lanes/distroless-deployment-bar.md`.
 - **Verification:** distroless image built both archs; `/readyz` returns 200 ≤100ms cold-start (harness-measured); SIGTERM ≤30s; image ≤30 MB; musl-smoke green; cgroup probe respects `cpu.max`; **ops-binary code-changes from §19 verified per-property in §7 table**.
 
 **Step 6 — `dri.json` + `role-roster.json` + CODEOWNERS update** (S; Critic+DRI) — REVISED per codex Concern 4
@@ -504,7 +504,7 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 
 **Step 7 — Flip lane to `error` after 30-day soak + INDEX.md row + quarterly template** (M; Architect)
 - **Tool:** `oya-dev-cli gate validate fitness-lane-index`.
-- **Outputs:** updated `.omc/fitness-lanes/INDEX.md` (lane count 64 → **67** for new composite seam lane + parity + deployment-bar); `/registry/tech-debt-ledger-review-template.md`.
+- **Outputs:** updated `.omc/governance-lanes/INDEX.md` (lane count 64 → **67** for new composite seam lane + parity + deployment-bar); `/registry/tech-debt-ledger-review-template.md`.
 - **Verification:** composite at `error`, green on `main`; review-contract sub-check arms; first quarterly review scheduled.
 
 **Step 8 — Ops-binary cloud-native code-changes** (M; DRI) — NEW per codex Concern 6

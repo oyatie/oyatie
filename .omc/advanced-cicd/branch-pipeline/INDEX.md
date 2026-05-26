@@ -25,7 +25,7 @@ lift_target: oyatie/docs/release/branch-pipeline/INDEX.md
 | 5 | [`governance-pipeline-mirror.md`](governance-pipeline-mirror.md) | Capability stages in lockstep + schema extension + diagram |
 | 6 | [`branch-protection-rules.md`](branch-protection-rules.md) | Mutator allowlist + per-branch protection YAML + drift detection |
 | 7 | [`rollback-mechanics-per-stage.md`](rollback-mechanics-per-stage.md) | Per-layer rollback procedures + hot-fix path |
-| 8 | [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md) | 6 new lanes + 3 mutator-allowlist lanes + 4 cadence/quality lanes |
+| 8 | [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md) | 6 new lanes + 3 mutator-allowlist lanes + 4 cadence/quality lanes |
 | 9 | [`ADR-DRAFT-branch-pipeline.md`](ADR-DRAFT-branch-pipeline.md) | ADR draft (supersedes ADR-0041) |
 | 10 | [`playbooks-by-axis-stage.md`](playbooks-by-axis-stage.md) | Per-axis cadence + reviewer re-affirm requirement |
 | 11 | `INDEX.md` (this file) | Catalogue |
@@ -47,4 +47,4 @@ All files lift to `oyatie/docs/release/branch-pipeline/` on approval. ADR draft 
 
 ## 5. The six core new fitness lanes
 
-(1) promotion-gate-local-dev-to-origin-dev, (2) promotion-gate-staging-to-prod, (3) pr-review-verdict-present, (4) pr-comment-resolution, (5) canary-regression-sla, (6) capability-stage-binding. Plus 3 mutator-allowlist lanes + 4 cadence/quality lanes. Detail in fitness-lanes-for-branch-pipeline.md.
+(1) promotion-gate-local-dev-to-origin-dev, (2) promotion-gate-staging-to-prod, (3) pr-review-verdict-present, (4) pr-comment-resolution, (5) canary-regression-sla, (6) capability-stage-binding. Plus 3 mutator-allowlist lanes + 4 cadence/quality lanes. Detail in governance-lanes-for-branch-pipeline.md.

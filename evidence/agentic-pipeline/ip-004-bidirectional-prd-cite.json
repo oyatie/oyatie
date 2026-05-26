@@ -22,7 +22,7 @@
   "changed_files": [
     "Cargo.toml",
     "docs/PRD.md",
-    ".omc/fitness-lanes/portfolio-citation.md",
+    ".omc/governance-lanes/portfolio-citation.md",
     "crates/oya-governance-portfolio-citation-kernel/Cargo.toml",
     "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
     "tools/oya-governance-portfolio-citation/Cargo.toml",

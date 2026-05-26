@@ -121,7 +121,7 @@ fn phase00_fixture_root() -> PathBuf {
         "oya-governance-pr-traceability-kernel",
         "oya-governance-pre-push-kernel",
         "oya-governance-quality-lane-kernel",
-        "oya-governance-cohesion-fitness-kernel",
+        "oya-governance-cohesion-kernel",
         "oya-intelligence-bypass-ledger-kernel",
     ] {
         let crate_dir = root.join("crates").join(crate_name);

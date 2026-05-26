@@ -26,7 +26,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd /Users/jasonlee/Developer/source\npgrep -f 'cargo build --workspace\\|gate run-all' >/dev/null && echo \"CHAIN RUNNING\" || echo \"CHAIN DONE\"\necho \"build errors:\"; grep -cE '^error' /tmp/lb-fit2-build.log 2>/dev/null\necho \"=== summary + fails + marker ===\"; grep -E 'summary:|CHAIN_DONE|\\] FAIL ' /tmp/lb-fit2-gates.log 2>/dev/null | tail -8\necho \"progress:\"; grep -cE '\\] (PASS|FAIL) ' /tmp/lb-fit2-gates.log 2>/dev/null; tail -1 /tmp/lb-fit2-gates.log 2>/dev/null",
+    "buildCommand": "cd /Users/jasonlee/Developer/source\npgrep -f 'cargo build --workspace' >/dev/null && echo \"BUILDING\" || echo \"BUILD DONE\"\necho \"build errors:\"; grep -cE '^error' /tmp/lb-std-build.log 2>/dev/null\necho \"=== gate results ===\"; grep -E '== |rc=|CHAIN_DONE' /tmp/lb-std-gates.log 2>/dev/null",
     "testCommand": "cd /Users/jasonlee/Developer/source\ncargo test -q -p oya-check-aspirational-enforcement 2>&1 | grep -iE 'error\\[|test result|FAILED|panicked' | head\necho \"=== rebuild oya + run aspirational + quality-lanes on real specs ===\"\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -2\ntarget/debug/oya gate validate aspirational-enforcement 2>&1 | tail -1\ntarget/debug/oya gate validate quality-lanes 2>&1 | tail -1",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",

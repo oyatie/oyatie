@@ -6614,7 +6614,7 @@ fn banned_primitives_gate_accepts_sanitized_command_log_corpus() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "command-log.v1.jsonl",
@@ -6639,7 +6639,7 @@ fn banned_primitives_gate_accepts_sanitized_command_log_corpus() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");
@@ -6695,7 +6695,7 @@ fn banned_primitives_gate_rejects_direct_git_in_command_log_corpus() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "reject-direct-git-status.jsonl",
@@ -6719,7 +6719,7 @@ fn banned_primitives_gate_rejects_direct_git_in_command_log_corpus() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");
@@ -6739,7 +6739,7 @@ fn banned_primitives_gate_rejects_nested_shell_command_log_corpus() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "reject-nested-shell.jsonl",
@@ -6763,7 +6763,7 @@ fn banned_primitives_gate_rejects_nested_shell_command_log_corpus() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");
@@ -6783,7 +6783,7 @@ fn banned_primitives_gate_rejects_cmd_command_log_field() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "reject-cmd-field.jsonl",
@@ -6807,7 +6807,7 @@ fn banned_primitives_gate_rejects_cmd_command_log_field() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");
@@ -6827,7 +6827,7 @@ fn banned_primitives_gate_rejects_json_encoded_tool_arguments() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "reject-json-arguments.jsonl",
@@ -6851,7 +6851,7 @@ fn banned_primitives_gate_rejects_json_encoded_tool_arguments() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");
@@ -6871,7 +6871,7 @@ fn banned_primitives_gate_rejects_tool_only_command_log_records() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "reject-tool-only.jsonl",
@@ -6895,7 +6895,7 @@ fn banned_primitives_gate_rejects_tool_only_command_log_records() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");
@@ -6914,7 +6914,7 @@ fn banned_primitives_gate_rejects_unredacted_command_log_records() {
     write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
     let corpus = temp
         .path()
-        .join("registry/fitness-corpora/banned-primitives");
+        .join("registry/governance-corpora/banned-primitives");
     write_command_log_fixture(
         &corpus,
         "reject-unredacted.jsonl",
@@ -6938,7 +6938,7 @@ fn banned_primitives_gate_rejects_unredacted_command_log_records() {
             "docs/AGENTS.md",
             "--require-command-log-corpus",
             "--command-log-root",
-            "registry/fitness-corpora/banned-primitives",
+            "registry/governance-corpora/banned-primitives",
         ])
         .output()
         .expect("gate command runs");

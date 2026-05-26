@@ -392,7 +392,7 @@ Count: 175
 - `docs/advanced-cicd/branch-pipeline/agent-roles-spec.md`
 - `docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md`
 - `docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md`
-- `docs/advanced-cicd/branch-pipeline/fitness-lanes-for-branch-pipeline.md`
+- `docs/advanced-cicd/branch-pipeline/governance-lanes-for-branch-pipeline.md`
 - `docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md`
 - `docs/advanced-cicd/branch-pipeline/rollback-mechanics-per-stage.md`
 - `docs/advanced-cicd/branch-pipeline/velocity-without-stability-loss.md`
@@ -453,12 +453,12 @@ Count: 175
 - `docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md`
 - `docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md`
 - `docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md`
-- `docs/fitness-lanes/INDEX.md`
-- `docs/fitness-lanes/agent-completion-checklist.md`
-- `docs/fitness-lanes/archive-orphan.md`
-- `docs/fitness-lanes/banned-primitives.md`
-- `docs/fitness-lanes/bypass.md`
-- `docs/fitness-lanes/direct-tool-invocation-audit.md`
+- `docs/governance-lanes/INDEX.md`
+- `docs/governance-lanes/agent-completion-checklist.md`
+- `docs/governance-lanes/archive-orphan.md`
+- `docs/governance-lanes/banned-primitives.md`
+- `docs/governance-lanes/bypass.md`
+- `docs/governance-lanes/direct-tool-invocation-audit.md`
 - `docs/machine-readable/decisions.json`
 - `docs/plans/M01-foundation-cc-01-cutover/INDEX.md`
 - `docs/plans/M01-foundation-cc-01-cutover/architect-review-iter-1.md`
@@ -486,7 +486,7 @@ Count: 175
 - `docs/release/branch-pipeline/branch-pipeline-architecture.md`
 - `docs/release/branch-pipeline/branch-protection-rules.md`
 - `docs/release/branch-pipeline/ci-policy-per-branch.md`
-- `docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md`
+- `docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md`
 - `docs/release/branch-pipeline/governance-pipeline-mirror.md`
 - `docs/release/branch-pipeline/playbooks-by-axis-stage.md`
 - `docs/release/branch-pipeline/rollback-mechanics-per-stage.md`

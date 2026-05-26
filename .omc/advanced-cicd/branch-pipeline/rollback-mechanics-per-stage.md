@@ -106,7 +106,7 @@ Every rollback emits a signed D14 artefact via `oya-foundry-evidence-kernel`:
 | per-cell rollback | `per_cell_rollback` | rollout-controller | per-cell audit chain |
 | per-tenant rollback | `per_tenant_rollback` | rollout-controller + cohort kernel | per-tenant + audit chain |
 
-Every artefact verified by `oya-governance-rollback-evidence` (BLOCKER per [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md)).
+Every artefact verified by `oya-governance-rollback-evidence` (BLOCKER per [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md)).
 
 ## 8. KMS root rotation (special case)
 

@@ -10,13 +10,13 @@ purpose: |
   classified GREEN / AMBER / RED against
   `docs/standards/crate-naming-convention.md` §2 grammar.
   Companion to the rename plan `docs/plans/rename-plan-2026-05-12.md` and the
-  fitness lane spec `.omc/fitness-lanes/architecture-conventions.md`.
+  fitness lane spec `.omc/governance-lanes/architecture-conventions.md`.
 canonical_authority: docs/CONSTITUTION.md
 companion_docs:
   - docs/standards/crate-naming-convention.md
   - docs/standards/clean-architecture.md
   - docs/plans/rename-plan-2026-05-12.md
-  - .omc/fitness-lanes/architecture-conventions.md
+  - .omc/governance-lanes/architecture-conventions.md
 related_adrs:
   - ADR-0015
   - ADR-0017
@@ -310,6 +310,6 @@ The open question is also written to
 - Grammar: [`docs/standards/crate-naming-convention.md`](../standards/crate-naming-convention.md)
 - Layering rules: [`docs/standards/clean-architecture.md`](../standards/clean-architecture.md)
 - Rename plan: [`docs/plans/rename-plan-2026-05-12.md`](../plans/rename-plan-2026-05-12.md)
-- Lane spec: [`.omc/fitness-lanes/architecture-conventions.md`](../../.omc/fitness-lanes/architecture-conventions.md)
+- Lane spec: [`.omc/governance-lanes/architecture-conventions.md`](../../.omc/governance-lanes/architecture-conventions.md)
 - Hyperscaler reference: [`docs/research/hyperscaler-best-practices-2026-05-12.md`](../research/hyperscaler-best-practices-2026-05-12.md)
 - LTS pins: [`docs/research/lts-versions-verified-2026-05-12.md`](../research/lts-versions-verified-2026-05-12.md)

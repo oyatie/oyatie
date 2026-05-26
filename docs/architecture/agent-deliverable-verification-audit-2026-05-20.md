@@ -1040,8 +1040,8 @@
 1017 | H_registry_tutorials | missing.
 1018 | H_registry_benchmark_corpus | missing.
 1019 | H_registry_benchmarks | missing.
-1020 | H_registry_fitness_corpora_files | 1.
-1021 | H_registry_fitness_corpora_lines | 3.
+1020 | H_registry_governance_corpora_files | 1.
+1021 | H_registry_governance_corpora_lines | 3.
 1022 | H_sample_tenant_min | every sampled tenant file 448-587 lines.
 1023 | H_workflow_template_min | every workflow template 435-840 lines.
 1024 | H_dashboard_min | every dashboard 259-321 lines.
@@ -1095,7 +1095,7 @@
 1072 | H_quality | alternate tutorial corpora exist and are substantive.
 1073 | H_quality | root benchmark corpus exists and is substantive.
 1074 | H_quality | microservice benchmark samples are often below 150 lines.
-1075 | H_quality | registry/fitness-corpora is too small to stand in for benchmark corpus.
+1075 | H_quality | registry/governance-corpora is too small to stand in for benchmark corpus.
 1076 | H_quality | directory placement mismatch matters for claimed deliverable verification.
 1077 | H_verdict | PARTIAL (⚠️).
 1078 | H_remediate | create or move tutorial library to registry/tutorial-library if that was the claimed landing.

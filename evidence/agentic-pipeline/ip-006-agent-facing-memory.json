@@ -3,8 +3,8 @@
     "AGENTS.md",
     "CLAUDE.md",
     "docs/AGENTS.md",
-    ".omc/fitness-lanes/banned-primitives.md",
-    "docs/fitness-lanes/banned-primitives.md"
+    ".omc/governance-lanes/banned-primitives.md",
+    "docs/governance-lanes/banned-primitives.md"
   ],
   "claim": {
     "agent": "codex-autopilot-p01-ip006",

@@ -13,8 +13,8 @@
   ],
   "changed_files": [
     ".github/workflows/oya-governance-banned-primitives.yml",
-    ".omc/fitness-lanes/INDEX.md",
-    ".omc/fitness-lanes/banned-primitives.md",
+    ".omc/governance-lanes/INDEX.md",
+    ".omc/governance-lanes/banned-primitives.md",
     ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
     ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
     "crates/oya-dev-cli/src/banned_primitives_gate.rs",
@@ -28,7 +28,7 @@
     "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json",
     "evidence/fd001/cs-fitness-001-command-log-corpus.json",
     "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
-    "registry/fitness-corpora/banned-primitives/command-log.v1.jsonl",
+    "registry/governance-corpora/banned-primitives/command-log.v1.jsonl",
     "registry/fixuptasks.jsonl",
     "registry/quality/lanes.yaml",
     "specs/master-plan-sequencing.json",
@@ -39,7 +39,7 @@
     "Added pure kernel command-invocation scanning that reuses the existing primitive detector and treats bin/oya git as sanctioned.",
     "Extended oya gate validate banned-primitives with --command-log-root/--command-log-corpus and --require-command-log-corpus flags.",
     "Fail-closed command-log loading now accepts only .jsonl roots/files, requires redacted=true on every record, supports command/cmd/tool_input.command/tool+args/JSON-encoded tool arguments, and rejects records without a concrete command surface.",
-    "Added tracked sanitized corpus registry/fitness-corpora/banned-primitives/command-log.v1.jsonl with only sanctioned oya/oya-vcs/oya-git records so CI can enforce coverage without reading raw local logs.",
+    "Added tracked sanitized corpus registry/governance-corpora/banned-primitives/command-log.v1.jsonl with only sanctioned oya/oya-vcs/oya-git records so CI can enforce coverage without reading raw local logs.",
     "Updated the workflow, quality-lane command, run-all dispatch/catalog, and active planning surfaces to require the tracked command-log corpus."
   ],
   "non_claims": [
@@ -70,7 +70,7 @@
       "evidence": "run_all tests passed: 8 passed, 0 failed."
     },
     {
-      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives",
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives",
       "status": "passed",
       "evidence": "banned-primitives validation passed: 1573 files, 18 sources, 18 fences, 3 command-log records, 0 usages, 0 documented exceptions"
     },
@@ -105,7 +105,7 @@
       "evidence": "targeted clippy completed with no warnings."
     },
     {
-      "command": "python3 -m json.tool specs/masterplan.json >/dev/null && python3 -m json.tool specs/master-plan-sequencing.json >/dev/null && python3 -m json.tool evidence/fd001/cs-fitness-001-command-log-corpus.json >/dev/null && python3 -m json.tool evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json >/dev/null && line-delimited JSON parse registry/fixuptasks.jsonl and registry/fitness-corpora/banned-primitives/command-log.v1.jsonl",
+      "command": "python3 -m json.tool specs/masterplan.json >/dev/null && python3 -m json.tool specs/master-plan-sequencing.json >/dev/null && python3 -m json.tool evidence/fd001/cs-fitness-001-command-log-corpus.json >/dev/null && python3 -m json.tool evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json >/dev/null && line-delimited JSON parse registry/fixuptasks.jsonl and registry/governance-corpora/banned-primitives/command-log.v1.jsonl",
       "status": "passed",
       "evidence": "masterplan, sequencing, evidence JSON, fixuptask registry JSONL, and command-log corpus JSONL parse successfully."
     },

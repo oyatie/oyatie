@@ -14,8 +14,8 @@
   "changed_files": [
     ".github/branch-protection.yaml",
     ".github/workflows/oya-governance-banned-primitives.yml",
-    ".omc/fitness-lanes/INDEX.md",
-    ".omc/fitness-lanes/banned-primitives.md",
+    ".omc/governance-lanes/INDEX.md",
+    ".omc/governance-lanes/banned-primitives.md",
     ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/",
     ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
     "Cargo.lock",

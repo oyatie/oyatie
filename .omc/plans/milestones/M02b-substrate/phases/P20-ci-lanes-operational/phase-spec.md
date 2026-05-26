@@ -80,7 +80,7 @@ product substrate. Can begin once enough substrate crates exist to validate agai
 | `check` (exempt namespace) | — | `crates/oya-check-benchmark/` | `oya-check-benchmark` |
 | `check` (exempt namespace) | — | `crates/oya-check-architecture/` | `oya-check-architecture` |
 | `check` (exempt namespace) | — | `crates/oya-check-documentation/` (scaffolded at HEAD; P20 expands algorithm + tests) | `oya-check-documentation` |
-| `foundry` | `ci` | `.github/workflows/ci-fitness-lanes.yml` | — |
+| `foundry` | `ci` | `.github/workflows/ci-governance-lanes.yml` | — |
 
 Naming justification:
 
@@ -111,7 +111,7 @@ JUSTIFICATION:
 | [`IP-001-ci-lanes-statelessness-shardability.md`](IP-001-ci-lanes-statelessness-shardability.md) | Implement oya-check-statelessness + oya-check-shardability binaries with Cargo metadata parsing | pending | `council-foundry` |
 | [`IP-002-ci-lanes-perf-budget-benchmark.md`](IP-002-ci-lanes-perf-budget-benchmark.md) | Implement oya-check-perf-budget + oya-check-benchmark binaries with markdown parsing | pending | `council-foundry` |
 | [`IP-003-ci-lanes-architecture-check.md`](IP-003-ci-lanes-architecture-check.md) | Implement oya-check-architecture with all 7 sub-commands; rename from oya-shared-architecture-check-cli | pending | `council-foundry` |
-| [`IP-004-ci-lanes-github-workflow.md`](IP-004-ci-lanes-github-workflow.md) | Wire all 14+ lanes (incl. LEAN-A5 doc-coverage) into .github/workflows/ci-fitness-lanes.yml in --report-only mode | pending | `council-foundry` |
+| [`IP-004-ci-lanes-github-workflow.md`](IP-004-ci-lanes-github-workflow.md) | Wire all 14+ lanes (incl. LEAN-A5 doc-coverage) into .github/workflows/ci-governance-lanes.yml in --report-only mode | pending | `council-foundry` |
 | [`IP-005-doc-coverage-full-algorithm.md`](IP-005-doc-coverage-full-algorithm.md) | Expand oya-check-documentation from HEAD scaffold to full ADR-0063 §5 algorithm: pack.yaml parity check (kr.md / INDEX.md / DOC-COVERAGE.md regenerated from manifest); integration tests; CI wiring | pending | `council-foundry` |
 
 ---
@@ -191,7 +191,7 @@ crates/oya-check-documentation/src/main.rs::main
 crates/oya-check-documentation/src/algorithm.rs::run
 crates/oya-check-documentation/src/manifest.rs::read_pack_catalog
 crates/oya-check-documentation/src/registry.rs::read_workspace_microservices
-.github/workflows/ci-fitness-lanes.yml::fitness-lanes-job
+.github/workflows/ci-governance-lanes.yml::governance-lanes-job
 ```
 
 TTL: `--ttl 3600`. Fallback: ICM `scaffold-locks-oyatie`.

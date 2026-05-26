@@ -14,7 +14,7 @@
     "Bundle-vs-split: 24 files in one PR is correct because separating ADR-0104/0107 amendments from the kernel/app deletion would leave dangling references to the retired crate name in living ADRs during the gap window.",
     "Tombstone-lane alternative (always-pass with explicit 'retired' message) is rejected implicitly via the 'keep the lane active with an empty archive set → false mechanical confidence' rationale — should be named explicitly so future retirements cite the precedent.",
     "Migrate-coverage-to-other-lane is implicitly handled by naming `oya-governance-adapter-with-no-importer-kernel` as the landed mechanical-prevention sibling in the ADR-0104 amendment — that IS the migration story, but ADR-0118 does not cite it under 'Rejected alternatives'.",
-    "Historical lane docs preserved at docs/fitness-lanes/archive-orphan.md and .omc/fitness-lanes/archive-orphan.md with retired_by/retired_on frontmatter is the correct hyperscaler-style choice (tombstone the metadata, delete the executable) — analogous to AWS service-deprecation pages."
+    "Historical lane docs preserved at docs/governance-lanes/archive-orphan.md and .omc/governance-lanes/archive-orphan.md with retired_by/retired_on frontmatter is the correct hyperscaler-style choice (tombstone the metadata, delete the executable) — analogous to AWS service-deprecation pages."
   ],
   "uncertainty_areas": [
     "Whether ADR-0108 sunset-lifecycle policy text itself carves out 'one-time lanes' as exempt — if yes, PR #13 is in-policy; if no, this is a precedent-setting exception that should be flagged in the sunset-lifecycle ADR.",
@@ -33,7 +33,7 @@
     "E: Bundle vs split into 3 PRs (retirement + ADR amendments + IP-008 evidence). Bundle selected for atomicity (no dangling references in living docs during gap window) but rationale is absent from PR body.",
     "F: Rename-into-M01-P18 gate — wrap archive-orphan kernel as an M01-P18 admission primitive. Rejected because projected-merge-state + conflict-kernel already own the replacement invariant — correctly named in ADR-0118."
   ],
-  "selected_rationale": "Option A (hard retire + tombstoned docs + bundled PR) is correct because: (1) the invariant is one-time, so a sunset window cannot produce new violations after the payload is deleted in the same PR — making ADR-0108 substantively N/A; (2) bundling the ADR-0104/0107 amendments with the crate deletion prevents dangling references to the retired crate name in living docs; (3) the kept lane metadata files (docs/fitness-lanes/archive-orphan.md, .omc/fitness-lanes/archive-orphan.md) with retired_by/retired_on frontmatter are the hyperscaler-style tombstone — analogous to AWS service-deprecation pages; (4) ADR-0118 supersedes ADR-0052 explicitly, preserving traceability; (5) the migration story IS captured (adapter-with-no-importer-kernel as the landed sibling) just not under 'Rejected alternatives'.",
+  "selected_rationale": "Option A (hard retire + tombstoned docs + bundled PR) is correct because: (1) the invariant is one-time, so a sunset window cannot produce new violations after the payload is deleted in the same PR — making ADR-0108 substantively N/A; (2) bundling the ADR-0104/0107 amendments with the crate deletion prevents dangling references to the retired crate name in living docs; (3) the kept lane metadata files (docs/governance-lanes/archive-orphan.md, .omc/governance-lanes/archive-orphan.md) with retired_by/retired_on frontmatter are the hyperscaler-style tombstone — analogous to AWS service-deprecation pages; (4) ADR-0118 supersedes ADR-0052 explicitly, preserving traceability; (5) the migration story IS captured (adapter-with-no-importer-kernel as the landed sibling) just not under 'Rejected alternatives'.",
   "rejected_reasons": [
     "B (Deprecate-with-sunset per ADR-0108): SUBSTANTIVELY correct rejection — a one-time invariant whose payload is removed in the same PR has no 'new violation' surface during a sunset window. But the rejection is NOT named in ADR-0118; readers must infer it. FOLLOWUP: add a 2-line 'Why no sunset window' paragraph citing 'one-time invariant, payload removed in same ChangeSet'.",
     "C (Migrate-coverage): partial migration DID happen (adapter-with-no-importer-kernel cited in ADR-0104 amendment) — the rejection is really 'no migration needed for the original invariant, sibling lane covers the residual concern'. Should be named explicitly so the precedent is reusable.",
@@ -55,7 +55,7 @@
   ],
   "references": [
     "/tmp/oya-msr-pr12-18/pr-13.diff:354-422 — ADR-0118 full text with Rejected alternatives section",
-    "/tmp/oya-msr-pr12-18/pr-13.diff:42-51 — .omc/fitness-lanes/archive-orphan.md tombstone metadata (retired_by/retired_on/former_*)",
+    "/tmp/oya-msr-pr12-18/pr-13.diff:42-51 — .omc/governance-lanes/archive-orphan.md tombstone metadata (retired_by/retired_on/former_*)",
     "/tmp/oya-msr-pr12-18/pr-13.diff:319-322 — docs/CHANGELOG.md 2026-05-15 entry for sunset-lifecycle landing (one day before PR #13)",
     "/tmp/oya-msr-pr12-18/pr-13.diff:325-328 — ADR-0104 amendment naming adapter-with-no-importer-kernel as the landed sibling (the implicit migration story)",
     "/tmp/oya-msr-pr12-18/pr-13.diff:334-350 — ADR-0107 amendments marking archive-orphan tool RETIRED across three tables"

@@ -21,7 +21,7 @@
     {
       "pattern": "minor: lane doc files kept as tombstones instead of deleted outright",
       "severity": "MINOR",
-      "note": "Both `.omc/fitness-lanes/archive-orphan.md` and `docs/fitness-lanes/archive-orphan.md` survive as 12-line retirement stubs. Linus would prefer deleting them and recording the lane death in ADR-0118 + CHANGELOG only. But traceability for IP-008 evidence is a reasonable defense, and the stubs are small."
+      "note": "Both `.omc/governance-lanes/archive-orphan.md` and `docs/governance-lanes/archive-orphan.md` survive as 12-line retirement stubs. Linus would prefer deleting them and recording the lane death in ADR-0118 + CHANGELOG only. But traceability for IP-008 evidence is a reasonable defense, and the stubs are small."
     },
     {
       "pattern": "minor: doctrine spec files (decision-principles.json, forbidden-operations.json, masterplan.json, crate-naming-audit.json) get +191/-77 of edits in a 'retire one lane' PR",
@@ -32,7 +32,7 @@
   "findings": [
     {
       "severity": "MINOR",
-      "summary": "Two tombstone lane docs (`.omc/fitness-lanes/archive-orphan.md`, `docs/fitness-lanes/archive-orphan.md`) survive as 12-18-line retirement stubs when ADR-0118 + INDEX.md + CHANGELOG already carry the historical record.",
+      "summary": "Two tombstone lane docs (`.omc/governance-lanes/archive-orphan.md`, `docs/governance-lanes/archive-orphan.md`) survive as 12-18-line retirement stubs when ADR-0118 + INDEX.md + CHANGELOG already carry the historical record.",
       "recommended_action": "Optional follow-up: delete the two stub files and rely on the INDEX retirement row + ADR-0118 for IP-008 traceability. Not a blocker — current state is consistent.",
       "fixuptask_id": "pr-13-fixup-tombstone-stubs"
     },
