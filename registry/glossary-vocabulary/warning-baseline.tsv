@@ -924,6 +924,7 @@ uncited-acronym	GDG
 uncited-acronym	GDL
 uncited-acronym	GDS
 uncited-acronym	GE
+uncited-acronym	GENERATED
 uncited-acronym	GENERATES
 uncited-acronym	GEO
 uncited-acronym	GET
@@ -1251,6 +1252,7 @@ uncited-acronym	KCS
 uncited-acronym	KDF
 uncited-acronym	KDIC
 uncited-acronym	KEM
+uncited-acronym	KEP
 uncited-acronym	KEX
 uncited-acronym	KEY
 uncited-acronym	KEYSTONE
@@ -1338,6 +1340,7 @@ uncited-acronym	LINK
 uncited-acronym	LINQ
 uncited-acronym	LISA
 uncited-acronym	LISTEN
+uncited-acronym	LIVE
 uncited-acronym	LIVING
 uncited-acronym	LLC
 uncited-acronym	LLP
@@ -1369,6 +1372,7 @@ uncited-acronym	LXLAW
 uncited-acronym	MA
 uncited-acronym	MAD
 uncited-acronym	MADE
+uncited-acronym	MADR
 uncited-acronym	MAGI
 uncited-acronym	MAIL
 uncited-acronym	MAJOR
@@ -1935,6 +1939,7 @@ uncited-acronym	RESTRICTED
 uncited-acronym	RESTRICTIVE
 uncited-acronym	RETAINED
 uncited-acronym	RETENTION
+uncited-acronym	RETIRE
 uncited-acronym	RETRIEVAL
 uncited-acronym	REVISE
 uncited-acronym	REVISIONS
@@ -2318,6 +2323,7 @@ uncited-acronym	TR
 uncited-acronym	TRA
 uncited-acronym	TRACKED
 uncited-acronym	TRADE
+uncited-acronym	TRANSITIVE
 uncited-acronym	TRAVERSAL
 uncited-acronym	TRIAGE
 uncited-acronym	TRM

@@ -23,8 +23,8 @@ if [ -f "$PRIMITIVES" ]; then
     cat "$PRIMITIVES"
 else
     # Fallback inline summary when file not found (should not happen in normal use)
-    echo "VCS:       oya git <git-subcommand> is the cutover target; current policy ratchet remains oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote>"
-    echo "VCS policy: Oya VCS state transitions plus oya git drop-in; ADR-0116 owns the transition boundary"
+    echo "VCS:       plain git — the oya git wrapper and oya vcs ratchet are RETIRED (ADR-0363)"
+    echo "VCS flow:  isolated branch -> PR against dev -> Jenkins CI + oya gate run-all + reviewer APPROVE; substrate = git+Jenkins+self-hosted Forgejo"
     echo "Contracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3"
     echo "AI:        microservices/intelligence/ (consumer) | microservices/intelligence/ (internal)"
     echo "Taxonomy:  plugin-app-store / marketplace / community — 3 distinct µservices"

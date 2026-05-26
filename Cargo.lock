@@ -3197,8 +3197,6 @@ dependencies = [
  "oya-intelligence-step-file-adapter",
  "oya-secrets-domain",
  "oya-secrets-file-adapter",
- "oya-vcs-changeset-state-kernel",
- "oya-vcs-cli-ratchet-kernel",
  "serde_json",
  "sha2",
 ]
@@ -5902,22 +5900,6 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
 ]
-
-[[package]]
-name = "oya-vcs-changeset-state-app"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-changeset-state-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-changeset-state-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-vcs-cli-ratchet-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-vcs-provider-execution-gate-app"

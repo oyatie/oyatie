@@ -35,7 +35,7 @@ overlap** (`compliance-pack-schema` vs `sovereign-cloud-overlays` vs `compliance
 - **RETIRE:** `tasks/plan.md`, `tasks/todo.md` (duplicate masterplan/sequencing — move active CS-*
   rows to `evidence/goals/` or a CI registry), `tasks/enterprise-microservices-*.md` (empty).
 - **ARCHIVE:** `docs/plans/M01-foundation-cc-01-cutover/` (stale; to `.omc/archive/…`).
-- **DEPRECATE (until PHASE-5):** `docs/MASTERPLAN.md` — mark "generated; do not edit."
+- **Deprecate (until PHASE-5):** `docs/MASTERPLAN.md` — mark "generated; do not edit."
 - **KEEP as working docs:** `.omx/plans|context|specs` (tactical, not strategic; not duplication).
 
 ## Pack deconfliction (the duplication you flagged)

@@ -181,28 +181,28 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set:
-Oya VCS compatibility ratchet claim / verify / done / promote plus the
-`oya-vcs-admission` CI lane, delivered through the Foundry pipeline (M01-P18).
-`oya git <git-subcommand>` is the git drop-in surface. Oya VCS owns claims,
-ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock
-release until those policy verbs split explicitly.
+Agent coordination uses plain `git` (the `oya git` wrapper and the `oya vcs`
+ratchet are RETIRED per ADR-0363). An agent works on an isolated worktree branch
+and opens a pull request against `dev`, which enters the governance pipeline:
+Jenkins CI + `oya gate run-all` + reviewer APPROVE gate merge readiness. The
+self-hosted Forgejo required-checks/auto-merge substrate is the target (ADR-0247
+post-bootstrap). `oya` is a governance-gate engine only.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
-  - oya-git
-  - oya-vcs
-  - oya-vcs-admission
+  - git
+  - oya-gate
+  - oya-verify
 required_sequence:
-  - oya vcs claim --agent <id> --intent "<slice>" <file::Identifier>
-  - oya vcs verify --agent <id> --changeset <id>
-  - oya vcs done --agent <id> --changeset <id>
-  - oya vcs promote --changeset <id>
+  - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
+  - commit and push on that lane
+  - open a PR against dev               # enters the governance pipeline
+  - Jenkins CI + oya gate run-all + reviewer APPROVE gate merge readiness
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
+  adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
 <!-- agent-instructions:end -->
 
 ## PR shape

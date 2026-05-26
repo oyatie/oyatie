@@ -93,8 +93,6 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-governance-i18n-coverage` | advisory Fluent ICU locale coverage per ADR-0206 (default_locale + required_locales + rtl_support + min_coverage_bps). |
 | `oya-governance-compliance-evidence-coverage` | advisory compliance evidence collector declaration per ADR-0209 (audit_chain_seal_required + tamper_evidence_algorithm + evidence_collectors[]). |
 | `oya-governance-realtime-transport-tier` | advisory real-time transport tier validation per ADR-0208 (sse vs websocket vs grpc-streaming; payload_budget_bytes per tier). |
-| `oya-governance-changeset-state-monotonicity` | every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters |
-| `oya-governance-changeset-state-enum-closed` | every changeset-event-log row's to_state is in the closed 13-value enum (per ADR-0110); detects rogue state-name additions that bypass the design contract |
 | `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |

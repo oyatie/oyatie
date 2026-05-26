@@ -417,22 +417,6 @@ lanes:
     source: ADR-0221 M-10
     runtime_budget_seconds: 60
     check_command: bash tools/governance/adr-0221-governance-gates.sh buildability-line-count
-  - id: oya-governance-changeset-state-monotonicity
-    stage: per-pr
-    status: active
-    owner_team: axis-foundry
-    purpose: every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters
-    source: ADR-0110 changeset state machine
-    runtime_budget_seconds: 30
-    check_command: cargo run -p oya-dev-cli -- gate validate changeset-state-monotonicity
-  - id: oya-governance-changeset-state-enum-closed
-    stage: per-pr
-    status: active
-    owner_team: axis-foundry
-    purpose: every changeset-event-log row's to_state is in the closed 13-value enum (per ADR-0110); detects rogue state-name additions that bypass the design contract
-    source: ADR-0110 changeset state machine
-    runtime_budget_seconds: 30
-    check_command: cargo run -p oya-dev-cli -- gate validate changeset-state-enum-closed
   - id: foundry-eval-nightly
     stage: nightly
     status: active

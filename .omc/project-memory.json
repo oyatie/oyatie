@@ -26,7 +26,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd /Users/jasonlee/Developer/source\necho \"=== full build output ===\"; cat /private/tmp/claude-501/-Users-jasonlee-Developer-source/2e4f0ca9-b62c-4fc6-a77a-989c8c2f4506/tasks/bky4eg62v.output 2>/dev/null | tail -12\necho \"=== build proc alive? ===\"; pgrep -f 'cargo build --workspace' >/dev/null && echo \"RUNNING\" || echo \"DONE\"",
+    "buildCommand": "cd /Users/jasonlee/Developer/source\ncargo build --workspace 2>&1 | tail -8 &\necho \"=== active-guidance oya git/vcs lines to flip ===\"\nfor f in CLAUDE.md AGENTS.md docs/AGENTS.md tools/hooks/_canonical-primitives.md tools/hooks/userprompt-canonical-primer.sh tools/hooks/session-start-context-inject.sh; do\n  echo \"--- $f\"; grep -nE 'oya (git|vcs)\\b' \"$f\" 2>/dev/null | head -12\ndone\nwait",
     "testCommand": "cd /Users/jasonlee/Developer/source\necho \"=== confirm the 2 rewritten path literals point to real files ===\"\nls -la microservices/intelligence/scorecards/overrides.json microservices/intelligence/iac/helm/foundry/deployment.yaml 2>&1\necho\necho \"=== test the 2 affected gate-check crates ===\"\ncargo test -q -p oya-check-slsa-l3-evidence-grounded -p oya-check-tenant-cost-labels-coverage 2>&1 | tail -20",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
@@ -275,8 +275,8 @@
   "hotPaths": [
     {
       "path": "docs/ideas/planning-ssot-consolidation.md",
-      "accessCount": 7,
-      "lastAccessed": 1779769301094,
+      "accessCount": 10,
+      "lastAccessed": 1779772078143,
       "type": "file"
     },
     {
@@ -286,9 +286,57 @@
       "type": "file"
     },
     {
+      "path": "specs/hyperscaler-architecture-invariants.json",
+      "accessCount": 6,
+      "lastAccessed": 1779770027587,
+      "type": "file"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "accessCount": 5,
+      "lastAccessed": 1779771985807,
+      "type": "file"
+    },
+    {
+      "path": "docs/ideas/post-cutover-program.md",
+      "accessCount": 4,
+      "lastAccessed": 1779772002076,
+      "type": "file"
+    },
+    {
       "path": "microservices/README.md",
       "accessCount": 3,
       "lastAccessed": 1779765898643,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0110-changeset-state-machine.md",
+      "accessCount": 3,
+      "lastAccessed": 1779769662892,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md",
+      "accessCount": 3,
+      "lastAccessed": 1779769669991,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
+      "accessCount": 3,
+      "lastAccessed": 1779769670467,
+      "type": "file"
+    },
+    {
+      "path": "tasks/plan.md",
+      "accessCount": 3,
+      "lastAccessed": 1779769681462,
+      "type": "file"
+    },
+    {
+      "path": "tasks/todo.md",
+      "accessCount": 3,
+      "lastAccessed": 1779769681871,
       "type": "file"
     },
     {
@@ -301,24 +349,6 @@
       "path": "registry/dependency-rationales.json",
       "accessCount": 2,
       "lastAccessed": 1779768045736,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0110-changeset-state-machine.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768277376,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768279761,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768281399,
       "type": "file"
     },
     {
@@ -364,18 +394,6 @@
       "type": "file"
     },
     {
-      "path": "tasks/plan.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768579439,
-      "type": "file"
-    },
-    {
-      "path": "tasks/todo.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768581475,
-      "type": "file"
-    },
-    {
       "path": "registry/vcs/README.md",
       "accessCount": 2,
       "lastAccessed": 1779768647956,
@@ -388,21 +406,21 @@
       "type": "file"
     },
     {
+      "path": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
+      "accessCount": 2,
+      "lastAccessed": 1779769906519,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0122-ontology-crate-rename-from-object-graph.md",
+      "accessCount": 2,
+      "lastAccessed": 1779769907468,
+      "type": "file"
+    },
+    {
       "path": "specs/microservices/intelligence.json",
       "accessCount": 1,
       "lastAccessed": 1779765931452,
-      "type": "file"
-    },
-    {
-      "path": "docs/ideas/post-cutover-program.md",
-      "accessCount": 1,
-      "lastAccessed": 1779767686626,
-      "type": "file"
-    },
-    {
-      "path": "docs/AGENTS.md",
-      "accessCount": 1,
-      "lastAccessed": 1779768517674,
       "type": "file"
     },
     {
@@ -421,6 +439,138 @@
       "path": "specs/pack-overlay-schema.json",
       "accessCount": 1,
       "lastAccessed": 1779768587498,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0061-application-b2b-unified-shell.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769633658,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0062-quality-performance-scalability-bar.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769634604,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769636030,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769636491,
+      "type": "file"
+    },
+    {
+      "path": "specs/platform-architecture.json",
+      "accessCount": 1,
+      "lastAccessed": 1779769637418,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0066-live-code-introspection-docs-portal.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769637431,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769638572,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769638612,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0083-rust-error-handling-tier-decision.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769645417,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769646432,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0181-container-image-promotion-pipeline.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769646575,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0091-foundry-write-gate-foundations.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769646884,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769647518,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769647826,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0093-latency-budget-reporter-rename.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769648295,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769648455,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0184-storage-tier-layering.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769648959,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0094-handler-trait-with-associated-error.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769649253,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769649749,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0185-workflow-studio-client-stack.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769649878,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0186-observability-backplane-layering.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769650377,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0096-supervisor-language-rust-not-node.md",
+      "accessCount": 1,
+      "lastAccessed": 1779769650755,
       "type": "file"
     }
   ],
