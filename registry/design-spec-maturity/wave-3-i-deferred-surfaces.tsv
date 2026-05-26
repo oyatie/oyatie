@@ -11,6 +11,7 @@ cell-rebalancer	cost_finops	ADR-0351 follow-on owner must add this design/spec s
 cell-rebalancer	failure_modes	ADR-0351 follow-on owner must add this design/spec surface before implementation-readiness promotion; governance cleanup records the deferral without authoring service-tree content.
 cell-rebalancer	operational_boundaries	ADR-0351 follow-on owner must add this design/spec surface before implementation-readiness promotion; governance cleanup records the deferral without authoring service-tree content.
 cell-rebalancer	proto3	ADR-0351 follow-on owner must add this design/spec surface before implementation-readiness promotion; governance cleanup records the deferral without authoring service-tree content.
+ci-webhook-gateway	proto3	ADR-0374 webhook-gateway is an HTTP webhook receiver + Jenkins dispatcher, not an inter-service gRPC API; no proto3 surface applies. Deferred honestly (not authored) per the flat-microservice design-spec policy; revisit only if a gRPC surface is ever added.
 cloud-billing	failure_modes	Cloud substrate concurrent owner must add this design/spec surface; governance cleanup records the deferral without authoring service-tree content.
 cloud-billing	operational_boundaries	Cloud substrate concurrent owner must add this design/spec surface; governance cleanup records the deferral without authoring service-tree content.
 cloud-billing-tax	asyncapi	Cloud substrate concurrent owner must add this design/spec surface; governance cleanup records the deferral without authoring service-tree content.

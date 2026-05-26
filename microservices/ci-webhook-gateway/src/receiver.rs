@@ -1,0 +1,325 @@
+//! The axum HTTP receiver: the `/webhook/forgejo` endpoint that verifies the
+//! HMAC, routes the event, and dispatches the gated pipeline.
+//!
+//! Order is load-bearing for security (ADR-0367): signature verification runs
+//! on the RAW body BEFORE any parsing/routing/dispatch, and fails closed.
+
+use std::sync::Arc;
+
+use axum::body::Bytes;
+use axum::extract::State;
+use axum::http::{HeaderMap, StatusCode};
+use axum::response::{IntoResponse, Response};
+use axum::routing::{get, post};
+use axum::{Json, Router};
+use serde_json::json;
+
+use crate::config::GatewayConfig;
+use crate::dispatch::PipelineDispatcher;
+use crate::error::GatewayError;
+use crate::event::{self, RouteOutcome};
+use crate::signature::{self, WebhookSecret};
+
+/// Shared receiver state. `Arc`-cloned into every request handler.
+#[derive(Clone)]
+pub struct ReceiverState {
+    pub config: Arc<GatewayConfig>,
+    pub secret: Arc<WebhookSecret>,
+    pub dispatcher: Arc<dyn PipelineDispatcher>,
+}
+
+/// Canonical receiver path (per ADR-0374). Forgejo's webhook is registered to
+/// post here.
+pub const WEBHOOK_PATH: &str = "/webhook/forgejo";
+/// Liveness path (for the k8s readiness/liveness probe).
+pub const HEALTHZ_PATH: &str = "/healthz";
+
+/// Build the axum router with all routes wired to `state`.
+pub fn router(state: ReceiverState) -> Router {
+    Router::new()
+        .route(HEALTHZ_PATH, get(healthz))
+        .route(WEBHOOK_PATH, post(handle_webhook))
+        .with_state(state)
+}
+
+async fn healthz() -> impl IntoResponse {
+    (StatusCode::OK, Json(json!({ "status": "ok" })))
+}
+
+/// Read a header as a `&str`, returning `None` if absent or non-ASCII.
+fn header<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
+    headers.get(name).and_then(|v| v.to_str().ok())
+}
+
+/// First present event header across Forgejo / Gitea / GitHub spellings.
+fn event_name(headers: &HeaderMap) -> Option<&str> {
+    header(headers, event::EVENT_HEADER_FORGEJO)
+        .or_else(|| header(headers, event::EVENT_HEADER_GITEA))
+        .or_else(|| header(headers, event::EVENT_HEADER_GITHUB))
+}
+
+/// First present delivery-id header (for dedup / log correlation).
+fn delivery_id(headers: &HeaderMap) -> Option<&str> {
+    header(headers, event::DELIVERY_HEADER_FORGEJO)
+        .or_else(|| header(headers, event::DELIVERY_HEADER_GITEA))
+        .or_else(|| header(headers, event::DELIVERY_HEADER_GITHUB))
+}
+
+/// The webhook handler. Pure-ish: all effects go through the injected
+/// dispatcher, so this is exercised directly in tests with a fake dispatcher.
+async fn handle_webhook(
+    State(state): State<ReceiverState>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    let delivery = delivery_id(&headers).unwrap_or("unknown").to_owned();
+
+    // 1. Verify HMAC on the RAW body FIRST (fail-closed before any parsing).
+    let prefixed = header(&headers, signature::SIGNATURE_HEADER);
+    let legacy = header(&headers, signature::LEGACY_SIGNATURE_HEADER);
+    if let Err(err) = signature::verify_any(&state.secret, &body, prefixed, legacy) {
+        tracing::warn!(delivery = %delivery, error = %err, "webhook signature rejected");
+        return error_response(&err);
+    }
+
+    // 2. Determine the event class.
+    let Some(event) = event_name(&headers) else {
+        let err = GatewayError::MalformedPayload("missing X-Forgejo-Event header".to_owned());
+        tracing::warn!(delivery = %delivery, error = %err, "webhook missing event header");
+        return error_response(&err);
+    };
+    let event = event.to_owned();
+
+    // 3. Route to an outcome.
+    let outcome = match event::route(&event, &body, &state.config.target_branch) {
+        Ok(outcome) => outcome,
+        Err(err) => {
+            tracing::warn!(delivery = %delivery, event = %event, error = %err, "webhook unroutable");
+            return error_response(&err);
+        }
+    };
+
+    match outcome {
+        RouteOutcome::Ignored { reason } => {
+            tracing::info!(delivery = %delivery, event = %event, %reason, "webhook accepted, no dispatch");
+            (
+                StatusCode::OK,
+                Json(json!({ "status": "ignored", "reason": reason, "delivery": delivery })),
+            )
+                .into_response()
+        }
+        RouteOutcome::Dispatch(pr_event) => {
+            // 4. Dispatch the gated pipeline (kick the trusted runner).
+            match state.dispatcher.dispatch(&pr_event).await {
+                Ok(receipt) => {
+                    tracing::info!(
+                        delivery = %delivery,
+                        pr = receipt.pr_number,
+                        sha = %receipt.head_sha,
+                        kicked_through = %receipt.kicked_through,
+                        "pipeline dispatched"
+                    );
+                    let boundary = receipt.boundary.map(|s| s.id());
+                    (
+                        StatusCode::ACCEPTED,
+                        Json(json!({
+                            "status": "dispatched",
+                            "pr_number": receipt.pr_number,
+                            "head_sha": receipt.head_sha,
+                            "kicked_through": receipt.kicked_through.id(),
+                            "trusted_runner_owns_from": boundary,
+                            "delivery": delivery,
+                        })),
+                    )
+                        .into_response()
+                }
+                Err(err) => {
+                    tracing::error!(delivery = %delivery, pr = pr_event.pr_number, error = %err, "dispatch failed");
+                    error_response(&err)
+                }
+            }
+        }
+    }
+}
+
+/// Map a `GatewayError` to its HTTP response. The body carries the typed
+/// reason (no secrets — `WebhookSecret` is redacted in `Debug`).
+fn error_response(err: &GatewayError) -> Response {
+    let status = StatusCode::from_u16(err.http_status()).unwrap_or(StatusCode::BAD_REQUEST);
+    let payload = match err {
+        GatewayError::Unimplemented { stage, debt_token } => json!({
+            "status": "unimplemented",
+            "stage": stage.id(),
+            "placeholder_debt": debt_token,
+            "detail": err.to_string(),
+        }),
+        _ => json!({ "status": "rejected", "detail": err.to_string() }),
+    };
+    (status, Json(payload)).into_response()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::dispatch::{DispatchReceipt, PipelineKickoff};
+    use crate::error::{PipelineStage, Result};
+    use crate::event::PullRequestEvent;
+    use axum::body::to_bytes;
+    use axum::http::Request;
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+    use std::future::Future;
+    use std::pin::Pin;
+    use tower::ServiceExt; // for `oneshot`
+
+    const SECRET: &str = "test-webhook-secret";
+
+    struct FakeDispatcher {
+        boundary: Option<PipelineStage>,
+    }
+    impl PipelineDispatcher for FakeDispatcher {
+        fn dispatch<'a>(
+            &'a self,
+            event: &'a PullRequestEvent,
+        ) -> Pin<Box<dyn Future<Output = Result<DispatchReceipt>> + Send + 'a>> {
+            let boundary = self.boundary;
+            Box::pin(async move {
+                // touch the kickoff conversion so the path is exercised
+                let _ = PipelineKickoff::from_event(event);
+                Ok(DispatchReceipt {
+                    pr_number: event.pr_number,
+                    head_sha: event.head_sha.clone(),
+                    kicked_through: PipelineStage::GateRunAll,
+                    boundary,
+                })
+            })
+        }
+    }
+
+    fn sign(body: &[u8]) -> String {
+        let mut mac = <Hmac<Sha256>>::new_from_slice(SECRET.as_bytes()).unwrap();
+        mac.update(body);
+        let digest = mac.finalize().into_bytes();
+        let hex: String = digest.iter().map(|b| format!("{b:02x}")).collect();
+        format!("sha256={hex}")
+    }
+
+    fn test_state() -> ReceiverState {
+        ReceiverState {
+            config: Arc::new(GatewayConfig {
+                bind_addr: "127.0.0.1:0".to_owned(),
+                target_branch: "dev".to_owned(),
+                jenkins_dispatch_url: Some("http://jenkins/build".to_owned()),
+                secret_present: true,
+            }),
+            secret: Arc::new(WebhookSecret::new(SECRET.as_bytes().to_vec())),
+            dispatcher: Arc::new(FakeDispatcher {
+                boundary: Some(PipelineStage::ReviewerGate),
+            }),
+        }
+    }
+
+    fn pr_body() -> Vec<u8> {
+        br#"{"action":"opened","number":7,
+            "pull_request":{"number":7,
+              "base":{"ref":"dev","sha":"b"},
+              "head":{"ref":"feature/z","sha":"abc123"},"draft":false}}"#
+            .to_vec()
+    }
+
+    async fn send(state: ReceiverState, req: Request<axum::body::Body>) -> (StatusCode, String) {
+        let resp = router(state).oneshot(req).await.unwrap();
+        let status = resp.status();
+        let bytes = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        (status, String::from_utf8_lossy(&bytes).to_string())
+    }
+
+    #[tokio::test]
+    async fn valid_signed_pr_dispatches_202() {
+        let body = pr_body();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "pull_request")
+            .header("x-forgejo-delivery", "uuid-1")
+            .header("x-hub-signature-256", sign(&body))
+            .body(axum::body::Body::from(body.clone()))
+            .unwrap();
+        let (status, text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::ACCEPTED);
+        assert!(text.contains("\"status\":\"dispatched\""));
+        assert!(text.contains("oya-pr-review")); // the honest boundary
+    }
+
+    #[tokio::test]
+    async fn bad_signature_is_401_and_never_dispatches() {
+        let body = pr_body();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "pull_request")
+            .header("x-hub-signature-256", "sha256=deadbeef")
+            .body(axum::body::Body::from(body))
+            .unwrap();
+        let (status, text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        assert!(text.contains("rejected"));
+    }
+
+    #[tokio::test]
+    async fn missing_signature_is_401() {
+        let body = pr_body();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "pull_request")
+            .body(axum::body::Body::from(body))
+            .unwrap();
+        let (status, _text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn wrong_base_branch_is_200_ignored() {
+        let body = br#"{"action":"opened","number":7,
+            "pull_request":{"number":7,
+              "base":{"ref":"main","sha":"b"},
+              "head":{"ref":"f","sha":"abc"},"draft":false}}"#
+            .to_vec();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "pull_request")
+            .header("x-hub-signature-256", sign(&body))
+            .body(axum::body::Body::from(body))
+            .unwrap();
+        let (status, text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(text.contains("ignored"));
+    }
+
+    #[tokio::test]
+    async fn unknown_event_is_422() {
+        let body = b"{}".to_vec();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "wiki")
+            .header("x-hub-signature-256", sign(&body))
+            .body(axum::body::Body::from(body))
+            .unwrap();
+        let (status, _text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    #[tokio::test]
+    async fn ping_is_200() {
+        let body = b"{}".to_vec();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "ping")
+            .header("x-hub-signature-256", sign(&body))
+            .body(axum::body::Body::from(body))
+            .unwrap();
+        let (status, _text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn healthz_ok() {
+        let req = Request::get(HEALTHZ_PATH)
+            .body(axum::body::Body::empty())
+            .unwrap();
+        let (status, _text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::OK);
+    }
+}
