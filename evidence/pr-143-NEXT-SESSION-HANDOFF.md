@@ -148,7 +148,7 @@ Per ADR-0217 Vertical Slice Rollout doctrine, sequence:
 | PR-146 | Enterprise core | microservices/payroll/ + microservices/payments/ + microservices/procurement/ |
 | PR-147 | Enterprise + Connect | microservices/crm/ + microservices/inventory/ + mail multi-context retrofit |
 | PR-148 | Connect + B2B | messenger multi-context retrofit + community-expansion (LinkedIn+Handshake+TeamBlind+Reddit+jobs+recruiter tools) + microservices/billing/ |
-| PR-149 | Foundry + Intelligence + Exec | microservices/foundry/ INTERNAL extension (Hermes agentic dev pipeline) + microservices/intelligence/ (consumer AI brand) + microservices/management-cockpit/ |
+| PR-149 | Foundry + Intelligence + Exec | microservices/intelligence/ INTERNAL extension (Hermes agentic dev pipeline) + microservices/intelligence/ (consumer AI brand) + microservices/management-cockpit/ |
 | PR-150 | Substrate thin-IP expansion | audit-chain + ontology + workflow-engine + cell + governance + tenancy thin-IP expansion to substantive ≥150 lines |
 | PR-151 | B2B secondary + Connect | microservices/banking/ + microservices/erp-bridge/ + calendar multi-context retrofit |
 | PR-152-153 | Connect family retrofits | social/shorts/network/anonymous/docs/sheets/slides/drive/meet/forms/sites/tasks/notes/translate/recordings — multi-context retrofit |

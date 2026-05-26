@@ -241,7 +241,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - The repository contains `specs/capability-tier-schema.json`.
 - The repository contains `specs/pack-overlay-schema.json`.
 - The repository contains `specs/ontology-projection-schema.json`.
-- The repository contains `microservices/foundry/capability-tiers/tier-matrix.md`.
+- The repository contains `microservices/intelligence/capability-tiers/tier-matrix.md`.
 - The repository contains per-tenant resource quota standards.
 - The repository contains governance around Oya VCS claim, verify, done, and promote.
 - This is an unusually deep pre-product artifact base.
@@ -652,7 +652,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Internal source: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`, audit-chain doctrine.
 - Internal source: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`, compliance-pack doctrine.
 - Internal source: `docs/standards/per-tenant-resource-quotas-canonical.md`, quota axes.
-- Internal source: `microservices/foundry/capability-tiers/tier-matrix.md`, tier model.
+- Internal source: `microservices/intelligence/capability-tiers/tier-matrix.md`, tier model.
 - Internal source: local file count, 78 microservice directories.
 - Internal source: local file count, 540 catalog YAML files.
 - Internal source: local file count, 575 Cedar files.

@@ -27,7 +27,7 @@ Count: 24
 - `./.claude/worktrees/agent-af7bcb05ad8b3c41d/docs/decisions/RETIRED.md`
 - `./docs/decisions/RETIRED.md`
 - `./microservices/cell/RETIRED.md`
-- `./microservices/foundry/RETIRED.md`
+- `./microservices/intelligence/RETIRED.md`
 - `./microservices/network/RETIRED.md`
 - `./microservices/shorts/RETIRED.md`
 
@@ -35,7 +35,7 @@ Count: 24
 
 Count: 3
 
-- `specs/microservices/foundry.json`
+- `specs/microservices/intelligence.json`
 - `specs/microservices/network.json`
 - `specs/microservices/shorts.json`
 

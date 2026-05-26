@@ -40,20 +40,20 @@
     "workspace_build_status": "0 errors, 6 pre-existing warnings unrelated to this batch (all in oya-dev-cli)",
     "helm_charts_authored": 4,
     "helm_chart_paths": [
-      "microservices/foundry/iac/helm/milvus/ (Chart + values + 4 templates)",
-      "microservices/foundry/iac/helm/timescaledb-extension/ (Chart + values + 1 template)",
+      "microservices/intelligence/iac/helm/milvus/ (Chart + values + 4 templates)",
+      "microservices/intelligence/iac/helm/timescaledb-extension/ (Chart + values + 1 template)",
       "microservices/observability/iac/helm/clickhouse/ (Chart + values + 4 templates)",
       "microservices/observability/iac/helm/timescaledb-extension/ (Chart + values + 1 template)"
     ],
     "kustomize_components_authored": 2,
     "kustomize_component_paths": [
       "microservices/observability/iac/kustomize/components/clickhouse-keeper/ (kustomization + 4 manifests)",
-      "microservices/foundry/iac/kustomize/components/milvus-collections/ (kustomization + 3 templates)"
+      "microservices/intelligence/iac/kustomize/components/milvus-collections/ (kustomization + 3 templates)"
     ],
     "kustomize_overlays_authored": 2,
     "kustomize_overlay_paths": [
-      "microservices/foundry/iac/kustomize/overlays/pack-kr/milvus/",
-      "microservices/foundry/iac/kustomize/overlays/pack-eu/milvus/"
+      "microservices/intelligence/iac/kustomize/overlays/pack-kr/milvus/",
+      "microservices/intelligence/iac/kustomize/overlays/pack-eu/milvus/"
     ],
     "standards_docs": 2,
     "standards_doc_paths": [
@@ -63,8 +63,8 @@
     "openslo_manifests_authored": 4,
     "openslo_paths": [
       "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml",
-      "microservices/foundry/slos/milvus-search-latency.openslo.yaml",
-      "microservices/foundry/slos/milvus-ingest-lag.openslo.yaml",
+      "microservices/intelligence/slos/milvus-search-latency.openslo.yaml",
+      "microservices/intelligence/slos/milvus-ingest-lag.openslo.yaml",
       "microservices/observability/slos/clickhouse-ingest-throughput.openslo.yaml"
     ],
     "new_microservice_scaffolded": "analytics",

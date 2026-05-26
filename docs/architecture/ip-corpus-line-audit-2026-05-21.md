@@ -102,7 +102,7 @@ The audit was conducted against:
 | `docs/templates/implementation-plan-template.md` | The canonical IP shape | Front-matter + required sections |
 | `microservices/observability/IP-001-layer-a-grafana-stack-iac.md` | The 110-line exemplar | Floor for IP rigor — Intent / ChangeSet boundary / Concrete File Targets / Acceptance Gates / Test Plan / Halt Conditions / References |
 | `microservices/payments/IP-001..018-*.md` + `microservices/intelligence/IP-011..025-*.md` | Wave-3-C exemplars | Post-keystone conformant set |
-| `microservices/foundry/decisions/ADR-0297..0310-*.md` | The critical-path doctrine cluster | The 14 ADRs every internet-facing / auth / financial / minor-user surface must wire |
+| `microservices/intelligence/decisions/ADR-0297..0310-*.md` | The critical-path doctrine cluster | The 14 ADRs every internet-facing / auth / financial / minor-user surface must wire |
 
 ### §1.3 Audit method
 
@@ -151,13 +151,13 @@ This section enumerates every line-anchored stale reference found in IP bodies +
 
 | IP file | Line | Stale citation | Action |
 |---|---:|---|---|
-| `microservices/foundry/IP-092-vector-collection-bootstrap.md` | 5 | `…ADR-0038 DSR cascade, ADR-0136 foundry-as-single-microservice` | replace ADR-0136 → ADR-0247 + ADR-0246-amendment library-first dispatch; restate as "foundry implemented as substrate library inside intelligence + Cedar-gated workers per ADR-0247" |
-| `microservices/foundry/IP-092-vector-collection-bootstrap.md` | 156 | `- ADR-0136 — foundry-as-single-microservice.` | replace with ADR-0247 |
-| `microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md` | 3 | `> ADR anchor: ADR-0200, ADR-0136, ADR-0147.` | replace ADR-0136 → ADR-0247 |
-| `microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md` | 92 | `- ADR-0200, ADR-0136, ADR-0147.` | replace ADR-0136 → ADR-0247 |
-| `microservices/foundry/IP-WASMTIME-002-capability-token-binding.md` | 3 | `> ADR anchor: ADR-0200, ADR-0136.` | replace ADR-0136 → ADR-0247 |
-| `microservices/foundry/IP-091-milvus-cluster-iac.md` | 5 | `…ADR-0184 storage tier layering, ADR-0136 foundry-as-single-microservice, ADR-0145…` | replace ADR-0136 → ADR-0247 |
-| `microservices/foundry/IP-091-milvus-cluster-iac.md` | 145 | `- ADR-0136 — foundry-as-single-microservice.` | replace |
+| `microservices/intelligence/IP-092-vector-collection-bootstrap.md` | 5 | `…ADR-0038 DSR cascade, ADR-0136 foundry-as-single-microservice` | replace ADR-0136 → ADR-0247 + ADR-0246-amendment library-first dispatch; restate as "foundry implemented as substrate library inside intelligence + Cedar-gated workers per ADR-0247" |
+| `microservices/intelligence/IP-092-vector-collection-bootstrap.md` | 156 | `- ADR-0136 — foundry-as-single-microservice.` | replace with ADR-0247 |
+| `microservices/intelligence/IP-WASMTIME-001-tool-sandbox-runtime-integration.md` | 3 | `> ADR anchor: ADR-0200, ADR-0136, ADR-0147.` | replace ADR-0136 → ADR-0247 |
+| `microservices/intelligence/IP-WASMTIME-001-tool-sandbox-runtime-integration.md` | 92 | `- ADR-0200, ADR-0136, ADR-0147.` | replace ADR-0136 → ADR-0247 |
+| `microservices/intelligence/IP-WASMTIME-002-capability-token-binding.md` | 3 | `> ADR anchor: ADR-0200, ADR-0136.` | replace ADR-0136 → ADR-0247 |
+| `microservices/intelligence/IP-091-milvus-cluster-iac.md` | 5 | `…ADR-0184 storage tier layering, ADR-0136 foundry-as-single-microservice, ADR-0145…` | replace ADR-0136 → ADR-0247 |
+| `microservices/intelligence/IP-091-milvus-cluster-iac.md` | 145 | `- ADR-0136 — foundry-as-single-microservice.` | replace |
 | `microservices/intelligence/IP-001-consumer-intelligence-substrate.md` | 7 | `related_adrs: [ADR-0136, ADR-0215, ADR-0219, ADR-0220]` | front-matter — replace ADR-0136 → ADR-0247 + add ADR-0255 (Intelligence two-layer) |
 
 **Total: 8 line-anchored hits across 5 IP files.** All ADR-0136 references must rebind to ADR-0247 (self-modification doctrine) and/or ADR-0255 (intelligence two-layer substrate absorbing foundry). The four foundry IPs above must additionally cite ADR-0246-amendment (library-first dispatch) because their language ("foundry-as-single-microservice") conflicts with the post-2026-05-20 substrate-vs-product split.
@@ -177,7 +177,7 @@ These rows mutate IP front-matter — they are mechanically rewriteable.
 | `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning` | front-matter | `oya-vcs-promotion-readiness` |
 | `microservices/observability/ARCHITECTURE.md#cell-health` | front-matter | `oya-vcs-promotion-readiness` |
 | `microservices/cloud-k8s/IP-015-observability-slo-and-authority-cohesion.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/foundry/IP-037-eval-eval-runner-adapter.md` | front-matter | `oya-vcs-promotion-readiness` |
+| `microservices/intelligence/IP-037-eval-eval-runner-adapter.md` | front-matter | `oya-vcs-promotion-readiness` |
 | `microservices/governance/IP-WASMTIME-002-waf-coraza-onboard.md` | front-matter | `oya-vcs-promotion-readiness` |
 | `microservices/mail/IP-014-hg-mail-authority-cohesion.md` | front-matter | required_status_checks: `oya-vcs-promotion-readiness` (x2) |
 | `microservices/ontology/IP-010-audit-chain-merkle-ed25519.md` | front-matter | `oya-vcs-promotion-readiness` |
@@ -361,18 +361,18 @@ Reading: `ks=` count of IPs citing any ADR in `[0242..0258]`; `f5=` count citing
 These are the IP sets that MUST be rebound first because substrate gaps propagate. The list is one IP per line:
 
 ```
-microservices/foundry/IP-001-runtime-runtime-cluster-iac.md
-microservices/foundry/IP-002-runtime-redis-and-postgres-baseline.md
-microservices/foundry/IP-003-runtime-capability-executor-kernel.md
-microservices/foundry/IP-004-runtime-capability-executor-domain-and-usecase.md
-microservices/foundry/IP-005-runtime-capability-registry-cache-stack.md
-microservices/foundry/IP-006-runtime-session-state-stack.md
-microservices/foundry/IP-007-runtime-invocation-orchestrator-stack.md
-microservices/foundry/IP-008-runtime-runtime-pool-stack.md
-microservices/foundry/IP-009-runtime-capability-executor-api-and-rest.md
-microservices/foundry/IP-010-runtime-capability-executor-sdk.md
-microservices/foundry/IP-011-runtime-capability-executor-app.md
-microservices/foundry/IP-012-runtime-autonomy-tier-gate.md
+microservices/intelligence/IP-001-runtime-runtime-cluster-iac.md
+microservices/intelligence/IP-002-runtime-redis-and-postgres-baseline.md
+microservices/intelligence/IP-003-runtime-capability-executor-kernel.md
+microservices/intelligence/IP-004-runtime-capability-executor-domain-and-usecase.md
+microservices/intelligence/IP-005-runtime-capability-registry-cache-stack.md
+microservices/intelligence/IP-006-runtime-session-state-stack.md
+microservices/intelligence/IP-007-runtime-invocation-orchestrator-stack.md
+microservices/intelligence/IP-008-runtime-runtime-pool-stack.md
+microservices/intelligence/IP-009-runtime-capability-executor-api-and-rest.md
+microservices/intelligence/IP-010-runtime-capability-executor-sdk.md
+microservices/intelligence/IP-011-runtime-capability-executor-app.md
+microservices/intelligence/IP-012-runtime-autonomy-tier-gate.md
 ... (full 101 foundry IPs + 26 observability + 26 cloud-iac + 22 governance + 19 cloud-k8s + 17 identity + 16 application + 15 cell + 15 audit-chain + 15 cloud-secrets + 15 consent-graph)
 ```
 
@@ -597,8 +597,8 @@ The audit could not mechanically verify single-PR-sized scope (it requires readi
 microservices/plugin-app-store/implementation-plans/IP-001-layer-a-postgres-redis-cedar-cosign-trivy-iac.md  (5 systems)
 microservices/developer-sdk/implementation-plans/IP-001-layer-a-postgres-openbao-backstage-iac.md           (3 systems)
 microservices/developer-sdk/implementation-plans/IP-006-sdk-codegen-ts-rust-swift-kotlin-csharp-python.md   (6 languages — split per-language?)
-microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md                                   (multiple wasmtime concerns)
-microservices/foundry/IP-WASMTIME-002-capability-token-binding.md                                           (token + binding)
+microservices/intelligence/IP-WASMTIME-001-tool-sandbox-runtime-integration.md                                   (multiple wasmtime concerns)
+microservices/intelligence/IP-WASMTIME-002-capability-token-binding.md                                           (token + binding)
 microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md                                        (9 SLO manifests — split per-SLO?)
 ```
 
@@ -663,8 +663,8 @@ microservices/governance/IP-NEW-chaos-engineering-substrate.md
 microservices/governance/IP-WASMTIME-001-envoy-wasm-filter-substrate.md
 microservices/governance/IP-WASMTIME-002-waf-coraza-onboard.md
 microservices/governance/IP-WASMTIME-004-authz-filter.md
-microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md
-microservices/foundry/IP-WASMTIME-002-capability-token-binding.md
+microservices/intelligence/IP-WASMTIME-001-tool-sandbox-runtime-integration.md
+microservices/intelligence/IP-WASMTIME-002-capability-token-binding.md
 ```
 
 The `IP-NEW-*` and `IP-WASMTIME-*` files lack the numbered IP-NNN ordering used by the canonical naming. Per the IP template's `impl_plan_id` field, every IP must carry a sortable numeric ID. These 8 IPs should be renamed to numbered slots in their µservice's IP sequence (or assigned the next available NNN).
@@ -777,7 +777,7 @@ microservices/api-gateway/IP-007-routing-grpc-crate.md        (18 lines, no ADR 
 microservices/comms-email/IP-016-inbound-receiver-kernel.md   (24 lines, no ADR citations)
 microservices/community/IP-002..IP-013                        (12 of 13 IPs missing keystone bundle citations)
 microservices/observability/IP-013-event-driven-promote-workflows.md  (sparse ADR list)
-microservices/foundry/IP-001..IP-012                          (early foundry runtime IPs predate keystone bundle)
+microservices/intelligence/IP-001..IP-012                          (early foundry runtime IPs predate keystone bundle)
 microservices/cloud-iac/IP-GITOPS-001..IP-GITOPS-008          (8 GITOPS sub-IPs — verify ADR citation)
 ```
 
@@ -920,10 +920,10 @@ IPs that describe work bound to a now-superseded ADR should move to `microservic
 
 | IP file | Status | Recommended action |
 |---|---|---|
-| `microservices/foundry/IP-091-milvus-cluster-iac.md` | binds ADR-0136 | Rebind to ADR-0247 + ADR-0255; **keep at current path** — the work itself is still valid under the new doctrine (Milvus is the vector store for the consumer-intelligence substrate per ADR-0255 KS#14) |
-| `microservices/foundry/IP-092-vector-collection-bootstrap.md` | binds ADR-0136 | Same — rebind, don't supersede |
-| `microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md` | binds ADR-0136 + ADR-0200 + ADR-0147 | Rebind ADR-0136 → ADR-0247; **also rename file from IP-WASMTIME-001 to next numbered slot** |
-| `microservices/foundry/IP-WASMTIME-002-capability-token-binding.md` | binds ADR-0136 + ADR-0200 | Same — rebind + rename |
+| `microservices/intelligence/IP-091-milvus-cluster-iac.md` | binds ADR-0136 | Rebind to ADR-0247 + ADR-0255; **keep at current path** — the work itself is still valid under the new doctrine (Milvus is the vector store for the consumer-intelligence substrate per ADR-0255 KS#14) |
+| `microservices/intelligence/IP-092-vector-collection-bootstrap.md` | binds ADR-0136 | Same — rebind, don't supersede |
+| `microservices/intelligence/IP-WASMTIME-001-tool-sandbox-runtime-integration.md` | binds ADR-0136 + ADR-0200 + ADR-0147 | Rebind ADR-0136 → ADR-0247; **also rename file from IP-WASMTIME-001 to next numbered slot** |
+| `microservices/intelligence/IP-WASMTIME-002-capability-token-binding.md` | binds ADR-0136 + ADR-0200 | Same — rebind + rename |
 | `microservices/intelligence/IP-001-consumer-intelligence-substrate.md` | front-matter binds ADR-0136 | Rebind to ADR-0247 + ADR-0255 |
 
 **No IPs are recommended for hard-supersede (move to `superseded/`).** The ADR-0136 → ADR-0247 transition is a doctrinal rebind, not a work-cancellation. The IPs' work still applies; the rationale changes.
@@ -942,15 +942,15 @@ The Intelligence two-layer substrate (ADR-0255 KS#14) **absorbs Foundry** per th
 
 | Foundry IP | Recommended new home (Wave-3-E) |
 |---|---|
-| `microservices/foundry/IP-001-runtime-runtime-cluster-iac.md` | retain at foundry/ (substrate stays substrate) OR move to intelligence/ — decision belongs to ADR-0255 commentary; **the audit's job is to flag** |
+| `microservices/intelligence/IP-001-runtime-runtime-cluster-iac.md` | retain at foundry/ (substrate stays substrate) OR move to intelligence/ — decision belongs to ADR-0255 commentary; **the audit's job is to flag** |
 | Similar for foundry/IP-002..IP-012 runtime IPs | same |
-| `microservices/foundry/IP-091-milvus-cluster-iac.md` + `IP-092-vector-collection-bootstrap.md` | likely belongs to intelligence/ per ADR-0255 |
+| `microservices/intelligence/IP-091-milvus-cluster-iac.md` + `IP-092-vector-collection-bootstrap.md` | likely belongs to intelligence/ per ADR-0255 |
 
 This is a **µservice-restructure** question — out of scope for an audit-only pass. Wave-3-E governance must decide; Wave-3-F executes.
 
 ### §9.4 Non-numbered IPs (IP-NEW-*, IP-WASMTIME-*, IP-GITOPS-*)
 
-Per the IP template, every IP has a sortable numeric ID. The 8 non-numbered files in `microservices/governance/` + `microservices/foundry/` should be renamed to numbered slots:
+Per the IP template, every IP has a sortable numeric ID. The 8 non-numbered files in `microservices/governance/` + `microservices/intelligence/` should be renamed to numbered slots:
 
 ```
 microservices/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md      → microservices/governance/IP-NNN-…
@@ -959,8 +959,8 @@ microservices/governance/IP-NEW-chaos-engineering-substrate.md            → mi
 microservices/governance/IP-WASMTIME-001-envoy-wasm-filter-substrate.md   → microservices/governance/IP-NNN-…
 microservices/governance/IP-WASMTIME-002-waf-coraza-onboard.md            → microservices/governance/IP-NNN-…
 microservices/governance/IP-WASMTIME-004-authz-filter.md                  → microservices/governance/IP-NNN-…
-microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md → microservices/foundry/IP-NNN-…
-microservices/foundry/IP-WASMTIME-002-capability-token-binding.md         → microservices/foundry/IP-NNN-…
+microservices/intelligence/IP-WASMTIME-001-tool-sandbox-runtime-integration.md → microservices/intelligence/IP-NNN-…
+microservices/intelligence/IP-WASMTIME-002-capability-token-binding.md         → microservices/intelligence/IP-NNN-…
 microservices/cloud-iac/IP-GITOPS-001..IP-GITOPS-008                       → microservices/cloud-iac/IP-NNN-…
 ```
 
@@ -1144,7 +1144,7 @@ Numbered list ordered by criticality (production-risk first, then doctrine-bindi
 
 1. **All 18 `microservices/payments/IP-*.md` are missing ADR-0307 (fraud-detect + DRMP) citation.** Payments cannot ship without the fraud-detect doctrine wired. Payments has 100% keystone-bundle coverage on ADR-0242..0258 but **zero** ADR-0307 binding. P0-FIN.
 2. **All 17 `microservices/identity/IP-*.md` are missing ADR-0298 (emergency-services bypass) and ADR-0299 (account-recovery) citations.** Identity is the universal auth substrate; these two doctrines are mandatory. P0-AUTH.
-3. **`microservices/foundry/IP-091-milvus-cluster-iac.md`, `IP-092-vector-collection-bootstrap.md`, `IP-WASMTIME-001..002` cite the SUPERSEDED ADR-0136 (foundry-as-single-microservice).** Must rebind to ADR-0247 (self-modification) per [[self-modification-doctrine]]. P0-DOCTRINE.
+3. **`microservices/intelligence/IP-091-milvus-cluster-iac.md`, `IP-092-vector-collection-bootstrap.md`, `IP-WASMTIME-001..002` cite the SUPERSEDED ADR-0136 (foundry-as-single-microservice).** Must rebind to ADR-0247 (self-modification) per [[self-modification-doctrine]]. P0-DOCTRINE.
 4. **`microservices/intelligence/IP-001-consumer-intelligence-substrate.md` front-matter binds ADR-0136 (superseded).** Must rebind to ADR-0247 + ADR-0255. P0-DOCTRINE.
 5. **`microservices/api-gateway/IP-013-abuse-defence-adapter-wasm.md` is the abuse-defence adapter and doesn't cite ADR-0297 (abuse-defence doctrine).** The doctrine-named IP without the doctrine binding. P0-INTERNET.
 6. **`microservices/governance/IP-WASMTIME-002-waf-coraza-onboard.md` is the WAF onboarding IP and doesn't cite ADR-0297.** P0-INTERNET.
@@ -1152,7 +1152,7 @@ Numbered list ordered by criticality (production-risk first, then doctrine-bindi
 8. **ADR-0333 retired the cell implementation-plan set into tenancy, cloud-iac, observability, api-gateway, audit-chain, and the shuffle-sharding crate; ADR-0248 cellular tier substrate doctrine remains the foundation every µservice depends on.** Substrate gap. P0-SUBSTRATE.
 9. **`microservices/tenancy/IP-001..IP-026` (26 IPs) — only 11 cite keystone bundle; ADR-0242 oyatie-is-a-tenant + ADR-0244 tenant scoping primitive bindings missing for 15.** Tenancy is the universal substrate. P0-SUBSTRATE.
 10. **`microservices/cloud-secrets/IP-001..IP-015` (15 IPs) at 0% keystone coverage; OpenBao + BYOK substrate. ADR-0255 §D-4 provider_credential_mode binding missing.** P0-SUBSTRATE.
-11. **`microservices/foundry/IP-001..IP-101` (101 IPs) at 0% keystone coverage; foundry is the substrate for self-modification + intelligence.** Largest single µservice rebind. P0-SUBSTRATE.
+11. **`microservices/intelligence/IP-001..IP-101` (101 IPs) at 0% keystone coverage; foundry is the substrate for self-modification + intelligence.** Largest single µservice rebind. P0-SUBSTRATE.
 12. **`microservices/observability/IP-001..IP-026` (26 IPs) at 0% keystone coverage; observability is the substrate every µservice telemetries to.** P0-SUBSTRATE.
 13. **`microservices/governance/IP-001..IP-022` (22 IPs) at 0% keystone coverage including the policy-engine + WAF + authz-filter substrate.** P0-SUBSTRATE.
 14. **63 line-anchored `oya vcs` references across 15 IP files violate the [[oya-git-canonical-2026-05-18]] verb-surface rename.** Mechanically rewriteable (sed-script). P1-RENAME.
@@ -1771,7 +1771,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `forms/IP-014-export-worker.md` (      48L) noContract noCB noVerify noDeps noKS <50lines
 - `forms/IP-015-hg-forms-registration.md` (      49L) noContract noCB noVerify noDeps noKS <50lines
 
-### §15.foundry — `microservices/foundry/`
+### §15.foundry — `microservices/intelligence/`
 
 - `foundry/IP-001-runtime-runtime-cluster-iac.md` (      75L) noDeps noKS <100lines
 - `foundry/IP-002-runtime-redis-and-postgres-baseline.md` (      74L) noDeps noKS <100lines

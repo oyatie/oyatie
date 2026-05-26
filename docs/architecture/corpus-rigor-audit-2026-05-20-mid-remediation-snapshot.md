@@ -2111,7 +2111,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Surface `reference-implementations`: missing.
 - Surface `decisions`: present.
 - Per-service ADR files: 1.
-- Decision evidence: `microservices/foundry/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md`.
+- Decision evidence: `microservices/intelligence/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md`.
 
 ### Appendix C - global-trade
 - Severity: P1 NEEDS-FIX
@@ -3455,13 +3455,13 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - Confidence: HIGH
 - IP file count: 115
 - Sample verdict: FAIL
-- Sample path: `microservices/foundry/IP-010-runtime-capability-executor-sdk.md`
+- Sample path: `microservices/intelligence/IP-010-runtime-capability-executor-sdk.md`
   - Lines: 136
   - Unique ADR citations: 2
   - Bespoke signal: yes
   - Generic-hit count: 0
   - Verdict: FAIL
-- Sample path: `microservices/foundry/IP-066-guardrails-autonomy-tier-gate-kernel-and-cedar-adapter.md`
+- Sample path: `microservices/intelligence/IP-066-guardrails-autonomy-tier-gate-kernel-and-cedar-adapter.md`
   - Lines: 144
   - Unique ADR citations: 5
   - Bespoke signal: yes
@@ -4424,7 +4424,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 | financial-planning | `microservices/financial-planning/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | finops-portal | `microservices/finops-portal/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | forms | `microservices/forms/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
-| foundry | `microservices/foundry/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
+| foundry | `microservices/intelligence/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | global-trade | `microservices/global-trade/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | governance | `microservices/governance/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
 | healthcare-integration | `microservices/healthcare-integration/manifest.json` | yes | yes | P2 IMPROVE | HIGH |
@@ -4512,12 +4512,12 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - OpenAPI file: `microservices/financial-planning/contracts/openapi-v1.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/finops-portal/contracts/tenant-invoice-public.openapi.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/forms/contracts/openapi/forms.openapi.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/foundry/contracts/openapi/eval-eval-runner.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/foundry/contracts/openapi/evidence-foundry-evidence.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/foundry/contracts/openapi/guardrails-guardrails.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/foundry/contracts/openapi/providers-provider-router.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/foundry/contracts/openapi/runtime-foundry-runtime.yaml`; version=3.2.0; verdict=PASS.
-- OpenAPI file: `microservices/foundry/contracts/openapi/supervisor-foundry-supervisor.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/intelligence/contracts/openapi/eval-eval-runner.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/intelligence/contracts/openapi/evidence-foundry-evidence.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/intelligence/contracts/openapi/guardrails-guardrails.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/intelligence/contracts/openapi/providers-provider-router.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/intelligence/contracts/openapi/runtime-foundry-runtime.yaml`; version=3.2.0; verdict=PASS.
+- OpenAPI file: `microservices/intelligence/contracts/openapi/supervisor-foundry-supervisor.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/global-trade/contracts/openapi-v1.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/governance/contracts/openapi/governance.yaml`; version=3.2.0; verdict=PASS.
 - OpenAPI file: `microservices/healthcare-integration/contracts/local-openapi-v1.yaml`; version=3.2.0; verdict=PASS.
@@ -4623,12 +4623,12 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - AsyncAPI file: `microservices/financial-planning/contracts/local-asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/finops-portal/contracts/focus-export-internal.asyncapi.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/forms/contracts/asyncapi/forms.asyncapi.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/foundry/contracts/asyncapi/eval-eval-events.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/foundry/contracts/asyncapi/evidence-foundry-evidence-events.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/foundry/contracts/asyncapi/guardrails-decision-events.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/foundry/contracts/asyncapi/providers-provider-events.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/foundry/contracts/asyncapi/runtime-foundry-runtime-events.yaml`; version=3.1.0; verdict=PASS.
-- AsyncAPI file: `microservices/foundry/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/intelligence/contracts/asyncapi/eval-eval-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/intelligence/contracts/asyncapi/evidence-foundry-evidence-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/intelligence/contracts/asyncapi/guardrails-decision-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/intelligence/contracts/asyncapi/providers-provider-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/intelligence/contracts/asyncapi/runtime-foundry-runtime-events.yaml`; version=3.1.0; verdict=PASS.
+- AsyncAPI file: `microservices/intelligence/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/global-trade/contracts/asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/governance/contracts/asyncapi/governance-events.yaml`; version=3.1.0; verdict=PASS.
 - AsyncAPI file: `microservices/healthcare-integration/contracts/asyncapi-v1.yaml`; version=3.1.0; verdict=PASS.
@@ -4741,12 +4741,12 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - proto file: `microservices/financial-planning/contracts/local-operations-v1.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/finops-portal/contracts/cost-allocation-policy-internal.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/forms/contracts/proto/forms.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/foundry/contracts/proto/eval-eval_runner.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/foundry/contracts/proto/evidence-foundry-evidence.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/foundry/contracts/proto/guardrails-guardrails.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/foundry/contracts/proto/providers-provider-invoke.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/foundry/contracts/proto/runtime-foundry-runtime.proto`; version=proto3; verdict=PASS.
-- proto file: `microservices/foundry/contracts/proto/supervisor-foundry-supervisor.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/intelligence/contracts/proto/eval-eval_runner.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/intelligence/contracts/proto/evidence-foundry-evidence.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/intelligence/contracts/proto/guardrails-guardrails.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/intelligence/contracts/proto/providers-provider-invoke.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/intelligence/contracts/proto/runtime-foundry-runtime.proto`; version=proto3; verdict=PASS.
+- proto file: `microservices/intelligence/contracts/proto/supervisor-foundry-supervisor.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/global-trade/contracts/global-trade-v1.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/governance/contracts/proto/governance.proto`; version=proto3; verdict=PASS.
 - proto file: `microservices/healthcare-integration/contracts/healthcare-integration-v1.proto`; version=proto3; verdict=PASS.
@@ -5756,7 +5756,7 @@ Basis: the corpus made material progress after the prior post-Wave-3-G audit. Co
 - `foundry/migration-playbooks`: missing; severity=P1 NEEDS-FIX; confidence=HIGH.
 - `foundry/reference-implementations`: missing; severity=P1 NEEDS-FIX; confidence=HIGH.
 - `foundry/decisions`: present; severity=P2 IMPROVE; confidence=HIGH.
-- authored decision file: `microservices/foundry/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md`; severity=P2 IMPROVE; confidence=HIGH.
+- authored decision file: `microservices/intelligence/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md`; severity=P2 IMPROVE; confidence=HIGH.
 
 ### Surface ledger - global-trade
 - Artifacts: 137; severity=P1 NEEDS-FIX; confidence=HIGH.

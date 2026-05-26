@@ -3283,7 +3283,7 @@
       "owner": "council-architecture, axis-intelligence, axis-foundry",
       "date": "2026-05-21",
       "path": "decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md",
-      "supersedes": ["microservices/foundry/PRD.md, microservices/foundry/ARCHITECTURE.md, microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md, microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
+      "supersedes": ["microservices/intelligence/PRD.md, microservices/intelligence/ARCHITECTURE.md, microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md, microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
       "superseded_by": [],
       "related": ["ADR-0255", "ADR-0247", "ADR-0220", "ADR-0239", "ADR-0136", "ADR-0138", "ADR-0116", "ADR-0112", "ADR-0113", "ADR-0132", "ADR-0245", "ADR-0333", "ADR-0334", "ADR-0328"]
     },

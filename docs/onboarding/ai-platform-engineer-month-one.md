@@ -110,9 +110,9 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 7. crates/oya-intelligence-rag-api/src/lib.rs
 8. crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 9. crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
-10. microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
-11. microservices/foundry/capabilities/guardrails-classify-prompt.yaml
-12. microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
+10. microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+11. microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
+12. microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 13. docs/runbooks/foundry/prompt-injection-fired.md
 14. docs/runbooks/foundry-model-cutover.md
 15. docs/runbooks/foundry-model-lora-adapter-rollback.md
@@ -132,7 +132,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
    - Artifact: write a four-sentence note explaining what this playground proves for AI platform engineer, intelligence microservice.
 2. contracts/openapi/foundry/rag-v1.yaml
    - Artifact: write a four-sentence note explaining what this playground proves for AI platform engineer, intelligence microservice.
-3. microservices/foundry/capabilities/guardrails-classify-prompt.yaml
+3. microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
    - Artifact: write a four-sentence note explaining what this playground proves for AI platform engineer, intelligence microservice.
 4. docs/runbooks/foundry/prompt-injection-fired.md
    - Artifact: write a four-sentence note explaining what this playground proves for AI platform engineer, intelligence microservice.
@@ -462,7 +462,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-009 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-010: fairness audit evidence
-- Read: microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
 - Connects to: audit-chain attribution for model choice and generated output
 - Build or inspect: a minimal artifact that proves fairness audit evidence without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for fairness audit evidence.
@@ -472,7 +472,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-010 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-011: retrieval source attribution
-- Read: microservices/foundry/capabilities/guardrails-classify-prompt.yaml
+- Read: microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
 - Connects to: two-layer intelligence substrate and brand surface separation
 - Build or inspect: a minimal artifact that proves retrieval source attribution without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for retrieval source attribution.
@@ -482,7 +482,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-011 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-012: cross-tenant context leak
-- Read: microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
+- Read: microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves cross-tenant context leak without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for cross-tenant context leak.
@@ -612,7 +612,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-024 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-025: high-risk refusal
-- Read: microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
 - Connects to: model card, lifecycle stage, eval, and rollback schema
 - Build or inspect: a minimal artifact that proves high-risk refusal without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for high-risk refusal.
@@ -622,7 +622,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-025 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-026: model card completeness
-- Read: microservices/foundry/capabilities/guardrails-classify-prompt.yaml
+- Read: microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
 - Connects to: EU AI Act graduated risk tier and deployment-context mutation
 - Build or inspect: a minimal artifact that proves model card completeness without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model card completeness.
@@ -632,7 +632,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-026 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-027: model rollback drill
-- Read: microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
+- Read: microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves model rollback drill without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model rollback drill.
@@ -762,7 +762,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-039 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-040: prompt injection fired
-- Read: microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
 - Connects to: audit-chain attribution for model choice and generated output
 - Build or inspect: a minimal artifact that proves prompt injection fired without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for prompt injection fired.
@@ -772,7 +772,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-040 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-041: prompt fence eval regression
-- Read: microservices/foundry/capabilities/guardrails-classify-prompt.yaml
+- Read: microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
 - Connects to: two-layer intelligence substrate and brand surface separation
 - Build or inspect: a minimal artifact that proves prompt fence eval regression without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for prompt fence eval regression.
@@ -782,7 +782,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-041 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-042: EU AI Act tier mutation
-- Read: microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
+- Read: microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves EU AI Act tier mutation without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for EU AI Act tier mutation.
@@ -912,7 +912,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-054 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-055: tenant-isolated RAG retrieve
-- Read: microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
 - Connects to: model card, lifecycle stage, eval, and rollback schema
 - Build or inspect: a minimal artifact that proves tenant-isolated RAG retrieve without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant-isolated RAG retrieve.
@@ -922,7 +922,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-055 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-056: model router policy deny
-- Read: microservices/foundry/capabilities/guardrails-classify-prompt.yaml
+- Read: microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
 - Connects to: EU AI Act graduated risk tier and deployment-context mutation
 - Build or inspect: a minimal artifact that proves model router policy deny without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model router policy deny.
@@ -932,7 +932,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-056 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-057: provider-BYOK credential selection
-- Read: microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
+- Read: microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves provider-BYOK credential selection without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for provider-BYOK credential selection.
@@ -1062,7 +1062,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-069 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-070: human appeal path
-- Read: microservices/foundry/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
 - Connects to: audit-chain attribution for model choice and generated output
 - Build or inspect: a minimal artifact that proves human appeal path without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for human appeal path.
@@ -1072,7 +1072,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-070 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-071: GPAI transparency notice
-- Read: microservices/foundry/capabilities/guardrails-classify-prompt.yaml
+- Read: microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
 - Connects to: two-layer intelligence substrate and brand surface separation
 - Build or inspect: a minimal artifact that proves GPAI transparency notice without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for GPAI transparency notice.
@@ -1082,7 +1082,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-071 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-072: audit-chain output attribution
-- Read: microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md
+- Read: microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves audit-chain output attribution without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit-chain output attribution.

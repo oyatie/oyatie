@@ -1,5 +1,5 @@
 microservice	openapi_path	public_routes	internal_routes	classification_complete	owner_team
-foundry	microservices/foundry/contracts/openapi.yaml	pending	pending	false	axis-foundry
+foundry	microservices/intelligence/contracts/openapi.yaml	pending	pending	false	axis-foundry
 observability	microservices/observability/contracts/openapi.yaml	pending	pending	false	ops-sre-reliability
 tenancy	microservices/tenancy/contracts/openapi.yaml	pending	pending	false	axis-workspace
 audit-chain	microservices/audit-chain/contracts/openapi.yaml	pending	pending	false	council-architecture

@@ -22,24 +22,24 @@ related_oyatie_adrs:
 
 This checkpoint records the May 20, 2026 documentation slice for the internal agentic-development pipeline (previously branded Hermes, now retired).
 
-Canonical authored specs live under `microservices/foundry/spec/` because the active Oya VCS claim, verify, done, and promote scope for this slice was `microservices/foundry`. Authority is HISTORICAL after ADR-0335.
+Canonical authored specs live under `microservices/intelligence/spec/` because the active Oya VCS claim, verify, done, and promote scope for this slice was `microservices/intelligence`. Authority is HISTORICAL after ADR-0335.
 
 The specs explicitly preserved the ADR-0136/ADR-0220 boundary at authoring time: Foundry was internal development infrastructure, while consumer-facing AI belonged to Intelligence. ADR-0335 collapses that boundary by absorbing Foundry into Intelligence per ADR-0255 KS#14.
 
 Authored files:
-- microservices/foundry/spec/changeset-state-machine.md (912 lines)
-- microservices/foundry/spec/merge-queue-projected-state.md (903 lines)
-- microservices/foundry/spec/webhook-driven-agent-invocation.md (916 lines)
-- microservices/foundry/spec/vcs-orchestrator-end-to-end.md (919 lines)
-- microservices/foundry/spec/agent-pipeline-isolation-worktree.md (898 lines)
-- microservices/foundry/spec/admission-gate-policy-and-evidence.md (898 lines)
-- microservices/foundry/spec/completion-gate-reviewer-and-ci.md (914 lines)
-- microservices/foundry/spec/agent-types-and-roles.md (903 lines)
+- microservices/intelligence/spec/changeset-state-machine.md (912 lines)
+- microservices/intelligence/spec/merge-queue-projected-state.md (903 lines)
+- microservices/intelligence/spec/webhook-driven-agent-invocation.md (916 lines)
+- microservices/intelligence/spec/vcs-orchestrator-end-to-end.md (919 lines)
+- microservices/intelligence/spec/agent-pipeline-isolation-worktree.md (898 lines)
+- microservices/intelligence/spec/admission-gate-policy-and-evidence.md (898 lines)
+- microservices/intelligence/spec/completion-gate-reviewer-and-ci.md (914 lines)
+- microservices/intelligence/spec/agent-types-and-roles.md (903 lines)
 
-Protected directories intentionally untouched: `microservices/foundry/capability-tiers`, `onboarding`, `faqs`, `tutorials`, `benchmarks`, `migration-playbooks`, `reference-implementations`, and `decisions`.
+Protected directories intentionally untouched: `microservices/intelligence/capability-tiers`, `onboarding`, `faqs`, `tutorials`, `benchmarks`, `migration-playbooks`, `reference-implementations`, and `decisions`.
 
 Verification sequence required by the task:
-- `./bin/oya vcs verify --agent codex-foundry-spec-w1 --evidence 'specs_authored:8' microservices/foundry`
-- `./bin/oya vcs done --agent codex-foundry-spec-w1 --evidence 'specs_authored:8' microservices/foundry`
-- `./bin/oya vcs promote --agent codex-foundry-spec-w1 --bundle foundry-spec-w1-2026-05-20 --environment dev --evidence 'specs_authored:8' microservices/foundry`
+- `./bin/oya vcs verify --agent codex-foundry-spec-w1 --evidence 'specs_authored:8' microservices/intelligence`
+- `./bin/oya vcs done --agent codex-foundry-spec-w1 --evidence 'specs_authored:8' microservices/intelligence`
+- `./bin/oya vcs promote --agent codex-foundry-spec-w1 --bundle foundry-spec-w1-2026-05-20 --environment dev --evidence 'specs_authored:8' microservices/intelligence`
 

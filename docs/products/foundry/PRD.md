@@ -2635,6 +2635,6 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
 - docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 - docs/products/foundry/PHASE-00-SPEC.md
-- specs/microservices/foundry.json
+- specs/microservices/intelligence.json
 - specs/microservices/workflow-engine.json
 - specs/microservices/intelligence.json

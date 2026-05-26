@@ -113,7 +113,7 @@ Plan: 1 Claude agent for corpus-wide compliance audit + per-µservice gap report
 
 ### Wave 15I — foundry retirement + Hermes drop
 
-`microservices/foundry/` µservice retires per ADR-0247 + the prior session's foundry-absorption doctrine. Capability distributed to intelligence + workflow-engine + workflow-studio + ontology + governance/tenancy (already done in Wave 4 audits via foundry-absorption dimension).
+`microservices/intelligence/` µservice retires per ADR-0247 + the prior session's foundry-absorption doctrine. Capability distributed to intelligence + workflow-engine + workflow-studio + ontology + governance/tenancy (already done in Wave 4 audits via foundry-absorption dimension).
 
 Plan: 1 Claude agent for retirement + cross-reference update + Hermes terminology drop.
 

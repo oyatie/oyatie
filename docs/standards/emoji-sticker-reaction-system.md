@@ -85,7 +85,7 @@ A surface uses ESRG by importing the `oya-expression-*` client SDK and Cedar-gat
 - `microservices/social` (post reactions + comment reactions)
 - `microservices/notes` (note inline + reactions)
 - `microservices/forms` (opt-in for response forms; Cedar-gated by form-owner)
-- `microservices/foundry` UI overlays (CI runner reactions for review threads)
+- `microservices/intelligence` UI overlays (CI runner reactions for review threads)
 - `microservices/calendar` (event reactions — Yes/No/Maybe + custom)
 
 ### 1.5 Out-of-scope surfaces (v1)

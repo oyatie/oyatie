@@ -21,7 +21,7 @@
       "hiring-experience"
     ],
     "untouched_deferred_ip_ranges": [
-      "microservices/foundry/IP-{086..101}*",
+      "microservices/intelligence/IP-{086..101}*",
       "microservices/observability/IP-{026..031}*"
     ],
     "files_modified_outside_thin_ips": "0 \u2014 verified"
@@ -143,7 +143,7 @@
       {
         "microservice": "foundry",
         "ip_id": "IP-037-eval-eval-runner-adapter",
-        "path": "microservices/foundry/IP-037-eval-eval-runner-adapter.md",
+        "path": "microservices/intelligence/IP-037-eval-eval-runner-adapter.md",
         "expanded_lines": 152
       }
     ],

@@ -31,7 +31,7 @@ metadata:
     oyatie.dev/source-spec: "registry/finops"
     oyatie.dev/time-window-mode: "calendar"
     oyatie.dev/dashboard-template: "registry/dashboards/ai-inference-cost-budget.yaml"
-    oyatie.dev/runbook-template: "microservices/foundry-runtime/runbooks/inference-cost-budget-burn.md"
+    oyatie.dev/runbook-template: "microservices/intelligence-runtime/runbooks/inference-cost-budget-burn.md"
 spec:
   service: foundry-runtime
   description: |

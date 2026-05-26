@@ -77,7 +77,7 @@ circuit-breaker invariants).
 | `microservices/tenancy/chaos/scenarios/pod-kill.yaml` | create — exemplar |
 | `microservices/api-gateway/chaos/scenarios/network-delay-100ms.yaml` | create — exemplar |
 | `microservices/cloud-k8s/chaos/scenarios/cross-cell-partition.yaml` | create — exemplar |
-| `microservices/foundry/chaos/scenarios/dependency-failure-llm-provider.yaml` | create — exemplar |
+| `microservices/intelligence/chaos/scenarios/dependency-failure-llm-provider.yaml` | create — exemplar |
 
 ## Validator shape
 

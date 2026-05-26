@@ -36,7 +36,7 @@ Cedar is oyatie's authz language (ADR-0183). Foundry tool definitions and Workfl
 | `clients/cedar-cm6-grammar/src/fold.ts` | create | ~40 LoC; fold ranges for block statements |
 | `clients/cedar-cm6-grammar/tests/parse.test.ts` | create | ~220 LoC; 6 parser tests covering real Cedar fragments |
 | `clients/cedar-cm6-grammar/tests/lint.test.ts` | create | ~120 LoC; 4 lint tests |
-| `clients/cedar-cm6-grammar/tests/fixtures/oya-policies.cedar` | create | curated real-world Cedar fragments from `microservices/foundry/specs/cedar/` |
+| `clients/cedar-cm6-grammar/tests/fixtures/oya-policies.cedar` | create | curated real-world Cedar fragments from `microservices/intelligence/specs/cedar/` |
 | `microservices/workflow-studio/decisions/ADR-0183.md` | append §"CM6 Cedar grammar pack landed" | +6 LoC |
 
 ## Code shape

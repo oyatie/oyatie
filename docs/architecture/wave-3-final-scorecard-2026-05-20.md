@@ -4638,7 +4638,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - Named gaps: registry remains calibrated to 70-service matrix while live corpus now exposes a different service count; reconcile before claiming final parity
 
 ## §9 Foundry Pipeline Spec Scorecard
-### Foundry spec `specs/microservices/foundry.json`
+### Foundry spec `specs/microservices/intelligence.json`
 - status: present; lines=278; control markers=71
 - coverage: pipeline=0 checkpoint=0 supervisor=23 evidence=23
 - named gaps: verification path thin

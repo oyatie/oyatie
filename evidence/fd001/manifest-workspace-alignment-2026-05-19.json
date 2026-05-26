@@ -272,7 +272,7 @@
     },
     {
       "expected_microservice": "foundry",
-      "manifest_path": "microservices/foundry/manifest.json",
+      "manifest_path": "microservices/intelligence/manifest.json",
       "microservice": "foundry",
       "missing_crate_count": 135,
       "missing_crates": [

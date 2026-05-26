@@ -49,9 +49,9 @@ RM docs/decisions/ADR-0180-dr-business-continuity-portfolio-policy.md -> docs/de
  M microservices/drive/PRD.md
  M microservices/drive/manifest.json
  M microservices/forms/manifest.json
- M microservices/foundry/IP-096-milvus-backup-restore.md
- M microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md
- M microservices/foundry/manifest.json
+ M microservices/intelligence/IP-096-milvus-backup-restore.md
+ M microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md
+ M microservices/intelligence/manifest.json
  M microservices/governance/manifest.json
  M microservices/intelligence/manifest.json
  M microservices/mail/PHASE-01-MAIL-DISSOLUTION-FROM-CONNECT.md

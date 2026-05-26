@@ -3,7 +3,7 @@
 //! # Why this crate exists
 //!
 //! Each µservice's scorecard override file (e.g.
-//! `microservices/foundry/scorecards/overrides.json`) carries a
+//! `microservices/intelligence/scorecards/overrides.json`) carries a
 //! `slsa_l3` block such as:
 //!
 //! ```json
@@ -386,7 +386,7 @@ cosign sign by digest; cosign attest SLSA provenance; cosign verify-attestation 
     #[test]
     fn passes_when_all_canonical_citations_resolve_with_primitives() {
         let scorecard = ScorecardOverrideDocument {
-            path: "microservices/foundry/scorecards/overrides.json".into(),
+            path: "microservices/intelligence/scorecards/overrides.json".into(),
             microservice: "foundry".into(),
             contents: SCORECARD_GREEN.into(),
         };
@@ -399,7 +399,7 @@ cosign sign by digest; cosign attest SLSA provenance; cosign verify-attestation 
     #[test]
     fn fails_when_pipeline_lane_missing() {
         let scorecard = ScorecardOverrideDocument {
-            path: "microservices/foundry/scorecards/overrides.json".into(),
+            path: "microservices/intelligence/scorecards/overrides.json".into(),
             microservice: "foundry".into(),
             contents: SCORECARD_GREEN.into(),
         };
@@ -417,7 +417,7 @@ cosign sign by digest; cosign attest SLSA provenance; cosign verify-attestation 
     #[test]
     fn fails_when_workflow_lacks_primitive_token() {
         let scorecard = ScorecardOverrideDocument {
-            path: "microservices/foundry/scorecards/overrides.json".into(),
+            path: "microservices/intelligence/scorecards/overrides.json".into(),
             microservice: "foundry".into(),
             contents: SCORECARD_GREEN.into(),
         };

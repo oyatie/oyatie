@@ -43,7 +43,7 @@
         "id": "V4",
         "claim": "Sweep-J no-op for Cedar/Kustomize — per-µservice .cedar files are genuinely distinct, not extractable duplication.",
         "evidence_chain": [
-          "Inspected microservices/foundry/policy/providers-ci-scope.cedar, microservices/observability/policy/ci-scope.cedar, microservices/cell/policy/ci-scope.cedar",
+          "Inspected microservices/intelligence/policy/providers-ci-scope.cedar, microservices/observability/policy/ci-scope.cedar, microservices/cell/policy/ci-scope.cedar",
           "All three files share an envelope header pattern but have completely distinct actions (foundry: openbao_resolve / router_invoke; observability: read_metrics / write_metrics / oya_promotion_*; cell: read_cell_metadata / transition_cell_state / decommission_cell), distinct resources, distinct principals (CiRunner / Service / oya-ci / lifecycle-manager / scheduler / host-pool)",
           "Verdict: not extractable duplication; per-µservice schema diversity is real. Sweep-J no-op claim verified."
         ],
@@ -53,13 +53,13 @@
         "id": "V5",
         "claim": "Foundry consolidation zero content loss (~493 artifacts preserved); supervisor kill-switch runbook present.",
         "evidence_chain": [
-          "`find microservices/foundry -type f | wc -l` returns 510 (PR body claims 493; close — likely added during rebase)",
-          "microservices/foundry/IP-023-supervisor-kill-switch-engage-state.md present",
-          "microservices/foundry/IP-024-supervisor-kill-switch-propagation.md present",
-          "microservices/foundry/runbooks/supervisor-kill-switch-engage.md present",
-          "microservices/foundry/capabilities/supervisor-engage-kill-switch.yaml present",
-          "microservices/foundry/dashboards/supervisor-kill-switch-coverage.json present",
-          "microservices/foundry/catalog/ has 10 oya-foundry-supervisor-kill-switch-circuit-breaker-* records spanning all layer types"
+          "`find microservices/intelligence -type f | wc -l` returns 510 (PR body claims 493; close — likely added during rebase)",
+          "microservices/intelligence/IP-023-supervisor-kill-switch-engage-state.md present",
+          "microservices/intelligence/IP-024-supervisor-kill-switch-propagation.md present",
+          "microservices/intelligence/runbooks/supervisor-kill-switch-engage.md present",
+          "microservices/intelligence/capabilities/supervisor-engage-kill-switch.yaml present",
+          "microservices/intelligence/dashboards/supervisor-kill-switch-coverage.json present",
+          "microservices/intelligence/catalog/ has 10 oya-foundry-supervisor-kill-switch-circuit-breaker-* records spanning all layer types"
         ],
         "category": "verified"
       },
@@ -222,13 +222,13 @@
     },
     {
       "claim": "Foundry supervisor kill-switch present",
-      "verification_command": "find microservices/foundry -name '*kill-switch*'",
+      "verification_command": "find microservices/intelligence -name '*kill-switch*'",
       "result": "present",
       "artifacts_found": 15
     },
     {
       "claim": "Foundry artifact count ≈ 493",
-      "verification_command": "find microservices/foundry -type f | wc -l",
+      "verification_command": "find microservices/intelligence -type f | wc -l",
       "result": "510",
       "note": "Slightly higher than PR-body claim (493); off by ~3%. Reasonable absorption during rebase."
     },
