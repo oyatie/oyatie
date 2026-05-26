@@ -6,10 +6,11 @@
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-CONNECT-SUITE",
     "version": "1.0.0",
-    "status": "Accepted",
+    "status": "Deprecated",
+    "retirement_ref": "ADR-0362 (grouping retired, flat-only); decomposition owned by ADR-0238 (8 flat Connect µservices) via the ADR-0237 strangler. This wrapper is a tombstone pending that SLO-gated decomposition; it is NOT a live architecture artifact and binds nothing new.",
     "owner_team": "connect-product-council",
     "created_at": "2026-05-16T14:30:00Z",
-    "updated_at": "2026-05-17T00:00:00Z",
+    "updated_at": "2026-05-25T00:00:00Z",
     "audit_ref": "evidence/autoresearch/connect-suite-industry-audit-1779012333.json",
     "purpose": "Connect suite PRD: dual-context native communications suite with mail, messenger, and calendar sub-products governed by Object Graph pillar boundaries, retention, legal hold, eDiscovery, and Workflow handoff contracts."
   },

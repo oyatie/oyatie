@@ -73,6 +73,7 @@ members = [
   "crates/oya-application-shell-frontend-prototype",
   "crates/oya-foundry-bypass-domain",
   "crates/oya-check-brand-residue",
+  "crates/oya-check-no-grouping",
   "crates/oya-foundry-cargo-prefix-domain",
   "crates/oya-check-codeowners-mirror",
   "crates/oya-check-cost-budget",

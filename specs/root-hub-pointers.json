@@ -371,8 +371,9 @@
       "kind": "prd",
       "current_path": "/specs/microservices/connect-suite.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
-      "migration_phase": "complete",
-      "purpose": "Connect suite PRD — dual-context native communications shell binding Mail, Messenger, and Calendar under shared context, policy, audit, retention/legal-hold, and OpenTofu/oya-ops deployment constraints."
+      "migration_phase": "deprecated",
+      "retirement_ref": "ADR-0362",
+      "purpose": "[RETIRED per ADR-0362 — grouping artifact, flat-only doctrine] Former Connect suite wrapper. The canonical flat µservices are prd_connect_mail / prd_connect_messenger / prd_connect_calendar; full decomposition is owned by ADR-0238 via the ADR-0237 strangler. This wrapper is a tombstone, not a live architecture artifact."
     },
     "prd_connect_mail": {
       "kind": "prd",
@@ -399,8 +400,9 @@
       "kind": "prd",
       "current_path": "/specs/microservices/enterprise-suite.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
-      "migration_phase": "complete",
-      "purpose": "Enterprise suite PRD — business operating system shell binding HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops constraints."
+      "migration_phase": "deprecated",
+      "retirement_ref": "ADR-0362",
+      "purpose": "[RETIRED per ADR-0362 — grouping artifact, flat-only doctrine] Former Enterprise suite wrapper. The canonical flat µservices are prd_enterprise_hr / prd_enterprise_payroll / prd_enterprise_accounting; full decomposition is owned by a future enterprise-product-council dissolution ADR. This wrapper is a tombstone, not a live architecture artifact."
     },
     "prd_enterprise_hr": {
       "kind": "prd",

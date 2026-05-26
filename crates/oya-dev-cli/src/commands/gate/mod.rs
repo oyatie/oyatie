@@ -336,6 +336,26 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("no-grouping")) => {
+            match crate::parse_no_grouping_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_no_grouping_gate(args) {
+                    Ok((checked, retiring)) => {
+                        println!(
+                            "no-grouping validation passed: {checked} grouping artifacts inspected ({retiring} deprecated retiring wrappers; flat-only per ADR-0362)"
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("no-grouping validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("api-semver")) => {
             match crate::parse_api_semver_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_api_semver_gate(args) {
