@@ -281,13 +281,20 @@ mod tests {
     fn seed_file_publishes_at_least_50_capabilities() {
         // Integration: load registry/capabilities/foundry-internal.json from
         // the workspace root (CARGO_MANIFEST_DIR points at this crate).
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let path = std::path::Path::new(manifest_dir)
-            .join("..")
-            .join("..")
-            .join("registry")
-            .join("capabilities")
-            .join("foundry-internal.json");
+        // Ascend from this crate's manifest dir to the workspace root and locate
+        // the seed by presence — nesting depth varies (ADR-0357 moved this crate
+        // under microservices/intelligence/crates/), so don't hard-code `../..`.
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let path = manifest_dir
+            .ancestors()
+            .map(|dir| dir.join("registry/capabilities/foundry-internal.json"))
+            .find(|candidate| candidate.exists())
+            .unwrap_or_else(|| {
+                panic!(
+                    "foundry-internal.json not found ascending from {}",
+                    manifest_dir.display()
+                )
+            });
         let src = std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("read {}: {}", path.display(), e));
         let caps = parse_seed_json(&src).expect("parse seed json");
