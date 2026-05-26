@@ -1191,7 +1191,7 @@
     "authority_cutover": {
       "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
       "legacy_surfaces": "grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
-      "admission_lane": "cargo run -q -p oya-foundry-vcs-admission-gate-app"
+      "admission_lane": "cargo run -q -p oya-vcs-admission-gate-app"
     },
     "ci_admission_lane": {
       "workflow_job": "oya-vcs-admission",
@@ -2297,7 +2297,7 @@
               {
                 "id": "M01-P16-IP-001",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
-                "title": "oya-foundry-architecture-map-kernel source walkers",
+                "title": "oya-intelligence-architecture-map-kernel source walkers",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",

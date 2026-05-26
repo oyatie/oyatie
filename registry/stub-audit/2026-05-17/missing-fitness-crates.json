@@ -213,7 +213,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-sunset-lifecycle-app",
+      "crate": "oya-governance-sunset-lifecycle-app",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [
@@ -1006,7 +1006,7 @@
       ]
     },
     {
-      "crate": "oya-foundry-fitness-sunset-lifecycle-app",
+      "crate": "oya-governance-sunset-lifecycle-app",
       "citation_count": 3,
       "max_severity": "high",
       "cited_by": [

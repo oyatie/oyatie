@@ -108,8 +108,8 @@
       "cargo nextest run --workspace --no-fail-fast"
     ],
     "remaining_failed_lanes": [
-      "cargo run -q -p oya-foundry-vcs-admission-gate-app",
-      "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
+      "cargo run -q -p oya-vcs-admission-gate-app",
+      "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
       "bash scripts/github-actions-required-secrets-check.sh"
     ],
     "nextest_run_id": "4fd09e18-759b-435b-8d57-9a8d4fbf9cd1",

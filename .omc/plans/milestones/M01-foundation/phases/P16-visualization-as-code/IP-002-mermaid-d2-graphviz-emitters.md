@@ -19,9 +19,9 @@ Emit diagrams in Mermaid + D2 + Graphviz formats.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-architecture-map-kernel/src/emit/mermaid.rs::Emitter
-crates/oya-foundry-architecture-map-kernel/src/emit/d2.rs::Emitter
-crates/oya-foundry-architecture-map-kernel/src/emit/graphviz.rs::Emitter
+crates/oya-intelligence-architecture-map-kernel/src/emit/mermaid.rs::Emitter
+crates/oya-intelligence-architecture-map-kernel/src/emit/d2.rs::Emitter
+crates/oya-intelligence-architecture-map-kernel/src/emit/graphviz.rs::Emitter
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -106,7 +106,7 @@ Expected events per `tick_once()` call:
 
 ## References
 
-- **Kernel source:** `crates/oya-foundry-supervisor-kernel/src/lib.rs`
+- **Kernel source:** `crates/oya-intelligence-supervisor-kernel/src/lib.rs`
 - **Application runbook:** `docs/products/foundry/supervisor/supervisor-app/OPERATIONS.md`
 - **Adapter runbooks:**
   - JSONL: `docs/products/foundry/supervisor/jsonl-supervisor-adapter/OPERATIONS.md`

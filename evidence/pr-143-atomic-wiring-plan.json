@@ -248,7 +248,7 @@
   ],
 
   "lanes_to_append_aggregated_const": {
-    "file": "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "file": "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "append_after_line_120": [
       "vendor-lockin-discipline",
       "authz-tier-discipline",
@@ -579,7 +579,7 @@
   "parent_keystrokes_remaining": {
     "step_1_workspace_cargo_toml": "NONE — all 22 new crates verified workspace-registered at Cargo.toml lines 54-359",
     "step_2_dev_cli_cargo_toml": "Add 11 dep entries listed under `deps_to_add_oya_dev_cli_cargo`. Fix-N's dep at line 41 is already present; do not re-add.",
-    "step_3_aggregated_validate_lanes_const": "Append 12 strings to AGGREGATED_VALIDATE_LANES at crates/oya-foundry-gate-catalog-domain/src/lib.rs after line 120.",
+    "step_3_aggregated_validate_lanes_const": "Append 12 strings to AGGREGATED_VALIDATE_LANES at crates/oya-governance-gate-catalog-domain/src/lib.rs after line 120.",
     "step_4_dispatcher_arms": "Add 12 match-arms in crates/oya-dev-cli/src/commands/gate/mod.rs. Pattern: copy structure of existing license-policy arm (lines 602-619). Each arm dispatches to a `validate_<lane_name_snake>_gate` function in oya-dev-cli's lib.rs.",
     "step_4a_dev_cli_lib_rs_functions": "Author 12 validate_*_gate functions (1 already present: validate_vendor_lockin_discipline_gate at lib.rs:1114 — needs verifying arg-parser is also present). 11 functions to author. Each is a thin call into the corresponding check-* crate's public validator + Result rendering.",
     "step_5_lanes_yaml": "Append 12 lane entries to registry/quality/lanes.yaml under existing structure (single top-level `lanes:` array). Use the schema in lanes_yaml_entries.entries_to_add[].",
@@ -588,7 +588,7 @@
     "step_8_catalog_records_verify": "Run the verification command in _catalog_verification_command. If count < 23, author missing catalog records (each ~250 bytes).",
     "step_9_smoke_test": [
       "cargo check --workspace --all-targets --all-features  (must remain 0 errors)",
-      "cargo test -p oya-foundry-gate-catalog-domain  (aggregated_validate_lanes_entries_unique must pass)",
+      "cargo test -p oya-governance-gate-catalog-domain  (aggregated_validate_lanes_entries_unique must pass)",
       "cargo run -p oya-dev-cli -- gate run-all --dry-run  (must enumerate all new lanes)"
     ]
   },
@@ -599,7 +599,7 @@
     "crates/oya-dev-cli/Cargo.toml (+11 dep lines)",
     "crates/oya-dev-cli/src/lib.rs (+11 validate_*_gate functions + 11 parse_*_validate_args functions; ~600 lines)",
     "crates/oya-dev-cli/src/commands/gate/mod.rs (+12 match arms; ~360 lines)",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs (+12 strings in AGGREGATED_VALIDATE_LANES)",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs (+12 strings in AGGREGATED_VALIDATE_LANES)",
     "registry/quality/lanes.yaml (+12 lane entries; ~120 lines)",
     "specs/microservices/manifest-schema.json (+~25 properties; ~250 lines)",
     "registry/placeholder-debt/adr-follow-ups.yaml (+2 debt entries; ~30 lines)"

@@ -7,22 +7,22 @@
   "timestamp_iso": "2026-05-19T23:48:09Z",
   "agent_id": "codex-oyatie-fd001",
   "scope": [
-    "crates/oya-foundry-policy-domain/src/lib.rs",
-    "crates/oya-foundry-policy-domain/tests/autonomy_decision.rs",
+    "crates/oya-intelligence-policy-domain/src/lib.rs",
+    "crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs",
     "evidence/multispectrum/cs-foundry-policy-vertical-pack-canonical-base-neutrality-1779234489.json"
   ],
   "claimed_scopes": [
     {
-      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize Foundry policy vertical pack markers for canonical base\",\"scopes\":[\"crates/oya-foundry-policy-domain/src/lib.rs::canonical_base_neutral_vertical_pack_markers\",\"crates/oya-foundry-policy-domain/tests/autonomy_decision.rs::canonical_base_neutral_vertical_pack_tests\",\"evidence/multispectrum/cs-foundry-policy-vertical-pack-canonical-base-neutrality-1779234489.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize Foundry policy vertical pack markers for canonical base\",\"scopes\":[\"crates/oya-intelligence-policy-domain/src/lib.rs::canonical_base_neutral_vertical_pack_markers\",\"crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs::canonical_base_neutral_vertical_pack_tests\",\"evidence/multispectrum/cs-foundry-policy-vertical-pack-canonical-base-neutrality-1779234489.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
       "status": "accepted"
     }
   ],
   "summary": "Canonical-base neutrality cleanup for the Foundry autonomy policy vertical-pack cap: replace jurisdiction/regulator-specific pack marker matching with product-level health/financial regulated markers, and lock the behavior with a neutral-marker regression test.",
   "baseline_diff": {
-    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-policy-domain/src/lib.rs failed with 1 file checked and 3 jurisdiction leaks from kr-pipa-health, kr-fsc, and jp-fsa marker matching.",
+    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-policy-domain/src/lib.rs failed with 1 file checked and 3 jurisdiction leaks from kr-pipa-health, kr-fsc, and jp-fsa marker matching.",
     "red_test": "neutral-marker regression test initially failed with left T4AutoExecute and right T2Advisory before the marker table rewrite.",
-    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-policy-domain/src/lib.rs --root crates/oya-foundry-policy-domain/tests/autonomy_decision.rs passed: 2 files checked, 0 jurisdiction leaks.",
-    "after_full": "full canonical-base-neutrality still fails with 196 files checked and 286 jurisdiction leaks outside this ChangeSet; first remaining file crates/oya-foundry-route-policy-kernel/src/lib.rs.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-policy-domain/src/lib.rs --root crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs passed: 2 files checked, 0 jurisdiction leaks.",
+    "after_full": "full canonical-base-neutrality still fails with 196 files checked and 286 jurisdiction leaks outside this ChangeSet; first remaining file crates/oya-intelligence-route-policy-kernel/src/lib.rs.",
     "delta": "3 fewer full-gate jurisdiction leaks, from 289 after the high-risk auto-decision refusal slice to 286 after this slice; no scanner carve-outs or coverage weakening."
   },
   "verification": [
@@ -32,37 +32,37 @@
       "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-policy-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-targeted-before.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-intelligence-policy-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-targeted-before.txt",
       "status": "failed-before-fix",
       "evidence": "1 file checked, 3 jurisdiction leaks: kr-pipa-health, kr-fsc, jp-fsa"
     },
     {
-      "command": "cargo test -q -p oya-foundry-policy-domain --all-features 2>&1 | tee /tmp/cs-foundry-policy-cbn-red-test.txt",
+      "command": "cargo test -q -p oya-intelligence-policy-domain --all-features 2>&1 | tee /tmp/cs-foundry-policy-cbn-red-test.txt",
       "status": "failed-before-fix",
       "evidence": "new neutral-marker regression failed before implementation: 5 passed, 1 failed; left T4AutoExecute, right T2Advisory"
     },
     {
-      "command": "cargo test -q -p oya-foundry-policy-domain --all-features 2>&1 | tee /tmp/cs-foundry-policy-cbn-test.txt",
+      "command": "cargo test -q -p oya-intelligence-policy-domain --all-features 2>&1 | tee /tmp/cs-foundry-policy-cbn-test.txt",
       "status": "passed",
       "evidence": "crate unit harness: 0 tests; autonomy_decision integration: 6 passed"
     },
     {
-      "command": "cargo fmt -q -p oya-foundry-policy-domain --check 2>&1 | tee /tmp/cs-foundry-policy-cbn-fmt.txt",
+      "command": "cargo fmt -q -p oya-intelligence-policy-domain --check 2>&1 | tee /tmp/cs-foundry-policy-cbn-fmt.txt",
       "status": "passed",
       "evidence": "rustfmt check exited 0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-policy-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-policy-cbn-clippy.txt",
+      "command": "cargo clippy -q -p oya-intelligence-policy-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-policy-cbn-clippy.txt",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-policy-domain/src/lib.rs --root crates/oya-foundry-policy-domain/tests/autonomy_decision.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-targeted-after.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-intelligence-policy-domain/src/lib.rs --root crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-targeted-after.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks"
     },
     {
-      "command": "rg -n \"kr-pipa-health|pipa-health|kr-fsc|jp-fsa|hipaa|\\bpci\\b|fsc|fsa\" crates/oya-foundry-policy-domain/src/lib.rs crates/oya-foundry-policy-domain/tests/autonomy_decision.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-token-scan.txt || true",
+      "command": "rg -n \"kr-pipa-health|pipa-health|kr-fsc|jp-fsa|hipaa|\\bpci\\b|fsc|fsa\" crates/oya-intelligence-policy-domain/src/lib.rs crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-token-scan.txt || true",
       "status": "passed",
       "evidence": "no old pack-marker tokens matched in claimed source/test files"
     },
@@ -77,14 +77,14 @@
       "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-foundry-policy-domain/src/lib.rs crates/oya-foundry-policy-domain/tests/autonomy_decision.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-diff-check.txt",
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-intelligence-policy-domain/src/lib.rs crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs 2>&1 | tee /tmp/cs-foundry-policy-cbn-diff-check.txt",
       "status": "passed",
       "evidence": "diff whitespace check exited 0"
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-foundry-policy-cbn-full-cbn.txt",
       "status": "blocked-preexisting",
-      "evidence": "full gate still fails with 196 files checked, 286 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-route-policy-kernel/src/lib.rs"
+      "evidence": "full gate still fails with 196 files checked, 286 jurisdiction leaks outside claimed scope; first remaining file crates/oya-intelligence-route-policy-kernel/src/lib.rs"
     }
   ],
   "facets": {
@@ -144,12 +144,12 @@
     }
   },
   "changed_files": [
-    "crates/oya-foundry-policy-domain/src/lib.rs",
-    "crates/oya-foundry-policy-domain/tests/autonomy_decision.rs",
+    "crates/oya-intelligence-policy-domain/src/lib.rs",
+    "crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs",
     "evidence/multispectrum/cs-foundry-policy-vertical-pack-canonical-base-neutrality-1779234489.json"
   ],
   "remaining_risks": [
-    "Full canonical-base-neutrality gate remains red with 286 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-foundry-route-policy-kernel/src/lib.rs.",
+    "Full canonical-base-neutrality gate remains red with 286 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-intelligence-route-policy-kernel/src/lib.rs.",
     "This intentionally stops embedding old jurisdiction/regulator marker IDs in the canonical policy domain; pack adapters must map regional pack names to product-level markers before calling this domain function.",
     "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
   ]

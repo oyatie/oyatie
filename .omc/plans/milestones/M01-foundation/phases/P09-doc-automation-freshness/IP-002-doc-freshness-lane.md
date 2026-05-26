@@ -19,7 +19,7 @@ Block PRs that change source-of-truth without regenerating dependent docs.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-doc-freshness-kernel/src/lib.rs::check
+crates/oya-governance-doc-freshness-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

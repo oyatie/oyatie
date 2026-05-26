@@ -19,9 +19,9 @@ Ship autonomy ceiling T1-T4 Cedar policy + runtime check; T4 disabled by default
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs::AutonomyTier
-crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs::check_tier
-crates/oya-foundry-autonomy-ceiling-app/src/lib.rs::enforce
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs::AutonomyTier
+crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs::check_tier
+crates/oya-intelligence-autonomy-ceiling-app/src/lib.rs::enforce
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -21,7 +21,7 @@ Audit hooks and skills; activate banned-primitives lane (revised per Directive 1
 ## Symbols-to-grit-claim
 ```
 docs/AGENT-INSTRUCTION-SOURCES.md::Enumeration
-crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs::check_documented_genuine_need
+crates/oya-governance-banned-primitives-kernel/src/lib.rs::check_documented_genuine_need
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

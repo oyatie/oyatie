@@ -16,7 +16,7 @@
     "fallback_memory_id": "01KRJVYYW603JTBXWDQ99XS2KM",
     "write_scope": [
       "Cargo.toml",
-      "crates/oya-foundry-vcs-kernel/**",
+      "crates/oya-vcs-kernel/**",
       "/evidence/gitops-vcs/ip-001-claim-kernel.json"
     ]
   },
@@ -44,16 +44,16 @@
   ],
   "commands": [
     {
-      "command": "rustfmt --check crates/oya-foundry-vcs-kernel/src/lib.rs crates/oya-foundry-vcs-kernel/tests/gitops_vcs_ip_001.rs",
+      "command": "rustfmt --check crates/oya-vcs-kernel/src/lib.rs crates/oya-vcs-kernel/tests/gitops_vcs_ip_001.rs",
       "result": "pass"
     },
     {
-      "command": "rustc -D warnings --edition=2021 --test crates/oya-foundry-vcs-kernel/src/lib.rs",
+      "command": "rustc -D warnings --edition=2021 --test crates/oya-vcs-kernel/src/lib.rs",
       "result": "pass",
       "tests": "9 passed"
     },
     {
-      "command": "rustc -D warnings --edition=2021 --test crates/oya-foundry-vcs-kernel/tests/gitops_vcs_ip_001.rs --extern oya_foundry_vcs_kernel=<rlib>",
+      "command": "rustc -D warnings --edition=2021 --test crates/oya-vcs-kernel/tests/gitops_vcs_ip_001.rs --extern oya_vcs_kernel=<rlib>",
       "result": "pass",
       "tests": "8 passed"
     },

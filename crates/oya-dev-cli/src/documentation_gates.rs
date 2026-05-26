@@ -7,7 +7,7 @@ use oya_check_documentation_system::{
     validate_documentation_system,
 };
 use oya_check_readme_coverage::validate_readme_doc_coverage;
-use oya_foundry_gate_catalog_domain::all_canonical_commands_rendered;
+use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{
     extract_first_backticked_value, extract_json_object_entries, extract_json_object_for_key,
@@ -147,7 +147,7 @@ pub(crate) struct DocumentationSystemValidateArgs {
     pipeline_path: PathBuf,
     /// Optional test-only override for the wired-commands corpus. When
     /// `None` (production default) the kernel sources its wired-commands
-    /// catalog from `oya-foundry-gate-catalog-domain` per the .sh-removal
+    /// catalog from `oya-governance-gate-catalog-domain` per the .sh-removal
     /// chain IP-C. When `Some(path)`, the CLI reads the path verbatim —
     /// used by the integration-test fixtures in `tests/gate_cli.rs` to
     /// exercise rejection paths.

@@ -83,7 +83,7 @@
       "evidence": "Oya VCS work, verify, done, and promote commands were accepted for this ChangeSet evidence bundle."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "passed",
       "evidence": "Trivy vulnerability/misconfiguration scans reported 0 findings; VCS metadata/authority checks, cargo tests, and CLI smoke passed."
     }

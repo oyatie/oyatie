@@ -5,17 +5,17 @@
   "session_id": "claude-durable-goal-2026-05-17-p17-agent",
   "timestamp_unix": 1778997869,
   "branch": "agent/m02b-p17-capability-registry-merge-variant-1778997869",
-  "crate": "oya-foundry-capability-registry-kernel",
+  "crate": "oya-intelligence-capability-registry-kernel",
   "type_added": "CapabilityStatus",
   "artifacts": [
-    "crates/oya-foundry-capability-registry-kernel/src/status.rs",
-    "crates/oya-foundry-capability-registry-kernel/src/lib.rs",
+    "crates/oya-intelligence-capability-registry-kernel/src/status.rs",
+    "crates/oya-intelligence-capability-registry-kernel/src/lib.rs",
     ".omc/plans/milestones/M02b-substrate/phases/P17-capability-registry/impl-plan.md",
     "evidence/multispectrum/claude-m02b-p17-capability-registry-merge-variant-1778997869.json",
     "evidence/audit-chain.jsonl"
   ],
   "local_gates": [
-    "cargo nextest run -p oya-foundry-capability-registry-kernel --all-features: 15/15 PASS (8 pre-existing + 7 new status module tests)"
+    "cargo nextest run -p oya-intelligence-capability-registry-kernel --all-features: 15/15 PASS (8 pre-existing + 7 new status module tests)"
   ],
   "facets": [
     {
@@ -34,7 +34,7 @@
       "id": "F9",
       "label": "compliance",
       "verdict": "ACCEPT",
-      "notes": "No new workspace deps added. No new crate scaffolds. Type merged into existing oya-foundry-capability-registry-kernel per user directive option-2 (2026-05-17). impl-plan frontmatter updated with execution_variant=merge-into-existing-crates, decided_at, decided_by, execution_variant_note."
+      "notes": "No new workspace deps added. No new crate scaffolds. Type merged into existing oya-intelligence-capability-registry-kernel per user directive option-2 (2026-05-17). impl-plan frontmatter updated with execution_variant=merge-into-existing-crates, decided_at, decided_by, execution_variant_note."
     },
     {
       "id": "A1",
@@ -44,6 +44,6 @@
     }
   ],
   "council_verdict": "ACCEPT",
-  "closure": "M02b/P17-capability-registry merge-variant delta-1: CapabilityStatus enum (Active/Deprecated/Disabled) backported into oya-foundry-capability-registry-kernel::status. P17 impl-plan frontmatter amended with execution_variant=merge-into-existing-crates. 15/15 tests pass.",
+  "closure": "M02b/P17-capability-registry merge-variant delta-1: CapabilityStatus enum (Active/Deprecated/Disabled) backported into oya-intelligence-capability-registry-kernel::status. P17 impl-plan frontmatter amended with execution_variant=merge-into-existing-crates. 15/15 tests pass.",
   "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"]
 }

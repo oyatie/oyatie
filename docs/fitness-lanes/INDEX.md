@@ -52,7 +52,7 @@ Runtime tier:
 | cosign-signature | new-hyperscaler | hyperscaler/Cosign | oya-governance-cosign-signature-kernel | tools/oya-governance-cosign-signature | `cargo run -p oya-governance-cosign-signature` | 1800 | BLOCKER |
 | slsa-provenance | new-hyperscaler | hyperscaler/SLSA L2+ | oya-governance-slsa-provenance-kernel | tools/oya-governance-slsa-provenance | `cargo run -p oya-governance-slsa-provenance` | 1200 | HIGH |
 | cargo-vet | new-hyperscaler | hyperscaler/cargo-vet | oya-governance-cargo-vet-kernel | tools/oya-governance-cargo-vet | `cargo run -p oya-governance-cargo-vet` | 1500 | HIGH |
-| semver-checks | new-rust | hyperscaler/semver-checks | oya-foundry-api-semver-kernel | tools/oya-governance-semver-checks | `cargo run -p oya-governance-semver-checks` | 2500 | BLOCKER |
+| semver-checks | new-rust | hyperscaler/semver-checks | oya-intelligence-api-semver-kernel | tools/oya-governance-semver-checks | `cargo run -p oya-governance-semver-checks` | 2500 | BLOCKER |
 | clippy-pedantic | new-rust | hyperscaler/clippy-pedantic | oya-governance-clippy-pedantic-kernel | tools/oya-governance-clippy-pedantic | `cargo run -p oya-governance-clippy-pedantic` | 3500 | BLOCKER |
 | nextest-required | new-rust | hyperscaler/nextest | oya-governance-nextest-required-kernel | tools/oya-governance-nextest-required | `cargo run -p oya-governance-nextest-required` | 1700 | HIGH |
 | foundry-corpus-citation | new-directive | MASTERPLAN P3.5 (corpus cite) | oya-governance-foundry-corpus-citation-kernel | tools/oya-governance-foundry-corpus-citation | `cargo run -p oya-governance-foundry-corpus-citation` | 500 | HIGH |

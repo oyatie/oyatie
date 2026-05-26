@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"./bin/oya git status 2>&1 | head -20 && echo \\\"---\\\" && ./bin/oya git log -1 --oneline\",\"description\":\"Check merge state and current commit\"}",
-  "error": "Exit code 101\nerror[E0432]: unresolved import `oya_foundry_eval_domain::REQUIRED_LINGUISTIC_COHORTS`\n  --> crates/oya-application-app/src/lib.rs:39:5\n   |\n39 |     REQUIRED_LINGUISTIC_COHORTS,\n   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `REQUIRED_LINGUISTIC_COHORTS` in the root\n   |\nhelp: a similar name exists in the module\n   |\n39 |     REQUIRED_LINGUISTIC_COHORT_LOCALES,\n   |                               +++++++\n\nFor more information about this error, try `rustc --explain E0432`.\nerror: could not...",
-  "timestamp": "2026-05-21T17:32:40.528Z",
+  "tool_input_preview": "{\"command\":\"cd /Users/jasonlee/Developer/source\\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -2\\ncargo fmt 2>/dev/null; cargo fmt --check >/dev/null 2>&1 && echo \\\"FMT CLEAN\\\" || echo \\\"FMT FI...",
+  "error": "Exit code 1\nFMT CLEAN\n=== targeted gates ===\naspirational-enforcement     PASS\nbrand-residue                PASS\narchitecture-boundaries      PASS\ncodeowners-mirror            PASS\nhyperscaler-arch-invariants  PASS\nglossary-vocabulary          PASS\nhonest-claims                PASS\nadr-citation                 PASS\nno-grouping                  PASS",
+  "timestamp": "2026-05-26T00:25:02.840Z",
   "retry_count": 1
 }

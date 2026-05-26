@@ -11,8 +11,8 @@ purpose: |
 lift_target: oyatie/docs/visualization/roadmap.md
 enforced_by: oya-foundry-fitness-roadmap-viz
 extends_crates:
-  - oya-foundry-architecture-map-kernel
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-architecture-map-kernel
+  - oya-intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
   - dependency-graph-spec.md

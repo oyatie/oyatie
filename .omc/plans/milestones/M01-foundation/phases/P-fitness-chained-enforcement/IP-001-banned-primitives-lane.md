@@ -17,8 +17,8 @@ purpose: Ship the real `oya-foundry-fitness-banned-primitives` detector, gate di
 
 ## Scope
 
-- Use `crates/oya-foundry-fitness-banned-primitives-kernel` as the pure detector for fenced `agent-instructions` source blocks and typed command invocations.
-- Use `tools/oya-foundry-fitness-banned-primitives-app` as the direct runner.
+- Use `crates/oya-governance-banned-primitives-kernel` as the pure detector for fenced `agent-instructions` source blocks and typed command invocations.
+- Use `tools/oya-governance-banned-primitives-app` as the direct runner.
 - Expose the merge-blocking path through `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`.
 - Register `oya-foundry-fitness-banned-primitives` in `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, `.github/workflows/`, `.github/branch-protection.yaml`, and the `oya gate run-all` catalog.
 - Advance `F-FORBIDDEN-PRIMITIVES-CI-GUARD` to source-corpus plus sanitized tracked command-log corpus coverage with local gate evidence showing the detector, workflow-context mirror, branch-protection context, quality-lane mirror, fenced source corpus, and redacted JSONL command corpus are green; hosted branch-protection deployment remains a GitOps verification gap.

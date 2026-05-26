@@ -8,7 +8,7 @@ execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/plan-status-lifecycle.json
-  - tools/oya-foundry-fitness-plan-status-lifecycle-app
+  - tools/oya-governance-plan-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect plan files whose `status:` is missing or uses an undeclared stage.
 ---
@@ -26,7 +26,7 @@ violations=245 (all stage_not_declared)
 ```
 
 ## Done-criteria (Wave A)
-- `cargo run -q -p oya-foundry-fitness-plan-status-lifecycle-app -- --warn-only` reports the 245 baseline.
+- `cargo run -q -p oya-governance-plan-status-lifecycle-app -- --warn-only` reports the 245 baseline.
 
 ## Ratchet plan
 - Wave A: WARN. Wave B: BLOCK new plans without `status:`. **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations after BF1/BF2/BF3 plan-status backfills; lane fails-build retroactively on any plan without a declared stage.

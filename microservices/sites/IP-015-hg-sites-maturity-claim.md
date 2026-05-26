@@ -60,7 +60,7 @@ phase_exit: true
 ## Build Sequence
 
 1. Append HG-SITES entry to `registry/hyperscaler-maturity-claims.json`.
-2. Register HG-SITES in `crates/oya-foundry-gate-catalog-domain`.
+2. Register HG-SITES in `crates/oya-governance-gate-catalog-domain`.
 3. Add branch-protection required status check for HG-SITES on sites releases to `dev`.
 4. Run `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice sites`.
 5. Confirm SLO ledger eligibility for 30 days.

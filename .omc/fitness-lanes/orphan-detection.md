@@ -2,7 +2,7 @@
 
 - purpose: Verify every artifact has a declared purpose (front-matter `purpose:` or catalog row) and is reachable from a registered entry point.
 - enforces: Directive 10 (MASTERPLAN) — every artifact has declared purpose.
-- kernel_crate: `oya-foundry-fitness-orphan-detection-kernel` — `Artifact { path, has_purpose, reachable }`, verdict `OrphanDetectionFitnessReport { artifacts_checked }`.
+- kernel_crate: `oya-governance-orphan-detection-kernel` — `Artifact { path, has_purpose, reachable }`, verdict `OrphanDetectionFitnessReport { artifacts_checked }`.
 - runner_path: `tools/oya-foundry-fitness-orphan-detection`
 - inputs: artifact list, registered entry points, ref-graph snapshot.
 - failure_modes:

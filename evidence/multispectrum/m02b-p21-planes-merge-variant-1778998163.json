@@ -32,7 +32,7 @@
   ],
   "validation": [
     {
-      "command": "cargo nextest run -p oya-foundry-architecture-map-kernel",
+      "command": "cargo nextest run -p oya-intelligence-architecture-map-kernel",
       "status": "pass",
       "summary": "65 tests run: 65 passed, 0 skipped (16 new plane:: tests)"
     },
@@ -42,7 +42,7 @@
       "summary": "no formatting changes after edition-2024 pass"
     }
   ],
-  "delta_one_liner": "Add ArchitecturePlane 9-plane enum + PlaneVerdict + ProofLevel to oya-foundry-architecture-map-kernel/src/plane.rs; 16 new tests; 65 total pass.",
+  "delta_one_liner": "Add ArchitecturePlane 9-plane enum + PlaneVerdict + ProofLevel to oya-intelligence-architecture-map-kernel/src/plane.rs; 16 new tests; 65 total pass.",
   "execution_variant": "merge-into-existing-crates",
   "decided_by": "user-directive-option-2"
 }

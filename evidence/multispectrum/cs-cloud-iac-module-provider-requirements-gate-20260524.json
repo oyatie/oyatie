@@ -12,7 +12,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/tofu/modules/cloud-account/main.tofu",
     "microservices/cloud-iac/tofu/modules/dns/main.tofu",
     "microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu",
@@ -95,7 +95,7 @@
       "summary": "Scoped Rust formatting, check, and clippy passed."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate catalog tests passed with the new aggregated lane."
     },

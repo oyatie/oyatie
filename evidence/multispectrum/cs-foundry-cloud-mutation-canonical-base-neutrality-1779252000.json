@@ -7,45 +7,45 @@
   "timestamp_iso": "2026-05-20T04:40:00Z",
   "agent_id": "codex-oyatie-fd001",
   "scope": [
-    "crates/oya-foundry-cloud-mutation-domain/src/lib.rs",
+    "crates/oya-intelligence-cloud-mutation-domain/src/lib.rs",
     "evidence/multispectrum/cs-foundry-cloud-mutation-canonical-base-neutrality-1779252000.json"
   ],
   "claimed_scopes": [
     {
-      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize Foundry cloud mutation target-region fixture\" crates/oya-foundry-cloud-mutation-domain/src/lib.rs::canonical_base_neutral_cloud_mutation evidence/multispectrum/cs-foundry-cloud-mutation-canonical-base-neutrality-1779252000.json::MultispectrumEvidence",
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize Foundry cloud mutation target-region fixture\" crates/oya-intelligence-cloud-mutation-domain/src/lib.rs::canonical_base_neutral_cloud_mutation evidence/multispectrum/cs-foundry-cloud-mutation-canonical-base-neutrality-1779252000.json::MultispectrumEvidence",
       "status": "accepted"
     }
   ],
   "summary": "Canonical-base neutrality cleanup for Foundry cloud mutation control: replace the launch-region target_region fixture with neutral region-alpha1 while preserving dry-run, approval quorum, autonomy ceiling, rollback, break-glass, audit, and mutation lifecycle invariants.",
   "baseline_diff": {
-    "before": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-cloud-mutation-domain/src/lib.rs failed with 1 files checked, 1 jurisdiction leak: kr-seoul target_region fixture.",
-    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-cloud-mutation-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
-    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 298 jurisdiction leaks in other files; first remaining file crates/oya-foundry-eval-domain/src/lib.rs.",
+    "before": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-cloud-mutation-domain/src/lib.rs failed with 1 files checked, 1 jurisdiction leak: kr-seoul target_region fixture.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-intelligence-cloud-mutation-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 298 jurisdiction leaks in other files; first remaining file crates/oya-governance-eval-domain/src/lib.rs.",
     "delta": "1 fewer full-gate jurisdiction leak, from 299 after Eventing CloudEvent to 298 after this slice; no scanner carve-outs or control weakening."
   },
   "verification": [
     {
-      "command": "cargo test -q -p oya-foundry-cloud-mutation-domain --all-features 2>&1 | tee /tmp/cs-foundry-cloud-mutation-test.txt",
+      "command": "cargo test -q -p oya-intelligence-cloud-mutation-domain --all-features 2>&1 | tee /tmp/cs-foundry-cloud-mutation-test.txt",
       "status": "passed",
       "evidence": "6 passed; 0 failed"
     },
     {
-      "command": "cargo fmt -q -p oya-foundry-cloud-mutation-domain --check 2>&1 | tee /tmp/cs-foundry-cloud-mutation-fmt.txt",
+      "command": "cargo fmt -q -p oya-intelligence-cloud-mutation-domain --check 2>&1 | tee /tmp/cs-foundry-cloud-mutation-fmt.txt",
       "status": "passed",
       "evidence": "rustfmt check exited 0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-cloud-mutation-domain --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-cloud-mutation-clippy.txt",
+      "command": "cargo clippy -q -p oya-intelligence-cloud-mutation-domain --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-cloud-mutation-clippy.txt",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-cloud-mutation-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-cloud-mutation-targeted-cbn.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-intelligence-cloud-mutation-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-cloud-mutation-targeted-cbn.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     },
     {
-      "command": "rg -n \"kr-seoul|us-|eu-|jp-|kr-|\\bKR\\b|\\bUS\\b|\\bEU\\b|\\bJP\\b\" crates/oya-foundry-cloud-mutation-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-cloud-mutation-token-scan.txt || true",
+      "command": "rg -n \"kr-seoul|us-|eu-|jp-|kr-|\\bKR\\b|\\bUS\\b|\\bEU\\b|\\bJP\\b\" crates/oya-intelligence-cloud-mutation-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-cloud-mutation-token-scan.txt || true",
       "status": "passed",
       "evidence": "no jurisdiction-specific target-region tokens matched in the claimed file"
     },
@@ -60,14 +60,14 @@
       "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-foundry-cloud-mutation-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-cloud-mutation-diff-check.txt",
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-intelligence-cloud-mutation-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-cloud-mutation-diff-check.txt",
       "status": "passed",
       "evidence": "diff whitespace check exited 0"
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-foundry-cloud-mutation-full-cbn.txt",
       "status": "blocked-preexisting",
-      "evidence": "full gate still fails with 298 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-eval-domain/src/lib.rs"
+      "evidence": "full gate still fails with 298 jurisdiction leaks outside claimed scope; first remaining file crates/oya-governance-eval-domain/src/lib.rs"
     }
   ],
   "facets": {
@@ -147,11 +147,11 @@
     }
   },
   "changed_files": [
-    "crates/oya-foundry-cloud-mutation-domain/src/lib.rs",
+    "crates/oya-intelligence-cloud-mutation-domain/src/lib.rs",
     "evidence/multispectrum/cs-foundry-cloud-mutation-canonical-base-neutrality-1779252000.json"
   ],
   "remaining_risks": [
-    "Full canonical-base-neutrality gate remains red with 298 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-foundry-eval-domain/src/lib.rs.",
+    "Full canonical-base-neutrality gate remains red with 298 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-governance-eval-domain/src/lib.rs.",
     "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
   ]
 }

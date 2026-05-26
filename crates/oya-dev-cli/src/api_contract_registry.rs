@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_api_semver_domain::{ApiContractMetadata, ApiContractRecord};
+use oya_intelligence_api_semver_domain::{ApiContractMetadata, ApiContractRecord};
 
 use crate::{clean_yaml_value, parse_yaml_inline_values, slash_path};
 

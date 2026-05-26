@@ -8,7 +8,7 @@ execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/crate-status-lifecycle.json
-  - tools/oya-foundry-fitness-crate-status-lifecycle-app
+  - tools/oya-governance-crate-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect crates whose lifecycle stage is not declared in `package.metadata.oyatie.lifecycle_stage`.
 ---
@@ -27,7 +27,7 @@ violations=0
 Fresh kernel; awaits the backfill pass that adds the metadata block to each crate's Cargo.toml. Orphan detection already covered by `oya-foundry-fitness-archive-orphan-kernel`; this lane is the canonical state-machine record.
 
 ## Done-criteria (Wave A)
-- `cargo run -q -p oya-foundry-fitness-crate-status-lifecycle-app -- --warn-only` returns 0 violations (vacuous baseline; population grows via backfill).
+- `cargo run -q -p oya-governance-crate-status-lifecycle-app -- --warn-only` returns 0 violations (vacuous baseline; population grows via backfill).
 
 ## Ratchet plan
 - Wave A: kernel in place; vacuous baseline.

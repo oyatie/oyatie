@@ -20,7 +20,7 @@
   "round": "r2_rebuttal",
   "round_2_findings": [
     {
-      "issue": "Round-2 F9 reconciliation preserved consensus finding: The stable foundry.rag.retrieve contract still points at oya-foundry-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-foundry-rag-api --locked --offline` no longer resolves a package. That makes…",
+      "issue": "Round-2 F9 reconciliation preserved consensus finding: The stable foundry.rag.retrieve contract still points at oya-intelligence-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-intelligence-rag-api --locked --offline` no longer resolves a package. That makes…",
       "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
       "severity": "INFO"
     },

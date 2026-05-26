@@ -164,8 +164,8 @@ doc_status: published
 6. Patch audit tap if prompt fence checks were not emitted.
 7. Add adversarial fixture from redacted incident bundle.
 8. Add model-route-specific eval case.
-9. Run guardrail tests: `cargo test -p oya-foundry-eval-domain prompt_fence -- --nocapture`.
-10. Run routing safety tests: `cargo test -p oya-foundry-route-policy-kernel prompt_fence -- --nocapture`.
+9. Run guardrail tests: `cargo test -p oya-governance-eval-domain prompt_fence -- --nocapture`.
+10. Run routing safety tests: `cargo test -p oya-intelligence-route-policy-kernel prompt_fence -- --nocapture`.
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-prompt-fence --production-snapshot --cell $CELL`.
 12. Verify eval suite: `oya ops intelligence eval run --pack $PACK --suite prompt-fence-critical --expect pass`.
 13. Remove temporary deny only after permanent policy lands: `oya ops intelligence tool-policy deny-fragment remove --tenant $TENANT --tool <tool> --reason resolved-$INCIDENT_ID`.

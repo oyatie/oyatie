@@ -10,9 +10,9 @@
     "crates/oya-data-boundary-kernel/src/lib.rs",
     "crates/oya-data-boundary-kernel/src/retention_policy.rs",
     "crates/oya-observability-domain/src/lib.rs",
-    "crates/oya-foundry-policy-domain/src/lib.rs",
-    "crates/oya-foundry-policy-domain/tests/autonomy_decision.rs",
-    "crates/oya-foundry-evidence-domain/tests/evidence_chain.rs",
+    "crates/oya-intelligence-policy-domain/src/lib.rs",
+    "crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs",
+    "crates/oya-intelligence-evidence-domain/tests/evidence_chain.rs",
     "crates/oya-application-app/tests/data_use_boundary.rs",
     "crates/oya-application-app/tests/foundation_backbone.rs",
     "crates/oya-application-app/tests/foundation_flow.rs",
@@ -26,7 +26,7 @@
   ],
   "claimed_scopes": [
     {
-      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize shared financial data-class taxonomy for canonical base\" crates/oya-data-boundary-kernel/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-data-boundary-kernel/src/retention_policy.rs::canonical_base_neutral_financial_taxonomy crates/oya-observability-domain/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-foundry-policy-domain/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-foundry-policy-domain/tests/autonomy_decision.rs::canonical_base_neutral_financial_taxonomy crates/oya-foundry-evidence-domain/tests/evidence_chain.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/data_use_boundary.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/foundation_backbone.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/foundation_flow.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/foundry_autonomy_ceiling_caps.rs::canonical_base_neutral_financial_taxonomy crates/oya-cloud-finops-api/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs::canonical_base_neutral_financial_taxonomy crates/oya-cloud-billing-tax-app/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-dev-cli/src/foundry_capability_schema_gates.rs::canonical_base_neutral_financial_taxonomy",
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize shared financial data-class taxonomy for canonical base\" crates/oya-data-boundary-kernel/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-data-boundary-kernel/src/retention_policy.rs::canonical_base_neutral_financial_taxonomy crates/oya-observability-domain/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-intelligence-policy-domain/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs::canonical_base_neutral_financial_taxonomy crates/oya-intelligence-evidence-domain/tests/evidence_chain.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/data_use_boundary.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/foundation_backbone.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/foundation_flow.rs::canonical_base_neutral_financial_taxonomy crates/oya-application-app/tests/foundry_autonomy_ceiling_caps.rs::canonical_base_neutral_financial_taxonomy crates/oya-cloud-finops-api/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs::canonical_base_neutral_financial_taxonomy crates/oya-cloud-billing-tax-app/src/lib.rs::canonical_base_neutral_financial_taxonomy crates/oya-dev-cli/src/foundry_capability_schema_gates.rs::canonical_base_neutral_financial_taxonomy",
       "status": "accepted"
     },
     {
@@ -49,7 +49,7 @@
   },
   "verification": [
     {
-      "command": "cargo test -q -p oya-data-boundary-kernel -p oya-observability-domain -p oya-foundry-policy-domain -p oya-foundry-evidence-domain -p oya-application-app -p oya-cloud-finops-domain -p oya-cloud-finops-api -p oya-cloud-billing-tax-app --all-features 2>&1 | tee /tmp/cs-data-boundary-financial-selected-test.txt",
+      "command": "cargo test -q -p oya-data-boundary-kernel -p oya-observability-domain -p oya-intelligence-policy-domain -p oya-intelligence-evidence-domain -p oya-application-app -p oya-cloud-finops-domain -p oya-cloud-finops-api -p oya-cloud-billing-tax-app --all-features 2>&1 | tee /tmp/cs-data-boundary-financial-selected-test.txt",
       "status": "passed",
       "evidence": "selected package tests exited 0; suites covering data-boundary, observability, foundry policy/evidence, application, cloud FinOps domain/API, and cloud billing tax app passed with 0 failures"
     },
@@ -59,12 +59,12 @@
       "evidence": "3 passed; 0 failed; validates capability schema parser now accepts FINANCIAL_REGULATED_CREDIT"
     },
     {
-      "command": "cargo fmt -q -p oya-data-boundary-kernel -p oya-observability-domain -p oya-foundry-policy-domain -p oya-foundry-evidence-domain -p oya-application-app -p oya-cloud-finops-domain -p oya-cloud-finops-api -p oya-cloud-billing-tax-app -p oya-dev-cli --check",
+      "command": "cargo fmt -q -p oya-data-boundary-kernel -p oya-observability-domain -p oya-intelligence-policy-domain -p oya-intelligence-evidence-domain -p oya-application-app -p oya-cloud-finops-domain -p oya-cloud-finops-api -p oya-cloud-billing-tax-app -p oya-dev-cli --check",
       "status": "passed",
       "evidence": "rustfmt check exited 0 after formatting changed Rust files"
     },
     {
-      "command": "cargo clippy -q -p oya-data-boundary-kernel -p oya-observability-domain -p oya-foundry-policy-domain -p oya-foundry-evidence-domain -p oya-application-app -p oya-cloud-finops-domain -p oya-cloud-finops-api -p oya-cloud-billing-tax-app -p oya-dev-cli --all-features -- -D warnings",
+      "command": "cargo clippy -q -p oya-data-boundary-kernel -p oya-observability-domain -p oya-intelligence-policy-domain -p oya-intelligence-evidence-domain -p oya-application-app -p oya-cloud-finops-domain -p oya-cloud-finops-api -p oya-cloud-billing-tax-app -p oya-dev-cli --all-features -- -D warnings",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied for all changed packages"
     },
@@ -194,9 +194,9 @@
     "crates/oya-data-boundary-kernel/src/lib.rs",
     "crates/oya-data-boundary-kernel/src/retention_policy.rs",
     "crates/oya-observability-domain/src/lib.rs",
-    "crates/oya-foundry-policy-domain/src/lib.rs",
-    "crates/oya-foundry-policy-domain/tests/autonomy_decision.rs",
-    "crates/oya-foundry-evidence-domain/tests/evidence_chain.rs",
+    "crates/oya-intelligence-policy-domain/src/lib.rs",
+    "crates/oya-intelligence-policy-domain/tests/autonomy_decision.rs",
+    "crates/oya-intelligence-evidence-domain/tests/evidence_chain.rs",
     "crates/oya-application-app/tests/data_use_boundary.rs",
     "crates/oya-application-app/tests/foundation_backbone.rs",
     "crates/oya-application-app/tests/foundation_flow.rs",

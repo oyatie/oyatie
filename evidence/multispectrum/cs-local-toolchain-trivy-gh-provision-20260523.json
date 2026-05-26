@@ -13,12 +13,12 @@
       "evidence": "/tmp/cs-local-toolchain-red.log"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "result": "FAIL: provider-execution-gate (--mode check) exited 127 because trivy was missing",
       "evidence": "/tmp/cs-local-toolchain-red.log"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
+      "command": "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
       "result": "FAIL: missing required provider proof tool: trivy; status 127",
       "evidence": "/tmp/cs-local-toolchain-red.log"
     },
@@ -53,13 +53,13 @@
   ],
   "green_verification": [
     {
-      "command": "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
+      "command": "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
       "status": "pass",
       "summary": "Provider execution evidence was written; trivy cargo vulnerability scans found 0 vulnerabilities across 14 language-specific files, config scans found 0 misconfigurations across 5 config files, and Argo GitOps desired-state validation passed.",
       "evidence": "/tmp/cs-local-toolchain-after-install-gates.log; target/oya-vcs-provider-execution/provider-execution-proof.json; target/oya-vcs-provider-execution/trivy.sarif"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "Admission app ran provider execution plus VCS metadata/authority tests and CLI smoke; metadata and authority checks passed.",
       "evidence": "/tmp/cs-local-toolchain-after-install-gates.log"
@@ -99,8 +99,8 @@
         "bash scripts/github-actions-required-secrets-check.sh"
       ],
       "now_green_lanes": [
-        "cargo run -q -p oya-foundry-vcs-admission-gate-app",
-        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json"
+        "cargo run -q -p oya-vcs-admission-gate-app",
+        "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json"
       ],
       "remaining_notes": [
         "The provider proof lanes are green after trivy installation.",

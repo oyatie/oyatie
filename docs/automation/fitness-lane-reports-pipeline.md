@@ -14,7 +14,7 @@ planned_enforcement_ref: oya-governance-lane-rollup
 extends_crates:
   - oya-foundry-eval-kernel
   - oya-foundry-quality-lane-kernel
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/DOC-CATALOG.md
@@ -78,7 +78,7 @@ The shape is validated by `oya-foundry-eval-kernel`-shaped value-object checks b
 2. **Axis attribution.** Every lane declares an axis; unattributed lane → HIGH.
 3. **Report completeness.** A lane that ran in CI but did not emit a report → HIGH.
 4. **History retention.** History truncated at 180 days; pre-truncation snapshot must exist in archive (advisory).
-5. **mdbook render.** Generated chapters pass `oya-foundry-mdbook-kernel::validate_mdbook_source`.
+5. **mdbook render.** Generated chapters pass `oya-intelligence-mdbook-kernel::validate_mdbook_source`.
 
 ## 7. Trend rendering
 

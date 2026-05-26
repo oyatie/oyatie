@@ -21,7 +21,7 @@
 //! `_command` suffix because it lives under `commands/`); handler
 //! `run` (snake_case verb). Conforms to ADR-0105 v4 BNF and the
 //! 13-value layer enum at
-//! `crates/oya-foundry-fitness-predictable-naming-kernel::ALLOWED_ROLES`.
+//! `crates/oya-governance-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
 //! Tooling dependencies: this subcommand shells out to the repo-local
 //! `oya git` transport wrapper for git history operations, and `gh`

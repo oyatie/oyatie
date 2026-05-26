@@ -10,12 +10,12 @@
     {
       "severity": "MAJOR",
       "file": "docs/decisions/ADR-0110-changeset-state-machine.md:43-70",
-      "issue": "ADR prose declares 'CLOSED ENUM of 9 states' and totals '9 advancing + 3 terminal-fail = 12 closed values', but the table has rows 0..=9 (10 rows) and the kernel ships 13 variants. The kernel comment at crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:40-42 explicitly calls out the miscount: 'the ADR prose 9 advancing miscount is resolved here by counting the table rows literally'. Naming-that-lies + ADR-vs-code drift on day 1 of a Proposed ADR.",
+      "issue": "ADR prose declares 'CLOSED ENUM of 9 states' and totals '9 advancing + 3 terminal-fail = 12 closed values', but the table has rows 0..=9 (10 rows) and the kernel ships 13 variants. The kernel comment at crates/oya-vcs-changeset-state-kernel/src/lib.rs:40-42 explicitly calls out the miscount: 'the ADR prose 9 advancing miscount is resolved here by counting the table rows literally'. Naming-that-lies + ADR-vs-code drift on day 1 of a Proposed ADR.",
       "remediation": "Fix the ADR prose to say '10 advancing + 3 terminal-fail = 13 closed values'. Delete the apologetic kernel comment. The ADR is the contract; rewrite it before merge instead of papering over with an in-code disclaimer."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:106-130",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:106-130",
       "issue": "Produced is double-classified: is_terminal() returns true for Produced AND advancing_ordinal() returns Some(9). The validator (lines 301-323) special-cases this with a nested 'if terminal { if let Some(ord)=advancing_ordinal { ... advancing check ... } continue; }'. This is the canonical 'special cases that could be deleted by reshaping the data' anti-pattern. Either Produced is on the advancing axis (terminal-success), or it's a terminal-fail twin — not both.",
       "remediation": "Split the enum: AdvancingState (10 variants, ordinal-comparable) + TerminalState (Produced, Abandoned, Rejected, CostExhausted). The log row's to_state becomes Either<Advancing, Terminal>. Validator collapses to one ordinal-monotonic check on Advancing + at-most-one Terminal. Drops the special-case branch entirely."
     },
@@ -33,7 +33,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:228-302",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:228-302",
       "issue": "Hand-rolled base64 encoder (30 lines) + hand-rolled proleptic-Gregorian civil-from-days RFC3339 formatter (~50 lines incl. epoch_day_to_ymd). Justified as 'no chrono/time dep so the app stays dep-thin' — but serde_json IS already a dep, base64 is in workspace via other crates, and the timestamp is only used as a string inside dedup_key (no parsing required). Reinventing wheels for an aesthetic.",
       "remediation": "Either pull `time` (or even chrono) into workspace deps, or stop pretending the dedup_key needs RFC3339 — a UNIX-epoch nanosecond u128 .to_string() is monotonic, deterministic, and one line. Delete epoch_day_to_ymd + base64_encode."
     },
@@ -45,7 +45,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:361-379",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:361-379",
       "issue": "recover_state_from_ordinal has a saturating `_ => Produced` fallback comment-justified as 'unreachable on a well-typed input'. If unreachable, the right shape is to return Result, not fabricate a wrong-but-plausible state. Currently a buggy upstream that calls with ordinal 99 silently reports 'BackwardsTransition from Produced to X' — a misleading error pinning blame on Produced.",
       "remediation": "Carry the from_state through the validator (event.from_state.unwrap_or(...)) only when it's actually Some; otherwise emit a distinct error variant 'MissingFromState' rather than fabricate. Removes the dishonest saturating fallback."
     },
@@ -57,19 +57,19 @@
     },
     {
       "severity": "MINOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:101-103",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:101-103",
       "issue": "from_wire does linear scan over Self::ALL recomputing as_wire() per probe. With 13 entries the perf is irrelevant, but a `match value { \"opened\" => Some(Self::Opened), ... }` is cleaner, faster, and lets the compiler verify exhaustiveness against the same closed-enum invariant the ADR is selling.",
       "remediation": "Replace with explicit match. Saves a closure, drops a method indirection, and gives the closed-enum guarantee structurally instead of by-construction."
     },
     {
       "severity": "MINOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:163-213 + main.rs:462-484",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:163-213 + main.rs:462-484",
       "issue": "evidence is BTreeMap<String, String>. ADR-0110's example shows numeric pr_number: 4 and structured cost_budget_remaining: {...}. The 'free-form' justification + the ADR's own enumeration of 4 specific fields = stringly-typed pseudo-schema. Every consumer re-parses, type info evaporates at the boundary.",
       "remediation": "Either model evidence as a typed enum per emitter (PrEvent { pr_number: u64, head_sha: String, ... }), OR if truly free-form use BTreeMap<String, serde_json::Value>. Current shape is the worst of both worlds."
     },
     {
       "severity": "MINOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:67-72",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:67-72",
       "issue": "Half-built control plane: STUB_USD/STUB_TOKENS/STUB_INVOCATIONS are stamped on every append; the kernel's CostBudget::is_exhausted() check is wired up but no decrement logic exists. The 'enforcement' lane will green-light forever until wave-B writes the decrementer. Worse, every appended row carries the same constant budget — so the JSON log gets noisier without conveying signal.",
       "remediation": "Either (a) make cost_budget_remaining Optional in the kernel + omit from wave-A rows (don't fake data), or (b) bring the decrementer in this PR. Stamping constant '100.0 / 10M / 100' in every row is signal pollution."
     },

@@ -21,7 +21,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "docs/decisions/ADR-0110-changeset-state-machine.md:194-196; crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:35-65",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md:194-196; crates/oya-vcs-changeset-state-kernel/src/lib.rs:35-65",
       "issue": "ADR-0110 explicitly notes the state machine could be represented as a typed Rust enum or a string-keyed YAML registry, then selects a hand-authored enum while keeping a separate hand-authored ADR table. The state-count drift already visible in the ADR is exactly the failure mode a registry/generated-code alternative would avoid. For an agentic VCS contract, the better alternative is one machine-readable state registry that generates the Rust enum, wire strings, ADR table projection, and enum-closed test fixtures.",
       "remediation": "Introduce `registry/vcs/changeset-states.json` (or YAML) as the canonical source, generate the Rust enum/table/test vectors from it, and reduce ADR-0110 to rationale plus a pointer to the registry. Until then, require a drift gate comparing ADR table rows to `ChangesetState::ALL`."
     },
@@ -33,7 +33,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:70-72,207-214,218-223; crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:186-198",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:70-72,207-214,218-223; crates/oya-vcs-changeset-state-kernel/src/lib.rs:186-198",
       "issue": "The append app writes authoritative event-log rows with fixed stub budgets, empty `alternates_considered`, and deterministic `ed25519-stub` signatures. A simpler and safer alternative was to ship only the pure kernel/gates until signing and budget adapters exist, or require explicit CLI inputs for budget/signature/alternates while marking unsigned rows as non-production. The current choice bakes a fake-but-valid event writer into the pipeline before the real contract is available.",
       "remediation": "Gate the app so stub signatures/budgets can only be used in tests or an explicit `--allow-stub-evidence` dev mode, require real budget/signature inputs for registry writes, and add an alternatives field input so non-deterministic transitions cannot silently lose rejected options."
     },

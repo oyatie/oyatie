@@ -19,7 +19,7 @@
     "decision-principles.json DP-04 keeps authoritative-tracked-kernel as the single enforcer — the doctrine the lane backstopped is still mechanically enforced.",
     "ADR-0118 explicitly supersedes ADR-0052, lists three rejected alternatives (keep empty, rename, delete-history), and pins replacement to M01-P18 / ADR-0116 Foundry pipeline — clean audit-chain handoff.",
     "Catalog yaml deletions (registry/catalog/oya-foundry-fitness-archive-orphan*.yaml) align 1:1 with crate deletions — no orphaned capability pointers in registry.",
-    "tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml comment updated to remove archive-orphan from the enumerated lane list — no live code import of the deleted crate remains in the merged tree."
+    "tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml comment updated to remove archive-orphan from the enumerated lane list — no live code import of the deleted crate remains in the merged tree."
   ],
   "uncertainty_areas": [
     "Did any external CI workflow (GitHub Actions yaml outside the diff) still reference `cargo run -p oya-foundry-fitness-archive-orphan`? Diff does not include .github/workflows scan; should be confirmed by F11 observability or F4 ergonomic facet.",

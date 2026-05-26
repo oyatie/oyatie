@@ -45,7 +45,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 |-----|-------|------|------|---------|
 | **A** | Single supervisor daemon owns the whole chain (route → reserve → spawn → watch → settle) | Single fsync ordering point; one process to monitor; matches Siigari shape | Daemon failure = total outage; restart loses in-flight reservations; harder to evolve | **REJECTED** — single-point-of-failure violates fan-out principle |
 | **B** | Per-CLI binaries (3 separate daemons) | Failure isolation per provider | Triplicates restart/state code; 3× operational cost; reservation conflict across binaries needs a separate broker | **REJECTED** — multiplies cost without gain; conflict broker becomes Option A in disguise |
-| **C** | In-process inside `oya-foundry-dashboard-app` | Reuses dashboard event loop | Couples runtime ops to UI lifecycle; dashboard restart kills supervisor; mixes layers | **REJECTED** — violates 12-layer enum (app↔app cross-talk via dashboard) |
+| **C** | In-process inside `oya-intelligence-dashboard-app` | Reuses dashboard event loop | Couples runtime ops to UI lifecycle; dashboard restart kills supervisor; mixes layers | **REJECTED** — violates 12-layer enum (app↔app cross-talk via dashboard) |
 | **D** | **Host-injected policy ports: supervisor-app composes route-policy + usage-enforcement + cost-ceiling as pure ports; jsonl-supervisor-adapter is the I/O seam; supervisor-kernel is pure decision logic** | Kernel stays I/O-free; adapter is the only fsync-aware crate; ports compose without inheritance; aligns ADR-0056 port-in-kernel + ADR-0092 conversion-at-the-boundary | More crates than Option A; requires explicit `lean-a10` declaration for each new public fn on existing kernels | **CHOSEN** |
 
 **Why D wins:** Composes existing `RoutePolicy::select`, `UsageEnforcement::check_limit`, `check_silent_switch`, `validate_usage`, `finalize_line` without inventing kernel APIs. Net-new public functions are isolated to the 3 new crates. Where we DO touch an existing kernel, it is declared in §B.2.6 with full lean-a10 ceremony.
@@ -54,7 +54,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 
 | Scenario | Mitigation lane | Acceptance |
 |----------|----------------|------------|
-| **(a) Torn write** — supervisor crash mid-rename leaves orphan `.tmp` + half-written outbox | `lean-fsync-durability` — crash-injection harness `crates/oya-foundry-supervisor-app/tests/crash_injection.rs` SIGKILLs writer at every flush point; recovery must reproduce identical cursor or quarantine the partial line | `cargo test -p oya-foundry-supervisor-app --test crash_injection -- --test-threads=1` exits 0; no orphan `.tmp` after replay |
+| **(a) Torn write** — supervisor crash mid-rename leaves orphan `.tmp` + half-written outbox | `lean-fsync-durability` — crash-injection harness `crates/oya-intelligence-supervisor-app/tests/crash_injection.rs` SIGKILLs writer at every flush point; recovery must reproduce identical cursor or quarantine the partial line | `cargo test -p oya-intelligence-supervisor-app --test crash_injection -- --test-threads=1` exits 0; no orphan `.tmp` after replay |
 | **(b) Hung CLI burns credit** — driver subprocess deadlocks; reservation TTL expires but credit already consumed | `lean-watchdog-timing` — integration test asserts SIGKILL within `WATCHDOG_TIMEOUT + grace=5s` using a fake driver that `loop { sleep(1s) }` | Watchdog kill latency p95 ≤ 5.0s in `benches/heartbeat.rs::watchdog_kill_latency` |
 | **(c) Poison message loop** — corrupt JSONL line crashes parser on every replay → infinite restart | `lean-dead-letter` — supervisor kernel verdict `Quarantine` after `MAX_PARSE_RETRIES=3`; autonomy_tier demoted by 1 step; entry moved to `dead-letter/`; alarm metric `supervisor_quarantine_total` | Integration test injects a hand-crafted malformed line; assert `dead-letter/` has 1 file after 3 spawn attempts and `T<n+1>` demoted to `T<n>` |
 
@@ -62,12 +62,12 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 
 | Layer | Crate / file | Command |
 |-------|--------------|---------|
-| Unit (kernel) | `crates/oya-foundry-supervisor-kernel/src/lib.rs` | `cargo test -p oya-foundry-supervisor-kernel` |
-| Unit (adapter) | `crates/oya-foundry-jsonl-supervisor-adapter/src/lib.rs` | `cargo test -p oya-foundry-jsonl-supervisor-adapter` |
-| Integration | `crates/oya-foundry-supervisor-app/tests/lifecycle.rs` (3 sub-tests: spawn, restart, settle) | `cargo test -p oya-foundry-supervisor-app --test lifecycle` |
-| E2E matrix | `crates/oya-foundry-supervisor-app/tests/matrix_3x2x2.rs` — 3 CLIs × 2 accounts × 2 providers = 12 combinations | `cargo test -p oya-foundry-supervisor-app --test matrix_3x2x2 -- --include-ignored --test-threads=1` (gated on `$OYA_LIVE_SMOKE=1`) |
-| Observability | `crates/oya-foundry-supervisor-app/tests/audit_chain.rs` — assert every spawn/settle emits an EvidenceRef linked to capability id | `cargo test -p oya-foundry-supervisor-app --test audit_chain` |
-| Perf budget | `crates/oya-foundry-supervisor-app/benches/heartbeat.rs` — Criterion-shape harness; idle-tick ≤ 25 tok p95, restart p95 ≤ 1.5s, RSS ≤ 64 MiB, watchdog kill ≤ T+5s | `cargo bench -p oya-foundry-supervisor-app --bench heartbeat -- --save-baseline supervisor-v2` |
+| Unit (kernel) | `crates/oya-intelligence-supervisor-kernel/src/lib.rs` | `cargo test -p oya-intelligence-supervisor-kernel` |
+| Unit (adapter) | `crates/oya-intelligence-jsonl-supervisor-adapter/src/lib.rs` | `cargo test -p oya-intelligence-jsonl-supervisor-adapter` |
+| Integration | `crates/oya-intelligence-supervisor-app/tests/lifecycle.rs` (3 sub-tests: spawn, restart, settle) | `cargo test -p oya-intelligence-supervisor-app --test lifecycle` |
+| E2E matrix | `crates/oya-intelligence-supervisor-app/tests/matrix_3x2x2.rs` — 3 CLIs × 2 accounts × 2 providers = 12 combinations | `cargo test -p oya-intelligence-supervisor-app --test matrix_3x2x2 -- --include-ignored --test-threads=1` (gated on `$OYA_LIVE_SMOKE=1`) |
+| Observability | `crates/oya-intelligence-supervisor-app/tests/audit_chain.rs` — assert every spawn/settle emits an EvidenceRef linked to capability id | `cargo test -p oya-intelligence-supervisor-app --test audit_chain` |
+| Perf budget | `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs` — Criterion-shape harness; idle-tick ≤ 25 tok p95, restart p95 ≤ 1.5s, RSS ≤ 64 MiB, watchdog kill ≤ T+5s | `cargo bench -p oya-intelligence-supervisor-app --bench heartbeat -- --save-baseline supervisor-v2` |
 
 **Note on Criterion:** Workspace currently has no `criterion` dep (verified via `Cargo.toml:481-492`); under Branch Y we use `#[bench]`-shape harness via `std::time::Instant` only, written as a `bin` target driven by `cargo test --release --bench heartbeat` to stay zero-dep. The `cargo bench` invocation above runs the bin in benchmark mode.
 
@@ -79,28 +79,28 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 
 | Surface | File | Lines | Notes |
 |---------|------|-------|-------|
-| `RoutePolicy::select(&[ProviderAccount], &RouteConstraints) -> Result<RouteExplanation, RouteError>` | `crates/oya-foundry-route-policy-kernel/src/lib.rs` | 54–96 | Pure selector; no I/O. **Composes, not extended.** |
+| `RoutePolicy::select(&[ProviderAccount], &RouteConstraints) -> Result<RouteExplanation, RouteError>` | `crates/oya-intelligence-route-policy-kernel/src/lib.rs` | 54–96 | Pure selector; no I/O. **Composes, not extended.** |
 | `RoutePolicy::explain_route(...)` | same | 101–106 | Same selector; surface kept for audit. |
 | `RouteConstraints` (struct) | same | 12–19 | Public fields all `INTERNAL_ONLY`. |
 | `RouteError` enum | same | 39–47 | 7 variants. |
-| `UsageEnforcement::check_limit(&UsageWindow, now: u64, budget: u64) -> Result<EnforcementVerdict, EnforcementError>` | `crates/oya-foundry-usage-window-kernel/src/lib.rs` | 30–71 | Pure verdict; 4 outcomes including `WindowExpired`. |
+| `UsageEnforcement::check_limit(&UsageWindow, now: u64, budget: u64) -> Result<EnforcementVerdict, EnforcementError>` | `crates/oya-intelligence-usage-window-kernel/src/lib.rs` | 30–71 | Pure verdict; 4 outcomes including `WindowExpired`. |
 | `EnforcementVerdict` enum | same | 9–18 | `WithinLimit`/`OverUsageLimit`/`ReserveBreached`/`WindowExpired`. |
-| `UsageWindow` (re-exported from account-domain) | `oya-foundry-account-domain/src/lib.rs` | 252–302 | Value type; **eligible for `UsageWindowSnapshot` derivation via Clone**. |
+| `UsageWindow` (re-exported from account-domain) | `oya-intelligence-account-domain/src/lib.rs` | 252–302 | Value type; **eligible for `UsageWindowSnapshot` derivation via Clone**. |
 | `validate_usage(&UsageRecord) -> Result<(), BillingError>` | `crates/oya-cloud-billing-kernel/src/lib.rs` | 74–85 | Pure validator. |
 | `finalize_line(&LineItem) -> Result<u128, BillingError>` | same | 87–95 | Subtotal in micros. |
 | `UsageRecord` / `LineItem` / `UsageUnit::Token` | same | 7–52 | `UsageUnit::Token` exists; we reuse for spend records. |
-| `check_silent_switch(&[&ProviderAccount], &ProviderAccount) -> Result<(), AccountError>` | `crates/oya-foundry-account-domain/src/lib.rs` | 171–186 | Cross-account guard. |
+| `check_silent_switch(&[&ProviderAccount], &ProviderAccount) -> Result<(), AccountError>` | `crates/oya-intelligence-account-domain/src/lib.rs` | 171–186 | Cross-account guard. |
 | `ProviderAccount` + state machine (`Draft → Verified → Active → Degraded/Disabled/Revoked`) | same | 68–167 | `degrade(reason: String) -> Result<(), AccountError>` at L120. |
-| `AccountId(pub String)` / `ProviderFamily` enum / `SessionId` | `crates/oya-foundry-account-kernel/src/lib.rs` | 14–29 | Public; owned values. |
-| `Capability::new(id, name, tier, evidence_required)` / `AutonomyTier` enum | `crates/oya-foundry-capability-registry-kernel/src/lib.rs` | 49–136 | `T1Read..T4Actuate`; `try_from("T1")` works. |
-| `validate_publish(&Capability) -> Result<(), PublishValidationError>` | `crates/oya-foundry-capability-registry-domain/src/lib.rs` | 43 (definition; full body unread but signature confirmed via grep) | Pre-condition for `CapabilityRegistry::register`. |
-| `CapabilityRegistry::register/list/get` + `parse_seed_json` | `crates/oya-foundry-capability-registry-app/src/lib.rs` | 53–86, 97–153 | Hand-rolled JSON; **no serde dep** (HARD CONSTRAINT, L96). |
-| `CeilingPolicy::ceiling_for(&TenantId) -> AutonomyTier` / `set` | `crates/oya-foundry-autonomy-ceiling-domain/src/lib.rs` | 40–70 | Default = `T3PropAct`. |
-| `enforce(&Capability, ceiling) -> CeilingVerdict` / `enforce_for_tenant` | `crates/oya-foundry-autonomy-ceiling-app/src/lib.rs` | 21–33 | Bridges Cap-tier ↔ Ceiling-tier enums. |
-| `check_tier(cap_tier, ceiling) -> CeilingVerdict` | `crates/oya-foundry-autonomy-ceiling-kernel/src/lib.rs` | 53–62 | Pure comparison. |
+| `AccountId(pub String)` / `ProviderFamily` enum / `SessionId` | `crates/oya-intelligence-account-kernel/src/lib.rs` | 14–29 | Public; owned values. |
+| `Capability::new(id, name, tier, evidence_required)` / `AutonomyTier` enum | `crates/oya-intelligence-capability-registry-kernel/src/lib.rs` | 49–136 | `T1Read..T4Actuate`; `try_from("T1")` works. |
+| `validate_publish(&Capability) -> Result<(), PublishValidationError>` | `crates/oya-intelligence-capability-registry-domain/src/lib.rs` | 43 (definition; full body unread but signature confirmed via grep) | Pre-condition for `CapabilityRegistry::register`. |
+| `CapabilityRegistry::register/list/get` + `parse_seed_json` | `crates/oya-intelligence-capability-registry-app/src/lib.rs` | 53–86, 97–153 | Hand-rolled JSON; **no serde dep** (HARD CONSTRAINT, L96). |
+| `CeilingPolicy::ceiling_for(&TenantId) -> AutonomyTier` / `set` | `crates/oya-intelligence-autonomy-ceiling-domain/src/lib.rs` | 40–70 | Default = `T3PropAct`. |
+| `enforce(&Capability, ceiling) -> CeilingVerdict` / `enforce_for_tenant` | `crates/oya-intelligence-autonomy-ceiling-app/src/lib.rs` | 21–33 | Bridges Cap-tier ↔ Ceiling-tier enums. |
+| `check_tier(cap_tier, ceiling) -> CeilingVerdict` | `crates/oya-intelligence-autonomy-ceiling-kernel/src/lib.rs` | 53–62 | Pure comparison. |
 | `serve(addr, router, chain, ServerConfig) -> Result<(), HyperRuntimeError>` | `crates/oya-http-runtime-hyper-adapter/src/lib.rs` | 284–335 | Real hyper server; `tokio` runtime; `ServerConfig::with_*`. |
 | `Router<SyncHandler>` + `MiddlewareChain` + `dispatch` | same | 206–221 + middleware-kernel | Real router; we use this for the supervisor's webhook surface (Branch §B.7). |
-| `oya-foundry-api-rest-adapter` | `crates/oya-foundry-api-rest-adapter/src/lib.rs` | 1–68 | **CONFIRMED STUB** — `handle()` returns fixed `RestResponse { status_code: 200 }`. No real router. **Not used for supervisor mountpoint.** |
+| `oya-intelligence-api-rest-adapter` | `crates/oya-intelligence-api-rest-adapter/src/lib.rs` | 1–68 | **CONFIRMED STUB** — `handle()` returns fixed `RestResponse { status_code: 200 }`. No real router. **Not used for supervisor mountpoint.** |
 | `oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli}` | each crate's `src/lib.rs` | L1–3 only | **All three are `pub fn placeholder() {}` skeletons.** No real CLI invocation logic yet — this is a finding, not a regression. |
 | Workspace deps | `Cargo.toml` | 481–492 | `tracing`, `hyper`, `hyper-util`, `tokio` (rt-multi-thread, net, macros), `http-body-util`, `bytes`. **No `rustix`, no `async-trait`, no `nix`, no `serde`, no `criterion`.** |
 | Capability seed file | `registry/capabilities/foundry-internal.json` | 8.8 KB, 50+ caps | Confirmed exists; T4 count must be 0 (capability-registry-app:307). |
@@ -112,23 +112,23 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 
 | Crate | v4-BNF + 12-layer-enum justification |
 |-------|--------------------------------------|
-| `oya-foundry-supervisor-kernel` | `oya-<foundry>-<supervisor>-<kernel>` — foundry is the registered µservice (`Cargo.toml:290`); supervisor is the new feature target; kernel is layer #1 of the 12-layer enum (pure types, no I/O). |
-| `oya-foundry-supervisor-app` | Same prefix; app is layer #4 — orchestrates kernel ports, owns the tokio runtime, hosts `benches/heartbeat.rs`. |
-| `oya-foundry-jsonl-supervisor-adapter` | `oya-<foundry>-<jsonl-supervisor>-<adapter>` — jsonl-supervisor is the target slot (file-format + feature compound; same shape as `oya-cloud-storage-block-adapter`); adapter is layer #5; the ONLY crate that does `std::fs` writes + rename. |
+| `oya-intelligence-supervisor-kernel` | `oya-<foundry>-<supervisor>-<kernel>` — foundry is the registered µservice (`Cargo.toml:290`); supervisor is the new feature target; kernel is layer #1 of the 12-layer enum (pure types, no I/O). |
+| `oya-intelligence-supervisor-app` | Same prefix; app is layer #4 — orchestrates kernel ports, owns the tokio runtime, hosts `benches/heartbeat.rs`. |
+| `oya-intelligence-jsonl-supervisor-adapter` | `oya-<foundry>-<jsonl-supervisor>-<adapter>` — jsonl-supervisor is the target slot (file-format + feature compound; same shape as `oya-cloud-storage-block-adapter`); adapter is layer #5; the ONLY crate that does `std::fs` writes + rename. |
 | `oya-foundry-supervisor-conformance` | `oya-<foundry>-<supervisor>-<conformance>` — conformance is a target slot (not a layer; same as `oya-adapter-substitution-test`). Stand-alone test crate that emits the capability registry seed row for each driver at its measured T-level. Declared HERE (not inline) per Architect feedback. |
 
-**Bench harness file:** `crates/oya-foundry-supervisor-app/benches/heartbeat.rs` — declared as part of supervisor-app, not a separate crate. Build target = `[[bench]] name = "heartbeat"` in supervisor-app `Cargo.toml`.
+**Bench harness file:** `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs` — declared as part of supervisor-app, not a separate crate. Build target = `[[bench]] name = "heartbeat"` in supervisor-app `Cargo.toml`.
 
 ### B.2 Public contracts (kernel surface)
 
 All types use **owned values only**. No lifetimes. No trait objects in struct fields.
 
-#### B.2.1 `oya-foundry-supervisor-kernel` types
+#### B.2.1 `oya-intelligence-supervisor-kernel` types
 
 ```rust
-use oya_foundry_account_kernel::{AccountId, ProviderFamily, SessionId};
-use oya_foundry_capability_registry_kernel::AutonomyTier;
-use oya_foundry_account_domain::UsageWindow;
+use oya_intelligence_account_kernel::{AccountId, ProviderFamily, SessionId};
+use oya_intelligence_capability_registry_kernel::AutonomyTier;
+use oya_intelligence_account_domain::UsageWindow;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct MessageId(pub String);            // INTERNAL_ONLY
@@ -214,7 +214,7 @@ pub struct SpendRecord {
 }
 ```
 
-#### B.2.2 `oya-foundry-supervisor-kernel` pure functions (no new public APIs on existing kernels)
+#### B.2.2 `oya-intelligence-supervisor-kernel` pure functions (no new public APIs on existing kernels)
 
 ```rust
 /// Pure decision: given accounts + windows + tier policy + incoming message
@@ -247,7 +247,7 @@ pub fn record_spend(ticket: &SessionTicket, tokens_in: u64, tokens_out: u64) -> 
 pub fn spend_to_usage_record(s: &SpendRecord, tenant_id: &str, ts_ms: u64) -> UsageRecord;
 ```
 
-#### B.2.3 `oya-foundry-supervisor-kernel` ports (sync traits — Branch Y)
+#### B.2.3 `oya-intelligence-supervisor-kernel` ports (sync traits — Branch Y)
 
 ```rust
 /// Per Branch Y: SessionDriver is SYNC. The supervisor-app drives async
@@ -286,7 +286,7 @@ pub trait InboxStore: Send + Sync {
 }
 ```
 
-#### B.2.4 `oya-foundry-jsonl-supervisor-adapter` (the ONLY crate that touches `std::fs`)
+#### B.2.4 `oya-intelligence-jsonl-supervisor-adapter` (the ONLY crate that touches `std::fs`)
 
 ```rust
 pub struct JsonlInbox { dir: PathBuf, lock_ttl_secs: u64 }
@@ -303,7 +303,7 @@ pub fn encode_inbox_line(state: &InboxState, msg: &MessageId, body: &[u8]) -> Ve
 pub fn decode_inbox_line(line: &[u8]) -> Result<(InboxState, MessageId, Vec<u8>), StoreError>;
 ```
 
-#### B.2.5 `oya-foundry-supervisor-app` (composes ports; owns tokio runtime)
+#### B.2.5 `oya-intelligence-supervisor-app` (composes ports; owns tokio runtime)
 
 ```rust
 pub struct SupervisorApp<D: SessionDriver, I: InboxStore> { /* ... */ }
@@ -420,9 +420,9 @@ SupervisorApp::tick_once(now):
 ### B.5 Cross-CLI hook bridge + capability seed file
 
 Three driver crates (renamed per the prerequisite ADR; reference names assumed post-rename):
-- `oya-foundry-claude-account-adapter` — uses Claude Code's stop-hook
-- `oya-foundry-codex-account-adapter` — uses Codex CLI's exit-or-no-stop-hook semantics
-- `oya-foundry-gemini-account-adapter` — uses Gemini CLI's available signaling
+- `oya-intelligence-claude-account-adapter` — uses Claude Code's stop-hook
+- `oya-intelligence-codex-account-adapter` — uses Codex CLI's exit-or-no-stop-hook semantics
+- `oya-intelligence-gemini-account-adapter` — uses Gemini CLI's available signaling
 
 Each implements `SessionDriver` (§B.2.3) and registers a stop-hook script that touches `stop_hook_path` on completion. Supervisor-app polls for file existence (no inotify dep needed — 100 ms tick is sufficient given the 25-tok idle budget).
 
@@ -474,10 +474,10 @@ The conformance crate runs each driver against a fake server that:
 
 ### B.7 Mountpoint decision
 
-**Chosen: (ii) Direct hyper via `oya-http-runtime-hyper-adapter`.** Reason: `oya-foundry-api-rest-adapter` is confirmed-stub (B.0 row). Compose:
+**Chosen: (ii) Direct hyper via `oya-http-runtime-hyper-adapter`.** Reason: `oya-intelligence-api-rest-adapter` is confirmed-stub (B.0 row). Compose:
 
 ```rust
-// In oya-foundry-supervisor-app::run_forever:
+// In oya-intelligence-supervisor-app::run_forever:
 let router = oya_http_router_kernel::Router::<SyncHandler>::new()
     .route(HttpMethod::Post, "/v1/supervisor/inbox", handler_to_sync(InboxIngest::new(...)))?
     .route(HttpMethod::Get,  "/v1/supervisor/health", handler_to_sync(HealthCheck))?
@@ -488,7 +488,7 @@ let config = oya_http_runtime_hyper_adapter::ServerConfig::default()
 oya_http_runtime_hyper_adapter::serve(addr, Arc::new(router), Arc::new(chain), config).await?;
 ```
 
-All four building blocks (`Router`, `MiddlewareChain`, `handler_to_sync`, `serve`) are confirmed-real in B.0. `oya-foundry-api-rest-adapter` is **not** on this chain. No prerequisite IP needed for `api-rest-adapter` — we side-step it.
+All four building blocks (`Router`, `MiddlewareChain`, `handler_to_sync`, `serve`) are confirmed-real in B.0. `oya-intelligence-api-rest-adapter` is **not** on this chain. No prerequisite IP needed for `api-rest-adapter` — we side-step it.
 
 ADR: `ADR-api-rest-adapter-mountpoint-or-transport` chooses (ii) with rationale: stub-bypass for now; api-rest-adapter remains stub until M02-P04 lands its own real router.
 
@@ -512,7 +512,7 @@ The supervisor publishes 6 capability rows:
 **Owner phase: M02-P01-provider-gateway** — supervisor's primary mission is gateway autonomy (route + reserve + spawn = provider gateway loop).
 
 Cross-cutting rows:
-- **M02-P02-multi-subscription-pool** — depends on `AccountId × subscription_id` fanout already landed (Cargo.toml:266–270 confirms `oya-foundry-provider-pool-kernel` exists).
+- **M02-P02-multi-subscription-pool** — depends on `AccountId × subscription_id` fanout already landed (Cargo.toml:266–270 confirms `oya-intelligence-provider-pool-kernel` exists).
 - **M02-P05-capability-registry-autonomy** — depends on `Capability` + `AutonomyTier` (capability-registry-kernel:49, autonomy-ceiling-kernel:13) — both real.
 
 The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on owner. Cross-phase rows in INDEX.md only acknowledge the dependency; the gates don't fire on them.
@@ -530,37 +530,37 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | ADR — cedar bootstrap (placeholder; risk-track only) | `docs/decisions/ADR-NNNN-cedar-policy-bootstrap.md` |
 | Doc-coverage suite (lean-a5) per crate | `docs/foundry/supervisor/{README,architecture,operations,security,sample-payloads}.md` for each of 4 new crates |
 | Capability seed | `registry/capabilities/foundry-supervisor.toml` |
-| Bench harness | `crates/oya-foundry-supervisor-app/benches/heartbeat.rs` |
+| Bench harness | `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs` |
 | Conformance build script | `crates/oya-foundry-supervisor-conformance/build.rs` (emits measured T-tier into seed file at build time) |
 
 **Renames (prerequisite ADR, NOT part of this plan):**
-- `oya-foundry-account-adapter-claude-code` → `oya-foundry-claude-account-adapter`
-- `oya-foundry-account-adapter-codex-cli` → `oya-foundry-codex-account-adapter`
-- `oya-foundry-account-adapter-gemini-cli` → `oya-foundry-gemini-account-adapter`
+- `oya-foundry-account-adapter-claude-code` → `oya-intelligence-claude-account-adapter`
+- `oya-foundry-account-adapter-codex-cli` → `oya-intelligence-codex-account-adapter`
+- `oya-foundry-account-adapter-gemini-cli` → `oya-intelligence-gemini-account-adapter`
 
 ### B.11 Verification gates (concrete commands; runnable as-is)
 
 | Gate | Command |
 |------|---------|
 | Workspace builds | `cargo build --workspace` |
-| Kernel unit tests | `cargo test -p oya-foundry-supervisor-kernel` |
-| Adapter unit tests | `cargo test -p oya-foundry-jsonl-supervisor-adapter` |
-| App lifecycle | `cargo test -p oya-foundry-supervisor-app --test lifecycle` |
-| Crash injection | `cargo test -p oya-foundry-supervisor-app --test crash_injection -- --test-threads=1` |
-| Watchdog timing | `cargo test -p oya-foundry-supervisor-app --test lifecycle watchdog_kill_p95` |
-| Dead-letter lane | `cargo test -p oya-foundry-supervisor-app --test lifecycle poison_message_quarantine_after_3` |
-| Audit chain | `cargo test -p oya-foundry-supervisor-app --test audit_chain` |
+| Kernel unit tests | `cargo test -p oya-intelligence-supervisor-kernel` |
+| Adapter unit tests | `cargo test -p oya-intelligence-jsonl-supervisor-adapter` |
+| App lifecycle | `cargo test -p oya-intelligence-supervisor-app --test lifecycle` |
+| Crash injection | `cargo test -p oya-intelligence-supervisor-app --test crash_injection -- --test-threads=1` |
+| Watchdog timing | `cargo test -p oya-intelligence-supervisor-app --test lifecycle watchdog_kill_p95` |
+| Dead-letter lane | `cargo test -p oya-intelligence-supervisor-app --test lifecycle poison_message_quarantine_after_3` |
+| Audit chain | `cargo test -p oya-intelligence-supervisor-app --test audit_chain` |
 | Conformance — Codex | `OYA_DRIVER=codex cargo test -p oya-foundry-supervisor-conformance -- stop_hook_codex --test-threads=1` |
 | Conformance — Gemini | `OYA_DRIVER=gemini cargo test -p oya-foundry-supervisor-conformance -- stop_hook_gemini --test-threads=1` |
 | Conformance — Claude | `OYA_DRIVER=claude cargo test -p oya-foundry-supervisor-conformance -- stop_hook_claude --test-threads=1` |
 | Capability seed emitted | `test -f registry/capabilities/foundry-supervisor.toml && grep -c '\[\[driver\]\]' registry/capabilities/foundry-supervisor.toml | grep -q '^3$'` |
 | Capability seed loads | `cargo test -p oya-foundry-supervisor-conformance -- seed_loads_and_publishes_to_registry` |
-| Bench harness | `cargo test --release -p oya-foundry-supervisor-app --bench heartbeat` |
-| Live smoke matrix | `OYA_LIVE_SMOKE=1 cargo test -p oya-foundry-supervisor-app --test matrix_3x2x2 -- --include-ignored --test-threads=1` |
-| Lean-a10 (no kernel surface change) | `cargo public-api -p oya-foundry-route-policy-kernel \| diff - .omc/snapshots/route-policy-kernel.public-api.txt` (snapshot stays byte-identical) |
-| Lean-a5 doc coverage | `cargo run -p oya-check-doc-catalog -- --crate oya-foundry-supervisor-kernel --require README,architecture,operations,security,sample-payloads` (repeat for each of 4 crates) |
-| Predictable naming | `cargo run -p oya-foundry-fitness-predictable-naming-kernel -- --check crates/oya-foundry-supervisor-{kernel,app,conformance} crates/oya-foundry-jsonl-supervisor-adapter` |
-| Banned primitives | `cargo run -p oya-foundry-fitness-banned-primitives-kernel -- --check crates/oya-foundry-supervisor-app` (must show only sanctioned `grit`/`icm`/`oya-tooling-agent-read`) |
+| Bench harness | `cargo test --release -p oya-intelligence-supervisor-app --bench heartbeat` |
+| Live smoke matrix | `OYA_LIVE_SMOKE=1 cargo test -p oya-intelligence-supervisor-app --test matrix_3x2x2 -- --include-ignored --test-threads=1` |
+| Lean-a10 (no kernel surface change) | `cargo public-api -p oya-intelligence-route-policy-kernel \| diff - .omc/snapshots/route-policy-kernel.public-api.txt` (snapshot stays byte-identical) |
+| Lean-a5 doc coverage | `cargo run -p oya-check-doc-catalog -- --crate oya-intelligence-supervisor-kernel --require README,architecture,operations,security,sample-payloads` (repeat for each of 4 crates) |
+| Predictable naming | `cargo run -p oya-governance-predictable-naming-kernel -- --check crates/oya-foundry-supervisor-{kernel,app,conformance} crates/oya-intelligence-jsonl-supervisor-adapter` |
+| Banned primitives | `cargo run -p oya-governance-banned-primitives-kernel -- --check crates/oya-intelligence-supervisor-app` (must show only sanctioned `grit`/`icm`/`oya-tooling-agent-read`) |
 | Net-new dep count | `cargo metadata --format-version 1 \| jq '[.packages[] \| select(.source != null) \| .name] \| length'` baseline vs after (must be **equal** — Branch Y) |
 
 ### B.12 Sequencing + grit claim units
@@ -573,32 +573,32 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | 4 | `docs/decisions/ADR-NNNN-supervisor-mountpoint-direct-hyper.md::header` | M02-P01 | Bypass rest-adapter stub |
 | 5 | `docs/decisions/ADR-NNNN-cedar-policy-bootstrap.md::header` | M02-P01 (risk-track) | No-op stub; tracks the cedar gap |
 | 6 | `Cargo.toml::members` | M02-P01 | Add 4 new crates to workspace |
-| 7 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::MessageId` | M02-P01 | New file |
-| 8 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::RequestId` | M02-P01 | |
-| 9 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::UsageWindowSnapshot` | M02-P01 | |
-| 10 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::SessionTicket` | M02-P01 | Value-only invariant |
-| 11 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::InboxState` | M02-P01 | |
-| 12 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::SupervisorVerdict` | M02-P01 | |
-| 13 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::SupervisorError` | M02-P01 | |
-| 14 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::SpendRecord` | M02-P01 | |
-| 15 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::decide` | M02-P01 | Pure decision fn |
-| 16 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::next_inbox_state` | M02-P01 | State machine |
-| 17 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::record_spend` | M02-P01 | |
-| 18 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::spend_to_usage_record` | M02-P01 | Bridge to billing-kernel |
-| 19 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::SessionDriver` | M02-P01 | Sync port |
-| 20 | `crates/oya-foundry-supervisor-kernel/src/lib.rs::InboxStore` | M02-P01 | Sync port |
-| 21 | `crates/oya-foundry-jsonl-supervisor-adapter/src/lib.rs::JsonlInbox` | M02-P01 | New file |
-| 22 | `crates/oya-foundry-jsonl-supervisor-adapter/src/lib.rs::JsonlOutbox` | M02-P01 | |
-| 23 | `crates/oya-foundry-jsonl-supervisor-adapter/src/lib.rs::encode_inbox_line` | M02-P01 | Hand-rolled framing |
-| 24 | `crates/oya-foundry-jsonl-supervisor-adapter/src/lib.rs::decode_inbox_line` | M02-P01 | |
-| 25 | `crates/oya-foundry-supervisor-app/src/lib.rs::SupervisorApp` | M02-P01 | |
-| 26 | `crates/oya-foundry-supervisor-app/src/lib.rs::tick_once` | M02-P01 | |
-| 27 | `crates/oya-foundry-supervisor-app/src/lib.rs::run_forever` | M02-P01 | tokio host |
-| 28 | `crates/oya-foundry-supervisor-app/benches/heartbeat.rs::main` | M02-P01 | Bench bin |
-| 29 | `crates/oya-foundry-supervisor-app/tests/lifecycle.rs::*` | M02-P01 | |
-| 30 | `crates/oya-foundry-supervisor-app/tests/crash_injection.rs::*` | M02-P01 | |
-| 31 | `crates/oya-foundry-supervisor-app/tests/audit_chain.rs::*` | M02-P01 | |
-| 32 | `crates/oya-foundry-supervisor-app/tests/matrix_3x2x2.rs::*` | M02-P01 | Gated on `$OYA_LIVE_SMOKE` |
+| 7 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::MessageId` | M02-P01 | New file |
+| 8 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::RequestId` | M02-P01 | |
+| 9 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::UsageWindowSnapshot` | M02-P01 | |
+| 10 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SessionTicket` | M02-P01 | Value-only invariant |
+| 11 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::InboxState` | M02-P01 | |
+| 12 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SupervisorVerdict` | M02-P01 | |
+| 13 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SupervisorError` | M02-P01 | |
+| 14 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SpendRecord` | M02-P01 | |
+| 15 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::decide` | M02-P01 | Pure decision fn |
+| 16 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::next_inbox_state` | M02-P01 | State machine |
+| 17 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::record_spend` | M02-P01 | |
+| 18 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::spend_to_usage_record` | M02-P01 | Bridge to billing-kernel |
+| 19 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::SessionDriver` | M02-P01 | Sync port |
+| 20 | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::InboxStore` | M02-P01 | Sync port |
+| 21 | `crates/oya-intelligence-jsonl-supervisor-adapter/src/lib.rs::JsonlInbox` | M02-P01 | New file |
+| 22 | `crates/oya-intelligence-jsonl-supervisor-adapter/src/lib.rs::JsonlOutbox` | M02-P01 | |
+| 23 | `crates/oya-intelligence-jsonl-supervisor-adapter/src/lib.rs::encode_inbox_line` | M02-P01 | Hand-rolled framing |
+| 24 | `crates/oya-intelligence-jsonl-supervisor-adapter/src/lib.rs::decode_inbox_line` | M02-P01 | |
+| 25 | `crates/oya-intelligence-supervisor-app/src/lib.rs::SupervisorApp` | M02-P01 | |
+| 26 | `crates/oya-intelligence-supervisor-app/src/lib.rs::tick_once` | M02-P01 | |
+| 27 | `crates/oya-intelligence-supervisor-app/src/lib.rs::run_forever` | M02-P01 | tokio host |
+| 28 | `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs::main` | M02-P01 | Bench bin |
+| 29 | `crates/oya-intelligence-supervisor-app/tests/lifecycle.rs::*` | M02-P01 | |
+| 30 | `crates/oya-intelligence-supervisor-app/tests/crash_injection.rs::*` | M02-P01 | |
+| 31 | `crates/oya-intelligence-supervisor-app/tests/audit_chain.rs::*` | M02-P01 | |
+| 32 | `crates/oya-intelligence-supervisor-app/tests/matrix_3x2x2.rs::*` | M02-P01 | Gated on `$OYA_LIVE_SMOKE` |
 | 33 | `crates/oya-foundry-supervisor-conformance/build.rs::main` | M02-P01 | Emits T-tier into seed file |
 | 34 | `crates/oya-foundry-supervisor-conformance/src/lib.rs::*` | M02-P01 | |
 | 35 | `registry/capabilities/foundry-supervisor.toml::header` | M02-P01 | Seed file (build.rs writes T-tiers) |
@@ -632,7 +632,7 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | C.12 | **Capability seed file** `registry/capabilities/foundry-supervisor.toml` exists with exactly 3 `[[driver]]` blocks, each carrying a measured `autonomy_tier` filled by the conformance build.rs | rows 12, 13 |
 | C.13 | Bench harness produces 4 measured metrics: idle-tick p95 ≤ 25 tok, restart p95 ≤ 1.5s, RSS ≤ 64 MiB, watchdog kill ≤ 5.0s | row 14 |
 | C.14 | **Live smoke matrix green** — 3×CLI × 2×accounts × 2×providers = 12 combinations each process at least 1 message and commit at least 1 outbox line | row 15 |
-| C.15 | **Lean-a10 public-API snapshot stays byte-identical** for `oya-foundry-route-policy-kernel`, `oya-foundry-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-foundry-account-domain`, `oya-foundry-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` (no kernel touched) | row 16 |
+| C.15 | **Lean-a10 public-API snapshot stays byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-foundry-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` (no kernel touched) | row 16 |
 | C.16 | Lean-a5 doc-coverage green for all 4 new crates | row 17 |
 | C.17 | Predictable-naming + banned-primitives lanes green for the 4 new crates | rows 18, 19 |
 | C.18 | **Net-new external dep count = 0** (Branch Y) — `cargo metadata` package count unchanged | row 20 |

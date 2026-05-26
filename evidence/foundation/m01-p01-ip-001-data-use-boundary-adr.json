@@ -26,8 +26,8 @@
     "rustfmt.toml",
     "scripts/validate-adr-shape.mjs",
     "Cargo.toml",
-    "crates/oya-foundry-fitness-adr-shape-kernel/Cargo.toml",
-    "crates/oya-foundry-fitness-adr-shape-kernel/src/lib.rs",
+    "crates/oya-governance-adr-shape-kernel/Cargo.toml",
+    "crates/oya-governance-adr-shape-kernel/src/lib.rs",
     "tools/oya-foundry-fitness-adr-shape/Cargo.toml",
     "tools/oya-foundry-fitness-adr-shape/src/main.rs",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-001-data-use-boundary-adr.md",
@@ -70,17 +70,17 @@
       "status": "pass"
     },
     {
-      "command": "rustfmt --check crates/oya-foundry-fitness-adr-shape-kernel/src/lib.rs tools/oya-foundry-fitness-adr-shape/src/main.rs",
+      "command": "rustfmt --check crates/oya-governance-adr-shape-kernel/src/lib.rs tools/oya-foundry-fitness-adr-shape/src/main.rs",
       "status": "pass",
       "summary": "uses rustfmt.toml edition=2024 style_edition=2024"
     },
     {
-      "command": "rustfmt --print-config current crates/oya-foundry-fitness-adr-shape-kernel/src/lib.rs | grep \"^edition\\|^style_edition\"",
+      "command": "rustfmt --print-config current crates/oya-governance-adr-shape-kernel/src/lib.rs | grep \"^edition\\|^style_edition\"",
       "status": "pass",
       "summary": "edition = \"2024\"; style_edition = \"2024\""
     },
     {
-      "command": "cargo check -p oya-foundry-fitness-adr-shape-kernel",
+      "command": "cargo check -p oya-governance-adr-shape-kernel",
       "status": "pass"
     },
     {
@@ -88,7 +88,7 @@
       "status": "pass"
     },
     {
-      "command": "cargo test -p oya-foundry-fitness-adr-shape-kernel",
+      "command": "cargo test -p oya-governance-adr-shape-kernel",
       "status": "pass",
       "summary": "6 passed; 0 failed"
     },

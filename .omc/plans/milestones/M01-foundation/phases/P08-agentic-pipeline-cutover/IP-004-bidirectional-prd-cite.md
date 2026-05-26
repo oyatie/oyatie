@@ -21,7 +21,7 @@ Cross-cite oyatie/docs/PRD.md and bominal/docs/consolidated/PRD.md; ship portfol
 ## Symbols-to-grit-claim
 ```
 docs/PRD.md::bominal-cite
-crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs::verify
+crates/oya-governance-portfolio-citation-kernel/src/lib.rs::verify
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

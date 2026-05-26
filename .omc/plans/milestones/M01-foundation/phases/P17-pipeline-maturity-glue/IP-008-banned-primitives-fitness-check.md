@@ -23,8 +23,8 @@ The active lane is `M01-P17-IP-008.1`. This P17 record is the historical audit e
 
 Current implementation shape:
 
-- kernel crate: `crates/oya-foundry-fitness-banned-primitives-kernel`
-- direct runner: `tools/oya-foundry-fitness-banned-primitives-app`
+- kernel crate: `crates/oya-governance-banned-primitives-kernel`
+- direct runner: `tools/oya-governance-banned-primitives-app`
 - gate runner: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`
 - workflow context: `oya-foundry-fitness-banned-primitives`
 - quality lane: `registry/quality/lanes.yaml::oya-foundry-fitness-banned-primitives`

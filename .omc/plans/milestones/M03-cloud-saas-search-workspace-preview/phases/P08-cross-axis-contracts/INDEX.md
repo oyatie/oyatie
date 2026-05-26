@@ -10,7 +10,7 @@ decided_at: "2026-05-17"
 decided_by: user-directive-option-2
 execution_variant_note: >
   Delta-1 merge-variant: AxisKind, CrossAxisContract, AxisBinding added as
-  cross_axis module in oya-foundry-architecture-map-kernel. No new crate
+  cross_axis module in oya-intelligence-architecture-map-kernel. No new crate
   scaffolded; no workspace deps added; std-only.
 ---
 

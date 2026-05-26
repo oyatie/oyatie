@@ -15,7 +15,7 @@
 //!
 //! Bot-user OAuth 2.0. SecretReference resolves a long-lived bot token
 //! stored in OpenBao under `sref://<tenant>/slack/bot-token`. Token
-//! rotation is handled by `oya-foundry-adapter-anthropic-api-kernel`'s
+//! rotation is handled by `oya-intelligence-adapter-anthropic-api-kernel`'s
 //! sister substrate at the secrets layer; the adapter never sees the
 //! raw bytes.
 //!

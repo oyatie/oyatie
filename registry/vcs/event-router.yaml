@@ -11,7 +11,7 @@
 # - Empty `action: ""` is the row-side wildcard; ADR-0112 uses it for
 #   `push`-to-branch entries (which carry no GitHub `action` field).
 #
-# Schema (consumed by oya-foundry-webhook-receiver-app):
+# Schema (consumed by oya-vcs-webhook-receiver-app):
 #   rows:
 #     - event:      <X-GitHub-Event header value>
 #       action:     <payload "action" field, or "" for wildcard>
@@ -35,7 +35,7 @@ rows:
 
   - event: pull_request
     action: synchronize
-    agent: oya-foundry-vcs-merge-queue-fix-loop-app + oya-foundry-vcs-ci-fix-loop-dispatcher-app
+    agent: oya-vcs-merge-queue-fix-loop-app + oya-vcs-ci-fix-loop-dispatcher-app
     purpose: Fix-at-any-stage re-validate (ADR-0111)
 
   - event: pull_request
@@ -53,23 +53,23 @@ rows:
   - event: workflow_run
     action: completed
     conclusion: success
-    agent: oya-foundry-pr-review-dispatcher-app
+    agent: oya-intelligence-pr-review-dispatcher-app
     purpose: Run multispectrum review (IP-004)
 
   - event: workflow_run
     action: completed
     conclusion: failure
-    agent: oya-foundry-vcs-ci-fix-loop-dispatcher-app
+    agent: oya-vcs-ci-fix-loop-dispatcher-app
     purpose: Run fix-loop with retry budget (IP-005)
 
   - event: check_suite
     action: completed
-    agent: oya-foundry-vcs-merge-queue-fix-loop-app
+    agent: oya-vcs-merge-queue-fix-loop-app
     purpose: Re-evaluate queue (some checks landed)
 
   - event: push
     action: ""
-    agent: oya-foundry-vcs-promotion-controller-kernel
+    agent: oya-vcs-promotion-controller-kernel
     purpose: Trigger promotion workflow (dev->staging->production)
 
   - event: pull_request_review

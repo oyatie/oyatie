@@ -12,7 +12,7 @@ decided_by: user-directive-option-2
 execution_variant_note: >
   User directive 2026-05-17 (option 2): do NOT scaffold the 8 new crates listed in
   the impl-plan. Instead, backport the smallest net-new type into the existing live
-  oya-foundry-capability-registry-kernel crate. Delta-1 adds CapabilityStatus
+  oya-intelligence-capability-registry-kernel crate. Delta-1 adds CapabilityStatus
   (Active/Deprecated/Disabled) via a new status.rs module + re-export.
 blocked_by:
 - impl_plan: P14-policy/IP-001

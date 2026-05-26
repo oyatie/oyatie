@@ -117,7 +117,7 @@
       "description": "SessionTicket, InboxState, SpendRecord, UsageWindowSnapshot, MessageId, RequestId declared in v4 \u00a7B.2.1 have no `/// data_class:` annotation. Account-kernel already establishes this convention (AccountId L14, SessionId L18 both annotated `/// data_class: INTERNAL_ONLY`). SessionTicket wraps AccountId + UsageWindowSnapshot + AutonomyTier \u2014 INTERNAL_ONLY at minimum. SpendRecord + UsageRecord bridge to tenant_id \u2014 TENANT_SCOPED. Missing annotations break the data-class CI lane and make automated compliance scanning impossible.",
       "anti_pattern": "data-class-undeclared",
       "affected_artifacts": [
-        "crates/oya-foundry-supervisor-kernel/src/lib.rs (planned \u2014 grit units #8-15)"
+        "crates/oya-intelligence-supervisor-kernel/src/lib.rs (planned \u2014 grit units #8-15)"
       ],
       "remediation": "Add `/// data_class: INTERNAL_ONLY` to MessageId, RequestId, SessionTicket, InboxState, UsageWindowSnapshot. Add `/// data_class: TENANT_SCOPED` to SpendRecord (carries tenant_id in spend_to_usage_record). Add to grit unit #8 pre-condition before scaffold."
     },
@@ -129,9 +129,9 @@
       "description": "Six capabilities are registered with evidence_required=true (v4 \u00a7B.8). C.8 covers spawn/commit. Step 13.5 covers UsageBlocked. But four additional state-mutation paths in tick_once lack declared audit emission: (a) degrade_account on OverUsageLimit/ReserveBreached (step 8-9); (b) TierBlocked (step 11); (c) Quarantine after MAX_PARSE_RETRIES; (d) rotate_window on WindowExpired (step 9). Additionally, v5 SettingsRenderer::render is a credential-adjacent state mutation (rewrites ~/.claude/settings.json with sref-tagged MCP server env) with zero audit chain emission declared anywhere in v5 delta. A compliance team cannot reconstruct 'who caused account X to be degraded' or 'when were account X settings rendered' from the audit chain.",
       "anti_pattern": "missing-audit-chain-emission-for-state-change",
       "affected_artifacts": [
-        "crates/oya-foundry-supervisor-app/src/lib.rs::tick_once (v4 \u00a7B.4 steps 8-9, 11)",
-        "crates/oya-foundry-supervisor-app/tests/audit_chain.rs (C.8 \u2014 incomplete coverage declared)",
-        "crates/oya-foundry-settings-template-adapter-fs/src/lib.rs::ClaudeRenderer::render (v5 \u00a7B.2.2 \u2014 no emission)"
+        "crates/oya-intelligence-supervisor-app/src/lib.rs::tick_once (v4 \u00a7B.4 steps 8-9, 11)",
+        "crates/oya-intelligence-supervisor-app/tests/audit_chain.rs (C.8 \u2014 incomplete coverage declared)",
+        "crates/oya-intelligence-settings-template-adapter-fs/src/lib.rs::ClaudeRenderer::render (v5 \u00a7B.2.2 \u2014 no emission)"
       ],
       "remediation": "1. In tick_once: add emit_audit_event calls at DemoteAndRetry (degrade_account path), TierBlocked, Quarantine, and rotate_window returns \u2014 matching the capability_id for each (foundry.supervisor.degrade_account, foundry.supervisor.spawn-refusal, foundry.supervisor.quarantine, foundry.supervisor.rotate_window). 2. Expand C.8 acceptance criterion to enumerate all 6 capability_id audit paths, not just spawn/commit. 3. v5: add emit_audit_event('SettingsRendered', account_id, provider, manifest_hash) to SettingsRenderer::render contract and wire a test in Wave 4d."
     },

@@ -19,13 +19,13 @@ Ratchet 7 fitness lanes WARN→BLOCK per wave.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-claim-ceiling-kernel/src/lib.rs::ratchet
+crates/oya-governance-claim-ceiling-kernel/src/lib.rs::ratchet
 crates/oya-foundry-fitness-authority-cohesion-kernel/src/lib.rs::ratchet
-crates/oya-foundry-fitness-bypass-kernel/src/lib.rs::ratchet
-crates/oya-foundry-fitness-pr-traceability-kernel/src/lib.rs::ratchet
-crates/oya-foundry-fitness-pre-push-kernel/src/lib.rs::ratchet
-crates/oya-foundry-fitness-quality-lane-kernel/src/lib.rs::ratchet
-crates/oya-foundry-fitness-cohesion-fitness-kernel/src/lib.rs::ratchet
+crates/oya-governance-bypass-kernel/src/lib.rs::ratchet
+crates/oya-governance-pr-traceability-kernel/src/lib.rs::ratchet
+crates/oya-governance-pre-push-kernel/src/lib.rs::ratchet
+crates/oya-governance-quality-lane-kernel/src/lib.rs::ratchet
+crates/oya-governance-cohesion-fitness-kernel/src/lib.rs::ratchet
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

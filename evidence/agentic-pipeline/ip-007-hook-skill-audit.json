@@ -2,8 +2,8 @@
   "changed_files": [
     "Cargo.toml",
     "docs/AGENT-INSTRUCTION-SOURCES.md",
-    "crates/oya-foundry-fitness-banned-primitives-kernel/Cargo.toml",
-    "crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
+    "crates/oya-governance-banned-primitives-kernel/Cargo.toml",
+    "crates/oya-governance-banned-primitives-kernel/src/lib.rs",
     "tools/oya-foundry-fitness-banned-primitives/Cargo.toml",
     "tools/oya-foundry-fitness-banned-primitives/src/main.rs",
     "/templates/checklists/agent-completion-checklist.md",
@@ -15,7 +15,7 @@
     "agent": "codex-autopilot-p01-ip007",
     "direct_git_or_gh_used_by_agent": false,
     "grit_claimed_symbols": [
-      "crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs::check_documented_genuine_need"
+      "crates/oya-governance-banned-primitives-kernel/src/lib.rs::check_documented_genuine_need"
     ],
     "grit_status_note": "Symbol claim granted after scaffold and grit init; status showed expired lock before review.",
     "initial_grit_claim_result": "docs/new-crate pseudo-symbol claim blocked by FOREIGN KEY constraint failed; ICM scaffold-lock fallback used.",
@@ -49,7 +49,7 @@
   },
   "delivered_behavior": [
     "docs/AGENT-INSTRUCTION-SOURCES.md enumerates 25 repo-local files with exact agent-instructions fences and line numbers.",
-    "New oya-foundry-fitness-banned-primitives-kernel exposes check_documented_genuine_need and validates required root fences, hard-banned primitives, undocumented direct VCS/forge uses, and unknown ICM rationale IDs.",
+    "New oya-governance-banned-primitives-kernel exposes check_documented_genuine_need and validates required root fences, hard-banned primitives, undocumented direct VCS/forge uses, and unknown ICM rationale IDs.",
     "New oya-foundry-fitness-banned-primitives runner scans exact fence marker lines only, avoiding inline-marker false positives, and defaults to AGENTS.md, CLAUDE.md, docs, and .omc.",
     "Fenced template/checklist content no longer contains direct VCS/forge tokens such as git-sha or direct git/gh prose inside agent-instruction fences.",
     "Runner smoke reports sources_checked=25 fences_checked=25 usages_checked=0 documented_exceptions=0, activating the P5 audit surface.",
@@ -73,16 +73,16 @@
   "summary": "Banned-primitives lane was activated for exact agent-instruction fences, with a repo-local source inventory and std-only kernel/runner that rejects hard-banned primitives and undocumented direct VCS/forge usage.",
   "validation": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs tools/oya-foundry-fitness-banned-primitives/src/main.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-governance-banned-primitives-kernel/src/lib.rs tools/oya-foundry-fitness-banned-primitives/src/main.rs",
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
+      "command": "rustc --edition 2021 -D warnings --test crates/oya-governance-banned-primitives-kernel/src/lib.rs",
       "evidence": "6 tests passed; 0 failed",
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-banned-primitives/src/main.rs --extern oya_foundry_fitness_banned_primitives_kernel=/tmp/oyatie-ip007-verification/liboya_foundry_fitness_banned_primitives_kernel.rlib",
+      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-banned-primitives/src/main.rs --extern oya_governance_banned_primitives_kernel=/tmp/oyatie-ip007-verification/liboya_governance_banned_primitives_kernel.rlib",
       "evidence": "5 tests passed; 0 failed",
       "status": "passed"
     },
@@ -103,7 +103,7 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo test -p oya-foundry-fitness-banned-primitives-kernel --all-features",
+      "command": "cargo test -p oya-governance-banned-primitives-kernel --all-features",
       "exit_code": 101,
       "status": "blocked"
     },
@@ -115,7 +115,7 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- crates/oya-foundry-fitness-banned-primitives-kernel tools/oya-foundry-fitness-banned-primitives docs/AGENT-INSTRUCTION-SOURCES.md",
+      "command": "cargo run -p oya-foundry-fitness-cohesion -- crates/oya-governance-banned-primitives-kernel tools/oya-foundry-fitness-banned-primitives docs/AGENT-INSTRUCTION-SOURCES.md",
       "exit_code": 101,
       "status": "blocked"
     },

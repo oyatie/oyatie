@@ -12,19 +12,19 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:362-365,450-470 and tools/oya-foundry-webhook-receiver-app/src/lib.rs:190-198",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:362-365,450-470 and tools/oya-vcs-webhook-receiver-app/src/lib.rs:190-198",
       "issue": "HMAC verification is skipped whenever skip_hmac is false but no secret is loaded; startup also retries without the secret after SecretIo. A missing/misconfigured webhook secret therefore accepts unsigned production webhooks.",
       "remediation": "Make missing secret a startup error unless --skip-hmac is explicitly set, and add tests for HTTP mode rejecting unsigned deliveries when the secret path/ref is absent."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:378-393 and registry/vcs/webhook-delivery-log.json:1",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:378-393 and registry/vcs/webhook-delivery-log.json:1",
       "issue": "Accepted/routing-failed HTTP deliveries are not appended to webhook-delivery-log.json. The receiver loads an initially empty log, returns a response, and leaves no durable delivery, dedup, or failure evidence for incident replay.",
       "remediation": "Append every delivery outcome with delivery_id/event/action/outcome/timestamp using atomic/locked writes, and cover accepted, deduplicated, expired, routing_failed, and agent_invocation_failed paths."
     },
     {
       "severity": "MAJOR",
-      "file": "registry/vcs/event-router.yaml:31-78 and tools/oya-foundry-webhook-receiver-app/src/main.rs:382-386",
+      "file": "registry/vcs/event-router.yaml:31-78 and tools/oya-vcs-webhook-receiver-app/src/main.rs:382-386",
       "issue": "Routing returns an agent name/purpose but does not invoke the dispatcher or persist a dispatch request. Operators see HTTP 202 Accepted without proof that the Foundry agent actually received work.",
       "remediation": "Emit a durable dispatch queue/event row after route_event succeeds, record dispatcher outcome, and write agent_invocation_failed rows when invocation cannot be confirmed."
     }

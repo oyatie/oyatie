@@ -43,7 +43,7 @@
       "use": "Community REST write-plan entrypoints already exposed SQL/outbox app plans for create, vote, and moderation."
     },
     {
-      "url": "repo://crates/oya-foundry-backbone-workload-live-app/tests/backbone_workload_live.rs",
+      "url": "repo://crates/oya-intelligence-backbone-workload-live-app/tests/backbone_workload_live.rs",
       "use": "An env-gated disposable workload harness already exercises app plans through SQLx against a supplied database; this slice deliberately stays local/recording at the REST runtime boundary."
     }
   ],

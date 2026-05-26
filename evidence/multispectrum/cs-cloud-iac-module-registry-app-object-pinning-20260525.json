@@ -88,7 +88,7 @@
       "summary": "Scoped fmt/check/clippy quality gates passed."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain; oya catalog validate; architecture-boundaries; api-semver; planning-closure; license-policy",
+      "command": "cargo test -p oya-governance-gate-catalog-domain; oya catalog validate; architecture-boundaries; api-semver; planning-closure; license-policy",
       "result": "PASS",
       "log": "/tmp/cs-cloud-iac-module-registry-app-object-pinning-governance-core.log",
       "summary": "Gate catalog tests, catalog validate, architecture-boundaries, api-semver, planning-closure, and license-policy passed."

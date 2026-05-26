@@ -19,8 +19,8 @@ Ship the dry-run what-if surface (no mutations).
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-dashboard-app/src/lib.rs::dry_run
-crates/oya-foundry-dashboard-app/src/lib.rs::WhatIf
+crates/oya-intelligence-dashboard-app/src/lib.rs::dry_run
+crates/oya-intelligence-dashboard-app/src/lib.rs::WhatIf
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

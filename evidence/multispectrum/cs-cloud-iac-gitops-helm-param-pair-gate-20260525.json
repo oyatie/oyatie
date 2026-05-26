@@ -72,7 +72,7 @@
       "summary": "Rust formatting, scoped package check, and clippy warnings-as-errors passed for oya-dev-cli."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain; oya catalog validate; architecture-boundaries; api-semver; planning-closure; license-policy",
+      "command": "cargo test -p oya-governance-gate-catalog-domain; oya catalog validate; architecture-boundaries; api-semver; planning-closure; license-policy",
       "result": "PASS",
       "log": "/tmp/cs-cloud-iac-gitops-helm-param-pair-gate-governance-core.log",
       "summary": "Gate catalog unit tests and core governance/admission gates passed."

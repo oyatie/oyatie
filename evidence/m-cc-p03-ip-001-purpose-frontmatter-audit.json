@@ -175,5 +175,5 @@
       "/evidence/goals/implement-masterplan-goal-prompt.json"
     ]
   },
-  "next_action": "M01-P10-IP-001a (proposed): per-subtree backfill IPs for each top-level directory with non-zero 'without_purpose' counts above. Lane runner is oya-foundry-fitness-doc-style-kernel + oya-foundry-fitness-orphan-detection-kernel."
+  "next_action": "M01-P10-IP-001a (proposed): per-subtree backfill IPs for each top-level directory with non-zero 'without_purpose' counts above. Lane runner is oya-governance-doc-style-kernel + oya-governance-orphan-detection-kernel."
 }

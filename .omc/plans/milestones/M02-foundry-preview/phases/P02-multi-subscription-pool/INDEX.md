@@ -55,16 +55,16 @@ the existing Phase 00 `ProviderAccount` state machine without duplicating accoun
 
 ## Estimated parallelism
 
-`5` agents in parallel after IP-001 merges (pool kernel is the serialization bottleneck — IP-002, IP-003, IP-004, IP-005, IP-006 fan out 5-way). Serialization bottleneck = `crates/oya-foundry-provider-pool-kernel` symbol stable.
+`5` agents in parallel after IP-001 merges (pool kernel is the serialization bottleneck — IP-002, IP-003, IP-004, IP-005, IP-006 fan out 5-way). Serialization bottleneck = `crates/oya-intelligence-provider-pool-kernel` symbol stable.
 
 ## Symbols-touched (high level)
 
-- `crates/oya-foundry-provider-pool-kernel/` (new; pure kernel)
-- `crates/oya-foundry-adapter-anthropic-compat-api/` (new; passthrough)
-- `crates/oya-foundry-adapter-openai-compat-api/` (new; passthrough)
+- `crates/oya-intelligence-provider-pool-kernel/` (new; pure kernel)
+- `crates/oya-intelligence-adapter-anthropic-compat-api/` (new; passthrough)
+- `crates/oya-intelligence-adapter-openai-compat-api/` (new; passthrough)
 - `crates/oya-foundry-agent-runtime/src/foundry/auth.rs` (extended)
 - `crates/oya-foundry-policy-kernel/` (extended with ToS-ack)
-- `crates/oya-foundry-fitness-upstream-api-drift-kernel/` (new)
+- `crates/oya-governance-upstream-api-drift-kernel/` (new)
 - `tools/oya-foundry-fitness-upstream-api-drift/` (new; nightly runner)
 - `contracts/foundry-compat-anthropic-v1.openapi.yaml` (new)
 - `contracts/foundry-compat-openai-v1.openapi.yaml` (new)

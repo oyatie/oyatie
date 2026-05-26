@@ -33,7 +33,7 @@ Per [`../../../../../docs/PRD.md`](../../../../../docs/PRD.md) §4.1 row "KR Gro
 3 agents; gtm-customer-success runs onboarding while axis-foundry activates agents while axis-saas configures Workflow Studio.
 
 ## Symbols-touched
-`crates/oya-platform-tenant-app::onboard`, `crates/oya-saas-workflow-app::author`, `crates/oya-foundry-capability-registry-app::activate`.
+`crates/oya-platform-tenant-app::onboard`, `crates/oya-saas-workflow-app::author`, `crates/oya-intelligence-capability-registry-app::activate`.
 
 ## Agent-handoff
 ```

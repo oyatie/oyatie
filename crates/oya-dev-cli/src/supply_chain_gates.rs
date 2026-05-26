@@ -10,7 +10,7 @@ use oya_check_supply_chain::{
     ReleaseArtifact, ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
     validate_pre_release_supply_chain, validate_release_supply_chain, validate_supply_chain,
 };
-use oya_foundry_gate_catalog_domain::all_canonical_commands_rendered;
+use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{
     clean_scalar_value, extract_json_array_for_key, extract_json_object_for_key,
@@ -25,7 +25,7 @@ pub(crate) struct SupplyChainValidateArgs {
     deny_config_path: PathBuf,
     /// Optional test-only override for the wired-commands corpus. When
     /// `None` (production default) the kernel sources its wired-commands
-    /// catalog from `oya-foundry-gate-catalog-domain` per the .sh-removal
+    /// catalog from `oya-governance-gate-catalog-domain` per the .sh-removal
     /// chain IP-C. When `Some(path)`, the CLI reads the path verbatim —
     /// used by the integration-test fixtures in
     /// `tests/gate_cli.rs` to exercise rejection paths.
@@ -560,13 +560,17 @@ fn read_supply_chain_records(registry_dir: &Path) -> Result<Vec<SupplyChainRecor
 }
 
 fn supply_chain_attestation_id(
-    attestation: oya_foundry_catalog_domain::SupplyChainAttestation,
+    attestation: oya_intelligence_catalog_domain::SupplyChainAttestation,
 ) -> String {
     match attestation {
-        oya_foundry_catalog_domain::SupplyChainAttestation::SourceOnly => "source-only",
-        oya_foundry_catalog_domain::SupplyChainAttestation::LicenseChecked => "license-checked",
-        oya_foundry_catalog_domain::SupplyChainAttestation::Sbom => "sbom",
-        oya_foundry_catalog_domain::SupplyChainAttestation::SignedProvenance => "signed-provenance",
+        oya_intelligence_catalog_domain::SupplyChainAttestation::SourceOnly => "source-only",
+        oya_intelligence_catalog_domain::SupplyChainAttestation::LicenseChecked => {
+            "license-checked"
+        }
+        oya_intelligence_catalog_domain::SupplyChainAttestation::Sbom => "sbom",
+        oya_intelligence_catalog_domain::SupplyChainAttestation::SignedProvenance => {
+            "signed-provenance"
+        }
     }
     .into()
 }

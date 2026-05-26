@@ -8,13 +8,13 @@
   "created_at_epoch_seconds": 1779002374,
   "status": "pass",
   "artifacts": [
-    "crates/oya-foundry-evidence-domain/src/kr_acceptance.rs",
-    "crates/oya-foundry-evidence-domain/src/lib.rs",
+    "crates/oya-intelligence-evidence-domain/src/kr_acceptance.rs",
+    "crates/oya-intelligence-evidence-domain/src/lib.rs",
     ".omc/plans/milestones/M07-first-tenant/phases/P08-kr-acceptance-evidence/impl-plan.md"
   ],
   "validation": [
     {
-      "command": "cargo nextest run -p oya-foundry-evidence-domain --all-features",
+      "command": "cargo nextest run -p oya-intelligence-evidence-domain --all-features",
       "status": "pass",
       "summary": "19/19 pass"
     },
@@ -27,5 +27,5 @@
   "no_new_workspace_deps": true,
   "no_new_crate_scaffold": true,
   "no_serde": true,
-  "closure": "M07/P08-kr-acceptance-evidence merge-variant delta-1: AcceptanceTestKind (5 variants, label/parse_label roundtrip) added as new module kr_acceptance in oya-foundry-evidence-domain. P08 impl-plan frontmatter amended with execution_variant=merge-into-existing-crates."
+  "closure": "M07/P08-kr-acceptance-evidence merge-variant delta-1: AcceptanceTestKind (5 variants, label/parse_label roundtrip) added as new module kr_acceptance in oya-intelligence-evidence-domain. P08 impl-plan frontmatter amended with execution_variant=merge-into-existing-crates."
 }

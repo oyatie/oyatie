@@ -349,7 +349,7 @@
       "Crate": {
         "purpose": "Rust workspace member crate per ADR-0015 + ADR-0056 BNF v4.1",
         "id_pattern": "^oya-[a-z0-9-]+$",
-        "examples": ["oya-foundry-evidence-domain", "oya-application-product-enablement-kernel"],
+        "examples": ["oya-intelligence-evidence-domain", "oya-application-product-enablement-kernel"],
         "contributing_registries": ["Cargo.toml [workspace.members]", "registry/catalog/<crate>.yaml"]
       },
       "Lane": {

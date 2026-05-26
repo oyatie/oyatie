@@ -141,7 +141,7 @@
       "status": "pending",
       "summary": "Run before commit"
     },
-    "oya_foundry_vcs_admission_gate_app": {
+    "oya_vcs_admission_gate_app": {
       "status": "pending",
       "summary": "Run after multispectrum + audit-chain rows are committed"
     },

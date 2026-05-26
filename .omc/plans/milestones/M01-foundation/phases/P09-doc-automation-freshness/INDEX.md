@@ -13,7 +13,7 @@ purpose: Generate docs from machine-readable truth (rustdoc, OpenAPI, ADR-INDEX,
 Per MASTERPLAN §2 Directive 10. Hand-written docs are reserved for narrative; everything machine-derivable is generated.
 
 ## Acceptance
-- `oya-foundry-mdbook-kernel` publishes rustdoc + OpenAPI Redoc + AsyncAPI + ADR-INDEX + glossary + COMPLIANCE-MATRIX as a single mdbook site.
+- `oya-intelligence-mdbook-kernel` publishes rustdoc + OpenAPI Redoc + AsyncAPI + ADR-INDEX + glossary + COMPLIANCE-MATRIX as a single mdbook site.
 - `oya-foundry-fitness-doc-freshness` lane CI-blocks PRs that change source-of-truth without regenerating dependent docs.
 - `oya-foundry-fitness-doc-style` lane enforces canonical doc-style per `docs/standards/doc-style.md`.
 
@@ -28,7 +28,7 @@ Per MASTERPLAN §2 Directive 10. Hand-written docs are reserved for narrative; e
 3 agents.
 
 ## Symbols-touched
-`crates/oya-foundry-mdbook-kernel`, `crates/oya-foundry-fitness-{doc-freshness,doc-style}-kernel`.
+`crates/oya-intelligence-mdbook-kernel`, `crates/oya-foundry-fitness-{doc-freshness,doc-style}-kernel`.
 
 ## Agent-handoff
 ```

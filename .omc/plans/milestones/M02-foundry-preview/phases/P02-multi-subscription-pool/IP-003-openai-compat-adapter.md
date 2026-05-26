@@ -11,17 +11,17 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
-  Ship `oya-foundry-adapter-openai-compat-api`: an Axum service that exposes the upstream
+  Ship `oya-intelligence-adapter-openai-compat-api`: an Axum service that exposes the upstream
   OpenAI Chat-Completions / Embeddings / Models shape and translates incoming requests
   through the IP-001 `pick_account` decision into an internal `foundry.capability.invoke`
   against the chosen subscription account. Mirrors ccproxy-api `codex` plugin (OpenAI-style
   endpoints over a subscription backend) but adds `async-openai 0.38.1` ABI parity so any
   community OpenAI client works unmodified.
 grit_claim_symbols:
-  - "crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::chat_completions_handler"
-  - "crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::embeddings_handler"
-  - "crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::models_handler"
-  - "crates/oya-foundry-adapter-openai-compat-api/src/streaming.rs::sse_relay"
+  - "crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::chat_completions_handler"
+  - "crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::embeddings_handler"
+  - "crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::models_handler"
+  - "crates/oya-intelligence-adapter-openai-compat-api/src/streaming.rs::sse_relay"
   - "contracts/foundry-compat-openai-v1.openapi.yaml::chatCompletionsCreate"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
@@ -62,14 +62,14 @@ in scope while raising the bar on type-safety and observability (MASTERPLAN Dire
 ## Symbols to grit-claim
 
 ```
-crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::chat_completions_handler
-crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::embeddings_handler
-crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::models_handler
-crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::OpenAIChatCompletionRequest
-crates/oya-foundry-adapter-openai-compat-api/src/lib.rs::OpenAIChatCompletionResponse
-crates/oya-foundry-adapter-openai-compat-api/src/streaming.rs::sse_relay
-crates/oya-foundry-adapter-openai-compat-api/src/translate.rs::to_internal_invoke
-crates/oya-foundry-adapter-openai-compat-api/src/translate.rs::from_internal_invoke
+crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::chat_completions_handler
+crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::embeddings_handler
+crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::models_handler
+crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::OpenAIChatCompletionRequest
+crates/oya-intelligence-adapter-openai-compat-api/src/lib.rs::OpenAIChatCompletionResponse
+crates/oya-intelligence-adapter-openai-compat-api/src/streaming.rs::sse_relay
+crates/oya-intelligence-adapter-openai-compat-api/src/translate.rs::to_internal_invoke
+crates/oya-intelligence-adapter-openai-compat-api/src/translate.rs::from_internal_invoke
 contracts/foundry-compat-openai-v1.openapi.yaml::chatCompletionsCreate
 contracts/foundry-compat-openai-v1.openapi.yaml::embeddingsCreate
 contracts/foundry-compat-openai-v1.openapi.yaml::modelsList
@@ -95,7 +95,7 @@ Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 openai-compat adapter ccproxy-api codex" --limit 5`.
 2. Confirm IP-001 merged; read `./IP-001-provider-account-pool-kernel.md`.
 3. Read `docs/AGENTS.md §Pre-flight checklist`.
-4. Confirm symbols unclaimed: `oya-tooling-agent-read grit-status crates/oya-foundry-adapter-openai-compat-api`.
+4. Confirm symbols unclaimed: `oya-tooling-agent-read grit-status crates/oya-intelligence-adapter-openai-compat-api`.
 5. Read `.omc/standards/dependency-policy.md §5.2` — `async-openai 0.38.1` is the cargo-vet certified pin; use `types-only` feature to avoid the OpenAI HTTP client pulling in unwanted defaults.
 6. Read the parent INDEX `./INDEX.md`.
 <!-- agent-instructions:end -->
@@ -105,8 +105,8 @@ Before `grit claim`, the agent **MUST**:
 ## Acceptance test commands
 
 ```
-$ cargo nextest run -p oya-foundry-adapter-openai-compat-api --all-features       # expect: PASS, 0 failures
-$ cargo clippy -p oya-foundry-adapter-openai-compat-api -- -D warnings            # expect: PASS, 0 warnings
+$ cargo nextest run -p oya-intelligence-adapter-openai-compat-api --all-features       # expect: PASS, 0 failures
+$ cargo clippy -p oya-intelligence-adapter-openai-compat-api -- -D warnings            # expect: PASS, 0 warnings
 $ cargo deny check                                                                # expect: PASS
 $ oya gate validate oya-foundry-fitness-compat-api-shape-binding                  # expect: PASS (response shape matches OpenAI OpenAPI)
 $ oya-tooling-agent-read run-evidence "scripts/smoke/openai-compat-smoke.sh"      # expect: async-openai-rs client smoke + LangChain smoke pass

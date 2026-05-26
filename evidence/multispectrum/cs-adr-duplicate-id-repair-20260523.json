@@ -195,8 +195,8 @@
         "dependency-seam \u2014 one blocking diagnostic in run-all context",
         "architecture-boundaries \u2014 oya-application-shell-frontend-prototype is a workspace package under microservices/application/src/crates and lacks registry/catalog/oya-application-shell-frontend-prototype.yaml",
         "layered-architecture-discipline \u2014 16 MeshTierUnderclaimed manifest violations",
-        "cargo run -q -p oya-foundry-vcs-admission-gate-app \u2014 missing required provider proof tool trivy",
-        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json \u2014 missing required provider proof tool trivy",
+        "cargo run -q -p oya-vcs-admission-gate-app \u2014 missing required provider proof tool trivy",
+        "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json \u2014 missing required provider proof tool trivy",
         "bash scripts/github-actions-required-secrets-check.sh \u2014 required command not found: gh"
       ]
     },

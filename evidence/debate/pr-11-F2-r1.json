@@ -12,13 +12,13 @@
   "findings": [
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:47-83",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:47-83",
       "issue": "Conflict path extraction is a heuristic over merge-tree stdout. It fails closed on unknown markers, which is good, but evidence quality can be empty paths and no machine-readable git status.",
       "remediation": "Capture merge-tree exit/status plus raw conflict summary in evidence and add fixtures for rename/delete/binary conflict output shapes."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:100-201",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/main.rs:100-201",
       "issue": "The app reads/writes JSON registries directly per tick without file locking or compare-and-swap. Multiple webhook/fix-loop invocations can race and lose queue/tick updates.",
       "remediation": "Serialize merge-queue writes through a single runner or add lockfile/atomic compare-and-swap semantics with contention tests."
     }

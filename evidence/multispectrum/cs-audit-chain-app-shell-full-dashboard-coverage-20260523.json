@@ -36,7 +36,7 @@
       "summary": "Audit-chain JSONL parse is included in final hygiene."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "Provider admission passed; metadata and authority checks passed; provider execution plus cargo tests and CLI smoke passed.",
       "evidence": "/tmp/cs-audit-chain-app-shell-full-dashboard-provider-admission.log"

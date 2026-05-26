@@ -6,8 +6,8 @@
   "generated_at": "2026-05-14T00:00:00-04:00",
   "scope": {
     "changed_paths": [
-      "crates/oya-foundry-vcs-changebundle-kernel/Cargo.toml",
-      "crates/oya-foundry-vcs-changebundle-kernel/src/lib.rs",
+      "crates/oya-vcs-changebundle-kernel/Cargo.toml",
+      "crates/oya-vcs-changebundle-kernel/src/lib.rs",
       "/evidence/gitops-vcs/ip-003-changebundle.json"
     ],
     "external_blockers": [
@@ -23,7 +23,7 @@
       "Pure std-only ChangeBundle domain model with ChangeSet, Claim, SymbolLock, manifest digest, attestation, provenance, semantic diff, evidence, KG edges, done emission, and promotion evidence.",
       "Signature attestation validation uses deterministic non-empty signature/key/digest fields with allowlisted algorithms: ed25519, ecdsa-p256-sha256, cosign-keyless-v1.",
       "Digest validation accepts sha256/sha512 hex digests with exact algorithm lengths.",
-      "Claim coverage validates working claims, write symbol coverage, and touched artifact coverage using oya-foundry-vcs-kernel ChangeSet/Claim/SymbolLock semantics.",
+      "Claim coverage validates working claims, write symbol coverage, and touched artifact coverage using oya-vcs-kernel ChangeSet/Claim/SymbolLock semantics.",
       "Evidence freshness validates pass result, observation/expiry window, max age, lineage evidence presence, and artifact digest match.",
       "Artifact/signature/provenance/evidence mismatch, stale evidence, protected ref mutation, unclaimed diffs, and uncovered artifacts quarantine the bundle.",
       "Done emission returns a ChangeBundle without protected-ref mutation; promotion publication records controller evidence without mutating protected refs."
@@ -42,22 +42,22 @@
   },
   "commands": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-foundry-vcs-changebundle-kernel/src/lib.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-vcs-changebundle-kernel/src/lib.rs",
       "result": "passed",
       "evidence": "exit 0"
     },
     {
-      "command": "rustc --edition=2021 --crate-type=lib --crate-name oya_foundry_vcs_kernel crates/oya-foundry-vcs-kernel/src/lib.rs -D warnings -o /tmp/oyatie-ip003-rustc/liboya_foundry_vcs_kernel.rlib",
+      "command": "rustc --edition=2021 --crate-type=lib --crate-name oya_vcs_kernel crates/oya-vcs-kernel/src/lib.rs -D warnings -o /tmp/oyatie-ip003-rustc/liboya_vcs_kernel.rlib",
       "result": "passed",
       "evidence": "dependency rlib compiled with -D warnings"
     },
     {
-      "command": "rustc --edition=2021 --crate-type=lib --crate-name oya_foundry_vcs_changebundle_kernel crates/oya-foundry-vcs-changebundle-kernel/src/lib.rs -D warnings --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip003-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip003-rustc -o /tmp/oyatie-ip003-rustc/liboya_foundry_vcs_changebundle_kernel.rlib",
+      "command": "rustc --edition=2021 --crate-type=lib --crate-name oya_vcs_changebundle_kernel crates/oya-vcs-changebundle-kernel/src/lib.rs -D warnings --extern oya_vcs_kernel=/tmp/oyatie-ip003-rustc/liboya_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip003-rustc -o /tmp/oyatie-ip003-rustc/liboya_vcs_changebundle_kernel.rlib",
       "result": "passed",
       "evidence": "changebundle library compiled with -D warnings"
     },
     {
-      "command": "rustc --edition=2021 --test --crate-name oya_foundry_vcs_changebundle_kernel_tests crates/oya-foundry-vcs-changebundle-kernel/src/lib.rs -D warnings --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip003-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip003-rustc -o /tmp/oyatie-ip003-rustc/changebundle_tests && /tmp/oyatie-ip003-rustc/changebundle_tests --nocapture",
+      "command": "rustc --edition=2021 --test --crate-name oya_vcs_changebundle_kernel_tests crates/oya-vcs-changebundle-kernel/src/lib.rs -D warnings --extern oya_vcs_kernel=/tmp/oyatie-ip003-rustc/liboya_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip003-rustc -o /tmp/oyatie-ip003-rustc/changebundle_tests && /tmp/oyatie-ip003-rustc/changebundle_tests --nocapture",
       "result": "passed",
       "evidence": "9 tests passed; 0 failed; 0 ignored"
     }

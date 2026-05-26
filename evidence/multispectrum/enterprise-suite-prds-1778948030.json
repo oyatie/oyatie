@@ -52,7 +52,7 @@
       "evidence": "all rows parse; change_id enterprise-suite-prds-1778948030 is covered"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "passed",
       "evidence": "metadata and authority checks passed; cargo tests plus CLI smoke passed"
     }

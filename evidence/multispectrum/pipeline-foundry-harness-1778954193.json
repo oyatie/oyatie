@@ -30,7 +30,7 @@
       "summary": "2 passed"
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "status": "pass",
       "summary": "15 passed"
     },
@@ -64,7 +64,7 @@
       "summary": "oya verify remains the canonical local pre-push entry"
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "pass",
       "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed"
     },

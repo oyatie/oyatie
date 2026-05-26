@@ -98,9 +98,9 @@ oya-foundry-adapter-kernel           oya-foundry-bypass-kernel
 oya-foundry-capability-kernel        oya-foundry-catalog-kernel
 oya-foundry-eval-app                 oya-foundry-eval-kernel
 oya-foundry-evidence-adapter-file    oya-foundry-evidence-kernel
-oya-foundry-mdbook-kernel            oya-foundry-openapi-kernel
-oya-foundry-policy-api               oya-foundry-policy-kernel
-oya-foundry-rag-api                  oya-foundry-registry-api
+oya-intelligence-mdbook-kernel            oya-foundry-openapi-kernel
+oya-intelligence-policy-api               oya-foundry-policy-kernel
+oya-intelligence-rag-api                  oya-intelligence-registry-api
 oya-foundry-run-adapter-file         oya-foundry-run-kernel
 oya-foundry-step-adapter-file        oya-foundry-step-kernel
 ```
@@ -188,8 +188,8 @@ rename plan for the recommended path per row.
 | # | Current name | Violation | Class |
 |---:|---|---|---|
 | 1 | `oya-foundation-app` | 3 segments (no feature segment) | TOOSHORT |
-| 2 | `oya-foundry-api` | 3 segments (no feature segment) | TOOSHORT |
-| 3 | `oya-foundry-api-semver-kernel` | role token `api` precedes capability; tail = `semver-kernel` is 2 tokens, but `kernel` is a role, not a capability | ROLE-AS-CAP |
+| 2 | `oya-intelligence-api` | 3 segments (no feature segment) | TOOSHORT |
+| 3 | `oya-intelligence-api-semver-kernel` | role token `api` precedes capability; tail = `semver-kernel` is 2 tokens, but `kernel` is a role, not a capability | ROLE-AS-CAP |
 | 4 | `oya-foundry-adr-citation-kernel` | compound feature `adr-citation` not registered | NEW-COMPOUND |
 | 5 | `oya-foundry-adr-index-kernel` | compound feature `adr-index` not registered | NEW-COMPOUND |
 | 6 | `oya-foundry-authority-cohesion-kernel` | compound feature `authority-cohesion` not registered | NEW-COMPOUND |
@@ -231,14 +231,14 @@ rename plan for the recommended path per row.
 |---|---:|---|
 | NEW-COMPOUND | 28 | Either extend compound-feature registry (low effort, 1 ADR), OR rename per plan (high effort, breaks dep graph). |
 | LONG-FEATURE | 4 | MUST rename — registry cannot admit 3-token features. |
-| TOOSHORT | 2 | Insert feature segment (`oya-foundation-composition-app`, `oya-foundry-policy-api`-style); foundation is the singleton composition root. |
-| ROLE-AS-CAP | 1 | Re-parse: `oya-foundry-api-semver-kernel` → role `kernel`, feature `api-semver`. The lane error is a parser artifact (eager role match on `api`); registry-admit `api-semver` and refine parser. |
+| TOOSHORT | 2 | Insert feature segment (`oya-foundation-composition-app`, `oya-intelligence-policy-api`-style); foundation is the singleton composition root. |
+| ROLE-AS-CAP | 1 | Re-parse: `oya-intelligence-api-semver-kernel` → role `kernel`, feature `api-semver`. The lane error is a parser artifact (eager role match on `api`); registry-admit `api-semver` and refine parser. |
 | NO-ROLE | 1 | `oya-tooling-agent-read` needs `role = cli` and capability `read`: `oya-tooling-agent-cli-read`. |
 | LONG-CAPTAIL | 1 | `oya-tooling-cli-dev-runtime` — drop `dev` from capability, keep as `oya-tooling-cli-runtime` OR re-parse as feature=`cli-dev`+role=`runtime` and admit `cli-dev` to compound registry. |
 
 ### 4.2 ROLE-AS-CAP parser caveat
 
-`oya-foundry-api-semver-kernel` exposes a real ambiguity in the grammar's
+`oya-intelligence-api-semver-kernel` exposes a real ambiguity in the grammar's
 left-to-right role match: `api` is both a role AND a feature-segment of
 "api-semver". The pragmatic fix is to make the BNF **prefer the rightmost
 role token over the leftmost** when both parses validate. The standard

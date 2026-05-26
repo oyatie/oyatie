@@ -74,7 +74,7 @@
       "facets_concurring": [
         "F1"
       ],
-      "headline": "The workflow invokes `oya-foundry-pr-review-dispatcher-app` without `--runtime-mode inline-deterministic-mock`. In the dispatcher code, default runtime mode is `External`, and `subagent_runtime_pending` remains true when no complete facet panel exists. That c…",
+      "headline": "The workflow invokes `oya-intelligence-pr-review-dispatcher-app` without `--runtime-mode inline-deterministic-mock`. In the dispatcher code, default runtime mode is `External`, and `subagent_runtime_pending` remains true when no complete facet panel exists. That c…",
       "id": "PR3-CONV-6",
       "recommended_remediation": "Pass `--runtime-mode inline-deterministic-mock` with a deterministic user-message/change-id in CI, or stop claiming the gap is closed. Add a regression test/workflow assertion that produced rollup has `subagent_runtime_pending=false` before merge-queue admiss…",
       "remediation_fixuptasks": [

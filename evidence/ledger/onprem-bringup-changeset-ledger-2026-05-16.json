@@ -168,8 +168,8 @@
       "milestone": "M01-foundation",
       "phase": "M01-P07 + M01-P18",
       "dependencies": [
-        "tools/oya-foundry-vcs-admission-gate-app builds",
-        "tools/oya-foundry-vcs-provider-execution-gate-app builds",
+        "tools/oya-vcs-admission-gate-app builds",
+        "tools/oya-vcs-provider-execution-gate-app builds",
         "registry/vcs/changeset-event-log.json scaffold",
         "promote-dev-to-staging workflow live"
       ],

@@ -106,5 +106,5 @@ cargo run -p oya-dev-cli -- gate validate settings-drift \
 ## References
 
 - **Drift detection:** v5 § B.5 (CI lane spec)
-- **Kernel source:** `crates/oya-foundry-settings-template-kernel/src/lib.rs`
+- **Kernel source:** `crates/oya-intelligence-settings-template-kernel/src/lib.rs`
 - **Adapter:** `docs/products/foundry/supervisor/settings-template-adapter/OPERATIONS.md`

@@ -34,7 +34,7 @@
     {
       "severity": "low",
       "summary": "Argo manifest path is duplicated as a magic string across 5 sites; the PR rewrote each individually. Future moves will re-trigger the same shotgun-surgery anti-pattern.",
-      "recommended_action": "Extract a single pub const ARGO_APPLICATION_MANIFEST_PATH in oya-foundry-vcs-provider-execution-gate-kernel and have both the kernel sites and the app binary import it. Defer to a separate refactor PR.",
+      "recommended_action": "Extract a single pub const ARGO_APPLICATION_MANIFEST_PATH in oya-vcs-provider-execution-gate-kernel and have both the kernel sites and the app binary import it. Defer to a separate refactor PR.",
       "fixuptask_id": "F-PR12-02"
     },
     {

@@ -6,8 +6,8 @@
   "findings": [
     {
       "file": "docs/machine-readable/contracts.json:428; registry/openapi/runtime-bindings.tsv:37; registry/openapi/schema-bindings.tsv:282-290; Cargo.toml:128-130",
-      "issue": "F8 facet concurrence: The stable foundry.rag.retrieve contract still points at oya-foundry-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-foundry-rag-api --locked --offline` no longer resolves a package. That makes…",
-      "remediation": "Either restore oya-foundry-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up.",
+      "issue": "F8 facet concurrence: The stable foundry.rag.retrieve contract still points at oya-intelligence-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-intelligence-rag-api --locked --offline` no longer resolves a package. That makes…",
+      "remediation": "Either restore oya-intelligence-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up.",
       "severity": "BLOCKER"
     }
   ],

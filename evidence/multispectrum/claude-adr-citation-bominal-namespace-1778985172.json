@@ -21,7 +21,7 @@
     "cargo nextest run -p oya-check-adr-citation --all-features: PASS (6/6 — 4 pre-existing + 2 new)",
     "cargo check -p oya-check-adr-citation --all-targets: PASS",
     "adr-citation gate (full docs/ tree): PASS (723 docs / 7787 citations / 124 allowed ADRs; citation count dropped from 7795 since Bominal-* tokens no longer count as local)",
-    "oya-foundry-vcs-admission-gate-app: PASS"
+    "oya-vcs-admission-gate-app: PASS"
   ],
   "design_decisions": [
     {

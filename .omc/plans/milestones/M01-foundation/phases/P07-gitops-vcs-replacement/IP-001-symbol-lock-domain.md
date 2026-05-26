@@ -15,7 +15,7 @@ execution_variant: merge-into-existing-crates
 decided_at: "2026-05-17"
 decided_by: user-directive-option-2
 execution_variant_note: >
-  Delta-1 adds LockHolderId (lock_holder module) to oya-foundry-vcs-kernel.
+  Delta-1 adds LockHolderId (lock_holder module) to oya-vcs-kernel.
   No new crate, no new workspace deps, std-only. Multispectrum CC-2 v2.3.0
   4-facet council ACCEPT recorded at evidence/multispectrum/m01-p07-symlock-mv1-1779002878.json.
 ---

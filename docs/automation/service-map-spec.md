@@ -13,7 +13,7 @@ purpose: |
 planned_enforcement_ref: oya-governance-service-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
-  - oya-foundry-architecture-map-kernel
+  - oya-intelligence-architecture-map-kernel
   - oya-foundry-catalog-kernel
 companion_docs:
   - INDEX.md
@@ -125,5 +125,5 @@ For each `api` and `app` layer crate, the pipeline pulls the surface count from 
 ## 9. Out-of-scope
 
 - Runtime call graph (covered by `audit-chain-map-spec.md` for event flow; runtime RPC graph is future).
-- Per-version diff visualization (covered by `oya-foundry-api-semver-kernel`).
+- Per-version diff visualization (covered by `oya-intelligence-api-semver-kernel`).
 - Service ownership map (covered by `docs/RACI-OWNERSHIP.md`).

@@ -10,11 +10,11 @@ changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployab
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/adr-status-lifecycle.json
-  - tools/oya-foundry-fitness-adr-status-lifecycle-app
+  - tools/oya-governance-adr-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 adr_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 naming_justification:
-  oya-foundry-fitness-adr-status-lifecycle-app: |
+  oya-governance-adr-status-lifecycle-app: |
     v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:adr-status-lifecycle>-<layer:app>`;
     canonical `app` suffix per ADR-0105/0107 amendment 2026-05-15.
 purpose: Detect ADRs whose `status:` field is missing, unknown, or terminally `superseded` without `superseded_by:` — and fail the gate so ADR-status drift cannot accumulate.
@@ -47,9 +47,9 @@ breakdown:
 
 ## Acceptance-test-commands
 ```
-cargo test -p oya-foundry-fitness-lifecycle-kernel
-cargo test -p oya-foundry-fitness-adr-status-lifecycle-app
-cargo run -q -p oya-foundry-fitness-adr-status-lifecycle-app -- --warn-only
+cargo test -p oya-governance-lifecycle-kernel
+cargo test -p oya-governance-adr-status-lifecycle-app
+cargo run -q -p oya-governance-adr-status-lifecycle-app -- --warn-only
 ```
 
 ## Done-criteria (Wave A)

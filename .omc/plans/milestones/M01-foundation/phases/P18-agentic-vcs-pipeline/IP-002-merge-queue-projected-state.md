@@ -20,9 +20,9 @@ purpose: Extend IP-006 merge-queue with projected-merge-state diff validation (p
 ## Scope
 
 Implement ADR-0111 wave-A as an extension of IP-006-from-P10's
-`oya-foundry-vcs-merge-queue-fix-loop-app`:
+`oya-vcs-merge-queue-fix-loop-app`:
 
-- New kernel `oya-foundry-vcs-merge-queue-conflict-kernel` — pure
+- New kernel `oya-vcs-merge-queue-conflict-kernel` — pure
   algorithm: projected-merge-state computation +
   `git merge-tree` conflict-detection + path-overlap check.
 - New module in the app: `projected_merge_state` + `conflict_avoidance_pre_admit`
@@ -62,10 +62,10 @@ invalidate + re-validate positions ≥ i; re-position bounded by
 
 ## Symbols to grit-claim
 
-- `crates/oya-foundry-vcs-merge-queue-conflict-kernel/src/lib.rs::*`
-- `tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs::*`
-- `tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/conflict_avoidance_pre_admit.rs::*`
-- `tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs::*`
+- `crates/oya-vcs-merge-queue-conflict-kernel/src/lib.rs::*`
+- `tools/oya-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs::*`
+- `tools/oya-vcs-merge-queue-fix-loop-app/src/conflict_avoidance_pre_admit.rs::*`
+- `tools/oya-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs::*`
 - `registry/vcs/concurrent-safe-paths.yaml::*`
 
 ## Exit evidence

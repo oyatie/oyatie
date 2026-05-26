@@ -7,10 +7,10 @@
   "scope": [
     "Cargo.lock",
     "Cargo.toml",
-    "crates/oya-foundry-backbone-workload-live-app/Cargo.toml",
-    "crates/oya-foundry-backbone-workload-live-app/src/lib.rs",
-    "crates/oya-foundry-backbone-workload-live-app/tests/backbone_workload_live.rs",
-    "registry/catalog/oya-foundry-backbone-workload-live-app.yaml",
+    "crates/oya-intelligence-backbone-workload-live-app/Cargo.toml",
+    "crates/oya-intelligence-backbone-workload-live-app/src/lib.rs",
+    "crates/oya-intelligence-backbone-workload-live-app/tests/backbone_workload_live.rs",
+    "registry/catalog/oya-intelligence-backbone-workload-live-app.yaml",
     "registry/dependency-rationales.json",
     "crates/oya-shared-postgres-command-adapter-sqlx/Cargo.toml",
     "crates/oya-shared-transactional-outbox-adapter-sqlx/Cargo.toml",
@@ -57,12 +57,12 @@
       "evidence": "Compilation failed because WORKLOAD_LIVE_ENABLE_ENV, WORKLOAD_POSTGRES_APP_DATABASE_URL_ENV, WorkloadLiveConfig, WorkloadLiveError, workload_tables, workload_app_plans_for_tenant, and run_backbone_workload_live_harness did not exist yet."
     },
     {
-      "command": "cargo test -p oya-foundry-backbone-workload-live-app --test backbone_workload_live -- --nocapture",
+      "command": "cargo test -p oya-intelligence-backbone-workload-live-app --test backbone_workload_live -- --nocapture",
       "result": "pass",
       "evidence": "4 integration-harness tests passed with live execution disabled by default: env gating/app URL validation, workload table inventory, write-plan row/outbox expectations, and the skipped-by-env live harness entrypoint."
     },
     {
-      "command": "cargo test -p oya-foundry-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres -- --nocapture",
+      "command": "cargo test -p oya-intelligence-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres -- --nocapture",
       "result": "pass",
       "evidence": "0 foundry harness lib tests, 4 workload integration tests, 12 SQLx adapter tests, 6 SQLx outbox adapter tests, and 7 social Postgres adapter tests passed; env-gated live tests skipped without explicit environment."
     },
@@ -72,15 +72,15 @@
       "evidence": "6 SQLx outbox adapter tests and 7 social Postgres adapter tests passed after adding tenant RLS session setup and timestamp bind casts."
     },
     {
-      "command": "cargo check -p oya-foundry-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres",
+      "command": "cargo check -p oya-intelligence-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres",
       "result": "pass"
     },
     {
-      "command": "cargo clippy -p oya-foundry-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres --all-targets -- -D warnings",
+      "command": "cargo clippy -p oya-intelligence-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres --all-targets -- -D warnings",
       "result": "pass"
     },
     {
-      "command": "OYA_BACKBONE_LIVE_WORKLOAD_POSTGRES=true OYA_BACKBONE_WORKLOAD_POSTGRES_URL=<redacted setup URL> OYA_BACKBONE_WORKLOAD_POSTGRES_APP_URL=<redacted app URL> OYA_BACKBONE_WORKLOAD_POSTGRES_REQUIRE_TLS=false cargo test -p oya-foundry-backbone-workload-live-app --test backbone_workload_live backbone_workload_live_harness_runs_when_enabled_by_environment -- --nocapture",
+      "command": "OYA_BACKBONE_LIVE_WORKLOAD_POSTGRES=true OYA_BACKBONE_WORKLOAD_POSTGRES_URL=<redacted setup URL> OYA_BACKBONE_WORKLOAD_POSTGRES_APP_URL=<redacted app URL> OYA_BACKBONE_WORKLOAD_POSTGRES_REQUIRE_TLS=false cargo test -p oya-intelligence-backbone-workload-live-app --test backbone_workload_live backbone_workload_live_harness_runs_when_enabled_by_environment -- --nocapture",
       "result": "pass",
       "evidence": "Disposable local docker.io/citusdata/citus:13.0 container on 127.0.0.1:55433 with setup role postgres and app role oya_workload_app passed in 12.00s: 1 test passed, 3 filtered out. The run applied 4 migration bundles, executed 12 write plans across two tenants, verified 13 distributed/RLS workload tables, and claimed 8 outbox batches."
     },
@@ -90,19 +90,19 @@
       "evidence": "Messenger, mail, and social migration bundles each passed with 3 tenant-distributed tables and 0 global tables; community passed with 4 tenant-distributed tables and 0 global tables."
     },
     {
-      "command": "cargo fmt --check -p oya-foundry-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres && ./bin/oya git diff --check",
+      "command": "cargo fmt --check -p oya-intelligence-backbone-workload-live-app -p oya-shared-postgres-command-adapter-sqlx -p oya-shared-transactional-outbox-adapter-sqlx -p oya-social-post-composition-adapter-postgres && ./bin/oya git diff --check",
       "result": "pass",
       "evidence": "Focused fmt check and whitespace diff hygiene passed after moving the harness crate."
     },
     {
-      "command": "./bin/oya gate validate audit-chain-replay && ./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error && ./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root crates/oya-foundry-backbone-workload-live-app --corpus-root crates/oya-shared-postgres-command-adapter-sqlx --corpus-root crates/oya-shared-transactional-outbox-adapter-sqlx --corpus-root crates/oya-social-post-composition-adapter-postgres --corpus-root evidence/multispectrum/backbone-microservices-workload-live-citus-migration-harness-20260525.json && ./bin/oya gate validate architecture-boundaries && ./bin/oya gate run-all && ./bin/oya git diff --check",
+      "command": "./bin/oya gate validate audit-chain-replay && ./bin/oya gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error && ./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root tasks/plan.md --corpus-root tasks/todo.md --corpus-root crates/oya-intelligence-backbone-workload-live-app --corpus-root crates/oya-shared-postgres-command-adapter-sqlx --corpus-root crates/oya-shared-transactional-outbox-adapter-sqlx --corpus-root crates/oya-social-post-composition-adapter-postgres --corpus-root evidence/multispectrum/backbone-microservices-workload-live-citus-migration-harness-20260525.json && ./bin/oya gate validate architecture-boundaries && ./bin/oya gate run-all && ./bin/oya git diff --check",
       "result": "pass",
       "evidence": "Audit-chain replay passed with 1 shard/28 events; strict dependency-seam passed with 6/6 subchecks, 0 diagnostics, 0 blocking after the sqlx/tokio harness rationale update; architecture-boundaries passed with 482 packages/482 catalog records/739 edges; gate run-all passed 81/81 lanes; diff hygiene passed."
     },
     {
       "command": "./bin/oya gate validate architecture-boundaries",
       "result": "pass",
-      "evidence": "Passed after relocating the workload live harness into oya-foundry-backbone-workload-live-app and removing peer-service adapter/app dev-dependencies from oya-shared-postgres-command-adapter-sqlx."
+      "evidence": "Passed after relocating the workload live harness into oya-intelligence-backbone-workload-live-app and removing peer-service adapter/app dev-dependencies from oya-shared-postgres-command-adapter-sqlx."
     },
     {
       "command": "./bin/oya verify --ci-required",

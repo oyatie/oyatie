@@ -38,7 +38,7 @@
   "stop_condition_evidence": {
     "stop_condition_id": "B",
     "assessment": "PARTIAL",
-    "rationale": "All PRs opened by this session merged (#53). Required CI lanes green on the latest dev tip. Local 'oya gate validate placeholder-debt' + 'oya gate validate master-plan-completion' + 'oya-foundry-vcs-admission-gate-app' pass on origin/dev=7396b698. Remaining ~70 in-progress IPs are externally bounded (per-IP engineering beyond a single session's empirical 10–30 min slice budget) and surface through the durable goal.json prompt for follow-on sessions.",
+    "rationale": "All PRs opened by this session merged (#53). Required CI lanes green on the latest dev tip. Local 'oya gate validate placeholder-debt' + 'oya gate validate master-plan-completion' + 'oya-vcs-admission-gate-app' pass on origin/dev=7396b698. Remaining ~70 in-progress IPs are externally bounded (per-IP engineering beyond a single session's empirical 10–30 min slice budget) and surface through the durable goal.json prompt for follow-on sessions.",
     "all_session_prs_merged": true,
     "dev_refreshed": true,
     "required_ci_lanes_green": true
@@ -48,7 +48,7 @@
     "in_progress_ips_count": 10,
     "in_progress_ips_sample": [
       "M01-P13-IP-002-lts-dependency-lane (substantially shipped per amended outcomes; status flip + final fixuptask burn-down pending)",
-      "M02-foundry-preview/P02-multi-subscription-pool/IP-001..IP-006 (6 IPs; provider-pool/oauth/anthropic/openai/drift-lane/tos-policy — pool-kernel exists as oya-foundry-provider-pool-kernel; policy-kernel + drift workflow/tool not yet on disk)",
+      "M02-foundry-preview/P02-multi-subscription-pool/IP-001..IP-006 (6 IPs; provider-pool/oauth/anthropic/openai/drift-lane/tos-policy — pool-kernel exists as oya-intelligence-provider-pool-kernel; policy-kernel + drift workflow/tool not yet on disk)",
       "M07-first-tenant/P06..P08/impl-plan.md (3 impl-plans; awaiting KR-pilot evidence)"
     ],
     "pending_skeleton_phases": [

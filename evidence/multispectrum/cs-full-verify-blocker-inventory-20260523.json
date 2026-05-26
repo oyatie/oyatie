@@ -96,11 +96,11 @@
             "detail": "4302 passed, 6 failed, 1 skipped; same oya_verify_ci_mirror recursion failures"
           },
           {
-            "lane": "oya-foundry-vcs-admission-gate-app",
+            "lane": "oya-vcs-admission-gate-app",
             "detail": "missing required provider proof tool: trivy"
           },
           {
-            "lane": "oya-foundry-vcs-provider-execution-gate-app",
+            "lane": "oya-vcs-provider-execution-gate-app",
             "detail": "missing required provider proof tool: trivy"
           },
           {

@@ -13,7 +13,7 @@
     "ADR-0108 sunset-lifecycle bypass is defensible on substance (one-time lane, no consumers post-cutover) but undocumented in ADR-0118 — a 2-line 'why no sunset window' paragraph would close the gap.",
     "Bundle-vs-split: 24 files in one PR is correct because separating ADR-0104/0107 amendments from the kernel/app deletion would leave dangling references to the retired crate name in living ADRs during the gap window.",
     "Tombstone-lane alternative (always-pass with explicit 'retired' message) is rejected implicitly via the 'keep the lane active with an empty archive set → false mechanical confidence' rationale — should be named explicitly so future retirements cite the precedent.",
-    "Migrate-coverage-to-other-lane is implicitly handled by naming `oya-foundry-fitness-adapter-with-no-importer-kernel` as the landed mechanical-prevention sibling in the ADR-0104 amendment — that IS the migration story, but ADR-0118 does not cite it under 'Rejected alternatives'.",
+    "Migrate-coverage-to-other-lane is implicitly handled by naming `oya-governance-adapter-with-no-importer-kernel` as the landed mechanical-prevention sibling in the ADR-0104 amendment — that IS the migration story, but ADR-0118 does not cite it under 'Rejected alternatives'.",
     "Historical lane docs preserved at docs/fitness-lanes/archive-orphan.md and .omc/fitness-lanes/archive-orphan.md with retired_by/retired_on frontmatter is the correct hyperscaler-style choice (tombstone the metadata, delete the executable) — analogous to AWS service-deprecation pages."
   ],
   "uncertainty_areas": [

@@ -30,7 +30,7 @@ Per MASTERPLAN §2 Directive 10. No "we might need this later" files.
 2 agents (audit is fan-out-able by directory; lane is single-author).
 
 ## Symbols-touched
-All `docs/**/*.md`, all `**/*.json`, `crates/oya-foundry-fitness-orphan-detection-kernel`.
+All `docs/**/*.md`, all `**/*.json`, `crates/oya-governance-orphan-detection-kernel`.
 
 ## Agent-handoff
 ```

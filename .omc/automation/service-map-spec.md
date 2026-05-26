@@ -13,7 +13,7 @@ lift_target: oyatie/docs/visualization/service-map.md
 enforced_by: oya-foundry-fitness-service-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
-  - oya-foundry-architecture-map-kernel
+  - oya-intelligence-architecture-map-kernel
   - oya-foundry-catalog-kernel
 companion_docs:
   - INDEX.md
@@ -42,7 +42,7 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 | `kernel` | Pure value-object; no I/O | `oya-foundry-cohesion-fitness-kernel`, `oya-foundry-runbook-freshness-kernel` |
 | `runtime` | Schedulers, lifecycles, side-effect orchestrators | `oya-foundry-run-kernel`, `oya-foundry-step-kernel` |
 | `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-foundry-evidence-adapter-file`, `oya-foundry-run-adapter-file` |
-| `api` | External-surface HTTP/gRPC handlers | `oya-foundry-api`, `oya-cloud-iam-api` |
+| `api` | External-surface HTTP/gRPC handlers | `oya-intelligence-api`, `oya-cloud-iam-api` |
 | `app` | Top-level binary; composes kernels + runtimes + adapters | `oya-foundation-app`, `oya-cloud-billing-app` |
 
 Layer is declared in `[package.metadata.oyatie.layer]`. The pipeline rejects crates without one.
@@ -116,5 +116,5 @@ For each `api` and `app` layer crate, the pipeline pulls the surface count from 
 ## 9. Out-of-scope
 
 - Runtime call graph (covered by `audit-chain-map-spec.md` for event flow; runtime RPC graph is future).
-- Per-version diff visualization (covered by `oya-foundry-api-semver-kernel`).
+- Per-version diff visualization (covered by `oya-intelligence-api-semver-kernel`).
 - Service ownership map (covered by `docs/RACI-OWNERSHIP.md`).

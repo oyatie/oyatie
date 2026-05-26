@@ -85,7 +85,7 @@ This PRD is intentionally the **deepest of the five axis PRDs (~25-40 pages of c
 |---|---|---|
 | **Internal Oyatie engineer** | Foundry engineering platform surfaces (repoctl, catalog, claim-ceiling, foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, Trivy/Cosign/SBOM supply chain), Foundry agents that author + review code under autonomy ceiling, capability registry projection, multi-agent operational protocol per ADR-0021, Engineering Agent Console per ADR-0025 | (Internal — productivity is the price; agent run cost metered to engineering cost center) |
 | **Tenant builder / IT engineer (customer-facing builder)** | Workflow Studio (typed JSON per ADR-0035), capability authoring surface, plugin authoring + signing + marketplace publishing, vertical-pack authoring (per ADR-0033), tenant-tunable Foundry capabilities (`workflow.tune`, `og.evolve`, etc.) | Builder seats + Foundry capability run metering |
-| **Internal Foundry agent operator** | Capability invocation API (`oya-foundry-api`), autonomy ceiling enforcement, evidence emission to audit chain, capability registry, RAG endpoint, autonomy-tier-gated execution | (Internal — agent run cost metered to invoking tenant) |
+| **Internal Foundry agent operator** | Capability invocation API (`oya-intelligence-api`), autonomy ceiling enforcement, evidence emission to audit chain, capability registry, RAG endpoint, autonomy-tier-gated execution | (Internal — agent run cost metered to invoking tenant) |
 | **Tenant operator** (consumer of Foundry-driven workflow) | Per-vertical workflows authored by Foundry agents + human-reviewed; capability marketplace where ISVs publish capabilities; per-tenant autonomy-tier setting | (Bundled with SaaS subscription; capability run cost metered) |
 | **External developer (Foundry-as-managed-service customer at W-Public-GA)** | Standalone Foundry runtime hosted on Oyatie Cloud, multi-provider (Claude / OpenAI / Gemini) adapter, capability authoring SDK, RAG endpoint to tenant index, autonomy ceiling configuration, evidence chain export | Per-call metering + provider pass-through cost + tenancy fee |
 | **ISV / Connect partner** | Capability publishing in marketplace, plugin substrate (Wasmtime sandbox per ADR-0023), revenue share per ADR-0034 | Marketplace publishing fees + revenue share |
@@ -145,12 +145,12 @@ runtime   — composition root (binary; the daemon)
 | Crate | Role | One-line role |
 |---|---|---|
 | `oya-foundry-capability-kernel` | kernel | Capability primitives (id, schema, autonomy, plane, data-class, provider-allowed) |
-| `oya-foundry-capability-domain` | domain | Capability lifecycle (register / version / deprecate per ADR-0040) |
+| `oya-intelligence-capability-domain` | domain | Capability lifecycle (register / version / deprecate per ADR-0040) |
 | `oya-foundry-capability-app` | app | Capability resolver from `registry/catalog/` projection |
 | `oya-foundry-capability-api` | api | Capability invocation API (HTTP + gRPC) |
 | `oya-foundry-step-kernel` | kernel | Step primitive (one tool call within a Run) |
 | `oya-foundry-run-kernel` | kernel | Run primitive (a capability invocation rolled out across steps) |
-| `oya-foundry-run-domain` | domain | Run orchestrator, retry, timeout, cancellation |
+| `oya-intelligence-run-domain` | domain | Run orchestrator, retry, timeout, cancellation |
 | `oya-foundry-run-worker` | worker | Run executor consuming capability-invocation queue |
 | `oya-foundry-evidence-kernel` | kernel | Evidence primitive (per-step + per-run audit-chain emission) |
 | `oya-foundry-evidence-app` | app | Evidence builder; ties to `oya-platform-audit-chain-kernel` |
@@ -167,15 +167,15 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-adapter-gemini-subscription` | adapter | Google Gemini Advanced subscription-auth adapter |
 | `oya-foundry-adapter-regional-pack-{kr,jp,...}-*` | adapter | Per-pack provider adapters (HyperCLOVA / Kakao / Upstage / EXAONE / Mistral / Sarvam / etc.) |
 | `oya-foundry-policy-kernel` | kernel | AutonomyCeiling primitive; policy fragments |
-| `oya-foundry-policy-domain` | domain | Autonomy enforcement at capability boundary |
+| `oya-intelligence-policy-domain` | domain | Autonomy enforcement at capability boundary |
 | `oya-foundry-policy-app` | app | Per-tenant per-capability ceiling resolution + Cedar binding |
-| `oya-foundry-policy-api` | api | Stable inbound `foundry.policy.autonomy-ceiling.publish` boundary over `oya-foundry-policy-kernel`; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` |
+| `oya-intelligence-policy-api` | api | Stable inbound `foundry.policy.autonomy-ceiling.publish` boundary over `oya-foundry-policy-kernel`; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` |
 | `oya-foundry-registry-kernel` | kernel | Registry projection types from `registry/catalog/` |
 | `oya-foundry-registry-app` | app | Registry sync from catalog YAML |
-| `oya-foundry-registry-api` | api | Capability publish boundary (`foundry.capability.publish`) over schema + eval gates |
+| `oya-intelligence-registry-api` | api | Capability publish boundary (`foundry.capability.publish`) over schema + eval gates |
 | `oya-foundry-rag-kernel` | kernel | RAG primitives (Query → Retrieve → Cite) |
 | `oya-foundry-rag-app` | app | RAG saga (consumes search axis); cite surface |
-| `oya-foundry-rag-api` | api | Stable inbound `foundry.rag.retrieve` boundary with tenant/data-class/consent receipt enforcement; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` |
+| `oya-intelligence-rag-api` | api | Stable inbound `foundry.rag.retrieve` boundary with tenant/data-class/consent receipt enforcement; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` |
 | `oya-foundry-secret-app` | app | SecretProvider binding (OpenBao per ADR-0043) |
 | `oya-foundry-mcp-adapter` | adapter | Model Context Protocol server / client (per ADR-0001) |
 | `oya-foundry-memory-kernel` | kernel | Cross-session memory (per ADR-0024) |
@@ -225,12 +225,12 @@ runtime   — composition root (binary; the daemon)
 | Seam | Trait / interface name | Consumer products |
 |---|---|---|
 | Capability invocation | `Capability::invoke(...)` in `oya-foundry-capability-kernel` | All axes (every `*.tune` / `*.optimize` / `*.recommend` / `*.execute` capability) |
-| Autonomy ceiling | `AutonomyCeiling::permit(capability, context)` in `oya-foundry-policy-kernel`; inbound policy publish via `publish_foundry_policy_autonomy_ceiling_from_api(...)` in `oya-foundry-policy-api` | All axes (gate before any regulated capability call) |
+| Autonomy ceiling | `AutonomyCeiling::permit(capability, context)` in `oya-foundry-policy-kernel`; inbound policy publish via `publish_foundry_policy_autonomy_ceiling_from_api(...)` in `oya-intelligence-policy-api` | All axes (gate before any regulated capability call) |
 | Evidence emission | `Evidence::emit(record)` in `oya-foundry-evidence-kernel` | All axes (every regulated capability emits; ties to `oya-platform-audit-chain-kernel`) |
 | Eval run gate | `run_foundry_eval_from_api(...)` in `oya-foundry-eval-application` over `EvalGate` | Capability publishing, nightly eval, A/B routing, and replay gates |
 | Provider adapter | `ProviderAdapter` trait + `ProviderAuth` enum in `oya-foundry-provider-kernel` | Foundry-internal (not directly consumed by other axes; routed through capability invocation) |
-| RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-foundry-rag-kernel`; inbound retrieval via `retrieve_foundry_rag_from_api(...)` in `oya-foundry-rag-api` | All axes that ground LLM responses in tenant/public corpus |
-| Registry projection | `Registry::resolve(capability_id)` in `oya-foundry-registry-kernel`; inbound publish via `publish_foundry_capability_from_api(...)` in `oya-foundry-registry-api` | All axes (capability discovery); Foundry engineering platform catalog (source-of-truth) |
+| RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-foundry-rag-kernel`; inbound retrieval via `retrieve_foundry_rag_from_api(...)` in `oya-intelligence-rag-api` | All axes that ground LLM responses in tenant/public corpus |
+| Registry projection | `Registry::resolve(capability_id)` in `oya-foundry-registry-kernel`; inbound publish via `publish_foundry_capability_from_api(...)` in `oya-intelligence-registry-api` | All axes (capability discovery); Foundry engineering platform catalog (source-of-truth) |
 | OG Agent Gateway | `OgAg::tool_call(...)` per ADR-0021 | All axes that allow LLM tool-use against Object Graph |
 | Cross-session memory | `Memory::recall / persist` (ADR-0024) | Foundry-internal capabilities; tenant agents |
 | MCP server / client | `McpServer / McpClient` per ADR-0001 | Tenant integrations (external MCP-compatible clients) |

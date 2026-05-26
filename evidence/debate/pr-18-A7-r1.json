@@ -16,10 +16,10 @@
       "crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs",
       "crates/oya-dev-cli/src/lib.rs",
       "crates/oya-dev-cli/tests/gate_cli.rs",
-      "crates/oya-foundry-architecture-map-app/src/lib.rs",
-      "crates/oya-foundry-fitness-lifecycle-kernel/src/lib.rs",
-      "crates/oya-foundry-subagent-runtime-kernel/src/lib.rs",
-      "crates/oya-foundry-vcs-admission-gate-kernel/src/lib.rs"
+      "crates/oya-intelligence-architecture-map-app/src/lib.rs",
+      "crates/oya-governance-lifecycle-kernel/src/lib.rs",
+      "crates/oya-intelligence-subagent-runtime-kernel/src/lib.rs",
+      "crates/oya-vcs-admission-gate-kernel/src/lib.rs"
     ],
     "rs_change_class": "path string literal updates only (no fn signature, branch, loop, predicate, or data-flow modifications)",
     "additive_only": ["docs/decisions/ADR-0119-specs-flat-root-topology.md"],

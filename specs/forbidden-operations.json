@@ -141,9 +141,9 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-foundry-autonomy-ceiling-kernel",
-          "oya-foundry-autonomy-ceiling-domain",
-          "oya-foundry-autonomy-ceiling-app"
+          "oya-intelligence-autonomy-ceiling-kernel",
+          "oya-intelligence-autonomy-ceiling-domain",
+          "oya-intelligence-autonomy-ceiling-app"
         ],
         "planned_enforcement_refs": [
           "oya-governance-claim-ceiling-kernel"
