@@ -415,6 +415,7 @@ uncited-acronym	COBIT
 uncited-acronym	COBRA
 uncited-acronym	COC
 uncited-acronym	CODE
+uncited-acronym	COE
 uncited-acronym	COEX
 uncited-acronym	COFEPRIS
 uncited-acronym	COGS
@@ -1530,6 +1531,7 @@ uncited-acronym	NEW
 uncited-acronym	NFC
 uncited-acronym	NFD
 uncited-acronym	NFKC
+uncited-acronym	NFLX
 uncited-acronym	NFPA
 uncited-acronym	NFR
 uncited-acronym	NFS
@@ -1881,6 +1883,7 @@ uncited-acronym	RATE
 uncited-acronym	RB
 uncited-acronym	RBA
 uncited-acronym	RBD
+uncited-acronym	RBE
 uncited-acronym	RBI
 uncited-acronym	RBUKRS
 uncited-acronym	RCA
@@ -2053,6 +2056,7 @@ uncited-acronym	SCRIPTING
 uncited-acronym	SCTP
 uncited-acronym	SD
 uncited-acronym	SDAIA
+uncited-acronym	SDL
 uncited-acronym	SDLC
 uncited-acronym	SDN
 uncited-acronym	SDP

@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 301,
-    "numbering": "ADR-0001..ADR-0364 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 302,
+    "numbering": "ADR-0001..ADR-0365 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0365",
+    "next_adr": "ADR-0366",
     "status_counts": {
-      "Accepted": 128,
+      "Accepted": 129,
       "Accepted (amendment)": 1,
       "Amended": 1,
       "Proposed": 87,
@@ -3634,6 +3634,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0357", "ADR-0363", "ADR-0217", "ADR-0247"]
+    },
+    {
+      "adr": "ADR-0365",
+      "number": 365,
+      "title": "Automated ADR lifecycle — research → consensus → ADR → auto-propagate",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0365-automated-adr-lifecycle-and-propagation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0364", "ADR-0363", "ADR-0247"]
     }
   ]
 }
