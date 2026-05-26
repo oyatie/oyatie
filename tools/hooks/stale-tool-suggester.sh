@@ -2,9 +2,8 @@
 # tools/hooks/stale-tool-suggester.sh
 #
 # Trigger:  Claude Code PreToolUse(Bash)
-# Purpose:  When a Bash command references plain git, suggest the oya git
-#           cutover target and current
-#           policy-ratchet surface.
+# Purpose:  When a Bash command references retired VCS wrapper surfaces,
+#           suggest the current plain git + governance gate path.
 # Behavior: Reads $TOOL_INPUT (JSON with "command" field) from environment or stdin.
 #           Prints a suggestion to stderr with the canonical replacement.
 #           Agent decides whether to rewrite.
@@ -37,11 +36,11 @@ if [ -z "$COMMAND_TEXT" ]; then
     exit 0
 fi
 
-GIT_COMMAND_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)git([[:space:]]|$)'
+RETIRED_VCS_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)oya[[:space:]]+(git|vcs)([[:space:]]|$)'
 
-if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$GIT_COMMAND_PATTERN" 2>/dev/null; then
-    echo "ℹ [stale-tool-suggester] Plain git invocation detected." >&2
-    echo "ℹ  Preferred drop-in surface: oya git <git-subcommand> [git-specific args]" >&2
+if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$RETIRED_VCS_PATTERN" 2>/dev/null; then
+    echo "ℹ [stale-tool-suggester] Retired VCS surface detected: oya git/oya vcs are retired by ADR-0363." >&2
+    echo "ℹ  Use plain git for VCS work; use ./bin/oya verify --ci-required or oya gate run-all for governance gates." >&2
     echo "ℹ  This is advisory only; command semantics are not changed by the hook." >&2
 fi
 

@@ -266,15 +266,16 @@ ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into in
 ## Forbidden Primitives
 
 See: specs/master-plan-sequencing.json#forbidden_primitives
-Summary: Bash agent commands route through `oya git` for ordinary git
-operations and `oya vcs` for policy state transitions; OpenAPI must be 3.2.0;
-AsyncAPI must be 3.1.0.
+Summary: Bash agent commands use plain `git` for ordinary git operations. The
+retired wrappers `oya git` and `oya vcs` must not be used. Governance
+verification uses `./bin/oya verify --ci-required` and `oya gate run-all`;
+OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
 
 ## Common Pitfalls
 
-1. Bypassing `oya vcs` claim / verify / done / promote for agent state transitions.
+1. Using retired `oya git` / `oya vcs` surfaces instead of plain git + PR + Jenkins governance gates.
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
 4. Treating microservices/intelligence/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
@@ -291,8 +292,8 @@ AsyncAPI must be 3.1.0.
 
 Direct:     cargo run --quiet -p oya-dev-cli -- <subcommand> [args]
 Via wrapper: ./bin/oya <subcommand> [args]  (after PATH_add bin via .envrc)
-Top-level subcommands: git (drop-in pass-through), vcs (coordination ratchet compatibility), gate, governance-gates, foundation-audit-gates,
-                        catalog, check, demo, doc, lint, onprem, ops, submit,
+Top-level subcommands: gate, governance-gates, foundation-audit-gates, catalog,
+                        check, demo, doc, lint, onprem, ops, submit,
                         supply-chain, verify
 
 ---
