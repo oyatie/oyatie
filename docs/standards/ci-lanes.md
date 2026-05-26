@@ -93,6 +93,8 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-governance-i18n-coverage` | advisory Fluent ICU locale coverage per ADR-0206 (default_locale + required_locales + rtl_support + min_coverage_bps). |
 | `oya-governance-compliance-evidence-coverage` | advisory compliance evidence collector declaration per ADR-0209 (audit_chain_seal_required + tamper_evidence_algorithm + evidence_collectors[]). |
 | `oya-governance-realtime-transport-tier` | advisory real-time transport tier validation per ADR-0208 (sse vs websocket vs grpc-streaming; payload_budget_bytes per tier). |
+| `oya-governance-adr-planning-completeness` | ADR-0364 D2 — every planning_impact ADR that declares deliverables has id/description/exit_criteria/verified_by plus a milestone; ADRs without deliverables are advisory until D7 backfill |
+| `oya-governance-masterplan-drift` | ADR-0364 D4 — the committed docs/machine-readable/masterplan.generated.json equals the projection regenerated from the planning_impact ADR log (wraps `gen masterplan --check`) |
 | `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |

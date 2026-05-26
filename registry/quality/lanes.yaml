@@ -787,3 +787,19 @@ lanes:
     source: ADR-0208
     check_command: cargo run -p oya-dev-cli -- gate validate realtime-transport-tier
     runtime_budget_seconds: 30
+  - id: oya-governance-adr-planning-completeness
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: ADR-0364 D2 — every planning_impact ADR that declares deliverables has id/description/exit_criteria/verified_by plus a milestone; ADRs without deliverables are advisory until D7 backfill
+    source: ADR-0364
+    runtime_budget_seconds: 60
+    check_command: cargo run -p oya-dev-cli -- gate validate adr-planning-completeness
+  - id: oya-governance-masterplan-drift
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: ADR-0364 D4 — the committed docs/machine-readable/masterplan.generated.json equals the projection regenerated from the planning_impact ADR log (wraps `gen masterplan --check`)
+    source: ADR-0364
+    runtime_budget_seconds: 60
+    check_command: cargo run -p oya-dev-cli -- gate validate masterplan-drift

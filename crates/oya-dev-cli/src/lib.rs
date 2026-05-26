@@ -32,6 +32,10 @@ use oya_intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_pre
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;
+// ADR-0364 D2/D3/D4: generative ADR planning front-matter parser + the
+// completeness and masterplan-drift gates.
+mod adr_planning_completeness_gate;
+mod adr_planning_frontmatter;
 mod api_contract_registry;
 mod architecture_map_emit_gate;
 mod architecture_plane_gates;
@@ -81,6 +85,7 @@ mod json_scan;
 mod korea_localization_evidence_gate;
 mod layered_architecture_gates;
 mod loop_recovery_patterns_gate;
+mod masterplan_drift_gate;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
@@ -318,6 +323,7 @@ pub fn run_cli_from_env() -> ExitCode {
         Some("cleanup") => commands::cleanup::run(args.collect(), &usage()),
         Some("codex-thread-sweep") => commands::codex_thread_sweep::run(args.collect(), &usage()),
         Some("doc") => commands::doc::run(args.collect(), &usage()),
+        Some("gen") => commands::generate::run(args.collect(), &usage()),
         Some("catalog") => commands::catalog::run(args.collect(), &usage()),
         Some("gate") => commands::gate::run(args.collect(), &usage()),
         Some("lint") => commands::lint::run(args.collect(), &usage()),
@@ -337,6 +343,7 @@ pub fn run_cli_from_env() -> ExitCode {
 pub(crate) fn usage() -> String {
     "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--ci-required] [--include-deferred] [--skip-fmt] [--skip-check] [--skip-clippy] [--skip-nextest] [--skip-gate-run-all]   # canonical local pre-push/pre-PR entry; --ci-required runs the full CI mirror\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → git push → open/extend PR\n       oya cleanup retired-and-renumber --plan <path> --renumber-map <path> [--apply]\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
+        + "\n       oya gen masterplan [--decisions-dir <docs/decisions>] [--output <docs/machine-readable/masterplan.generated.json>] [--write|--check]   # ADR-0364 D3: generate the masterplan projection from planning_impact ADRs"
         + "\n       oya onprem <plan|install|uninstall|doctor> [--repo-root <.>] [--format <text|json>]"
         + "\n       oya ops <oci-a1-capacity-retry|oci-readiness-probe|onprem-bring-up> [ops-specific args]"
         + "\n       oya vcs [--format <text|json>] [--policy <observe|warn|enforce>] [--evidence-command <shell-command>] <claim|work|verify|done|status|symbols|queue|watch|promote> [vcs-specific args]"
@@ -380,6 +387,8 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--command-log-root <path>]... [--require-command-log-corpus] [--known-rationale <id>]..."
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--deferred-surfaces <registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
         + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
+        + "\n       oya gate validate adr-planning-completeness [--decisions-dir <docs/decisions>]"
+        + "\n       oya gate validate masterplan-drift [--decisions-dir <docs/decisions>] [--masterplan <docs/machine-readable/masterplan.generated.json>]"
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"

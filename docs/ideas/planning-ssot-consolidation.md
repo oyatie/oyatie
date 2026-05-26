@@ -152,3 +152,22 @@ research flagged). Instead:
 Parallel overlapping planning artifacts (Google GooWiki); dual-source drift (masterplan hand-authored
 vs ADRs); "spec-saturated, code-starved" governance; pack over-fragmentation. (Sources banked in the
 2026-05-26 best-practice research.)
+
+## Canonical naming (self-explanatory; no provenance-in-name)
+ONE canonical convention for every governance identifier — gates, lanes, specs, plans, docs, registries
+(crate names already governed by the ADR-0105 BNF). Names describe **function**, best-practice / Google
+AIP descriptive-identifier style — `kebab-case`, verb-noun, self-explanatory at a glance.
+- **Good**: `oya gate validate contract-traceability`, `masterplan-drift`, `docs-folder-discipline`,
+  `adr-planning-completeness` (here `adr` = the artifact type, not a number).
+- **FORBIDDEN** (the antipattern): a name that encodes *provenance* instead of *function* —
+  ADR-number-keyed (`adr-0244-*`, `adr0145-gates`, lane purposes that read "per ADR-0110"),
+  wave/milestone codes (`M01-P18`, `lean-a1`, wave-numbers), or opaque ids. Decisions move/supersede;
+  a name pinned to a number rots. (ADR *files* stay numbered `ADR-0000+` — that's the decision-LOG
+  index, NOT a gate/lane/spec name.)
+- **Enforcement**: a `canonical-naming` lint/gate — gate+lane+spec+plan ids must match a semantic
+  `^[a-z][a-z0-9]*(-[a-z0-9]+)*$` shape and must NOT match `adr-?\d{3,}` / `\bm\d{2}-p\d{2}\b` /
+  bare wave-number patterns. Ships as build work (serializes after D2/D3/D4), alongside
+  `docs-folder-discipline`.
+- **Re-foundation cleanup**: rename existing offenders to semantic names — `adr_0145_gates` →
+  function-named modules; lane `purpose` strings keyed to "ADR-NNNN" → describe the check + reference
+  the ADR by a `source:`/`adr:` *field*, not in the id. (Part of D7.)

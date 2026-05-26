@@ -1817,6 +1817,17 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("planning-ssot-coverage")) => {
             crate::planning_ssot_coverage_gate::run_planning_ssot_coverage(args.collect())
         }
+        // ADR-0364 D2: completeness gate over planning_impact ADRs. FAILs ADRs
+        // that declare deliverables but leave them/milestone incomplete; ADRs
+        // without a deliverables field are advisory (backfill deferred to D7).
+        (Some("validate"), Some("adr-planning-completeness")) => {
+            crate::adr_planning_completeness_gate::run_adr_planning_completeness(args.collect())
+        }
+        // ADR-0364 D4: masterplan drift gate. Wraps `gen masterplan --check`:
+        // the committed projection must equal the regenerated projection.
+        (Some("validate"), Some("masterplan-drift")) => {
+            crate::masterplan_drift_gate::run_masterplan_drift(args.collect())
+        }
         (Some("validate"), Some("planning-closure")) => {
             match crate::parse_planning_closure_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_planning_closure_gate(args) {

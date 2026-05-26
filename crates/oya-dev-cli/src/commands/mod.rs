@@ -5,6 +5,10 @@ pub(crate) mod codex_thread_sweep;
 pub(crate) mod demo;
 pub(crate) mod doc;
 pub(crate) mod gate;
+// ADR-0364 D3: `oya gen masterplan` — generative projections from the ADR log.
+// Module is named `generate` because `gen` is a reserved keyword in edition
+// 2024; the CLI surface verb stays `gen` (a runtime dispatch string).
+pub(crate) mod generate;
 pub(crate) mod lint;
 pub(crate) mod onprem;
 pub(crate) mod ops;

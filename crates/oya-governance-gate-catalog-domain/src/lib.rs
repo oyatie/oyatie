@@ -155,6 +155,9 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "i18n-coverage",
     "compliance-evidence-coverage",
     "realtime-transport-tier",
+    // ADR-0364 generative-masterplan governance lanes.
+    "adr-planning-completeness",
+    "masterplan-drift",
 ];
 
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
