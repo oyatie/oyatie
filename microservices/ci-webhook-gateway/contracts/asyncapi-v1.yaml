@@ -1,0 +1,69 @@
+asyncapi: 3.0.0
+info:
+  title: CI Webhook Gateway — event surface
+  version: "1.0.0"
+  description: >
+    The audit-chain events the gateway emits per ADR-0263. Each delivery
+    decision and dispatch outcome is sealed as one audit-chain row keyed by
+    delivery_id. The gateway is an event SINK for Forgejo webhooks (modelled
+    as a received operation) and an event SOURCE for the audit chain.
+  license:
+    name: Apache-2.0
+defaultContentType: application/json
+channels:
+  forgejoDelivery:
+    address: webhook/forgejo
+    description: Inbound Forgejo webhook deliveries (received over HTTP).
+    messages:
+      pullRequestDelivery:
+        $ref: "#/components/messages/PullRequestDelivery"
+  auditChain:
+    address: oya.audit-chain.ci-webhook-gateway
+    description: Outbound audit-chain seal events (ADR-0263).
+    messages:
+      deliveryAccepted: { $ref: "#/components/messages/DeliveryAccepted" }
+      signatureRejected: { $ref: "#/components/messages/SignatureRejected" }
+      pipelineDispatchKicked: { $ref: "#/components/messages/PipelineDispatchKicked" }
+      pipelineDispatchFailed: { $ref: "#/components/messages/PipelineDispatchFailed" }
+operations:
+  receiveDelivery:
+    action: receive
+    channel: { $ref: "#/channels/forgejoDelivery" }
+    summary: Receive a Forgejo webhook delivery.
+  emitAudit:
+    action: send
+    channel: { $ref: "#/channels/auditChain" }
+    summary: Emit the sealed decision/dispatch audit-chain rows.
+components:
+  messages:
+    PullRequestDelivery:
+      name: pullRequestDelivery
+      payload:
+        type: object
+        properties:
+          action: { type: string }
+          number: { type: integer }
+          pull_request: { type: object }
+    DeliveryAccepted:
+      name: webhook.delivery.accepted
+      payload: { $ref: "#/components/schemas/AuditRow" }
+    SignatureRejected:
+      name: webhook.delivery.signature_rejected
+      payload: { $ref: "#/components/schemas/AuditRow" }
+    PipelineDispatchKicked:
+      name: pipeline.dispatch.kicked
+      payload: { $ref: "#/components/schemas/AuditRow" }
+    PipelineDispatchFailed:
+      name: pipeline.dispatch.failed
+      payload: { $ref: "#/components/schemas/AuditRow" }
+  schemas:
+    AuditRow:
+      type: object
+      required: [event, delivery_id, at]
+      properties:
+        event: { type: string }
+        delivery_id: { type: string }
+        pr_number: { type: [integer, "null"] }
+        head_sha: { type: [string, "null"] }
+        outcome: { type: string }
+        at: { type: string, format: date-time }

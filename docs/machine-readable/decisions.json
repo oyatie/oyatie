@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 310,
-    "numbering": "ADR-0001..ADR-0373 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 311,
+    "numbering": "ADR-0001..ADR-0374 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0374",
+    "next_adr": "ADR-0375",
     "status_counts": {
-      "Accepted": 137,
+      "Accepted": 138,
       "Accepted (amendment)": 1,
       "Amended": 1,
       "Proposed": 87,
@@ -3742,6 +3742,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0090", "ADR-0105", "ADR-0131", "ADR-0007", "ADR-0003", "ADR-0145", "ADR-0092"]
+    },
+    {
+      "adr": "ADR-0374",
+      "number": 374,
+      "title": "CI webhook gateway (Forgejo → Jenkins gated pipeline trigger)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0363", "ADR-0366", "ADR-0367", "ADR-0349", "ADR-0361", "ADR-0124", "ADR-0039", "ADR-0043", "ADR-0131"]
     }
   ]
 }

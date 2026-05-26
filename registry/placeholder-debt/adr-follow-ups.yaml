@@ -602,3 +602,60 @@ follow_ups:
       (per-tenant registry + circuit breaker) — Phase 3 (tenant-facing
       DLQ replay API).
     status: pending
+
+  - id: adr-0374-reviewer-gate-dispatch
+    intent: |
+      Wire the adversarial reviewer gate (a CI stage powered by the
+      Intelligence service per ADR-0367 D2, distinct identity from the
+      author) as a dispatch target of the ci-webhook-gateway. The gateway
+      currently kicks the Jenkins oyaCiLane pipeline (admission +
+      oya gate run-all) and reports the reviewer gate as a typed
+      Unimplemented (HTTP 501) boundary; this follow-up makes the
+      reviewer verdict (oya-pr-review) a real dispatched + trusted-runner-
+      signed status rather than a not-yet-built boundary.
+    driver_docs:
+      - microservices/ci-webhook-gateway/src/dispatch.rs
+      - microservices/ci-webhook-gateway/src/error.rs
+      - docs/decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md
+    owner: council-architecture + axis-intelligence
+    trigger: |
+      The Intelligence-service reviewer CI stage (ADR-0367 D2) is stood up
+      and exposes a dispatch endpoint. Until then the gateway returns the
+      typed 501 boundary (no lying stub).
+    status: pending
+
+  - id: adr-0374-merge-queue-admit
+    intent: |
+      Wire the merge-queue admit step (ADR-0111 speculative rebase) as a
+      dispatch target of the ci-webhook-gateway, if/when concurrent-PR
+      volume + semantic-conflict risk justify a queue (ADR-0363 §3 parks
+      it at current scale; Forgejo auto-merge + required checks suffice).
+      Until then the gateway expresses merge-queue as a typed
+      Unimplemented boundary.
+    driver_docs:
+      - microservices/ci-webhook-gateway/src/dispatch.rs
+      - docs/decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md
+    owner: council-architecture + ops-platform
+    trigger: |
+      Concurrent open-PR volume on dev exceeds the point where
+      Forgejo auto-merge + required-status-checks alone cause stale-base
+      breakage (ADR-0363 §3 revisit condition). Adopt (not build) bors /
+      gitea-mq / Forgejo native MQ if/when forgejo#5102 lands.
+    status: pending
+
+  - id: adr-0374-delivery-dedup-log
+    intent: |
+      Append-only webhook delivery-id dedup log for the ci-webhook-gateway
+      (the ADR-0112 idempotency contract carried forward to the Forgejo
+      substrate). v1 relies on Forgejo at-least-once redelivery + the
+      idempotent (pr, head_sha) Jenkins kick; this follow-up adds the
+      explicit dedup log + crash-safe replay if duplicate-kick cost or
+      audit completeness demands it.
+    driver_docs:
+      - microservices/ci-webhook-gateway/src/receiver.rs
+      - microservices/ci-webhook-gateway/IPs/IP-CWG-001-webhook-receiver-and-pipeline-dispatch.md
+    owner: council-architecture + ops-platform
+    trigger: |
+      Duplicate Jenkins kicks from redelivery measurably waste CI budget,
+      OR an audit requirement needs a persistent per-delivery ledger.
+    status: pending
