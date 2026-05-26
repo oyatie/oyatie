@@ -105,7 +105,6 @@ uncited-acronym	ANA
 uncited-acronym	ANAF
 uncited-acronym	ANMDMR
 uncited-acronym	ANN
-uncited-acronym	ANNOTATE
 uncited-acronym	ANPD
 uncited-acronym	ANS
 uncited-acronym	ANSPDCP
@@ -183,6 +182,7 @@ uncited-acronym	AUTOSHARDING
 uncited-acronym	AV
 uncited-acronym	AVEVA
 uncited-acronym	AVIF
+uncited-acronym	AVOID
 uncited-acronym	AVPF
 uncited-acronym	AVTCORE
 uncited-acronym	BA
@@ -296,7 +296,6 @@ uncited-acronym	CAP
 uncited-acronym	CAPA
 uncited-acronym	CAPI
 uncited-acronym	CAPTCHA
-uncited-acronym	CARRIERS
 uncited-acronym	CAS
 uncited-acronym	CATALOG
 uncited-acronym	CBD
@@ -323,7 +322,6 @@ uncited-acronym	CE
 uncited-acronym	CEF
 uncited-acronym	CELEX
 uncited-acronym	CELL
-uncited-acronym	CELLULAR
 uncited-acronym	CENTER
 uncited-acronym	CEO
 uncited-acronym	CEP
@@ -372,6 +370,7 @@ uncited-acronym	CLAIM
 uncited-acronym	CLAIMED
 uncited-acronym	CLAIMING
 uncited-acronym	CLDR
+uncited-acronym	CLEAN
 uncited-acronym	CLEANLY
 uncited-acronym	CLM
 uncited-acronym	CLOEXEC
@@ -440,6 +439,7 @@ uncited-acronym	COPPA
 uncited-acronym	CORPUS
 uncited-acronym	CORRECT
 uncited-acronym	CORRELATION
+uncited-acronym	CORS
 uncited-acronym	COULD
 uncited-acronym	COUNSEL
 uncited-acronym	COUNT
@@ -604,6 +604,7 @@ uncited-acronym	DOCX
 uncited-acronym	DOES
 uncited-acronym	DOJ
 uncited-acronym	DOM
+uncited-acronym	DON
 uncited-acronym	DONE
 uncited-acronym	DOR
 uncited-acronym	DORA
@@ -976,6 +977,7 @@ uncited-acronym	GSTIN
 uncited-acronym	GTK
 uncited-acronym	GTS
 uncited-acronym	GUARDRAIL
+uncited-acronym	GUI
 uncited-acronym	HA
 uncited-acronym	HACCP
 uncited-acronym	HACL
@@ -1851,6 +1853,7 @@ uncited-acronym	PTY
 uncited-acronym	PUB
 uncited-acronym	PUBLIC
 uncited-acronym	PUE
+uncited-acronym	PURE
 uncited-acronym	PUT
 uncited-acronym	PWA
 uncited-acronym	PZP
@@ -1918,10 +1921,8 @@ uncited-acronym	REM
 uncited-acronym	REMAINS
 uncited-acronym	REMB
 uncited-acronym	REMEDIATION
-uncited-acronym	REMOVED
 uncited-acronym	RENAMES
 uncited-acronym	REPEATABLE
-uncited-acronym	REPLACES
 uncited-acronym	REPORT
 uncited-acronym	REQUEST
 uncited-acronym	REQUIRE
@@ -1940,7 +1941,6 @@ uncited-acronym	RESPONDER
 uncited-acronym	RESTART
 uncited-acronym	RESTRICTED
 uncited-acronym	RESTRICTIVE
-uncited-acronym	RETAINED
 uncited-acronym	RETENTION
 uncited-acronym	RETIRE
 uncited-acronym	RETRIEVAL
@@ -1962,12 +1962,12 @@ uncited-acronym	RIPE
 uncited-acronym	RISK
 uncited-acronym	RLDNR
 uncited-acronym	RLE
-uncited-acronym	RLHF
 uncited-acronym	RM
 uncited-acronym	RMA
 uncited-acronym	RMF
 uncited-acronym	RMS
 uncited-acronym	RN
+uncited-acronym	RNG
 uncited-acronym	RO
 uncited-acronym	ROA
 uncited-acronym	ROI
@@ -2130,7 +2130,6 @@ uncited-acronym	SITS
 uncited-acronym	SIU
 uncited-acronym	SK
 uncited-acronym	SKAT
-uncited-acronym	SKILL
 uncited-acronym	SKT
 uncited-acronym	SKU
 uncited-acronym	SLES
@@ -2500,7 +2499,6 @@ uncited-acronym	WORKFLOW
 uncited-acronym	WORM
 uncited-acronym	WRBTR
 uncited-acronym	WRI
-uncited-acronym	WRITE
 uncited-acronym	WS
 uncited-acronym	WSJ
 uncited-acronym	WTD
