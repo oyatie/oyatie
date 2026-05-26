@@ -42,7 +42,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime \u2014 those leaks are CLOSED.",
+      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
@@ -110,13 +110,8 @@
         "oya-intelligence-settings-template-kernel",
         "oya-intelligence-subagent-runtime-app",
         "oya-intelligence-subagent-runtime-kernel",
-        "oya-vcs-ast-index-kernel",
         "oya-vcs-changeset-state-app",
-        "oya-vcs-ci-fix-loop-dispatcher-app",
-        "oya-vcs-merge-queue-fix-loop-app",
         "oya-vcs-provider-execution-gate-app",
-        "oya-vcs-webhook-receiver-app",
-        "oya-vcs-webhook-receiver-kernel",
         "oya-gen-microservice-manifests-app",
         "oya-hr-employment-domain",
         "oya-hr-employment-runtime",
@@ -173,7 +168,6 @@
       "isolated_in_crate": "CLI binaries and tooling apps",
       "allowed_crates": [
         "oya-codeview-cli",
-        "oya-vcs-webhook-receiver-app",
         "oya-shared-architecture-check-cli",
         "oya-shared-semver-check-cli",
         "oya-shared-supply-chain-check-cli",
@@ -196,7 +190,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "HTTP I/O protocol \u2014 h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
+      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
@@ -248,7 +242,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-and-application",
       "owner_team": "council-architecture",
-      "rationale": "Serialization framework. Used by adapters (DTOs), application orchestrators (event emission), and the application-shell frontend prototype's mock-only render-envelope DTO boundary. Kernels SHOULD NOT depend on serde \u2014 pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
+      "rationale": "Serialization framework. Used by adapters (DTOs), application orchestrators (event emission), and the application-shell frontend prototype's mock-only render-envelope DTO boundary. Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter and application layer crates; kernel violations report-only",
       "allowed_crates": [
@@ -269,9 +263,6 @@
         "oya-intelligence-openapi-domain",
         "oya-intelligence-pr-review-dispatcher-app",
         "oya-intelligence-subagent-runtime-kernel",
-        "oya-vcs-ci-fix-loop-dispatcher-app",
-        "oya-vcs-merge-queue-fix-loop-app",
-        "oya-vcs-webhook-receiver-app",
         "oya-gen-microservice-manifests-app",
         "oya-hr-employment-api",
         "oya-hr-employment-runtime",
@@ -314,8 +305,6 @@
         "oya-vcs-changeset-state-app",
         "oya-vcs-provider-execution-gate-app",
         "oya-vcs-provider-execution-gate-kernel",
-        "oya-vcs-webhook-receiver-app",
-        "oya-vcs-webhook-receiver-kernel",
         "oya-gen-microservice-manifests-app",
         "oya-hr-employment-api",
         "oya-hr-employment-runtime",
@@ -345,8 +334,7 @@
       "isolated_in_crate": "oya-check-* lane crates and manifest tooling",
       "allowed_crates": [
         "oya-check-step-up-auth-coverage",
-        "oya-governance-purpose-audit-app",
-        "oya-vcs-webhook-receiver-app"
+        "oya-governance-purpose-audit-app"
       ]
     },
     "tempfile": {
@@ -384,7 +372,6 @@
         "oya-intelligence-codex-account-adapter",
         "oya-intelligence-gemini-account-adapter",
         "oya-intelligence-supervisor-app",
-        "oya-vcs-webhook-receiver-app",
         "oya-http-runtime-hyper-adapter",
         "oya-ops-workspace-shell-app",
         "oya-payments-charge-kernel",
@@ -419,8 +406,6 @@
         "oya-intelligence-settings-template-adapter",
         "oya-intelligence-settings-template-kernel",
         "oya-intelligence-supervisor-app",
-        "oya-vcs-kernel",
-        "oya-vcs-polyglot-indexer-adapter",
         "oya-shared-architecture-check-cli",
         "oya-xtask-metadata-augment-app"
       ]
@@ -429,7 +414,7 @@
       "version_pin": "0.1",
       "layer_seam": "infrastructure-only",
       "owner_team": "council-architecture",
-      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing \u2014 pure types don't emit spans. Current usage is bounded.",
+      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates",
       "allowed_crates": [
@@ -443,7 +428,7 @@
       "version_pin": "0.3",
       "layer_seam": "app-only",
       "owner_team": "council-architecture",
-      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries \u2014 never in libraries \u2014 so binaries decide their own log routing.",
+      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "app-layer binaries (composition roots)",
       "allowed_crates": [

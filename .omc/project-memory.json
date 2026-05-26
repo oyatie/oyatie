@@ -26,7 +26,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd /Users/jasonlee/Developer/source\ngit ls-files microservices/foundry | wc -l   # confirm 0 tracked files there\nrm -rf microservices/foundry\nls -d microservices/foundry 2>/dev/null && echo \"STILL EXISTS\" || echo \"foundry dir removed\"\necho \"=== intelligence absorbed count ===\"; find microservices/intelligence -type f | wc -l\necho \"=== rebuild oya + verify doc/governance gates (no crates moved, so build is cached) ===\"\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -1\nfor g in doc-catalog architecture-boundaries aspirational-enforcement glossary-vocabulary; do\n  out=$(target/debug/oya gate validate \"$g\" 2>&1); printf '%-26s %s\\n' \"$g\" \"$([ $? = 0 ] && echo PASS || echo FAIL)\"\n  echo \"$out\" | grep -iE 'fail|foundry|missing|orphan' | head -3\ndone",
+    "buildCommand": "cd /Users/jasonlee/Developer/source\necho \"=== full build output ===\"; cat /private/tmp/claude-501/-Users-jasonlee-Developer-source/2e4f0ca9-b62c-4fc6-a77a-989c8c2f4506/tasks/bky4eg62v.output 2>/dev/null | tail -12\necho \"=== build proc alive? ===\"; pgrep -f 'cargo build --workspace' >/dev/null && echo \"RUNNING\" || echo \"DONE\"",
     "testCommand": "cd /Users/jasonlee/Developer/source\necho \"=== confirm the 2 rewritten path literals point to real files ===\"\nls -la microservices/intelligence/scorecards/overrides.json microservices/intelligence/iac/helm/foundry/deployment.yaml 2>&1\necho\necho \"=== test the 2 affected gate-check crates ===\"\ncargo test -q -p oya-check-slsa-l3-evidence-grounded -p oya-check-tenant-cost-labels-coverage 2>&1 | tail -20",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
@@ -274,6 +274,12 @@
   },
   "hotPaths": [
     {
+      "path": "docs/ideas/planning-ssot-consolidation.md",
+      "accessCount": 7,
+      "lastAccessed": 1779769301094,
+      "type": "file"
+    },
+    {
       "path": "crates/oya-check-aspirational-enforcement/src/lib.rs",
       "accessCount": 6,
       "lastAccessed": 1779763103634,
@@ -292,6 +298,96 @@
       "type": "file"
     },
     {
+      "path": "registry/dependency-rationales.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768045736,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0110-changeset-state-machine.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768277376,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768279761,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768281399,
+      "type": "file"
+    },
+    {
+      "path": "specs/masterplan.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768560884,
+      "type": "file"
+    },
+    {
+      "path": "specs/compliance-pack-schema.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768565676,
+      "type": "file"
+    },
+    {
+      "path": "specs/sovereign-cloud-overlays.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768568119,
+      "type": "file"
+    },
+    {
+      "path": "specs/planning-closure-contract.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768569770,
+      "type": "file"
+    },
+    {
+      "path": "specs/master-plan-sequencing.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768571859,
+      "type": "file"
+    },
+    {
+      "path": "specs/root-hub-pointers.json",
+      "accessCount": 2,
+      "lastAccessed": 1779768573893,
+      "type": "file"
+    },
+    {
+      "path": "docs/MASTERPLAN.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768577662,
+      "type": "file"
+    },
+    {
+      "path": "tasks/plan.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768579439,
+      "type": "file"
+    },
+    {
+      "path": "tasks/todo.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768581475,
+      "type": "file"
+    },
+    {
+      "path": "registry/vcs/README.md",
+      "accessCount": 2,
+      "lastAccessed": 1779768647956,
+      "type": "file"
+    },
+    {
+      "path": "registry/vcs/event-router.yaml",
+      "accessCount": 2,
+      "lastAccessed": 1779768655463,
+      "type": "file"
+    },
+    {
       "path": "specs/microservices/intelligence.json",
       "accessCount": 1,
       "lastAccessed": 1779765931452,
@@ -301,6 +397,30 @@
       "path": "docs/ideas/post-cutover-program.md",
       "accessCount": 1,
       "lastAccessed": 1779767686626,
+      "type": "file"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1779768517674,
+      "type": "file"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "accessCount": 1,
+      "lastAccessed": 1779768517781,
+      "type": "file"
+    },
+    {
+      "path": "specs/compliance-pack-floors.json",
+      "accessCount": 1,
+      "lastAccessed": 1779768585213,
+      "type": "file"
+    },
+    {
+      "path": "specs/pack-overlay-schema.json",
+      "accessCount": 1,
+      "lastAccessed": 1779768587498,
       "type": "file"
     }
   ],
