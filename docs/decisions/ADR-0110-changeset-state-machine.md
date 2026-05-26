@@ -1,10 +1,10 @@
 ---
-status: Proposed
+status: Superseded
 deciders: council-foundry-vcs, council-architecture
 date: 2026-05-16
 owner: council-foundry-vcs
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0363]
 related:
   - ADR-0054-grit-scaffold-claim-pattern.md
   - ADR-0083-tier-1-error-handling-strict.md

@@ -1,5 +1,14 @@
 # registry/vcs/
 
+> **FROZEN (historical evidence) — ADR-0363 §2.** The bespoke agentic-VCS
+> pipeline is retired in favour of git + Jenkins + self-hosted Forgejo.
+> The orchestration crates this registry referenced (changeset-state machine,
+> merge-queue, promotion-controller, webhook-receiver, ast-index,
+> polyglot-indexer, lockstore, changebundle, ci-fix-loop-dispatcher) were
+> deleted in the ADR-0363 PR-2 cutover. This directory (`event-router.yaml`,
+> `changeset-event-log.json`) is preserved as historical evidence — **not
+> active, not deleted, not edited**. ADR-0110/0112/0113 are Superseded.
+
 Append-only event log + canonical config for the agentic-VCS pipeline
 per ADR-0110 (changeset state machine) and ADR-0112 (webhook receiver
 substrate).

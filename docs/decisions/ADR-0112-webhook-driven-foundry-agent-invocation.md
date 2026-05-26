@@ -1,10 +1,10 @@
 ---
-status: Proposed
+status: Superseded
 deciders: council-foundry, council-foundry-vcs, council-security
 date: 2026-05-16
 owner: council-foundry-vcs
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0363]
 related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
