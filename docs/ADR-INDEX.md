@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 298
-- **Numbering:** ADR-0001..ADR-0361 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0362
-- **Status counts:** Accepted 125, Accepted (amendment) 1, Amended 1, Proposed 90, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 300
+- **Numbering:** ADR-0001..ADR-0363 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0364
+- **Status counts:** Accepted 127, Accepted (amendment) 1, Amended 1, Proposed 90, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -304,7 +304,7 @@ doc_status: published
 | ADR-0344 | Proposed | Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongside every audit row; finops-portal dimensional rollup per tenant/product/capability/provider/cell/compliance-pack) | council-architecture, council-legal, ops-finops, ops-sre-reliability, axis-audit-chain, axis-observability, ops-compliance | [`ADR-0344-sustainability-finops-dimensional-model.md`](decisions/ADR-0344-sustainability-finops-dimensional-model.md) |
 | ADR-0345 | Proposed | OSS stewardship class policy + CVE-response SLA (Maintainer / Contributor / Consumer classes per upstream dependency; 7-day P0 + 30-day P1 contributor SLA) | council-architecture, council-security, council-legal, ops-supply-chain, axis-compliance, ops-platform | [`ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md`](decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md) |
 | ADR-0346 | Proposed | oya verify --ci-required MUST locally mirror the full CI matrix and block on exit-0 of EACH step before returning success | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0346-oya-verify-must-run-full-ci-mirror.md`](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md) |
-| ADR-0347 | Proposed | Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename) | council-architecture, ops-sre-reliability, ops-platform, council-security, axis-governance | [`ADR-0347-foundry-fitness-to-governance-bulk-rename.md`](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md) |
+| ADR-0347 | Proposed | Foundry-fitness to governance bulk rename (doctrine-only; all oya-foundry-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename) | council-architecture, ops-sre-reliability, ops-platform, council-security, axis-governance | [`ADR-0347-foundry-fitness-to-governance-bulk-rename.md`](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md) |
 | ADR-0348 | Proposed | Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible) | council-architecture, ops-sre-reliability, axis-tenancy, axis-observability, axis-cloud-iac | [`ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md`](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md) |
 | ADR-0349 | Proposed | Jenkins (LTS) + ArgoCD canonical self-hostable CI/CD substrate (Jenkins augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164) | council-architecture, ops-platform, ops-sre-reliability, axis-cloud-iac, axis-observability, council-security | [`ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md`](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) |
 | ADR-0350 | Accepted | UUIDv7 Canonical ID Primitive Across Oyatie | council-architecture, council-security, axis-governance, axis-audit-chain, axis-workflow-engine, axis-tenancy, axis-identity, axis-observability | [`ADR-0350-uuidv7-canonical-id-primitive.md`](decisions/ADR-0350-uuidv7-canonical-id-primitive.md) |
@@ -319,11 +319,13 @@ doc_status: published
 | ADR-0359 | Proposed | Jenkins completely replaces GitHub Actions as the CI orchestrator | council-architecture | [`ADR-0359-jenkins-completely-replaces-github-actions.md`](decisions/ADR-0359-jenkins-completely-replaces-github-actions.md) |
 | ADR-0360 | Proposed | CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0360-ci-pipeline-optimization-program.md`](decisions/ADR-0360-ci-pipeline-optimization-program.md) |
 | ADR-0361 | Proposed | Execute the Jenkins-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0361-jenkins-native-cicd-revamp-execution.md`](decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md) |
+| ADR-0362 | Accepted | Full grouping retirement (flat-only catalog) | council-architecture | [`ADR-0362-full-grouping-retirement-flat-only-catalog.md`](decisions/ADR-0362-full-grouping-retirement-flat-only-catalog.md) |
+| ADR-0363 | Accepted | Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine | council-architecture | [`ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md`](decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0362), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0364), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -350,6 +352,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 298 ADR files (sorted ascending)
+- `decisions/` directory listing — 300 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 298,
-    "numbering": "ADR-0001..ADR-0361 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 300,
+    "numbering": "ADR-0001..ADR-0363 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0362",
+    "next_adr": "ADR-0364",
     "status_counts": {
-      "Accepted": 125,
+      "Accepted": 127,
       "Accepted (amendment)": 1,
       "Amended": 1,
       "Proposed": 90,
@@ -3422,7 +3422,7 @@
     {
       "adr": "ADR-0347",
       "number": 347,
-      "title": "Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)",
+      "title": "Foundry-fitness to governance bulk rename (doctrine-only; all oya-foundry-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)",
       "status": "Proposed",
       "owner": "council-architecture, ops-sre-reliability, ops-platform, council-security, axis-governance",
       "date": "2026-05-21",
@@ -3598,6 +3598,30 @@
       "supersedes": [],
       "superseded_by": [],
       "related": []
+    },
+    {
+      "adr": "ADR-0362",
+      "number": 362,
+      "title": "Full grouping retirement (flat-only catalog)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-25",
+      "path": "decisions/ADR-0362-full-grouping-retirement-flat-only-catalog.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0131", "ADR-0132", "ADR-0135", "ADR-0237", "ADR-0238", "ADR-0139"]
+    },
+    {
+      "adr": "ADR-0363",
+      "number": 363,
+      "title": "Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "supersedes": ["ADR-0110, ADR-0112, ADR-0113"],
+      "superseded_by": [],
+      "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0349", "ADR-0357", "ADR-0361", "ADR-0362"]
     }
   ]
 }
