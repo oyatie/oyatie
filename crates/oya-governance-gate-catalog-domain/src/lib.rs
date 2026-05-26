@@ -103,12 +103,11 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "product-index",
     "product-prd-json",
     "stage0-prereqs",
-    // changeset-state-monotonicity + changeset-state-enum-closed were REMOVED from
-    // the active aggregator on 2026-05-26: neither has an `oya gate validate`
-    // implementation, so dispatch hit the usage path and only false-failed
-    // gate-run-all (enforcing nothing). Re-add once the ADR-0110 changeset
-    // state-machine gates are implemented; tracked in
-    // registry/placeholder-debt/adr-follow-ups.yaml (adr-0110-changeset-state-gates).
+    // ADR-0110 changeset state machine: monotonic state progression + closed
+    // status enum, validated against registry/vcs/changeset-event-log.json
+    // (impl: oya-dev-cli/src/changeset_state_gates.rs).
+    "changeset-state-monotonicity",
+    "changeset-state-enum-closed",
     // PR #143 Fix-D strict gates.
     "high-risk-auto-decision-refusal",
     "slsa-l3-evidence-grounded",
