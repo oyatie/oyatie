@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 306
-- **Numbering:** ADR-0001..ADR-0369 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0370
-- **Status counts:** Accepted 133, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 7, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 309
+- **Numbering:** ADR-0001..ADR-0372 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0373
+- **Status counts:** Accepted 136, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 7, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -327,11 +327,14 @@ doc_status: published
 | ADR-0367 | Accepted | Trustless pre-merge verification gateway (PR-ceremony-less) | council-architecture | [`ADR-0367-trustless-pre-merge-verification-gateway.md`](decisions/ADR-0367-trustless-pre-merge-verification-gateway.md) |
 | ADR-0368 | Accepted | Self-governing agentic platform — north-star charter | founder | [`ADR-0368-self-governing-agentic-platform-north-star.md`](decisions/ADR-0368-self-governing-agentic-platform-north-star.md) |
 | ADR-0369 | Accepted | Gated stacked-trunk change-flow with a speculative merge-train | council-architecture | [`ADR-0369-gated-stacked-trunk-change-flow.md`](decisions/ADR-0369-gated-stacked-trunk-change-flow.md) |
+| ADR-0370 | Accepted | Local production-fidelity substrate — multi-node Talos on Apple Silicon | council-architecture | [`ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md`](decisions/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md) |
+| ADR-0371 | Accepted | Secure control-plane access via Cloudflare Tunnel (L4) + Access | council-architecture | [`ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md`](decisions/ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md) |
+| ADR-0372 | Accepted | Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules | council-architecture | [`ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md`](decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0370), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0373), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -358,6 +361,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 306 ADR files (sorted ascending)
+- `decisions/` directory listing — 309 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
