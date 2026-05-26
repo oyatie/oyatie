@@ -1,5 +1,5 @@
 [package]
-name = "oya-check-claim-ceiling"
+name = "oya-intelligence-capability-domain"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-intelligence-catalog-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-catalog-domain" }
+oya-data-boundary-kernel = { path = "../../../../crates/oya-data-boundary-kernel" }
 
 [lib]
-name = "oya_check_claim_ceiling"
+name = "oya_intelligence_capability_domain"
 path = "src/lib.rs"
 doctest = false
 

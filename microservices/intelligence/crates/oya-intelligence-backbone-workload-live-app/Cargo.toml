@@ -1,0 +1,37 @@
+[package]
+name = "oya-intelligence-backbone-workload-live-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dev-dependencies]
+oya-community-post-store-adapter-postgres = { path = "../../../../crates/oya-community-post-store-adapter-postgres" }
+oya-community-post-store-api = { path = "../../../../crates/oya-community-post-store-api" }
+oya-community-post-store-domain = { path = "../../../../crates/oya-community-post-store-domain" }
+oya-community-post-store-usecase = { path = "../../../../crates/oya-community-post-store-usecase" }
+oya-mail-mailbox-store-adapter-postgres = { path = "../../../../crates/oya-mail-mailbox-store-adapter-postgres" }
+oya-mail-mailbox-store-api = { path = "../../../../crates/oya-mail-mailbox-store-api" }
+oya-mail-mailbox-store-usecase = { path = "../../../../crates/oya-mail-mailbox-store-usecase" }
+oya-messenger-message-stream-adapter-postgres = { path = "../../../../crates/oya-messenger-message-stream-adapter-postgres" }
+oya-messenger-message-stream-api = { path = "../../../../crates/oya-messenger-message-stream-api" }
+oya-messenger-message-stream-usecase = { path = "../../../../crates/oya-messenger-message-stream-usecase" }
+oya-shared-postgres-command-adapter-sqlx = { path = "../../../../crates/oya-shared-postgres-command-adapter-sqlx" }
+oya-shared-postgres-command-kernel = { path = "../../../../crates/oya-shared-postgres-command-kernel" }
+oya-shared-protocol-parity-kernel = { path = "../../../../crates/oya-shared-protocol-parity-kernel" }
+oya-shared-transactional-outbox-adapter-sqlx = { path = "../../../../crates/oya-shared-transactional-outbox-adapter-sqlx" }
+oya-shared-transactional-outbox-kernel = { path = "../../../../crates/oya-shared-transactional-outbox-kernel" }
+oya-social-post-composition-adapter-postgres = { path = "../../../../crates/oya-social-post-composition-adapter-postgres" }
+oya-social-post-composition-api = { path = "../../../../crates/oya-social-post-composition-api" }
+oya-social-post-composition-usecase = { path = "../../../../crates/oya-social-post-composition-usecase" }
+sqlx.workspace = true
+tokio.workspace = true
+
+[lib]
+name = "oya_intelligence_backbone_workload_live_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

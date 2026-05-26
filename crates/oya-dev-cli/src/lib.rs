@@ -1376,7 +1376,7 @@ pub(crate) fn validate_vendor_lockin_discipline_gate(
         let Some(trait_ref) = entry.seam_adapter_trait.as_deref() else {
             continue;
         };
-        if !trait_ref.starts_with("crates/") {
+        if !trait_ref.starts_with("crates/") && !trait_ref.starts_with("microservices/") {
             continue;
         }
         if !member_set.contains(trait_ref) {
@@ -1388,7 +1388,9 @@ pub(crate) fn validate_vendor_lockin_discipline_gate(
         let any_impl_present = entry
             .seam_adapter_impls
             .iter()
-            .filter(|impl_path| impl_path.starts_with("crates/"))
+            .filter(|impl_path| {
+                impl_path.starts_with("crates/") || impl_path.starts_with("microservices/")
+            })
             .any(|impl_path| {
                 // Trim trailing parenthetical annotations like "(planned)".
                 let normalized = impl_path
