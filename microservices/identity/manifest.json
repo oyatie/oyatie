@@ -586,6 +586,12 @@
   "audit_chain": {
     "enabled": true,
     "seal_events": [
+      "IdentityWorkloadAuthorizationDecided",
+      "IdentityWorkloadTokenValidated",
+      "IdentityWorkloadPrincipalProvisioned",
+      "IdentityWorkloadPrincipalActivated",
+      "IdentityWorkloadPrincipalSuspended",
+      "IdentityWorkloadPrincipalRetired",
       "IdentityUserProvisioned",
       "IdentityUserReactivated",
       "IdentityUserSuspended",
@@ -607,6 +613,73 @@
       "IdentityHrisHirePulled",
       "IdentityHrisTerminationPulled"
     ]
+  },
+  "workload_identity_design": {
+    "bounded_context": "workload-identity",
+    "description": "Machine-to-machine workload identity + Cedar PARC authorization design package (ADR-0002 task T3): ring OIDC/JWS token validation, WorkloadPrincipal lifecycle, and a swap-in Cedar PDP. Distinct from the human-identity surface.",
+    "crates": [
+      "oya-identity-workload-domain",
+      "oya-identity-workload-oidc-adapter",
+      "oya-identity-workload-authz-cedar-adapter"
+    ],
+    "adrs": [
+      "ADR-0002",
+      "ADR-0131",
+      "ADR-0183"
+    ],
+    "adrs_note": "The genuinely-governing ADRs for this design are recorded here: ADR-0002 (tenant-and-identity-kernel, the source_adr in the workload crate catalog records), ADR-0131 (flat per-microservice layout), and ADR-0183 (Cedar+Kyverno policy-engine separation). The wave-task placeholder ids ADR-0370/0371/0372 were NOT adopted because the existing docs/decisions ADR-0370 (Talos Apple-silicon substrate), ADR-0371 (Cloudflare tunnel access), and ADR-0372 (SolidJS frontend stack) do not govern workload identity/authz; claiming them would be a false citation under the honest-claims gate.",
+    "regulatory_packs": [
+      "eu",
+      "us",
+      "us-healthcare",
+      "kr",
+      "soc2",
+      "iso27001",
+      "fedramp",
+      "PCI-DSS",
+      "gdpr"
+    ],
+    "design_package": {
+      "prd": "microservices/identity/workload-identity/PRD.md",
+      "ip": "microservices/identity/IP-001-identity-design.md",
+      "contracts": {
+        "openapi": "microservices/identity/contracts/identity.openapi.yaml",
+        "asyncapi": "microservices/identity/contracts/identity.asyncapi.yaml",
+        "proto": "microservices/identity/contracts/identity.proto"
+      },
+      "policy": "microservices/identity/policy/identity.cedar",
+      "capabilities": "microservices/identity/capabilities/identity.capabilities.yaml",
+      "slos": [
+        "microservices/identity/slos/authorize-latency-p99.openslo.yaml",
+        "microservices/identity/slos/validation-availability.openslo.yaml",
+        "microservices/identity/slos/decision-correctness.openslo.yaml"
+      ],
+      "runbooks": [
+        "microservices/identity/runbooks/jwks-fetch-failure.md",
+        "microservices/identity/runbooks/policy-store-unavailable.md"
+      ],
+      "design_notes": [
+        "microservices/identity/design/hyperscaler-best-practice-brief.md",
+        "microservices/identity/design/threat-model.md",
+        "microservices/identity/design/failure-modes.md",
+        "microservices/identity/design/data-residency.md",
+        "microservices/identity/design/cost-finops.md",
+        "microservices/identity/design/audit-evidence-emission.md",
+        "microservices/identity/design/tenant-isolation.md",
+        "microservices/identity/design/operational-boundaries.md"
+      ]
+    },
+    "audit_chain": {
+      "enabled": true,
+      "seal_events": [
+        "IdentityWorkloadAuthorizationDecided",
+        "IdentityWorkloadTokenValidated",
+        "IdentityWorkloadPrincipalProvisioned",
+        "IdentityWorkloadPrincipalActivated",
+        "IdentityWorkloadPrincipalSuspended",
+        "IdentityWorkloadPrincipalRetired"
+      ]
+    }
   },
   "secrets_substrate": {
     "provider": "openbao",
