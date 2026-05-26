@@ -61,11 +61,11 @@
     },
     "ci_workflow_audit": {
       "status": "documented",
-      "evidence": "evidence/pr-143-branch-protection-admin-action.md — 18 .github/workflows/oya-foundry-fitness-*.yml files exist on origin/dev with retired naming; rename to oya-governance-* required before merge"
+      "evidence": "evidence/pr-143-branch-protection-admin-action.md — 18 .github/workflows/oya-governance-*.yml files exist on origin/dev with retired naming; rename to oya-governance-* required before merge"
     },
     "branch_protection_admin_action": {
       "status": "documented",
-      "evidence": "evidence/pr-143-branch-protection-admin-action.md — admin must rename 9 required status checks from oya-foundry-fitness-* to oya-governance-* before PR #143 can pass branch protection"
+      "evidence": "evidence/pr-143-branch-protection-admin-action.md — admin must rename 9 required status checks from oya-governance-* to oya-governance-* before PR #143 can pass branch protection"
     },
     "rebase_playbook": {
       "status": "documented",
@@ -109,7 +109,7 @@
     {
       "blocker": "branch_protection_check_names",
       "owner": "repo_admin",
-      "action": "Rename 9 required status checks on dev from oya-foundry-fitness-* to oya-governance-*",
+      "action": "Rename 9 required status checks on dev from oya-governance-* to oya-governance-*",
       "playbook": "evidence/pr-143-branch-protection-admin-action.md",
       "estimated_minutes": 10
     }

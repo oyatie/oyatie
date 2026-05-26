@@ -3,8 +3,8 @@
     "AGENTS.md",
     "CLAUDE.md",
     "docs/AGENTS.md",
-    ".omc/fitness-lanes/banned-primitives.md",
-    "docs/fitness-lanes/banned-primitives.md"
+    ".omc/governance-lanes/banned-primitives.md",
+    "docs/governance-lanes/banned-primitives.md"
   ],
   "claim": {
     "agent": "codex-autopilot-p01-ip006",
@@ -66,13 +66,13 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-banned-primitives",
+      "command": "cargo run -p oya-governance-banned-primitives",
       "exit_code": 101,
       "status": "blocked"
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- docs/AGENTS.md",
+      "command": "cargo run -p oya-governance-cohesion -- docs/AGENTS.md",
       "exit_code": 101,
       "status": "blocked"
     },

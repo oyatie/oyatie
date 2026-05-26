@@ -13,7 +13,7 @@ purpose: Predictable naming + machine-readable directory indexes + real grit-cla
 Per MASTERPLAN §2 Directive 10. Fresh agent should navigate the tree without orchestrator hand-holding.
 
 ## Acceptance
-- `oya-foundry-fitness-agentic-navigability` lane CI-blocks: missing INDEX.md, missing frontmatter parent-pointer, IP without real `file::Identifier` grit-claim symbols, undeclared purpose.
+- `oya-governance-agentic-navigability` lane CI-blocks: missing INDEX.md, missing frontmatter parent-pointer, IP without real `file::Identifier` grit-claim symbols, undeclared purpose.
 - Predictable-naming lane: every file matches canonical pattern (no random suffixes / version bumps in filenames).
 
 ## Implementation Plans

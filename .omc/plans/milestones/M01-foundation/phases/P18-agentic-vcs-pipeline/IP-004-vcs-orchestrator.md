@@ -61,7 +61,7 @@ Implement ADR-0113 wave-A:
 - `oya vcs override` requires `--justification` ≥40 chars AND a
   human signing key; rejects on either missing.
 - Override events alarm via the new
-  `oya-foundry-fitness-override-justification` lane.
+  `oya-governance-override-justification` lane.
 
 ## Symbols to grit-claim
 

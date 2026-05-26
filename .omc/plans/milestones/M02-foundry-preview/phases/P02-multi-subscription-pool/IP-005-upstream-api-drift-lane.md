@@ -11,7 +11,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
-  Ship the nightly fitness lane `oya-foundry-fitness-upstream-api-drift` that fetches the
+  Ship the nightly fitness lane `oya-governance-upstream-api-drift` that fetches the
   canonical upstream OpenAPI specs for Anthropic / OpenAI / Gemini and diffs them against
   the adapter contracts in `contracts/foundry-compat-{anthropic,openai}-v1.openapi.yaml`.
   Any divergence emits `EVT-UPSTREAM-API-DRIFT-DETECTED` with a severity classification
@@ -24,7 +24,7 @@ grit_claim_symbols:
   - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftReport"
   - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftSeverity"
   - "crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftEntry"
-  - "tools/oya-foundry-fitness-upstream-api-drift/src/main.rs::run"
+  - "tools/oya-governance-upstream-api-drift/src/main.rs::run"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
@@ -68,8 +68,8 @@ crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftReport
 crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftSeverity
 crates/oya-governance-upstream-api-drift-kernel/src/lib.rs::DriftEntry
 crates/oya-governance-upstream-api-drift-kernel/src/registry.rs::UpstreamRegistry
-tools/oya-foundry-fitness-upstream-api-drift/src/main.rs::run
-.github/workflows/upstream-api-drift.yml::oya-foundry-fitness-upstream-api-drift
+tools/oya-governance-upstream-api-drift/src/main.rs::run
+.github/workflows/upstream-api-drift.yml::oya-governance-upstream-api-drift
 ```
 
 ### Cadence + severity matrix
@@ -116,7 +116,7 @@ Before `grit claim`, the agent **MUST**:
 $ cargo nextest run -p oya-governance-upstream-api-drift-kernel --all-features # expect: PASS, 0 failures
 $ cargo clippy -p oya-governance-upstream-api-drift-kernel -- -D warnings      # expect: PASS, 0 warnings
 $ cargo deny check                                                                   # expect: PASS
-$ oya gate validate oya-foundry-fitness-upstream-api-drift                           # expect: PASS
+$ oya gate validate oya-governance-upstream-api-drift                           # expect: PASS
 $ oya-tooling-agent-read run-evidence "scripts/smoke/drift-simulation.sh"            # expect: mutated-upstream-spec → DriftReport with severity=Breaking + correct entry list
 $ oya-tooling-agent-read run-evidence "scripts/smoke/drift-no-drift.sh"              # expect: identical-spec → DriftReport empty + lane PASS
 ```

@@ -8,8 +8,8 @@ purpose: |
   Workspace surface rollouts (Mail / Docs / Drive / Calendar / Meet).
 lift_target: oyatie/docs/playbooks/playbook-workspace.md
 enforced_by:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0029, ADR-0040]
 ---
 
@@ -41,11 +41,11 @@ Mail rollout must:
 3. Atomic traffic-shift via mesh.
 4. Soak ≥ 24 h; rollback re-shifts traffic to blue with replay of any green-only deliveries (idempotency required).
 
-`oya-foundry-fitness-rollback-evidence` requires per-spool replay-proof.
+`oya-governance-rollback-evidence` requires per-spool replay-proof.
 
 ## 4. CRDT compatibility (Docs)
 
-Docs canary deployments must publish a CRDT schema version. Mixed-version sessions (some clients on blue, some on green) MUST converge correctly. Lane `oya-foundry-fitness-schema-migration` (existing; extended) verifies CRDT schema is forward + backward compatible across one minor version.
+Docs canary deployments must publish a CRDT schema version. Mixed-version sessions (some clients on blue, some on green) MUST converge correctly. Lane `oya-governance-schema-migration` (existing; extended) verifies CRDT schema is forward + backward compatible across one minor version.
 
 ## 5. Per-tenant smoke
 
@@ -59,7 +59,7 @@ Failure = per-tenant rollback. Surfaced in tenant trust portal.
 
 ## 6. Connect-no-ads cohort honour
 
-Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Enforced by `oya-foundry-fitness-cohort-honor`.
+Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Enforced by `oya-governance-cohort-honor`.
 
 ## 7. SLO targets (Workspace-specific)
 

@@ -114,7 +114,7 @@
         },
         "vendor_lock_in_avoidance": {
           "score": "Strong",
-          "evidence": "Every external dep behind adapter trait (KVM/Firecracker/Ceph/OVN/FRR/OpenTofu/OpenBao/Harbor). cargo-deny denylist. oya-foundry-fitness-license CI lane. MinIO REJECTED. OpenTofu over Terraform (ADR-0050). Linkerd as Istio fallback (ADR-0044).",
+          "evidence": "Every external dep behind adapter trait (KVM/Firecracker/Ceph/OVN/FRR/OpenTofu/OpenBao/Harbor). cargo-deny denylist. oya-governance-license CI lane. MinIO REJECTED. OpenTofu over Terraform (ADR-0050). Linkerd as Istio fallback (ADR-0044).",
           "gaps": []
         }
       },
@@ -444,7 +444,7 @@
         "severity": "High",
         "affected_products": ["workflow_studio"],
         "detail": "Only latency (editor_tti_cold_p99_seconds, save_round_trip_p99_ms) and availability (editor_availability_slo_pct) are defined. No traffic signal (active sessions/s), no error-rate signal (failed saves/min), no saturation signal (CRDT merges/s vs cell capacity). Violates Google SRE 4 golden signals requirement.",
-        "recommended_fix": "Add metrics: active_editor_sessions_per_cell (traffic), definition_save_error_rate_per_min (errors), crdt_merge_queue_depth_pct (saturation). Wire to oya-foundry-fitness-perf-budget lane. Add saturation SLO: shed new collab connections when crdt_merge_queue_depth_pct > 90."
+        "recommended_fix": "Add metrics: active_editor_sessions_per_cell (traffic), definition_save_error_rate_per_min (errors), crdt_merge_queue_depth_pct (saturation). Wire to oya-governance-perf-budget lane. Add saturation SLO: shed new collab connections when crdt_merge_queue_depth_pct > 90."
       },
       {
         "rank": 5,
@@ -452,7 +452,7 @@
         "severity": "Medium",
         "affected_products": ["cloud", "foundry", "workflow", "workflow_studio", "ontology"],
         "detail": "Every product defines SLO targets (availability %, latency p99) but none defines an error-budget burn-rate alert policy. Per Google SRE: fast-burn (5x rate in 1h) should page on-call; slow-burn (1x rate in 6h) should file a ticket. Without this, teams discover SLO exhaustion only at end-of-month.",
-        "recommended_fix": "Add error_budget_policy to each product's observability contract: {fast_burn_multiplier: 5, fast_burn_window_hours: 1, fast_burn_action: Page, slow_burn_multiplier: 1, slow_burn_window_hours: 6, slow_burn_action: Ticket}. Implement via oya-cloud-observability-kernel alerting rule template. CI lane oya-foundry-fitness-error-budget-policy validates presence per product SLO."
+        "recommended_fix": "Add error_budget_policy to each product's observability contract: {fast_burn_multiplier: 5, fast_burn_window_hours: 1, fast_burn_action: Page, slow_burn_multiplier: 1, slow_burn_window_hours: 6, slow_burn_action: Ticket}. Implement via oya-cloud-observability-kernel alerting rule template. CI lane oya-governance-error-budget-policy validates presence per product SLO."
       }
     ],
     "portfolio_score_distribution": {

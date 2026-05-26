@@ -252,7 +252,7 @@
       "name": "plain_primitives_only",
       "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git, gh, cargo, jq, sed only. Foundry pipeline (M01-P18) is the canonical agentic workflow substrate.",
       "supersedes_directives": ["AGENTIC PIPELINE HARDENING RULE 2026-05-12 (grit-only)", "grit-claim-state-on-stop hook"],
-      "references": ["feedback_deprecate_external_agent_coord_tooling", "feedback_foundry_pipeline_canonical"]
+      "references": ["feedback_deprecate_external_agent_coord_tooling", "feedback_governance_pipeline_canonical"]
     },
     {
       "id": "OP-10",
@@ -572,7 +572,7 @@
       "stages": [
         {"stage": "S1_drift_detected", "trigger": "Same failure mode hits ≥3 PRs in a rolling 30-day window", "action": "lane_emitter role files registry/fitness-lane-candidates/<id>.json with drift signature + suggested rule + suggested CI invocation"},
         {"stage": "S2_candidate_lane", "trigger": "Candidate created", "action": "Lane is implemented as oya-governance-<id> with criticality: REPORT_ONLY. Runs on every PR for ≥30 days. Records every match without blocking."},
-        {"stage": "S3_empirical_evidence", "trigger": "Lane records ≥3 distinct PRs where its rule would have prevented a finding caught by another lane / facet / incident", "action": "Auto-emit promotion ADR + PR amending registry/fitness-lanes/INDEX.md + lane definition; promotion through full pipeline"},
+        {"stage": "S3_empirical_evidence", "trigger": "Lane records ≥3 distinct PRs where its rule would have prevented a finding caught by another lane / facet / incident", "action": "Auto-emit promotion ADR + PR amending registry/governance-lanes/INDEX.md + lane definition; promotion through full pipeline"},
         {"stage": "S4_BLOCKER", "trigger": "Promotion PR merged", "action": "Lane becomes BLOCKER under pre_merge_critical category"},
         {"stage": "S5_retire", "trigger": "Lane has zero matches over 180-day window AND the originating drift pattern is no longer possible (e.g., code structure changed)", "action": "Auto-emit retirement ADR through full pipeline; lane removed via tombstone per ADR-0118 retirement pattern"}
       ],
@@ -724,7 +724,7 @@
       "feedback_naming_justification",
       "feedback_doc_coverage_enforced",
       "feedback_canonical_base_localization",
-      "feedback_foundry_pipeline_canonical",
+      "feedback_governance_pipeline_canonical",
       "feedback_workflow_objectgraph_adapter_layer",
       "feedback_bominal_inheritance_precedence",
       "feedback_deprecate_external_agent_coord_tooling",

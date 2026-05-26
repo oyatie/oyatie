@@ -8,14 +8,14 @@
   "workspace": "/Users/jasonlee/oyatie-fd001-planning-closure",
   "claim_scope": [
     "M01-P-FITNESS-IP-001 source-corpus gate",
-    "oya-foundry-fitness-banned-primitives CI/source-corpus wiring",
+    "oya-governance-banned-primitives CI/source-corpus wiring",
     "F-FORBIDDEN-PRIMITIVES-CI-GUARD partial progress: fenced agent-instruction source corpus only"
   ],
   "changed_files": [
     ".github/branch-protection.yaml",
-    ".github/workflows/oya-foundry-fitness-banned-primitives.yml",
-    ".omc/fitness-lanes/INDEX.md",
-    ".omc/fitness-lanes/banned-primitives.md",
+    ".github/workflows/oya-governance-banned-primitives.yml",
+    ".omc/governance-lanes/INDEX.md",
+    ".omc/governance-lanes/banned-primitives.md",
     ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/",
     ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
     "Cargo.lock",
@@ -40,7 +40,7 @@
     "Moved fenced agent-instruction scanning into the banned-primitives kernel and taught it to ignore sanctioned oya-git / oya git surface text and prose templates.",
     "Added token-aware detection for direct git/gh commands plus hard-fail detection for manual branch, rebase, merge, push, forge merge, hook bypass, force push, process kill, external fetch, and user-home mutation primitives inside agent-instruction fences.",
     "Added oya gate validate banned-primitives with fixture-backed pass/fail integration tests and run-all catalog registration.",
-    "Registered oya-foundry-fitness-banned-primitives in quality lanes, CI workflow, and dev branch-protection required contexts.",
+    "Registered oya-governance-banned-primitives in quality lanes, CI workflow, and dev branch-protection required contexts.",
     "Reconciled stale P17 lane documentation to active M01-P-FITNESS-IP-001 while keeping F-FORBIDDEN-PRIMITIVES-CI-GUARD open for command-log corpus enforcement."
   ],
   "non_claims": [
@@ -130,12 +130,12 @@
       "summary": "verify-evidence ratchet accepted; no warnings/blocking_errors/forbidden_uses; no persisted bundle artifact emitted by current CLI."
     },
     {
-      "command": "bin/oya vcs --format json done --agent fd001-fitness --controller-promote --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
+      "command": "bin/oya vcs --format json done --agent fd001-fitness --controller-promote --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
       "status": "accepted",
       "summary": "emit-change-bundle ratchet accepted for source-corpus scope; closeout_mode=controller-promote; no warnings/blocking_errors/forbidden_uses; no persisted bundle artifact emitted by current CLI."
     },
     {
-      "command": "bin/oya vcs --format json promote --agent fd001-fitness --bundle cb-cs-fitness-001-banned-primitives-2026-05-19 --environment ci-preview --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
+      "command": "bin/oya vcs --format json promote --agent fd001-fitness --bundle cb-cs-fitness-001-banned-primitives-2026-05-19 --environment ci-preview --evidence <control> --evidence <multispectrum> M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-source-corpus",
       "status": "accepted",
       "summary": "promote-bundle ratchet accepted for ci-preview/source-corpus scope; no warnings/blocking_errors/forbidden_uses; no hosted deployment claim."
     }

@@ -37,9 +37,9 @@
       }
     },
     "done": {
-      "command": "bin/oya vcs --format json done --agent fd001-command-log --controller-promote --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
+      "command": "bin/oya vcs --format json done --agent fd001-command-log --controller-promote --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
       "exit_code": 0,
-      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"done\",\"action\":\"emit-change-bundle\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[\"M01-P-FITNESS-IP-001\",\"oya-foundry-fitness-banned-primitives\",\"F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log\"],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":\"controller-promote\",\"compatibility_alias\":null}}",
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"done\",\"action\":\"emit-change-bundle\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[\"M01-P-FITNESS-IP-001\",\"oya-governance-banned-primitives\",\"F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log\"],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":\"controller-promote\",\"compatibility_alias\":null}}",
       "stderr": "",
       "stdout_json": {
         "command": "oya vcs",
@@ -58,7 +58,7 @@
           "intent": null,
           "scopes": [
             "M01-P-FITNESS-IP-001",
-            "oya-foundry-fitness-banned-primitives",
+            "oya-governance-banned-primitives",
             "F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log"
           ],
           "evidence_refs": [
@@ -73,9 +73,9 @@
       }
     },
     "promote": {
-      "command": "bin/oya vcs --format json promote --agent fd001-command-log --bundle cb-cs-fitness-001-command-log-corpus-2026-05-19 --environment ci-preview --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
+      "command": "bin/oya vcs --format json promote --agent fd001-command-log --bundle cb-cs-fitness-001-command-log-corpus-2026-05-19 --environment ci-preview --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
       "exit_code": 0,
-      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"promote\",\"action\":\"promote-bundle\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[\"M01-P-FITNESS-IP-001\",\"oya-foundry-fitness-banned-primitives\",\"F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log\"],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":\"cb-cs-fitness-001-command-log-corpus-2026-05-19\",\"environment\":\"ci-preview\",\"closeout_mode\":\"controller-promote\",\"compatibility_alias\":null}}",
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"promote\",\"action\":\"promote-bundle\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[\"M01-P-FITNESS-IP-001\",\"oya-governance-banned-primitives\",\"F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log\"],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":\"cb-cs-fitness-001-command-log-corpus-2026-05-19\",\"environment\":\"ci-preview\",\"closeout_mode\":\"controller-promote\",\"compatibility_alias\":null}}",
       "stderr": "",
       "stdout_json": {
         "command": "oya vcs",
@@ -94,7 +94,7 @@
           "intent": null,
           "scopes": [
             "M01-P-FITNESS-IP-001",
-            "oya-foundry-fitness-banned-primitives",
+            "oya-governance-banned-primitives",
             "F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log"
           ],
           "evidence_refs": [

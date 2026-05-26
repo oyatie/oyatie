@@ -3,13 +3,13 @@
 - purpose: Verify every adapter crate depends only on the sanctioned `oya-foundry-adapter-kernel` for shaping outbound provider IO.
 - enforces: STANDARD/adapter-shape; existing crate `oya-foundry-adapter-kernel` (EXISTING).
 - kernel_crate: `oya-foundry-adapter-kernel` (EXISTING) — extend with `AdapterCrate { crate_id, depends_on_adapter_kernel, calls_provider_sdk }`, verdict `AdapterKernelFitnessReport { adapters_checked }`.
-- runner_path: `tools/oya-foundry-fitness-adapter-kernel`
+- runner_path: `tools/oya-governance-adapter-kernel`
 - inputs: workspace dep graph, provider-SDK token list.
 - failure_modes:
   - adapter crate calls SDK but does not depend on `oya-foundry-adapter-kernel`
   - non-adapter crate depends on `oya-foundry-adapter-kernel`
   - adapter crate exposes provider type publicly
-- ci_invocation: `cargo run -p oya-foundry-fitness-adapter-kernel`
+- ci_invocation: `cargo run -p oya-governance-adapter-kernel`
 - runtime_budget: 800 ms
 - severity: BLOCKER
 - kernel_sketch:

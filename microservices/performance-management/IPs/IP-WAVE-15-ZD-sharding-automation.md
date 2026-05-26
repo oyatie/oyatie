@@ -58,12 +58,12 @@ ADR346-ENFORCED-BY-004: oya-governance-oya-submit-calls-verify (new lane; refuse
 ADR346-ENFORCED-BY-005: oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)
 
 ## 4. Canonical ADR-0347 Wording
-ADR347-PURPOSE-001: Every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
-ADR347-PURPOSE-002: The rename surface includes workflows, registry lane records, catalog records, crates, ADR cross-citations, standards, state, sequencing, canonical primitives, branch protection, and per-microservice manifest fitness_lanes arrays.
-ADR347-PURPOSE-003: The pre-rename inventory is machine-readable at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json`.
-ADR347-ENFORCED-BY-001: oya-governance-no-foundry-fitness-residue (new lane; greps the corpus and refuses any non-historical reference to `oya-foundry-fitness-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)
+ADR347-PURPOSE-001: Every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
+ADR347-PURPOSE-002: The rename surface includes workflows, registry lane records, catalog records, crates, ADR cross-citations, standards, state, sequencing, canonical primitives, branch protection, and per-microservice manifest governance_lanes arrays.
+ADR347-PURPOSE-003: The pre-rename inventory is machine-readable at `.omc/state/oya-governance-rename-inventory-2026-05-21.json`.
+ADR347-ENFORCED-BY-001: oya-governance-no-foundry-fitness-residue (new lane; greps the corpus and refuses any non-historical reference to `oya-governance-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)
 ADR347-ENFORCED-BY-002: oya-governance-lane-prefix-vocabulary (new lane; refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`; the two canonical prefixes for governance-owned and check-family lanes respectively are exhaustive per ADR-0132)
-ADR347-ENFORCED-BY-003: oya-governance-rename-inventory-presence (new lane; advisory until crate lands; planned to refuse corpus changes to .github/workflows/oya-foundry-fitness-*.yml + crates/oya-foundry-fitness-*/ + registry/catalog/oya-foundry-fitness-*.yaml + registry/quality/lanes.yaml lane records that do not also update the inventory file at the rename-inventory path under .omc/state/ with the corresponding target governance-* name)
+ADR347-ENFORCED-BY-003: oya-governance-rename-inventory-presence (new lane; advisory until crate lands; planned to refuse corpus changes to .github/workflows/oya-governance-*.yml + crates/oya-governance-*/ + registry/catalog/oya-governance-*.yaml + registry/quality/lanes.yaml lane records that do not also update the inventory file at the rename-inventory path under .omc/state/ with the corresponding target governance-* name)
 
 ## 5. Canonical ADR-0348 Wording
 ADR348-PURPOSE-001: Cellular topology MUST support three control-plane-driven automation modes underneath ADR-0341 cell-level promotion gates.

@@ -45,7 +45,7 @@ You are the **Planner** in iteration 2 of the ralplan `--consensus --direct --de
 ### Architect revision requests (all 8)
 1. **Add P0.5** (or fold into P1): land ADR-0054 grit-scaffold-claim-pattern BEFORE P2. Lift from Draft 2.
 2. **ADR §Decision bootstrap-window clause** — see V4 above.
-3. **Replace P7 gate** with: (a) banned-primitives lane green on main HEAD post-P6-merge, (b) new `oya-foundry-fitness-archive-orphan` lane (scaffold at P6) green, (c) inventory ledger per-row `archived_at` non-null for every ARCHIVE row.
+3. **Replace P7 gate** with: (a) banned-primitives lane green on main HEAD post-P6-merge, (b) new `oya-governance-archive-orphan` lane (scaffold at P6) green, (c) inventory ledger per-row `archived_at` non-null for every ARCHIVE row.
 4. **Add ADR §Consequences §Neutral**: cutover is one-time human-orchestrator carve-out; not retroactively flowed through `grit done`.
 5. **Define "human orchestrator"** in ADR §Glossary: named in `oyatie/docs/RACI-OWNERSHIP.md`; each carve-out invocation `icm store -t cutover-orchestrator-actions -c '<action>' -i critical` BEFORE execution.
 6. **P8 pin demo symbols** to Draft 3: `oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus` + `::CloudBillingMeterUnitRecord`. Reuse Draft 3 script as runbook seed.

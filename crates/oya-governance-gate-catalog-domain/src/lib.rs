@@ -158,7 +158,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
 ];
 
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
-    "registry/fitness-corpora/banned-primitives";
+    "registry/governance-corpora/banned-primitives";
 
 /// Multispectrum evidence bundle that promotes the dependency-seam lane from
 /// advisory/default-offline to CI-required, fail-closed governance.

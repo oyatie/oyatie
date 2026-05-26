@@ -155,8 +155,8 @@
   "named_subdir_migration_complete": true,
   "next_phase": {
     "phase_id": "TG1-SLICE-6-UNNAMED-SUBDIRS",
-    "scope": "Migrate the 10 unnamed .omc/ subdirs (538 files): audits, claim-matrix, graph, plans, goals + advanced-cicd, agent-kickoff, automation, fitness-lanes, standards",
-    "approach": "Sub-slice by subdir; JSON/durable-data subdirs (audits \u2192 /evidence/audits/, claim-matrix \u2192 /registry/, graph \u2192 /registry/, plans \u2192 /specs/plans/) move now; MD-heavy subdirs (advanced-cicd, agent-kickoff, automation, fitness-lanes, standards) \u2014 defer to docs/ rationalization (FixupTask F-MIGRATE-OMC-DOCS-TO-DOCS)"
+    "scope": "Migrate the 10 unnamed .omc/ subdirs (538 files): audits, claim-matrix, graph, plans, goals + advanced-cicd, agent-kickoff, automation, governance-lanes, standards",
+    "approach": "Sub-slice by subdir; JSON/durable-data subdirs (audits \u2192 /evidence/audits/, claim-matrix \u2192 /registry/, graph \u2192 /registry/, plans \u2192 /specs/plans/) move now; MD-heavy subdirs (advanced-cicd, agent-kickoff, automation, governance-lanes, standards) \u2014 defer to docs/ rationalization (FixupTask F-MIGRATE-OMC-DOCS-TO-DOCS)"
   },
   "decision_log": [
     {

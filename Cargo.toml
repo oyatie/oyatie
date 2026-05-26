@@ -172,7 +172,7 @@ members = [
   "crates/oya-governance-pr-traceability-kernel",
   "crates/oya-governance-pre-push-kernel",
   "crates/oya-governance-quality-lane-kernel",
-  "crates/oya-governance-cohesion-fitness-kernel",
+  "crates/oya-governance-cohesion-kernel",
   "crates/oya-intelligence-bypass-ledger-kernel",
   "crates/oya-intelligence-api-rest-kernel",
   "crates/oya-intelligence-api-rest-adapter",

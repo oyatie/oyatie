@@ -39,7 +39,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": ".github/workflows/oya-foundry-fitness-changeset-state.yml:17-20; .github/branch-protection.yaml:31-61; registry/quality/lanes.yaml:332-347",
+      "file": ".github/workflows/oya-governance-changeset-state.yml:17-20; .github/branch-protection.yaml:31-61; registry/quality/lanes.yaml:332-347",
       "issue": "The new changeset-state workflow is registered as active per-pr quality infrastructure, but its push trigger is still branches: [main] while PR #5 moves the protected/default shared branch to dev. Pull requests will run it, but post-merge pushes to dev will not. That leaves the newly introduced event-log lanes unobserved on the branch where the pipeline actually advances, which is a reliability gap for a state log that is intended to be mutated after merge.",
       "remediation": "Change the push trigger to branches: [dev] (or [dev, staging, production] if these lanes are expected to observe promotion refs). Add a lightweight workflow-trigger regression or repository policy check that rejects new per-pr workflows whose push branches do not include the configured default/protected branch."
     },

@@ -105,7 +105,7 @@
       "evidence": "./scripts/check.sh passed after stage0 helpers, cargo check/clippy, cargo-nextest 1327/1327, repoctl, quality-lanes, glossary, architecture boundary 165 crates, cargo deny, and machine-readable JSON parse checks."
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- crates/oya-cloud-billing-application",
+      "command": "cargo run -p oya-governance-cohesion -- crates/oya-cloud-billing-application",
       "status": "passed_full_workspace_closeout",
       "evidence": "./scripts/check.sh passed after stage0 helpers, cargo check/clippy, cargo-nextest 1327/1327, repoctl, quality-lanes, glossary, architecture boundary 165 crates, cargo deny, and machine-readable JSON parse checks."
     },

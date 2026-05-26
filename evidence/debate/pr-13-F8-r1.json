@@ -22,7 +22,7 @@
     "ci_time": {
       "direction": "improvement",
       "lane_was_active_in_ci": true,
-      "ci_invocation": "cargo run -p oya-foundry-fitness-archive-orphan",
+      "ci_invocation": "cargo run -p oya-governance-archive-orphan",
       "runtime_budget_ms": 1200,
       "estimated_total_ci_delta_s": {
         "low": 3,

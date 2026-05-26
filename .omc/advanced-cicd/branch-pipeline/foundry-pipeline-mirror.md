@@ -9,9 +9,9 @@ purpose: |
   capability.stage values: dev-draft (agent's local clone) → dev (published after PR +
   reviewer-APPROVE + CI green) → staging (autonomous promotion + canary cohort) →
   prod (5-gate verification). New fitness lane binds stage to source branch.
-lift_target: oyatie/docs/release/branch-pipeline/foundry-pipeline-mirror.md
+lift_target: oyatie/docs/release/branch-pipeline/governance-pipeline-mirror.md
 enforced_by:
-  - oya-foundry-fitness-capability-stage-binding
+  - oya-governance-capability-stage-binding
 related_adrs: [ADR-0020, ADR-0021, ADR-0022, ADR-0024]
 ---
 
@@ -61,7 +61,7 @@ stage_history:                              # append-only audit log
   # ... staging, prod
 ```
 
-Fitness lane `oya-foundry-fitness-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
+Fitness lane `oya-governance-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
 
 - `stage: dev-draft` ⇔ exists only in agent worktree / local-dev clone.
 - `stage: dev` ⇔ exists in `origin/dev` capability registry.
@@ -148,4 +148,4 @@ This file does not own:
 
 ## 10. Lift target
 
-`oyatie/docs/release/branch-pipeline/foundry-pipeline-mirror.md` on approval.
+`oyatie/docs/release/branch-pipeline/governance-pipeline-mirror.md` on approval.

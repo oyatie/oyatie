@@ -15,7 +15,7 @@
 #           real ADR-NNNN lands and is back-linked here)
 #   adr_when_landed: filled in when the real ADR is authored
 #
-# Sigil convention (per docs/fitness-lanes/adr-citation.md): in active text,
+# Sigil convention (per docs/governance-lanes/adr-citation.md): in active text,
 # unresolved future ADRs are cited as `registry/placeholder-debt/adr-follow-ups.yaml#<id>`
 # rather than the legacy `ADR-NNNN-<slug>` pattern. Template files use the
 # `ADR-####` sigil as the schema marker for "fill in a real ADR id here".

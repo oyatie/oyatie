@@ -3,7 +3,7 @@
 //! Reads `registry/vcs/changeset-event-log.json`, parses each row
 //! into a typed [`ChangesetEvent`], and invokes
 //! [`validate_monotonic_event_log`] from the changeset-state kernel.
-//! Lane id: `oya-foundry-fitness-changeset-state-monotonicity`.
+//! Lane id: `oya-governance-changeset-state-monotonicity`.
 //!
 //! ADR-0110 wave-A IP-001 acceptance: empty log is treated as
 //! vacuously valid (the kernel rejects empty logs by design; the lane

@@ -85,7 +85,7 @@
       "advanced-cicd (DEFERRED-F-MIGRATE-OMC-MD-HEAVY-SUBDIRS)",
       "agent-kickoff (DEFERRED)",
       "automation (DEFERRED)",
-      "fitness-lanes (DEFERRED)",
+      "governance-lanes (DEFERRED)",
       "goals (DEFERRED-F-MIGRATE-OMC-GOALS)",
       "plans (DEFERRED-F-MIGRATE-OMC-PLANS-TREE)",
       "standards (DEFERRED-F-MIGRATE-OMC-MD-HEAVY-SUBDIRS)"

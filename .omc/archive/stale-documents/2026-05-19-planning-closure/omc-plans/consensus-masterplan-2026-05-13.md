@@ -58,7 +58,7 @@ Adopt the **iteration-5d state of `docs/MASTERPLAN.md`** as the canonical extend
 |---|---|---|
 | Unit | `read_workspace_microservices`, `read_masterplan_catalog`, `read_pack_catalog`, helpers | `crates/oya-check-documentation/tests/smoke.rs` (2/2 pass); per-module units in M02-P20. |
 | Integration | Synthesized tmp dir with workspace + pack manifest; verify report contains expected violation kinds | M02-P20 IP-005. |
-| E2E | `.github/workflows/ci-fitness-lanes.yml` invokes binary on every PR; archives markdown report | M02-P20 IP-004. |
+| E2E | `.github/workflows/ci-governance-lanes.yml` invokes binary on every PR; archives markdown report | M02-P20 IP-004. |
 | Observability | Prometheus gauge `oyatie_doc_coverage_violations{kind="..."}` for trend tracking | M02-P20. |
 
 ## §Acceptance criteria (deterministic, testable)

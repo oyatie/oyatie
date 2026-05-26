@@ -13,7 +13,7 @@ purpose: |
   MASTERPLAN Directive 4.
 lift_target: oyatie/docs/standards/dependency-policy.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-lts-dependency
+enforced_by: oya-governance-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
@@ -43,7 +43,7 @@ and MASTERPLAN §2 Directive 8:
 - The LTS roster is refreshed **quarterly** and on any major upstream LTS
   announcement; the verified-as-of date is recorded in
   `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
-- Lane: `oya-foundry-fitness-lts-dependency` checks every direct
+- Lane: `oya-governance-lts-dependency` checks every direct
   dependency against the roster on every PR.
 
 ### 1.1 Current floor (2026-05-12)
@@ -87,7 +87,7 @@ Permitted licenses (per `deny.toml`):
 | Elasticsearch ≥ 7.11 | SSPLv1 / Elastic License v2 | **OpenSearch** (Apache-2.0) or **ClickHouse** |
 | `gnu-time` (in containers) | GPLv3 | `time` builtin / busybox `time` |
 
-Lane: `oya-foundry-fitness-license` (`cargo-deny check licenses`) refuses
+Lane: `oya-governance-license` (`cargo-deny check licenses`) refuses
 any forbidden license on every PR.
 
 ## 3. Supply-chain triad
@@ -96,9 +96,9 @@ Per [`security-review.md`](security-review.md) §2:
 
 | Tool | Scope | Lane |
 |---|---|---|
-| `cargo-audit` | RustSec advisory DB | `oya-foundry-fitness-cargo-audit` |
-| `cargo-deny` | license + advisory + source + duplicate | `oya-foundry-fitness-license` |
-| `cargo-vet` | human-audit trail | `oya-foundry-fitness-cargo-vet` |
+| `cargo-audit` | RustSec advisory DB | `oya-governance-cargo-audit` |
+| `cargo-deny` | license + advisory + source + duplicate | `oya-governance-license` |
+| `cargo-vet` | human-audit trail | `oya-governance-cargo-vet` |
 
 Pinning rules:
 
@@ -134,7 +134,7 @@ Baseline `renovate.json`:
 }
 ```
 
-Lane: `oya-foundry-fitness-renovate-config` validates the file is
+Lane: `oya-governance-renovate-config` validates the file is
 present and grouped.
 
 Source: [Renovate docs](https://docs.renovatebot.com/).
@@ -186,7 +186,7 @@ generated from each provider's published OpenAPI schema where available.
 
 ### 5.3 Provider-coupling lane
 
-Lane `oya-foundry-fitness-provider-coupling` refuses provider-specific
+Lane `oya-governance-provider-coupling` refuses provider-specific
 imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 `domain` layers see only the `ProviderAdapter` trait.
 

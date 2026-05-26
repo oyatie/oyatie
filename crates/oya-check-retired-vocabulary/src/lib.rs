@@ -7,7 +7,7 @@
 //! document still mentions any retired term, with the row's recorded
 //! canonical replacement as the suggested fix.
 //!
-//! Lane id: `oya-foundry-fitness-retired-vocabulary`. The lane is
+//! Lane id: `oya-governance-retired-vocabulary`. The lane is
 //! the machine-checkable encoding of the user's
 //! [[feedback_no_exceptions_canonical]] +
 //! [[feedback_no_silent_regression]] directives: once a term is

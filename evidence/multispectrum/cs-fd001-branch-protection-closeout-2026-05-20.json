@@ -55,7 +55,7 @@
       "evidence": "2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives",
       "status": "passed",
       "evidence": "1585 files, 18 sources, 18 fences, 3 command-log records, 0 usages, 0 documented exceptions."
     },

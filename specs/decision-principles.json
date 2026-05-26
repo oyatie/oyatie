@@ -27,7 +27,7 @@
           "oya-check-cohesion"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-cohesion-fitness-kernel"
+          "oya-governance-cohesion-kernel"
         ],
         "evidence": "PR-time cohesion-lane verdict"
       }

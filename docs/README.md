@@ -48,7 +48,7 @@ Cross-link policy for this hub: every Markdown link in this file must resolve to
 6. [§5 Personas](#section-5-personas)
 7. [§6 Standards](#section-6-standards)
 8. [§7 Onboarding](#section-7-onboarding)
-9. [§8 Foundry / Pipeline](#section-8-foundry-pipeline)
+9. [§8 Foundry / Pipeline](#section-8-governance-pipeline)
 10. [§9 Compliance Packs](#section-9-compliance-packs)
 11. [§10 Capability Tiers](#section-10-capability-tiers)
 12. [§11 Governance Crates](#section-11-governance-crates)
@@ -296,7 +296,7 @@ Decisions own the why. ADRs explain the invariants behind tenant scoping, audit 
 
 ### Related Sections
 
-Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-foundry-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -393,7 +393,7 @@ Products translate the ecosystem thesis into concrete PRDs. This shelf separates
 
 ### Related Sections
 
-Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journeys](#section-4-user-journeys), [§5 Personas](#section-5-personas), [§8 Foundry / Pipeline](#section-8-foundry-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journeys](#section-4-user-journeys), [§5 Personas](#section-5-personas), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -1007,7 +1007,7 @@ Onboarding guides turn the standards and corpus into role-specific first-day, fi
 
 ### Related Sections
 
-Related sections: [§0 Operating Map](#section-0-operating-map), [§5 Personas](#section-5-personas), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-foundry-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§0 Operating Map](#section-0-operating-map), [§5 Personas](#section-5-personas), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -1031,7 +1031,7 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§5 Personas](
 11. [sre-on-call-week-one.md](onboarding/sre-on-call-week-one.md) - Sre On Call Week One: role-specific onboarding path with verifiable first artifacts.
 12. [swe-platform-engineer-month-one.md](onboarding/swe-platform-engineer-month-one.md) - Swe Platform Engineer Month One: role-specific onboarding path with verifiable first artifacts.
 
-<a id="section-8-foundry-pipeline"></a>
+<a id="section-8-governance-pipeline"></a>
 ## §8 Foundry / Pipeline
 
 ### Section Purpose
@@ -1069,7 +1069,7 @@ Related sections: [§2 Decisions](#section-2-decisions), [§3 Products](#section
 
 ### Foundry Docs And Microservice Entry Points
 
-1. [docs/foundry/foundry-pipeline-substrate-checkpoint-2026-05-20.md](foundry/foundry-pipeline-substrate-checkpoint-2026-05-20.md) - Foundry Pipeline Substrate Checkpoint 2026 05 20: Foundry implementation, operations, policy, catalog, or rollout artifact.
+1. [docs/foundry/governance-pipeline-substrate-checkpoint-2026-05-20.md](foundry/governance-pipeline-substrate-checkpoint-2026-05-20.md) - Foundry Pipeline Substrate Checkpoint 2026 05 20: Foundry implementation, operations, policy, catalog, or rollout artifact.
 2. [docs/foundry/supervisor/README.md](foundry/supervisor/README.md) - Supervisor: Foundry implementation, operations, policy, catalog, or rollout artifact.
 3. [docs/foundry/supervisor/architecture.md](foundry/supervisor/architecture.md) - Architecture: Foundry implementation, operations, policy, catalog, or rollout artifact.
 4. [docs/foundry/supervisor/operations.md](foundry/supervisor/operations.md) - Operations: Foundry implementation, operations, policy, catalog, or rollout artifact.
@@ -1325,7 +1325,7 @@ Capability tiers define capability maturity and autonomy boundaries across produ
 
 ### Related Sections
 
-Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-foundry-pipeline), [§9 Compliance Packs](#section-9-compliance-packs), [§11 Governance Crates](#section-11-governance-crates).
+Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§9 Compliance Packs](#section-9-compliance-packs), [§11 Governance Crates](#section-11-governance-crates).
 
 ### When To Read
 
@@ -1364,7 +1364,7 @@ Governance crates are executable policy lanes. They turn standards and ADRs into
 
 ### Related Sections
 
-Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-foundry-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -1458,7 +1458,7 @@ Wave sequence answers what happens now, what recently changed, and what comes ne
 
 ### Related Sections
 
-Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architecture](#section-1-architecture), [§2 Decisions](#section-2-decisions), [§8 Foundry / Pipeline](#section-8-foundry-pipeline), [§9 Compliance Packs](#section-9-compliance-packs).
+Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architecture](#section-1-architecture), [§2 Decisions](#section-2-decisions), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§9 Compliance Packs](#section-9-compliance-packs).
 
 ### When To Read
 

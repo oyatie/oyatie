@@ -502,9 +502,7 @@ mod tests {
         // Sole entry per ADR-0107 supersede 2026-05-15.
         assert!(is_doctrinal_carve_out("oya-tooling-agent-read"));
         // Random non-carve-out names are not exempt.
-        assert!(!is_doctrinal_carve_out(
-            "oya-foundry-fitness-portfolio-citation"
-        ));
+        assert!(!is_doctrinal_carve_out("oya-governance-portfolio-citation"));
         assert!(!is_doctrinal_carve_out("oya-adapter-substitution-test"));
         assert!(!is_doctrinal_carve_out(""));
     }
@@ -529,7 +527,7 @@ mod tests {
         // implicitly app-layer. A tools/ crate without a declared canonical
         // role MUST raise UndeclaredRole (no directory-implicit naming).
         let r = check(&[row(
-            "oya-foundry-fitness-portfolio-citation",
+            "oya-governance-portfolio-citation",
             None,
             Some("foundry"),
         )])

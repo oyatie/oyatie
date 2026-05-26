@@ -56,7 +56,7 @@ related_adrs:
 related_memories:
   - autonomous-implementation-artifacts
   - doc-coverage-enforced
-  - foundry-pipeline-canonical
+  - governance-pipeline-canonical
   - oya-git-canonical-2026-05-18
   - layer-enum-adr-0105-13-canonical
   - oyatie-is-a-tenant-doctrine
@@ -108,7 +108,7 @@ The audit was conducted against:
 
 For each of the 921 IPs the audit ran three classes of probe:
 
-1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-foundry-fitness-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
+1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
 2. **Post-keystone binding probe** — grep for citations of the keystone bundle (ADR-0242…0258 + 0263 + 0272–0292), the F5-CRITICAL fix bundle (ADR-0293–0296), the critical-path cluster (ADR-0297–0310), and the amendment ADRs (ADR-0246-amendment / ADR-0257-amendment / ADR-0253-amendment).
 3. **Rigor probe** — line-count vs the 110-line exemplar floor; presence of the five required sections (Intent / ChangeSet boundary / Concrete File Targets / Acceptance / Verification) and the four front-matter fields the template mandates (`changeset_contract`, `acceptance_lanes`, `depends_on`, `execution_unit`).
 
@@ -135,7 +135,7 @@ Surface-specific probes ran for the four critical-path classes (internet-facing,
 | IPs citing **any** F5-CRITICAL fix ADR (0293–0296) | 30 | 3.3% |
 | IPs citing **any** critical-path cluster ADR (0297–0310) | 17 | 1.8% |
 | IPs citing **any** library-first / HTTP/3-PQC amendment | **0** | 0% |
-| IPs with `oya-foundry-fitness-*` lane references | **0** | 0% |
+| IPs with `oya-governance-*` lane references | **0** | 0% |
 | IPs with `oya vcs` (now `oya git`) references | **63** (in 15 IP file paths) | 6.8% file-share |
 | IPs with `ADR-0136` (superseded) references | 5 | 0.5% |
 
@@ -413,13 +413,13 @@ Combined P0+P1 corpus rebind: ~580 IPs need a keystone-bundle related_adrs pass.
 
 ## §4 — Acceptance-lane prefix staleness
 
-The 2026-05-21 rename ledger moved 561 files from `oya-foundry-fitness-*` to `oya-governance-*`. The audit's job: verify IP front-matter is clean of the retired prefix.
+The 2026-05-21 rename ledger moved 561 files from `oya-governance-*` to `oya-governance-*`. The audit's job: verify IP front-matter is clean of the retired prefix.
 
 ### §4.1 Result
 
 | Probe | Hit count | Verdict |
 |---|---:|---|
-| IP files with `oya-foundry-fitness-` anywhere | **0** | PASS — rename complete in IP corpus |
+| IP files with `oya-governance-` anywhere | **0** | PASS — rename complete in IP corpus |
 | IP files with `oya-governance-*` lane refs in `acceptance_lanes:` | (positive — counted) | PASS |
 | IP files with `oya-vcs-promotion-readiness` lane refs (separate sub-doctrine) | 15 IPs / 63 line hits | FAIL — see §2.2 |
 

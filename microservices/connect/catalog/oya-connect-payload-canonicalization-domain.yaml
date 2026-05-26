@@ -9,7 +9,7 @@ contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-jp, oya-pack-cn]
 lifecycle: {state: incubating, preview_since: 2026-05-20}
 traceability:
-  github_issue: "oya-foundry-pipeline://connect-integration-substrate-buildout-2026-05-20"
+  github_issue: "oya-governance-pipeline://connect-integration-substrate-buildout-2026-05-20"
   source_adrs: [ADR-0056, ADR-0105, ADR-0244, ADR-0257]
 allowed_dependency_edges: [kernel]
 data_classes_owned: [VENDOR_WEBHOOK_PAYLOAD, CANONICAL_EVENT]

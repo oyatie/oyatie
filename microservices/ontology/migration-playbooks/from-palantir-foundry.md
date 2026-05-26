@@ -35,7 +35,7 @@ foundry-cli ontology object-types list --output ./foundry-object-types.json
 foundry-cli ontology link-types list --output ./foundry-link-types.json
 foundry-cli ontology actions list --output ./foundry-actions.json
 foundry-cli ontology object-set list --output ./foundry-object-sets.json
-foundry-cli pipeline list --output ./foundry-pipelines.json
+foundry-cli pipeline list --output ./governance-pipelines.json
 foundry-cli workshop list --output ./foundry-workshops.json
 ```
 

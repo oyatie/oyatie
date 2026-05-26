@@ -216,7 +216,7 @@ Each lane has its OWN binary (single-responsibility per architect r1 synthesis).
 | `lean-a7-endpoint-coverage` (NEW) | report-only → BLOCKER M02-P22 | `oya-check-endpoint-coverage` (NEW crate; M02-P21 IP-005) | `cargo run -p oya-check-endpoint-coverage -- --workspace [--blocker]` | Every endpoint in code is in `endpoints.json` (no missing, no orphan). |
 | `lean-a8-dead-code-zero-tolerance` (NEW) | **BLOCKER day 1** (no opt-outs) | `oya-check-dead-code` (NEW crate; M02-P21 IP-005) | `cargo run -p oya-check-dead-code -- --workspace --blocker` | Aggregates cargo-machete + cargo-udeps + unreachable-files + orphan-docs + stale-workspace-members. Exits 1 if any. NO `#[doc(hidden)]` / `// docs:internal` opt-outs (architect r1 Gap 6). |
 
-Total: **4 SEPARATE binaries** (not 1 overloaded). Each in its own workspace-member crate under `crates/oya-check-*/`. All registered in `registry/quality/lanes.yaml` + wired in `.github/workflows/ci-fitness-lanes.yml`.
+Total: **4 SEPARATE binaries** (not 1 overloaded). Each in its own workspace-member crate under `crates/oya-check-*/`. All registered in `registry/quality/lanes.yaml` + wired in `.github/workflows/ci-governance-lanes.yml`.
 
 ### (g) Dispatch sequence + dependencies (revised per architect r1 Gap 1 + g — NO new phase IDs; uses existing DAG)
 

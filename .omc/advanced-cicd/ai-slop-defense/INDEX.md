@@ -57,7 +57,7 @@ AWS / Google / MS / Oracle bar.
   — baseline practices and tool roster.
 - [MISTAKES-LEDGER.md](../../../docs/MISTAKES-LEDGER.md)
   — prevention doctrine and per-row mechanical-prevention obligation.
-- [`.omc/fitness-lanes/`](../../fitness-lanes/) — current lane catalogue
+- [`.omc/governance-lanes/`](../../governance-lanes/) — current lane catalogue
   (22 lanes); new lanes proposed in this directory's spec files.
 - [`.omc/advanced-cicd/progressive-delivery/`](../progressive-delivery/)
   — Layer 5 staging rails.

@@ -172,7 +172,7 @@
       "rigor_required": "deep",
       "auto_checks": "pass",
       "judgment": "ok",
-      "headline": "'oya-bootstrap-v1' marker used consistently across all 4 install/uninstall sites (.claude/.codex/.gemini/.hermes) + grep-verified. Hook script names follow encouragement-oriented `-suggester` / `-guide` / `-detect` patterns (no `-block` / `-enforce` / `-reject` verbs — doctrine-consistent). CC-3 scope is purely additive bootstrap; no new oya-foundry-fitness-* or oya-governance-* lane names introduced (fitness→governance retirement not in scope).",
+      "headline": "'oya-bootstrap-v1' marker used consistently across all 4 install/uninstall sites (.claude/.codex/.gemini/.hermes) + grep-verified. Hook script names follow encouragement-oriented `-suggester` / `-guide` / `-detect` patterns (no `-block` / `-enforce` / `-reject` verbs — doctrine-consistent). CC-3 scope is purely additive bootstrap; no new oya-governance-* or oya-governance-* lane names introduced (fitness→governance retirement not in scope).",
       "findings": [],
       "citations": [
         "tools/hook-bootstrap/install.sh:32 (MARKER='oya-bootstrap-v1')",

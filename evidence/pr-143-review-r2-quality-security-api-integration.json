@@ -15,7 +15,7 @@
   ],
   "verdict": "block",
   "verdict_rationale": [
-    "CI is RED: cargo-fmt and cargo-clippy jobs in pr-tests workflow both FAILED on the new oya-check-eu-ai-act-annex-iii-refusal/src/lib.rs file. Verified locally: cargo fmt --check exit=1 (rustfmt drift in lines 193, 351, 475, 511, 570). cargo clippy -p oya-check-eu-ai-act-annex-iii-refusal -- -D warnings exit=101 (result_large_err triggered by EuAiActAnnexIiiRefusalViolation in Result return; struct exceeds 128 bytes). These are absolute merge blockers under the foundry-pipeline admission gate.",
+    "CI is RED: cargo-fmt and cargo-clippy jobs in pr-tests workflow both FAILED on the new oya-check-eu-ai-act-annex-iii-refusal/src/lib.rs file. Verified locally: cargo fmt --check exit=1 (rustfmt drift in lines 193, 351, 475, 511, 570). cargo clippy -p oya-check-eu-ai-act-annex-iii-refusal -- -D warnings exit=101 (result_large_err triggered by EuAiActAnnexIiiRefusalViolation in Result return; struct exceeds 128 bytes). These are absolute merge blockers under the governance-pipeline admission gate.",
     "ADR-0145 reform created an enforcement-debt gap: the ADR declares mandatory enforcement crates (oya-shared-audit-chain-client-kernel, oya-shared-tracing-client-kernel, oya-check-otel-trace-propagation, oya-check-ontology-projection-coverage, oya-check-audit-chain-seal-coverage) and a mandatory manifest field (ontology_projections), but NONE of these landed in this PR. Result: the reform is documented but unenforced — the universal-mediator rule is retired with no replacement substrate guarantees in place.",
     "604 references to retired symbols (ADR-0140 / ADR-0141 / feedback_workflow_objectgraph_adapter_layer) still appear in microservices/ files. ADR-0145 §Operational explicitly states ADR-0140 + ADR-0141 are SUBSUMED and the feedback memory is SUPERSEDED. Networkpolicy comments + PRD bridges still cite the retired authorities, creating a doc-vs-decision drift that will mislead readers and downstream agents.",
     "Combined with the open `bypass-violations-reclassified` claim (which IS correct under the new rule), the PR cannot honestly merge until: (a) CI green, (b) reform-enforcement crates land OR ADR-0145 is amended to defer them under a tracked IP, (c) the 604 retired-citation cleanup is performed OR an explicit phased-cleanup IP is filed."
@@ -26,7 +26,7 @@
     "cargo_check": "SUCCESS",
     "cargo_nextest": "SUCCESS",
     "oya_vcs_admission": "SUCCESS",
-    "all_foundry_fitness_lanes": "SUCCESS",
+    "all_foundry_governance_lanes": "SUCCESS",
     "verified_locally": {
       "cargo_fmt_check_exit": 1,
       "cargo_clippy_workspace_default_exit": 0,
@@ -249,7 +249,7 @@
         "summary": "604 retired-symbol references in microservices/ — ADR-0140 + ADR-0141 + feedback_workflow_objectgraph_adapter_layer survive in networkpolicy comments, PRD bridges, and IP files",
         "evidence": "grep -rE 'ADR-0140|ADR-0141|feedback_workflow_objectgraph_adapter_layer' microservices/ | wc -l → 604. ADR-0145 §Operational explicitly SUBSUMES ADR-0140/ADR-0141 and SUPERSEDES the feedback memory.",
         "suggestion": "Run a mechanical sed-style sweep: ADR-0140 references → ADR-0145; ADR-0141 references → ADR-0145; feedback_workflow_objectgraph_adapter_layer → ADR-0145. Optional: keep historical citation in network/meet networkpolicies but reword the prose to reflect the new invariants.",
-        "lane_impact": "Without this sweep, the foundry-pipeline `aspirational-enforcement` lane could fire false-positive against the dead references, OR worse, real new violations would be hidden inside the noise."
+        "lane_impact": "Without this sweep, the governance-pipeline `aspirational-enforcement` lane could fire false-positive against the dead references, OR worse, real new violations would be hidden inside the noise."
       },
       {
         "id": "R2-INT-NEW-02",

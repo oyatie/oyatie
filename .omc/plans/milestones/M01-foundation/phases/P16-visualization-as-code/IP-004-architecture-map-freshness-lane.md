@@ -2,7 +2,7 @@
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P16-IP-004
-title: oya-foundry-fitness-architecture-map-freshness lane
+title: oya-governance-architecture-map-freshness lane
 status: complete
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -12,7 +12,7 @@ dependency_additions: []
 purpose: Lane blocks PRs that change source-of-truth without regenerating visualizations.
 ---
 
-# M01-P16-IP-004 — oya-foundry-fitness-architecture-map-freshness lane
+# M01-P16-IP-004 — oya-governance-architecture-map-freshness lane
 
 ## Purpose
 Lane blocks PRs that change source-of-truth without regenerating visualizations.
@@ -29,7 +29,7 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 ## Acceptance-test-commands
 ```
 cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo run -p oya-governance-cohesion -- <owning-crate-glob>
 scripts/check.sh
 ```
 
@@ -48,7 +48,7 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 
 ## Icm-store-payload
 ```
-icm store -t context-oyatie -c 'M01-P16-IP-004 oya-foundry-fitness-architecture-map-freshness lane shipped; acceptance commands green' -i high -k 'M01-P16-IP-004,complete'
+icm store -t context-oyatie -c 'M01-P16-IP-004 oya-governance-architecture-map-freshness lane shipped; acceptance commands green' -i high -k 'M01-P16-IP-004,complete'
 ```
 
 ## Decision-log (Linus good-taste row)

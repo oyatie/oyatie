@@ -74,7 +74,7 @@
   "scope": {
     "pull_request": 140,
     "rebuilt_branch": "codex/pr140-rebuild-1779044100",
-    "lane_id": "oya-foundry-fitness-aspirational-enforcement",
+    "lane_id": "oya-governance-aspirational-enforcement",
     "gate_command": "cargo run -p oya-dev-cli -- gate validate aspirational-enforcement",
     "corpus_scope": "default normative enforcement corpus: docs, specs, and registry"
   },

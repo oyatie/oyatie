@@ -723,7 +723,7 @@ workflow.
    ```
 
 6. The Foundry pipeline (per the CLAUDE.md `coordination_surface:
-   foundry_pipeline`) picks up the PR, runs the admission gate,
+   governance_pipeline`) picks up the PR, runs the admission gate,
    triggers multispectrum review with the facets called out in the
    body, and posts the verdict.
 

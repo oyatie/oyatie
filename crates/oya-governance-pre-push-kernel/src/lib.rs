@@ -16,10 +16,10 @@ pub enum LanePhase {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LaneInput {
-    pub ran_check_sh: bool,      // data_class: INTERNAL_ONLY
-    pub ran_cargo_test: bool,    // data_class: INTERNAL_ONLY
-    pub ran_fitness_lanes: bool, // data_class: INTERNAL_ONLY
-    pub had_bypass_flag: bool,   // data_class: INTERNAL_ONLY
+    pub ran_check_sh: bool,         // data_class: INTERNAL_ONLY
+    pub ran_cargo_test: bool,       // data_class: INTERNAL_ONLY
+    pub ran_governance_lanes: bool, // data_class: INTERNAL_ONLY
+    pub had_bypass_flag: bool,      // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -54,8 +54,8 @@ impl LaneRatchet {
         if !input.ran_cargo_test {
             missing.push("cargo-test");
         }
-        if !input.ran_fitness_lanes {
-            missing.push("fitness-lanes");
+        if !input.ran_governance_lanes {
+            missing.push("governance-lanes");
         }
         if missing.is_empty() {
             return LaneVerdict::Pass;
@@ -80,7 +80,7 @@ mod tests {
         LaneInput {
             ran_check_sh: check,
             ran_cargo_test: test,
-            ran_fitness_lanes: lanes,
+            ran_governance_lanes: lanes,
             had_bypass_flag: bypass,
         }
     }

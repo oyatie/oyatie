@@ -6,8 +6,8 @@
   "is_breaking_change": true,
   "breaking_change_evidence": [
     "Removes CI lane severity:BLOCKER (pr-13.diff:19,462)",
-    "Removes ci_invocation `cargo run -p oya-foundry-fitness-archive-orphan` — any external pipeline, fork, or mirrored CI invoking that crate gets a hard cargo-resolve failure",
-    "Deletes crates oya-foundry-fitness-archive-orphan-{kernel,app} and registry catalog YAMLs; downstream catalog consumers lose the entries with no shim",
+    "Removes ci_invocation `cargo run -p oya-governance-archive-orphan` — any external pipeline, fork, or mirrored CI invoking that crate gets a hard cargo-resolve failure",
+    "Deletes crates oya-governance-archive-orphan-{kernel,app} and registry catalog YAMLs; downstream catalog consumers lose the entries with no shim",
     "INDEX.md status flips Accepted -> retired same-day (2026-05-12 -> 2026-05-16)"
   ],
   "deprecation_window": {
@@ -19,7 +19,7 @@
   },
   "changelog_breaking_callout": {
     "present": false,
-    "evidence": "docs/CHANGELOG.md 2026-05-16 entry says 'Retired the one-time archive-orphan fitness lane'; does NOT use the words 'breaking', 'removal of BLOCKER lane', or warn external/fork/mirrored CI consumers that `cargo run -p oya-foundry-fitness-archive-orphan` will now fail",
+    "evidence": "docs/CHANGELOG.md 2026-05-16 entry says 'Retired the one-time archive-orphan fitness lane'; does NOT use the words 'breaking', 'removal of BLOCKER lane', or warn external/fork/mirrored CI consumers that `cargo run -p oya-governance-archive-orphan` will now fail",
     "naming_justification_present": true
   },
   "adr_0118_migration_note": {
@@ -40,14 +40,14 @@
       "severity": "MAJOR",
       "id": "F13-2",
       "claim": "CHANGELOG entry omits BREAKING marker for external consumers",
-      "evidence": "docs/CHANGELOG.md added lines lack the word 'breaking'; downstream forks/mirrors invoking `cargo run -p oya-foundry-fitness-archive-orphan` get an unannounced hard failure",
+      "evidence": "docs/CHANGELOG.md added lines lack the word 'breaking'; downstream forks/mirrors invoking `cargo run -p oya-governance-archive-orphan` get an unannounced hard failure",
       "fix": "Prepend 'BREAKING:' to the changelog bullet and explicitly call out crate + catalog deletion impact on external CI pipelines"
     },
     {
       "severity": "MINOR",
       "id": "F13-3",
       "claim": "No grep-sweep evidence that no other lane/script invokes the retired ci_invocation",
-      "evidence": "Validation section in PR body lists cargo metadata + ADR shape + targeted check but not a `git grep oya-foundry-fitness-archive-orphan` sweep across .github/, scripts/, .omc/",
+      "evidence": "Validation section in PR body lists cargo metadata + ADR shape + targeted check but not a `git grep oya-governance-archive-orphan` sweep across .github/, scripts/, .omc/",
       "fix": "Add a 'no remaining invocations' grep verification step to ADR-0118 verification plan"
     }
   ],

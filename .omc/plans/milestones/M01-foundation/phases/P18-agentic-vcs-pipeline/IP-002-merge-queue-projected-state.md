@@ -27,7 +27,7 @@ Implement ADR-0111 wave-A as an extension of IP-006-from-P10's
   `git merge-tree` conflict-detection + path-overlap check.
 - New module in the app: `projected_merge_state` + `conflict_avoidance_pre_admit`
   + `fix_at_any_stage_revalidate`.
-- New CI lane `oya-foundry-fitness-merge-queue-ref-hygiene` — GCs
+- New CI lane `oya-governance-merge-queue-ref-hygiene` — GCs
   stale `merge-queue-staging-i` refs.
 
 Algorithm: for queued PR at position i, compute

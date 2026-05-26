@@ -184,4 +184,4 @@ Every lane ships as a binary in a distroless container per [Directive 5](../../p
 
 ## 11. Lift target
 
-`oyatie/docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md` on approval.
+`oyatie/docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md` on approval.

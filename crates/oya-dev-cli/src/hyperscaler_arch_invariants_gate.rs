@@ -154,9 +154,9 @@ fn validate_invariants(root: &serde_json::Map<String, Value>) -> Result<Invarian
             "planned_enforced_by",
             &format!("invariants[{index}]"),
         )?;
-        if !planned_lane.starts_with("oya-foundry-fitness-") {
+        if !planned_lane.starts_with("oya-governance-") {
             return Err(format!(
-                "invariants[{index}].planned_enforced_by must name an oya-foundry-fitness-* lane"
+                "invariants[{index}].planned_enforced_by must name an oya-governance-* lane"
             ));
         }
         planned_lanes.insert(planned_lane.to_owned());

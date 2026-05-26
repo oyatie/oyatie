@@ -379,7 +379,7 @@
           "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md",
           "line": null,
           "summary": "Missing version-bump / sunset note",
-          "rationale": "Per [[no-silent-regression]], introducing a new BLOCKER lane (oya-foundry-fitness-hyperscaler-maturity-claims) is a public-contract change requiring version + rollout/sunset.",
+          "rationale": "Per [[no-silent-regression]], introducing a new BLOCKER lane (oya-governance-hyperscaler-maturity-claims) is a public-contract change requiring version + rollout/sunset.",
           "fix": "Add `version` and `rollout`/`sunset` fields to ADR-0123 frontmatter."
         },
         {
@@ -425,7 +425,7 @@
           "file": "docs/products/foundry/PRD.md",
           "line": "§11a (all rows)",
           "summary": "Foundry-pipeline canonical ADRs (0110/0111/0112/0113/0116) omitted",
-          "rationale": "Memory [[foundry-pipeline-canonical]] flags these as the canonical agentic-workflow substrate. Multi-agent orchestration / observability / replay / provenance rows should cite ADR-0110/0111/0112/0113/0116.",
+          "rationale": "Memory [[governance-pipeline-canonical]] flags these as the canonical agentic-workflow substrate. Multi-agent orchestration / observability / replay / provenance rows should cite ADR-0110/0111/0112/0113/0116.",
           "fix": "Add inline ADR refs to the named rows."
         },
         {
@@ -772,7 +772,7 @@
           "file": "docs/decisions/ADR-0125-*.md, ADR-0126-*.md, ADR-0127-*.md",
           "line": "enforced_by",
           "summary": "All 3 ADRs cite enforced_by crates/workflows that do not exist",
-          "rationale": "References oya-foundry-fitness-aspirational-enforcement-detection, …connect-dual-context-isolation, …circuit-breaker-presence, …per-tenant-rate-limit, …provider-degraded-shed, …error-budget-policy. None exist as crates or workflows. ADR-0125 explicitly defines this as the dominant critical anti-pattern (~340/847 findings). Self-violating.",
+          "rationale": "References oya-governance-aspirational-enforcement-detection, …connect-dual-context-isolation, …circuit-breaker-presence, …per-tenant-rate-limit, …provider-degraded-shed, …error-budget-policy. None exist as crates or workflows. ADR-0125 explicitly defines this as the dominant critical anti-pattern (~340/847 findings). Self-violating.",
           "fix": "Land at least the aspirational-enforcement-detection lane in this PR (it is named as the structural fix in ADR-0125 §Decision) OR mark status: proposed."
         },
         {
@@ -908,7 +908,7 @@
           "severity": "CRITICAL",
           "file": "specs/hyperscaler-architecture-invariants.json + docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md",
           "line": "all 35 enforced_by entries + ADR enforced_by frontmatter",
-          "summary": "35/35 referenced oya-foundry-fitness-* crates do not exist on disk; ADR's own enforcer is an open fixuptask",
+          "summary": "35/35 referenced oya-governance-* crates do not exist on disk; ADR's own enforcer is an open fixuptask",
           "rationale": "registry/fixuptasks.jsonl F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION is open. Per [[autonomous-implementation-artifacts]] ('no stubs/placeholders/deferrals within scope'), accepting ADR whose binding-enforcement lane is a TODO adds 35 new aspirational refs to a corpus already cited as having 130+ violations.",
           "fix": "(a) Downgrade status from Accepted → Proposed until at least one validator lands, OR (b) chunk spec by enforced-now vs. planned-Q3 and only mark enforced subset binding."
         },
@@ -979,7 +979,7 @@
         {
           "id": "138-B01",
           "severity": "BLOCKER",
-          "file": ".github/workflows/oya-foundry-fitness-honest-claims.yml",
+          "file": ".github/workflows/oya-governance-honest-claims.yml",
           "line": 46,
           "summary": "Workflow only runs cargo test against in-source fixtures; never invokes validate_honest_claims against live docs/specs/decisions tree",
           "rationale": "Lane is green-by-construction; cannot fail on a real deferral phrase in production artifacts. Recurrence of [[pr82-dishonest-exit-gate]]. ADR (line 88) and PR summary already claim this is wired via 'oya-dev-cli gate validate honest-claims' but workflow does not call it.",

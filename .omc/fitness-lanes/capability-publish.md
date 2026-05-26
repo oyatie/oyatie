@@ -1,15 +1,15 @@
 # Fitness Lane: capability-publish
 
 - purpose: Verify every kernel capability declared in a `*-kernel` crate is published to `docs/CAPABILITY-MAP.md`.
-- enforces: STANDARD/capability-map; AGENTS.md fitness-lane `oya-foundry-fitness-capability-publish`.
+- enforces: STANDARD/capability-map; AGENTS.md fitness-lane `oya-governance-capability-publish`.
 - kernel_crate: `oya-foundry-capability-kernel` (EXISTING; extend with verdict) — `CapabilityDecl { crate_id, capability_id }`, `PublishedRow { capability_id, crate_id }`, verdict `CapabilityPublishFitnessReport { capabilities_checked }`.
-- runner_path: `tools/oya-foundry-fitness-capability-publish`
+- runner_path: `tools/oya-governance-capability-publish`
 - inputs: kernel sources `// capability:` markers, `docs/CAPABILITY-MAP.md`.
 - failure_modes:
   - declared capability not in map
   - map row references missing crate
   - duplicate capability id
-- ci_invocation: `cargo run -p oya-foundry-fitness-capability-publish`
+- ci_invocation: `cargo run -p oya-governance-capability-publish`
 - runtime_budget: 400 ms
 - severity: HIGH
 - kernel_sketch:

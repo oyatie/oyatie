@@ -88,6 +88,6 @@ Total: 64 lanes. See sibling `<lane-id>.md` for kernel sketch, failure modes, an
 
 | date | change |
 | --- | --- |
-| 2026-05-12 | 64 fitness-lane specs landed in `docs/fitness-lanes/`; kernel implementations in Stage 3 |
+| 2026-05-12 | 64 fitness-lane specs landed in `docs/governance-lanes/`; kernel implementations in Stage 3 |
 
 | 2026-05-16 | Retired archive-orphan lane after ADR-0116 made M01-P18 the canonical VCS substrate; removed its workspace crates, runner, catalog entries, and one-time archive payload. |

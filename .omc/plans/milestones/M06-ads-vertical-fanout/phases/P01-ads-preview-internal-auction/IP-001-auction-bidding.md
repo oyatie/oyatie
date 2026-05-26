@@ -34,7 +34,7 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 ## Acceptance-test-commands
 ```
 cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo run -p oya-governance-cohesion -- <owning-crate-glob>
 scripts/check.sh
 ```
 

@@ -189,7 +189,7 @@ pub enum DedupLookup {
     Expired { at_seconds: u64 },
     /// Multiple rows for the same `delivery_id` carry conflicting
     /// outcomes — this is an integrity anomaly; the
-    /// `oya-foundry-fitness-webhook-delivery-log-monotonic` lane
+    /// `oya-governance-webhook-delivery-log-monotonic` lane
     /// alerts on it (ADR-0112 wave-C).
     ConflictingOutcomes,
 }

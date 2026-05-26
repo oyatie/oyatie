@@ -514,14 +514,14 @@ mod tests {
         let yaml = "branches:\n  main:\n    require_pull_request: true\n    \
                     required_status_checks:\n      - cargo-fmt\n      - cargo-clippy\n      \
                     # - oya-pr-review  # commented bullet is skipped\n      \
-                    - oya-foundry-fitness-supply-chain\n    require_signed_commits: true\n";
+                    - oya-governance-supply-chain\n    require_signed_commits: true\n";
         let contexts = parse_required_status_checks(yaml, "main").expect("parses");
         assert_eq!(
             contexts,
             vec![
                 "cargo-fmt".to_string(),
                 "cargo-clippy".to_string(),
-                "oya-foundry-fitness-supply-chain".to_string()
+                "oya-governance-supply-chain".to_string()
             ]
         );
     }
@@ -573,7 +573,7 @@ mod tests {
             "oya-pr-review".to_string(),
         ];
         let applied = vec![
-            "oya-foundry-fitness-protection-context-match".to_string(),
+            "oya-governance-protection-context-match".to_string(),
             "oya-pr-review".to_string(),
         ];
         let error = validate_required_status_checks_match(
@@ -592,7 +592,7 @@ mod tests {
         );
         assert!(
             error.contains(
-                "extra in applied branch-protection config: oya-foundry-fitness-protection-context-match"
+                "extra in applied branch-protection config: oya-governance-protection-context-match"
             ),
             "{error}"
         );

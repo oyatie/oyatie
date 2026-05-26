@@ -19,35 +19,35 @@ def emit(file, section, line, pattern, snippet, severity, fix_hint):
 
 # ── PATTERN 3: Standards referencing lanes that don't exist in .github/workflows/ ──
 MISSING_LANES = [
-    ("docs/standards/agent-instructions-discipline.md", "§3 Banned-token grep scope", 62, "oya-foundry-fitness-agent-instructions-fence"),
-    ("docs/standards/agent-instructions-discipline.md", "§4 Dual-audience requirement", 125, "oya-foundry-fitness-dual-audience"),
-    ("docs/standards/agent-instructions-discipline.md", "§3 Banned-token grep scope", 85, "oya-foundry-fitness-banned-primitives"),
-    ("docs/standards/autonomy-ceiling.md", "§2 The capability record", 90, "oya-foundry-fitness-capability-publish"),
-    ("docs/standards/autonomy-ceiling.md", "§5 Tier-uplift PR shape", 165, "oya-foundry-fitness-autonomy-ceiling"),
-    ("docs/standards/clean-architecture.md", "§3 Dependency-direction enforcement", 159, "oya-foundry-fitness-architecture-conventions"),
-    ("docs/standards/crate-naming-convention.md", "frontmatter enforced_by", 19, "oya-foundry-fitness-naming-convention"),
-    ("docs/standards/code-style-rust.md", "§2 Workspace lint inheritance", 22, "oya-foundry-fitness-clippy-pedantic"),
-    ("docs/standards/code-style-rust.md", "§4 unsafe policy", 133, "oya-foundry-fitness-unsafe-kani"),
-    ("docs/standards/error-handling.md", "§1 The boundary rule", 59, "oya-foundry-fitness-error-boundary"),
-    ("docs/standards/error-handling.md", "§4 No unwrap()", 117, "oya-foundry-fitness-no-unwrap-prod"),
-    ("docs/standards/error-handling.md", "§6 Silent-failure prevention", 176, "oya-foundry-fitness-silent-failure"),
-    ("docs/standards/error-handling.md", "§7 Audit-chain integration", 192, "oya-foundry-fitness-audit-emission"),
-    ("docs/standards/testing.md", "frontmatter enforced_by", 23, "oya-foundry-fitness-test-evidence"),
-    ("docs/standards/data-class.md", "§1 The class taxonomy", 60, "oya-foundry-fitness-data-class"),
-    ("docs/standards/data-class.md", "§5 DSR cascade integration", 155, "oya-foundry-fitness-dsr-cascade"),
-    ("docs/standards/dependency-policy.md", "§1 LTS pinning", 55, "oya-foundry-fitness-lts-dependency"),
-    ("docs/standards/dependency-policy.md", "§4 Renovate baseline", 146, "oya-foundry-fitness-renovate-config"),
-    ("docs/standards/image-discipline.md", "§2 Forbidden bases", 73, "oya-foundry-fitness-container-base"),
-    ("docs/standards/image-discipline.md", "§5 Image-size budget", 140, "oya-foundry-fitness-image-discipline"),
-    ("docs/standards/observability.md", "§1 OpenTelemetry mandatory", 60, "oya-foundry-fitness-otel-emit"),
-    ("docs/standards/on-call.md", "frontmatter enforced_by", 20, "oya-foundry-fitness-runbook-index-resolves"),
-    ("docs/standards/release-management.md", "frontmatter enforced_by", 20, "oya-foundry-fitness-flag-debt"),
-    ("docs/standards/release-management.md", "§1 Trunk-based development", 52, "oya-foundry-fitness-branch-age"),
-    ("docs/standards/multi-agent-tool-map.md", "frontmatter enforced_by", 22, "oya-foundry-fitness-tool-map-cohesion"),
-    ("docs/standards/git-workflow.md", "§4 Revised lane semantics", 98, "oya-foundry-fitness-banned-primitives"),
-    ("docs/standards/git-workflow.md", "§5 Migration-candidate flow", 125, "oya-foundry-fitness-direct-tool-rationale"),
-    ("docs/standards/claude-code-harness.md", "§8 Boundaries", 200, "oya-foundry-fitness-user-machine-guard"),
-    ("docs/standards/claude-code-harness.md", "§5 Active hooks", 142, "oya-foundry-fitness-hook-self-test"),
+    ("docs/standards/agent-instructions-discipline.md", "§3 Banned-token grep scope", 62, "oya-governance-agent-instructions-fence"),
+    ("docs/standards/agent-instructions-discipline.md", "§4 Dual-audience requirement", 125, "oya-governance-dual-audience"),
+    ("docs/standards/agent-instructions-discipline.md", "§3 Banned-token grep scope", 85, "oya-governance-banned-primitives"),
+    ("docs/standards/autonomy-ceiling.md", "§2 The capability record", 90, "oya-governance-capability-publish"),
+    ("docs/standards/autonomy-ceiling.md", "§5 Tier-uplift PR shape", 165, "oya-governance-autonomy-ceiling"),
+    ("docs/standards/clean-architecture.md", "§3 Dependency-direction enforcement", 159, "oya-governance-architecture-conventions"),
+    ("docs/standards/crate-naming-convention.md", "frontmatter enforced_by", 19, "oya-governance-naming-convention"),
+    ("docs/standards/code-style-rust.md", "§2 Workspace lint inheritance", 22, "oya-governance-clippy-pedantic"),
+    ("docs/standards/code-style-rust.md", "§4 unsafe policy", 133, "oya-governance-unsafe-kani"),
+    ("docs/standards/error-handling.md", "§1 The boundary rule", 59, "oya-governance-error-boundary"),
+    ("docs/standards/error-handling.md", "§4 No unwrap()", 117, "oya-governance-no-unwrap-prod"),
+    ("docs/standards/error-handling.md", "§6 Silent-failure prevention", 176, "oya-governance-silent-failure"),
+    ("docs/standards/error-handling.md", "§7 Audit-chain integration", 192, "oya-governance-audit-emission"),
+    ("docs/standards/testing.md", "frontmatter enforced_by", 23, "oya-governance-test-evidence"),
+    ("docs/standards/data-class.md", "§1 The class taxonomy", 60, "oya-governance-data-class"),
+    ("docs/standards/data-class.md", "§5 DSR cascade integration", 155, "oya-governance-dsr-cascade"),
+    ("docs/standards/dependency-policy.md", "§1 LTS pinning", 55, "oya-governance-lts-dependency"),
+    ("docs/standards/dependency-policy.md", "§4 Renovate baseline", 146, "oya-governance-renovate-config"),
+    ("docs/standards/image-discipline.md", "§2 Forbidden bases", 73, "oya-governance-container-base"),
+    ("docs/standards/image-discipline.md", "§5 Image-size budget", 140, "oya-governance-image-discipline"),
+    ("docs/standards/observability.md", "§1 OpenTelemetry mandatory", 60, "oya-governance-otel-emit"),
+    ("docs/standards/on-call.md", "frontmatter enforced_by", 20, "oya-governance-runbook-index-resolves"),
+    ("docs/standards/release-management.md", "frontmatter enforced_by", 20, "oya-governance-flag-debt"),
+    ("docs/standards/release-management.md", "§1 Trunk-based development", 52, "oya-governance-branch-age"),
+    ("docs/standards/multi-agent-tool-map.md", "frontmatter enforced_by", 22, "oya-governance-tool-map-cohesion"),
+    ("docs/standards/git-workflow.md", "§4 Revised lane semantics", 98, "oya-governance-banned-primitives"),
+    ("docs/standards/git-workflow.md", "§5 Migration-candidate flow", 125, "oya-governance-direct-tool-rationale"),
+    ("docs/standards/claude-code-harness.md", "§8 Boundaries", 200, "oya-governance-user-machine-guard"),
+    ("docs/standards/claude-code-harness.md", "§5 Active hooks", 142, "oya-governance-hook-self-test"),
 ]
 
 for (file, sec, line, lane) in MISSING_LANES:
@@ -105,7 +105,7 @@ STUB_IPS = [
 for (ip_id, snippet) in STUB_IPS:
     emit("specs/masterplan.json", "live_implementation_index " + ip_id, 0, "6",
          snippet, "high",
-         "Implement IP or mark blocked with evidence — stub IPs block oya-foundry-fitness-master-plan-completion lane")
+         "Implement IP or mark blocked with evidence — stub IPs block oya-governance-master-plan-completion lane")
 
 # ── PATTERN 9: forbidden_primitives with no CI guard ──
 for primitive in ["git", "gh", "manual-branch", "manual-rebase", "manual-merge", "manual-push"]:
@@ -170,7 +170,7 @@ emit("specs/masterplan.json", "milestones[0].phases exit_gate fields", 0, "7",
 emit("docs/MASTERPLAN.md", "§1 Vision — milestone gate", 58, "7",
      "Bominal Proof Ladder L0..L7 + 9 architecture planes green at every milestone gate",
      "high",
-     "No CI lane enforces Proof Ladder gate — create oya-foundry-fitness-proof-ladder lane or cite enforcer")
+     "No CI lane enforces Proof Ladder gate — create oya-governance-proof-ladder lane or cite enforcer")
 
 # ── PATTERN 2: enforcement_mode effectively cultural (no mechanical block) ──
 emit("docs/standards/git-workflow.md", "§4 Revised lane semantics", 107, "2",

@@ -10,7 +10,7 @@
   "agent_id": "claude-durable-goal-master-plan-completion",
   "task": "Wire NEXT-004 status-honesty hard gate (master-plan-completion) as per-PR CI lane. Gate logic was already implemented at crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs and registered in crates/oya-governance-gate-catalog-domain::AGGREGATED_VALIDATE_LANES (line 92), so `oya verify --include-deferred` already runs it locally. This slice adds: (1) per-PR workflow file, (2) lanes.yaml registry row, (3) ci-lanes.md human-readable mirror row. Branch-protection required_status_checks inclusion is admin-scope follow-up (F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION). Also files F-MASTERPLAN-INDEX-SYNC for the 22-IP drift between specs/masterplan.json (150 IPs) and .omc/plans/ source (172 IPs).",
   "artifacts_touched": [
-    ".github/workflows/oya-foundry-fitness-master-plan-completion.yml (NEW; per-PR required-check workflow; mirrors oya-foundry-fitness-cohesion.yml shape)",
+    ".github/workflows/oya-governance-master-plan-completion.yml (NEW; per-PR required-check workflow; mirrors oya-governance-cohesion.yml shape)",
     "registry/quality/lanes.yaml (one row added under per-pr stage after loop-recovery-patterns)",
     "docs/standards/ci-lanes.md (one mirror row added in §1.2 Per-PR gates table)",
     "registry/fixuptasks.jsonl (2 rows appended: F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION + F-MASTERPLAN-INDEX-SYNC)",
@@ -40,7 +40,7 @@
     },
     "F3_adversarial": {
       "considered": true,
-      "diagnostic_asserted": "After this PR merges, every PR shows an `oya-foundry-fitness-master-plan-completion` check; a PR that flips a phase to Complete with incomplete children gets failed by this lane.",
+      "diagnostic_asserted": "After this PR merges, every PR shows an `oya-governance-master-plan-completion` check; a PR that flips a phase to Complete with incomplete children gets failed by this lane.",
       "failing_fixture_added": false,
       "passing_fixture_id": "master_plan_completion_audit tests in master_plan_completion_audit.rs: audit_passes_when_evidence_references_complete_ip + audit_rejects_complete_phase_with_incomplete_child + audit_rejects_complete_ip_without_evidence",
       "findings": [
@@ -51,7 +51,7 @@
     "F4_ergonomic": {
       "considered": true,
       "findings": [
-        "Per-PR check name `oya-foundry-fitness-master-plan-completion` is discoverable + actionable (mirrors existing fitness-* naming)."
+        "Per-PR check name `oya-governance-master-plan-completion` is discoverable + actionable (mirrors existing fitness-* naming)."
       ],
       "fixuptasks": []
     },
@@ -69,7 +69,7 @@
       ],
       "considered": true,
       "rejected_reasons": [
-        "Adding to branch-protection.yaml without the deployed gh-api ruleset update would cause oya-foundry-fitness-protection-context-match to fail (drift detected). Deploying the ruleset update is admin-scope (gh api PUT branch-protection) and requires user authorization. Split: this slice lands the workflow + registry rows; branch-protection deployment is F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION follow-up.",
+        "Adding to branch-protection.yaml without the deployed gh-api ruleset update would cause oya-governance-protection-context-match to fail (drift detected). Deploying the ruleset update is admin-scope (gh api PUT branch-protection) and requires user authorization. Split: this slice lands the workflow + registry rows; branch-protection deployment is F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION follow-up.",
         "Deferring entirely loses the surface-visibility gain: the lane runs locally via oya verify but doesn't post a check on PRs. Wiring it as a non-required check is still net-positive."
       ],
       "selected_rationale": "Two-step wiring: visibility now (workflow + mirror), required-check enforcement after admin authorization."
@@ -109,7 +109,7 @@
     "F11_observability": {
       "considered": true,
       "findings": [
-        "Workflow posts a CheckRun named oya-foundry-fitness-master-plan-completion on every PR (visible in PR status checks UI + GitHub API). Audit-chain row emitted with this change_id."
+        "Workflow posts a CheckRun named oya-governance-master-plan-completion on every PR (visible in PR status checks UI + GitHub API). Audit-chain row emitted with this change_id."
       ]
     },
     "F13_migration": {
@@ -122,11 +122,11 @@
   "A_family_facets": {
     "applicable": true,
     "rationale": "Policy-touching change (CI gate registration affects merge-gate policy).",
-    "A1_naming": {"considered": true, "findings": ["Lane id `oya-foundry-fitness-master-plan-completion` follows the `oya-foundry-fitness-<feature>` family convention used by every other fitness lane. Workflow job ID matches required-check name exactly per branch-protection canonical contract."]},
-    "A2_documentation": {"considered": true, "findings": ["docs/standards/ci-lanes.md mirror row added in §1.2; mirror sync enforced by oya-foundry-fitness-quality-lanes gate."]},
-    "A3_structure": {"considered": true, "findings": ["Workflow file follows the single-job-matches-required-check-name pattern shared by oya-foundry-fitness-cohesion.yml + every other foundry-fitness workflow."]},
+    "A1_naming": {"considered": true, "findings": ["Lane id `oya-governance-master-plan-completion` follows the `oya-governance-<feature>` family convention used by every other fitness lane. Workflow job ID matches required-check name exactly per branch-protection canonical contract."]},
+    "A2_documentation": {"considered": true, "findings": ["docs/standards/ci-lanes.md mirror row added in §1.2; mirror sync enforced by oya-governance-quality-lanes gate."]},
+    "A3_structure": {"considered": true, "findings": ["Workflow file follows the single-job-matches-required-check-name pattern shared by oya-governance-cohesion.yml + every other foundry-fitness workflow."]},
     "A4_architecture": {"considered": true, "findings": ["No architectural change. Lane consumes oya-dev-cli surface as every other lane does."]},
-    "A5_dependency": {"considered": true, "findings": ["Workflow uses the same pinned action SHAs as oya-foundry-fitness-cohesion.yml: actions/checkout@v4, dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17, Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6. Loop-recovery pattern broken-action-sha is satisfied."]},
+    "A5_dependency": {"considered": true, "findings": ["Workflow uses the same pinned action SHAs as oya-governance-cohesion.yml: actions/checkout@v4, dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17, Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6. Loop-recovery pattern broken-action-sha is satisfied."]},
     "A6_schema": {"considered": true, "findings": ["No schema change. lanes.yaml row conforms to existing schema (id, stage, status, owner_team, purpose, source, runtime_budget_seconds, check_command). fixuptasks.jsonl rows conform to {id, title, priority, status, source_session, source_change_id, named_in, created_at, blocker_for}."]},
     "A7_algorithm": {"considered": true, "findings": ["No algorithmic change. Lane uses the existing master_plan_completion_audit dispatcher with default args."]}
   },

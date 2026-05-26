@@ -58,7 +58,7 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 | `crates/oya-http-runtime-hyper-adapter/Cargo.toml` | update | Depend on `oya-http-sse-kernel`; remain the only crate declaring hyper-family deps and `bytes`. |
 | `Cargo.toml` + `Cargo.lock` | update | Workspace member renames and lockfile regeneration in one atomic grit claim. |
 | `.omc/reports/dependency-seam-latest.json` | create | Composite lane report schema enumerating all 8 sub-checks. |
-| `.omc/fitness-lanes/INDEX.md` | update | Add 3 top-level lanes after SHA-anchored baseline recompute: dependency seam, replacement parity, distroless deployment bar. |
+| `.omc/governance-lanes/INDEX.md` | update | Add 3 top-level lanes after SHA-anchored baseline recompute: dependency seam, replacement parity, distroless deployment bar. |
 | `docs/decisions/ADR-0091-workspace-dependency-seam-debt-ledger-phaseout.md` | create | Accepted after consensus; covers ledger, triggers, phase-out, walk-away. |
 | `docs/decisions/ADR-0092-*` | create | Lane runner vs kernel naming split. |
 | `docs/decisions/ADR-0093-*` | create/update | CI-only read-side gh carve-out; Proposed at Step 4, Accepted only at Step 6 with CODEOWNERS + same-PR guard. |
@@ -143,7 +143,7 @@ Severity ramp: Day 0-30 report-only; Day 30+ error/BLOCKER after soak and green 
 4. Author `oya-foundry-trigger-dsl-{kernel,runtime}` and draft ADR-0091..ADR-0094.
 5. Add distroless smoke, cold-start harness, and `oya-check-distroless-deployment-bar`.
 6. Add `dri.json`, `role-roster.json`, CODEOWNERS guard, same-PR self-promotion fixture, and accept ADR-0093.
-7. Flip lane to error after 30-day soak; update `.omc/fitness-lanes/INDEX.md`; add quarterly review template.
+7. Flip lane to error after 30-day soak; update `.omc/governance-lanes/INDEX.md`; add quarterly review template.
 8. Apply ops-binary cloud-native changes and `ReadinessGate` tests.
 
 Hard dependency: Step 0 before Step 1. Steps 2-8 fan out after Step 1; Step 7 depends on Steps 2-6.
@@ -175,7 +175,7 @@ crates/oya-foundry-trigger-dsl-runtime/src/lib.rs::evaluate
 crates/oya-http-sse-kernel/src/lib.rs::SseEvent
 crates/oya-http-runtime-hyper-adapter/Cargo.toml::dependencies
 Cargo.toml::workspace.members
-.omc/fitness-lanes/INDEX.md::lanes
+.omc/governance-lanes/INDEX.md::lanes
 ```
 
 Scaffold-lock via ADR-0054 if symbols are not registered.

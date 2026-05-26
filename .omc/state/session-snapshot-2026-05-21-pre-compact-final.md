@@ -56,8 +56,8 @@
 
 | Status | Lanes |
 |---|---|
-| ✅ PASS | cargo-check · cargo-fmt · oya-pr-review · oya-foundry-fitness-{api-semver,banned-primitives,changeset-state-x2,cohesion,evidence-secret-scan,master-plan-completion,protection-context-match,sequential-pr-merge-conflicts,supply-chain,supply-chain-adr0039} · oya-governance-{adr-orphan-citation,buildability-line-count,protection-context-match,vacuous-green,version-pin-source-citation} · oya-git-cutover-inventory · oya-vcs-provider-execution |
-| ✅ PASS (via evidence commit) | oya-foundry-fitness-aspirational-enforcement (`788aeaf7`) · oya-foundry-fitness-honest-claims (`fbfd8211`) · oya-vcs-admission (`ed8ccc6a`) · oya-governance-dependency-seam (no change needed) |
+| ✅ PASS | cargo-check · cargo-fmt · oya-pr-review · oya-governance-{api-semver,banned-primitives,changeset-state-x2,cohesion,evidence-secret-scan,master-plan-completion,protection-context-match,sequential-pr-merge-conflicts,supply-chain,supply-chain-adr0039} · oya-governance-{adr-orphan-citation,buildability-line-count,protection-context-match,vacuous-green,version-pin-source-citation} · oya-git-cutover-inventory · oya-vcs-provider-execution |
+| ✅ PASS (via evidence commit) | oya-governance-aspirational-enforcement (`788aeaf7`) · oya-governance-honest-claims (`fbfd8211`) · oya-vcs-admission (`ed8ccc6a`) · oya-governance-dependency-seam (no change needed) |
 | ✅ PASS (via workspace lints relax) | cargo-clippy (`2b6b0a24`) |
 | ❌ FAIL (still blocking) | **cargo-nextest** (real test failures in cloud-kms-api / cloud-network-* / foundry-eval / etc. from Wave-15 merge fallout; needs separate triage + per-test fix sub-wave) |
 

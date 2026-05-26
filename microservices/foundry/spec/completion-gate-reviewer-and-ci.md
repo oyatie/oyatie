@@ -254,56 +254,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.require_ci" | Resource::"pr-body:templates/pull-request-template.md" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.select_reviewer" | Resource::"review:## Code Review" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.run_review" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.record_approve" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.validate_pr_body" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.require_ci" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.select_reviewer" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.run_review" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.record_approve" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.validate_pr_body" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.require_ci" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.select_reviewer" | Resource::"completion-gate:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.run_review" | Resource::"pr-body:templates/pull-request-template.md" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.record_approve" | Resource::"review:## Code Review" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.validate_pr_body" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.require_ci" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.select_reviewer" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.run_review" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.record_approve" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.validate_pr_body" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.require_ci" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.select_reviewer" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.run_review" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.record_approve" | Resource::"completion-gate:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.validate_pr_body" | Resource::"pr-body:templates/pull-request-template.md" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.require_ci" | Resource::"review:## Code Review" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.select_reviewer" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.run_review" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.record_approve" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.validate_pr_body" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.require_ci" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.select_reviewer" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.run_review" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.record_approve" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.validate_pr_body" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.require_ci" | Resource::"completion-gate:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.select_reviewer" | Resource::"pr-body:templates/pull-request-template.md" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.run_review" | Resource::"review:## Code Review" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.record_approve" | Resource::"status-check:required/*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.validate_pr_body" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.require_ci" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.select_reviewer" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.run_review" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.record_approve" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.validate_pr_body" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.require_ci" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.select_reviewer" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.run_review" | Resource::"completion-gate:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.record_approve" | Resource::"pr-body:templates/pull-request-template.md" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.validate_pr_body" | Resource::"review:## Code Review" | workflow=foundry_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.require_ci" | Resource::"pr-body:templates/pull-request-template.md" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.select_reviewer" | Resource::"review:## Code Review" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.run_review" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.record_approve" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.completion.validate_pr_body" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.require_ci" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.select_reviewer" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.run_review" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.record_approve" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.completion.validate_pr_body" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.require_ci" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.select_reviewer" | Resource::"completion-gate:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.run_review" | Resource::"pr-body:templates/pull-request-template.md" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.record_approve" | Resource::"review:## Code Review" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.completion.validate_pr_body" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.require_ci" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.select_reviewer" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.run_review" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.record_approve" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.completion.validate_pr_body" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.require_ci" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.select_reviewer" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.run_review" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.record_approve" | Resource::"completion-gate:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.completion.validate_pr_body" | Resource::"pr-body:templates/pull-request-template.md" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.require_ci" | Resource::"review:## Code Review" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.select_reviewer" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.run_review" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.record_approve" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.completion.validate_pr_body" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.require_ci" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.select_reviewer" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.run_review" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.record_approve" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.completion.validate_pr_body" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.require_ci" | Resource::"completion-gate:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.select_reviewer" | Resource::"pr-body:templates/pull-request-template.md" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.run_review" | Resource::"review:## Code Review" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.record_approve" | Resource::"status-check:required/*" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.completion.validate_pr_body" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.require_ci" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.select_reviewer" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.run_review" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.record_approve" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.completion.validate_pr_body" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.require_ci" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.select_reviewer" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.run_review" | Resource::"completion-gate:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.record_approve" | Resource::"pr-body:templates/pull-request-template.md" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.completion.validate_pr_body" | Resource::"review:## Code Review" | workflow=governance_pipeline; tenant_id=oyatie; intent=completion-gate-reviewer-and-ci | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -312,7 +312,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -324,7 +324,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -336,7 +336,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -348,7 +348,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0221" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -626,7 +626,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Doc-only change routes to doc-style-reviewer and passes. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.completion.require_ci.
 3. Resource: Resource::"completion-gate:foundry-dev" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is ci_required; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-COMPLETION-CI-GREEN seals the state-changing fact before observability emission finalizes.
@@ -658,7 +658,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Rust kernel change routes to rust-reviewer after CI green. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.completion.select_reviewer.
 3. Resource: Resource::"pr-body:templates/pull-request-template.md" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is ci_green; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-REVIEWER-SELECTED seals the state-changing fact before observability emission finalizes.
@@ -690,7 +690,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Missing Code Review section blocks merge even with approval. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.completion.run_review.
 3. Resource: Resource::"review:## Code Review" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is reviewer_selected; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-REVIEW-APPROVED seals the state-changing fact before observability emission finalizes.
@@ -722,7 +722,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Flaky CI is not quarantined without bounded fix SLA. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.completion.record_approve.
 3. Resource: Resource::"status-check:required/*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is review_running; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CODE-REVIEW-SECTION-VALIDATED seals the state-changing fact before observability emission finalizes.
@@ -754,7 +754,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Reviewer requests changes and the fix-loop re-enters completion. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.completion.validate_pr_body.
 3. Resource: Resource::"repo:oyatie/microservices/foundry" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0221, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0221, and evidence_hash presence.
 5. State: The active phase is approve_recorded; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-COMPLETION-BLOCKED seals the state-changing fact before observability emission finalizes.

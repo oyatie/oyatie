@@ -10,8 +10,8 @@ purpose: |
   Provider-agnostic burn-rate kernel.
 lift_target: oyatie/docs/release/slo-burn-rate-rollback-spec.md
 enforced_by:
-  - oya-foundry-fitness-slo-coverage
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-slo-coverage
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0042, ADR-0037]
 ---
 
@@ -85,7 +85,7 @@ Per-service SLOs are owned by [`docs/SLO-CATALOG.md`](../../../docs/SLO-CATALOG.
 | GA | 99.95% | 30 d | 1.0× |
 | Stable | 99.99% (critical: audit, identity, KMS) | 30 d | 1.0× |
 
-`oya-foundry-fitness-slo-coverage` (existing) is extended to require burn-rate alert wiring per GA+ service.
+`oya-governance-slo-coverage` (existing) is extended to require burn-rate alert wiring per GA+ service.
 
 ## 7. Per-cohort burn-rate (regulated cohorts)
 
@@ -109,8 +109,8 @@ We adopt the Google formulation as the canonical math; provider adapters surface
 
 ## 10. Compliance gates
 
-- `oya-foundry-fitness-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
-- `oya-foundry-fitness-rollback-evidence` (NEW; BLOCKER).
+- `oya-governance-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
+- `oya-governance-rollback-evidence` (NEW; BLOCKER).
 
 ## 11. Lift target
 

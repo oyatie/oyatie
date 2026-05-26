@@ -22,25 +22,25 @@
       "existing_old_prefix_lanes_remain_valid_until_their_per_lane_changeset_lands": true,
       "new_lanes_must_use_new_prefix": true,
       "new_prefix": "oya-governance-",
-      "old_prefix": "oya-foundry-fitness-"
+      "old_prefix": "oya-governance-"
     },
     "completed_prefix_changesets": [
       {
         "ip_id": "GOV-PREFIX-023",
         "new_lane_id": "oya-governance-catalog-records",
-        "old_lane_id": "oya-foundry-fitness-catalog-records",
+        "old_lane_id": "oya-governance-catalog-records",
         "status": "completed"
       },
       {
         "ip_id": "GOV-PREFIX-036",
         "new_lane_id": "oya-governance-protection-context-match",
-        "old_lane_id": "oya-foundry-fitness-protection-context-match",
+        "old_lane_id": "oya-governance-protection-context-match",
         "status": "completed"
       },
       {
         "ip_id": "GOV-PREFIX-042",
         "new_lane_id": "oya-governance-dependency-seam",
-        "old_lane_id": "oya-foundry-fitness-dependency-seam",
+        "old_lane_id": "oya-governance-dependency-seam",
         "status": "completed"
       }
     ],
@@ -48,7 +48,7 @@
     "focused_occurrence_count": 695,
     "implication": "Do not bulk rename all remaining foundry-fitness strings inside FD-001; the repo already declares per-lane ChangeSets and forbids a bulk sweep. The live branch-protection blocker is specifically that GOV-PREFIX-036 is not applied to GitHub dev rules, not that all old-prefix lanes must be renamed now.",
     "migration_authority": "microservices/governance/lane-prefix-migration-task-37.json",
-    "migration_rule": "Do not bulk-rename active compatibility lanes. Each old oya-foundry-fitness-* lane migrates through its own ChangeSet with registry, docs mirror, workflow context, branch-protection, catalog, and historical-reference evidence.",
+    "migration_rule": "Do not bulk-rename active compatibility lanes. Each old oya-governance-* lane migrates through its own ChangeSet with registry, docs mirror, workflow context, branch-protection, catalog, and historical-reference evidence.",
     "per_lane_status_counts": {
       "completed": 3,
       "queued": 41
@@ -58,61 +58,61 @@
       {
         "ip_id": "GOV-PREFIX-001",
         "new_lane_id": "oya-governance-authority-cohesion",
-        "old_lane_id": "oya-foundry-fitness-authority-cohesion",
+        "old_lane_id": "oya-governance-authority-cohesion",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-002",
         "new_lane_id": "oya-governance-claim-ceiling",
-        "old_lane_id": "oya-foundry-fitness-claim-ceiling",
+        "old_lane_id": "oya-governance-claim-ceiling",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-003",
         "new_lane_id": "oya-governance-codeowners-mirror",
-        "old_lane_id": "oya-foundry-fitness-codeowners-mirror",
+        "old_lane_id": "oya-governance-codeowners-mirror",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-004",
         "new_lane_id": "oya-governance-cohesion",
-        "old_lane_id": "oya-foundry-fitness-cohesion",
+        "old_lane_id": "oya-governance-cohesion",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-005",
         "new_lane_id": "oya-governance-data-class",
-        "old_lane_id": "oya-foundry-fitness-data-class",
+        "old_lane_id": "oya-governance-data-class",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-006",
         "new_lane_id": "oya-governance-doc-catalog",
-        "old_lane_id": "oya-foundry-fitness-doc-catalog",
+        "old_lane_id": "oya-governance-doc-catalog",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-007",
         "new_lane_id": "oya-governance-docs",
-        "old_lane_id": "oya-foundry-fitness-docs",
+        "old_lane_id": "oya-governance-docs",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-008",
         "new_lane_id": "oya-governance-quality-lanes",
-        "old_lane_id": "oya-foundry-fitness-quality-lanes",
+        "old_lane_id": "oya-governance-quality-lanes",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-009",
         "new_lane_id": "oya-governance-honest-claims",
-        "old_lane_id": "oya-foundry-fitness-honest-claims",
+        "old_lane_id": "oya-governance-honest-claims",
         "status": "queued"
       },
       {
         "ip_id": "GOV-PREFIX-010",
         "new_lane_id": "oya-governance-aspirational-enforcement",
-        "old_lane_id": "oya-foundry-fitness-aspirational-enforcement",
+        "old_lane_id": "oya-governance-aspirational-enforcement",
         "status": "queued"
       }
     ],
@@ -160,7 +160,7 @@
       },
       {
         "occurrences": 15,
-        "path": ".github/workflows/oya-foundry-fitness-supply-chain.yml"
+        "path": ".github/workflows/oya-governance-supply-chain.yml"
       },
       {
         "occurrences": 14,
@@ -216,7 +216,7 @@
       },
       {
         "occurrences": 7,
-        "path": ".github/workflows/oya-foundry-fitness-changeset-state.yml"
+        "path": ".github/workflows/oya-governance-changeset-state.yml"
       }
     ],
     "verdict": "remaining_foundry_fitness_names_are_governed_migration_backlog_not_fd001_local_blocker"

@@ -9,8 +9,8 @@ purpose: |
   Blue/green for KMS roots; canary for everything else.
 lift_target: oyatie/docs/playbooks/playbook-cloud.md
 enforced_by:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0028, ADR-0043, ADR-0045, ADR-0049]
 ---
 
@@ -46,7 +46,7 @@ KMS root rotation runs blue/green with mandatory:
 4. **Soak ≥ 7 days** on `canary-eligible` before stable cohort cut.
 5. **Rollback path** — re-shift traffic to blue root; blue retains material ≥ 90 days post-cutover.
 
-Enforced by `oya-foundry-fitness-rollback-evidence` (D14 mandate) + an existing KMS-rotation lane.
+Enforced by `oya-governance-rollback-evidence` (D14 mandate) + an existing KMS-rotation lane.
 
 ## 4. Cross-region rollout halting
 

@@ -20,8 +20,8 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. ADR-0346: Establish that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
 2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `oya gate run-all --ci-required`, `oya doc adr-index --write`, and `oya lint adr-shape`.
 3. ADR-0346: The verifier MUST block on exit-0 of EACH step before returning success to the caller.
-4. ADR-0347: Declare that every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
-5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `fitness_lanes` arrays.
+4. ADR-0347: Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
+5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `governance_lanes` arrays.
 6. ADR-0347: Governance is the actual owning team per ADR-0132 + axis-governance, and the bulk rename collapses 34 per-lane migration IPs into one Wave 15-ZB codex-bucket fan-out PR.
 7. ADR-0348: Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
@@ -41,9 +41,9 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## ADR-0347 enforcement lanes
 
-- `oya-governance-no-foundry-fitness-residue` - greps the corpus and refuses any non-historical reference to `oya-foundry-fitness-*`.
+- `oya-governance-no-foundry-fitness-residue` - greps the corpus and refuses any non-historical reference to `oya-governance-*`.
 - `oya-governance-lane-prefix-vocabulary` - refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`.
-- `oya-governance-rename-inventory-presence` - refuses corpus changes to `.github/workflows/oya-foundry-fitness-*.yml`, crates, catalog, and lane records that do not also update the rename inventory path under `.omc/state/`.
+- `oya-governance-rename-inventory-presence` - refuses corpus changes to `.github/workflows/oya-governance-*.yml`, crates, catalog, and lane records that do not also update the rename inventory path under `.omc/state/`.
 
 ## ADR-0348 enforcement lanes
 
@@ -80,10 +80,10 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 2 - ADR-0347 governance lane rename migration
 
-1. Search `cloud-k8s` artifact surfaces for `oya-foundry-fitness-*` references.
+1. Search `cloud-k8s` artifact surfaces for `oya-governance-*` references.
 2. Convert non-historical fitness lane references to `oya-governance-*` in the Wave 15-ZB implementation lane, not in this playbook scaffold.
 3. Preserve historical ADR context when an ADR-specific allowlist says the old prefix is historical context.
-4. Update any future `cloud-k8s` manifest `fitness_lanes` array only in the manifest-owning slot.
+4. Update any future `cloud-k8s` manifest `governance_lanes` array only in the manifest-owning slot.
 5. Use the rename inventory path under `.omc/state/` as the deterministic source for target governance names.
 
 ## Phase 3 - ADR-0348 sharding automation migration

@@ -35,7 +35,7 @@
       "oya-http-runtime-hyper-adapter": "remain the only crate declaring hyper-family deps + bytes"
     },
     "workspace_atomic_update": ["Cargo.toml", "Cargo.lock"],
-    "fitness_lane_index": ".omc/fitness-lanes/INDEX.md (add 3 top-level lanes after SHA-anchored baseline recompute: dependency seam, replacement parity, distroless deployment bar)",
+    "fitness_lane_index": ".omc/governance-lanes/INDEX.md (add 3 top-level lanes after SHA-anchored baseline recompute: dependency seam, replacement parity, distroless deployment bar)",
     "adrs": [
       "docs/decisions/ADR-0091-workspace-dependency-seam-debt-ledger-phaseout.md (Accepted after consensus)",
       "docs/decisions/ADR-0092-* (lane runner vs kernel naming split)",
@@ -71,7 +71,7 @@
     "Step 4: author oya-foundry-trigger-dsl-{kernel,runtime} + draft ADR-0091..ADR-0094 (Proposed).",
     "Step 5: add distroless smoke + cold-start harness + oya-check-distroless-deployment-bar.",
     "Step 6: add dri.json + role-roster.json + CODEOWNERS guard + same-PR self-promotion fixture + ACCEPT ADR-0093.",
-    "Step 7: flip lane to error after 30-day soak; update .omc/fitness-lanes/INDEX.md; add quarterly review template.",
+    "Step 7: flip lane to error after 30-day soak; update .omc/governance-lanes/INDEX.md; add quarterly review template.",
     "Step 8: apply ops-binary cloud-native changes + ReadinessGate tests."
   ],
   "dependency_order": "Step 0 BEFORE Step 1. Steps 2-8 fan out after Step 1. Step 7 depends on Steps 2-6.",
@@ -119,7 +119,7 @@
     "crates/oya-http-sse-kernel/src/lib.rs::SseEvent",
     "crates/oya-http-runtime-hyper-adapter/Cargo.toml::dependencies",
     "Cargo.toml::workspace.members",
-    ".omc/fitness-lanes/INDEX.md::lanes"
+    ".omc/governance-lanes/INDEX.md::lanes"
   ],
 
   "context_pointers": {

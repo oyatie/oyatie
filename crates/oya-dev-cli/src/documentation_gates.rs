@@ -210,7 +210,7 @@ pub(crate) fn validate_documentation_system_gate(
     let records =
         read_documentation_pipeline_records(&args.pipeline_path, &args.repo_root, &wired_commands)?;
     let evidence = DocumentationSystemEvidence {
-        documentation_lane_declared: documentation.contains("oya-foundry-fitness-docs"),
+        documentation_lane_declared: documentation.contains("oya-governance-docs"),
         wiki_quickref_referenced: documentation.contains("docs/wiki/quickref"),
         wiki_quickref_present: args.wiki_quickref_path.is_file(),
         records,

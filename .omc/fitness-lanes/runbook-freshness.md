@@ -2,14 +2,14 @@
 
 - purpose: Verify runbooks have a recent-incident link within the last 180d or are explicitly marked advisory.
 - enforces: Directive 10 (MASTERPLAN) — runbooks have recent-incident links or marked advisory.
-- kernel_crate: `oya-foundry-fitness-runbook-freshness-kernel` — `RunbookEvidence { runbook_id, latest_incident_age_days, advisory }`, verdict `RunbookFreshnessFitnessReport { runbooks_checked }`.
-- runner_path: `tools/oya-foundry-fitness-runbook-freshness`
+- kernel_crate: `oya-governance-runbook-freshness-kernel` — `RunbookEvidence { runbook_id, latest_incident_age_days, advisory }`, verdict `RunbookFreshnessFitnessReport { runbooks_checked }`.
+- runner_path: `tools/oya-governance-runbook-freshness`
 - inputs: runbook front-matter `incidents:` list, advisory flag.
 - failure_modes:
   - runbook claims operational but no incidents in last 180d
   - incident link 404
   - missing advisory flag on stale runbook
-- ci_invocation: `cargo run -p oya-foundry-fitness-runbook-freshness`
+- ci_invocation: `cargo run -p oya-governance-runbook-freshness`
 - runtime_budget: 600 ms
 - severity: MED
 - kernel_sketch:

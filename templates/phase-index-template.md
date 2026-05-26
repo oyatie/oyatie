@@ -5,7 +5,7 @@ status: pending approval
 purpose: |
   Canonical Phase INDEX shape (≤50 lines). One file per phase under `.omc/plans/milestones/M*/phases/P*/INDEX.md`. Anchors the IP list, names symbols touched, names parallelism, names agent-handoff icm event.
 lift_target: oyatie/docs/templates/phase-index-template.md
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md

@@ -1977,7 +1977,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // machine-readable record of every retirement decision; the
         // lane fails fast on any document that still mentions a
         // retired term. Lane id:
-        // `oya-foundry-fitness-retired-vocabulary`. Kernel:
+        // `oya-governance-retired-vocabulary`. Kernel:
         // `oya-check-retired-vocabulary` (port-in-kernel, ADR-0056).
         (Some("validate"), Some("retired-vocabulary")) => {
             match crate::parse_retired_vocabulary_validate_args(args.collect()) {
@@ -2010,7 +2010,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // silent-bypass classes: local config points at a workflow
         // job that does not exist, or GitHub live enforcement drifts
         // behind the canonical repo policy. Lane id:
-        // `oya-foundry-fitness-protection-context-match`. Kernel:
+        // `oya-governance-protection-context-match`. Kernel:
         // `oya-check-protection-context-match` (port-in-kernel,
         // ADR-0056).
         (Some("validate"), Some("protection-context-match")) => {
@@ -2040,7 +2040,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // pre-push-contract: enforces the canonical `oya verify`
         // local-developer entry point is wired consistently across
         // Done-Definition, dev-CLI dispatch source, and the local
-        // pre-push git hook. Lane id: `oya-foundry-fitness-pre-push`.
+        // pre-push git hook. Lane id: `oya-governance-pre-push`.
         // Kernel: `oya-check-pre-push` (port-in-kernel, ADR-0056).
         (Some("validate"), Some("pre-push-contract")) => {
             match crate::parse_pre_push_contract_validate_args(args.collect()) {
@@ -2068,7 +2068,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // row in registry/vcs/changeset-event-log.json obeys the
         // non-decreasing-subsequence invariant on the advancing-state
         // axis, has a unique dedup_key, and terminates at most once.
-        // Lane: oya-foundry-fitness-changeset-state-monotonicity.
+        // Lane: oya-governance-changeset-state-monotonicity.
         (Some("validate"), Some("changeset-state-monotonicity")) => {
             match crate::parse_changeset_state_monotonicity_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_changeset_state_monotonicity_gate(args) {
@@ -2098,7 +2098,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // emitted `to_state` (and `from_state`, when present) is in the
         // closed 13-value ChangesetState enum. Distinct lane from the
         // monotonicity check so a typo surfaces with the right name.
-        // Lane: oya-foundry-fitness-changeset-state-enum-closed.
+        // Lane: oya-governance-changeset-state-enum-closed.
         (Some("validate"), Some("changeset-state-enum-closed")) => {
             match crate::parse_changeset_state_enum_closed_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_changeset_state_enum_closed_gate(args) {

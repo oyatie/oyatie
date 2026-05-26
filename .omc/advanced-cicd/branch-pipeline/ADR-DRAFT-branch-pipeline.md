@@ -52,7 +52,7 @@ We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and 
 - `staging` ← `staging-promoter` (Cosign identity `oya-foundry-staging-promoter`).
 - `prod` ← `prod-promoter` (Cosign identity `oya-foundry-prod-promoter`).
 
-Direct commits forbidden by branch-protection. Enforced by three BLOCKER lanes: `oya-foundry-fitness-no-direct-origin-dev-commit`, `oya-foundry-fitness-no-direct-staging-commit`, `oya-foundry-fitness-no-direct-prod-commit`.
+Direct commits forbidden by branch-protection. Enforced by three BLOCKER lanes: `oya-governance-no-direct-origin-dev-commit`, `oya-governance-no-direct-staging-commit`, `oya-governance-no-direct-prod-commit`.
 
 **Reviewer-agent dispatch.** Per-PR, by file-glob change class (per `docs/AGENTS.md`). Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE` for the aggregate verdict to clear gate 2 at local-dev → origin/dev. Verdict recorded via `icm store -t pr-review-verdicts` per [Directive 12](../../plans/MASTERPLAN.md).
 
@@ -60,7 +60,7 @@ Direct commits forbidden by branch-protection. Enforced by three BLOCKER lanes: 
 
 **Linear history.** Squash-merge into `origin/dev`; fast-forward into `staging` and `prod`. No merge commits. Bisect always works.
 
-**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-foundry-fitness-capability-stage-binding` verifies stage matches source branch.
+**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-governance-capability-stage-binding` verifies stage matches source branch.
 
 ---
 
@@ -150,9 +150,9 @@ Each gate sits where its input data is available; no gate is invoked before its 
 1. Lift this draft to `oyatie/docs/decisions/ADR-XXXX-four-layer-branch-pipeline.md` (number assigned at lift time).
 2. Update `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md` status to `Superseded-by: ADR-XXXX`.
 3. Implement the three promoter agents + the fixer per [`agent-roles-spec.md`](agent-roles-spec.md). Distroless images per [Directive 5](../../plans/MASTERPLAN.md).
-4. Implement the six new fitness lanes per [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md).
+4. Implement the six new fitness lanes per [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md).
 5. Apply branch-protection rules per [`branch-protection-rules.md`](branch-protection-rules.md) — nightly drift-check enforces.
-6. Extend Foundry capability schema per [`foundry-pipeline-mirror.md`](foundry-pipeline-mirror.md) §3.
+6. Extend Foundry capability schema per [`governance-pipeline-mirror.md`](governance-pipeline-mirror.md) §3.
 7. Wave-gate doc update: reflect prod-promotion semantics in `docs/ROADMAP.md`.
 8. Per-axis playbook update per [`playbooks-by-axis-stage.md`](playbooks-by-axis-stage.md).
 

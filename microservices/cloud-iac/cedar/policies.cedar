@@ -2,7 +2,7 @@
 // Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
 // ADR-0346 purpose: ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
 // ADR-0346 enforced_by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify; oya-governance-oya-verify-exit-code-contract.
-// ADR-0347 purpose: every oya-foundry-fitness-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+// ADR-0347 purpose: every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
 // ADR-0347 enforced_by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
 // ADR-0348 enforced_by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal; oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
@@ -87,7 +87,7 @@ forbid(
   (
     context.github_actions_parity_ok == false ||
     context.jcasc_declared == false ||
-    context.lane_id.matches("^oya-foundry-fitness-.*$")
+    context.lane_id.matches("^oya-governance-.*$")
   )
 };
 
@@ -124,6 +124,6 @@ forbid(
 ) when {
   resource.microservice == "cloud-iac" &&
   context.doctrine.adr_0347 == true &&
-  context.lane_id.matches("^oya-foundry-fitness-.*$") &&
+  context.lane_id.matches("^oya-governance-.*$") &&
   context.historical_reference != true
 };

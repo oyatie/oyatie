@@ -31,7 +31,7 @@
       "summary": "ADR-0054 exists and is accepted; RACI row and icm pre-execution requirement exist; ADR-INDEX references ADR-0054; stale tools/oya-agent-read helper path removed."
     },
     {
-      "command": "cargo test -p oya-foundry-fitness-cohesion --all-features",
+      "command": "cargo test -p oya-governance-cohesion --all-features",
       "status": "blocked-pre-existing",
       "exit_code": 101,
       "summary": "workspace metadata fails before package test discovery because crates/oya-tenancy-kernel/Cargo.toml is missing"

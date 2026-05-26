@@ -8,7 +8,7 @@ purpose: |
   Catalogue of the release-versioning policy for oyatie. Maps each artefact to its
   lift target, the standard(s) it updates, and the lane(s) that enforce it.
 lift_target: oyatie/docs/release/INDEX-release-versioning.md
-enforced_by: oya-foundry-fitness-orphan-detection
+enforced_by: oya-governance-orphan-detection
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 ---
 
@@ -38,12 +38,12 @@ related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 
 ## New fitness lanes (6)
 
-1. `oya-foundry-fitness-semver-discipline` (BLOCKER)
-2. `oya-foundry-fitness-api-version-stability` (BLOCKER)
-3. `oya-foundry-fitness-version-eol-warning` (HIGH → BLOCKER on EOL day)
-4. `oya-foundry-fitness-release-branch-cut` (BLOCKER)
-5. `oya-foundry-fitness-cherry-pick-trail` (HIGH)
-6. `oya-foundry-fitness-deprecation-notice` (BLOCKER)
+1. `oya-governance-semver-discipline` (BLOCKER)
+2. `oya-governance-api-version-stability` (BLOCKER)
+3. `oya-governance-version-eol-warning` (HIGH → BLOCKER on EOL day)
+4. `oya-governance-release-branch-cut` (BLOCKER)
+5. `oya-governance-cherry-pick-trail` (HIGH)
+6. `oya-governance-deprecation-notice` (BLOCKER)
 
 ## New agent role (1)
 

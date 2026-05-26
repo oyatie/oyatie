@@ -243,56 +243,56 @@ The bindings below use specific internal principals, actions, and resources. A d
 
 | Binding | Principal | Action | Resource | Required context | Decision |
 |---|---|---|---|---|---|
-| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.enqueue" | Resource::"ref:merge-queue-staging-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.project" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.check_conflict" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.check_path_overlap" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.revalidate" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.enqueue" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.project" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.check_conflict" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.check_path_overlap" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.revalidate" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.enqueue" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.project" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.check_conflict" | Resource::"ref:merge-queue-staging-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.check_path_overlap" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.revalidate" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.enqueue" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.project" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.check_conflict" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.check_path_overlap" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.revalidate" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.enqueue" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.project" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.check_conflict" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.check_path_overlap" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.revalidate" | Resource::"ref:merge-queue-staging-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.enqueue" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.project" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.check_conflict" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.check_path_overlap" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.revalidate" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.enqueue" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.project" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.check_conflict" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.check_path_overlap" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.revalidate" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.enqueue" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.project" | Resource::"ref:merge-queue-staging-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.check_conflict" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.check_path_overlap" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.revalidate" | Resource::"repo:oyatie/microservices/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.enqueue" | Resource::"branch:dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.project" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.check_conflict" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.check_path_overlap" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.revalidate" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.enqueue" | Resource::"evidence:evidence/multispectrum" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.project" | Resource::"audit:event-class/foundry" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.check_conflict" | Resource::"queue:foundry-dev" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.check_path_overlap" | Resource::"ref:merge-queue-staging-*" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
-| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.revalidate" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=foundry_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-001 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.enqueue" | Resource::"ref:merge-queue-staging-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-002 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.project" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-003 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.check_conflict" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-004 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.check_path_overlap" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-005 | Principal::"oyatie.agent.codex" | Action::"foundry.queue.revalidate" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-006 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.enqueue" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-007 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.project" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-008 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.check_conflict" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-009 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.check_path_overlap" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-010 | Principal::"oyatie.agent.claude-opus" | Action::"foundry.queue.revalidate" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-011 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.enqueue" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-012 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.project" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-013 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.check_conflict" | Resource::"ref:merge-queue-staging-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-014 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.check_path_overlap" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-015 | Principal::"oyatie.agent.planner" | Action::"foundry.queue.revalidate" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-016 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.enqueue" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-017 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.project" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-018 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.check_conflict" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-019 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.check_path_overlap" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-020 | Principal::"oyatie.agent.executor" | Action::"foundry.queue.revalidate" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-021 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.enqueue" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-022 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.project" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-023 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.check_conflict" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-024 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.check_path_overlap" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-025 | Principal::"oyatie.service.vcs-orchestrator" | Action::"foundry.queue.revalidate" | Resource::"ref:merge-queue-staging-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-026 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.enqueue" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-027 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.project" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-028 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.check_conflict" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-029 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.check_path_overlap" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-030 | Principal::"oyatie.service.webhook-receiver" | Action::"foundry.queue.revalidate" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-031 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.enqueue" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-032 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.project" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-033 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.check_conflict" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-034 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.check_path_overlap" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-035 | Principal::"oyatie.service.merge-queue" | Action::"foundry.queue.revalidate" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-036 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.enqueue" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-037 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.project" | Resource::"ref:merge-queue-staging-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-038 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.check_conflict" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-039 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.check_path_overlap" | Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-040 | Principal::"oyatie.service.admission-gate" | Action::"foundry.queue.revalidate" | Resource::"repo:oyatie/microservices/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-041 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.enqueue" | Resource::"branch:dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-042 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.project" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-043 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.check_conflict" | Resource::"event-log:registry/vcs/changeset-event-log.json" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-044 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.check_path_overlap" | Resource::"event-router:registry/vcs/event-router.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-045 | Principal::"oyatie.service.completion-gate" | Action::"foundry.queue.revalidate" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-046 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.enqueue" | Resource::"evidence:evidence/multispectrum" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-047 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.project" | Resource::"audit:event-class/foundry" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-048 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.check_conflict" | Resource::"queue:foundry-dev" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-049 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.check_path_overlap" | Resource::"ref:merge-queue-staging-*" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
+| B-050 | Principal::"oyatie.human.reviewer" | Action::"foundry.queue.revalidate" | Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" | workflow=governance_pipeline; tenant_id=oyatie; intent=merge-queue-projected-state | permit when evidence_hash and changeset_id are present |
 
 ```cedar
 permit(
@@ -301,7 +301,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -313,7 +313,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -325,7 +325,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -337,7 +337,7 @@ permit(
   resource in Resource::"repo:oyatie/microservices/foundry"
 ) when {
   context.tenant_id == "oyatie" &&
-  context.workflow == "foundry_pipeline" &&
+  context.workflow == "governance_pipeline" &&
   context.related_adr == "ADR-0111" &&
   context.evidence_hash != "" &&
   context.trace_id != ""
@@ -615,7 +615,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Two docs changes touch independent paths and land FIFO. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.codex" invokes foundry.queue.enqueue.
 3. Resource: Resource::"queue:foundry-dev" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is queue_received; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-MERGE-QUEUE-ENQUEUED seals the state-changing fact before observability emission finalizes.
@@ -647,7 +647,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: Two agents edit the same Cedar file and the second PR is refused. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.claude-opus" invokes foundry.queue.project.
 3. Resource: Resource::"ref:merge-queue-staging-*" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is projected_base_computed; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-PROJECTED-BASE-COMPUTED seals the state-changing fact before observability emission finalizes.
@@ -679,7 +679,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A queued branch push invalidates positions i through n. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.planner" invokes foundry.queue.check_conflict.
 3. Resource: Resource::"safe-paths:registry/vcs/concurrent-safe-paths.yaml" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is merge_tree_checked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CONFLICT-CHECK-PASSED seals the state-changing fact before observability emission finalizes.
@@ -711,7 +711,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A PR is repositioned three times then parked for human review. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.agent.executor" invokes foundry.queue.check_path_overlap.
 3. Resource: Resource::"tick-log:registry/vcs/merge-queue-tick-log.json" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is path_overlap_checked; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-FIX-AT-ANY-STAGE-REVALIDATED seals the state-changing fact before observability emission finalizes.
@@ -743,7 +743,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 1. Intake: A stale transient ref is garbage-collected by ref hygiene. starts with a bounded Foundry changeset and a stable changeset_id.
 2. Actor: Principal::"oyatie.service.vcs-orchestrator" invokes foundry.queue.revalidate.
 3. Resource: Resource::"repo:oyatie/microservices/foundry" is the primary target.
-4. Policy: Cedar evaluates tenant_id=oyatie, workflow=foundry_pipeline, related_adr=ADR-0111, and evidence_hash presence.
+4. Policy: Cedar evaluates tenant_id=oyatie, workflow=governance_pipeline, related_adr=ADR-0111, and evidence_hash presence.
 5. State: The active phase is transient_ref_created; no downstream phase observes partial state.
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-QUEUE-PARKED seals the state-changing fact before observability emission finalizes.

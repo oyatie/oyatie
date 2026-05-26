@@ -6,7 +6,7 @@
 //!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:lifecycle>-<layer:kernel>`;
 //!   13-layer-enum suffix `kernel` (innermost ring: I/O-free port + pure check
 //!   functions per ADR-0056 "port-in-kernel"). Per-lifecycle dev-CLI wrappers
-//!   live under `tools/oya-foundry-fitness-<name>-lifecycle-app/`.
+//!   live under `tools/oya-governance-<name>-lifecycle-app/`.
 //!
 //! # Intent (per ADR-0109)
 //!

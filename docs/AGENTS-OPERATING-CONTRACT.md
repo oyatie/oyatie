@@ -22,7 +22,7 @@ Enforced by: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya
 
 ## ADR-0347
 
-[ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md) declares that every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than via per-lane migration IPs. The rename is name-only; lane invariants and lane semantics stay preserved across the deterministic 1:1 substitution.
+[ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md) declares that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than via per-lane migration IPs. The rename is name-only; lane invariants and lane semantics stay preserved across the deterministic 1:1 substitution.
 
 Enforced by: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
 

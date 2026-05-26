@@ -32,7 +32,7 @@
 //!   7. `.github/branch-protection.yaml` (read as text)
 //!   8. `infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy` (read as text;
 //!      the Jenkins-native pipeline that retired pr-tests.yml per ADR-0361)
-//!   9. same Jenkins pipeline source (retired oya-foundry-fitness-supply-chain.yml)
+//!   9. same Jenkins pipeline source (retired oya-governance-supply-chain.yml)
 //!  10. `cargo metadata --no-deps --format-version 1` output
 //!  11. `evidence/audit-chain.jsonl` (read as text)
 //!  12. Each JSON file under `evidence/multispectrum/`
@@ -83,7 +83,7 @@ pub struct AdmissionInputs<'a> {
     /// Raw text of `.github/workflows/pr-tests.yml`.
     /// data_class: INTERNAL_ONLY
     pub pr_tests_workflow: &'a str, // data_class: INTERNAL_ONLY
-    /// Raw text of `.github/workflows/oya-foundry-fitness-supply-chain.yml`.
+    /// Raw text of `.github/workflows/oya-governance-supply-chain.yml`.
     /// data_class: INTERNAL_ONLY
     pub supply_chain_workflow: &'a str, // data_class: INTERNAL_ONLY
     /// Crate names enumerated by `cargo metadata --no-deps`.
@@ -568,7 +568,7 @@ fn check_supply_chain_workflow(text: &str, violations: &mut Vec<AdmissionViolati
         push(
             violations,
             "SUPPLY_CHAIN_WORKFLOW_MISSING_PROVIDER_EXECUTION_JOB",
-            "oya-foundry-fitness-supply-chain workflow must expose the oya-vcs-provider-execution job",
+            "oya-governance-supply-chain workflow must expose the oya-vcs-provider-execution job",
         );
     }
     let invokes_legacy_script =
@@ -578,7 +578,7 @@ fn check_supply_chain_workflow(text: &str, violations: &mut Vec<AdmissionViolati
         push(
             violations,
             "SUPPLY_CHAIN_WORKFLOW_MISSING_PROVIDER_EXECUTION_INVOCATION",
-            "oya-foundry-fitness-supply-chain workflow must invoke either scripts/check-oya-vcs-provider-execution.sh --mode ci (legacy) or oya-vcs-provider-execution-gate-app (Wave 3)",
+            "oya-governance-supply-chain workflow must invoke either scripts/check-oya-vcs-provider-execution.sh --mode ci (legacy) or oya-vcs-provider-execution-gate-app (Wave 3)",
         );
     }
 }

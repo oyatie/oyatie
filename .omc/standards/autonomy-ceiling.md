@@ -12,7 +12,7 @@ purpose: |
   Item 4 ("Confirm autonomy ceiling").
 lift_target: oyatie/docs/standards/autonomy-ceiling.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-autonomy-ceiling
+enforced_by: oya-governance-autonomy-ceiling
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/data-class.md
@@ -78,7 +78,7 @@ last_reviewed: 2026-05-08
 ---
 ```
 
-Lane: `oya-foundry-fitness-capability-publish` validates every record
+Lane: `oya-governance-capability-publish` validates every record
 shape on PR.
 
 ## 3. Cedar policy binding
@@ -153,7 +153,7 @@ A PR that changes `autonomy_tier` from `Tn` to `T(n+1)`:
   Council-Privacy + Council-Architecture.
 - Emits `EVT-AUTONOMY-UPLIFT` on merge.
 
-Lane: `oya-foundry-fitness-autonomy-ceiling` refuses tier changes
+Lane: `oya-governance-autonomy-ceiling` refuses tier changes
 missing any of the above.
 
 ## 6. T3 / T4 out-of-band approval
@@ -203,7 +203,7 @@ Tier uplift requires:
 - Replay-as-eval: every prior incident attributable to the capability
   has a regression entry.
 
-Lane: `oya-foundry-fitness-foundry-eval` (per DOC-CATALOG.md §4).
+Lane: `oya-governance-foundry-eval` (per DOC-CATALOG.md §4).
 
 ## 9. Cross-tenant invocations
 

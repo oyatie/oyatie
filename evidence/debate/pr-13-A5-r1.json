@@ -15,8 +15,8 @@
       "lines_added": 0,
       "lines_removed": 2,
       "removed_workspace_members": [
-        "crates/oya-foundry-fitness-archive-orphan-kernel",
-        "tools/oya-foundry-fitness-archive-orphan-app"
+        "crates/oya-governance-archive-orphan-kernel",
+        "tools/oya-governance-archive-orphan-app"
       ],
       "added_workspace_members": []
     },
@@ -24,8 +24,8 @@
       "lines_added": 0,
       "lines_removed": 11,
       "removed_packages": [
-        "oya-foundry-fitness-archive-orphan-app",
-        "oya-foundry-fitness-archive-orphan-kernel"
+        "oya-governance-archive-orphan-app",
+        "oya-governance-archive-orphan-kernel"
       ],
       "added_packages": [],
       "new_transitive_deps": []

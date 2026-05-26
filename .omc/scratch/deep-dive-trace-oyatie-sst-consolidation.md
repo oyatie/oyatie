@@ -57,12 +57,12 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 ## Evidence Against / Missing Evidence
 
 ### Against Hypothesis 1
-- Both repos declare matching authority chains (validated by `oya-foundry-fitness-authority-cohesion` lane per `oyatie/docs/CONSTITUTION.md:114`). Authority is not in conflict, only un-cross-referenced.
+- Both repos declare matching authority chains (validated by `oya-governance-authority-cohesion` lane per `oyatie/docs/CONSTITUTION.md:114`). Authority is not in conflict, only un-cross-referenced.
 - `RACI-OWNERSHIP.md` exists in oyatie and explicitly maps ownership — the boundary is not undefined, only weakly cross-cited.
 - The "ownership leak" Lane 2 flagged (oyatie/docs/PRD.md not existing) was incorrect — Lane 1 verified the file exists and contains the canonical seven-axis definition.
 
 ### Against Hypothesis 2
-- Contradictions are tracked. Auto-emit machinery exists (`oya-foundry-fitness-cohesion` cross-axis drift detector emits `EVT-CROSS-AXIS-CONTRADICTION-FOUND`). Resolution batches assign owners + waves.
+- Contradictions are tracked. Auto-emit machinery exists (`oya-governance-cohesion` cross-axis drift detector emits `EVT-CROSS-AXIS-CONTRADICTION-FOUND`). Resolution batches assign owners + waves.
 - 4 of 6 newly-discovered contradictions are mechanical/known; 2 are honest gaps in documentation completeness, not logical contradictions.
 - Q-NEW pattern explicitly marks unresolved questions; the corpus acknowledges what it doesn't know.
 

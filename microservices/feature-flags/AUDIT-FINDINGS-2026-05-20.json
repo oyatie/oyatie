@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "audit_date": "2026-05-20",
-  "auditor": "oya-foundry-pipeline://audit-agent-2026-05-20",
+  "auditor": "oya-governance-pipeline://audit-agent-2026-05-20",
   "microservice": "feature-flags",
   "prior_audit": "AUDIT-FINDINGS-2026-05-18.json",
   "artifact_count": {

@@ -77,7 +77,7 @@ Suggested fan-out groups (verify against final plan after Architect/Critic revis
 Autopilot exits when:
 - All 10 spec acceptance criteria (A1-A10) pass their lanes.
 - The plan's verification matrix has 100% pass.
-- `oya-foundry-fitness-portfolio-citation` and `oya-foundry-fitness-banned-primitives` lanes report green on the cutover branch.
+- `oya-governance-portfolio-citation` and `oya-governance-banned-primitives` lanes report green on the cutover branch.
 - The inventory ADR is committed and referenced from ADR-INDEX.md.
 - The /goal hook's condition criteria are all met.
 

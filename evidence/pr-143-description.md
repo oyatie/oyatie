@@ -48,7 +48,7 @@ Aggregate at `registry/hyperscaler-scorecards/index.json`: green × 4 frameworks
 ## Pre-merge prerequisites
 
 **Admin action required** (cannot be self-fixed in PR):
-- Rename 9 required status checks on `dev` branch protection from `oya-foundry-fitness-*` to `oya-governance-*` per `evidence/pr-143-branch-protection-admin-action.md`
+- Rename 9 required status checks on `dev` branch protection from `oya-governance-*` to `oya-governance-*` per `evidence/pr-143-branch-protection-admin-action.md`
 
 **Rebase required** (60 commits behind dev):
 - Per `evidence/pr-143-rebase-playbook.md` — 8 conflict-surface categories with step-by-step resolution
