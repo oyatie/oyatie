@@ -571,12 +571,27 @@ fn collect_files_inner(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), Stri
     paths.sort();
     for path in paths {
         if path.is_dir() {
+            if is_excluded_scan_dir(&path) {
+                continue;
+            }
             collect_files_inner(&path, files)?;
         } else if path.is_file() {
             files.push(path);
         }
     }
     Ok(())
+}
+
+/// Build/vendor directories are skipped during surface discovery: their
+/// artifact paths (cargo `target/` hashes, `node_modules/`, build output) can
+/// contain substrings like "rls"/"isolation"/"tenant" and FALSELY satisfy a
+/// surface predicate, masking a genuinely-missing design surface on a clean
+/// checkout. Excluding them keeps the gate honest across local-build state.
+fn is_excluded_scan_dir(path: &Path) -> bool {
+    matches!(
+        path.file_name().and_then(|name| name.to_str()),
+        Some("target" | "node_modules" | ".git" | "dist" | ".vinxi" | ".output")
+    )
 }
 
 fn build_evidence(
