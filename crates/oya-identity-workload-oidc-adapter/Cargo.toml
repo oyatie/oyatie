@@ -1,0 +1,27 @@
+[package]
+name = "oya-identity-workload-oidc-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Workload OIDC token validation core: verifies a compact JWS (RS256/384/512, ES256) against issuer JWKs via ring, then projects verified claims into a workload principal. Task T3."
+
+[dependencies]
+oya-identity-workload-domain = { path = "../oya-identity-workload-domain" }
+# ring: BoringSSL-backed, constant-time crypto primitive (ISC/MIT/OpenSSL —
+# OSI-clean); the blessed crypto dep per the runtime-dependency allowlist.
+# Already in Cargo.lock; pinned to the locked version for offline resolution.
+ring = "0.17.14"
+# base64: JWS segment + JWK coordinate decoding (MIT/Apache-2.0). Locked.
+base64 = "0.22.1"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[lib]
+name = "oya_identity_workload_oidc_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
