@@ -22,6 +22,23 @@
 version: 1
 
 follow_ups:
+  - id: adr-0110-changeset-state-gates
+    intent: |
+      Implement the `changeset-state-monotonicity` + `changeset-state-enum-closed`
+      gate-validate lanes enforcing the ADR-0110 changeset state machine (monotonic
+      state progression; closed status enum). Both were listed in the gate catalog
+      (AGGREGATED_VALIDATE_LANES) but had no `oya gate validate` implementation, so
+      they were removed from the active aggregator on 2026-05-26 — they false-failed
+      gate-run-all while enforcing nothing. Re-add to the catalog when built.
+    driver_docs:
+      - crates/oya-governance-gate-catalog-domain/src/lib.rs
+      - docs/decisions/ADR-0110-changeset-state-machine.md
+    owner: council-architecture
+    trigger: |
+      The ADR-0110 changeset state machine needs CI-enforced monotonicity /
+      enum-closure validation, or a reviewer requires the lanes restored.
+    status: pending
+    adr_when_landed: ADR-0110 (lanes implement an already-accepted ADR)
   - id: personal-mail-key-recovery
     intent: |
       Key-recovery design for the personal-pillar mail bounded context;
