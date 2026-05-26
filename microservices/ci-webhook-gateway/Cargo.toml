@@ -1,0 +1,83 @@
+[package]
+name = "oya-ci-webhook-gateway-app"
+edition = "2024"
+rust-version = "1.95.0"
+version = "0.1.0"
+publish = false
+license = "Apache-2.0"
+description = "CI webhook gateway: verifies Forgejo webhook HMAC, parses PR-against-dev events, and dispatches the gated CI pipeline (admission -> oya gate run-all -> reviewer gate -> merge-queue) per ADR-0363/0366/0367."
+authors = ["Oyatie Council Architecture"]
+repository = "https://github.com/oyatie/oyatie"
+keywords = ["oyatie", "ci", "webhook", "forgejo", "jenkins"]
+categories = ["development-tools"]
+
+[package.metadata.oya]
+microservice = "ci-webhook-gateway"
+title = "CI Webhook Gateway"
+bounded_context = "change-coordination-substrate"
+layer = "app"
+wave = "wave-3"
+owner_team = "council-architecture + ops-platform"
+data_classification = "repo-coordination metadata (PR numbers, commit SHAs, branch names); no tenant data"
+criticality_tier = "substrate-critical"
+flat_layout_authority = "ADR-0131"
+no_suite_authority = "ADR-0132"
+binding_adrs = ["ADR-0105", "ADR-0131", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0374"]
+openapi = "contracts/openapi-v1.yaml"
+asyncapi = "contracts/asyncapi-v1.yaml"
+
+[lib]
+name = "oya_ci_webhook_gateway_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-ci-webhook-gateway"
+path = "src/main.rs"
+
+[dependencies]
+# Blessed runtime/dependency-seam crates only (Tokio/Axum/Tower/Hyper/serde/tracing
+# per the approved-runtime-dependency-allowlist). HMAC verification uses the
+# RustCrypto primitives (hmac/sha2/subtle) — constant-time, OSI-clean (MIT/Apache-2.0).
+axum = { workspace = true }
+tokio = { workspace = true }
+tower = { workspace = true }
+hyper = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+subtle = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }
+
+[lints]
+workspace = true
+
+[workspace]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+rust-version = "1.95.0"
+
+[workspace.dependencies]
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "net", "signal", "io-util"] }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+hyper = { version = "1", default-features = false, features = ["server", "http1"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
+hmac = "0.12"
+sha2 = "0.10"
+subtle = "2.6"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

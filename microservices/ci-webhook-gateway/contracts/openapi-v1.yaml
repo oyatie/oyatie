@@ -1,0 +1,113 @@
+openapi: 3.1.0
+info:
+  title: CI Webhook Gateway
+  version: "1.0.0"
+  description: >
+    HTTP webhook receiver for the gated change-coordination pipeline
+    (ADR-0363/0366/0367/0374). Verifies the Forgejo webhook HMAC, parses
+    pull_request events against the gated branch, and dispatches the Jenkins
+    oyaCiLane pipeline. Inbound surface only — outbound dispatch is a Jenkins
+    kick, not a published API.
+  license:
+    name: Apache-2.0
+servers:
+  - url: http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099
+    description: In-cluster mesh address (TLS terminates at ingress).
+paths:
+  /webhook/forgejo:
+    post:
+      operationId: receiveForgejoWebhook
+      summary: Receive a Forgejo (or GitHub-bootstrap) webhook delivery.
+      description: >
+        The body is the raw webhook payload. The HMAC signature header is
+        verified on the raw bytes BEFORE parsing (fail-closed). Only
+        pull_request events against the gated branch dispatch the pipeline.
+      parameters:
+        - name: X-Hub-Signature-256
+          in: header
+          required: false
+          schema: { type: string, example: "sha256=<hex>" }
+          description: HMAC-SHA256 of the raw body. Required unless X-Gitea-Signature is present.
+        - name: X-Gitea-Signature
+          in: header
+          required: false
+          schema: { type: string }
+          description: Legacy raw-hex HMAC header (Forgejo/Gitea).
+        - name: X-Forgejo-Event
+          in: header
+          required: true
+          schema: { type: string, example: "pull_request" }
+        - name: X-Forgejo-Delivery
+          in: header
+          required: false
+          schema: { type: string, format: uuid }
+          description: Delivery id for dedup + log correlation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Forgejo webhook payload (pull_request, ping, ...).
+      responses:
+        "202":
+          description: PR event accepted and the Jenkins pipeline was kicked.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DispatchedResponse" }
+        "200":
+          description: Authentic delivery, deliberately not dispatched (wrong base, draft, ping).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IgnoredResponse" }
+        "400": { description: Malformed payload or missing event header. }
+        "401": { description: Missing or invalid HMAC signature (fail-closed). }
+        "422": { description: Event class not in the closed router table. }
+        "501":
+          description: A downstream pipeline stage is not yet built (typed boundary).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UnimplementedResponse" }
+        "502": { description: Downstream (Jenkins) dispatch transport failure. }
+        "503": { description: Webhook secret unavailable; gateway fails closed. }
+  /healthz:
+    get:
+      operationId: healthz
+      summary: Liveness/readiness probe.
+      responses:
+        "200":
+          description: OK.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { status: { type: string, example: ok } }
+components:
+  schemas:
+    DispatchedResponse:
+      type: object
+      required: [status, pr_number, head_sha, kicked_through]
+      properties:
+        status: { type: string, enum: [dispatched] }
+        pr_number: { type: integer }
+        head_sha: { type: string }
+        kicked_through: { type: string, example: "oya-gate-run-all" }
+        trusted_runner_owns_from:
+          type: [string, "null"]
+          example: "oya-pr-review"
+        delivery: { type: string }
+    IgnoredResponse:
+      type: object
+      required: [status, reason]
+      properties:
+        status: { type: string, enum: [ignored] }
+        reason: { type: string }
+        delivery: { type: string }
+    UnimplementedResponse:
+      type: object
+      required: [status, stage, placeholder_debt]
+      properties:
+        status: { type: string, enum: [unimplemented] }
+        stage: { type: string }
+        placeholder_debt: { type: string }
+        detail: { type: string }
