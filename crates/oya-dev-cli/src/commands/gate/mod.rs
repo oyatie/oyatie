@@ -2182,6 +2182,91 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("client-stack-discipline")) => {
             crate::layered_architecture_gates::run_client_stack_discipline(args.collect())
         }
+        // ADR-0110 — changeset state machine: monotonicity invariant.
+        // Asserts every changeset's event-log state sequence is a non-decreasing
+        // subsequence of the 9-state advancing order. A backwards move or any
+        // transition after a terminal-fail state is a fatal violation.
+        (Some("validate"), Some("changeset-state-monotonicity")) => {
+            match crate::changeset_state_gates::parse_changeset_state_monotonicity_args(
+                args.collect(),
+            ) {
+                Ok(args) => {
+                    match crate::changeset_state_gates::validate_changeset_state_monotonicity(args)
+                    {
+                        Ok(report) => {
+                            if report.violations.is_empty() {
+                                println!(
+                                    "changeset-state-monotonicity validation passed: \
+                                     {} events, {} changesets, 0 violations",
+                                    report.events_checked, report.changesets_checked
+                                );
+                                ExitCode::SUCCESS
+                            } else {
+                                for v in &report.violations {
+                                    eprintln!("changeset-state-monotonicity violation: {v}");
+                                }
+                                eprintln!(
+                                    "changeset-state-monotonicity validation failed: \
+                                     {} violation(s)",
+                                    report.violations.len()
+                                );
+                                ExitCode::FAILURE
+                            }
+                        }
+                        Err(message) => {
+                            eprintln!("changeset-state-monotonicity validation failed: {message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        // ADR-0110 — changeset state machine: closed enum invariant.
+        // Asserts every `to_state` in the event log is a member of the 12-value
+        // closed status enum (9 advancing + 3 terminal-fail). Any unrecognised
+        // state string is a fatal violation.
+        (Some("validate"), Some("changeset-state-enum-closed")) => {
+            match crate::changeset_state_gates::parse_changeset_state_enum_closed_args(
+                args.collect(),
+            ) {
+                Ok(args) => {
+                    match crate::changeset_state_gates::validate_changeset_state_enum_closed(args) {
+                        Ok(report) => {
+                            if report.violations.is_empty() {
+                                println!(
+                                    "changeset-state-enum-closed validation passed: \
+                                     {} events, 0 violations",
+                                    report.events_checked
+                                );
+                                ExitCode::SUCCESS
+                            } else {
+                                for v in &report.violations {
+                                    eprintln!("changeset-state-enum-closed violation: {v}");
+                                }
+                                eprintln!(
+                                    "changeset-state-enum-closed validation failed: \
+                                     {} violation(s)",
+                                    report.violations.len()
+                                );
+                                ExitCode::FAILURE
+                            }
+                        }
+                        Err(message) => {
+                            eprintln!("changeset-state-enum-closed validation failed: {message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         _ => {
             eprintln!("{usage}");
             ExitCode::from(2)
