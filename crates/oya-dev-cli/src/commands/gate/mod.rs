@@ -660,6 +660,53 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("dependency-blessed-allowlist")) => {
+            match crate::parse_dependency_blessed_allowlist_args(args.collect()) {
+                Ok(args) => match crate::validate_dependency_blessed_allowlist_gate(args) {
+                    Ok(report) => {
+                        for finding in &report.findings {
+                            println!(
+                                "dependency-blessed-allowlist: {} ({}) declares unblessed direct dependency `{}` in [{}]",
+                                finding.crate_name,
+                                finding.crate_path,
+                                finding.dependency,
+                                finding.table
+                            );
+                        }
+                        let unblessed = report.unblessed_count();
+                        let distinct = report.distinct_unblessed().len();
+                        println!(
+                            "dependency-blessed-allowlist scan: {} crates scanned, {} blessed deps, {} unblessed findings, {} distinct unblessed deps ({})",
+                            report.crates_scanned,
+                            report.blessed_count,
+                            unblessed,
+                            distinct,
+                            if report.enforced {
+                                "enforce"
+                            } else {
+                                "report-only"
+                            }
+                        );
+                        if report.enforced && unblessed > 0 {
+                            eprintln!(
+                                "dependency-blessed-allowlist validation failed: {unblessed} unblessed direct dependencies"
+                            );
+                            ExitCode::FAILURE
+                        } else {
+                            ExitCode::SUCCESS
+                        }
+                    }
+                    Err(message) => {
+                        eprintln!("dependency-blessed-allowlist validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {
