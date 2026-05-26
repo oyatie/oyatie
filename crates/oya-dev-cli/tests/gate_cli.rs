@@ -530,7 +530,10 @@ fn dependency_blessed_allowlist_gate_fails_under_enforce_on_unblessed_dep() {
         .output()
         .expect("dependency-blessed-allowlist gate command runs");
 
-    assert!(!output.status.success(), "enforce must fail on unblessed dep");
+    assert!(
+        !output.status.success(),
+        "enforce must fail on unblessed dep"
+    );
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("unblessed direct dependencies"),
         "stderr={}",
@@ -4587,11 +4590,8 @@ oya-kernel = { path = "../oya-kernel" }
 "#,
     )
     .expect("clean manifest written");
-    fs::write(
-        root.join("crates/clean/src/lib.rs"),
-        "pub fn clean() {}\n",
-    )
-    .expect("clean source written");
+    fs::write(root.join("crates/clean/src/lib.rs"), "pub fn clean() {}\n")
+        .expect("clean source written");
 
     if include_offender {
         fs::create_dir_all(root.join("crates/offender/src")).expect("offender dir created");

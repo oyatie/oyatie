@@ -28,10 +28,7 @@
 
 // ADR-0083 Tier 3: production code stays panic-free (deny in release); inline
 // `mod tests` may use unwrap/expect/panic under cfg(test) only.
-#![cfg_attr(
-    test,
-    allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)
-)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -676,7 +673,10 @@ mod tests {
             TenantId::new("acme"),
             Err(WorkloadIdentityError::InvalidTenantId)
         );
-        assert_eq!(TenantId::new("ten_"), Err(WorkloadIdentityError::InvalidTenantId));
+        assert_eq!(
+            TenantId::new("ten_"),
+            Err(WorkloadIdentityError::InvalidTenantId)
+        );
         assert!(TenantId::new("ten_acme").is_ok());
     }
 
@@ -700,11 +700,13 @@ mod tests {
 
     #[test]
     fn provision_starts_non_operational() {
-        let principal =
-            WorkloadPrincipal::provision("ten_acme", "wl_a", "cap.x.y").expect("valid");
+        let principal = WorkloadPrincipal::provision("ten_acme", "wl_a", "cap.x.y").expect("valid");
         assert_eq!(principal.state(), WorkloadState::Provisioned);
         assert!(!principal.state().is_operational());
-        assert_eq!(principal.schema_version(), WORKLOAD_PRINCIPAL_SCHEMA_VERSION);
+        assert_eq!(
+            principal.schema_version(),
+            WORKLOAD_PRINCIPAL_SCHEMA_VERSION
+        );
     }
 
     #[test]
@@ -712,12 +714,20 @@ mod tests {
         let mut principal =
             WorkloadPrincipal::provision("ten_acme", "wl_a", "cap.x.y").expect("valid");
         // Provisioned -> Active -> Suspended -> Active -> Retired
-        principal.transition_to(WorkloadState::Active).expect("activate");
+        principal
+            .transition_to(WorkloadState::Active)
+            .expect("activate");
         assert!(principal.state().is_operational());
-        principal.transition_to(WorkloadState::Suspended).expect("suspend");
+        principal
+            .transition_to(WorkloadState::Suspended)
+            .expect("suspend");
         assert!(!principal.state().is_operational());
-        principal.transition_to(WorkloadState::Active).expect("reactivate");
-        principal.transition_to(WorkloadState::Retired).expect("retire");
+        principal
+            .transition_to(WorkloadState::Active)
+            .expect("reactivate");
+        principal
+            .transition_to(WorkloadState::Retired)
+            .expect("retire");
         // Retired is terminal.
         assert_eq!(
             principal.transition_to(WorkloadState::Active),
@@ -751,8 +761,16 @@ mod tests {
             .with_scope("cloud.kms.decrypt")
             .expect("scope ok");
 
-        assert_eq!(principal.claim("env").and_then(ClaimValue::as_text), Some("prod"));
-        assert!(principal.claim("groups").expect("present").contains("deployers"));
+        assert_eq!(
+            principal.claim("env").and_then(ClaimValue::as_text),
+            Some("prod")
+        );
+        assert!(
+            principal
+                .claim("groups")
+                .expect("present")
+                .contains("deployers")
+        );
         assert!(principal.has_scope("cloud.kms.decrypt"));
         assert!(!principal.has_scope("cloud.kms.encrypt"));
     }
@@ -809,7 +827,10 @@ mod tests {
         assert_eq!(request.action.as_str(), "cloud.kms.Decrypt");
         assert_eq!(request.resource.resource_type(), "Secret");
         assert_eq!(
-            request.context.get("source_ip").and_then(ClaimValue::as_text),
+            request
+                .context
+                .get("source_ip")
+                .and_then(ClaimValue::as_text),
             Some("10.0.0.1")
         );
     }

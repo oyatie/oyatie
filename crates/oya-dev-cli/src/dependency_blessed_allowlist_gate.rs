@@ -29,7 +29,8 @@ use crate::usage;
 use crate::workspace_manifest::{read_package_name, read_workspace_member_paths};
 
 /// Default repo-relative path to the blessed-allowlist data file.
-pub(crate) const DEFAULT_BLESSED_ALLOWLIST_PATH: &str = "registry/dependency-blessed-allowlist.json";
+pub(crate) const DEFAULT_BLESSED_ALLOWLIST_PATH: &str =
+    "registry/dependency-blessed-allowlist.json";
 
 /// Dependency tables that contribute direct dependencies.
 const DEPENDENCY_TABLES: [&str; 3] = ["dependencies", "dev-dependencies", "build-dependencies"];
@@ -300,11 +301,7 @@ fn dependency_key(line: &str) -> Option<&str> {
     let key_region = line.split('=').next().unwrap_or(line);
     // `tokio.workspace = true` -> dependency name is the segment before `.`.
     let key = key_region.split('.').next().unwrap_or(key_region).trim();
-    if key.is_empty() {
-        None
-    } else {
-        Some(key)
-    }
+    if key.is_empty() { None } else { Some(key) }
 }
 
 fn is_path_dependency(line: &str) -> bool {

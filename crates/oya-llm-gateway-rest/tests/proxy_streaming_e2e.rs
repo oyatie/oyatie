@@ -88,7 +88,9 @@ fn http_response(status_line: &str, extra_headers: &[(&str, &str)], body: &str) 
 /// A tiny mock upstream. For each accepted connection it reads the request
 /// (capturing the `authorization` header), then replies with `script` — a
 /// closure mapping the request count to a raw HTTP/1.1 response string.
-async fn spawn_mock_upstream<F>(script: F) -> (String, Arc<AtomicUsize>, Arc<std::sync::Mutex<Vec<String>>>)
+async fn spawn_mock_upstream<F>(
+    script: F,
+) -> (String, Arc<AtomicUsize>, Arc<std::sync::Mutex<Vec<String>>>)
 where
     F: Fn(usize) -> String + Send + Sync + 'static,
 {
@@ -134,7 +136,12 @@ where
     (format!("http://{addr}"), count, seen_auth)
 }
 
-fn build_state(upstream: &str, keys: &[(&str, &str)], policy: PoolPolicy, retry: RetryPolicyConfig) -> Arc<GatewayState> {
+fn build_state(
+    upstream: &str,
+    keys: &[(&str, &str)],
+    policy: PoolPolicy,
+    retry: RetryPolicyConfig,
+) -> Arc<GatewayState> {
     let mut map = BTreeMap::new();
     for (label, key) in keys {
         map.insert((*label).to_string(), (*key).to_string());
@@ -163,7 +170,12 @@ async fn spawn_gateway(state: Arc<GatewayState>) -> String {
 #[tokio::test]
 async fn unauthorized_without_ingress_key() {
     let (upstream, _c, _a) = spawn_mock_upstream(|_| http_response("200 OK", &[], "hi")).await;
-    let state = build_state(&upstream, &[("a", "sk-aaa")], PoolPolicy::new(3, 1000, 0), RetryPolicyConfig::default());
+    let state = build_state(
+        &upstream,
+        &[("a", "sk-aaa")],
+        PoolPolicy::new(3, 1000, 0),
+        RetryPolicyConfig::default(),
+    );
     let base = spawn_gateway(state).await;
 
     // No x-oya-proxy-key header → 401, and the upstream must NOT be hit.
@@ -180,7 +192,12 @@ async fn streams_upstream_body_and_injects_pooled_bearer() {
         http_response("200 OK", &[("Content-Type", "text/event-stream")], sse_body)
     })
     .await;
-    let state = build_state(&upstream, &[("a", "sk-POOLED-aaa")], PoolPolicy::new(3, 1000, 0), RetryPolicyConfig::default());
+    let state = build_state(
+        &upstream,
+        &[("a", "sk-POOLED-aaa")],
+        PoolPolicy::new(3, 1000, 0),
+        RetryPolicyConfig::default(),
+    );
     let base = spawn_gateway(state).await;
 
     let (status, body) = post(
@@ -238,7 +255,11 @@ async fn retries_on_429_then_succeeds_with_next_key() {
     .await;
     assert_eq!(status, 200);
     assert_eq!(body, "ok");
-    assert_eq!(count.load(Ordering::SeqCst), 2, "one retry → two upstream hits");
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        2,
+        "one retry → two upstream hits"
+    );
 
     // Two distinct pooled keys were used across the two attempts (round-robin).
     let auths = seen_auth.lock().unwrap().clone();
@@ -257,7 +278,12 @@ async fn all_429_exhausts_retries_and_returns_503() {
         backoff_base_millis: 0,
         backoff_jitter_millis: 0,
     };
-    let state = build_state(&upstream, &[("a", "sk-1"), ("b", "sk-2")], PoolPolicy::new(5, 60_000, 0), retry);
+    let state = build_state(
+        &upstream,
+        &[("a", "sk-1"), ("b", "sk-2")],
+        PoolPolicy::new(5, 60_000, 0),
+        retry,
+    );
     let base = spawn_gateway(state).await;
 
     let (status, _body) = post(
@@ -268,14 +294,22 @@ async fn all_429_exhausts_retries_and_returns_503() {
     .await;
     // Retries exhausted → 503.
     assert_eq!(status, 503);
-    assert_eq!(count.load(Ordering::SeqCst), 2, "exactly max_attempts upstream hits");
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        2,
+        "exactly max_attempts upstream hits"
+    );
 }
 
 #[tokio::test]
 async fn metrics_endpoint_exposes_families() {
-    let (upstream, _c, _a) = spawn_mock_upstream(|_| http_response("200 OK", &[], "hi"))
-    .await;
-    let state = build_state(&upstream, &[("a", "sk-aaa")], PoolPolicy::new(3, 1000, 0), RetryPolicyConfig::default());
+    let (upstream, _c, _a) = spawn_mock_upstream(|_| http_response("200 OK", &[], "hi")).await;
+    let state = build_state(
+        &upstream,
+        &[("a", "sk-aaa")],
+        PoolPolicy::new(3, 1000, 0),
+        RetryPolicyConfig::default(),
+    );
     let base = spawn_gateway(state).await;
 
     let (status, body) = get(&format!("{base}/metrics")).await;
@@ -288,9 +322,13 @@ async fn metrics_endpoint_exposes_families() {
 
 #[tokio::test]
 async fn unknown_group_returns_404() {
-    let (upstream, _c, _a) = spawn_mock_upstream(|_| http_response("200 OK", &[], "hi"))
-    .await;
-    let state = build_state(&upstream, &[("a", "sk-aaa")], PoolPolicy::new(3, 1000, 0), RetryPolicyConfig::default());
+    let (upstream, _c, _a) = spawn_mock_upstream(|_| http_response("200 OK", &[], "hi")).await;
+    let state = build_state(
+        &upstream,
+        &[("a", "sk-aaa")],
+        PoolPolicy::new(3, 1000, 0),
+        RetryPolicyConfig::default(),
+    );
     let base = spawn_gateway(state).await;
 
     let (status, _body) = post(

@@ -17,7 +17,9 @@ fn kms_reader() -> WorkloadPrincipal {
     let mut principal =
         WorkloadPrincipal::provision("ten_acme", "wl_secrets_sync", "cap.cloud.kms")
             .expect("valid ids");
-    principal.transition_to(WorkloadState::Active).expect("activate");
+    principal
+        .transition_to(WorkloadState::Active)
+        .expect("activate");
     principal
         .with_scope("cloud.kms.decrypt")
         .expect("scope ok")
@@ -44,10 +46,12 @@ fn production_policy_set() -> CedarWorkloadAuthorizer {
                 .for_resource(ResourceCondition::TypeIs("Secret".into())),
         )
         // forbid: nobody touches the break-glass root secret.
-        .add_policy(Policy::forbid("forbid-root-secret").for_resource(ResourceCondition::Is {
-            resource_type: "Secret".into(),
-            resource_id: "prod/root-of-trust".into(),
-        }))
+        .add_policy(
+            Policy::forbid("forbid-root-secret").for_resource(ResourceCondition::Is {
+                resource_type: "Secret".into(),
+                resource_id: "prod/root-of-trust".into(),
+            }),
+        )
 }
 
 #[test]
@@ -85,7 +89,9 @@ fn forbidden_resource_overrides_matching_permit() {
 #[test]
 fn retired_workload_cannot_be_authorized() {
     let mut principal = kms_reader();
-    principal.transition_to(WorkloadState::Retired).expect("retire");
+    principal
+        .transition_to(WorkloadState::Retired)
+        .expect("retire");
     let decision = production_policy_set().authorize(&decrypt_request(principal));
     assert_eq!(decision.effect(), Effect::Deny);
 }

@@ -15,7 +15,9 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_llm_gateway_kernel::{KeyFingerprint, KeyId, KeyPool, PoolPolicy, ProviderChannel, Selection};
+use oya_llm_gateway_kernel::{
+    KeyFingerprint, KeyId, KeyPool, PoolPolicy, ProviderChannel, Selection,
+};
 
 use crate::auth::AuthVerifier;
 use crate::channel::ChannelAdapter;
@@ -159,7 +161,11 @@ fn build_pool(
     policy: PoolPolicy,
     material: &KeyMaterial,
 ) -> (KeyPool, Vec<String>) {
-    let raw_keys: Vec<String> = material.raw_keys().into_iter().map(str::to_string).collect();
+    let raw_keys: Vec<String> = material
+        .raw_keys()
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     let fingerprints: Vec<KeyFingerprint> = material
         .fingerprints()
         .into_iter()
@@ -226,13 +232,17 @@ impl GatewayState {
     /// for the composition root.
     #[must_use]
     pub fn pool_policy_for(config: &GatewayConfig, group_name: &str) -> Option<PoolPolicy> {
-        config.groups.iter().find(|g| g.name == group_name).map(|g| {
-            PoolPolicy::new(
-                g.blacklist_threshold,
-                g.cooldown_base_millis,
-                g.cooldown_jitter_millis,
-            )
-        })
+        config
+            .groups
+            .iter()
+            .find(|g| g.name == group_name)
+            .map(|g| {
+                PoolPolicy::new(
+                    g.blacklist_threshold,
+                    g.cooldown_base_millis,
+                    g.cooldown_jitter_millis,
+                )
+            })
     }
 }
 
@@ -332,7 +342,10 @@ mod tests {
         let g = group(&[("a", "sk-old")]);
         g.refresh_keys(
             PoolPolicy::new(2, 10_000, 0),
-            &material(ProviderChannel::OpenAi, &[("a", "sk-new-1"), ("b", "sk-new-2")]),
+            &material(
+                ProviderChannel::OpenAi,
+                &[("a", "sk-new-1"), ("b", "sk-new-2")],
+            ),
         );
         assert_eq!(g.active_key_count(), 2);
         match g.choose_key() {

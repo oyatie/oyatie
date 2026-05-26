@@ -59,8 +59,12 @@ fn provisioned_workload_walks_to_active_then_serves_authz_requests() {
 fn retired_workload_is_terminal_and_not_operational() {
     let mut principal =
         WorkloadPrincipal::provision("ten_globex", "wl_old", "cap.x").expect("valid");
-    principal.transition_to(WorkloadState::Active).expect("activate");
-    principal.transition_to(WorkloadState::Retired).expect("retire");
+    principal
+        .transition_to(WorkloadState::Active)
+        .expect("activate");
+    principal
+        .transition_to(WorkloadState::Retired)
+        .expect("retire");
 
     assert!(!principal.state().is_operational());
     assert!(matches!(
