@@ -23,6 +23,31 @@ criticality controls.
 - `capabilities/tenant-class-caps.yaml` records demo_trial cap behavior.
 - `slos/` and `dashboards/` expose service health without customer tiers.
 
+## Workload identity (task T3)
+
+The `workload-identity` bounded context (per ADR-0002) covers machine-to-machine
+principals — CI runners, microservice service accounts, agents — as distinct
+from the human-identity OIDC-issuer / WebAuthn / SCIM surfaces. First slice:
+
+- `crates/oya-identity-workload-domain` — PURE domain kernel (zero deps): the
+  workload principal model (tenant + workload id + claims), a lifecycle state
+  machine (Provisioned → Active ⇄ Suspended → Retired), and the PARC
+  authorization decision types (`AuthorizationRequest`, `AuthorizationDecision`,
+  `Effect`, `DecisionReason`).
+- `crates/oya-identity-workload-authz-cedar-adapter` — Cedar authorization gate:
+  evaluates a PARC request over the domain with deny-by-default + forbid-wins
+  semantics behind the `WorkloadAuthorizer` trait. The upstream `cedar-policy`
+  crate (Apache-2.0, listed in `manifest.json#consumes_upstream_oss`) is the
+  documented drop-in swap target.
+- `crates/oya-identity-workload-oidc-adapter` — OIDC token validation core:
+  verifies a compact JWS (RS256/384/512, ES256) against issuer JWKs using
+  `ring`, validates `iss`/`aud`/`exp`/`nbf`/`iat` against a caller-supplied
+  clock, and projects verified claims into a workload principal.
+
+Verify: `cargo nextest run -p oya-identity-workload-domain \
+-p oya-identity-workload-authz-cedar-adapter -p oya-identity-workload-oidc-adapter`
+and `./bin/oya gate validate architecture-boundaries`.
+
 ## Doctrine references
 
 - [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
