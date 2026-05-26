@@ -32,7 +32,7 @@
         "merged_at": "2026-05-16T23:50:55Z",
         "change_class": "CC-5_doc_only",
         "files_changed": 6,
-        "summary": "Wired the master_plan_completion_audit kernel (status-honesty: no Complete phase over incomplete child IP; complete IPs require evidence JSON ref) as a per-PR CI check. Added registry/quality/lanes.yaml row + docs/standards/ci-lanes.md mirror + .github/workflows/oya-foundry-fitness-master-plan-completion.yml. Self-validated on PR #48 itself (31s)."
+        "summary": "Wired the master_plan_completion_audit kernel (status-honesty: no Complete phase over incomplete child IP; complete IPs require evidence JSON ref) as a per-PR CI check. Added registry/quality/lanes.yaml row + docs/standards/ci-lanes.md mirror + .github/workflows/oya-governance-master-plan-completion.yml. Self-validated on PR #48 itself (31s)."
       },
       {
         "number": 49,
@@ -65,7 +65,7 @@
       "filed_in": "PR #48 evidence",
       "status": "ready-to-claim",
       "scope": "admin",
-      "blocker": "Requires `gh api PUT repos/jason931225/oyatie/branches/dev/protection` to add `oya-foundry-fitness-master-plan-completion` to required_status_checks. Admin scope; agent declined without explicit user authorization to mutate branch protection on dev."
+      "blocker": "Requires `gh api PUT repos/jason931225/oyatie/branches/dev/protection` to add `oya-governance-master-plan-completion` to required_status_checks. Admin scope; agent declined without explicit user authorization to mutate branch protection on dev."
     },
     {
       "id": "F-PLACEHOLDER-TEMPLATE-DRIFT",
@@ -142,14 +142,14 @@
     "cargo_check_workspace": "PASS (incremental)",
     "cargo_test_master_plan_completion_audit": "PASS",
     "placeholder_debt_gate": "FAIL pre-existing on origin/dev (filed F-PLACEHOLDER-TEMPLATE-DRIFT; advisory-only)",
-    "ci_required_status_checks_all_4_prs": "ALL GREEN on every required check (cargo-fmt, cargo-check, cargo-clippy, cargo-nextest, oya-vcs-admission, oya-vcs-provider-execution, oya-foundry-fitness-{supply-chain, cohesion, api-semver, protection-context-match})"
+    "ci_required_status_checks_all_4_prs": "ALL GREEN on every required check (cargo-fmt, cargo-check, cargo-clippy, cargo-nextest, oya-vcs-admission, oya-vcs-provider-execution, oya-governance-{supply-chain, cohesion, api-semver, protection-context-match})"
   },
 
   "hyperscaler_claim_matrix": {
     "claims_we_can_make": [
       "M-CC cross-cutting milestone is eliminated from canonical masterplan structural index per user directive 2026-05-16",
       "specs/masterplan.json#live_implementation_index now reflects the .omc/plans/ source-of-truth filesystem (172 IPs)",
-      "Status-honesty hard gate (master-plan-completion) is wired as per-PR check; visibility on every PR via oya-foundry-fitness-master-plan-completion workflow",
+      "Status-honesty hard gate (master-plan-completion) is wired as per-PR check; visibility on every PR via oya-governance-master-plan-completion workflow",
       "Gate's evidence_dirs default expanded from 3 to 10 canonical dirs; substring search covers all canonical evidence locations",
       "8 tracked atomic-write tmp stowaway files (including 1 Bominal-abs-path low-info-leak) untracked from origin/dev; .gitignore prevents future writes",
       "Full multispectrum evidence (CC-1..CC-7 + F-family + A-family + M-family) attached to every PR per docs/AGENTS.md operating contract"
@@ -164,7 +164,7 @@
     "required_evidence_for_future_claims": [
       "M02 exit: IP-001..N authored under M02b-P22-m02-exit-gate + cargo nextest workspace green + canary observability rollback gate proven",
       "M03 cloud adapters: provider-specific adapter crates landed + integration tests against fake-OR-live provider + provider-substitution test harness green",
-      "Branch protection: gh api PUT response + post-deploy oya-foundry-fitness-protection-context-match lane PASS"
+      "Branch protection: gh api PUT response + post-deploy oya-governance-protection-context-match lane PASS"
     ]
   },
 

@@ -6239,7 +6239,7 @@ uncited-acronym	NEW	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	NEW	docs/DESIGN.md
 uncited-acronym	NEW	docs/advanced-cicd/branch-pipeline/agent-roles-spec.md
 uncited-acronym	NEW	docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md
-uncited-acronym	NEW	docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md
+uncited-acronym	NEW	docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md
 uncited-acronym	NEW	docs/advanced-cicd/progressive-delivery/blue-green-spec.md
 uncited-acronym	NEW	docs/advanced-cicd/progressive-delivery/canary-rail-spec.md
 uncited-acronym	NEW	docs/advanced-cicd/progressive-delivery/dark-launch-spec.md
@@ -6254,7 +6254,7 @@ uncited-acronym	NEW	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21
 uncited-acronym	NEW	docs/decisions/RETIRED.md
 uncited-acronym	NEW	docs/release/branch-pipeline/agent-roles-spec.md
 uncited-acronym	NEW	docs/release/branch-pipeline/ci-policy-per-branch.md
-uncited-acronym	NEW	docs/release/branch-pipeline/foundry-pipeline-mirror.md
+uncited-acronym	NEW	docs/release/branch-pipeline/governance-pipeline-mirror.md
 uncited-acronym	NEW	docs/release/progressive-delivery/blue-green-spec.md
 uncited-acronym	NEW	docs/release/progressive-delivery/canary-rail-spec.md
 uncited-acronym	NEW	docs/release/progressive-delivery/dark-launch-spec.md

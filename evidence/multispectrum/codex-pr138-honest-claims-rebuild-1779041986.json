@@ -20,7 +20,7 @@
     },
     {
       "id": "138-H01-check-not-required-and-wrong-push-branch",
-      "resolution": "added oya-foundry-fitness-honest-claims workflow on pull_request and dev push, branch-protection required status, quality-lane registry row, CI-lanes mirror row, and gate-catalog aggregation"
+      "resolution": "added oya-governance-honest-claims workflow on pull_request and dev push, branch-protection required status, quality-lane registry row, CI-lanes mirror row, and gate-catalog aggregation"
     },
     {
       "id": "138-H02-phrase-scanner-blocks-legitimate-references",
@@ -55,7 +55,7 @@
   ],
   "artifacts": [
     ".github/branch-protection.yaml",
-    ".github/workflows/oya-foundry-fitness-honest-claims.yml",
+    ".github/workflows/oya-governance-honest-claims.yml",
     ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-001-provider-account-pool-kernel.md",
     ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-002-anthropic-compat-adapter.md",
     ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-003-openai-compat-adapter.md",

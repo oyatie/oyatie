@@ -22,10 +22,10 @@ cat > "$tmp_dir/live-missing.json" <<'JSON'
     "cargo-nextest",
     "oya-vcs-admission",
     "oya-vcs-provider-execution",
-    "oya-foundry-fitness-supply-chain",
-    "oya-foundry-fitness-cohesion",
-    "oya-foundry-fitness-api-semver",
-    "oya-foundry-fitness-protection-context-match"
+    "oya-governance-supply-chain",
+    "oya-governance-cohesion",
+    "oya-governance-api-semver",
+    "oya-governance-protection-context-match"
   ]
 }
 JSON

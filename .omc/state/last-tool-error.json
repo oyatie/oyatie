@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /Users/jasonlee/Developer/source\\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -2\\ncargo fmt 2>/dev/null; cargo fmt --check >/dev/null 2>&1 && echo \\\"FMT CLEAN\\\" || echo \\\"FMT FI...",
-  "error": "Exit code 1\nFMT CLEAN\n=== targeted gates ===\naspirational-enforcement     PASS\nbrand-residue                PASS\narchitecture-boundaries      PASS\ncodeowners-mirror            PASS\nhyperscaler-arch-invariants  PASS\nglossary-vocabulary          PASS\nhonest-claims                PASS\nadr-citation                 PASS\nno-grouping                  PASS",
-  "timestamp": "2026-05-26T00:25:02.840Z",
-  "retry_count": 1
-}

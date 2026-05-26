@@ -11,7 +11,7 @@ purpose: |
   Microsoft Azure, Oracle/Java) so oyatie users, partners, and operators get a
   contract that matches industry expectation.
 lift_target: oyatie/docs/release/release-versioning-strategy.md
-enforced_by: oya-foundry-fitness-semver-discipline, oya-foundry-fitness-api-version-stability, oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-version-eol-warning, oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-cherry-pick-trail
+enforced_by: oya-governance-semver-discipline, oya-governance-api-version-stability, oya-governance-release-branch-cut, oya-governance-version-eol-warning, oya-governance-deprecation-notice, oya-governance-cherry-pick-trail
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 ---
 
@@ -52,7 +52,7 @@ may roll forward without breaking any external API.
   `[workspace.package] version = "X.Y.Z"`). This eliminates inter-crate skew
   during pre-GA.
 - **Independent cadence after GA**: each crate may bump on its own once the
-  internal API surface has stabilised and `oya-foundry-fitness-semver-discipline`
+  internal API surface has stabilised and `oya-governance-semver-discipline`
   is consistently green for 60 days.
 - **Pre-release labels**: `alpha.N` → `beta.N` → `rc.N` per SemVer §9. Dev-only
   builds use `dev-snapshot.<YYYYMMDD>` (not registry-publishable).
@@ -87,7 +87,7 @@ Microsoft Azure `api-version` query parameter + AWS service date versioning:
 - **OpenAPI 3.1 is the source of truth**; the spec carries the
   `x-stability` extension (`alpha` / `beta` / `stable` / `ga`) and the
   `x-introduced` / `x-deprecated` dates. Enforced by
-  `oya-foundry-fitness-api-version-stability`.
+  `oya-governance-api-version-stability`.
 
 Detail: [`api-versioning-spec.md`](api-versioning-spec.md).
 
@@ -124,7 +124,7 @@ axis to the upstream stability cadence it serves.
 ## 8. LTS policy
 
 - **Every major version is LTS** for **12 months** from release.
-- 90-day EOL warning emitted via `oya-foundry-fitness-version-eol-warning`
+- 90-day EOL warning emitted via `oya-governance-version-eol-warning`
   (signals `EVT-VERSION-EOL-APPROACHING`).
 - Tracks per-major-version row in `docs/release/EOL-LEDGER.md`.
 - Precedent: Kubernetes patch window (~14 months), .NET LTS (3 years), Java LTS

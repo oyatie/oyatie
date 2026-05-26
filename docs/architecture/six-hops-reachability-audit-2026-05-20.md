@@ -223,7 +223,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/advanced-cicd/branch-pipeline/branch-protection-rules.md` | C1 | 757 | 4 | 2 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md` | C1 | 757 | 2 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/fitness-lanes-for-branch-pipeline.md` | C1 | 757 | 4 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
-| `docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md` | C1 | 757 | 3 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
+| `docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md` | C1 | 757 | 3 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/playbooks-by-axis-stage.md` | C1 | 757 | 2 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/rollback-mechanics-per-stage.md` | C1 | 757 | 4 | 7 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/advanced-cicd/branch-pipeline/velocity-without-stability-loss.md` | C1 | 757 | 2 | 1 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
@@ -590,7 +590,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/release/branch-pipeline/branch-protection-rules.md` | C1 | 757 | 3 | 3 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/ci-policy-per-branch.md` | C1 | 757 | 2 | 9 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md` | C1 | 757 | 3 | 6 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
-| `docs/release/branch-pipeline/foundry-pipeline-mirror.md` | C1 | 757 | 2 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
+| `docs/release/branch-pipeline/governance-pipeline-mirror.md` | C1 | 757 | 2 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/playbooks-by-axis-stage.md` | C1 | 757 | 1 | 5 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/rollback-mechanics-per-stage.md` | C1 | 757 | 3 | 10 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/release/branch-pipeline/velocity-without-stability-loss.md` | C1 | 757 | 2 | 4 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |

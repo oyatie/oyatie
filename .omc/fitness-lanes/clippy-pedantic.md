@@ -2,14 +2,14 @@
 
 - purpose: Verify the workspace passes `cargo clippy --all-targets -- -D warnings` with pedantic + workspace lint table.
 - enforces: hyperscaler-best-practices spec — Rust clippy pedantic + workspace lints.
-- kernel_crate: `oya-foundry-fitness-clippy-pedantic-kernel` — `ClippyFinding { crate_id, file, lint }`, verdict `ClippyPedanticFitnessReport { findings_checked }`.
-- runner_path: `tools/oya-foundry-fitness-clippy-pedantic`
+- kernel_crate: `oya-governance-clippy-pedantic-kernel` — `ClippyFinding { crate_id, file, lint }`, verdict `ClippyPedanticFitnessReport { findings_checked }`.
+- runner_path: `tools/oya-governance-clippy-pedantic`
 - inputs: `cargo clippy --message-format=json` output.
 - failure_modes:
   - any warning at error level
   - lint in `denied-without-bypass` set fires
   - missing `[workspace.lints]` table (handed off to `workspace-lints` lane)
-- ci_invocation: `cargo run -p oya-foundry-fitness-clippy-pedantic`
+- ci_invocation: `cargo run -p oya-governance-clippy-pedantic`
 - runtime_budget: 3500 ms
 - severity: BLOCKER
 - kernel_sketch:

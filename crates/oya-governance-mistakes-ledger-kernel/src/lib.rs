@@ -9,7 +9,7 @@
 //!   matches `docs/MISTAKES-LEDGER.md`, `docs/templates/mistakes-ledger-row-template.md`,
 //!   and `registry/mistakes-ledger.json` — the canonical
 //!   Control-2 storage path per `feedback_repeat_mistake_prevention` memory.
-//! - Future dev-CLI `oya-foundry-fitness-mistakes-ledger-app` —
+//! - Future dev-CLI `oya-governance-mistakes-ledger-app` —
 //!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:mistakes-ledger>-<layer:app>`;
 //!   binary tool surface (canonical `app` suffix per ADR-0107 amendment 2026-05-15),
 //!   wraps the kernel for `oya gate validate mistakes-ledger`.

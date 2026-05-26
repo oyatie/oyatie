@@ -2,14 +2,14 @@
 
 - purpose: Verify every PR's Phase 00 evidence bundle conforms to the template (commands run, output hashes, exit codes, timestamps).
 - enforces: TEMPLATE/phase-00-evidence-template.
-- kernel_crate: `oya-foundry-fitness-evidence-bundle-shape-kernel` — `EvidenceBundle { pr_id, commands, hashes_present, timestamps_present }`, verdict `EvidenceBundleShapeFitnessReport { bundles_checked }`.
-- runner_path: `tools/oya-foundry-fitness-evidence-bundle-shape`
+- kernel_crate: `oya-governance-evidence-bundle-shape-kernel` — `EvidenceBundle { pr_id, commands, hashes_present, timestamps_present }`, verdict `EvidenceBundleShapeFitnessReport { bundles_checked }`.
+- runner_path: `tools/oya-governance-evidence-bundle-shape`
 - inputs: PR `/evidence/<pr>.md`, evidence template.
 - failure_modes:
   - missing `cargo nextest run` row
   - row without output hash
   - timestamp not ISO-8601
-- ci_invocation: `cargo run -p oya-foundry-fitness-evidence-bundle-shape`
+- ci_invocation: `cargo run -p oya-governance-evidence-bundle-shape`
 - runtime_budget: 350 ms
 - severity: BLOCKER
 - kernel_sketch:

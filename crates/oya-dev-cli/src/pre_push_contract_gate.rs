@@ -6,7 +6,7 @@
 //! the canonical authority; this module is the I/O-shaped runner
 //! (port-in-kernel, ADR-0056).
 //!
-//! Lane id: `oya-foundry-fitness-pre-push`. Asserts that the
+//! Lane id: `oya-governance-pre-push`. Asserts that the
 //! canonical `oya verify` local-developer command is wired
 //! consistently across the three evidence surfaces, with no `.sh`
 //! subprocess interposed.

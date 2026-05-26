@@ -300,7 +300,7 @@ The kernel is reusable (other lanes can validate trigger ASTs in tests without f
 
 ### Lane naming precedent (unchanged)
 
-`oya-check-dependency-seam-discipline` (runner; layer=`runtime`). Companion kernel `oya-foundry-fitness-dependency-seam-kernel` (deferred). ADR-0092 codifies split.
+`oya-check-dependency-seam-discipline` (runner; layer=`runtime`). Companion kernel `oya-governance-dependency-seam-kernel` (deferred). ADR-0092 codifies split.
 
 ### Composite scope — 8 sub-checks (unchanged from R4)
 
@@ -688,7 +688,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`.
 | `oya-check-distroless-deployment-bar` | authored Step 5 | `runtime` | Lane runner. |
 | `oya-check-replacement-parity` | authored W1+ | `runtime` | Lane runner. |
 | `oya-dev-cli` | referenced | `app` | Top-level CLI binary. |
-| `oya-foundry-fitness-dependency-seam-kernel` | deferred (post-W0) | `kernel` | Pure policy value-object. |
+| `oya-governance-dependency-seam-kernel` | deferred (post-W0) | `kernel` | Pure policy value-object. |
 
 **Removed from R4 §18.A audit (Critic MAJOR #2 fix):** the hedged row `oya-runtime-cgroup-runtime (renamed from *-domain if pre-existing)`. `find crates -maxdepth 1 -name '*cgroup*'` at commit `4d6bf91b` returns zero matches. No such crate; no row. cgroup probing in `oya-check-distroless-deployment-bar` (§19.5) is in-process via `/sys/fs/cgroup` reads; no dedicated crate needed.
 
@@ -701,7 +701,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`.
 - rejects missing (BLOCKER);
 - rejects any value outside the canonical 5 (BLOCKER);
 - rejects `oya-check-*` with layer ≠ `runtime`;
-- rejects `oya-foundry-fitness-*-kernel` with layer ≠ `kernel`;
+- rejects `oya-governance-*-kernel` with layer ≠ `kernel`;
 - **rejects any runtime→adapter edge** (canonical DAG invariant per `service-map-spec.md` §5; reads `cargo metadata --no-deps`, walks each runtime-layer crate's deps, asserts no dep declares `layer = "adapter"`). Note: `adapter→runtime` is the post-Critic-CRITICAL-#1 composition shape (hyper-adapter composes middleware-runtime) and IS allowed per §3.D.
 
 ### §18.D — Bootstrap reality

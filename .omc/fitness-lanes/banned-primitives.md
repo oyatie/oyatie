@@ -15,8 +15,8 @@
   - command-log corpus record is missing `redacted=true`
   - command-log corpus records any banned primitive, including direct VCS / forge surfaces
   - rationale id is not in the supplied `--known-rationale` set
-- ci_workflow: `.github/workflows/oya-foundry-fitness-banned-primitives.yml`
-- branch_protection_context: `oya-foundry-fitness-banned-primitives`
-- quality_lane: `registry/quality/lanes.yaml::oya-foundry-fitness-banned-primitives`
+- ci_workflow: `.github/workflows/oya-governance-banned-primitives.yml`
+- branch_protection_context: `oya-governance-banned-primitives`
+- quality_lane: `registry/quality/lanes.yaml::oya-governance-banned-primitives`
 - runtime_budget: 500 ms local detector target; CI budget 20 minutes including Rust toolchain and cargo cache
 - severity: BLOCKER

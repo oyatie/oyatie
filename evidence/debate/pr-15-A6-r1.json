@@ -12,7 +12,7 @@
         "title": "Referenced schema file does not exist in repo",
         "evidence": "capability-record-template-v2.yaml line 1 and 6 cite `registry/quality/capability-record.schema.json`; capability-record-template.yaml line 2 cites same path. `find registry/quality -name capability-record.schema.json` returns zero hits (only `lanes.yaml` and `lanes/` exist under registry/quality/).",
         "confidence": "HIGH",
-        "impact": "CI gate `capability-schema-validator` and `oya-foundry-fitness-capability-publish` lane reference a non-existent schema. Any caller copying these templates and attempting validation will fail. PR claims templates were 'centralized under registry' but the schema they validate against is missing.",
+        "impact": "CI gate `capability-schema-validator` and `oya-governance-capability-publish` lane reference a non-existent schema. Any caller copying these templates and attempting validation will fail. PR claims templates were 'centralized under registry' but the schema they validate against is missing.",
         "fix": "Add `registry/quality/capability-record.schema.json` with `$schema`, `$id`, `_meta` and closed-enum coverage for autonomy tier (T1..T4), status (proposed|preview|stable|deprecated), cost_class (low|med|high), slsa_provenance_level (1|2|3). Or update templates to reference the actually-present schema path."
       }
     ],

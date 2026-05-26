@@ -24,7 +24,7 @@ artifacts_observed=0 (no crates yet declare package.metadata.oyatie.lifecycle_st
 violations=0
 ```
 
-Fresh kernel; awaits the backfill pass that adds the metadata block to each crate's Cargo.toml. Orphan detection already covered by `oya-foundry-fitness-archive-orphan-kernel`; this lane is the canonical state-machine record.
+Fresh kernel; awaits the backfill pass that adds the metadata block to each crate's Cargo.toml. Orphan detection already covered by `oya-governance-archive-orphan-kernel`; this lane is the canonical state-machine record.
 
 ## Done-criteria (Wave A)
 - `cargo run -q -p oya-governance-crate-status-lifecycle-app -- --warn-only` returns 0 violations (vacuous baseline; population grows via backfill).

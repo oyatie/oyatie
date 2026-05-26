@@ -25,7 +25,7 @@
     {"id": "D-03", "decision": "Lane promotion: drift → candidate → ≥3 prevented incidents → BLOCKER", "ref": "$ref:specs/agent-durable-goal.json#autonomous_foundry.lane_promotion_protocol"},
     {"id": "D-04", "decision": "Tiered review T0-T3 by deterministic blast_radius_score; supersedes always-20-facet multispectrum", "ref": "$ref:specs/agent-durable-goal.json#review_tiering"},
     {"id": "D-05", "decision": "Score-cards are deterministic (jq/regex/cargo); LLM judgment FORBIDDEN in pass/fail; LLM only triages WHY a check failed", "ref": "$ref:specs/agent-durable-goal.json#score_cards"},
-    {"id": "D-06", "decision": "Source-driven-development enforced via oya-foundry-fitness-source-citation BLOCKER lane on public API touches", "ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"},
+    {"id": "D-06", "decision": "Source-driven-development enforced via oya-governance-source-citation BLOCKER lane on public API touches", "ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"},
     {"id": "D-07", "decision": "Doubt-driven-development: fresh_context_required=true for T1+ PRs", "ref": "$ref:specs/agent-durable-goal.json#doubt_driven_contract"},
     {"id": "D-08", "decision": "OP-11 no-stubs/no-defer/100-production-quality — drift is in-PR scope; FixupTasks valid ONLY for upstream-vendor / out-of-charter / multi-week migrations", "ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-11"},
     {"id": "D-09", "decision": "Ontology + Knowledge Graph merged into ONE product PRD (user pick 2026-05-16)", "ref": "$ref:specs/products/ontology.json"},
@@ -69,7 +69,7 @@
     {"opportunity": "DOC-CATALOG row generation", "current": "hand-edited markdown table per PR", "automate_to": "`oya doc catalog regen` — generates DOC-CATALOG.md from specs/ + docs/ + registry/ inventory; matches the pattern of oya doc adr-index --write"},
     {"opportunity": "Root-hub-pointers entry generation", "current": "hand-edited JSON additions per new spec", "automate_to": "Same — generate entry_points from specs/* + docs/* + registry/* with pointer rules"},
     {"opportunity": "Repeat-mistake detection at push time", "current": "manual code review", "automate_to": "F-PIPELINE-FOUNDRY-HARNESS — pre-push hook scans loop-recovery-patterns + blocks known anti-patterns"},
-    {"opportunity": "PRD-template-section-compliance check", "current": "manual review during PR", "automate_to": "Lane `oya-foundry-fitness-prd-template-conformance` validates every PRD against template required sections + AC-IDs with test_id back-link + verification_commands present"},
+    {"opportunity": "PRD-template-section-compliance check", "current": "manual review during PR", "automate_to": "Lane `oya-governance-prd-template-conformance` validates every PRD against template required sections + AC-IDs with test_id back-link + verification_commands present"},
     {"opportunity": "FixupTask filing on finding", "current": "agent hand-writes jq-emit line to registry/fixuptasks.jsonl", "automate_to": "`oya fixup file --id <F-id> --title ... --severity ... --source-change-id ...` CLI subcommand"}
   ],
   "load_bearing_files_to_read_first": [

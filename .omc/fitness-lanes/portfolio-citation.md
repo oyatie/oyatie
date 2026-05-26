@@ -3,14 +3,14 @@
 - purpose: Verify bidirectional cross-citations between `bominal/` and `oyatie/` PRDs.
 - enforces: Directive A1 (MASTERPLAN) — bidirectional bominal<->oyatie PRD cite plus P3.5 Foundry corpus cross-cite.
 - kernel_crate: `oya-governance-portfolio-citation-kernel` — `CitationBlock { target_path, role, anchor }`, verdicts `PortfolioCitationVerdict { oyatie_cites_bominal, bominal_cites_oyatie, citations_checked }` and `FoundryCorpusCitationVerdict { required_sources_present, required_sources_total, missing_sources }`.
-- runner_path: `tools/oya-foundry-fitness-portfolio-citation`
+- runner_path: `tools/oya-governance-portfolio-citation`
 - inputs: `../bominal/docs/consolidated/PRD.md` (or `BOMINAL_PRD_PATH` / `--bominal-prd`), `docs/PRD.md` (or `OYATIE_PRD_PATH` / `--oyatie-prd`), and `docs/products/foundry/PRD.md` (or `FOUNDRY_PRD_PATH` / `--foundry-prd`).
 - failure_modes:
   - oyatie PRD references a bominal PRD that does not reciprocate
   - bominal PRD missing oyatie back-cite
   - cited PRD path unresolved
   - Foundry PRD missing one of the KEEP-classified Bominal foundry corpus source citations
-- ci_invocation: `cargo run -p oya-foundry-fitness-portfolio-citation`
+- ci_invocation: `cargo run -p oya-governance-portfolio-citation`
 - runtime_budget: 800 ms
 - severity: HIGH
 - kernel_sketch:

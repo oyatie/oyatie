@@ -372,14 +372,14 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "ops-compliance + axis-foundry",
-      "purpose_short": "Canonical EvidenceBundle schema. Lifts Phase-00 evidence shape. Enforced via oya-foundry-fitness-audit-emission.",
+      "purpose_short": "Canonical EvidenceBundle schema. Lifts Phase-00 evidence shape. Enforced via oya-governance-audit-emission.",
       "artifact_profile": "template",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-foundry-fitness-audit-emission"
+          "lane_id": "oya-governance-audit-emission"
         },
         "verification": {
-          "checker_crate": "crates/oya-foundry-fitness-audit-emission (planned)",
+          "checker_crate": "crates/oya-governance-audit-emission (planned)",
           "command": "oya gate validate evidence-bundle <path>"
         },
         "validation": {
@@ -389,7 +389,7 @@
           "generator": "audit-chain emitter (M01/M02)"
         },
         "selfheal": {
-          "healer": "crates/oya-foundry-fitness-audit-emission::heal"
+          "healer": "crates/oya-governance-audit-emission::heal"
         },
         "telemetry": {
           "metrics": [
@@ -2074,7 +2074,7 @@
       "artifact_profile": "schema",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-foundry-fitness-loop-recovery-patterns"
+          "lane_id": "oya-governance-loop-recovery-patterns"
         },
         "verification": {
           "checker_crate": "crates/oya-dev-cli",
@@ -2119,7 +2119,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-foundry-fitness-loop-recovery-patterns"
+          "lane_id": "oya-governance-loop-recovery-patterns"
         },
         "verification": {
           "checker_crate": "crates/oya-dev-cli",
@@ -2164,7 +2164,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-foundry-fitness-loop-recovery-patterns"
+          "lane_id": "oya-governance-loop-recovery-patterns"
         },
         "verification": {
           "checker_crate": "crates/oya-dev-cli",

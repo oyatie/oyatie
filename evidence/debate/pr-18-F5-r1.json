@@ -15,7 +15,7 @@
     "checks_passed": 13,
     "checks_skipped": 1,
     "checks_failed": 0,
-    "notable": ["cargo-nextest", "cargo-clippy", "cargo-fmt", "cargo-check", "oya-vcs-admission", "oya-foundry-fitness-supply-chain"]
+    "notable": ["cargo-nextest", "cargo-clippy", "cargo-fmt", "cargo-check", "oya-vcs-admission", "oya-governance-supply-chain"]
   },
   "verdict": "REQUEST_CHANGES (post-merge)",
   "verdict_summary": "PR shipped a working flatten with renames preserved, but the topology change is incomplete: 285 inbound refs to old path remain, the old specs/cross-cutting/ subtree still exists in HEAD, and ADR-0119 introducing the flat-root policy never references the old path family. Cleanup landed in follow-on commit 743a6fe6 (not PR 18 itself).",
@@ -61,7 +61,7 @@
       "severity": "MEDIUM",
       "confidence": "MEDIUM",
       "title": "Verification claims (2725 tests) match CI nextest green; cohesion / API-semver / supply-chain lanes all green",
-      "evidence": "statusCheckRollup: 13 SUCCESS + 1 SKIPPED (release-artifact-attestation, expected for non-release PR). cargo-nextest, cargo-clippy, cargo-fmt, cargo-check, oya-vcs-admission, oya-foundry-fitness-cohesion all green.",
+      "evidence": "statusCheckRollup: 13 SUCCESS + 1 SKIPPED (release-artifact-attestation, expected for non-release PR). cargo-nextest, cargo-clippy, cargo-fmt, cargo-check, oya-vcs-admission, oya-governance-cohesion all green.",
       "file_refs": [],
       "fix": "None."
     },

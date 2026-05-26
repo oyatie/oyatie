@@ -34,7 +34,7 @@ make_repo "$repo_root/.github/workflows/pr-review.yml" "$good_repo"
 
 stale_workflow="$tmpdir/stale-pr-review.yml"
 cat > "$stale_workflow" <<'YAML'
-name: oya-foundry-fitness-pr-review
+name: oya-governance-pr-review
 on:
   workflow_run:
     workflows:
@@ -77,7 +77,7 @@ cp "$repo_root/.github/workflows/pr-review.yml" "$candidate_worktree_repo/.githu
 
 stale_headsha_workflow="$tmpdir/stale-headsha-pr-review.yml"
 cat > "$stale_headsha_workflow" <<'YAML'
-name: oya-foundry-fitness-pr-review
+name: oya-governance-pr-review
 on:
   workflow_run:
     workflows:

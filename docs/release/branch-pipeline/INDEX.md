@@ -24,7 +24,7 @@ doc_status: published
 | 2 | [`agent-roles-spec.md`](agent-roles-spec.md) | `dev-promoter`, `staging-promoter`, `staging-fixer`, `prod-promoter` + reviewer-agent dispatch table |
 | 3 | [`velocity-without-stability-loss.md`](velocity-without-stability-loss.md) | The trade-off doc + 5-model comparison + metrics |
 | 4 | [`ci-policy-per-branch.md`](ci-policy-per-branch.md) | CI gate matrix per layer; provider-agnostic adapter |
-| 5 | [`foundry-pipeline-mirror.md`](foundry-pipeline-mirror.md) | Capability stages in lockstep + schema extension + diagram |
+| 5 | [`governance-pipeline-mirror.md`](governance-pipeline-mirror.md) | Capability stages in lockstep + schema extension + diagram |
 | 6 | [`branch-protection-rules.md`](branch-protection-rules.md) | Mutator allowlist + per-branch protection YAML + drift detection |
 | 7 | [`rollback-mechanics-per-stage.md`](rollback-mechanics-per-stage.md) | Per-layer rollback procedures + hot-fix path |
 | 8 | [`fitness-lanes-for-branch-pipeline.md`](fitness-lanes-for-branch-pipeline.md) | 6 new lanes + 3 mutator-allowlist lanes + 4 cadence/quality lanes |

@@ -16,11 +16,11 @@ status: documented
 
 ## Expected conflict surfaces (~50+ files)
 
-### Category 1 — `.github/workflows/oya-foundry-fitness-*.yml` (18 files)
+### Category 1 — `.github/workflows/oya-governance-*.yml` (18 files)
 
-Dev has 9+ new workflow files named `oya-foundry-fitness-*`. Our branch retires this naming (handoff #13/#18 — governance µservice is new home).
+Dev has 9+ new workflow files named `oya-governance-*`. Our branch retires this naming (handoff #13/#18 — governance µservice is new home).
 
-**Resolution:** Take dev's version (preserve the workflow infrastructure), then rename the contained step/job/check names from `oya-foundry-fitness-*` → `oya-governance-*` in a follow-on commit. This separates "preserve CI infrastructure" from "complete fitness→governance rename" — both required before PR #143 can pass CI on the new branch protection.
+**Resolution:** Take dev's version (preserve the workflow infrastructure), then rename the contained step/job/check names from `oya-governance-*` → `oya-governance-*` in a follow-on commit. This separates "preserve CI infrastructure" from "complete fitness→governance rename" — both required before PR #143 can pass CI on the new branch protection.
 
 ### Category 2 — `.omc/plans/milestones/M01-M03/**` (~30+ files)
 
@@ -38,7 +38,7 @@ Both branches likely edited CLAUDE.md.
 
 Both branches edit registry/ heavily. Dev added artifact-capabilities + score-cards + KG nodes (PR #136). Our branch added hyperscaler-scorecards/index.json + placeholder-debt registry entries.
 
-**Resolution:** For additive registries (artifact-capabilities, reusable-building-blocks, knowledge-graph-*): JSON-merge by union of entries. For score-cards: rename our `oya-foundry-fitness-*` lane names to `oya-governance-*` to align with handoff #13.
+**Resolution:** For additive registries (artifact-capabilities, reusable-building-blocks, knowledge-graph-*): JSON-merge by union of entries. For score-cards: rename our `oya-governance-*` lane names to `oya-governance-*` to align with handoff #13.
 
 ### Category 5 — `crates/oya-check-*` (already merged)
 

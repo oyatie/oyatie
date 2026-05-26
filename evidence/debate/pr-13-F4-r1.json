@@ -7,12 +7,12 @@
   "review_date": "2026-05-16",
   "lens": "DX, debuggability, runbook clarity, surprise-minimization",
   "verdict": "approve_with_minor_findings",
-  "summary": "Retirement is well-documented for a human reading the docs/INDEX/ADR. The chief ergonomic gap is the runtime path: an oncall who literally runs `cargo run -p oya-foundry-fitness-archive-orphan-app` after this merge receives a generic cargo `package ID specification ... did not match any packages` error with no breadcrumb to ADR-0118.",
+  "summary": "Retirement is well-documented for a human reading the docs/INDEX/ADR. The chief ergonomic gap is the runtime path: an oncall who literally runs `cargo run -p oya-governance-archive-orphan-app` after this merge receives a generic cargo `package ID specification ... did not match any packages` error with no breadcrumb to ADR-0118.",
   "judgments": {
     "oncall_useful_error_pointing_to_adr_0118": {
       "verdict": "fail",
-      "evidence": "PR removes the entire crate + tools dir + workspace member. After merge `cargo run -p oya-foundry-fitness-archive-orphan-app` produces cargo's default 'no matching package' error. No stub Cargo.toml, no tombstone main.rs, no CHANGELOG entry indexed by binary name. The only discoverability path is grepping `archive-orphan` in docs/, which an oncall under pressure may not do.",
-      "suggested_fix": "Either (a) leave a tiny tombstone tools/oya-foundry-fitness-archive-orphan-app/src/main.rs whose only behavior is `eprintln!` pointing to ADR-0118 and exit 2, or (b) add an entry in docs/runbooks/retired-commands.md (create if absent) so `rg archive-orphan-app` lands on a one-screen explanation."
+      "evidence": "PR removes the entire crate + tools dir + workspace member. After merge `cargo run -p oya-governance-archive-orphan-app` produces cargo's default 'no matching package' error. No stub Cargo.toml, no tombstone main.rs, no CHANGELOG entry indexed by binary name. The only discoverability path is grepping `archive-orphan` in docs/, which an oncall under pressure may not do.",
+      "suggested_fix": "Either (a) leave a tiny tombstone tools/oya-governance-archive-orphan-app/src/main.rs whose only behavior is `eprintln!` pointing to ADR-0118 and exit 2, or (b) add an entry in docs/runbooks/retired-commands.md (create if absent) so `rg archive-orphan-app` lands on a one-screen explanation."
     },
     "index_md_retired_status_obvious": {
       "verdict": "pass",

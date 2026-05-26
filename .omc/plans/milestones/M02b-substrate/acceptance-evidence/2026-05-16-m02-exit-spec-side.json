@@ -39,7 +39,7 @@
     },
     "ci_fitness_lanes_yml_flipped_to_blocker": {
       "required": ".github/workflows/ci-fitness-lanes.yml all 14 lanes off --report-only",
-      "result": "file does not exist on dev; replaced by per-lane workflows under .github/workflows/oya-foundry-fitness-*.yml (5 lanes) + .github/workflows/oya-foundry-fitness-changeset-state.yml (M01-P18)",
+      "result": "file does not exist on dev; replaced by per-lane workflows under .github/workflows/oya-governance-*.yml (5 lanes) + .github/workflows/oya-governance-changeset-state.yml (M01-P18)",
       "status": "SUPERSEDED — architecture changed; original criterion no longer maps 1:1 to live workflows"
     },
     "application_b2b_shell_deploys_oci_arm64_stage0": {

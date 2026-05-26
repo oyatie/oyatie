@@ -74,7 +74,7 @@ Every ADR file in `/Users/jasonlee/oyatie/docs/decisions/` was scanned with dete
 
 - **P0** — production-breaking. Two ADRs in `Accepted` status whose normative requirements directly conflict; corpus would deploy a broken substrate if executed verbatim.
 - **P1** — adoption-blocking. Drift that prevents an intern (per the buildability test) from producing a consistent implementation. Examples: 12-layer vs 13-layer; old `byok_enabled` field name vs new `provider_credential_mode`; tooling that has been retired.
-- **P2** — stylistic. Missing CI-lane name, missing naming-justification table, file-naming collision with no behavioral consequence yet, but blocks `oya-foundry-fitness-doc-link-resolves`.
+- **P2** — stylistic. Missing CI-lane name, missing naming-justification table, file-naming collision with no behavioral consequence yet, but blocks `oya-governance-doc-link-resolves`.
 
 ### 1.4 Date envelope of corpus
 
@@ -541,7 +541,7 @@ Per §1.1 signal #2, every primitive enumerates ≥3 failure modes. Stubs <150 l
 
 Per the rigor §2 standard-row: "standards that don't name an enforcement lane" is forbidden. For ADRs: each `Accepted` ADR should name a CI lane.
 
-ADRs that do **not** match the patterns `oya-foundry-fitness-*` / `oya-check-*` / `lean-a*`: **94 ADRs** (per grep output above shows the first ~50; the remainder span ADR-0146 onwards).
+ADRs that do **not** match the patterns `oya-governance-*` / `oya-check-*` / `lean-a*`: **94 ADRs** (per grep output above shows the first ~50; the remainder span ADR-0146 onwards).
 
 Heavily-cited ADRs that lack a CI lane:
 - ADR-0149-idempotency-keys-canonical.md — **P1**
@@ -721,7 +721,7 @@ Severity-ordered punch list. Each item maps 1:1 to a remediation step.
 21. **R-P1-13: Promote ADR-0037 (public API stability tiers) from Proposed to Accepted.** ADR-0258 (Accepted) depends on it; reverse-order acceptance is incoherent.
 22. **R-P1-14: Add `naming_justifications:` block to 214 ADRs missing it.** Most acute for keystone bundle members (ADR-0244, 0248, 0251, 0263, 0297) and canonical-row stubs (0149-0156).
 23. **R-P1-15: Expand 217 stubs to meet the 1500-line floor.** Per documentation-rigor.md §2 ADR-row. Most acute: ADR-0149-0156 cluster (canonical-row primitives at 58-69 lines each — each should grow to ≥1500 with failure-mode tree + capacity math + Cedar permits + DDL + migration + rollback + 6-dimension matrix).
-24. **R-P1-16: Add CI lane name to 94 ADRs missing it.** Each `Accepted` ADR must reference a `oya-foundry-fitness-*` / `oya-check-*` / `lean-a*` lane.
+24. **R-P1-16: Add CI lane name to 94 ADRs missing it.** Each `Accepted` ADR must reference a `oya-governance-*` / `oya-check-*` / `lean-a*` lane.
 25. **R-P1-17: Add failure-mode tree to all ADRs missing it.** Per §1.1 signal #2.
 26. **R-P1-18: Add ≥2 hyperscaler precedent citations to 94 ADRs lacking any.** Per §1.1 signal #1.
 27. **R-P1-19: Remove placeholder markers from 7 ADRs.** ADR-0199, 0303, 0173, 0206, 0213, 0246-policy-engine-substrate-promotion, 0250.
@@ -1233,7 +1233,7 @@ Memories cited in MEMORY.md as still-active (non-retired):
 - `[[model-routing]]`
 - `[[repeat-mistake-prevention]]` (ICM step retired 2026-05-16)
 - `[[deprecate-external-agent-coord-tooling]]` ← canonical retirement memory
-- `[[foundry-pipeline-canonical]]`
+- `[[governance-pipeline-canonical]]`
 - `[[naming-justification]]`
 - `[[milestone-phase-hierarchy]]`
 - `[[glossary-shared-not-platform]]`
@@ -1436,7 +1436,7 @@ Risks the remediation agent should track:
 | Tier-S → Tier-G expansion produces 270,000+ lines of new content | High | High | Batch by domain; use ADR templates; reuse hyperscaler-pattern-attribution.md as citation source |
 | BYOK pass introduces inconsistencies in DDL or Cedar entity schemas | Medium | High | Run schema-diff CI lane before merging each BYOK edit; cross-reference synthesis §4 |
 | Promoting ADR-0042 / 0043 / 0037 to Accepted activates lean-a* lanes that other ADRs haven't yet met | Medium | Medium | Phase promotions per the synthesis doc §6 sequence |
-| Renaming 11 ADRs `oya vcs` → `oya git` breaks search/grep in non-ADR docs | Low | Medium | Run corpus-wide rename; verify with `oya-foundry-fitness-doc-link-resolves` |
+| Renaming 11 ADRs `oya vcs` → `oya git` breaks search/grep in non-ADR docs | Low | Medium | Run corpus-wide rename; verify with `oya-governance-doc-link-resolves` |
 | Moving 8 ADRs to `superseded/` breaks inbound citations | High | Medium | Update every referrer; CI lane catches |
 | 17 ADR-number gaps resolved by tombstoning instead of landing → corpus shrinks | Low | Low | Acceptable; just document in RETIRED.md |
 | Promotion gate §5.10 (A1 naming) requires ADR-0263 layer-enum fix before ADR-0263 itself can promote | Medium | High | Block ADR-0263 promotion until R-P0-07 closes |
@@ -1476,7 +1476,7 @@ This section converts the §8 punch list into per-domain playbooks. Each playboo
 4. Re-run `grep -l "ADR-005[349]\|ADR-0103\|ADR-0059" docs/**/*.md` to find every referrer; update each to either:
    - Cite the successor ADR-0116 / 0145, or
    - Add a parenthetical "(retired — see ADR-0116)" note next to the historical citation.
-5. Verify with `oya-foundry-fitness-doc-link-resolves` lane.
+5. Verify with `oya-governance-doc-link-resolves` lane.
 
 **Expected diff size:** ~50 file edits.
 
@@ -1492,7 +1492,7 @@ This section converts the §8 punch list into per-domain playbooks. Each playboo
    - If discussing both or ambiguous → expand into two paragraphs, one per BYOK family.
 3. For each ADR's §G References, add reciprocal links: ADR-0255 §D-4 + ADR-0251 §D-10.
 4. For ADRs that declare a field in DDL/Cedar/JSON Schema (notably ADR-0244), re-render the schema to declare both fields with comment annotations.
-5. Verify with `oya-foundry-fitness-cross-consistency` lane (§3.2.2 invariant #10).
+5. Verify with `oya-governance-cross-consistency` lane (§3.2.2 invariant #10).
 
 **Expected diff size:** ~60 file edits (21 ADRs × ~3 edits each).
 
@@ -1503,8 +1503,8 @@ This section converts the §8 punch list into per-domain playbooks. Each playboo
 **Steps:**
 1. For each ADR in §3.2 list: add an explicit "Layer enum: per ADR-0105 13-layer canonical set" annotation in §E (Implementation footprint).
 2. For ADR-0263 §D-6: either remove the `tool/mock/fixture/bench` values OR draft an ADR-0105 amendment formalizing them as Tier-2 auxiliary layers. Recommend amendment.
-3. Cross-check every µservice `manifest.json:layer` field against the 13-layer set; any drift triggers `oya-foundry-fitness-microservice-manifest-conformance` BLOCKER.
-4. Verify with `oya-foundry-fitness-cross-consistency` lane (§3.2.2 invariant #7).
+3. Cross-check every µservice `manifest.json:layer` field against the 13-layer set; any drift triggers `oya-governance-microservice-manifest-conformance` BLOCKER.
+4. Verify with `oya-governance-cross-consistency` lane (§3.2.2 invariant #7).
 
 **Expected diff size:** ~15 file edits + 1 ADR-0105 amendment.
 
@@ -1530,7 +1530,7 @@ This section converts the §8 punch list into per-domain playbooks. Each playboo
 1. For each ADR in §3.5 list, identify every occurrence of `oya vcs` or `oya-vcs`.
 2. Replace with `oya git` / `oya-git` per ADR-0223.
 3. Where the ADR's title or filename includes `vcs` (e.g., `ADR-0113-vcs-orchestrator-end-to-end.md`), KEEP the historical filename but annotate the body with "(renamed `oya vcs` → `oya git` per ADR-0223 on 2026-05-18)".
-4. Verify with `oya-foundry-fitness-cross-consistency` lane.
+4. Verify with `oya-governance-cross-consistency` lane.
 
 **Expected diff size:** ~25 file edits.
 
@@ -1542,7 +1542,7 @@ This section converts the §8 punch list into per-domain playbooks. Each playboo
 1. For OpenAPI ADRs (0157, 0166, 0185, 0258): replace `OpenAPI 3.0` / `OpenAPI 3.1` / `openapi: 3.0` / `openapi: 3.1` with `OpenAPI 3.2.0` / `openapi: 3.2.0`.
 2. For AsyncAPI ADRs (0011, 0037): replace `AsyncAPI 2.x` / `AsyncAPI 2.6.0` / `asyncapi: 2` with `AsyncAPI 3.1.0` / `asyncapi: 3.1.0`.
 3. Cross-check `tools/hooks/_canonical-primitives.md` for the canonical version values.
-4. Verify with `oya-foundry-fitness-cross-consistency` lane (§3.2.2 invariant #3).
+4. Verify with `oya-governance-cross-consistency` lane (§3.2.2 invariant #3).
 5. Ripple the version change through every `contracts/*.yaml` in every µservice (out of scope for this audit but should be tracked).
 
 **Expected diff size:** ~10 file edits.
@@ -2022,7 +2022,7 @@ The audit document itself respects the §2 documentation-rigor.md doc-class rigo
 - **frontmatter:** present + complete.
 - **cross-references:** ≥10 inbound/outbound.
 - **forbidden patterns scrubbed:** zero placeholder markers in this audit body.
-- **CI lane named:** `oya-foundry-fitness-doc-rigor` + `oya-foundry-fitness-doc-graph-6hops` + `oya-foundry-fitness-cross-consistency`.
+- **CI lane named:** `oya-governance-doc-rigor` + `oya-governance-doc-graph-6hops` + `oya-governance-cross-consistency`.
 - **status:** Final.
 
 The audit will not itself be edited after 2026-05-21. Subsequent re-audits will live at `docs/architecture/adr-corpus-line-audit-YYYY-MM-DD.md` and cross-reference this one.

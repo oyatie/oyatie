@@ -11,7 +11,7 @@ purpose: |
   banned-primitives lane semantics (catch *undocumented* invocations only).
 lift_target: oyatie/docs/standards/git-workflow.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-banned-primitives
+enforced_by: oya-governance-banned-primitives
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/claude-code-harness.md
@@ -82,7 +82,7 @@ The cutover window is the *only* multi-invocation exemption.
 
 ## 4. Revised lane semantics
 
-Lane: `oya-foundry-fitness-banned-primitives` (revised). It catches
+Lane: `oya-governance-banned-primitives` (revised). It catches
 **undocumented** `git` / `gh` invocations inside agent-instruction
 sections, **not all invocations**.
 
@@ -108,7 +108,7 @@ migration-candidate row in
 
 The owning team (default: `axis-foundry`) opens an issue to grow the
 sanctioned-primitive surface. The lane
-`oya-foundry-fitness-direct-tool-rationale` queries icm and flags
+`oya-governance-direct-tool-rationale` queries icm and flags
 patterns that exceed the threshold.
 
 ## 6. Pragmatic gh patterns

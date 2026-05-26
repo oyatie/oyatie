@@ -9,13 +9,13 @@
       "cargo-nextest",
       "oya-vcs-admission",
       "oya-vcs-provider-execution",
-      "oya-foundry-fitness-supply-chain",
-      "oya-foundry-fitness-cohesion",
-      "oya-foundry-fitness-api-semver",
-      "oya-foundry-fitness-honest-claims",
-      "oya-foundry-fitness-aspirational-enforcement",
-      "oya-foundry-fitness-banned-primitives",
-      "oya-foundry-fitness-protection-context-match",
+      "oya-governance-supply-chain",
+      "oya-governance-cohesion",
+      "oya-governance-api-semver",
+      "oya-governance-honest-claims",
+      "oya-governance-aspirational-enforcement",
+      "oya-governance-banned-primitives",
+      "oya-governance-protection-context-match",
       "oya-governance-dependency-seam",
       "oya-pr-review"
     ],
@@ -30,19 +30,19 @@
         "app": "github-actions",
         "conclusion": "failure",
         "details_url": "https://github.com/jason931225/oyatie/actions/runs/26085809644/job/76698508028",
-        "name": "oya-foundry-fitness-protection-context-match",
+        "name": "oya-governance-protection-context-match",
         "status": "completed"
       }
     ],
     "canonical_missing_from_pr_head_checks": [
       "oya-pr-review"
     ],
-    "current_blocking_check": "oya-foundry-fitness-protection-context-match",
+    "current_blocking_check": "oya-governance-protection-context-match",
     "failed_checks": [
-      "oya-foundry-fitness-protection-context-match"
+      "oya-governance-protection-context-match"
     ],
     "skipped_checks": [
-      "oya-foundry-fitness-release-artifact-attestation"
+      "oya-governance-release-artifact-attestation"
     ],
     "source_commands": [
       "gh pr checks 148 --json name,state,startedAt,completedAt,workflow,link,bucket,description,event",
@@ -54,18 +54,18 @@
       "cargo-clippy",
       "cargo-fmt",
       "cargo-nextest",
-      "oya-foundry-fitness-api-semver",
-      "oya-foundry-fitness-aspirational-enforcement",
-      "oya-foundry-fitness-banned-primitives",
-      "oya-foundry-fitness-changeset-state-enum-closed",
-      "oya-foundry-fitness-changeset-state-monotonicity",
-      "oya-foundry-fitness-cohesion",
-      "oya-foundry-fitness-evidence-secret-scan",
-      "oya-foundry-fitness-honest-claims",
-      "oya-foundry-fitness-master-plan-completion",
-      "oya-foundry-fitness-sequential-pr-merge-conflicts",
-      "oya-foundry-fitness-supply-chain",
-      "oya-foundry-fitness-supply-chain-adr0039",
+      "oya-governance-api-semver",
+      "oya-governance-aspirational-enforcement",
+      "oya-governance-banned-primitives",
+      "oya-governance-changeset-state-enum-closed",
+      "oya-governance-changeset-state-monotonicity",
+      "oya-governance-cohesion",
+      "oya-governance-evidence-secret-scan",
+      "oya-governance-honest-claims",
+      "oya-governance-master-plan-completion",
+      "oya-governance-sequential-pr-merge-conflicts",
+      "oya-governance-supply-chain",
+      "oya-governance-supply-chain-adr0039",
       "oya-git-cutover-inventory",
       "oya-governance-adr-orphan-citation",
       "oya-governance-buildability-line-count",
@@ -80,9 +80,9 @@
   "live_dev_branch_protection": {
     "extra_in_live": [],
     "missing_from_live": [
-      "oya-foundry-fitness-aspirational-enforcement",
-      "oya-foundry-fitness-banned-primitives",
-      "oya-foundry-fitness-honest-claims",
+      "oya-governance-aspirational-enforcement",
+      "oya-governance-banned-primitives",
+      "oya-governance-honest-claims",
       "oya-governance-dependency-seam",
       "oya-pr-review"
     ],
@@ -94,10 +94,10 @@
       "cargo-nextest",
       "oya-vcs-admission",
       "oya-vcs-provider-execution",
-      "oya-foundry-fitness-supply-chain",
-      "oya-foundry-fitness-cohesion",
-      "oya-foundry-fitness-api-semver",
-      "oya-foundry-fitness-protection-context-match"
+      "oya-governance-supply-chain",
+      "oya-governance-cohesion",
+      "oya-governance-api-semver",
+      "oya-governance-protection-context-match"
     ],
     "source_command": "gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks",
     "status": "drift_detected",
@@ -109,13 +109,13 @@
       "conclusion": "success",
       "createdAt": "2026-05-19T08:35:03Z",
       "databaseId": 26085923829,
-      "displayTitle": "oya-foundry-fitness-pr-review",
+      "displayTitle": "oya-governance-pr-review",
       "event": "workflow_run",
       "headSha": "4957808d48ead7906f557b43582459458b0b8e4b",
       "status": "completed",
       "updatedAt": "2026-05-19T08:35:31Z",
       "url": "https://github.com/jason931225/oyatie/actions/runs/26085923829",
-      "workflowName": "oya-foundry-fitness-pr-review"
+      "workflowName": "oya-governance-pr-review"
     },
     "observed_behavior": "workflow_run job succeeds on default-branch workflow SHA, but no oya-pr-review check-run is present on PR #148 head SHA",
     "present_on_pr_head": false,
@@ -129,7 +129,7 @@
     "Do not weaken canonical branch-protection policy to match live drift.",
     "Fix or promote the oya-pr-review PR-head check publisher before making oya-pr-review live-required.",
     "After publisher is verified on a hosted PR head SHA, run scripts/branch-protection-apply.sh --apply --repo jason931225/oyatie --branch dev with repo-admin credentials, then rerun the protection-context-match workflow.",
-    "Keep PR #148 blocked until oya-foundry-fitness-protection-context-match passes against live branch protection."
+    "Keep PR #148 blocked until oya-governance-protection-context-match passes against live branch protection."
   ],
   "repo": "jason931225/oyatie",
   "schema_version": "fd001-ci-governance-audit/v1",
@@ -175,12 +175,12 @@
     {
       "command": "scripts/branch-protection-apply.sh --check --repo jason931225/oyatie --branch dev",
       "status": "expected_fail",
-      "summary": "canonical/live drift detected; missing from live: oya-foundry-fitness-aspirational-enforcement, oya-foundry-fitness-banned-primitives, oya-foundry-fitness-honest-claims, oya-governance-dependency-seam, oya-pr-review"
+      "summary": "canonical/live drift detected; missing from live: oya-governance-aspirational-enforcement, oya-governance-banned-primitives, oya-governance-honest-claims, oya-governance-dependency-seam, oya-pr-review"
     },
     {
       "command": "gh pr checks 148 --json name,state,startedAt,completedAt,workflow,link,bucket,description,event",
       "status": "pass",
-      "summary": "hosted PR checks collected: total=26, failures=['oya-foundry-fitness-protection-context-match']"
+      "summary": "hosted PR checks collected: total=26, failures=['oya-governance-protection-context-match']"
     },
     {
       "command": "gh api repos/jason931225/oyatie/commits/dec4f4d34fa6f4f309fdfcd76a3b27f955f6ae29/check-runs?filter=all",

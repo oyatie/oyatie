@@ -31,7 +31,7 @@ The cleanup converts the 127-ADR corpus to a smaller, cleaner New ADR Set that r
 2. **Where a specific legacy ADR is cited and remains authoritative**, append `(legacy; subject to consolidation)`.
 3. **Where a specific legacy ADR is cited and is superseded by the 2026-05-09 reframing**, append `(legacy; SUPERSEDED by drafted ADR-0050-<topic>)`.
 4. **Drafted new ADRs** use the placeholder number `ADR-0050` until `crew-adr-promotion` assigns a final number; the slug names them.
-5. **Doc-catalog validator** `oya-foundry-fitness-adr-citation` warns on bare ADR-#### refs without a status annotation.
+5. **Doc-catalog validator** `oya-governance-adr-citation` warns on bare ADR-#### refs without a status annotation.
 
 ## 3. The new ADR set (planned consolidation)
 
@@ -138,4 +138,4 @@ For each consolidation:
 
 ---
 
-> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.
+> **§Note (2026-05-21 transition):** References to `oya-governance-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

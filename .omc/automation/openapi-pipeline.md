@@ -10,7 +10,7 @@ purpose: |
   schema bindings; treat OpenAPI 3.1 YAML as the single source of truth for every
   HTTP-shaped Oyatie API surface.
 lift_target: oyatie/docs/automation/openapi-pipeline.md
-enforced_by: oya-foundry-fitness-openapi-publish
+enforced_by: oya-governance-openapi-publish
 extends_crates:
   - oya-foundry-openapi-kernel
   - oya-intelligence-mdbook-kernel
@@ -50,7 +50,7 @@ Treat every `contracts/openapi/*.yaml` as the sole source of truth for the corre
 | Per-PR touching `crates/*-api/**` | Bindings drift check (handler signature must match generated). |
 | Nightly | Full regeneration; full cross-validation across surfaces; orphan-surface detection. |
 
-## 5. Validation gates (`oya-foundry-fitness-openapi-publish`)
+## 5. Validation gates (`oya-governance-openapi-publish`)
 
 1. **3.1-only.** Any spec declaring `openapi: 3.0.x` fails immediately (BLOCKER).
 2. **Runtime ↔ schema parity.** For every operation in the spec, the generated runtime route exists and the handler signature accepts the generated schema type (BLOCKER).

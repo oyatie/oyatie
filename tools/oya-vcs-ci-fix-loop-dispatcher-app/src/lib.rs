@@ -14,7 +14,7 @@
 //! ## Two entry points, one dispatch surface
 //!
 //! - **CI-source.** `.github/workflows/ci-failure-fix-loop.yml` fires on
-//!   `workflow_run: {workflows: [pr-tests, oya-foundry-fitness-supply-chain],
+//!   `workflow_run: {workflows: [pr-tests, oya-governance-supply-chain],
 //!   types: [completed], conclusion: failure}`. The workflow invokes this
 //!   binary with `--source ci-failure --pr <N> --workflow-run-id <ID>`.
 //!

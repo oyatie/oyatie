@@ -4,8 +4,8 @@
     "docs/AGENT-INSTRUCTION-SOURCES.md",
     "crates/oya-governance-banned-primitives-kernel/Cargo.toml",
     "crates/oya-governance-banned-primitives-kernel/src/lib.rs",
-    "tools/oya-foundry-fitness-banned-primitives/Cargo.toml",
-    "tools/oya-foundry-fitness-banned-primitives/src/main.rs",
+    "tools/oya-governance-banned-primitives/Cargo.toml",
+    "tools/oya-governance-banned-primitives/src/main.rs",
     "/templates/checklists/agent-completion-checklist.md",
     "docs/checklists/agent-completion-checklist.md",
     "/templates/pull-request-template.md",
@@ -50,7 +50,7 @@
   "delivered_behavior": [
     "docs/AGENT-INSTRUCTION-SOURCES.md enumerates 25 repo-local files with exact agent-instructions fences and line numbers.",
     "New oya-governance-banned-primitives-kernel exposes check_documented_genuine_need and validates required root fences, hard-banned primitives, undocumented direct VCS/forge uses, and unknown ICM rationale IDs.",
-    "New oya-foundry-fitness-banned-primitives runner scans exact fence marker lines only, avoiding inline-marker false positives, and defaults to AGENTS.md, CLAUDE.md, docs, and .omc.",
+    "New oya-governance-banned-primitives runner scans exact fence marker lines only, avoiding inline-marker false positives, and defaults to AGENTS.md, CLAUDE.md, docs, and .omc.",
     "Fenced template/checklist content no longer contains direct VCS/forge tokens such as git-sha or direct git/gh prose inside agent-instruction fences.",
     "Runner smoke reports sources_checked=25 fences_checked=25 usages_checked=0 documented_exceptions=0, activating the P5 audit surface.",
     "Process-kill instructions such as kill -9 with pgrep claude are now modeled as hard-banned ProcessKill usages and fail even with an ICM rationale."
@@ -73,7 +73,7 @@
   "summary": "Banned-primitives lane was activated for exact agent-instruction fences, with a repo-local source inventory and std-only kernel/runner that rejects hard-banned primitives and undocumented direct VCS/forge usage.",
   "validation": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-governance-banned-primitives-kernel/src/lib.rs tools/oya-foundry-fitness-banned-primitives/src/main.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-governance-banned-primitives-kernel/src/lib.rs tools/oya-governance-banned-primitives/src/main.rs",
       "status": "passed"
     },
     {
@@ -82,12 +82,12 @@
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-banned-primitives/src/main.rs --extern oya_governance_banned_primitives_kernel=/tmp/oyatie-ip007-verification/liboya_governance_banned_primitives_kernel.rlib",
+      "command": "rustc --edition 2021 -D warnings --test tools/oya-governance-banned-primitives/src/main.rs --extern oya_governance_banned_primitives_kernel=/tmp/oyatie-ip007-verification/liboya_governance_banned_primitives_kernel.rlib",
       "evidence": "5 tests passed; 0 failed",
       "status": "passed"
     },
     {
-      "command": "/tmp/oyatie-ip007-verification/oya-foundry-fitness-banned-primitives",
+      "command": "/tmp/oyatie-ip007-verification/oya-governance-banned-primitives",
       "evidence": "banned-primitives ok: sources_checked=25 fences_checked=25 usages_checked=0 documented_exceptions=0",
       "status": "passed"
     },
@@ -109,13 +109,13 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-banned-primitives",
+      "command": "cargo run -p oya-governance-banned-primitives",
       "exit_code": 101,
       "status": "blocked"
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- crates/oya-governance-banned-primitives-kernel tools/oya-foundry-fitness-banned-primitives docs/AGENT-INSTRUCTION-SOURCES.md",
+      "command": "cargo run -p oya-governance-cohesion -- crates/oya-governance-banned-primitives-kernel tools/oya-governance-banned-primitives docs/AGENT-INSTRUCTION-SOURCES.md",
       "exit_code": 101,
       "status": "blocked"
     },

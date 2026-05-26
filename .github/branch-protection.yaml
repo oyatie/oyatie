@@ -49,12 +49,12 @@ branches:
       - cargo-nextest
       - oya-vcs-admission
       - oya-vcs-provider-execution
-      - oya-foundry-fitness-supply-chain
-      - oya-foundry-fitness-cohesion
-      - oya-foundry-fitness-api-semver
-      - oya-foundry-fitness-honest-claims
-      - oya-foundry-fitness-aspirational-enforcement
-      - oya-foundry-fitness-banned-primitives
+      - oya-governance-supply-chain
+      - oya-governance-cohesion
+      - oya-governance-api-semver
+      - oya-governance-honest-claims
+      - oya-governance-aspirational-enforcement
+      - oya-governance-banned-primitives
       - oya-governance-protection-context-match
       - oya-governance-dependency-seam
       - oya-pr-review

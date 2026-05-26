@@ -159,7 +159,7 @@
       "summary": "65 tests passed across M01 G1/G2 packages."
     },
     {
-      "command": "cargo run --quiet -p oya-foundry-fitness-banned-primitives && cargo run --quiet -p oya-foundry-fitness-archive-orphan && cargo run --quiet -p oya-foundry-fitness-authoritative-tracked",
+      "command": "cargo run --quiet -p oya-governance-banned-primitives && cargo run --quiet -p oya-governance-archive-orphan && cargo run --quiet -p oya-governance-authoritative-tracked",
       "status": "pass",
       "summary": "P5+ agentic-pipeline lanes pass."
     },

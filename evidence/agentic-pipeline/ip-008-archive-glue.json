@@ -1,10 +1,10 @@
 {
   "changed_files": [
     "Cargo.toml",
-    "crates/oya-foundry-fitness-archive-orphan-kernel/Cargo.toml",
-    "crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs",
-    "tools/oya-foundry-fitness-archive-orphan/Cargo.toml",
-    "tools/oya-foundry-fitness-archive-orphan/src/main.rs",
+    "crates/oya-governance-archive-orphan-kernel/Cargo.toml",
+    "crates/oya-governance-archive-orphan-kernel/src/lib.rs",
+    "tools/oya-governance-archive-orphan/Cargo.toml",
+    "tools/oya-governance-archive-orphan/src/main.rs",
     ".omc/fitness-lanes/archive-orphan.md",
     "docs/fitness-lanes/archive-orphan.md",
     "docs/decisions/ADR-0052-inventory-grit-cutover.md",
@@ -39,7 +39,7 @@
     "direct_git_or_gh_used_by_agent": false,
     "grit_claim_attempt": [
       "bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/::ArchiveDir",
-      "crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs::check"
+      "crates/oya-governance-archive-orphan-kernel/src/lib.rs::check"
     ],
     "grit_claim_result": "blocked by FOREIGN KEY constraint failed for new/cross-repo pseudo-symbols; no active grit locks.",
     "grit_done_result": "Agent codex-autopilot-p01-ip008 had no active locks; grit status no active locks.",
@@ -112,22 +112,22 @@
   "summary": "IP-008 is retired: the one-time archive-orphan lane and pre-grit archive payload have been removed after ADR-0116 made M01-P18 the canonical VCS substrate.",
   "validation": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs tools/oya-foundry-fitness-archive-orphan/src/main.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-governance-archive-orphan-kernel/src/lib.rs tools/oya-governance-archive-orphan/src/main.rs",
       "evidence": "rustfmt check returned 0",
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 --test crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs",
+      "command": "rustc --edition 2021 --test crates/oya-governance-archive-orphan-kernel/src/lib.rs",
       "evidence": "6 tests passed; 0 failed",
       "status": "passed"
     },
     {
-      "command": "rustc --edition 2021 --test tools/oya-foundry-fitness-archive-orphan/src/main.rs --extern ...",
+      "command": "rustc --edition 2021 --test tools/oya-governance-archive-orphan/src/main.rs --extern ...",
       "evidence": "5 tests passed; 0 failed",
       "status": "passed"
     },
     {
-      "command": "standalone oya-foundry-fitness-archive-orphan runner",
+      "command": "standalone oya-governance-archive-orphan runner",
       "evidence": "archive-orphan ok: archives_checked=15 archive_files_present=15 originals_absent=15 inbound_refs_checked=0",
       "status": "passed"
     },
@@ -142,22 +142,22 @@
       "status": "passed"
     },
     {
-      "command": "standalone oya-foundry-fitness-banned-primitives runner",
+      "command": "standalone oya-governance-banned-primitives runner",
       "evidence": "banned-primitives ok: sources_checked=25 fences_checked=25 usages_checked=0 documented_exceptions=0",
       "status": "passed"
     },
     {
-      "command": "cargo test -p oya-foundry-fitness-archive-orphan-kernel --all-features",
+      "command": "cargo test -p oya-governance-archive-orphan-kernel --all-features",
       "evidence": "workspace metadata fails because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml",
       "status": "blocked_pre_existing"
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-archive-orphan",
+      "command": "cargo run -p oya-governance-archive-orphan",
       "evidence": "workspace metadata fails because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml",
       "status": "blocked_pre_existing"
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- crates/oya-foundry-fitness-archive-orphan-kernel tools/oya-foundry-fitness-archive-orphan ...",
+      "command": "cargo run -p oya-governance-cohesion -- crates/oya-governance-archive-orphan-kernel tools/oya-governance-archive-orphan ...",
       "evidence": "workspace metadata fails because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml",
       "status": "blocked_pre_existing"
     },
@@ -172,12 +172,12 @@
       "status": "passed"
     },
     {
-      "command": "standalone oya-foundry-fitness-banned-primitives runner after checklist schema fix",
+      "command": "standalone oya-governance-banned-primitives runner after checklist schema fix",
       "evidence": "banned-primitives ok: sources_checked=25 fences_checked=25 usages_checked=0 documented_exceptions=0",
       "status": "passed"
     },
     {
-      "command": "cargo test -p oya-foundry-fitness-archive-orphan-kernel --all-features after review fixes",
+      "command": "cargo test -p oya-governance-archive-orphan-kernel --all-features after review fixes",
       "evidence": "workspace metadata fails because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml",
       "status": "blocked_pre_existing"
     },
@@ -193,8 +193,8 @@
     "retired_by": "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
     "replacement": "Foundry pipeline (M01-P18) per ADR-0116",
     "removed_workspace_members": [
-      "crates/oya-foundry-fitness-archive-orphan-kernel",
-      "tools/oya-foundry-fitness-archive-orphan-app"
+      "crates/oya-governance-archive-orphan-kernel",
+      "tools/oya-governance-archive-orphan-app"
     ],
     "removed_archive_payload": "bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/",
     "naming_justification": "The retirement field names use explicit removed_* keys so this evidence distinguishes deleted artifacts from still-active lane assets."

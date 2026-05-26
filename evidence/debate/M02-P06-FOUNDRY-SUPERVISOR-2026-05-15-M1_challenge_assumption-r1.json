@@ -165,7 +165,7 @@
     "files_referenced_by_plan_that_DO_NOT_yet_exist": [
       "registry/accounts/  (v4 \u00a7B.10 acknowledges; v5 lane targets this)",
       "templates/foundry-supervisor/  (v5 scaffold)",
-      "tools/oya-foundry-fitness-predictable-naming/  (v4 \u00a7B.1 scaffold)",
+      "tools/oya-governance-predictable-naming/  (v4 \u00a7B.1 scaffold)",
       ".omc/plans/milestones/M02-foundry-preview/phases/P06-foundry-supervisor/  (v4 \u00a7B.10 declared only)"
     ],
     "review_mode": "started THOROUGH, escalated to ADVERSARIAL after first CRITICAL + 3 MAJOR findings (per agent prompt escalation rule)",

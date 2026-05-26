@@ -51,15 +51,15 @@ lints make many AI failure modes uncompilable.
 
 | Mechanism | Mode(s) stopped | Lane |
 |---|---|---|
-| `#![forbid(unsafe_code)]` per non-FFI crate | AIS-074 + unsafe-class CVEs ([CVE-2025-68260](https://www.penligent.ai/hackinglabs/rusts-first-breach-cve-2025-68260-marks-the-first-rust-vulnerability-in-the-linux-kernel/)) | `oya-foundry-fitness-unsafe-policy` (new) |
-| `clippy::pedantic` + workspace `[lints]` | AIS-010..013, AIS-050, AIS-072, AIS-080 | `oya-foundry-fitness-no-unwrap` (new) |
-| `cargo-deny` (licenses + sources + bans) | AIS-073, AIS-001 (partial), AIS-122 | existing `oya-foundry-fitness-license` |
-| `cargo-vet` audit chain | AIS-001, AIS-074 | `oya-foundry-fitness-dep-allowlist` (new) |
+| `#![forbid(unsafe_code)]` per non-FFI crate | AIS-074 + unsafe-class CVEs ([CVE-2025-68260](https://www.penligent.ai/hackinglabs/rusts-first-breach-cve-2025-68260-marks-the-first-rust-vulnerability-in-the-linux-kernel/)) | `oya-governance-unsafe-policy` (new) |
+| `clippy::pedantic` + workspace `[lints]` | AIS-010..013, AIS-050, AIS-072, AIS-080 | `oya-governance-no-unwrap` (new) |
+| `cargo-deny` (licenses + sources + bans) | AIS-073, AIS-001 (partial), AIS-122 | existing `oya-governance-license` |
+| `cargo-vet` audit chain | AIS-001, AIS-074 | `oya-governance-dep-allowlist` (new) |
 | `cargo-audit` (RustSec) | AIS-122 | existing |
-| `cargo-semver-checks` | D01, D04 | `oya-foundry-fitness-semver` (new) |
-| `cargo-hakari` (workspace-hack dedup) | AIS-120, AIS-121 | `oya-foundry-fitness-version-cohesion` (new) |
-| `cargo-machete` + `cargo-udeps` | AIS-021 | `oya-foundry-fitness-unused-deps` (new) |
-| Kani (model-check FFI / unsafe) | AIS-074 + memory-safety CVEs | `oya-foundry-fitness-kani` (new, nightly) |
+| `cargo-semver-checks` | D01, D04 | `oya-governance-semver` (new) |
+| `cargo-hakari` (workspace-hack dedup) | AIS-120, AIS-121 | `oya-governance-version-cohesion` (new) |
+| `cargo-machete` + `cargo-udeps` | AIS-021 | `oya-governance-unused-deps` (new) |
+| Kani (model-check FFI / unsafe) | AIS-074 + memory-safety CVEs | `oya-governance-kani` (new, nightly) |
 | MIRI on unsafe-tagged tests | same | same lane |
 
 ## Layer 1 — Detect (pre-commit)
@@ -70,14 +70,14 @@ locally and in `pre-commit.ci`.
 | Hook | Mode(s) stopped | Lane |
 |---|---|---|
 | `trailing-whitespace` / `end-of-file-fixer` | hygiene | existing |
-| `pre-commit-data-class.sh` (struct `data_class:` annotation) | AIS-150 | existing `oya-foundry-fitness-data-class` |
+| `pre-commit-data-class.sh` (struct `data_class:` annotation) | AIS-150 | existing `oya-governance-data-class` |
 | `banned-tokens` (`TODO`, `FIXME`, `unimplemented!`) | AIS-021 (final-shape) | existing |
 | `banned-primitives` (no `git`/`gh` undocumented) | per MASTERPLAN D12 | existing |
 | `glossary-vocabulary` + `brand-residue` | MFL-0002/0003/0004 | existing |
 | `forward-reference` (no link to unmerged file) | doc-orphan | existing |
 | `mistakes-ledger-cite` (every Sev-1/2 fix cites MFL row) | postmortem chain | existing |
-| `gitleaks` (secret scan) | AIS-071 | `oya-foundry-fitness-secret-scan` (new) |
-| `unicode-discipline` (no BiDi controls) | AIS-074 | `oya-foundry-fitness-unicode-discipline` (new) |
+| `gitleaks` (secret scan) | AIS-071 | `oya-governance-secret-scan` (new) |
+| `unicode-discipline` (no BiDi controls) | AIS-074 | `oya-governance-unicode-discipline` (new) |
 
 ## Layer 2 — Block (PR-time CI)
 
@@ -107,7 +107,7 @@ Mandatory blocking checks (any red = no merge):
 - `cosign sign --keyless` (Fulcio OIDC) + `cosign attest --type slsaprovenance`
 - `kube-linter` + `kubescape scan` (AIS-051)
 - `osv-scanner --recursive .` (cross-ecosystem CVE)
-- All 50+ `oya-foundry-fitness-*` lanes (existing + new)
+- All 50+ `oya-governance-*` lanes (existing + new)
 
 Sources: [Sigstore Cosign](https://docs.sigstore.dev/cosign/verifying/attestation/),
 [OpenSSF — Sigstore at scale](https://openssf.org/blog/2024/02/16/scaling-up-supply-chain-security-implementing-sigstore-for-seamless-container-image-signing/),
@@ -126,7 +126,7 @@ insufficient. Reviewer-agent verdict required per change class.
   dimension, agent verifies via lane evidence.
 - **Done-Definition D1..D18** (existing IP contract): per
   MASTERPLAN §6.
-- **CHANGELOG row** (existing): `oya-foundry-fitness-changelog`.
+- **CHANGELOG row** (existing): `oya-governance-changelog`.
 - **Audit-chain emit** (existing): `EVT-PR-MERGE` row.
 - **Reviewer agent** (new under Directive 9): a separate Claude/Codex/Gemini
   reviewer runs the Code Review checklist; verdict logged in `icm`.
@@ -138,7 +138,7 @@ insufficient. Reviewer-agent verdict required per change class.
 **Purpose**: contain blast radius even if Layer 0-3 leak.
 
 - Distroless `gcr.io/distroless/cc-debian12` or `chainguard/static`
-  (existing `oya-foundry-fitness-image-discipline`).
+  (existing `oya-governance-image-discipline`).
 - Per-process `seccomp` profile (denylist + allowlist).
 - `CAP_DROP=ALL` + selective `CAP_ADD`.
 - Read-only rootfs; `tmpfs` for `/tmp`.
@@ -188,7 +188,7 @@ Source: [Google SRE workbook — error budget policy](https://sre.google/workboo
 - SLO-burn-rate auto-rollback (Argo Rollouts AnalysisRun rules).
 - Feature-flag instant kill-switch (per-flag).
 - Per-cell rollback procedure (runbook resolved by
-  `oya-foundry-fitness-runbook-index-resolves`).
+  `oya-governance-runbook-index-resolves`).
 - Per-tenant rollback (data-plane carve-out).
 - Chaos engineering rehearsal (Chaos Mesh, scheduled drills) —
   rollback evidence per quarter.
@@ -218,7 +218,7 @@ Process (per [Google SRE postmortem culture](https://sre.google/sre-book/postmor
 
 Every catalogued mode is caught at **≥2 layers**. Trace AIS-010
 (`.unwrap()`): L0 clippy `unwrap_used=deny` (compile-fail) → L1
-pre-commit grep → L2 CI lane `oya-foundry-fitness-no-unwrap` → L3 PR
+pre-commit grep → L2 CI lane `oya-governance-no-unwrap` → L3 PR
 template `// SAFETY-EXPECT:` reviewer-agent check → L6 runtime
 `panic_handler` emits `EVT-PANIC` + SLO burn-rate alarm → L7 Argo
 Rollouts auto-rollback when panic-rate > 0.01%/min → L8 MFL row.

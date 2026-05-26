@@ -298,7 +298,7 @@ Round-3 graded Step 1 as **L**. With added rename + adapter-dep-removal + HttpHe
 
 ### Lane naming precedent (unchanged from round 3)
 
-`oya-check-dependency-seam-discipline` (runner; layer=`runtime`). Companion kernel `oya-foundry-fitness-dependency-seam-kernel` (layer=`kernel`; deferred). ADR-0092 codifies split.
+`oya-check-dependency-seam-discipline` (runner; layer=`runtime`). Companion kernel `oya-governance-dependency-seam-kernel` (layer=`kernel`; deferred). ADR-0092 codifies split.
 
 ### Composite scope (revised — adds Concern 1 + Concern 3 sub-checks)
 
@@ -679,7 +679,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`. The round-3 §18
 | `oya-check-replacement-parity` | authored (W1+) | `runtime` | Lane runner. |
 | `oya-runtime-cgroup-runtime` (renamed from `*-domain` if pre-existing) | referenced | `runtime` | cgroup probing. |
 | `oya-dev-cli` | referenced | `app` | Top-level CLI binary. |
-| `oya-foundry-fitness-dependency-seam-kernel` | deferred (post-W0) | `kernel` | Pure policy value-object; reusable. |
+| `oya-governance-dependency-seam-kernel` | deferred (post-W0) | `kernel` | Pure policy value-object; reusable. |
 
 ### §18.B — ADR-0092 (unchanged from round 3)
 
@@ -690,7 +690,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`. The round-3 §18
 - rejects missing (BLOCKER);
 - rejects any value outside `{kernel, runtime, adapter, api, app}` (BLOCKER) — this is the precise gate that would have caught the round-3 `domain` mislabeling;
 - rejects `oya-check-*` with layer ≠ `runtime`;
-- rejects `oya-foundry-fitness-*-kernel` with layer ≠ `kernel`.
+- rejects `oya-governance-*-kernel` with layer ≠ `kernel`.
 
 ### §18.D — Bootstrap reality (round-4)
 

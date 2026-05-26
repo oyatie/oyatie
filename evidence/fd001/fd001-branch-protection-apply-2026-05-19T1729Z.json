@@ -18,12 +18,12 @@
         "cargo-nextest",
         "oya-vcs-admission",
         "oya-vcs-provider-execution",
-        "oya-foundry-fitness-supply-chain",
-        "oya-foundry-fitness-cohesion",
-        "oya-foundry-fitness-api-semver",
-        "oya-foundry-fitness-honest-claims",
-        "oya-foundry-fitness-aspirational-enforcement",
-        "oya-foundry-fitness-banned-primitives",
+        "oya-governance-supply-chain",
+        "oya-governance-cohesion",
+        "oya-governance-api-semver",
+        "oya-governance-honest-claims",
+        "oya-governance-aspirational-enforcement",
+        "oya-governance-banned-primitives",
         "oya-governance-protection-context-match",
         "oya-governance-dependency-seam",
         "oya-pr-review"
@@ -40,12 +40,12 @@
         "cargo-nextest",
         "oya-vcs-admission",
         "oya-vcs-provider-execution",
-        "oya-foundry-fitness-supply-chain",
-        "oya-foundry-fitness-cohesion",
-        "oya-foundry-fitness-api-semver",
-        "oya-foundry-fitness-honest-claims",
-        "oya-foundry-fitness-aspirational-enforcement",
-        "oya-foundry-fitness-banned-primitives",
+        "oya-governance-supply-chain",
+        "oya-governance-cohesion",
+        "oya-governance-api-semver",
+        "oya-governance-honest-claims",
+        "oya-governance-aspirational-enforcement",
+        "oya-governance-banned-primitives",
         "oya-governance-protection-context-match",
         "oya-governance-dependency-seam",
         "oya-pr-review"
@@ -68,7 +68,7 @@
   "pr_148_after_apply": {
     "failed_or_skipped_check_lines": [
       "oya-governance-protection-context-match\tfail\t21s\thttps://github.com/jason931225/oyatie/actions/runs/26090644508/job/76715117729\t",
-      "oya-foundry-fitness-release-artifact-attestation\tskipping\t0\thttps://github.com/jason931225/oyatie/actions/runs/26090644426/job/76715119308\t"
+      "oya-governance-release-artifact-attestation\tskipping\t0\thttps://github.com/jason931225/oyatie/actions/runs/26090644426/job/76715119308\t"
     ],
     "headRefName": "codex/fd001-planning-closure-20260519",
     "headRefOid": "9b212c5673dda9379e5c81808b75636834f8875e",

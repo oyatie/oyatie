@@ -125,8 +125,8 @@ $ cargo nextest run -p oya-intelligence-provider-pool-kernel --all-features     
 $ cargo clippy -p oya-intelligence-provider-pool-kernel --all-features -- -D warnings  # expect: PASS, 0 warnings
 $ cargo-semver-checks check-release -p oya-intelligence-provider-pool-kernel           # expect: PASS (kernel is public API)
 $ cargo deny check                                                                # expect: PASS
-$ oya gate validate oya-foundry-fitness-provider-coupling                         # expect: PASS (no upstream HTTP types here)
-$ oya gate validate oya-foundry-fitness-no-placeholder                            # expect: PASS
+$ oya gate validate oya-governance-provider-coupling                         # expect: PASS (no upstream HTTP types here)
+$ oya gate validate oya-governance-no-placeholder                            # expect: PASS
 $ oya-tooling-agent-read run-evidence "cargo test -p oya-intelligence-provider-pool-kernel -- --nocapture" # expect: 25+ pool-routing property tests green
 ```
 
@@ -146,7 +146,7 @@ Property tests required (proptest):
 - [ ] `icm store -t context-foundry -c "<payload>" -i high` emitted (§Icm-store-payload).
 - [ ] Audit-chain `EVT-PROVIDER-POOL-KERNEL-SHIPPED` emitted; ID pasted in PR `## Evidence`.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
-- [ ] `data_class` annotation present on every public field; lane `oya-foundry-fitness-data-class` PASS.
+- [ ] `data_class` annotation present on every public field; lane `oya-governance-data-class` PASS.
 
 ## Rollback procedure
 
@@ -164,7 +164,7 @@ Property tests required (proptest):
 ```
 icm store \
   -t context-foundry \
-  -c "IP-001-provider-account-pool-kernel merged at <git-sha>; grit symbols released: ProviderAccountPool, pick_account, PoolRoutingStrategy, PoolRoutingDecision, PoolMembershipChange; acceptance lanes green: oya-foundry-fitness-provider-coupling, -no-placeholder, -data-class; next IP: IP-002-anthropic-compat-adapter" \
+  -c "IP-001-provider-account-pool-kernel merged at <git-sha>; grit symbols released: ProviderAccountPool, pick_account, PoolRoutingStrategy, PoolRoutingDecision, PoolMembershipChange; acceptance lanes green: oya-governance-provider-coupling, -no-placeholder, -data-class; next IP: IP-002-anthropic-compat-adapter" \
   -i high \
   -k "M02,P02,IP-001,pool-kernel,ccproxy-parity"
 ```

@@ -13,10 +13,10 @@ purpose: Every artifact Cosign-signed + Rekor-anchored; SBOM per build; SLSA lev
 Per MASTERPLAN §2 Directives 3 (final-shape from day one — supply-chain rigor cannot be retrofitted), 9 (hyperscaler bar), and per ADR-0039.
 
 ## Acceptance
-- `oya-foundry-fitness-supply-chain` lane CI-blocks: any artifact not Cosign-signed + Rekor-anchored.
+- `oya-governance-supply-chain` lane CI-blocks: any artifact not Cosign-signed + Rekor-anchored.
 - SBOM (CycloneDX or SPDX) at `releases/<tag>/sbom.json`.
 - SLSA level ≥ 3 published per release.
-- `oya-foundry-fitness-license-policy` lane CI-blocks AGPL/GPL/SSPL/BUSL/RSAL in product code.
+- `oya-governance-license-policy` lane CI-blocks AGPL/GPL/SSPL/BUSL/RSAL in product code.
 
 ## Implementation Plans
 | IP | Title | Status | File |
@@ -30,7 +30,7 @@ Per MASTERPLAN §2 Directives 3 (final-shape from day one — supply-chain rigor
 4 agents.
 
 ## Symbols-touched
-`crates/oya-foundry-fitness-{supply-chain,license-policy}-kernel`, `.github/workflows/cosign.yml`, `.github/workflows/sbom.yml`, `.github/workflows/slsa.yml`.
+`crates/oya-governance-{supply-chain,license-policy}-kernel`, `.github/workflows/cosign.yml`, `.github/workflows/sbom.yml`, `.github/workflows/slsa.yml`.
 
 ## Agent-handoff
 ```

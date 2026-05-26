@@ -25,8 +25,8 @@
     ".omc/fitness-lanes/portfolio-citation.md",
     "crates/oya-governance-portfolio-citation-kernel/Cargo.toml",
     "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
-    "tools/oya-foundry-fitness-portfolio-citation/Cargo.toml",
-    "tools/oya-foundry-fitness-portfolio-citation/src/main.rs",
+    "tools/oya-governance-portfolio-citation/Cargo.toml",
+    "tools/oya-governance-portfolio-citation/src/main.rs",
     "external:/Users/jasonlee/bominal/docs/consolidated/PRD.md"
   ],
   "delivered_behavior": [
@@ -39,7 +39,7 @@
   ],
   "validation": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-governance-portfolio-citation-kernel/src/lib.rs tools/oya-foundry-fitness-portfolio-citation/src/main.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-governance-portfolio-citation-kernel/src/lib.rs tools/oya-governance-portfolio-citation/src/main.rs",
       "status": "pass"
     },
     {
@@ -48,12 +48,12 @@
       "summary": "3 kernel tests passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings --test tools/oya-foundry-fitness-portfolio-citation/src/main.rs --extern ...",
+      "command": "rustc --edition 2021 -D warnings --test tools/oya-governance-portfolio-citation/src/main.rs --extern ...",
       "status": "pass",
       "summary": "3 runner parser/constant tests passed"
     },
     {
-      "command": "rustc --edition 2021 -D warnings tools/oya-foundry-fitness-portfolio-citation/src/main.rs --extern ...; binary --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md",
+      "command": "rustc --edition 2021 -D warnings tools/oya-governance-portfolio-citation/src/main.rs --extern ...; binary --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md",
       "status": "pass",
       "summary": "portfolio-citation ok: citations_checked=2 oyatie_cites_bominal=true bominal_cites_oyatie=true"
     },
@@ -69,13 +69,13 @@
       "summary": "workspace metadata fails before package test discovery because crates/oya-tenancy-kernel/Cargo.toml is missing"
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-portfolio-citation -- --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md",
+      "command": "cargo run -p oya-governance-portfolio-citation -- --oyatie-prd docs/PRD.md --bominal-prd /Users/jasonlee/bominal/docs/consolidated/PRD.md",
       "status": "blocked-pre-existing",
       "exit_code": 101,
       "summary": "workspace metadata fails before runner execution because crates/oya-tenancy-kernel/Cargo.toml is missing; rustc-built runner smoke passes"
     },
     {
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- crates/oya-governance-portfolio-citation-kernel",
+      "command": "cargo run -p oya-governance-cohesion -- crates/oya-governance-portfolio-citation-kernel",
       "status": "blocked-pre-existing",
       "exit_code": 101,
       "summary": "workspace metadata fails before command resolution because crates/oya-tenancy-kernel/Cargo.toml is missing"
@@ -114,7 +114,7 @@
     ],
     "claims_we_cannot_make_yet": [
       "cargo test -p oya-governance-portfolio-citation-kernel --all-features is green in the full workspace",
-      "cargo run -p oya-foundry-fitness-portfolio-citation is green through Cargo",
+      "cargo run -p oya-governance-portfolio-citation is green through Cargo",
       "scripts/check.sh is green"
     ],
     "evidence_required_to_make_remaining_claims": [

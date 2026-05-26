@@ -14,7 +14,7 @@ purpose: |
   `docs/AGENTS.md` §During-change discipline.
 lift_target: oyatie/docs/standards/error-handling.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-error-boundary
+enforced_by: oya-governance-error-boundary
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/testing.md
@@ -46,7 +46,7 @@ Hyperscaler consensus (AWS, Microsoft, Google) on Rust error handling:
   propagation at the top level. The crate MUST NOT re-export `anyhow::Error`
   from any `pub fn` consumed by another crate.
 
-Lane: `oya-foundry-fitness-error-boundary` refuses library crates that
+Lane: `oya-governance-error-boundary` refuses library crates that
 declare `anyhow` as a non-`dev-dependencies` entry, and refuses binary
 crates that expose `anyhow::Error` in a `pub fn` signature.
 
@@ -104,7 +104,7 @@ propagation. Rules:
 
 ## 4. No `unwrap()` / `expect()` outside tests
 
-Lane `oya-foundry-fitness-no-unwrap-prod` (clippy `unwrap_used = "deny"`)
+Lane `oya-governance-no-unwrap-prod` (clippy `unwrap_used = "deny"`)
 refuses:
 
 - `.unwrap()`
@@ -161,7 +161,7 @@ PR that touches error paths and refuses:
 6. **Error returned but not surfaced to the audit chain** at cross-pillar
    boundaries — see §7.
 
-Lane: `oya-foundry-fitness-silent-failure` (advisory; clippy-driven; full
+Lane: `oya-governance-silent-failure` (advisory; clippy-driven; full
 gate is the reviewer-agent verdict).
 
 ## 7. Audit-chain integration
@@ -176,7 +176,7 @@ cross-axis contract surface) MUST emit an `EVT-ERROR-*` audit event with:
   [`data-class.md`](data-class.md).
 - `tenant_id`, `actor_id`, `trace_id` (W3C trace context).
 
-The lane `oya-foundry-fitness-audit-emission` validates that every
+The lane `oya-governance-audit-emission` validates that every
 cross-pillar error path has an emission point. Source:
 [`observability.md`](observability.md) §3.
 

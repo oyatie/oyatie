@@ -15,7 +15,7 @@ Per MASTERPLAN §2 Directive 10. No "we might need this later" files.
 ## Acceptance
 - Every doc/JSON/README has `purpose:` frontmatter or top-line declaration.
 - Every directory has INDEX.md or README.md declaring purpose.
-- `oya-foundry-fitness-orphan-detection` lane CI-blocks orphan artifacts (no inbound reference + not in known-orphan allowlist).
+- `oya-governance-orphan-detection` lane CI-blocks orphan artifacts (no inbound reference + not in known-orphan allowlist).
 
 ## Implementation Plans
 | IP | Title | Status | File |

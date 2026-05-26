@@ -12,7 +12,7 @@ purpose: |
   and supplies the per-PR / per-release authoring rules.
 lift_target: oyatie/docs/standards/release-management.md
 canonical_authority: docs/CONSTITUTION.md
-enforced_by: oya-foundry-fitness-flag-debt
+enforced_by: oya-governance-flag-debt
 companion_docs:
   - docs/RELEASE-MANAGEMENT.md
   - docs/SLO-CATALOG.md
@@ -40,7 +40,7 @@ and Google / Microsoft consensus:
 - Default branch is `main`. All work happens on **short-lived branches**
   (target ≤ 24 h, MUST NOT exceed 7 days without a re-base or an ADR
   exemption).
-- Lane `oya-foundry-fitness-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
+- Lane `oya-governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
 - Feature flags hide incomplete work behind a runtime gate (§3) so
   partial merges to `main` do not ship to users.
 - Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
@@ -58,7 +58,7 @@ Per Google's [Standard of Code Review](https://google.github.io/eng-practices/re
 - One logical change per PR; related tests included; reviewer can hold it
   in their head.
 - Target median review latency: **< 24 hours**. Surfaced via
-  `oya-foundry-fitness-review-latency` (advisory).
+  `oya-governance-review-latency` (advisory).
 - Refactors and renames are separate PRs from behavior changes.
 - "Code health > correctness alone" — a PR that lands correct behavior but
   worsens the codebase health is REQUEST CHANGES.
@@ -74,7 +74,7 @@ Per Google's [Standard of Code Review](https://google.github.io/eng-practices/re
   - **Created**: ISO date.
   - **Retire-by**: ISO date ≤ 30 days from creation (the **flag-debt SLO**).
   - **Rollout strategy**: percentage / tenant cohort / capability binding.
-- The lane `oya-foundry-fitness-flag-debt` opens a blocking PR check at
+- The lane `oya-governance-flag-debt` opens a blocking PR check at
   retire-by + 1d.
 - Stale flags are an anti-pattern: lifetime > 30 d without renewal
   triggers `EVT-FLAG-OVERDUE` and a team-lead escalation.
@@ -130,7 +130,7 @@ Every schema migration ships:
 4. **Per-tenant**: tenant-scoped batching.
 5. **Per-cell rollback**: cell-by-cell revert procedure.
 
-Lane: `oya-foundry-fitness-schema-migration` (per AGENTS.md D14).
+Lane: `oya-governance-schema-migration` (per AGENTS.md D14).
 
 ## 5. Sigstore-signed releases
 
@@ -150,7 +150,7 @@ Per [`security-review.md`](security-review.md) §4 and
 - Image pin: **never `latest`**; always `sha256:` digest.
 - Trivy scan: ≥ **v0.70.0**; HIGH/CRITICAL CVEs block release.
 
-Lane: `oya-foundry-fitness-release-supply-chain` per DOC-CATALOG.md §4.
+Lane: `oya-governance-release-supply-chain` per DOC-CATALOG.md §4.
 
 ## 6. Error-budget release gate
 

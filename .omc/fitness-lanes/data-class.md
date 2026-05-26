@@ -1,15 +1,15 @@
 # Fitness Lane: data-class
 
 - purpose: Verify every public/struct field in `*-kernel` crates carries a `data_class:` annotation matching the registry.
-- enforces: STANDARD/data-class-tagging; AGENTS.md fitness-lane `oya-foundry-fitness-data-class`.
-- kernel_crate: `oya-foundry-fitness-data-class-kernel` — `FieldAnnotation { crate_id, type_name, field_name, data_class }`, verdict `DataClassFitnessReport { fields_checked, public_fields_checked }`.
-- runner_path: `tools/oya-foundry-fitness-data-class`
+- enforces: STANDARD/data-class-tagging; AGENTS.md fitness-lane `oya-governance-data-class`.
+- kernel_crate: `oya-governance-data-class-kernel` — `FieldAnnotation { crate_id, type_name, field_name, data_class }`, verdict `DataClassFitnessReport { fields_checked, public_fields_checked }`.
+- runner_path: `tools/oya-governance-data-class`
 - inputs: every `*-kernel/src/**/*.rs`, registry `docs/standards/data-class-registry.md`.
 - failure_modes:
   - public field with no `data_class:` comment
   - `data_class:` value not in registry (e.g., `SECRET_TYPO`)
   - mixed casing (`internal_only` vs `INTERNAL_ONLY`)
-- ci_invocation: `cargo run -p oya-foundry-fitness-data-class`
+- ci_invocation: `cargo run -p oya-governance-data-class`
 - runtime_budget: 600 ms
 - severity: BLOCKER
 - kernel_sketch:

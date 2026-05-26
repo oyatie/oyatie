@@ -174,7 +174,7 @@ Count: 289
 - `docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md`
 - `docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md`
 - `docs/decisions/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md`
-- `docs/foundry/foundry-pipeline-substrate-checkpoint-2026-05-20.md`
+- `docs/foundry/governance-pipeline-substrate-checkpoint-2026-05-20.md`
 - `docs/governance/risk-register-2026-05-20.md`
 - `docs/gtm/customer-success-quarterly-business-review-template.md`
 - `docs/gtm/expansion-and-upsell-playbook.md`
@@ -393,7 +393,7 @@ Count: 175
 - `docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md`
 - `docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md`
 - `docs/advanced-cicd/branch-pipeline/fitness-lanes-for-branch-pipeline.md`
-- `docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md`
+- `docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md`
 - `docs/advanced-cicd/branch-pipeline/rollback-mechanics-per-stage.md`
 - `docs/advanced-cicd/branch-pipeline/velocity-without-stability-loss.md`
 - `docs/advanced-cicd/release-versioning/enforcement-lanes.md`
@@ -487,7 +487,7 @@ Count: 175
 - `docs/release/branch-pipeline/branch-protection-rules.md`
 - `docs/release/branch-pipeline/ci-policy-per-branch.md`
 - `docs/release/branch-pipeline/fitness-lanes-for-branch-pipeline.md`
-- `docs/release/branch-pipeline/foundry-pipeline-mirror.md`
+- `docs/release/branch-pipeline/governance-pipeline-mirror.md`
 - `docs/release/branch-pipeline/playbooks-by-axis-stage.md`
 - `docs/release/branch-pipeline/rollback-mechanics-per-stage.md`
 - `docs/release/branch-pipeline/velocity-without-stability-loss.md`

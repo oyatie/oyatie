@@ -12,7 +12,7 @@
 #      (for contributors who haven't yet installed the `oya` binary).
 #
 # This file is the source-of-truth that the
-# `oya-foundry-fitness-pre-push` lane reads as evidence; the lane
+# `oya-governance-pre-push` lane reads as evidence; the lane
 # rejects any hook that stops at plain `oya verify` because plain
 # verify does not prove hosted required-check coverage.
 #

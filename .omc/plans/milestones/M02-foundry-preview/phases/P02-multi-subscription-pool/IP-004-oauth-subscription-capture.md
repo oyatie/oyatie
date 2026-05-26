@@ -112,7 +112,7 @@ Before `grit claim`, the agent **MUST**:
 $ cargo nextest run -p oya-foundry-agent-runtime --test subscription_oauth_capture  # expect: PASS, 0 failures
 $ cargo clippy -p oya-foundry-agent-runtime -- -D warnings                          # expect: PASS, 0 warnings
 $ cargo deny check                                                                  # expect: PASS
-$ oya gate validate oya-foundry-fitness-secret-rotation                             # expect: PASS
+$ oya gate validate oya-governance-secret-rotation                             # expect: PASS
 $ node scripts/hooks/guard-secrets.mjs --scan crates/oya-foundry-agent-runtime      # expect: PASS (no raw token strings)
 $ trufflehog filesystem crates/oya-foundry-agent-runtime --only-verified            # expect: 0 findings
 $ gitleaks detect --source crates/oya-foundry-agent-runtime --no-banner             # expect: 0 leaks

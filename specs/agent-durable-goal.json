@@ -252,7 +252,7 @@
       "name": "plain_primitives_only",
       "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git, gh, cargo, jq, sed only. Foundry pipeline (M01-P18) is the canonical agentic workflow substrate.",
       "supersedes_directives": ["AGENTIC PIPELINE HARDENING RULE 2026-05-12 (grit-only)", "grit-claim-state-on-stop hook"],
-      "references": ["feedback_deprecate_external_agent_coord_tooling", "feedback_foundry_pipeline_canonical"]
+      "references": ["feedback_deprecate_external_agent_coord_tooling", "feedback_governance_pipeline_canonical"]
     },
     {
       "id": "OP-10",
@@ -724,7 +724,7 @@
       "feedback_naming_justification",
       "feedback_doc_coverage_enforced",
       "feedback_canonical_base_localization",
-      "feedback_foundry_pipeline_canonical",
+      "feedback_governance_pipeline_canonical",
       "feedback_workflow_objectgraph_adapter_layer",
       "feedback_bominal_inheritance_precedence",
       "feedback_deprecate_external_agent_coord_tooling",

@@ -7,7 +7,7 @@
   "policy_sources": [
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
-    ".github/workflows/oya-foundry-fitness-protection-context-match.yml",
+    ".github/workflows/oya-governance-protection-context-match.yml",
     "scripts/branch-protection-apply.sh"
   ],
   "canonical_required_contexts": [
@@ -17,13 +17,13 @@
     "cargo-nextest",
     "oya-vcs-admission",
     "oya-vcs-provider-execution",
-    "oya-foundry-fitness-supply-chain",
-    "oya-foundry-fitness-cohesion",
-    "oya-foundry-fitness-api-semver",
-    "oya-foundry-fitness-honest-claims",
-    "oya-foundry-fitness-aspirational-enforcement",
-    "oya-foundry-fitness-banned-primitives",
-    "oya-foundry-fitness-protection-context-match",
+    "oya-governance-supply-chain",
+    "oya-governance-cohesion",
+    "oya-governance-api-semver",
+    "oya-governance-honest-claims",
+    "oya-governance-aspirational-enforcement",
+    "oya-governance-banned-primitives",
+    "oya-governance-protection-context-match",
     "oya-governance-dependency-seam",
     "oya-pr-review"
   ],
@@ -34,22 +34,22 @@
     "cargo-nextest",
     "oya-vcs-admission",
     "oya-vcs-provider-execution",
-    "oya-foundry-fitness-supply-chain",
-    "oya-foundry-fitness-cohesion",
-    "oya-foundry-fitness-api-semver",
-    "oya-foundry-fitness-protection-context-match"
+    "oya-governance-supply-chain",
+    "oya-governance-cohesion",
+    "oya-governance-api-semver",
+    "oya-governance-protection-context-match"
   ],
   "missing_from_live": [
-    "oya-foundry-fitness-aspirational-enforcement",
-    "oya-foundry-fitness-banned-primitives",
-    "oya-foundry-fitness-honest-claims",
+    "oya-governance-aspirational-enforcement",
+    "oya-governance-banned-primitives",
+    "oya-governance-honest-claims",
     "oya-governance-dependency-seam",
     "oya-pr-review"
   ],
   "extra_in_live": [],
   "local_gate_command": "cargo run -q -p oya-dev-cli -- gate validate protection-context-match --live-required-contexts <live-json>",
   "local_gate_exit_code": 1,
-  "local_gate_output": "protection-context-match validation failed:\nlive branch protection required_status_checks for branch `dev` diverge from .github/branch-protection.yaml\nmissing from live branch protection: oya-foundry-fitness-aspirational-enforcement, oya-foundry-fitness-banned-primitives, oya-foundry-fitness-honest-claims, oya-governance-dependency-seam, oya-pr-review",
+  "local_gate_output": "protection-context-match validation failed:\nlive branch protection required_status_checks for branch `dev` diverge from .github/branch-protection.yaml\nmissing from live branch protection: oya-governance-aspirational-enforcement, oya-governance-banned-primitives, oya-governance-honest-claims, oya-governance-dependency-seam, oya-pr-review",
   "official_github_docs": {
     "protected_branch_status_check_endpoint": "https://docs.github.com/en/rest/branches/branch-protection#get-status-checks-protection",
     "permission_required": "Administration repository permissions (read)",
@@ -63,11 +63,11 @@
     "default_behavior": "read live required_status_checks, print canonical/live delta, and run oya gate validate protection-context-match; exits non-zero on drift",
     "apply_behavior": "PATCH only repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks from infra/branch-protection/dev.json, then re-check",
     "auth_boundary": "uses gh CLI auth or GH_TOKEN; --check requires GitHub Administration read and --apply requires Administration write; no token is stored in repo",
-    "workflow_integration": ".github/workflows/oya-foundry-fitness-protection-context-match.yml invokes scripts/branch-protection-apply.sh --check so local preflight and required CI use the same parity implementation",
+    "workflow_integration": ".github/workflows/oya-governance-protection-context-match.yml invokes scripts/branch-protection-apply.sh --check so local preflight and required CI use the same parity implementation",
     "github_actions_missing_secret_behavior": "fails closed with the same OYA_BRANCH_PROTECTION_READ_TOKEN error before falling back to unauthenticated gh calls"
   },
   "hosted_check_failure": {
-    "workflow": ".github/workflows/oya-foundry-fitness-protection-context-match.yml",
+    "workflow": ".github/workflows/oya-governance-protection-context-match.yml",
     "run_id": 26081263743,
     "run_url": "https://github.com/jason931225/oyatie/actions/runs/26081263743",
     "head_sha": "be474543b6451553a0d9a13c3fa6d307fce42a9d",

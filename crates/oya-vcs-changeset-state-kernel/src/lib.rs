@@ -278,7 +278,7 @@ impl std::error::Error for MonotonicityError {}
 /// 5. At most one terminal state may appear in the slice.
 ///
 /// Callers in IP-001 use this to gate event-log appends + the new
-/// `oya-foundry-fitness-changeset-state-monotonicity` CI lane.
+/// `oya-governance-changeset-state-monotonicity` CI lane.
 pub fn validate_monotonic_event_log(
     events: &[ChangesetEvent],
 ) -> Result<MonotonicityReport, MonotonicityError> {

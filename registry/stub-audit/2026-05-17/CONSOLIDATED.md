@@ -26,7 +26,7 @@ authority_chain:
 
 `master-plan-sequencing.json` declares `git`, `gh`, `manual-branch`, `manual-rebase`,
 `manual-merge`, `manual-push` as `forbidden_primitives` — but the named enforcer
-`oya-foundry-fitness-banned-primitives` does not exist as a `.github/workflows/` file,
+`oya-governance-banned-primitives` does not exist as a `.github/workflows/` file,
 and `git-workflow.md §4` explicitly grants advisory-only status. **Agents demonstrably
 use `git`/`gh` routinely** (including this entire session) — the ban is structurally
 unenforceable.
@@ -81,7 +81,7 @@ avoided anti-patterns + hyperscaler bar.
 
 The single largest OP-11 violation class (~340 of 683 findings) is *aspirational enforcement*:
 
-- ADRs cite fitness lanes (`oya-foundry-fitness-X`) that don't exist on tree — ~130 of 188 non-critical ADR findings
+- ADRs cite fitness lanes (`oya-governance-X`) that don't exist on tree — ~130 of 188 non-critical ADR findings
 - Specs declare production bars (e.g., "p99 ≤ 10ms") without an enforcement reference — ~30 of specs findings
 - IPs name AC-IDs without `test_id` references — 207 of 207 IPs (every single one)
 - Master-plan-sequencing names `forbidden_primitives` but no CI guard prevents them (`git`, `gh` are used routinely)
@@ -106,12 +106,12 @@ The single largest OP-11 violation class (~340 of 683 findings) is *aspirational
 | Placeholder in accepted ADR | 1 | RESOLVED 2026-05-18 — concrete ULID populated by SWEEP-C |
 | Deferred enforcement in accepted spec | 1 | **In-PR fixable now**: ship the enforcement or status=proposed |
 | Missing AC-IDs across all IPs | 207 | **Structural multi-week**: AC-ID + test_id retrofit across 207 plans |
-| `forbidden_primitives` with no CI guard | 6 | **In-PR fixable**: ship `oya-foundry-fitness-forbidden-primitive-usage` lane |
+| `forbidden_primitives` with no CI guard | 6 | **In-PR fixable**: ship `oya-governance-forbidden-primitive-usage` lane |
 
 ## Structural fix proposal — chained-enforcement gate
 
-New fitness lane `oya-foundry-fitness-aspirational-enforcement-detection` that scans:
-- Every ADR for `oya-foundry-fitness-*` references → fails if crate doesn't exist
+New fitness lane `oya-governance-aspirational-enforcement-detection` that scans:
+- Every ADR for `oya-governance-*` references → fails if crate doesn't exist
 - Every spec with `"production_bars"` or `"enforcement_mode": "mechanical"` → fails if no `enforcement_ref` field
 - Every IP with `acceptance_criteria` → fails if any AC-ID missing `test_id`
 - Every spec with `forbidden_primitives` → fails if no `enforcement_lane_id` field

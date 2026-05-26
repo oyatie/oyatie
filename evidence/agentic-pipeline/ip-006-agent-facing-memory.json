@@ -66,13 +66,13 @@
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-banned-primitives",
+      "command": "cargo run -p oya-governance-banned-primitives",
       "exit_code": 101,
       "status": "blocked"
     },
     {
       "blocker": "workspace manifest references missing crates/oya-tenancy-kernel/Cargo.toml",
-      "command": "cargo run -p oya-foundry-fitness-cohesion -- docs/AGENTS.md",
+      "command": "cargo run -p oya-governance-cohesion -- docs/AGENTS.md",
       "exit_code": 101,
       "status": "blocked"
     },

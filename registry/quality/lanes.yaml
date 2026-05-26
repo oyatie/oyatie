@@ -1,7 +1,7 @@
 # Oyatie quality lane registry. Source of truth mirrored by docs/standards/ci-lanes.md.
 # Fields: id, stage, status, owner_team, purpose, source, runtime_budget_seconds, optional check_command.
 lanes:
-  - id: oya-foundry-fitness-authority-cohesion
+  - id: oya-governance-authority-cohesion
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -9,7 +9,7 @@ lanes:
     source: root-hub-pointers.json / docs/AGENTS.md / ADR-0116
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate authority-cohesion
-  - id: oya-foundry-fitness-claim-ceiling
+  - id: oya-governance-claim-ceiling
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -17,7 +17,7 @@ lanes:
     source: ADR-0037 / registry/catalog
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate claim-ceiling
-  - id: oya-foundry-fitness-codeowners-mirror
+  - id: oya-governance-codeowners-mirror
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -25,7 +25,7 @@ lanes:
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate codeowners-mirror
-  - id: oya-foundry-fitness-cohesion
+  - id: oya-governance-cohesion
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -33,7 +33,7 @@ lanes:
     source: ADR-0011
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate cohesion
-  - id: oya-foundry-fitness-data-class
+  - id: oya-governance-data-class
     stage: foundation
     status: active
     owner_team: council-privacy
@@ -41,7 +41,7 @@ lanes:
     source: ADR-0008
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate data-class
-  - id: oya-foundry-fitness-doc-catalog
+  - id: oya-governance-doc-catalog
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -49,7 +49,7 @@ lanes:
     source: DOC-CATALOG.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate doc-catalog
-  - id: oya-foundry-fitness-docs
+  - id: oya-governance-docs
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -57,7 +57,7 @@ lanes:
     source: DOCUMENTATION.md / registry/docs/pipeline.tsv
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate documentation-system
-  - id: oya-foundry-fitness-quality-lanes
+  - id: oya-governance-quality-lanes
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -65,7 +65,7 @@ lanes:
     source: standards/ci-lanes.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate quality-lanes
-  - id: oya-foundry-fitness-honest-claims
+  - id: oya-governance-honest-claims
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -73,7 +73,7 @@ lanes:
     source: ADR-0129 / specs/plan-schema.json / specs/masterplan.json
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate honest-claims
-  - id: oya-foundry-fitness-aspirational-enforcement
+  - id: oya-governance-aspirational-enforcement
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -81,7 +81,7 @@ lanes:
     source: ADR-0135 / ADR-0133
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate aspirational-enforcement
-  - id: oya-foundry-fitness-banned-primitives
+  - id: oya-governance-banned-primitives
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -89,7 +89,7 @@ lanes:
     source: specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives
-  - id: oya-foundry-fitness-workspace-hygiene
+  - id: oya-governance-workspace-hygiene
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -97,7 +97,7 @@ lanes:
     source: specs/workspace-hygiene.json / ADR-0123
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate workspace-hygiene
-  - id: oya-foundry-fitness-hyperscaler-maturity-claims
+  - id: oya-governance-hyperscaler-maturity-claims
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -105,7 +105,7 @@ lanes:
     source: specs/hyperscaler-gates.json / ADR-0123
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
-  - id: oya-foundry-fitness-design-spec-maturity-claims
+  - id: oya-governance-design-spec-maturity-claims
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -113,7 +113,7 @@ lanes:
     source: specs/design-spec-maturity-claims.json / ADR-0123
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate design-spec-maturity-claims
-  - id: oya-foundry-fitness-foundation-bypass
+  - id: oya-governance-foundation-bypass
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -121,7 +121,7 @@ lanes:
     source: ADR-0040
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate foundation-bypass
-  - id: oya-foundry-fitness-glossary-cross-doc-coverage
+  - id: oya-governance-glossary-cross-doc-coverage
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -129,7 +129,7 @@ lanes:
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
     check_command: cargo run -p oya-dev-cli -- gate validate glossary-cross-doc-coverage
-  - id: oya-foundry-fitness-glossary-vocabulary
+  - id: oya-governance-glossary-vocabulary
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -137,7 +137,7 @@ lanes:
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
     check_command: cargo run -p oya-dev-cli -- gate validate glossary-vocabulary
-  - id: oya-foundry-fitness-placeholder-debt
+  - id: oya-governance-placeholder-debt
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -153,15 +153,7 @@ lanes:
     source: ADR-0092 / registry/dependency-rationales.json
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error
-  - id: oya-foundry-fitness-license
-    stage: foundation
-    status: active
-    owner_team: council-architecture
-    purpose: enforce ADR-0013 license posture
-    source: ADR-0013
-    runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate license-policy
-  - id: oya-foundry-fitness-plane-class
+  - id: oya-governance-plane-class
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -169,7 +161,7 @@ lanes:
     source: ADR-0004
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate plane-class
-  - id: oya-foundry-fitness-raci-team-coverage
+  - id: oya-governance-raci-team-coverage
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -177,7 +169,7 @@ lanes:
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate raci-team-coverage
-  - id: oya-foundry-fitness-readme-doc-coverage
+  - id: oya-governance-readme-doc-coverage
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -185,7 +177,7 @@ lanes:
     source: README.md / DOC-CATALOG.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate readme-doc-coverage
-  - id: oya-foundry-fitness-runbook-index-resolves
+  - id: oya-governance-runbook-index-resolves
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -193,7 +185,7 @@ lanes:
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate runbook-index-resolves
-  - id: oya-foundry-fitness-slo-coverage
+  - id: oya-governance-slo-coverage
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -209,15 +201,7 @@ lanes:
     source: ADR-0015 / registry/catalog
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- catalog validate
-  - id: oya-foundry-fitness-flat-crates
-    stage: foundation
-    status: active
-    owner_team: council-architecture
-    purpose: per-PR flat-crates path, legacy-tree, and role-boundary check
-    source: ADR-0015
-    runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate architecture-boundaries
-  - id: oya-foundry-fitness-product-index
+  - id: oya-governance-product-index
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -225,7 +209,7 @@ lanes:
     source: products/README.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate product-index
-  - id: oya-foundry-fitness-adr-citation
+  - id: oya-governance-adr-citation
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -233,7 +217,7 @@ lanes:
     source: ADR-LEGACY-REGRESSION-MAPPING
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate adr-citation
-  - id: oya-foundry-fitness-brand-residue
+  - id: oya-governance-brand-residue
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -321,7 +305,7 @@ lanes:
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
     check_command: cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test
-  - id: oya-foundry-fitness-supply-chain
+  - id: oya-governance-supply-chain
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -329,7 +313,7 @@ lanes:
     source: ADR-0039
     runtime_budget_seconds: 900
     check_command: cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence
-  - id: oya-foundry-fitness-supply-chain-bootstrap
+  - id: oya-governance-supply-chain-bootstrap
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -345,7 +329,7 @@ lanes:
     source: STANDARDS-AND-TEMPLATES.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate pr-traceability
-  - id: oya-foundry-fitness-api-semver
+  - id: oya-governance-api-semver
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -353,7 +337,7 @@ lanes:
     source: ADR-0037
     runtime_budget_seconds: 300
     check_command: cargo run -p oya-dev-cli -- gate validate api-semver
-  - id: oya-foundry-fitness-cargo-prefix
+  - id: oya-governance-cargo-prefix
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -361,7 +345,7 @@ lanes:
     source: ADR-0017
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate cargo-prefix
-  - id: oya-foundry-fitness-pre-push
+  - id: oya-governance-pre-push
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -369,7 +353,7 @@ lanes:
     source: AGENTS.md D12
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate pre-push-contract
-  - id: oya-foundry-fitness-loop-recovery-patterns
+  - id: oya-governance-loop-recovery-patterns
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -377,7 +361,7 @@ lanes:
     source: specs/agent-durable-goal.json score_cards + autonomous_foundry.meta_agent_anomaly_watch
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns
-  - id: oya-foundry-fitness-master-plan-completion
+  - id: oya-governance-master-plan-completion
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -385,7 +369,7 @@ lanes:
     source: NEXT-004 (evidence/goals/masterplan-actionability-durable-goal-2026-05-16.json) + scripts/audit-master-plan-completion.py port (audit B-7)
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate master-plan-completion
-  - id: oya-foundry-fitness-retired-vocabulary
+  - id: oya-governance-retired-vocabulary
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -433,7 +417,7 @@ lanes:
     source: ADR-0221 M-10
     runtime_budget_seconds: 60
     check_command: bash tools/governance/adr-0221-governance-gates.sh buildability-line-count
-  - id: oya-foundry-fitness-changeset-state-monotonicity
+  - id: oya-governance-changeset-state-monotonicity
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -441,7 +425,7 @@ lanes:
     source: ADR-0110 changeset state machine
     runtime_budget_seconds: 30
     check_command: cargo run -p oya-dev-cli -- gate validate changeset-state-monotonicity
-  - id: oya-foundry-fitness-changeset-state-enum-closed
+  - id: oya-governance-changeset-state-enum-closed
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -473,7 +457,7 @@ lanes:
     source: ADR-0009
     runtime_budget_seconds: 3600
     check_command: cargo run -p oya-dev-cli -- gate validate cross-tenant-access-fuzz
-  - id: oya-foundry-fitness-vendor-contract-recency
+  - id: oya-governance-vendor-contract-recency
     stage: nightly
     status: active
     owner_team: council-architecture
@@ -481,7 +465,7 @@ lanes:
     source: VENDOR-PARTNER-LEDGER.md
     runtime_budget_seconds: 900
     check_command: cargo run -p oya-dev-cli -- gate validate vendor-contract-recency
-  - id: oya-foundry-fitness-mobile-native
+  - id: oya-governance-mobile-native
     stage: nightly
     status: active
     owner_team: axis-foundry
@@ -629,7 +613,7 @@ lanes:
     source: slice-J (commit pending)
     check_command: cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity
     runtime_budget_seconds: 30
-  - id: oya-foundry-fitness-merge-queue-ref-hygiene
+  - id: oya-governance-merge-queue-ref-hygiene
     stage: nightly
     status: active
     severity: report-only

@@ -26,7 +26,7 @@ related:
 - [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited, cross-axis contracts touched, IP ID (if applicable). Legacy ADR-NNNN forbidden in active text.
 - [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level.
 - [ ] **R7** Done-definition rows D1-D18 walked (see `/templates/checklists/done-definition-checklist.md`).
-- [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-foundry-fitness-bypass`.
+- [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-governance-bypass`.
 - [ ] **R9** No untyped values at API boundaries (per `docs/standards/error-handling.md`). *(advisory; per-language reviewer enforces)*
 - [ ] **R10** Linus good-taste audit row present in `## Code Review`. Empty = `REQUEST CHANGES`.
 
@@ -50,16 +50,16 @@ related:
 - [ ] Type hints on public functions.
 
 ### migrations / SQL (database-reviewer)
-- [ ] Up + down + dry-run + per-tenant + per-cell rollback present. *Lane:* `oya-foundry-fitness-schema-migration`.
+- [ ] Up + down + dry-run + per-tenant + per-cell rollback present. *Lane:* `oya-governance-schema-migration`.
 - [ ] Migration is idempotent or has a guard.
 
 ### auth / secret / payment paths (security-reviewer)
-- [ ] No secrets in repo, fixtures, logs, or commits. *Lane:* `oya-foundry-fitness-secret-scan`.
+- [ ] No secrets in repo, fixtures, logs, or commits. *Lane:* `oya-governance-secret-scan`.
 - [ ] `SecretReference` newtype used (never raw strings).
 - [ ] Audit emission on every secret read.
 
 ### privacy / consent / DSR paths (privacy-reviewer)
-- [ ] `data_class` annotation present on every new kernel field. *Lane:* `oya-foundry-fitness-data-class`.
+- [ ] `data_class` annotation present on every new kernel field. *Lane:* `oya-governance-data-class`.
 - [ ] DPIA referenced if PHI/PII direct identifier touched.
 - [ ] DSR cascade path validated per `docs/checklists/dsr-cascade.md`.
 
@@ -78,7 +78,7 @@ related:
 - [ ] `cargo-semver-checks` clean (or major-bump rationale in ADR).
 
 ### doc-only (doc-style-reviewer)
-- [ ] `doc-style.md` (length cap, voice, dual-audience) honored. *Lane:* `oya-foundry-fitness-doc-style`.
+- [ ] `doc-style.md` (length cap, voice, dual-audience) honored. *Lane:* `oya-governance-doc-style`.
 - [ ] `DOC-CATALOG.md` trigger event cited.
 
 ### capability publish (capability-reviewer)
@@ -88,7 +88,7 @@ related:
 - [ ] Cosign keyless OIDC + SBOM + SLSA L2+ present.
 
 ### performance change (perf-reviewer)
-- [ ] Benchmark + ≥2 stress scenarios attached. *Lane:* `oya-foundry-fitness-perf-evidence`.
+- [ ] Benchmark + ≥2 stress scenarios attached. *Lane:* `oya-governance-perf-evidence`.
 - [ ] Regression budget defined; result within budget.
 
 ## Sign-off

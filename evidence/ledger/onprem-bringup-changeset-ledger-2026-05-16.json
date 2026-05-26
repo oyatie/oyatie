@@ -164,7 +164,7 @@
     },
     {
       "item_id": "M01-P07-GITOPS-VCS-REPLACEMENT-LIVENESS",
-      "source_path": "specs/cross-cutting/gitops-vcs-replacement.json + tools/oya-foundry-vcs-* + .github/workflows/oya-foundry-fitness-changeset-state.yml",
+      "source_path": "specs/cross-cutting/gitops-vcs-replacement.json + tools/oya-foundry-vcs-* + .github/workflows/oya-governance-changeset-state.yml",
       "milestone": "M01-foundation",
       "phase": "M01-P07 + M01-P18",
       "dependencies": [

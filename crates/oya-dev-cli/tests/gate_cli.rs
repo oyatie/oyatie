@@ -3613,7 +3613,7 @@ fn write_documentation_system_fixture(root: &Path) {
     fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
     fs::write(
         root.join("docs/DOCUMENTATION.md"),
-        "# Documentation System\n\nThe `oya-foundry-fitness-docs` lane covers docs/wiki/quickref/*.\n",
+        "# Documentation System\n\nThe `oya-governance-docs` lane covers docs/wiki/quickref/*.\n",
     )
     .expect("documentation system doc written");
     fs::write(
@@ -5730,7 +5730,7 @@ fn protection_context_match_gate_catches_applied_branch_protection_drift() {
     let applied_config = temp.join("dev.json");
     fs::write(
         &applied_config,
-        r#"{"required_status_checks":{"contexts":["cargo-fmt","oya-foundry-fitness-protection-context-match"]}}"#,
+        r#"{"required_status_checks":{"contexts":["cargo-fmt","oya-governance-protection-context-match"]}}"#,
     )
     .expect("applied config written");
 
@@ -5770,7 +5770,7 @@ fn protection_context_match_gate_catches_applied_branch_protection_drift() {
     );
     assert!(
         stderr.contains(
-            "extra in applied branch-protection config: oya-foundry-fitness-protection-context-match"
+            "extra in applied branch-protection config: oya-governance-protection-context-match"
         ),
         "stderr must name the stale old context; got: {stderr}"
     );
@@ -6501,7 +6501,7 @@ fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9000.md"),
-        "enforced_by: oya-check-real\nbranch protection required check: oya-foundry-fitness-real\n",
+        "enforced_by: oya-check-real\nbranch protection required check: oya-governance-real\n",
     )
     .expect("doc written");
 
@@ -6957,7 +6957,7 @@ fn aspirational_enforcement_gate_rejects_missing_required_workflow() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9001.md"),
-        "required check: oya-foundry-fitness-missing\n",
+        "required check: oya-governance-missing\n",
     )
     .expect("doc written");
 
@@ -6998,7 +6998,7 @@ fn aspirational_enforcement_gate_rejects_negated_advisory_required_claim() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9008.md"),
-        "required check: oya-foundry-fitness-missing is active, not advisory\n",
+        "required check: oya-governance-missing is active, not advisory\n",
     )
     .expect("doc written");
 
@@ -7121,7 +7121,7 @@ fn aspirational_enforcement_gate_rejects_unindented_multiline_required_check() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9011.md"),
-        "required check:\n- oya-foundry-fitness-missing\n",
+        "required check:\n- oya-governance-missing\n",
     )
     .expect("doc written");
 
@@ -7162,12 +7162,12 @@ fn aspirational_enforcement_gate_rejects_unindented_multiline_required_status() 
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9012.md"),
-        "required status:\n- oya-foundry-fitness-real\n",
+        "required status:\n- oya-governance-real\n",
     )
     .expect("doc written");
     fs::write(
         &fixture.branch_protection,
-        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-other\n",
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-governance-other\n",
     )
     .expect("branch protection written");
 
@@ -7208,7 +7208,7 @@ fn aspirational_enforcement_gate_rejects_missing_branch_protection_file() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9003.md"),
-        "branch protection required check: oya-foundry-fitness-real\n",
+        "branch protection required check: oya-governance-real\n",
     )
     .expect("doc written");
     fs::remove_file(&fixture.branch_protection).expect("branch protection removed");
@@ -7250,22 +7250,22 @@ fn aspirational_enforcement_gate_accepts_inline_comments_in_control_surfaces() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9013.md"),
-        "branch protection required check: oya-foundry-fitness-real\n",
+        "branch protection required check: oya-governance-real\n",
     )
     .expect("doc written");
     fs::write(
         fixture.workflows.join("real-with-comments.yml"),
-        "name: oya-foundry-fitness-real # workflow context\njobs:\n  oya-foundry-fitness-real: # job context\n    name: oya-foundry-fitness-real # check name\n",
+        "name: oya-governance-real # workflow context\njobs:\n  oya-governance-real: # job context\n    name: oya-governance-real # check name\n",
     )
     .expect("workflow written");
     fs::write(
         &fixture.quality_lanes,
-        "lanes:\n  - id: oya-foundry-fitness-real # lane id\n    status: active # current\n",
+        "lanes:\n  - id: oya-governance-real # lane id\n    status: active # current\n",
     )
     .expect("quality lanes written");
     fs::write(
         &fixture.branch_protection,
-        "branches:\n  dev: # default branch\n    required_status_checks: # current required contexts\n      - oya-foundry-fitness-real # required\n",
+        "branches:\n  dev: # default branch\n    required_status_checks: # current required contexts\n      - oya-governance-real # required\n",
     )
     .expect("branch protection written");
 
@@ -7306,12 +7306,12 @@ fn aspirational_enforcement_gate_rejects_required_context_on_wrong_branch() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9006.md"),
-        "branch protection required check: oya-foundry-fitness-real\n",
+        "branch protection required check: oya-governance-real\n",
     )
     .expect("doc written");
     fs::write(
         &fixture.branch_protection,
-        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-other\n  staging:\n    required_status_checks:\n      - oya-foundry-fitness-real\n",
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-governance-other\n  staging:\n    required_status_checks:\n      - oya-governance-real\n",
     )
     .expect("branch protection written");
 
@@ -7352,17 +7352,17 @@ fn aspirational_enforcement_gate_rejects_file_stem_only_workflow_stub() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9014.md"),
-        "enforced_by: oya-foundry-fitness-stem-only\n",
+        "enforced_by: oya-governance-stem-only\n",
     )
     .expect("doc written");
     fs::write(
-        fixture.workflows.join("oya-foundry-fitness-stem-only.yml"),
+        fixture.workflows.join("oya-governance-stem-only.yml"),
         "name: unrelated-workflow\njobs:\n  unrelated-job:\n    name: unrelated-job\n",
     )
     .expect("workflow written");
     fs::write(
         &fixture.quality_lanes,
-        "lanes:\n  - id: oya-foundry-fitness-stem-only\n    status: active\n",
+        "lanes:\n  - id: oya-governance-stem-only\n    status: active\n",
     )
     .expect("quality lanes written");
 
@@ -7403,17 +7403,17 @@ fn aspirational_enforcement_gate_rejects_metadata_key_only_workflow_stub() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9015.md"),
-        "enforced_by: oya-foundry-fitness-metadata-only\n",
+        "enforced_by: oya-governance-metadata-only\n",
     )
     .expect("doc written");
     fs::write(
         fixture.workflows.join("metadata-only.yml"),
-        "name: unrelated-workflow\nmetadata:\n  oya-foundry-fitness-metadata-only:\njobs:\n  unrelated-job:\n    name: unrelated-job\n",
+        "name: unrelated-workflow\nmetadata:\n  oya-governance-metadata-only:\njobs:\n  unrelated-job:\n    name: unrelated-job\n",
     )
     .expect("workflow written");
     fs::write(
         &fixture.quality_lanes,
-        "lanes:\n  - id: oya-foundry-fitness-metadata-only\n    status: active\n",
+        "lanes:\n  - id: oya-governance-metadata-only\n    status: active\n",
     )
     .expect("quality lanes written");
 
@@ -7454,17 +7454,17 @@ fn aspirational_enforcement_gate_rejects_step_name_only_workflow_stub() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9016.md"),
-        "enforced_by: oya-foundry-fitness-step-only\n",
+        "enforced_by: oya-governance-step-only\n",
     )
     .expect("doc written");
     fs::write(
         fixture.workflows.join("step-only.yml"),
-        "name: unrelated-workflow\njobs:\n  unrelated-job:\n    steps:\n      - name: oya-foundry-fitness-step-only\n        run: echo step-only\n",
+        "name: unrelated-workflow\njobs:\n  unrelated-job:\n    steps:\n      - name: oya-governance-step-only\n        run: echo step-only\n",
     )
     .expect("workflow written");
     fs::write(
         &fixture.quality_lanes,
-        "lanes:\n  - id: oya-foundry-fitness-step-only\n    status: active\n",
+        "lanes:\n  - id: oya-governance-step-only\n    status: active\n",
     )
     .expect("quality lanes written");
 
@@ -7505,12 +7505,12 @@ fn aspirational_enforcement_gate_rejects_blocks_merge_without_required_context()
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9007.md"),
-        "oya-foundry-fitness-real blocks merge for active enforcement claims\n",
+        "oya-governance-real blocks merge for active enforcement claims\n",
     )
     .expect("doc written");
     fs::write(
         &fixture.branch_protection,
-        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-other\n",
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-governance-other\n",
     )
     .expect("branch protection written");
 
@@ -7588,7 +7588,7 @@ fn aspirational_enforcement_gate_allows_planned_missing_lanes() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9002.md"),
-        "candidate validator oya-foundry-fitness-missing remains planned and advisory\n",
+        "candidate validator oya-governance-missing remains planned and advisory\n",
     )
     .expect("doc written");
 
@@ -7629,7 +7629,7 @@ fn aspirational_enforcement_gate_rejects_active_quality_lane_without_workflow() 
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9004.md"),
-        "enforced_by: oya-foundry-fitness-lane-only\n",
+        "enforced_by: oya-governance-lane-only\n",
     )
     .expect("doc written");
 
@@ -7669,13 +7669,13 @@ fn aspirational_enforcement_gate_rejects_workflow_without_quality_lane() {
     let temp = TempDirGuard::new("aspirational-workflow-only");
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
-        fixture.workflows.join("oya-foundry-fitness-workflow-only.yml"),
-        "name: oya-foundry-fitness-workflow-only\njobs:\n  oya-foundry-fitness-workflow-only:\n    name: oya-foundry-fitness-workflow-only\n",
+        fixture.workflows.join("oya-governance-workflow-only.yml"),
+        "name: oya-governance-workflow-only\njobs:\n  oya-governance-workflow-only:\n    name: oya-governance-workflow-only\n",
     )
     .expect("workflow written");
     fs::write(
         fixture.docs.join("ADR-9005.md"),
-        "enforced_by: oya-foundry-fitness-workflow-only\n",
+        "enforced_by: oya-governance-workflow-only\n",
     )
     .expect("doc written");
 
@@ -7726,20 +7726,20 @@ fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
     fs::create_dir_all(crates.join("oya-check-real")).expect("check crate dir created");
     fs::create_dir_all(&workflows).expect("workflows dir created");
     fs::write(
-        workflows.join("oya-foundry-fitness-real.yml"),
-        "name: oya-foundry-fitness-real\njobs:\n  oya-foundry-fitness-real:\n    name: oya-foundry-fitness-real\n",
+        workflows.join("oya-governance-real.yml"),
+        "name: oya-governance-real\njobs:\n  oya-governance-real:\n    name: oya-governance-real\n",
     )
     .expect("workflow written");
     let quality_lanes = root.join("quality-lanes.yaml");
     fs::write(
         &quality_lanes,
-        "lanes:\n  - id: oya-foundry-fitness-real\n    status: active\n  - id: oya-foundry-fitness-lane-only\n    status: active\n",
+        "lanes:\n  - id: oya-governance-real\n    status: active\n  - id: oya-governance-lane-only\n    status: active\n",
     )
     .expect("quality lanes written");
     let branch_protection = root.join("branch-protection.yaml");
     fs::write(
         &branch_protection,
-        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-real\n",
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-governance-real\n",
     )
     .expect("branch protection written");
     AspirationalFixture {
@@ -7762,7 +7762,7 @@ fn write_banned_primitives_fixture(root: &Path, root_agent_fence_body: &str) {
     .expect("AGENTS fixture written");
     fs::write(
         root.join("CLAUDE.md"),
-        "# Claude contract\n\n<!-- agent-instructions:start -->\ncoordination_surface: foundry_pipeline\n<!-- agent-instructions:end -->\n",
+        "# Claude contract\n\n<!-- agent-instructions:start -->\ncoordination_surface: governance_pipeline\n<!-- agent-instructions:end -->\n",
     )
     .expect("CLAUDE fixture written");
     fs::write(
@@ -8450,7 +8450,7 @@ fn documentation_system_gate_catches_unwired_active_command() {
     let doc_path = temp.join("DOCUMENTATION.md");
     fs::write(
         &doc_path,
-        "# Documentation\n\noya-foundry-fitness-docs is the fitness lane.\n",
+        "# Documentation\n\noya-governance-docs is the fitness lane.\n",
     )
     .expect("DOCUMENTATION.md written");
 
@@ -8531,7 +8531,7 @@ fn documentation_system_gate_passes_clean_pipeline() {
     let doc_path = temp.join("DOCUMENTATION.md");
     fs::write(
         &doc_path,
-        "# Documentation\n\noya-foundry-fitness-docs is the fitness lane.\n",
+        "# Documentation\n\noya-governance-docs is the fitness lane.\n",
     )
     .expect("DOCUMENTATION.md written");
 

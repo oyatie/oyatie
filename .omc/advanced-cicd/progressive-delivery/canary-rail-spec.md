@@ -9,8 +9,8 @@ purpose: |
   Metric-gated promotion at 1% → 5% → 25% → 50% → 100% with SLO-burn-rate-bounded hold durations.
 lift_target: oyatie/docs/release/canary-rail-spec.md
 enforced_by:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-slo-coverage
+  - oya-governance-canary-required
+  - oya-governance-slo-coverage
 related_adrs: [ADR-0040, ADR-0042, ADR-0044]
 ---
 
@@ -87,7 +87,7 @@ Provider-neutral query is `oya-platform-slo-burn-rate-kernel` (NEW; see [`slo-bu
 
 ## 7. Auto-rollback
 
-On threshold breach: Flagger fires `traffic-shift: 0%` to canary; Argo Rollouts fires `Abort`. Both emit a D14 rollback record via webhook. Per-cell on-call paged within 60 s (Sev-1 path) or 5 min (Sev-2 path) per `oya-foundry-fitness-rollback-evidence`.
+On threshold breach: Flagger fires `traffic-shift: 0%` to canary; Argo Rollouts fires `Abort`. Both emit a D14 rollback record via webhook. Per-cell on-call paged within 60 s (Sev-1 path) or 5 min (Sev-2 path) per `oya-governance-rollback-evidence`.
 
 ## 8. Pre-rollout gates (inherits from ADR-0040)
 
@@ -102,8 +102,8 @@ AWS CodeDeploy "Canary 10/45" + "Linear 10/3min"; Microsoft Azure Deployment Rin
 
 ## 10. Compliance gates
 
-- `oya-foundry-fitness-canary-required` (NEW; BLOCKER for kernel/domain/app/api/adapter classes).
-- `oya-foundry-fitness-slo-coverage` (existing; extended).
+- `oya-governance-canary-required` (NEW; BLOCKER for kernel/domain/app/api/adapter classes).
+- `oya-governance-slo-coverage` (existing; extended).
 
 ## 11. Lift target
 

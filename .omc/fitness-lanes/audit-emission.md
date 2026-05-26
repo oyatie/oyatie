@@ -1,15 +1,15 @@
 # Fitness Lane: audit-emission
 
 - purpose: Verify every kernel function that mutates state declares its audit-emission contract in the registry and that runtime adapters emit the declared event.
-- enforces: STANDARD/audit-chain; AGENTS.md fitness-lane `oya-foundry-fitness-audit-emission`.
-- kernel_crate: `oya-foundry-fitness-audit-emission-kernel` — `MutationFn { crate_id, fn_path, declared_event }`, verdict `AuditEmissionFitnessReport { fns_checked, events_resolved }`.
-- runner_path: `tools/oya-foundry-fitness-audit-emission`
+- enforces: STANDARD/audit-chain; AGENTS.md fitness-lane `oya-governance-audit-emission`.
+- kernel_crate: `oya-governance-audit-emission-kernel` — `MutationFn { crate_id, fn_path, declared_event }`, verdict `AuditEmissionFitnessReport { fns_checked, events_resolved }`.
+- runner_path: `tools/oya-governance-audit-emission`
 - inputs: kernel source files, `docs/contracts/audit-events.md` registry.
 - failure_modes:
   - function with `mutate_` prefix has no declared event
   - declared event id not in registry
   - duplicate fn->event mapping
-- ci_invocation: `cargo run -p oya-foundry-fitness-audit-emission`
+- ci_invocation: `cargo run -p oya-governance-audit-emission`
 - runtime_budget: 700 ms
 - severity: BLOCKER
 - kernel_sketch:

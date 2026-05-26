@@ -23,9 +23,9 @@ Implement ADR-0110 wave-A:
   + monotonicity validator (port-in-kernel, pure-domain).
 - New crate `oya-vcs-changeset-state-app` — runner that
   appends signed events to `registry/vcs/changeset-event-log.json`.
-- New CI lane `oya-foundry-fitness-changeset-state-monotonicity`
+- New CI lane `oya-governance-changeset-state-monotonicity`
   — asserts every changeset's event log is monotonic.
-- New CI lane `oya-foundry-fitness-changeset-state-enum-closed`
+- New CI lane `oya-governance-changeset-state-enum-closed`
   — asserts every emitted `to_state` is in the closed 12-value enum.
 
 ## Dependencies

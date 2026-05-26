@@ -10,7 +10,7 @@ purpose: |
   consumer-fitness-lane | last-verified. The single navigation surface for
   agents + humans across the entire canonical doc tree.
 lift_target: oyatie/docs/automation/cross-reference-index-spec.md
-enforced_by: oya-foundry-fitness-cross-reference-index
+enforced_by: oya-governance-cross-reference-index
 extends_crates:
   - oya-foundry-doc-catalog-kernel
   - oya-foundry-raci-team-coverage-kernel
@@ -56,7 +56,7 @@ Ordering: alphabetical by `path`. Multi-table sections by `doc-class`: Constitut
 | Nightly | Full re-generation; archive snapshot. |
 | On any new doc | The doc's row is auto-added on next regeneration; missing row at PR-time → HIGH. |
 
-## 5. Validation gates (`oya-foundry-fitness-cross-reference-index`)
+## 5. Validation gates (`oya-governance-cross-reference-index`)
 
 1. **Generated drift.** Committed `docs/CROSS-REFERENCE-INDEX.md` differs from re-generated (BLOCKER).
 2. **Coverage.** Every doc in `docs/machine-readable/catalog.json` has a row (BLOCKER).

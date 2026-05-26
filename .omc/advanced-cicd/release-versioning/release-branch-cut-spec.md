@@ -9,7 +9,7 @@ purpose: |
   protocol, the read-only invariant, the patch flow back through the four-layer
   pipeline, and the cherry-pick rules. Aligns with Kubernetes release-X.Y model.
 lift_target: oyatie/docs/release/release-branch-cut-spec.md
-enforced_by: oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-cherry-pick-trail
+enforced_by: oya-governance-release-branch-cut, oya-governance-cherry-pick-trail
 related_adrs: [ADR-0041, ADR-0050]
 ---
 
@@ -61,7 +61,7 @@ with Directive 12 documentation). The protocol:
 8. **Emit evidence**: `EVT-RELEASE-BRANCH-CUT` to D14 with the prod SHA, the
    tag, the branch, the lane states, and the agent signature.
 
-Step 1 is enforced by `oya-foundry-fitness-release-branch-cut` — without
+Step 1 is enforced by `oya-governance-release-branch-cut` — without
 green lanes the cut is refused.
 
 ## 4. Read-only invariant
@@ -126,7 +126,7 @@ cherry-pick that ships:
 
 When the release branch is 12 months past its `vX.Y.0` tag:
 
-- `oya-foundry-fitness-version-eol-warning` emits at 9 months (90-day notice).
+- `oya-governance-version-eol-warning` emits at 9 months (90-day notice).
 - At 12 months: branch goes into archive mode (read-only, no further patches).
 - Final `EVT-RELEASE-BRANCH-EOL` evidence emitted.
 

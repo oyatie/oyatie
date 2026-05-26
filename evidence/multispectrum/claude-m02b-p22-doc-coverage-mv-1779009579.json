@@ -36,7 +36,7 @@
     "F5_quality": {
       "considered": true,
       "findings": [
-        "Violation test: creates a temp dir with DOCUMENTATION.md (declares oya-foundry-fitness-docs), a pipeline.tsv with all 6 required steps, and a check-script that omits 'cargo run -p oya-dev-cli -- catalog validate'. The 'catalog' active step is therefore unwired. CLI must exit non-zero and print 'documentation system validation failed' to stderr.",
+        "Violation test: creates a temp dir with DOCUMENTATION.md (declares oya-governance-docs), a pipeline.tsv with all 6 required steps, and a check-script that omits 'cargo run -p oya-dev-cli -- catalog validate'. The 'catalog' active step is therefore unwired. CLI must exit non-zero and print 'documentation system validation failed' to stderr.",
         "Clean test: identical structure but check-script includes all four check_commands used by active/adoption-guard records. CLI must exit 0 and print 'documentation system validation passed' to stdout.",
         "Both tests follow the exact pattern established by statelessness/shardability tests: CARGO_BIN_EXE_oya, temp_dir helper, fs::write, explicit flag args, assert on status + message. No novel pattern introduced."
       ],

@@ -1,15 +1,15 @@
 # Fitness Lane: mistakes-ledger-cite
 
 - purpose: Verify every "do-not-repeat" style guardrail in canonical docs cites a row in `docs/MISTAKES-LEDGER.md`.
-- enforces: STANDARD/mistakes-ledger; AGENTS.md fitness-lane `oya-foundry-fitness-mistakes-ledger-cite`.
+- enforces: STANDARD/mistakes-ledger; AGENTS.md fitness-lane `oya-governance-mistakes-ledger-cite`.
 - kernel_crate: `oya-governance-mistakes-ledger-kernel` — `MistakeCitation { path, line, mistake_id }`, `LedgerRow { mistake_id, status }`, verdict `MistakesLedgerFitnessReport { citations_checked, ledger_rows }`.
-- runner_path: `tools/oya-foundry-fitness-mistakes-ledger-cite`
+- runner_path: `tools/oya-governance-mistakes-ledger-cite`
 - inputs: `docs/**/*.md`, `docs/MISTAKES-LEDGER.md`.
 - failure_modes:
   - "do not repeat" sentence without a ledger id
   - cited id not in ledger
   - ledger row marked `retracted` still cited as live
-- ci_invocation: `cargo run -p oya-foundry-fitness-mistakes-ledger-cite`
+- ci_invocation: `cargo run -p oya-governance-mistakes-ledger-cite`
 - runtime_budget: 600 ms
 - severity: HIGH
 - kernel_sketch:

@@ -247,7 +247,7 @@ These are deny-by-default closed sets, not exceptions to a canonical rule:
     — "dev-only carve-out" for dev-dependency licenses.
     - **Verdict:** KEEP. The dev-only carve-out is a structural tier
       ("dev-dependencies have their own license set"), enforced by the
-      `oya-foundry-fitness-license` CI lane. Not an open exception.
+      `oya-governance-license` CI lane. Not an open exception.
 
 31. `docs/standards/security-review.md:73,88,94,200`
     — A10 SSRF egress allowlist + license allowlist + ADR-tracked
@@ -449,7 +449,7 @@ review tractable:
 | Workspace lints `[workspace.lints]` | DENY refactor agent | `Cargo.toml` |
 | Workspace members + DENY crates | Item-3 finish agent | `Cargo.toml` + 4 crates |
 | CONSTITUTION-cite sweep | Item-1 agent | `docs/standards/INDEX.md`, observability, on-call, `docs/MISTAKES-LEDGER.md`, `docs/DOC-CATALOG.md`, `docs/CHANGELOG.md`, `.omc/plans` |
-| ADR-0107 / ADR-0105 / `tools/oya-foundry-fitness-*` / predictable-naming-kernel / `docs/standards/predictable-naming*` | Items 6+9 agent | ADR-0056 / ADR-0058 / ADR-0062 / ADR-0063 / ADR-0069 / ADR-0097 / ADR-0058 / `code-style-rust.md` / `crate-naming-convention.md` |
+| ADR-0107 / ADR-0105 / `tools/oya-governance-*` / predictable-naming-kernel / `docs/standards/predictable-naming*` | Items 6+9 agent | ADR-0056 / ADR-0058 / ADR-0062 / ADR-0063 / ADR-0069 / ADR-0097 / ADR-0058 / `code-style-rust.md` / `crate-naming-convention.md` |
 | spec/crate-naming audit docs | Item-10 docs agent | `specs/crate-naming-audit.json` |
 | `docs/PRD.md` | ip004 | `docs/PRD.md` |
 | `docs/products/foundry/*` | ip005 | `docs/products/foundry/*` |

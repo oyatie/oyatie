@@ -2,14 +2,14 @@
 
 - purpose: Verify every grit-done event has a matching icm-store and audit-chain emission triple.
 - enforces: CHECKLIST/agent-completion; ADR-0054.
-- kernel_crate: `oya-foundry-fitness-agent-completion-checklist-kernel` — `CompletionTriple { grit_done_id, icm_store_id, audit_event_id }`, verdict `AgentCompletionChecklistFitnessReport { triples_checked }`.
-- runner_path: `tools/oya-foundry-fitness-agent-completion-checklist`
+- kernel_crate: `oya-governance-agent-completion-checklist-kernel` — `CompletionTriple { grit_done_id, icm_store_id, audit_event_id }`, verdict `AgentCompletionChecklistFitnessReport { triples_checked }`.
+- runner_path: `tools/oya-governance-agent-completion-checklist`
 - inputs: grit log, icm log, audit-chain ledger.
 - failure_modes:
   - grit-done with no icm-store
   - icm-store with no audit row
   - duplicate audit emission for same grit-done
-- ci_invocation: `cargo run -p oya-foundry-fitness-agent-completion-checklist`
+- ci_invocation: `cargo run -p oya-governance-agent-completion-checklist`
 - runtime_budget: 600 ms
 - severity: BLOCKER
 - kernel_sketch:

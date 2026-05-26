@@ -502,7 +502,7 @@
     "skipped": 1,
     "failure": 0,
     "mergeable": "MERGEABLE",
-    "skipped_check": "oya-foundry-fitness-release-artifact-attestation (skip is intentional — no release artifact in this PR)"
+    "skipped_check": "oya-governance-release-artifact-attestation (skip is intentional — no release artifact in this PR)"
   },
   "honest_new_findings_not_in_prior_evidence_pile": [
     {

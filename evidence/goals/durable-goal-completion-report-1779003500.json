@@ -85,7 +85,7 @@
 
   "fixuptasks_filed_this_session": [
     "F-M02-EXIT-GATE-VALIDATORS-MISSING (4 work items: 5 lanes port to gate-validate replacements + 7 architecture sub-checks promote from scaffold + canonical-base-neutrality ADR-0064 §8 from scratch + cross-pack-refusal ADR-0064 §7 from scratch)",
-    "F-AUDIT-CHAIN-MONOTONIC-CI-GUARD (mentioned in PR #97 codex reply; oya-foundry-fitness-audit-chain-monotonic lane that fails any PR deleting audit-chain rows)"
+    "F-AUDIT-CHAIN-MONOTONIC-CI-GUARD (mentioned in PR #97 codex reply; oya-governance-audit-chain-monotonic lane that fails any PR deleting audit-chain rows)"
   ],
 
   "session_pattern_observations": {
@@ -110,7 +110,7 @@
     "highest_value_picks": [
       "Wait for the 33 in-flight PRs to drain (CI ceiling; no new dispatches needed)",
       "F-M02-EXIT-GATE-VALIDATORS-MISSING lane-2 onwards: each remaining lane (shardability, doc-coverage, perf-budget, benchmark) follows PR #112 pattern — port replacement + add synthetic-violation test in one PR per lane",
-      "F-AUDIT-CHAIN-MONOTONIC-CI-GUARD: ship oya-foundry-fitness-audit-chain-monotonic lane to enforce admin-only deletions on audit-chain rows",
+      "F-AUDIT-CHAIN-MONOTONIC-CI-GUARD: ship oya-governance-audit-chain-monotonic lane to enforce admin-only deletions on audit-chain rows",
       "After in-flight cascade drains: M03-M07 delta-2 round (smallest next-type per phase per crate) — same merge-variant pattern that produced 20 merges this session"
     ],
     "external_blockers_with_evidence": [

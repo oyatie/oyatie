@@ -49,7 +49,7 @@ components:
           - oya-governance-oya-verify-exit-code-contract
       ADR-0347:
         purpose: >-
-          Declare that every oya-foundry-fitness-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
         enforced_by:
           - oya-governance-no-foundry-fitness-residue
           - oya-governance-lane-prefix-vocabulary

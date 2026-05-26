@@ -1,15 +1,15 @@
 # Fitness Lane: cross-axis-notify
 
 - purpose: Verify every cross-axis contract change is accompanied by a notification entry naming each consumer axis owner.
-- enforces: STANDARD/cross-axis-notify; AGENTS.md fitness-lane `oya-foundry-fitness-cross-axis-notify`.
-- kernel_crate: `oya-foundry-fitness-cross-axis-notify-kernel` — `NotifyRecord { contract_id, notified_axes }`, verdict `CrossAxisNotifyFitnessReport { contracts_checked }`.
-- runner_path: `tools/oya-foundry-fitness-cross-axis-notify`
+- enforces: STANDARD/cross-axis-notify; AGENTS.md fitness-lane `oya-governance-cross-axis-notify`.
+- kernel_crate: `oya-governance-cross-axis-notify-kernel` — `NotifyRecord { contract_id, notified_axes }`, verdict `CrossAxisNotifyFitnessReport { contracts_checked }`.
+- runner_path: `tools/oya-governance-cross-axis-notify`
 - inputs: PR body `Cross-Axis-Notify:` section, contracts registry consumer axes.
 - failure_modes:
   - contract changed but not all consumer_axes listed
   - notify row references unknown axis
   - empty notify row
-- ci_invocation: `cargo run -p oya-foundry-fitness-cross-axis-notify`
+- ci_invocation: `cargo run -p oya-governance-cross-axis-notify`
 - runtime_budget: 250 ms
 - severity: HIGH
 - kernel_sketch:

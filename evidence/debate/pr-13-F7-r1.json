@@ -18,11 +18,11 @@
     "forbidden-operations.json FO-01/FO-06 amendments drop archive-orphan-kernel references and either fall back to authoritative-tracked-kernel (FO-01) or honestly mark enforced_by:null with ADR-0118/ADR-0116 replacement pointer (FO-06) — no silent security carve-out.",
     "decision-principles.json DP-04 keeps authoritative-tracked-kernel as the single enforcer — the doctrine the lane backstopped is still mechanically enforced.",
     "ADR-0118 explicitly supersedes ADR-0052, lists three rejected alternatives (keep empty, rename, delete-history), and pins replacement to M01-P18 / ADR-0116 Foundry pipeline — clean audit-chain handoff.",
-    "Catalog yaml deletions (registry/catalog/oya-foundry-fitness-archive-orphan*.yaml) align 1:1 with crate deletions — no orphaned capability pointers in registry.",
+    "Catalog yaml deletions (registry/catalog/oya-governance-archive-orphan*.yaml) align 1:1 with crate deletions — no orphaned capability pointers in registry.",
     "tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml comment updated to remove archive-orphan from the enumerated lane list — no live code import of the deleted crate remains in the merged tree."
   ],
   "uncertainty_areas": [
-    "Did any external CI workflow (GitHub Actions yaml outside the diff) still reference `cargo run -p oya-foundry-fitness-archive-orphan`? Diff does not include .github/workflows scan; should be confirmed by F11 observability or F4 ergonomic facet.",
+    "Did any external CI workflow (GitHub Actions yaml outside the diff) still reference `cargo run -p oya-governance-archive-orphan`? Diff does not include .github/workflows scan; should be confirmed by F11 observability or F4 ergonomic facet.",
     "M01-P18 admission/projected-merge-state/conflict-kernel must actually be live before relying on it as the integrity replacement; ADR-0116 promotes it doctrinally but operational coverage is outside this PR's verifiable scope.",
     "The current review branch (oya-m01-m02-gate-usecase-doc-drift) is behind dev and still contains the retired files on-disk — confirmed harmless for the merged PR-13 assessment but worth flagging to executor when rebasing."
   ],
@@ -36,8 +36,8 @@
     },
     {
       "severity": "LOW",
-      "summary": "No diff visibility into .github/workflows for any CI job that invoked the deleted `cargo run -p oya-foundry-fitness-archive-orphan` runner; an orphan workflow step would fail noisily (not silently) but is still cleanup hygiene.",
-      "recommended_action": "Run `git grep -n 'oya-foundry-fitness-archive-orphan' .github/` on the merged tree and remove any residual workflow step; can be folded into the FO-06 follow-up.",
+      "summary": "No diff visibility into .github/workflows for any CI job that invoked the deleted `cargo run -p oya-governance-archive-orphan` runner; an orphan workflow step would fail noisily (not silently) but is still cleanup hygiene.",
+      "recommended_action": "Run `git grep -n 'oya-governance-archive-orphan' .github/` on the merged tree and remove any residual workflow step; can be folded into the FO-06 follow-up.",
       "fixuptask_id": "F-PR13-02"
     }
   ],

@@ -21,7 +21,7 @@ purpose: "Scaffolds all 10 foundry and check crates, implements 7 sub-commands o
 execution_variant: merge-into-existing-crates
 execution_variant_decided_at: 2026-05-17
 execution_variant_decided_by: user-directive-option-2
-execution_variant_note: "User chose merge-variant 2026-05-17 — FROM-SCRATCH scaffold below preserved as reference; deltas land incrementally into existing oya-foundry-fitness-* crates. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: LeanCheckId + LeanViolation in oya-governance-quality-lane-kernel::lean_check (2026-05-17)."
+execution_variant_note: "User chose merge-variant 2026-05-17 — FROM-SCRATCH scaffold below preserved as reference; deltas land incrementally into existing oya-governance-* crates. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: LeanCheckId + LeanViolation in oya-governance-quality-lane-kernel::lean_check (2026-05-17)."
 ---
 # IP-P01-foundry-lean-checks: Scaffold 10 foundry/check crates implementing 14 CI fitness lanes
 

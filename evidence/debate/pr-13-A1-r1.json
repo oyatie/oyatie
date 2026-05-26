@@ -35,13 +35,13 @@
       "id": "C4_audit_reflects_deletions",
       "claim": "specs/cross-cutting/crate-naming-audit.json reflects archive-orphan deletions",
       "finding": "PASS",
-      "evidence": "Audit at merge commit 59534679 contains: (a) 'retired_package_notes' block with entry {package: oya-foundry-fitness-archive-orphan, retired_by: ADR-0118, naming_justification: 'preserved only in this audit note because it identifies the retired IP-008 archive-boundary lane'}; (b) inline retirement_note 'oya-foundry-fitness-archive-orphan retired by ADR-0118 instead of renamed; archive-orphan remains a historical lane id, not an active package name.' This is the doctrinally-correct treatment — archive-orphan is retired (deleted as a package) rather than renamed, and the audit preserves the historical-only reference to prevent reuse of the name."
+      "evidence": "Audit at merge commit 59534679 contains: (a) 'retired_package_notes' block with entry {package: oya-governance-archive-orphan, retired_by: ADR-0118, naming_justification: 'preserved only in this audit note because it identifies the retired IP-008 archive-boundary lane'}; (b) inline retirement_note 'oya-governance-archive-orphan retired by ADR-0118 instead of renamed; archive-orphan remains a historical lane id, not an active package name.' This is the doctrinally-correct treatment — archive-orphan is retired (deleted as a package) rather than renamed, and the audit preserves the historical-only reference to prevent reuse of the name."
     },
     {
       "id": "C5_deleted_artifacts_consistent",
       "claim": "All 3 deleted registry/catalog yaml + kernel + app crate directories are consistent with retirement",
       "finding": "PASS",
-      "evidence": "Diff deletes registry/catalog/oya-foundry-fitness-archive-orphan{,-app,-kernel}.yaml, crates/oya-foundry-fitness-archive-orphan-kernel/, tools/oya-foundry-fitness-archive-orphan-app/, plus Cargo.toml workspace members and Cargo.lock entries. Filenames all conform to BNF v4.1; deletion is symmetric across registry/catalog/Cargo/lock/filesystem."
+      "evidence": "Diff deletes registry/catalog/oya-governance-archive-orphan{,-app,-kernel}.yaml, crates/oya-governance-archive-orphan-kernel/, tools/oya-governance-archive-orphan-app/, plus Cargo.toml workspace members and Cargo.lock entries. Filenames all conform to BNF v4.1; deletion is symmetric across registry/catalog/Cargo/lock/filesystem."
     }
   ],
   "violations": [],

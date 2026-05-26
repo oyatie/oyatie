@@ -3,13 +3,13 @@
 - purpose: Verify every authoritative artifact (ADR, standard, runbook, template, checklist) is tracked in git (no untracked or .gitignored authoritative paths).
 - enforces: Directive A8 (MASTERPLAN).
 - kernel_crate: `oya-governance-authoritative-tracked-kernel` — `AuthoritativeArtifact { path, tracked }`, verdict `AuthoritativeTrackedFitnessReport { artifacts_checked }`.
-- runner_path: `tools/oya-foundry-fitness-authoritative-tracked`
+- runner_path: `tools/oya-governance-authoritative-tracked`
 - inputs: catalog rows with `authoritative: true`, `git ls-files` snapshot.
 - failure_modes:
   - authoritative doc under `.gitignore`
   - authoritative path exists on disk but not in git index
   - catalog marks authoritative but file missing
-- ci_invocation: `cargo run -p oya-foundry-fitness-authoritative-tracked`
+- ci_invocation: `cargo run -p oya-governance-authoritative-tracked`
 - runtime_budget: 400 ms
 - severity: BLOCKER
 - kernel_sketch:

@@ -21,10 +21,10 @@
 - ADR-0111 merge-queue-projected-state
 - ADR-0112 webhook-driven foundry-agent invocation (replace with intelligence per ADR-0335)
 - ADR-0113 vcs-orchestrator end-to-end
-- `feedback_foundry_pipeline_canonical` (now retired per ADR-0335; agentic landing via `oya git` + `oya vcs` until pipeline post-retirement design lands)
+- `feedback_governance_pipeline_canonical` (now retired per ADR-0335; agentic landing via `oya git` + `oya vcs` until pipeline post-retirement design lands)
 - `feedback_oya_git_canonical_2026_05_18` (canonical git invocation)
 - ADR-0221 hooks are GUIDANCE; CI gates enforce
-- root `CLAUDE.md` foundry-pipeline-required-workflow (layer 0 isolation → layer 2 PR → admission gate → merge queue → completion gate)
+- root `CLAUDE.md` governance-pipeline-required-workflow (layer 0 isolation → layer 2 PR → admission gate → merge queue → completion gate)
 
 ## §2. Race conditions identified
 

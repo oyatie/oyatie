@@ -34,7 +34,7 @@ Implement ADR-0114 wave-A:
   cohort + expansion stages.
 - New registry `registry/canary/thresholds.yaml` — per-product
   ratios + observation windows.
-- New CI lane `oya-foundry-fitness-canary-signal-emission` —
+- New CI lane `oya-governance-canary-signal-emission` —
   asserts every product publishes the 4 signal classes.
 
 Rollback mechanism is wave-B scope (gating workflows on verdict +

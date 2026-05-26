@@ -1995,7 +1995,7 @@ docs/quality/ai-slop-defense/impossible-to-fail-environment-spec.md:| Agent cras
 docs/quality/ai-slop-defense/impossible-to-fail-environment-spec.md:| Agent loops on a failing test | `oya-governance-test-flake` (new) — caps retries; `icm` raises a "stuck-agent" signal; council-architecture pages. |
 docs/quality/ai-slop-defense/defense-in-depth-architecture.md:  reviewer runs the Code Review checklist; verdict logged in `icm`.
 docs/quality/ai-slop-defense/additional-tooling-recommendations.md:| **Reviewer-agent verdict** | Independent LLM reviews PR; verdict logged to `icm`. Disagreement → council-architecture. | HIGH | `oya-governance-reviewer-verdict` | ADR-XXX-reviewer-agent |
-docs/CHANGELOG.md:- Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.
+docs/CHANGELOG.md:- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.
 docs/CHANGELOG.md:- Recorded the M01-P01-IP-001 scaffold-claim fallback after grit returned the known new/doc-symbol FK failure.
 docs/CHANGELOG.md:- Added `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and executable script to prove two session-less `grit` agents can claim non-overlapping symbols in one file.
 docs/CHANGELOG.md:- Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
@@ -2369,11 +2369,11 @@ docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:## 3. Layer 0 — wor
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:**CI policy:** none at the layer boundary. The agent's local-dev clone is just a local copy of `origin/dev`; `grit done` is the atomic merge primitive. Agents may sync local-dev to/from `origin/dev` (fetch + rebase + merge) at any time without ceremony.
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:**Lanes that run:** all BLOCKER + HIGH lanes from §2 on the PR HEAD (the local-dev tip targeting `origin/dev`). The PR opens automatically when the agent declares `grit done` (or via `dev-promoter` orchestration).
 docs/advanced-cicd/branch-pipeline/ci-policy-per-branch.md:**Promotion gate semantics:** the **5 staging → prod gates** all green. Per-gate evidence stored as signed icm records. `prod-promoter` evaluates and fires automatically (except Directive-12 carve-out classes).
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/advanced-cicd/branch-pipeline/foundry-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/advanced-cicd/branch-pipeline/governance-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
 docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md:| 0 | per-agent worktree (`.grit/worktrees/<agent-id>/`) | the agent doing the work | n/a (private workspace) | only the agent itself |
 docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md:| 1 | agent local dev clone (the agent's local copy of `origin/dev`) | `grit done --agent <id>` (atomic, treats as sync with origin/dev) | **none** — autonomous sync | only the agent itself |
 docs/advanced-cicd/branch-pipeline/branch-pipeline-architecture.md:    W["agent worktree<br/>(.grit/worktrees/<id>/)"]
@@ -2643,13 +2643,13 @@ docs/release/branch-pipeline/ci-policy-per-branch.md:**CI policy:** none at the 
 docs/release/branch-pipeline/ci-policy-per-branch.md:**Lanes that run:** all BLOCKER + HIGH lanes from §2 on the PR HEAD (the local-dev tip targeting `origin/dev`). The PR opens automatically when the agent declares `grit done` (or via `dev-promoter` orchestration).
 docs/release/branch-pipeline/ci-policy-per-branch.md:**Promotion gate semantics:** the **5 staging → prod gates** all green. Per-gate evidence stored as signed icm records. `prod-promoter` evaluates and fires automatically (except Directive-12 carve-out classes).
 docs/release/branch-pipeline/ci-policy-per-branch.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all CI invocations use sanctioned primitives; direct `gh` usage under Directive 12 with `icm store -t direct-tool-invocations`.
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:    evidence_id: <icm record id>
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
-docs/release/branch-pipeline/foundry-pipeline-mirror.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability stage transitions recorded via `icm store -t capability-stage-transitions`; all sanctioned tool usage.
+docs/release/branch-pipeline/governance-pipeline-mirror.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
+docs/release/branch-pipeline/governance-pipeline-mirror.md:promoted_from: <prior stage's icm record id, or null for dev-draft>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:    evidence_id: <icm record id>
+docs/release/branch-pipeline/governance-pipeline-mirror.md:    reviewer_verdicts: [<icm record ids>]
+docs/release/branch-pipeline/governance-pipeline-mirror.md:- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability stage transitions recorded via `icm store -t capability-stage-transitions`; all sanctioned tool usage.
 docs/release/branch-pipeline/branch-pipeline-architecture.md:> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Supersedes:** [ADR-0041](../../decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md).
 docs/release/branch-pipeline/branch-pipeline-architecture.md:| 0 | per-agent worktree (`.grit/worktrees/<agent-id>/`) | the agent doing the work | n/a (private workspace) | only the agent itself |
 docs/release/branch-pipeline/branch-pipeline-architecture.md:| 1 | agent local dev clone (the agent's local copy of `origin/dev`) | `grit done --agent <id>` (atomic, treats as sync with origin/dev) | **none** — autonomous sync | only the agent itself |
@@ -3086,7 +3086,7 @@ docs/architecture/memory-spec-runbook-audit-2026-05-21.md:    - `flat-crates-mov
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md:- **Memory** (`feedback_deprecate_external_agent_coord_tooling.md`): grit/rtk/icm/vox are deprecated as of 2026-05-16.
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md:- **Memory** (10+ non-superseded files): Still prescribe grit/rtk/icm usage in procedure sections.
 docs/architecture/memory-spec-runbook-audit-2026-05-21.md:- **Runbooks** (`grit-session-bug-upstream.md`): References grit as if still in use.
-docs/architecture/ip-corpus-line-audit-2026-05-21.md:1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-foundry-fitness-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
+docs/architecture/ip-corpus-line-audit-2026-05-21.md:1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
 docs/architecture/ip-corpus-line-audit-2026-05-21.md:### §2.4 Retired tooling (grit / rtk / icm / vox)
 docs/architecture/ip-corpus-line-audit-2026-05-21.md:**0 IP-body hits.** The IP corpus is clean of grit/rtk/icm/vox references per [[deprecate-external-agent-coord-tooling]]. The `oya vcs` references in §2.2 are the residual: they came from the same era but were independently retired by the [[oya-git-canonical-2026-05-18]] sub-doctrine.
 docs/architecture/ip-corpus-line-audit-2026-05-21.md:| grit / rtk / icm / vox | 0 | 0 | n/a |
@@ -3154,7 +3154,7 @@ docs/architecture/product-graph.html:    bench: 'rtk-ai/grit | AWS Bedrock Guard
 docs/architecture/wave-3-retrospective-2026-05-20.md:CI gate 13 pass condition: no Object Graph, grit/icm/rtk/vox, or stale layer enum usage unless historical context is marked.
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:| 31 | P1 | anti-pattern corpus | retired external tooling (grit/rtk/icm/oya vcs): 2369 hits | `docs/CHANGELOG.md:238` | 3-J |
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:| retired external tooling (grit/rtk/icm/oya vcs) | 2369 | docs/CHANGELOG.md:238; docs/GLOSSARY.md:568; docs/DOC-COVERAGE.md:206; docs/MASTERPLAN.md:96; docs/bootstrap.md:164 |
-docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.`
+docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.`
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:### §11.5 retired external tooling (grit/rtk/icm/oya vcs)
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:- `docs/bootstrap.md:164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)`
 docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:| docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md | 17 | 0 | 0 | 0 | 1 | 7 | CRITICAL |

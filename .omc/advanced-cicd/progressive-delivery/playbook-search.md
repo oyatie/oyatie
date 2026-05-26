@@ -8,9 +8,9 @@ purpose: |
   Search index/ranker rollouts with A/B + cohort.
 lift_target: oyatie/docs/playbooks/playbook-search.md
 enforced_by:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-shadow-diff
-  - oya-foundry-fitness-cohort-honor
+  - oya-governance-canary-required
+  - oya-governance-shadow-diff
+  - oya-governance-cohort-honor
 related_adrs: [ADR-0030, ADR-0046, ADR-0047, ADR-0048]
 ---
 

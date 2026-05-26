@@ -3,13 +3,13 @@
 - purpose: Verify no agent holds more concurrent grit-claims than the configured ceiling per session.
 - enforces: STANDARD/claim-ceiling; existing crate `oya-foundry-claim-ceiling-kernel` (EXISTING).
 - kernel_crate: `oya-foundry-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
-- runner_path: `tools/oya-foundry-fitness-claim-ceiling`
+- runner_path: `tools/oya-governance-claim-ceiling`
 - inputs: grit-claim ledger snapshot, ceiling-policy registry.
 - failure_modes:
   - agent holds claims above ceiling
   - claim with no expiry
   - duplicate claim id
-- ci_invocation: `cargo run -p oya-foundry-fitness-claim-ceiling`
+- ci_invocation: `cargo run -p oya-governance-claim-ceiling`
 - runtime_budget: 300 ms
 - severity: HIGH
 - kernel_sketch:

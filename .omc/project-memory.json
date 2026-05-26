@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1778836410851,
-  "projectRoot": "/Users/jasonlee/oyatie",
+  "lastScanned": 1779762974960,
+  "projectRoot": "/Users/jasonlee/Developer/source",
   "techStack": {
     "languages": [
       {
@@ -11,6 +11,14 @@
         "markers": [
           "Cargo.toml"
         ]
+      },
+      {
+        "name": "C/C++",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Makefile"
+        ]
       }
     ],
     "frameworks": [],
@@ -18,8 +26,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd /Users/jasonlee/Developer/source\npgrep -f 'cargo build --workspace' >/dev/null && echo BUILDING || echo DONE\necho \"=== errors ===\"; grep -E '^error(\\[|:)' /tmp/laneb-build2.log 2>/dev/null | sort | uniq -c | sort -rn | head\necho \"=== tail ===\"; tail -3 /tmp/laneb-build2.log 2>/dev/null",
-    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" cargo test -q -p oya-governance-lifecycle-kernel 2>&1 | command tail -3",
+    "buildCommand": "cd /Users/jasonlee/Developer/source\npgrep -f 'cargo build --workspace\\|gate run-all' >/dev/null && echo \"CHAIN RUNNING\" || echo \"CHAIN DONE\"\necho \"build errors:\"; grep -cE '^error' /tmp/lb-fit2-build.log 2>/dev/null\necho \"=== summary + fails + marker ===\"; grep -E 'summary:|CHAIN_DONE|\\] FAIL ' /tmp/lb-fit2-gates.log 2>/dev/null | tail -8\necho \"progress:\"; grep -cE '\\] (PASS|FAIL) ' /tmp/lb-fit2-gates.log 2>/dev/null; tail -1 /tmp/lb-fit2-gates.log 2>/dev/null",
+    "testCommand": "cd /Users/jasonlee/Developer/source\ncargo test -q -p oya-check-aspirational-enforcement 2>&1 | grep -iE 'error\\[|test result|FAILED|panicked' | head\necho \"=== rebuild oya + run aspirational + quality-lanes on real specs ===\"\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -2\ntarget/debug/oya gate validate aspirational-enforcement 2>&1 | tail -1\ntarget/debug/oya gate validate quality-lanes 2>&1 | tail -1",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -34,137 +42,206 @@
     "isMonorepo": false,
     "workspaces": [],
     "mainDirectories": [
+      "bin",
       "docs",
-      "scripts"
+      "scripts",
+      "tests"
     ],
     "gitBranches": {
-      "defaultBranch": "main",
+      "defaultBranch": "dev",
       "branchingStrategy": null
     }
   },
   "customNotes": [],
   "directoryMap": {
-    "bominal": {
-      "path": "bominal",
+    "benchmarks": {
+      "path": "benchmarks",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778836410844,
-      "keyFiles": []
+      "fileCount": 8,
+      "lastAccessed": 1779762974948,
+      "keyFiles": [
+        "audit-chain-emission-throughput.md",
+        "cedar-policy-eval-cost.md",
+        "cross-µservice-call-overhead.md",
+        "drive-upload-download-throughput.md",
+        "messenger-throughput-and-latency.md"
+      ]
+    },
+    "bin": {
+      "path": "bin",
+      "purpose": "Executable scripts",
+      "fileCount": 1,
+      "lastAccessed": 1779762974948,
+      "keyFiles": [
+        "oya"
+      ]
     },
     "contracts": {
       "path": "contracts",
       "purpose": null,
-      "fileCount": 4,
-      "lastAccessed": 1778836410845,
+      "fileCount": 9,
+      "lastAccessed": 1779762974948,
       "keyFiles": [
-        "ops-docs-v1.openapi.meta.yaml",
-        "ops-docs-v1.openapi.yaml",
-        "ops-workspace-shell-v1.openapi.meta.yaml",
-        "ops-workspace-shell-v1.openapi.yaml"
+        "knowledge_graph_query-v1.meta.yaml",
+        "knowledge_graph_query-v1.proto",
+        "ontology_action-v1.meta.yaml",
+        "ontology_action-v1.proto",
+        "ops-docs-v1.openapi.meta.yaml"
       ]
     },
     "crates": {
       "path": "crates",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1778836410846,
+      "lastAccessed": 1779762974950,
       "keyFiles": []
     },
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 39,
-      "lastAccessed": 1778836410846,
+      "fileCount": 42,
+      "lastAccessed": 1779762974951,
       "keyFiles": [
         "ADR-CONSOLIDATION-PLAN.md",
         "ADR-INDEX.md",
         "ADR-LEGACY-REGRESSION-MAPPING.md",
         "AGENT-INSTRUCTION-SOURCES.md",
-        "AGENTS.md"
+        "AGENTS-OPERATING-CONTRACT.md"
       ]
     },
     "evidence": {
       "path": "evidence",
       "purpose": null,
-      "fileCount": 22,
-      "lastAccessed": 1778836410846,
+      "fileCount": 94,
+      "lastAccessed": 1779762974952,
       "keyFiles": [
-        "active-artifact-contract-lane-run-2026-05-13.json",
-        "active-artifact-contract-lane-run-2026-05-14.json",
-        "active-artifact-contract-lane-run.json",
-        "audit-chain.jsonl",
-        "cedar-fragment-coverage-lane-run-2026-05-14.json"
+        "NEXT-SESSION-HANDOFF.md",
+        "aborted-persona-1-employee-manager-report.json",
+        "aborted-persona-2-hr-partner-report.json",
+        "aborted-persona-3-payroll-accounting-report.json",
+        "aborted-persona-4-operations-report.json"
       ]
     },
     "infra": {
       "path": "infra",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778836410847,
-      "keyFiles": []
+      "fileCount": 1,
+      "lastAccessed": 1779762974952,
+      "keyFiles": [
+        "TOPOLOGY-2026-05-16.md"
+      ]
     },
-    "capability-templates": {
-      "path": "registry/capability-templates",
+    "memory": {
+      "path": "memory",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1779762974952,
+      "keyFiles": [
+        "feedback_oya_git_canonical_2026_05_18.md",
+        "feedback_oya_vcs_canonical_2026_05_16.md"
+      ]
+    },
+    "microservices": {
+      "path": "microservices",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1779762974953,
+      "keyFiles": [
+        "README.md",
+        "erp-second-pass-generation-summary.json"
+      ]
+    },
+    "packs": {
+      "path": "packs",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778836410847,
+      "lastAccessed": 1779762974953,
       "keyFiles": []
+    },
+    "plan": {
+      "path": "plan",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1779762974953,
+      "keyFiles": [
+        "hyperscaler-grade-cloud-platform-changeset-slices.md",
+        "hyperscaler-grade-cloud-platform-greenfield-plan.md",
+        "hyperscaler-grade-cloud-platform-main-plan-audit.md",
+        "hyperscaler-grade-cloud-platform-quality-review.md"
+      ]
     },
     "regional-packs": {
       "path": "regional-packs",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778836410847,
-      "keyFiles": []
-    },
-    "registries": {
-      "path": "registries",
-      "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778836410847,
+      "lastAccessed": 1779762974953,
       "keyFiles": []
     },
     "registry": {
       "path": "registry",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778836410848,
-      "keyFiles": []
+      "fileCount": 17,
+      "lastAccessed": 1779762974954,
+      "keyFiles": [
+        "adr-contradictions.json",
+        "artifact-capabilities-registry.json",
+        "bominal-inheritance-overrides.json",
+        "bounded-contexts.json",
+        "cedar-fragments.json"
+      ]
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
-      "fileCount": 12,
-      "lastAccessed": 1778836410848,
+      "fileCount": 20,
+      "lastAccessed": 1779762974954,
       "keyFiles": [
+        "agent-pre-push-validate.sh",
         "asyncapi-lint.mjs",
-        "audit-master-plan-completion.py",
-        "check-architecture-boundaries.sh",
-        "check-product-index.py",
-        "check-stage0-application-shell-prereqs.py"
+        "branch-protection-apply.sh",
+        "check-sequential-pr-merge-conflicts.sh",
+        "evidence-secret-scan.sh"
       ]
     },
     "specs": {
       "path": "specs",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778836410848,
-      "keyFiles": []
+      "fileCount": 78,
+      "lastAccessed": 1779762974954,
+      "keyFiles": [
+        "active-machine-readable-artifact-contract.json",
+        "agent-durable-goal.json",
+        "agent-operating-contract.json",
+        "agentic-slo-gated-promotion.json",
+        "api-contract-ssot-canonical.json"
+      ]
     },
     "target": {
       "path": "target",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1778836410848,
+      "lastAccessed": 1779762974955,
       "keyFiles": [
         "CACHEDIR.TAG"
+      ]
+    },
+    "tasks": {
+      "path": "tasks",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1779762974955,
+      "keyFiles": [
+        "enterprise-microservices-plan.md",
+        "enterprise-microservices-todo.md",
+        "plan.md",
+        "todo.md"
       ]
     },
     "templates": {
       "path": "templates",
       "purpose": null,
       "fileCount": 13,
-      "lastAccessed": 1778836410848,
+      "lastAccessed": 1779762974955,
       "keyFiles": [
         "INDEX.md",
         "adr-template.md",
@@ -173,322 +250,39 @@
         "evidence-bundle-template.json"
       ]
     },
+    "test-results": {
+      "path": "test-results",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779762974955,
+      "keyFiles": []
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 0,
+      "lastAccessed": 1779762974955,
+      "keyFiles": []
+    },
     "tools": {
       "path": "tools",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778836410849,
-      "keyFiles": []
-    },
-    "registry/docs": {
-      "path": "registry/docs",
-      "purpose": "Documentation",
       "fileCount": 1,
-      "lastAccessed": 1778836410851,
-      "keyFiles": [
-        "pipeline.tsv"
-      ]
+      "lastAccessed": 1779762974956,
+      "keyFiles": []
     }
   },
   "hotPaths": [
     {
-      "path": "Cargo.toml",
-      "accessCount": 41,
-      "lastAccessed": 1778842322077,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-application-app/src/lib.rs",
-      "accessCount": 40,
-      "lastAccessed": 1778841982235,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-audit-chain-domain/src/lib.rs",
-      "accessCount": 20,
-      "lastAccessed": 1778841082730,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0083-rust-error-handling-tier-decision.md",
-      "accessCount": 13,
-      "lastAccessed": 1778842297088,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-governance-predictable-naming-kernel/src/lib.rs",
-      "accessCount": 11,
-      "lastAccessed": 1778840026095,
-      "type": "file"
-    },
-    {
-      "path": "specs/markdown-retirement-policy.json",
-      "accessCount": 11,
-      "lastAccessed": 1778842099929,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0107-tools-implicit-app-convention.md",
-      "accessCount": 10,
-      "lastAccessed": 1778841764216,
-      "type": "file"
-    },
-    {
-      "path": "docs/CHANGELOG.md",
-      "accessCount": 8,
-      "lastAccessed": 1778840234675,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-data-boundary-kernel/src/lib.rs",
-      "accessCount": 8,
-      "lastAccessed": 1778843152157,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-governance-adapter-with-no-importer-kernel/src/lib.rs",
-      "accessCount": 7,
-      "lastAccessed": 1778839640122,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md",
+      "path": "crates/oya-check-aspirational-enforcement/src/lib.rs",
       "accessCount": 6,
-      "lastAccessed": 1778839441595,
+      "lastAccessed": 1779763103634,
       "type": "file"
     },
     {
-      "path": "crates/oya-intelligence-capability-domain/src/lib.rs",
-      "accessCount": 5,
-      "lastAccessed": 1778838649946,
-      "type": "file"
-    },
-    {
-      "path": "specs/crate-naming-audit.json",
-      "accessCount": 5,
-      "lastAccessed": 1778838888600,
-      "type": "file"
-    },
-    {
-      "path": "docs/plans/rename-plan-v4-clean-arch-2026-05-13.md",
-      "accessCount": 5,
-      "lastAccessed": 1778840944310,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md",
-      "accessCount": 5,
-      "lastAccessed": 1778841595552,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-usecase/Cargo.toml",
-      "accessCount": 3,
-      "lastAccessed": 1778837130453,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-residency-domain/src/lib.rs",
-      "accessCount": 3,
-      "lastAccessed": 1778838628931,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-intelligence-openapi-domain/src/lib.rs",
-      "accessCount": 3,
-      "lastAccessed": 1778838697361,
-      "type": "file"
-    },
-    {
-      "path": "docs/standards/security-review.md",
-      "accessCount": 3,
-      "lastAccessed": 1778839173051,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md",
-      "accessCount": 3,
-      "lastAccessed": 1778839441303,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-governance-adapter-with-no-importer-kernel/Cargo.toml",
-      "accessCount": 3,
-      "lastAccessed": 1778839626398,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0106-rename-application-to-usecase.md",
-      "accessCount": 3,
-      "lastAccessed": 1778840945214,
-      "type": "file"
-    },
-    {
-      "path": "CLAUDE.md",
-      "accessCount": 3,
-      "lastAccessed": 1778845459820,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-usecase/tests/cloud_billing_event_ingest.rs",
+      "path": "crates/oya-dev-cli/src/aspirational_enforcement_gate.rs",
       "accessCount": 2,
-      "lastAccessed": 1778837131793,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-tax-application/src/lib.rs",
-      "accessCount": 2,
-      "lastAccessed": 1778837845529,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-cell-application/src/lib.rs",
-      "accessCount": 2,
-      "lastAccessed": 1778837846487,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-eventing-application/src/lib.rs",
-      "accessCount": 2,
-      "lastAccessed": 1778837847024,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-metering-application/src/lib.rs",
-      "accessCount": 2,
-      "lastAccessed": 1778837847555,
-      "type": "file"
-    },
-    {
-      "path": "specs/root-hub-pointers.json",
-      "accessCount": 2,
-      "lastAccessed": 1778838172015,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-connect-trust-portal-domain/src/lib.rs",
-      "accessCount": 2,
-      "lastAccessed": 1778838634706,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-intelligence-evidence-domain/src/lib.rs",
-      "accessCount": 2,
-      "lastAccessed": 1778838672018,
-      "type": "file"
-    },
-    {
-      "path": "docs/QA-TEST-STRATEGY.md",
-      "accessCount": 1,
-      "lastAccessed": 1778836830710,
-      "type": "file"
-    },
-    {
-      "path": "docs/runbooks/consent-withdrawal-cascade.md",
-      "accessCount": 1,
-      "lastAccessed": 1778836842723,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-application/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836846528,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-tax-application/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836846971,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-cell-application/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836848046,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-eventing-application/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836848516,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-metering-application/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836849042,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-application/src/lib.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778836850022,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-governance-portfolio-citation-kernel/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836866780,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778836867762,
-      "type": "file"
-    },
-    {
-      "path": "tools/oya-foundry-fitness-portfolio-citation/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836868247,
-      "type": "file"
-    },
-    {
-      "path": "tools/oya-foundry-fitness-portfolio-citation/src/main.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778836868726,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778836891462,
-      "type": "file"
-    },
-    {
-      "path": "tools/oya-foundry-fitness-adapter-with-no-importer/Cargo.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778836998320,
-      "type": "file"
-    },
-    {
-      "path": "tools/oya-foundry-fitness-adapter-with-no-importer/src/main.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778837022750,
-      "type": "file"
-    },
-    {
-      "path": "rust-toolchain.toml",
-      "accessCount": 1,
-      "lastAccessed": 1778837511228,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-cloud-billing-usecase/src/lib.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778837844506,
-      "type": "file"
-    },
-    {
-      "path": "specs/active-machine-readable-artifact-contract.json",
-      "accessCount": 1,
-      "lastAccessed": 1778838133542,
-      "type": "file"
-    },
-    {
-      "path": "docs/standards/observability.md",
-      "accessCount": 1,
-      "lastAccessed": 1778838202432,
+      "lastAccessed": 1779762992877,
       "type": "file"
     }
   ],

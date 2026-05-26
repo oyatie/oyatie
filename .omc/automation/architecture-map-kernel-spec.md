@@ -11,7 +11,7 @@ purpose: |
   (richer service maps via terrastruct/d2), Graphviz (DAG fallback / SVG fidelity).
   Same shape as the existing `oya-foundry-cohesion-fitness-kernel`.
 lift_target: oyatie/docs/automation/architecture-map-kernel-spec.md
-enforced_by: oya-foundry-fitness-architecture-map-freshness
+enforced_by: oya-governance-architecture-map-freshness
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-intelligence-mdbook-kernel
@@ -116,7 +116,7 @@ The kernel emits `mdbook_chapter_markdown` containing all three renders side-by-
 
 Same `ArchitectureSource` → same output bytes. Ordering is canonicalized (BTreeMap/BTreeSet, as in the existing kernels). Cycles in cross-axis contracts return `CycleDetected` to force explicit ADR-tracked resolution.
 
-## 7. Validation lane (`oya-foundry-fitness-architecture-map-freshness`)
+## 7. Validation lane (`oya-governance-architecture-map-freshness`)
 
 1. **Source-up-to-date.** Every workspace crate is represented; orphan crate (in workspace but not in source) → BLOCKER.
 2. **Render-up-to-date.** Committed `docs/site/src/visualization/architecture/*.md` matches re-rendered output (BLOCKER).

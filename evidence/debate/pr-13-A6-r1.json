@@ -16,14 +16,14 @@
       "id": "A6-PR13-01",
       "severity": "CRITICAL",
       "title": "Stale crate references in forbidden-operations.json after archive-orphan retirement",
-      "evidence": "specs/cross-cutting/forbidden-operations.json:26 still lists `oya-foundry-fitness-archive-orphan-kernel` as the enforcer of FO-01 (no parallel canonical trees); line 92 still lists it as the sole enforcer of FO-07 (no editing legacy retired paths). PR-13 removed that crate from Cargo workspace members and deleted its source, leaving FO-07 with a non-existent enforcer and a 'mechanical' mode that no longer fires.",
-      "fix": "Update FO-01.enforcement.enforced_by to drop `oya-foundry-fitness-archive-orphan-kernel`; for FO-07 either replace the enforcer with the Foundry M01-P18 substrate cited in ADR-0118, or flip mode from `mechanical` to `cultural` with an explicit GAP note. Cite ADR-0118 in evidence."
+      "evidence": "specs/cross-cutting/forbidden-operations.json:26 still lists `oya-governance-archive-orphan-kernel` as the enforcer of FO-01 (no parallel canonical trees); line 92 still lists it as the sole enforcer of FO-07 (no editing legacy retired paths). PR-13 removed that crate from Cargo workspace members and deleted its source, leaving FO-07 with a non-existent enforcer and a 'mechanical' mode that no longer fires.",
+      "fix": "Update FO-01.enforcement.enforced_by to drop `oya-governance-archive-orphan-kernel`; for FO-07 either replace the enforcer with the Foundry M01-P18 substrate cited in ADR-0118, or flip mode from `mechanical` to `cultural` with an explicit GAP note. Cite ADR-0118 in evidence."
     },
     {
       "id": "A6-PR13-02",
       "severity": "MAJOR",
       "title": "Stale crate-naming-audit entry references retired runner",
-      "evidence": "specs/cross-cutting/crate-naming-audit.json:108 still enumerates `oya-foundry-fitness-archive-orphan` as a workspace member, but PR-13 dropped both `crates/oya-foundry-fitness-archive-orphan-kernel` and `tools/oya-foundry-fitness-archive-orphan-app` from Cargo.toml. compliance_summary.total_workspace_members (264) and downstream counts are no longer accurate."
+      "evidence": "specs/cross-cutting/crate-naming-audit.json:108 still enumerates `oya-governance-archive-orphan` as a workspace member, but PR-13 dropped both `crates/oya-governance-archive-orphan-kernel` and `tools/oya-governance-archive-orphan-app` from Cargo.toml. compliance_summary.total_workspace_members (264) and downstream counts are no longer accurate."
     },
     {
       "id": "A6-PR13-03",
@@ -35,7 +35,7 @@
       "id": "A6-PR13-04",
       "severity": "MAJOR",
       "title": "Registry catalog YAMLs for retired crates not deleted",
-      "evidence": "User task claims `registry/catalog/oya-foundry-fitness-archive-orphan*.yaml (DELETED)` but `ls registry/catalog/` shows all three (`oya-foundry-fitness-archive-orphan.yaml`, `-app.yaml`, `-kernel.yaml`) still present on disk; no deletion appears in pr-13.diff. The catalog now references crates that no longer exist as workspace members.",
+      "evidence": "User task claims `registry/catalog/oya-governance-archive-orphan*.yaml (DELETED)` but `ls registry/catalog/` shows all three (`oya-governance-archive-orphan.yaml`, `-app.yaml`, `-kernel.yaml`) still present on disk; no deletion appears in pr-13.diff. The catalog now references crates that no longer exist as workspace members.",
       "fix": "Either delete the three YAMLs in a follow-up commit on the same PR branch, or add a `status: retired` block citing ADR-0118 and exclude them from any catalog enumeration."
     },
     {
@@ -55,9 +55,9 @@
   "removed_required_fields": false,
   "closed_enum_violations": [],
   "registry_index_drift": [
-    "registry/catalog/oya-foundry-fitness-archive-orphan.yaml exists but referenced crate removed",
-    "registry/catalog/oya-foundry-fitness-archive-orphan-kernel.yaml exists but referenced crate removed",
-    "registry/catalog/oya-foundry-fitness-archive-orphan-app.yaml exists but referenced crate removed"
+    "registry/catalog/oya-governance-archive-orphan.yaml exists but referenced crate removed",
+    "registry/catalog/oya-governance-archive-orphan-kernel.yaml exists but referenced crate removed",
+    "registry/catalog/oya-governance-archive-orphan-app.yaml exists but referenced crate removed"
   ],
   "summary": "PR-13 retires the archive-orphan lane and removes its crate/source but leaves four downstream surfaces stale: forbidden-operations.json (FO-01, FO-07 enforced_by), crate-naming-audit.json (workspace member list + compliance counts), masterplan.json (IP-008 row), and the three registry/catalog YAMLs. The four spec JSONs themselves retain valid $schema/$id/_meta and closed enums — schema shape is intact, but referential integrity to the new post-retirement state is broken."
 }

@@ -23,7 +23,7 @@
 | Path | What it overrides | Why |
 |---|---|---|
 | `docs/AGENTS.md` | Universal agent doctrine | Adds multispectrum review (v2.4.0), authority chain, Foundry pipeline, RFC-2119 normative language, canonical doc map, P0..P9 principles. Bominal-inheritance precedence per `feedback_bominal_inheritance_precedence`. |
-| `CLAUDE.md` (root) | Project-level rules | Root hub redirect, coordination_surface=foundry_pipeline, retired-tooling ADR-0116 citation, layered substrate-ADR list. Adds inheritance pointer to `tools/agent-skills/`. |
+| `CLAUDE.md` (root) | Project-level rules | Root hub redirect, coordination_surface=governance_pipeline, retired-tooling ADR-0116 citation, layered substrate-ADR list. Adds inheritance pointer to `tools/agent-skills/`. |
 | `/specs/root-hub-pointers.json` | Discovery entry | Machine-readable authority; sits ABOVE `docs/AGENTS.md` in the chain. |
 | `/specs/multispectrum-review.json` | Review rigor | F1..F13 facets + A-family + M1/M2 meta. Oyatie's evidence file is mandatory; upstream `/ship` slash command alone is insufficient. |
 | `tools/hooks/*.sh` | Hook implementation | Encouragement-oriented (exit 0 on rule path); reference vendored skill names via `tools/hooks/_canonical-primitives.md`. Upstream `hooks/` is informational only. |

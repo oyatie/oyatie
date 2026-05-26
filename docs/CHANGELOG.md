@@ -41,21 +41,21 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-16 — archive-orphan lane retired after M01-P18 cutover
 
 - Retired the one-time `archive-orphan` fitness lane after ADR-0116 established the Foundry pipeline (M01-P18) as the canonical VCS substrate.
-- Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.
+- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.
 - Naming justification: `archive-orphan` remains only as a historical lane id because IP-008 used that exact cutover-boundary name.
 
-## 2026-05-15 — Fitness lane `oya-foundry-fitness-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
+## 2026-05-15 — Fitness lane `oya-governance-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
 
 - Added `crates/oya-governance-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-governance-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
 - Kernel exposes `Date`, `SunsetClause`, `LifecycleState` (5 variants: PRE_SUNSET / SUNSET_REACHED / DEPRECATED / REMOVAL_REACHED / MISSING_FIELDS), `Violation`, `evaluate(clauses, now, reached_milestones)`, `effective_deprecation_at`, `effective_removal_at`. Canonical sub-rule defaults: `deprecation_at = sunset_at + 30 days`, `removal_at = effective_deprecation_at + 90 days`. 11 kernel unit tests + 7 dev-CLI tests pass.
 - Workspace members updated (`crates/oya-governance-sunset-lifecycle-kernel`, `tools/oya-governance-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
 - ADR-0108 anchors the machine-readable schema (`sunset_at` OR `sunset_milestone`, plus optional `deprecation_at`, `removal_at`, `sunset_topic`); complements ADR-0037 (runtime-side per-tenant `DeprecationUsed` events) and ADR-0109 (generic lifecycle-automation framework). Scaffold-lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
-## 2026-05-15 — Fitness lane `oya-foundry-fitness-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
+## 2026-05-15 — Fitness lane `oya-governance-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
 
-- Added `crates/oya-governance-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-foundry-fitness-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
+- Added `crates/oya-governance-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-governance-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
 - Kernel exposes `WorkspaceCrate`, `Violation`, `AdapterImporterReport`, and `check`; port-in-kernel per ADR-0056 (filesystem walking lives in the dev-CLI). 8 kernel unit tests + 3 dev-CLI parser tests pass.
-- Workspace members updated (`crates/oya-governance-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
+- Workspace members updated (`crates/oya-governance-adapter-with-no-importer-kernel`, `tools/oya-governance-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
 - Implements ADR-0104 Consequences §4 mechanical-prevention candidate; scaffold lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
@@ -165,7 +165,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-14 — M01-P08-IP-012 authoritative-tracked lane
 
-- Added `oya-governance-authoritative-tracked-kernel` and `tools/oya-foundry-fitness-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
+- Added `oya-governance-authoritative-tracked-kernel` and `tools/oya-governance-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
 - The runner parses the canonical doc map, accepts tracked directories through tracked children, and fails on missing, ignored, or untracked authoritative artifacts.
 - Corrected `docs/AGENTS.md` masterplan authority pointer to current tracked `docs/MASTERPLAN.md` after the lane exposed an untracked future-target pointer.
 - Updated the IP-012 good-taste row with the single typed-list behavior.
@@ -185,7 +185,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-14 — M01-P08-IP-008 archive-orphan lane and Bominal ultragoal archive
 
 - Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
-- Added `oya-foundry-fitness-archive-orphan-kernel` and `tools/oya-foundry-fitness-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.
+- Added `oya-governance-archive-orphan-kernel` and `tools/oya-governance-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.
 - Refined inventory checklist samples so they no longer cite a real archived Bominal runtime path as an active example.
 
 ## 2026-05-12 — Lifted 5 reference docs (deep-dive ×2, hyperscaler, LTS-versions, cutover-amendments) to canonical docs/{specs,research,plans}/ tree
@@ -217,7 +217,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054
-  - Related lanes: oya-foundry-fitness-plan-hierarchy, oya-foundry-fitness-pr-shape, oya-foundry-fitness-capability-publish, oya-foundry-fitness-inventory-tracker, guard-pr-merge-review.mjs
+  - Related lanes: oya-governance-plan-hierarchy, oya-governance-pr-shape, oya-governance-capability-publish, oya-governance-inventory-tracker, guard-pr-merge-review.mjs
   - Commit: Stage-1-Wave-2-templates-checklists
 
 ## 2026-05-12 — Stage 1 Wave 2: automation pipeline + visualization + discipline specs landed (19 files)
@@ -225,7 +225,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - **doc.automation-index** (Tier 2): 19 automation specs lifted from `.omc/automation/` to `docs/automation/`; covers 8 auto-doc-generation pipelines (rustdoc, openapi, adr-index, runbook-freshness, fitness-lane-reports, schema-doc, changelog, glossary), 7 architecture-visualization specs (architecture-map-kernel, product-map, service-map, tech-stack-map, roadmap-visualization, dependency-graph, audit-chain-map), and 3 discipline specs (doc-freshness, orphan-detection, cross-reference-index). Status set to Accepted; `lift_target:` removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file. Kernel crates (architecture-map, doc-freshness, orphan-detection) land in Stage 3.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054
-  - Related lanes: oya-foundry-fitness-doc-freshness, oya-foundry-fitness-orphan-detection, oya-foundry-fitness-cross-reference-index
+  - Related lanes: oya-governance-doc-freshness, oya-governance-orphan-detection, oya-governance-cross-reference-index
   - Commit: Stage-1-Wave-2
 
 ## 2026-05-12 — Stage 1 Wave 3: ai-slop-defense lifted to docs/quality/ai-slop-defense/ (7 files)
@@ -256,7 +256,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - Authored `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md` (Accepted).
 - Fixes the agent-callable coordination/state-transition primitive set at `{grit, icm, oya-tooling-agent-read}`; direct `git`/`gh` permitted only with documented rationale per Directive 12.
-- Historical planned enforcement: `oya-foundry-fitness-banned-primitives` lane was defined for P4/P5 merge-boundary work.
+- Historical planned enforcement: `oya-governance-banned-primitives` lane was defined for P4/P5 merge-boundary work.
 - Consensus reached iter-2 via Planner+Architect+Critic; operational driver: `.omc/plans/ralplan-oyatie-sst-consolidation.md`.
 - Sibling ADRs landing in parallel: ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern).
 
@@ -521,4 +521,4 @@ This is the founding consolidation, authored in one session as the project repos
 
 ---
 
-> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.
+> **§Note (2026-05-21 transition):** References to `oya-governance-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

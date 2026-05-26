@@ -11,7 +11,7 @@
   "meta_review_triggered": true,
   "policy_adherence_triggered": true,
   "scope": [
-    ".github/workflows/oya-foundry-fitness-banned-primitives.yml",
+    ".github/workflows/oya-governance-banned-primitives.yml",
     ".omc/fitness-lanes/INDEX.md",
     ".omc/fitness-lanes/banned-primitives.md",
     ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",

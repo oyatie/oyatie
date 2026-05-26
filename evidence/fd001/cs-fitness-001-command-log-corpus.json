@@ -12,7 +12,7 @@
     "No raw .audit/.omx/home transcript ingestion; CI scans only repo-tracked redacted JSONL fixtures"
   ],
   "changed_files": [
-    ".github/workflows/oya-foundry-fitness-banned-primitives.yml",
+    ".github/workflows/oya-governance-banned-primitives.yml",
     ".omc/fitness-lanes/INDEX.md",
     ".omc/fitness-lanes/banned-primitives.md",
     ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
@@ -123,12 +123,12 @@
       "stdout_ref": "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json::verify"
     },
     {
-      "command": "bin/oya vcs --format json done --agent fd001-command-log --controller-promote --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
+      "command": "bin/oya vcs --format json done --agent fd001-command-log --controller-promote --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
       "status": "accepted",
       "stdout_ref": "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json::done"
     },
     {
-      "command": "bin/oya vcs --format json promote --agent fd001-command-log --bundle cb-cs-fitness-001-command-log-corpus-2026-05-19 --environment ci-preview --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
+      "command": "bin/oya vcs --format json promote --agent fd001-command-log --bundle cb-cs-fitness-001-command-log-corpus-2026-05-19 --environment ci-preview --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-governance-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
       "status": "accepted",
       "stdout_ref": "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json::promote"
     }

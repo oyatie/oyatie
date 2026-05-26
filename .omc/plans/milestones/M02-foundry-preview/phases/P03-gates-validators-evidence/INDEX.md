@@ -28,7 +28,7 @@ Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`]
 3 agents; IP-001/002/003 share zero source files.
 
 ## Symbols-touched
-`scripts/validate-foundry-phase00-evidence.mjs`, `crates/oya-foundry-fitness-{claim-ceiling,authority-cohesion,bypass,pr-traceability,pre-push,quality-lane,cohesion-fitness}-kernel`.
+`scripts/validate-foundry-phase00-evidence.mjs`, `crates/oya-governance-{claim-ceiling,authority-cohesion,bypass,pr-traceability,pre-push,quality-lane,cohesion-fitness}-kernel`.
 
 ## Agent-handoff
 ```

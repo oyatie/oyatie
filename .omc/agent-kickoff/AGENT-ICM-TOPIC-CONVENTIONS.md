@@ -18,7 +18,7 @@ related:
 
 # ICM Topic Conventions
 
-> Canonical topics only. Unknown topics break `icm health` and lane `oya-foundry-fitness-icm-topic-hygiene`. Importance ladder: `critical` > `high` > `medium` > `low`.
+> Canonical topics only. Unknown topics break `icm health` and lane `oya-governance-icm-topic-hygiene`. Importance ladder: `critical` > `high` > `medium` > `low`.
 
 ## Canonical topics
 
@@ -46,7 +46,7 @@ Always include: (a) the area/crate/module (e.g. `oya-platform-tenant-kernel`, `f
 
 ## What NOT to store
 
-Trivial details, info already in CLAUDE.md, ephemeral state (build logs, `git status`), secrets, PII, full file contents, raw stack traces (summarize), copies of other ICM rows. Lane: `oya-foundry-fitness-icm-payload-hygiene`.
+Trivial details, info already in CLAUDE.md, ephemeral state (build logs, `git status`), secrets, PII, full file contents, raw stack traces (summarize), copies of other ICM rows. Lane: `oya-governance-icm-payload-hygiene`.
 
 ## Authority
 
