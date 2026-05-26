@@ -290,7 +290,7 @@ mod tests {
     #[test]
     fn fully_labelled_workload_passes() {
         let manifest = render(
-            "microservices/foundry/iac/helm/foundry/deployment.yaml",
+            "microservices/intelligence/iac/helm/foundry/deployment.yaml",
             "foundry",
             r#"---
 apiVersion: apps/v1

@@ -654,7 +654,7 @@ The pack default is to apply the most protective triggered state duty unless a n
 - STATE-XREF-007: `specs/microservices/governance.json` is the likely home for authority resolution and regulator export.
 - STATE-XREF-008: `specs/microservices/audit-chain` registry entries are future hosts for state privacy events.
 - STATE-XREF-009: `specs/microservices/anonymous.json` is a likely host for de-identification and anonymization workflows.
-- STATE-XREF-010: `specs/microservices/foundry.json` is a likely host for compliance evidence build workflows.
+- STATE-XREF-010: `specs/microservices/intelligence.json` is a likely host for compliance evidence build workflows.
 - STATE-XREF-011: `registry/catalog/oya-check-data-class.yaml` is a future state sensitive-category gate.
 - STATE-XREF-012: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future state evidence completeness gate.
 - STATE-XREF-013: `registry/catalog/oya-check-cedar-fragment-coverage.yaml` is a future Cedar coverage gate.

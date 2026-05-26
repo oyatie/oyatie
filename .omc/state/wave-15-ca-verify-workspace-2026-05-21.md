@@ -250,6 +250,6 @@ No code modifications were made. No `cargo` builds were run. No Cargo.toml depen
 - `docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md` — foundry retirement
 - `specs/crate-naming-audit.json` — per-crate ground truth
 - `microservices/connect/RETIREMENT-PLAN.md` — connect umbrella retirement criteria
-- `microservices/foundry/RETIRED.md`, `microservices/cell/RETIRED.md` — retirement markers
+- `microservices/intelligence/RETIRED.md`, `microservices/cell/RETIRED.md` — retirement markers
 - Companion: `/Users/jasonlee/oyatie/.omc/state/wave-15-ca-verify-2026-05-21.md` — flat-layout surface (22 µservices)
 - CLAUDE.md memory: `feedback_layer_enum_adr_0105_13_canonical`, `feedback_cell_standalone_network_merges_community_2026_05_21`, `new_governance_lane_prefix: oya-governance-* (per ADR-0132)`

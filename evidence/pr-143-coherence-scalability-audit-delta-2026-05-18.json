@@ -136,9 +136,9 @@
       "high": [
         {
           "type": "documentation-contradicts-canonical-ADR",
-          "location": "microservices/foundry/bc-sources/eval/PRD.md (line 357), microservices/foundry/bc-sources/eval/failure-modes.md (line 51)",
+          "location": "microservices/intelligence/bc-sources/eval/PRD.md (line 357), microservices/intelligence/bc-sources/eval/failure-modes.md (line 51)",
           "issue": "References Cluster Autoscaler for GPU pool scaling; ADR-0198 canonical autoscaler is Karpenter",
-          "v3_audit_gap": "v3 audit's inline-fix landed microservices/cloud-k8s/* but did NOT sweep microservices/foundry/bc-sources/eval/* — the bc-sources archive was treated as historical-only despite being authoritative per-BC documentation per ADR-0136 §Decision",
+          "v3_audit_gap": "v3 audit's inline-fix landed microservices/cloud-k8s/* but did NOT sweep microservices/intelligence/bc-sources/eval/* — the bc-sources archive was treated as historical-only despite being authoritative per-BC documentation per ADR-0136 §Decision",
           "severity": "high",
           "inline_fix_applied": true
         }
@@ -175,7 +175,7 @@
         },
         {
           "check": "Foundry consolidated to 1 µservice with 6 BCs per ADR-0136",
-          "verdict": "PASS — microservices/foundry-* legacy dirs absent (§Verification line 372); bc-sources/ contains all 6 archives"
+          "verdict": "PASS — microservices/intelligence-* legacy dirs absent (§Verification line 372); bc-sources/ contains all 6 archives"
         },
         {
           "check": "Workflow Studio canvas integration per ADR-0204 (svelte-flow Phase 1, oya-canvas Phase 2)",
@@ -223,12 +223,12 @@
       "lines_changed": "1 line replaced with 20-line array"
     },
     {
-      "file": "microservices/foundry/bc-sources/eval/PRD.md",
+      "file": "microservices/intelligence/bc-sources/eval/PRD.md",
       "change": "Line 357: 'cluster-autoscaler-managed' → 'Karpenter-managed' per ADR-0198",
       "lines_changed": "1 line"
     },
     {
-      "file": "microservices/foundry/bc-sources/eval/failure-modes.md",
+      "file": "microservices/intelligence/bc-sources/eval/failure-modes.md",
       "change": "Line 51: 'cluster-autoscaler nudge' → 'Karpenter NodeClaim nudge' per ADR-0198",
       "lines_changed": "1 line"
     }
@@ -266,8 +266,8 @@
     "files_changed_list": [
       "microservices/workflow-studio/manifest.json",
       "microservices/workflow-engine/manifest.json",
-      "microservices/foundry/bc-sources/eval/PRD.md",
-      "microservices/foundry/bc-sources/eval/failure-modes.md"
+      "microservices/intelligence/bc-sources/eval/PRD.md",
+      "microservices/intelligence/bc-sources/eval/failure-modes.md"
     ],
     "new_files_emitted": [
       "evidence/pr-143-coherence-scalability-audit-delta-2026-05-18.json (this file)",
@@ -291,7 +291,7 @@
       "Push back when warranted — pushed back on the audit prompt's stale premises (33 µservices, 50+ ADRs, parallel COHERENCE-AUDIT per µservice file); applied user's confirmed bound (3 files in evidence/, 0 per-µservice files, ≤6 inline fixes)",
       "Enforce simplicity — output is 3 structured JSON files with scannable matrix sections; no markdown narrative beyond this report's prose; per-µservice findings cross-walked into a single sparse matrix not 35 parallel files",
       "Maintain scope discipline — audited existing artifacts; authored NO new substrate; the 2 manifest fixes + 2 doc fixes are inline-fix-budget consumption, not new substrate",
-      "Verify don't assume — retracted the ADR-0136-verification-failure finding mid-audit when re-running revealed microservices/foundry-* matches were a python script error-suppression artifact; honest-reporting per the audit's own rule",
+      "Verify don't assume — retracted the ADR-0136-verification-failure finding mid-audit when re-running revealed microservices/intelligence-* matches were a python script error-suppression artifact; honest-reporting per the audit's own rule",
       "doubt-driven-development — every HARD claim spot-checked twice (grep + python load + cross-ref to v3 audit baseline) before being written; cargo build verified before report emission"
     ],
     "no_silent_choices": true,

@@ -112,7 +112,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 9. docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/README.md
 10. microservices/workflow-studio/migration-playbooks/from-n8n.md
 11. microservices/messenger/migration-playbooks/from-slack.md
-12. microservices/foundry/migration-playbooks/from-github-merge-queue-and-bors.md
+12. microservices/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 13. docs/standards/prfaq-template.md
 14. docs/products/erp-coverage/PRD.md
 15. specs/masterplan.json
@@ -482,7 +482,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-011 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-012: pricing package guardrail
-- Read: microservices/foundry/migration-playbooks/from-github-merge-queue-and-bors.md
+- Read: microservices/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 - Connects to: persona x journey x microservice coverage model
 - Build or inspect: a minimal artifact that proves pricing package guardrail without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for pricing package guardrail.
@@ -632,7 +632,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-026 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-027: first-action activation
-- Read: microservices/foundry/migration-playbooks/from-github-merge-queue-and-bors.md
+- Read: microservices/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 - Connects to: UX shell manifest and localization obligations
 - Build or inspect: a minimal artifact that proves first-action activation without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for first-action activation.
@@ -782,7 +782,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-041 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-042: workflow template coverage
-- Read: microservices/foundry/migration-playbooks/from-github-merge-queue-and-bors.md
+- Read: microservices/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 - Connects to: persona x journey x microservice coverage model
 - Build or inspect: a minimal artifact that proves workflow template coverage without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for workflow template coverage.
@@ -932,7 +932,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-056 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-057: migration acceptance criteria
-- Read: microservices/foundry/migration-playbooks/from-github-merge-queue-and-bors.md
+- Read: microservices/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 - Connects to: UX shell manifest and localization obligations
 - Build or inspect: a minimal artifact that proves migration acceptance criteria without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for migration acceptance criteria.
@@ -1082,7 +1082,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-071 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-072: roadmap dependency ordering
-- Read: microservices/foundry/migration-playbooks/from-github-merge-queue-and-bors.md
+- Read: microservices/intelligence/migration-playbooks/from-github-merge-queue-and-bors.md
 - Connects to: persona x journey x microservice coverage model
 - Build or inspect: a minimal artifact that proves roadmap dependency ordering without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for roadmap dependency ordering.

@@ -288,7 +288,7 @@ Apply throughout: /using-agent-skills + /doubt-driven-development +
 Canonical primitives (verify current state against `feedback_oya_git_canonical_2026_05_18`):
 - VCS: `oya git <verb>` (formerly `oya vcs`) — drop-in for git + ledger emission
 - Contracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3
-- AI: `microservices/intelligence/` (consumer) + `microservices/foundry/` (internal Hermes)
+- AI: `microservices/intelligence/` (consumer) + `microservices/intelligence/` (internal Hermes)
 - Taxonomy: plugin-app-store ≠ marketplace ≠ community (3 distinct µservices)
 - Glossary: `governance` not `fitness` (NEW lanes use `oya-governance-*`)
 - Substrate: SeaweedFS/OpenBao/Valkey 8.1/OpenTofu/Kyverno/Karpenter/Cloud Hypervisor

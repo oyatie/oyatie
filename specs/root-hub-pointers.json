@@ -601,13 +601,13 @@
       "absorbed_by": "intelligence",
       "absorbing_prd_pointer": "prd_intelligence",
       "absorbing_manifest": "/microservices/intelligence/manifest.json",
-      "retirement_marker": "/microservices/foundry/RETIRED.md",
-      "current_path": "/specs/microservices/foundry.json",
+      "retirement_marker": "/microservices/intelligence/RETIRED.md",
+      "current_path": "/specs/microservices/intelligence.json",
       "current_path_status": "retirement_marker_only",
-      "target_path_after_md_retirement": "/microservices/foundry/RETIRED.md",
+      "target_path_after_md_retirement": "/microservices/intelligence/RETIRED.md",
       "migration_phase": "retired",
       "do_not_treat_as_live_authority": true,
-      "purpose": "RETIRED — foundry µservice was absorbed into the intelligence µservice per ADR-0335 (Wave 15I) executing ADR-0255 KS#14 two-layer intelligence substrate. AI substrate concerns now live under intelligence; self-modification runs as oyatie.foundry.* Cedar principals per ADR-0247. Cite microservices/intelligence/manifest.json for live AI substrate authority; cite ADR-0335 for the retirement decision; cite microservices/foundry/RETIRED.md for the redirect marker."
+      "purpose": "RETIRED — foundry µservice was absorbed into the intelligence µservice per ADR-0335 (Wave 15I) executing ADR-0255 KS#14 two-layer intelligence substrate. AI substrate concerns now live under intelligence; self-modification runs as oyatie.foundry.* Cedar principals per ADR-0247. Cite microservices/intelligence/manifest.json for live AI substrate authority; cite ADR-0335 for the retirement decision; cite microservices/intelligence/RETIRED.md for the redirect marker."
     },
     "prd_manifest-schema": {
       "kind": "prd",

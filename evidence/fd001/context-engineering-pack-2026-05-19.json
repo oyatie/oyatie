@@ -103,14 +103,14 @@
       {
         "lane": "foundry",
         "paths": [
-          "microservices/foundry/manifest.json",
-          "microservices/foundry/PRD.md",
-          "microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md",
-          "microservices/foundry/contracts/openapi/*.yaml",
-          "microservices/foundry/contracts/asyncapi/*.yaml",
-          "microservices/foundry/contracts/proto/*.proto",
-          "microservices/foundry/bc-sources/*/PRD.md",
-          "microservices/foundry/bc-sources/*/PHASE-*.md"
+          "microservices/intelligence/manifest.json",
+          "microservices/intelligence/PRD.md",
+          "microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md",
+          "microservices/intelligence/contracts/openapi/*.yaml",
+          "microservices/intelligence/contracts/asyncapi/*.yaml",
+          "microservices/intelligence/contracts/proto/*.proto",
+          "microservices/intelligence/bc-sources/*/PRD.md",
+          "microservices/intelligence/bc-sources/*/PHASE-*.md"
         ]
       },
       {
@@ -407,7 +407,7 @@
         },
         {
           "surface": "foundry",
-          "manifest": "microservices/foundry/manifest.json",
+          "manifest": "microservices/intelligence/manifest.json",
           "exists": true,
           "owner": "axis-foundry",
           "bounded_context_count": 6,
@@ -432,28 +432,28 @@
           },
           "contract_paths": {
             "openapi": [
-              "microservices/foundry/contracts/openapi/eval-eval-runner.yaml",
-              "microservices/foundry/contracts/openapi/evidence-foundry-evidence.yaml",
-              "microservices/foundry/contracts/openapi/guardrails-guardrails.yaml",
-              "microservices/foundry/contracts/openapi/providers-provider-router.yaml",
-              "microservices/foundry/contracts/openapi/runtime-foundry-runtime.yaml",
-              "microservices/foundry/contracts/openapi/supervisor-foundry-supervisor.yaml"
+              "microservices/intelligence/contracts/openapi/eval-eval-runner.yaml",
+              "microservices/intelligence/contracts/openapi/evidence-foundry-evidence.yaml",
+              "microservices/intelligence/contracts/openapi/guardrails-guardrails.yaml",
+              "microservices/intelligence/contracts/openapi/providers-provider-router.yaml",
+              "microservices/intelligence/contracts/openapi/runtime-foundry-runtime.yaml",
+              "microservices/intelligence/contracts/openapi/supervisor-foundry-supervisor.yaml"
             ],
             "asyncapi": [
-              "microservices/foundry/contracts/asyncapi/eval-eval-events.yaml",
-              "microservices/foundry/contracts/asyncapi/evidence-foundry-evidence-events.yaml",
-              "microservices/foundry/contracts/asyncapi/guardrails-decision-events.yaml",
-              "microservices/foundry/contracts/asyncapi/providers-provider-events.yaml",
-              "microservices/foundry/contracts/asyncapi/runtime-foundry-runtime-events.yaml",
-              "microservices/foundry/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml"
+              "microservices/intelligence/contracts/asyncapi/eval-eval-events.yaml",
+              "microservices/intelligence/contracts/asyncapi/evidence-foundry-evidence-events.yaml",
+              "microservices/intelligence/contracts/asyncapi/guardrails-decision-events.yaml",
+              "microservices/intelligence/contracts/asyncapi/providers-provider-events.yaml",
+              "microservices/intelligence/contracts/asyncapi/runtime-foundry-runtime-events.yaml",
+              "microservices/intelligence/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml"
             ],
             "proto": [
-              "microservices/foundry/contracts/proto/eval-eval_runner.proto",
-              "microservices/foundry/contracts/proto/evidence-foundry-evidence.proto",
-              "microservices/foundry/contracts/proto/guardrails-guardrails.proto",
-              "microservices/foundry/contracts/proto/providers-provider-invoke.proto",
-              "microservices/foundry/contracts/proto/runtime-foundry-runtime.proto",
-              "microservices/foundry/contracts/proto/supervisor-foundry-supervisor.proto"
+              "microservices/intelligence/contracts/proto/eval-eval_runner.proto",
+              "microservices/intelligence/contracts/proto/evidence-foundry-evidence.proto",
+              "microservices/intelligence/contracts/proto/guardrails-guardrails.proto",
+              "microservices/intelligence/contracts/proto/providers-provider-invoke.proto",
+              "microservices/intelligence/contracts/proto/runtime-foundry-runtime.proto",
+              "microservices/intelligence/contracts/proto/supervisor-foundry-supervisor.proto"
             ]
           },
           "first_bounded_contexts": [

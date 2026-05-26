@@ -227,12 +227,12 @@ brief-template.md amendments:
 - Batch 3.1: identity · tenancy · audit-chain · governance · compliance · observability · payments · finops-portal
 - Batch 3.2: api-gateway · application · developer-sdk · network · cell · (3 carry-over slots)
 
-  *(foundry intentionally EXCLUDED from Phase 1 — absorbed by Phase 2 per ADR-0255-amendment + ADR-0247. The `microservices/foundry/` path will be audited in a special-case Phase 2 batch + queued for retirement in Wave 15+.)*
+  *(foundry intentionally EXCLUDED from Phase 1 — absorbed by Phase 2 per ADR-0255-amendment + ADR-0247. The `microservices/intelligence/` path will be audited in a special-case Phase 2 batch + queued for retirement in Wave 15+.)*
 
 **Wave 4 — Phase 2 core capability (Batch 4.1):**
 - Batch 4.1: intelligence · ontology · workflow-engine · workflow-studio · consent-graph · detection · **foundry (special-case absorption audit — what to retain/migrate/retire)** · (1 carry-over slot)
 
-  *(foundry's audit in Batch 4.1 has an EXTRA dimension: identify what in `microservices/foundry/` should migrate to which absorbing µservice — LLM-binding capability → intelligence; workflow templates → workflow-studio; agent state schemas → ontology; Cedar principal definitions → governance+tenancy; the rest → retirement queue.)*
+  *(foundry's audit in Batch 4.1 has an EXTRA dimension: identify what in `microservices/intelligence/` should migrate to which absorbing µservice — LLM-binding capability → intelligence; workflow templates → workflow-studio; agent state schemas → ontology; Cedar principal definitions → governance+tenancy; the rest → retirement queue.)*
 
 **Wave 5-7 — Phase 3 comms+collab (Batches 5.1-7.3):**
 - Batch 5.1: messenger · mail · drive · calendar · meet · recordings · notes · connect
@@ -317,11 +317,11 @@ Per audit findings + Big 8 priority. Sub-wave structure per category:
 **Wave 15G — ADR-0321 cleanup** (de-dupe + reorder + Big 8 dossier substance deepening)
 **Wave 15H — P2/P3 cross-ref breaks + cosmetic**
 **Wave 15I — foundry retirement + canonical-primitives Hermes-drop** — per the special-case Phase 2 audit (Batch 4.1):
-  - Migrate `microservices/foundry/` LLM-binding artifacts → `microservices/intelligence/`
+  - Migrate `microservices/intelligence/` LLM-binding artifacts → `microservices/intelligence/`
   - Migrate foundry workflow templates → `registry/workflow-templates/` + `microservices/workflow-studio/`
   - Migrate foundry agent-state schemas → `microservices/ontology/`
   - Migrate `oyatie.foundry.*` Cedar principal definitions → `microservices/governance/` + `microservices/tenancy/`
-  - Retire `microservices/foundry/` per ADR-0138 six-path-deprecation pattern (sunset → deprecation → removal)
+  - Retire `microservices/intelligence/` per ADR-0138 six-path-deprecation pattern (sunset → deprecation → removal)
   - Update `tools/hooks/_canonical-primitives.md` to DROP the Hermes reference + replace with current foundry-as-capability framing
   - Author ADR-0329 codifying the foundry-as-capability vs foundry-as-µservice distinction
 

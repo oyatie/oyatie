@@ -527,7 +527,7 @@ CEDAR-SB-080. Preserve auditability of every policy decision.
 ## Extended Worked Example: Tenant-Scoped Capability Policy
 
 ```cedar
-// File: microservices/foundry/policy/provider-invocation.cedar
+// File: microservices/intelligence/policy/provider-invocation.cedar
 permit(
   principal in Tenant::"tenant_01",
   action == Action::"foundry.provider.invoke.t2",

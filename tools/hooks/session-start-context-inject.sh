@@ -26,7 +26,7 @@ else
     echo "VCS:       oya git <git-subcommand> is the cutover target; current policy ratchet remains oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote>"
     echo "VCS policy: Oya VCS state transitions plus oya git drop-in; ADR-0116 owns the transition boundary"
     echo "Contracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3"
-    echo "AI:        microservices/intelligence/ (consumer) | microservices/foundry/ (internal)"
+    echo "AI:        microservices/intelligence/ (consumer) | microservices/intelligence/ (internal)"
     echo "Taxonomy:  plugin-app-store / marketplace / community — 3 distinct µservices"
     echo "Quality:   100+ artifacts per µservice (ADR-0212)"
     echo ""

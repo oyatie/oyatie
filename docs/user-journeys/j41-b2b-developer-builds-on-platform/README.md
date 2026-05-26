@@ -58,7 +58,7 @@ Purpose: Index and build contract for B2B developer builds on the platform throu
 - ../../microservices/workflow-engine/IP-journey-j41-deployment-workflow.md: workflow-engine implementation slice.
 - ../../microservices/identity/IP-journey-j41-developer-principal.md: identity implementation slice.
 - ../../microservices/observability/IP-journey-j41-release-telemetry.md: observability implementation slice.
-- ../../microservices/foundry/IP-journey-j41-prod-rollout-gate.md: foundry implementation slice.
+- ../../microservices/intelligence/IP-journey-j41-prod-rollout-gate.md: foundry implementation slice.
 ## Integration points
 - developer-sdk: sandbox-deploy; emits audit, metrics, logs, and traces per ADR-0263.
 - workflow-engine: deployment-workflow; emits audit, metrics, logs, and traces per ADR-0263.

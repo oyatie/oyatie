@@ -13,8 +13,8 @@ activation_claim: not-active
 - docs/localization-packs/kr.md
 - docs/localization-packs/kr/pack.yaml
 - docs/localization-packs/kr/corpus.lock
-- microservices/foundry/manifest.json
-- microservices/foundry/PRD.md
+- microservices/intelligence/manifest.json
+- microservices/intelligence/PRD.md
 - Foundry manifest and PRD define the automation and evidence surface.
 - KR corpus lock defines source-family ownership and claim controls.
 

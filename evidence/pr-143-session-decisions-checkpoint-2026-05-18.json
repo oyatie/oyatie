@@ -11,7 +11,7 @@
     "ADR-0136-amendment": {
       "title": "Foundry scope clarification — INTERNAL only",
       "amends": "ADR-0136 (Foundry consolidation 6→1)",
-      "decision": "Foundry µservice (microservices/foundry/) is INTERNAL ONLY — Hermes agentic dev toolchain, CI/CD orchestration, internal eval, internal evidence collection. NOT consumer-facing. Consumer AI = separate µservice microservices/intelligence/ per ADR-0220.",
+      "decision": "Foundry µservice (microservices/intelligence/) is INTERNAL ONLY — Hermes agentic dev toolchain, CI/CD orchestration, internal eval, internal evidence collection. NOT consumer-facing. Consumer AI = separate µservice microservices/intelligence/ per ADR-0220.",
       "rationale": "User directive 2026-05-18: 'Foundry is internal tool. oyatie intelligence + ontology + workflow is consumer facing.' Past session work incorrectly framed Foundry agents as consumer-facing (e.g., 'Foundry-powered 1:1 prep AI'). Those references corrected to 'oyatie intelligence' in this amendment.",
       "impacts": [
         "Past references to 'Foundry agents for HR Q&A / 1:1 prep / management-cockpit insights' → corrected to 'oyatie intelligence'",
@@ -185,7 +185,7 @@
 
     "ADR-0220": {
       "title": "Consumer Intelligence Substrate (microservices/intelligence/)",
-      "decision_summary": "microservices/intelligence/ is the CONSUMER-FACING AI substrate (B2B tenants + B2C personal users), distinct from microservices/foundry/ which is INTERNAL ONLY (Hermes agentic dev pipeline). Brand label shown to users: 'oyatie intelligence' — similar to Apple Intelligence / Microsoft Copilot / Google AI / WeChat super-app AI. Lives WITHIN every consumer product (Workflow Studio, HR, Payroll, Connect family, marketplace, etc.) as the AI surface backed by this µservice.",
+      "decision_summary": "microservices/intelligence/ is the CONSUMER-FACING AI substrate (B2B tenants + B2C personal users), distinct from microservices/intelligence/ which is INTERNAL ONLY (Hermes agentic dev pipeline). Brand label shown to users: 'oyatie intelligence' — similar to Apple Intelligence / Microsoft Copilot / Google AI / WeChat super-app AI. Lives WITHIN every consumer product (Workflow Studio, HR, Payroll, Connect family, marketplace, etc.) as the AI surface backed by this µservice.",
       "ownership": [
         "Per-tenant AI context/memory/preferences",
         "Per-user prompt history",
@@ -249,7 +249,7 @@
     "multi_context_platform": "One principal, many data contexts (work/personal/healthcare/etc.). Cross-context bridges via consent-graph only.",
     "ecosystem_as_a_service": "Plugin-app-store + developer-sdk = third-party developer ecosystem. consent-graph cross-tenant visibility = supply chain moat.",
     "vertical_slice_rollout": "Plan all in PR-143; ship one vertical at a time. Depth over breadth.",
-    "foundry_internal_intelligence_consumer": "microservices/foundry/ = internal Hermes dev pipeline. microservices/intelligence/ = consumer AI brand surface.",
+    "foundry_internal_intelligence_consumer": "microservices/intelligence/ = internal Hermes dev pipeline. microservices/intelligence/ = consumer AI brand surface.",
     "taxonomy_corrections": {
       "plugin_app_store": "Third-party developer plugins/apps catalog (renamed from ecosystem-marketplace)",
       "marketplace": "B2C commerce — Amazon/Shopify class (separate µservice)",

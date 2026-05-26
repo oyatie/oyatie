@@ -229,8 +229,8 @@
         "docs/localization-packs/kr.md",
         "docs/localization-packs/kr/pack.yaml",
         "docs/localization-packs/kr/corpus.lock",
-        "microservices/foundry/manifest.json",
-        "microservices/foundry/PRD.md"
+        "microservices/intelligence/manifest.json",
+        "microservices/intelligence/PRD.md"
       ],
       "surface": "foundry"
     },

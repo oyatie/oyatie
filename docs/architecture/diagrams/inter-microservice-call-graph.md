@@ -388,7 +388,7 @@ graph LR
 - Service: [microservices/financial-planning/](../../../microservices/financial-planning/)
 - Service: [microservices/finops-portal/](../../../microservices/finops-portal/)
 - Service: [microservices/forms/](../../../microservices/forms/)
-- Service: [microservices/foundry/](../../../microservices/foundry/)
+- Service: [microservices/intelligence/](../../../microservices/intelligence/)
 - Service: [microservices/global-trade/](../../../microservices/global-trade/)
 - Service: [microservices/governance/](../../../microservices/governance/)
 - Service: [microservices/healthcare-integration/](../../../microservices/healthcare-integration/)

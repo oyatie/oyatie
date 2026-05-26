@@ -61,7 +61,7 @@ Per-µservice Helm templates reference these fragments via Kustomize component c
 
 These are the µservice × pack pairs that ship Tier-3 waypoint enforcement at PR #143 landing:
 
-- `microservices/foundry` + `pack-eu`: Annex III §4 high-risk-request routing; rejected requests get DSA-compliant transparency response shaped at waypoint.
+- `microservices/intelligence` + `pack-eu`: Annex III §4 high-risk-request routing; rejected requests get DSA-compliant transparency response shaped at waypoint.
 - `microservices/tasks` + `pack-eu` / `pack-kr`: employment-context auto-assign refusal at L7 (Cedar denies; waypoint shapes response with GDPR Art. 22 right-to-human-review).
 - `microservices/mail` + `pack-eu` / `pack-kr`: KR PIPA Art. 17 cross-border egress check at L7 envelope.
 - `microservices/recordings` + `pack-us-healthcare`: HIPAA minimum-necessary egress shaping (PHI scrub for non-authorized callers).

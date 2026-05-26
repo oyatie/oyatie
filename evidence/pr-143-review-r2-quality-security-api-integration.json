@@ -52,11 +52,11 @@
         "round1_state": "Drift: 5 of 8 foundry openapi files were 3.1.0 vs 3.2.0; asyncapi 2.6.0 / 3.0.0 / 3.1.0 mix (full major skew)",
         "round2_state": "All foundry openapi files at 3.2.0; all asyncapi at 3.1.0",
         "status": "green",
-        "evidence": "grep '^openapi:' microservices/foundry/contracts/openapi/*.yaml | sort -u → 'openapi: 3.2.0' only; grep '^asyncapi:' microservices/foundry/contracts/asyncapi/*.yaml | sort -u → 'asyncapi: 3.1.0' only"
+        "evidence": "grep '^openapi:' microservices/intelligence/contracts/openapi/*.yaml | sort -u → 'openapi: 3.2.0' only; grep '^asyncapi:' microservices/intelligence/contracts/asyncapi/*.yaml | sort -u → 'asyncapi: 3.1.0' only"
       },
       "M1_adr_xxxx_placeholders": {
         "round1_state": "47 ADR-XXXX/ADR-NNNN survivors across PRD.md + runbooks + sdk-plan.md + decisions/README.md",
-        "round2_state": "2 remaining — both reference Bominal ADRs (microservices/foundry/dpia.md and microservices/foundry/compliance.md cite 'Bominal ADR-NNN'). These are cross-codebase Bominal references, not oyatie-side placeholders.",
+        "round2_state": "2 remaining — both reference Bominal ADRs (microservices/intelligence/dpia.md and microservices/intelligence/compliance.md cite 'Bominal ADR-NNN'). These are cross-codebase Bominal references, not oyatie-side placeholders.",
         "status": "green",
         "caveat": "If Bominal-style 'Bominal ADR-NNN' citation is permissible (cross-codebase reference), this is green. If the placeholder lane regex catches these, file a follow-up IP to replace with concrete Bominal ADR ids."
       },
@@ -64,7 +64,7 @@
         "round1_state": "Only 4 SLOs covered runtime BC; supervisor/eval/evidence/guardrails/providers had none.",
         "round2_state": "14 .openslo.yaml files spanning all 5 BCs (eval × 2, evidence × 2, guardrails × 2, providers × 4, runtime × 4)",
         "status": "green",
-        "evidence": "find microservices/foundry/slos -name '*.openslo.yaml' | wc -l → 14; per-BC verified via filename prefixes"
+        "evidence": "find microservices/intelligence/slos -name '*.openslo.yaml' | wc -l → 14; per-BC verified via filename prefixes"
       },
       "M3_four_window_burn_rate_canonical": {
         "round1_state": "PrometheusRule files lacked 4-window burn-rate (canonical Google SRE MWMBR)",
@@ -213,7 +213,7 @@
         "files_sampled": [
           "microservices/tasks/contracts/openapi/tasks.yaml",
           "microservices/messenger/contracts/openapi/messenger.yaml",
-          "microservices/foundry/contracts/openapi/runtime-capability-dispatch.yaml",
+          "microservices/intelligence/contracts/openapi/runtime-capability-dispatch.yaml",
           "microservices/meet/contracts/openapi/meet.yaml",
           "microservices/recordings/contracts/openapi/recordings.yaml"
         ]
