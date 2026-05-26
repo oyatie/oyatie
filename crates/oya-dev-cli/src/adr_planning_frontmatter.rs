@@ -62,7 +62,8 @@ pub(crate) fn read_planning_impact_adrs(decisions_dir: &Path) -> Result<Vec<Plan
     })?;
     let mut paths: Vec<std::path::PathBuf> = Vec::new();
     for entry in entries {
-        let entry = entry.map_err(|error| format!("ADR decisions dir entry unreadable: {error}"))?;
+        let entry =
+            entry.map_err(|error| format!("ADR decisions dir entry unreadable: {error}"))?;
         let path = entry.path();
         let is_adr = path
             .file_name()
@@ -331,7 +332,10 @@ purpose: do the thing
         assert_eq!(deliverables.len(), 2);
         assert_eq!(deliverables[0].id, "ADR-0364-D1");
         assert_eq!(deliverables[0].description, "the contract");
-        assert_eq!(deliverables[1].verified_by, "oya gate validate adr-planning-completeness");
+        assert_eq!(
+            deliverables[1].verified_by,
+            "oya gate validate adr-planning-completeness"
+        );
     }
 
     #[test]
