@@ -1,0 +1,118 @@
+// Oyatie LLM Gateway µservice — admin/internal gRPC contract.
+//
+// Design + research grounding: microservices/llm-gateway/PRD.md §4 and
+// microservices/llm-gateway/design/hyperscaler-best-practice-brief.md.
+// This is the ADMIN/INTERNAL control-plane surface (the data plane is the
+// OpenAI-compatible REST surface in llm-gateway.openapi.yaml). It mirrors the
+// admin operations in the OpenAPI `admin` tag: pool status + key refresh.
+//
+// Authority: ADR-0090 (hyper backbone), ADR-0105 (layered kernel/rest),
+// ADR-0145 inter-µservice communication, ADR-0373 (key-pool resilience).
+//
+// The field shapes mirror the IMPLEMENTED pure kernel
+// (crates/oya-llm-gateway-kernel/src/lib.rs): ProviderChannel enum, the
+// active/blacklisted KeyState with a cooldown-until timestamp, KeyPool::active_count,
+// and the hash-only KeyFingerprint. No raw key material is ever carried on the wire
+// (brief §5 — keys appear only as fingerprints).
+
+syntax = "proto3";
+
+package oyatie.llm_gateway.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/oyatie/llm-gateway-sdk-go/v1;llmgatewayv1";
+option java_multiple_files = true;
+option java_package = "co.oyatie.llm_gateway.v1";
+
+// Control-plane service — admin realm only. Authorization is enforced by the
+// adminBearer realm (constant-time token) + Cedar (policy/llm-gateway.cedar).
+service LlmGatewayAdmin {
+  // Report key-pool health across all provider channels.
+  rpc PoolStatus(PoolStatusRequest) returns (PoolStatusResponse);
+
+  // Force an out-of-band key-pool refresh from OpenBao for one provider.
+  // Idempotent. Never reads keys from disk/env (brief §5, §7).
+  rpc KeyRefresh(KeyRefreshRequest) returns (KeyRefreshResponse);
+}
+
+// === Common ===
+
+message RequestMeta {
+  string x_request_id = 1;     // uuid; trace correlation + audit envelope correlationId
+  string idempotency_key = 2;  // uuid; required on mutations (KeyRefresh)
+  string client_user_agent = 3;
+}
+
+// Upstream provider dialect a pool serves. Mirrors the kernel ProviderChannel enum.
+enum ProviderChannel {
+  PROVIDER_CHANNEL_UNSPECIFIED = 0;
+  PROVIDER_CHANNEL_OPENAI = 1;     // Authorization: Bearer <key>
+  PROVIDER_CHANNEL_ANTHROPIC = 2;  // x-api-key + anthropic-version
+  PROVIDER_CHANNEL_GEMINI = 3;     // x-goog-api-key
+}
+
+// Lifecycle state of a single pooled key. Mirrors the kernel KeyState
+// (Active | Blacklisted { cooldown_until_millis }).
+enum KeyLifecycleState {
+  KEY_LIFECYCLE_STATE_UNSPECIFIED = 0;
+  KEY_LIFECYCLE_STATE_ACTIVE = 1;       // eligible for selection
+  KEY_LIFECYCLE_STATE_BLACKLISTED = 2;  // in cooldown until cooldown_until
+}
+
+message Error {
+  // One of: invalid_request_error, authentication_error, permission_error,
+  //         not_found_error, gateway_key_exhausted, gateway_provider_unavailable, api_error
+  string type = 1;
+  string message = 2;
+  string request_id = 3;
+}
+
+// === PoolStatus ===
+
+message PoolStatusRequest {
+  RequestMeta meta = 1;
+  // Optional filter; empty = all channels.
+  repeated ProviderChannel channels = 2;
+}
+
+// Hash-only view of one pooled key. NEVER carries raw key material — only the
+// kernel KeyFingerprint (a non-reversible hash) and lifecycle state (brief §5).
+message PooledKeyStatus {
+  string key_fingerprint = 1;          // hash-only; safe to log/return
+  KeyLifecycleState state = 2;
+  uint32 failure_count = 3;            // consecutive failures since last success/restore
+  google.protobuf.Timestamp cooldown_until = 4; // set only when BLACKLISTED
+}
+
+message PoolStatus {
+  ProviderChannel channel = 1;
+  uint32 total_keys = 2;
+  uint32 active_keys = 3;        // KeyPool::active_count at evaluation time
+  uint32 blacklisted_keys = 4;
+  // Soonest cooldown-restore across blacklisted keys; unset if none blacklisted.
+  // The gateway returns this as Retry-After on a 503 gateway_key_exhausted (brief §10).
+  google.protobuf.Timestamp soonest_restore = 5;
+  repeated PooledKeyStatus keys = 6;
+}
+
+message PoolStatusResponse {
+  repeated PoolStatus pools = 1;
+  Error error = 2; // unset on success
+}
+
+// === KeyRefresh ===
+
+message KeyRefreshRequest {
+  RequestMeta meta = 1;
+  // Which provider pool to refresh from OpenBao.
+  ProviderChannel channel = 2;
+}
+
+message KeyRefreshResponse {
+  ProviderChannel channel = 1;
+  uint32 keys_loaded = 2;
+  google.protobuf.Timestamp refreshed_at = 3;
+  string source = 4; // always "openbao" (brief §5, §7 — never disk/env)
+  Error error = 5;   // unset on success
+}
