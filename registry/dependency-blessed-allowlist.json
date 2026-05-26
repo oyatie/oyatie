@@ -181,6 +181,11 @@
       "layer_seam": "dev-tooling",
       "rationale": "Temporary directories/files for tests and tooling fixtures.",
       "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+    },
+    "cedar-policy": {
+      "layer_seam": "adapter-only",
+      "rationale": "AWS Cedar authorization engine (Apache-2.0, OSI-clean): formally-verified default-deny + forbid-overrides-permit policy evaluation. Isolated to the workload-authz adapter per ADR-0183; named in microservices/identity/manifest.json#consumes_upstream_oss.",
+      "policy_ref": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
     }
   }
 }

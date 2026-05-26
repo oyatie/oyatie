@@ -36,22 +36,20 @@ fn decrypt_request(principal: WorkloadPrincipal) -> AuthorizationRequest {
 }
 
 fn production_policy_set() -> CedarWorkloadAuthorizer {
-    CedarWorkloadAuthorizer::new()
+    CedarWorkloadAuthorizer::with_policies(vec![
         // permit: acme workloads with the decrypt scope may decrypt Secrets.
-        .add_policy(
-            Policy::permit("permit-kms-decrypt")
-                .when_principal(PrincipalCondition::TenantIs("ten_acme".into()))
-                .when_principal(PrincipalCondition::HasScope("cloud.kms.decrypt".into()))
-                .for_action(ActionCondition::Equals("cloud.kms.Decrypt".into()))
-                .for_resource(ResourceCondition::TypeIs("Secret".into())),
-        )
+        Policy::permit("permit-kms-decrypt")
+            .when_principal(PrincipalCondition::TenantIs("ten_acme".into()))
+            .when_principal(PrincipalCondition::HasScope("cloud.kms.decrypt".into()))
+            .for_action(ActionCondition::Equals("cloud.kms.Decrypt".into()))
+            .for_resource(ResourceCondition::TypeIs("Secret".into())),
         // forbid: nobody touches the break-glass root secret.
-        .add_policy(
-            Policy::forbid("forbid-root-secret").for_resource(ResourceCondition::Is {
-                resource_type: "Secret".into(),
-                resource_id: "prod/root-of-trust".into(),
-            }),
-        )
+        Policy::forbid("forbid-root-secret").for_resource(ResourceCondition::Is {
+            resource_type: "Secret".into(),
+            resource_id: "prod/root-of-trust".into(),
+        }),
+    ])
+    .expect("production policy set compiles to valid cedar")
 }
 
 #[test]

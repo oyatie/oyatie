@@ -577,6 +577,17 @@
       "allowed_crates": [
         "oya-shared-hyperscaler-metrics-adapter-otlp"
       ]
+    },
+    "cedar-policy": {
+      "version_pin": "4.11",
+      "layer_seam": "adapter-only-authorization-engine",
+      "owner_team": "axis-identity + ops-security",
+      "rationale": "AWS Cedar (Apache-2.0, OSI-clean) is the formally-verified authorization engine — default-deny, forbid-overrides-permit, order-independent (arXiv 2403.04651). Used only by the workload-identity authz-gate adapter to evaluate PARC requests; the engine named in microservices/identity/manifest.json#consumes_upstream_oss and exercised by microservices/identity/policy/identity.cedar. Domain/kernel crates stay Cedar-free and pass typed AuthorizationRequest/AuthorizationDecision across the boundary.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+      "isolated_in_crate": "oya-identity-workload-authz-cedar-adapter",
+      "allowed_crates": [
+        "oya-identity-workload-authz-cedar-adapter"
+      ]
     }
   },
   "lane_contract": {
