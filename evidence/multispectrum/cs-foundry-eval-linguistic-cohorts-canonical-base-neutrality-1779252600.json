@@ -7,50 +7,50 @@
   "timestamp_iso": "2026-05-20T04:50:00Z",
   "agent_id": "codex-oyatie-fd001",
   "scope": [
-    "crates/oya-foundry-eval-domain/src/lib.rs",
-    "crates/oya-foundry-eval-usecase/src/lib.rs",
-    "crates/oya-foundry-eval-domain/tests/eval_gate.rs",
-    "crates/oya-foundry-eval-usecase/tests/foundry_eval_run_api.rs",
+    "crates/oya-governance-eval-domain/src/lib.rs",
+    "crates/oya-governance-eval-usecase/src/lib.rs",
+    "crates/oya-governance-eval-domain/tests/eval_gate.rs",
+    "crates/oya-governance-eval-usecase/tests/foundry_eval_run_api.rs",
     "evidence/multispectrum/cs-foundry-eval-linguistic-cohorts-canonical-base-neutrality-1779252600.json"
   ],
   "claimed_scopes": [
     {
-      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize Foundry eval linguistic cohort contract for canonical base\" crates/oya-foundry-eval-domain/src/lib.rs::canonical_base_neutral_eval_linguistic_cohorts crates/oya-foundry-eval-usecase/src/lib.rs::canonical_base_neutral_eval_linguistic_cohorts crates/oya-foundry-eval-domain/tests/eval_gate.rs::canonical_base_neutral_eval_linguistic_cohorts crates/oya-foundry-eval-usecase/tests/foundry_eval_run_api.rs::canonical_base_neutral_eval_linguistic_cohorts evidence/multispectrum/cs-foundry-eval-linguistic-cohorts-canonical-base-neutrality-1779252600.json::MultispectrumEvidence",
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize Foundry eval linguistic cohort contract for canonical base\" crates/oya-governance-eval-domain/src/lib.rs::canonical_base_neutral_eval_linguistic_cohorts crates/oya-governance-eval-usecase/src/lib.rs::canonical_base_neutral_eval_linguistic_cohorts crates/oya-governance-eval-domain/tests/eval_gate.rs::canonical_base_neutral_eval_linguistic_cohorts crates/oya-governance-eval-usecase/tests/foundry_eval_run_api.rs::canonical_base_neutral_eval_linguistic_cohorts evidence/multispectrum/cs-foundry-eval-linguistic-cohorts-canonical-base-neutrality-1779252600.json::MultispectrumEvidence",
       "status": "accepted"
     }
   ],
   "summary": "Canonical-base neutrality cleanup for Foundry eval linguistic coverage: move required cohorts into domain-owned neutral constants, use those constants in validation, API error text/details, and tests, and remove launch-locale strings from the eval source path without weakening adversarial or linguistic coverage gates.",
   "baseline_diff": {
-    "before_eval_domain": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-eval-domain/src/lib.rs failed with 1 files checked, 3 jurisdiction leaks: ko-KR, ja-JP, en-US required cohort literals.",
-    "before_eval_usecase": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-eval-usecase/src/lib.rs failed with 1 files checked, 2 jurisdiction leaks in MissingLinguisticCoverage message/detail.",
-    "after_targeted_eval_domain": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-eval-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
-    "after_targeted_eval_usecase": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-eval-usecase/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
-    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 293 jurisdiction leaks in other files; first remaining file crates/oya-foundry-evidence-domain/src/retention_policy.rs.",
+    "before_eval_domain": "canonical-base-neutrality --repo-root . --root crates/oya-governance-eval-domain/src/lib.rs failed with 1 files checked, 3 jurisdiction leaks: ko-KR, ja-JP, en-US required cohort literals.",
+    "before_eval_usecase": "canonical-base-neutrality --repo-root . --root crates/oya-governance-eval-usecase/src/lib.rs failed with 1 files checked, 2 jurisdiction leaks in MissingLinguisticCoverage message/detail.",
+    "after_targeted_eval_domain": "canonical-base-neutrality --repo-root . --root crates/oya-governance-eval-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_targeted_eval_usecase": "canonical-base-neutrality --repo-root . --root crates/oya-governance-eval-usecase/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 293 jurisdiction leaks in other files; first remaining file crates/oya-intelligence-evidence-domain/src/retention_policy.rs.",
     "delta": "5 fewer full-gate jurisdiction leaks, from 298 after Foundry cloud mutation to 293 after this slice; no scanner carve-outs or coverage weakening."
   },
   "verification": [
     {
-      "command": "cargo test -q -p oya-foundry-eval-domain -p oya-foundry-eval-usecase --all-features 2>&1 | tee /tmp/cs-foundry-eval-linguistic-test.txt",
+      "command": "cargo test -q -p oya-governance-eval-domain -p oya-governance-eval-usecase --all-features 2>&1 | tee /tmp/cs-foundry-eval-linguistic-test.txt",
       "status": "passed",
       "evidence": "domain integration tests: 3 passed; usecase integration tests: 6 passed; crate unit suites empty and passed"
     },
     {
-      "command": "cargo fmt -q -p oya-foundry-eval-domain -p oya-foundry-eval-usecase --check 2>&1 | tee /tmp/cs-foundry-eval-linguistic-fmt.txt",
+      "command": "cargo fmt -q -p oya-governance-eval-domain -p oya-governance-eval-usecase --check 2>&1 | tee /tmp/cs-foundry-eval-linguistic-fmt.txt",
       "status": "passed",
       "evidence": "rustfmt check exited 0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-eval-domain -p oya-foundry-eval-usecase --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-eval-linguistic-clippy.txt",
+      "command": "cargo clippy -q -p oya-governance-eval-domain -p oya-governance-eval-usecase --all-features -- -D warnings 2>&1 | tee /tmp/cs-foundry-eval-linguistic-clippy.txt",
       "status": "passed",
       "evidence": "clippy exited 0 with warnings denied"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-eval-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-eval-domain-targeted-cbn.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-governance-eval-domain/src/lib.rs 2>&1 | tee /tmp/cs-foundry-eval-domain-targeted-cbn.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     },
     {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-eval-usecase/src/lib.rs 2>&1 | tee /tmp/cs-foundry-eval-usecase-targeted-cbn.txt",
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-governance-eval-usecase/src/lib.rs 2>&1 | tee /tmp/cs-foundry-eval-usecase-targeted-cbn.txt",
       "status": "passed",
       "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     },
@@ -77,7 +77,7 @@
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-foundry-eval-linguistic-full-cbn.txt",
       "status": "blocked-preexisting",
-      "evidence": "full gate still fails with 293 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-evidence-domain/src/retention_policy.rs"
+      "evidence": "full gate still fails with 293 jurisdiction leaks outside claimed scope; first remaining file crates/oya-intelligence-evidence-domain/src/retention_policy.rs"
     }
   ],
   "facets": {
@@ -157,14 +157,14 @@
     }
   },
   "changed_files": [
-    "crates/oya-foundry-eval-domain/src/lib.rs",
-    "crates/oya-foundry-eval-usecase/src/lib.rs",
-    "crates/oya-foundry-eval-domain/tests/eval_gate.rs",
-    "crates/oya-foundry-eval-usecase/tests/foundry_eval_run_api.rs",
+    "crates/oya-governance-eval-domain/src/lib.rs",
+    "crates/oya-governance-eval-usecase/src/lib.rs",
+    "crates/oya-governance-eval-domain/tests/eval_gate.rs",
+    "crates/oya-governance-eval-usecase/tests/foundry_eval_run_api.rs",
     "evidence/multispectrum/cs-foundry-eval-linguistic-cohorts-canonical-base-neutrality-1779252600.json"
   ],
   "remaining_risks": [
-    "Full canonical-base-neutrality gate remains red with 293 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-foundry-evidence-domain/src/retention_policy.rs.",
+    "Full canonical-base-neutrality gate remains red with 293 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-intelligence-evidence-domain/src/retention_policy.rs.",
     "OpenAPI description still uses generic linguistic cohorts and did not require a contract change.",
     "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
   ]

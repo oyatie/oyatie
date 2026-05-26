@@ -23,7 +23,7 @@
   ],
   "key_claims": [
     "oya-audit-chain-domain crate triad exists (crates/oya-audit-chain-domain, -usecase, -file-adapter); .audit/agent-read.jsonl bypassed it — symptom-only fix masks the routing defect",
-    "ARGO_MANIFEST is hardcoded at tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs:257 and re-referenced at kernel src/lib.rs (3 hits per ADR); third location-change for the same string is plausible within the year",
+    "ARGO_MANIFEST is hardcoded at tools/oya-vcs-provider-execution-gate-app/src/main.rs:257 and re-referenced at kernel src/lib.rs (3 hits per ADR); third location-change for the same string is plausible within the year",
     "infra/kyverno/ is asserted as canonical in ADR-0117 narrative but no umbrella infra-topology ADR codifies the rule for the next agent",
     "Bundled 9-file PR with 7 path rewrites + ADR + gitignore is bisect-hostile if any evidence/multispectrum JSON ref later proves to need different rewrite semantics",
     "ADR explicitly notes one ref (evidence/multispectrum/...-1778845600.json) was not in the prior agent's enumeration — suggests rewrite enumeration is artisanal, not lane-enforced"

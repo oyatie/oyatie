@@ -11,7 +11,7 @@ final_shape_compliance: true
 dependency_additions: []
 source_audit: ../../../../../../evidence/audits/pipeline-maturity-audit-2026-05-15.md
 audit_blocker_ref: "Top blocker #4: no reviewer-agent auto-dispatch on PR open"
-upstream_kernel: oya-foundry-vcs-review-mergequeue-kernel
+upstream_kernel: oya-vcs-review-mergequeue-kernel
 purpose: Wire `.github/workflows/pr-review.yml` to dispatch the multispectrum subagent panel from `feedback_consensus_debate_spectrum_lens_subagents.md` on PR open + PR update, post APPROVE/REJECT as a required-check, and emit a merge-queue admission event on APPROVE.
 ---
 
@@ -19,7 +19,7 @@ purpose: Wire `.github/workflows/pr-review.yml` to dispatch the multispectrum su
 
 ## Scope
 
-`oya-foundry-vcs-review-mergequeue-kernel` exists per M01-P07-IP-007 but no GitHub workflow fans out a reviewer panel automatically. Today's PR #3 had its reviewer hand-dispatched. This IP closes Layer-2 gate 1 by:
+`oya-vcs-review-mergequeue-kernel` exists per M01-P07-IP-007 but no GitHub workflow fans out a reviewer panel automatically. Today's PR #3 had its reviewer hand-dispatched. This IP closes Layer-2 gate 1 by:
 
 - Authoring `.github/workflows/pr-review.yml` triggered on `workflow_run: {workflows: [pr-tests], types: [completed], conclusion: success}` — i.e. review only fires AFTER CI converges green. This matches the canonical state machine (`push → CI → fix-loop until green → review → fix-loop until APPROVE → merge`) and avoids burning review cycles on broken builds. Sub-trigger on `workflow_run` from `pr-tests` + `oya-foundry-fitness-supply-chain` workflows; both must be `success`.
 - On review REJECT / CHANGES_REQUESTED, dispatcher emits a `pr-review-fix-requested` event consumed by IP-005's fix-loop (review-side fix-loop, parallel to CI-side fix-loop; same bounded-retry budget pool to prevent runaway).

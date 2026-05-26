@@ -33,7 +33,7 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 ```
 git diff --name-status origin/dev...HEAD
 ~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/cargo metadata --no-deps --format-version 1
-~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/cargo check -p oya-foundry-fitness-authoritative-tracked-kernel
+~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/cargo check -p oya-governance-authoritative-tracked-kernel
 node scripts/validate-adr-shape.mjs docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md
 ```
 

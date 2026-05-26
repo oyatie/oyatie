@@ -58,7 +58,7 @@ Legend:
 argo gitops desired-state validation passed: infra/kyverno/oya-vcs-admission/application.json
 oya-vcs provider execution validation passed: ci/github-actions/trivy/argo-gitops
     Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_ast_index_kernel-d5a24b2dd67cdffa)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_ast_index_kernel-d5a24b2dd67cdffa)
 
 running 9 tests
 test tests::production_parser_gap_rejects_unrelated_pointer_scope ... ok
@@ -87,7 +87,7 @@ test semantic_conflict_is_symmetric ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_changebundle_kernel-4bb795f317a92d1f)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_changebundle_kernel-4bb795f317a92d1f)
 
 running 10 tests
 test tests::protected_ref_mutation_quarantines_promotion ... ok
@@ -103,7 +103,7 @@ test tests::unsigned_bundle_is_rejected ... ok
 
 test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_cli_ratchet_kernel-adf763cea359bfd8)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_cli_ratchet_kernel-adf763cea359bfd8)
 
 running 10 tests
 test tests::lifecycle_sequence_requires_claim_before_work_verify_done_promote ... ok
@@ -130,7 +130,7 @@ test direct_provider_primitives_are_rejected_after_ratchet_arm ... ok
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_kernel-b1017443843d8525)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_kernel-b1017443843d8525)
 
 running 22 tests
 test lock_holder::tests::from_wire_rejects_missing_holder_prefix ... ok
@@ -172,7 +172,7 @@ test same_file_different_symbol_claims_do_not_collide ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_lockstore_adapter-09338c9b423ccf10)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_lockstore_adapter-09338c9b423ccf10)
 
 running 8 tests
 test tests::duplicate_event_collapse_preserves_single_provider_event ... ok
@@ -186,7 +186,7 @@ test tests::local_and_remote_fake_ttl_watch_replay_and_stale_recovery ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_polyglot_indexer_adapter-bee19268eda48d9c)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_polyglot_indexer_adapter-bee19268eda48d9c)
 
 running 5 tests
 test tests::unsupported_production_surface_blocks ... ok
@@ -205,7 +205,7 @@ test public_adapter_extracts_diff_impact_from_polyglot_dependencies ... ok
 
 test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_promotion_controller_kernel-8f0cda9a71faff63)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_promotion_controller_kernel-8f0cda9a71faff63)
 
 running 0 tests
 
@@ -224,7 +224,7 @@ test provider_outage_falls_back_only_when_policy_allows ... ok
 
 test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_review_mergequeue_kernel-2a00d7728cde896b)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_review_mergequeue_kernel-2a00d7728cde896b)
 
 running 28 tests
 test parked_state::tests::parked_reason_wire_strings_are_stable ... ok
@@ -258,7 +258,7 @@ test tests::terminal_states_absorb_until_lock_release ... ok
 
 test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/debug/deps/oya_foundry_vcs_test_standard_gate_kernel-57bfb311c361612c)
+     Running unittests src/lib.rs (target/debug/deps/oya_vcs_test_standard_gate_kernel-57bfb311c361612c)
 
 running 8 tests
 test tests::diff_to_required_tier_resolver_is_semantic ... ok
@@ -428,4 +428,4 @@ running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
 
-oya-foundry-vcs-admission-gate-app: metadata and authority checks passed; cargo tests + CLI smoke passed
+oya-vcs-admission-gate-app: metadata and authority checks passed; cargo tests + CLI smoke passed

@@ -9,7 +9,7 @@
   "supporting_artifacts_read": [
     "docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md",
     "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
-    "crates/oya-foundry-dashboard-kernel/src/lib.rs",
+    "crates/oya-intelligence-dashboard-kernel/src/lib.rs",
     "crates/oya-http-telemetry-middleware-infrastructure/src/lib.rs"
   ],
   "review_date": "2026-05-15",
@@ -327,7 +327,7 @@
       "UsageView",
       "RoutingView"
     ],
-    "gap_analysis": "The task message asserts four new projection rows as a fact of this change. None appear in v4 or v5 plan artifacts. No InboxDepthView, OutboxTailView, or IdleTicksView is declared. No integration path from tick_once outcomes \u2192 dashboard-kernel is specified. The existing SessionView is for ProviderAccount auth-sessions (started_at/expires_at/privacy_boundary), NOT for supervisor message-processing sessions. If dashboard-kernel projections are intended, they require: (a) new view structs in oya-foundry-dashboard-kernel, (b) a write adapter that calls tick_once and projects results, (c) grit claim units. None are present. This is either a spec gap (the change does not actually add these rows) or a plan omission (BLOCKER-level)."
+    "gap_analysis": "The task message asserts four new projection rows as a fact of this change. None appear in v4 or v5 plan artifacts. No InboxDepthView, OutboxTailView, or IdleTicksView is declared. No integration path from tick_once outcomes \u2192 dashboard-kernel is specified. The existing SessionView is for ProviderAccount auth-sessions (started_at/expires_at/privacy_boundary), NOT for supervisor message-processing sessions. If dashboard-kernel projections are intended, they require: (a) new view structs in oya-intelligence-dashboard-kernel, (b) a write adapter that calls tick_once and projects results, (c) grit claim units. None are present. This is either a spec gap (the change does not actually add these rows) or a plan omission (BLOCKER-level)."
   },
   "http_telemetry_wiring_gap": {
     "existing_infra": "oya-http-telemetry-middleware-infrastructure::TelemetryMiddleware covers route/method/status_class/latency for any MiddlewareChain consumer",
@@ -435,8 +435,8 @@
       "id": "F11-005",
       "severity": "HIGH",
       "title": "Dashboard-kernel projection rows (inbox_depth, outbox_tail, idle_ticks_total) referenced in change context but absent from plan",
-      "description": "The change_class context asserts 'New dashboard-kernel projection rows (session, inbox_depth, outbox_tail, idle_ticks_total)'. Reading crates/oya-foundry-dashboard-kernel/src/lib.rs confirms existing views are AccountHealthView, SessionView (auth-sessions), UsageView, RoutingView. None of the supervisor-specific rows appear. The v4 plan does not declare InboxDepthView, OutboxTailView, or IdleTicksView, and has zero grit units for dashboard-kernel changes.",
-      "evidence": "crates/oya-foundry-dashboard-kernel/src/lib.rs \u2014 full file read, no supervisor-specific views present; v4 \u00a7B.12 \u2014 49 grit units, none target oya-foundry-dashboard-kernel; v4 \u00a7B.0 surfaces inventory \u2014 dashboard-kernel not listed as a composed surface.",
+      "description": "The change_class context asserts 'New dashboard-kernel projection rows (session, inbox_depth, outbox_tail, idle_ticks_total)'. Reading crates/oya-intelligence-dashboard-kernel/src/lib.rs confirms existing views are AccountHealthView, SessionView (auth-sessions), UsageView, RoutingView. None of the supervisor-specific rows appear. The v4 plan does not declare InboxDepthView, OutboxTailView, or IdleTicksView, and has zero grit units for dashboard-kernel changes.",
+      "evidence": "crates/oya-intelligence-dashboard-kernel/src/lib.rs \u2014 full file read, no supervisor-specific views present; v4 \u00a7B.12 \u2014 49 grit units, none target oya-intelligence-dashboard-kernel; v4 \u00a7B.0 surfaces inventory \u2014 dashboard-kernel not listed as a composed surface.",
       "remediation": "Either (a) remove the dashboard-kernel claim from the change context if these rows are out of scope for v4+v5, or (b) add an explicit \u00a7B-dashboard section declaring InboxDepthView, OutboxTailView, IdleTicksView types, the write path from tick_once, and corresponding grit units. The projection structs must follow ReadOnlyProjection marker pattern (no &mut self, existing invariant).",
       "plan_sections_affected": [
         "change context",
@@ -560,7 +560,7 @@
     "cardinality_risks_identified": 2,
     "v5_observability_new_gaps": 3,
     "critical_unknown": "Whether the plan treats audit_chain.rs as the entire observability story (test-only) or whether a runtime OTel instrumentation layer is assumed to exist elsewhere and not declared here. If the former, blockers F11-001 and F11-003 require new grit units before execution. If the latter, the plan must cite the existing instrumentation crate and declare how supervisor-app hooks into it.",
-    "discriminating_probe": "Check whether oya-foundry-supervisor-app composes oya-observability-domain (found at crates/oya-observability-domain/src/lib.rs). If oya-observability-domain provides ObservabilityKit with tracer + meter + logger (per ADR-0042 \u00a7ObservabilityKit), then supervisor-app must declare its dependency on it in Cargo.toml and show the SupervisorApp::new() wiring. If this dependency is absent, all three BLOCKER findings (F11-001, F11-002, F11-003) require new plan sections before execution begins."
+    "discriminating_probe": "Check whether oya-intelligence-supervisor-app composes oya-observability-domain (found at crates/oya-observability-domain/src/lib.rs). If oya-observability-domain provides ObservabilityKit with tracer + meter + logger (per ADR-0042 \u00a7ObservabilityKit), then supervisor-app must declare its dependency on it in Cargo.toml and show the SupervisorApp::new() wiring. If this dependency is absent, all three BLOCKER findings (F11-001, F11-002, F11-003) require new plan sections before execution begins."
   },
   "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-F11_observability-r1.json"
 }

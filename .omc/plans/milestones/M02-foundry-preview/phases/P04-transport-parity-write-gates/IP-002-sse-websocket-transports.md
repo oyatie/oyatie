@@ -19,8 +19,8 @@ Ship SSE + WebSocket subscription transports for status streams.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-api-sse/src/lib.rs::SseStream
-crates/oya-foundry-api-websocket/src/lib.rs::WebSocketStream
+crates/oya-intelligence-api-sse/src/lib.rs::SseStream
+crates/oya-intelligence-api-websocket/src/lib.rs::WebSocketStream
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -12,7 +12,7 @@
     "crates/oya-dev-cli/src/lib.rs::CloudIacKubewardenAdmissionGateRegistration",
     "crates/oya-dev-cli/src/commands/gate/mod.rs::CloudIacKubewardenAdmissionGateDispatch",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs::CloudIacKubewardenAdmissionGateCatalogTest",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs::CloudIacKubewardenAdmissionGateCatalogLane",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs::CloudIacKubewardenAdmissionGateCatalogLane",
     "microservices/cloud-iac/manifest.json::CloudIacKubewardenAdmissionPolicyScope",
     "microservices/cloud-iac/iac/k8s/kubewarden/policy-server.yaml::KubewardenPolicyServerManifest",
     "microservices/cloud-iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml::KubewardenVerifyImageSignaturesClusterAdmissionPolicy",
@@ -85,7 +85,7 @@
       "status": "passed"
     },
     {
-      "command": "cargo fmt --all -- --check && cargo check -p oya-dev-cli --all-targets && cargo clippy -p oya-dev-cli --all-targets -- -D warnings && cargo test -p oya-foundry-gate-catalog-domain cloud_iac_kubewarden -- --nocapture",
+      "command": "cargo fmt --all -- --check && cargo check -p oya-dev-cli --all-targets && cargo clippy -p oya-dev-cli --all-targets -- -D warnings && cargo test -p oya-governance-gate-catalog-domain cloud_iac_kubewarden -- --nocapture",
       "log": "/tmp/cs-cloud-iac-kubewarden-admission-policy-gate-rust-quality-rerun.log",
       "status": "passed"
     },

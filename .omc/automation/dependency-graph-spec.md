@@ -12,7 +12,7 @@ purpose: |
 lift_target: oyatie/docs/visualization/dependency-graph.md
 enforced_by: oya-foundry-fitness-dep-graph
 extends_crates:
-  - oya-foundry-architecture-map-kernel
+  - oya-intelligence-architecture-map-kernel
   - oya-foundry-pr-traceability-kernel
 companion_docs:
   - INDEX.md

@@ -12,7 +12,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/manifest.json",
     "tasks/plan.md",
     "tasks/todo.md",
@@ -72,7 +72,7 @@
       "summary": "Rust formatting, package check, and clippy warnings-as-errors passed for the touched dev-cli package."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain && cargo test -p oya-dev-cli cloud_iac_ -- --nocapture",
+      "command": "cargo test -p oya-governance-gate-catalog-domain && cargo test -p oya-dev-cli cloud_iac_ -- --nocapture",
       "result": "PASS",
       "log": "/tmp/cs-cloud-iac-helm-chart-signed-image-wiring-gate-cloud-iac-unit-and-catalog-tests.log",
       "summary": "Gate catalog tests passed and the filtered dev-cli Cloud IaC unit suite passed 98 tests."

@@ -523,7 +523,7 @@ fn doc_openapi_fails_closed_on_untyped_runtime_response_statuses() {
     write_openapi_contract(&temp, true, true);
     let runtime_source = temp
         .join("crates")
-        .join("oya-foundry-api")
+        .join("oya-intelligence-api")
         .join("src")
         .join("lib.rs");
     fs::write(
@@ -557,7 +557,7 @@ fn doc_openapi_fails_closed_on_invalid_runtime_status_type_mapping() {
     write_openapi_contract(&temp, true, true);
     let runtime_source = temp
         .join("crates")
-        .join("oya-foundry-api")
+        .join("oya-intelligence-api")
         .join("src")
         .join("lib.rs");
     fs::write(
@@ -1057,7 +1057,7 @@ fn write_openapi_runtime_binding(root: &Path, include_binding: bool) {
     let registry_dir = root.join("registry").join("openapi");
     fs::create_dir_all(&registry_dir).expect("openapi runtime registry dirs created");
     let row = if include_binding {
-        "invokeCapability\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundry-api\tcrates/oya-foundry-api/src/lib.rs\tinvoke_capability_from_api\tCapabilityInvokeApiStatus\tfoundry.capability.invoke\tcrates/oya-foundry-api/tests/capability_invoke_api.rs\t202=CapabilityInvokeApiSuccessResponse;400=CapabilityInvokeApiErrorResponse;403=CapabilityInvokeApiErrorResponse\n"
+        "invokeCapability\tcontracts/openapi/foundry/capability-v1.yaml\toya-intelligence-api\tcrates/oya-intelligence-api/src/lib.rs\tinvoke_capability_from_api\tCapabilityInvokeApiStatus\tfoundry.capability.invoke\tcrates/oya-intelligence-api/tests/capability_invoke_api.rs\t202=CapabilityInvokeApiSuccessResponse;400=CapabilityInvokeApiErrorResponse;403=CapabilityInvokeApiErrorResponse\n"
     } else {
         ""
     };
@@ -1069,7 +1069,7 @@ fn write_openapi_runtime_binding(root: &Path, include_binding: bool) {
     )
     .expect("openapi runtime binding registry written");
 
-    let api_source_path = root.join("crates").join("oya-foundry-api").join("src");
+    let api_source_path = root.join("crates").join("oya-intelligence-api").join("src");
     fs::create_dir_all(&api_source_path).expect("runtime source dirs created");
     fs::write(
         api_source_path.join("lib.rs"),
@@ -1131,7 +1131,10 @@ pub struct InvocationReceipt {\n\
     )
     .expect("schema source fixture written");
 
-    let test_path = root.join("crates").join("oya-foundry-api").join("tests");
+    let test_path = root
+        .join("crates")
+        .join("oya-intelligence-api")
+        .join("tests");
     fs::create_dir_all(&test_path).expect("runtime test dirs created");
     fs::write(
         test_path.join("capability_invoke_api.rs"),
@@ -1144,7 +1147,7 @@ fn write_openapi_schema_binding(root: &Path, include_binding: bool) {
     let registry_dir = root.join("registry").join("openapi");
     fs::create_dir_all(&registry_dir).expect("openapi schema registry dirs created");
     let rows = if include_binding {
-        "CapabilityInvocationRequest\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundation-app\tcrates/oya-foundation-app/src/lib.rs\tCapabilityInvocationRequest\nCapabilityInvocationReceipt\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundation-app\tcrates/oya-foundation-app/src/lib.rs\tInvocationReceipt\nCapabilityInvokeApiSuccessResponse\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundry-api\tcrates/oya-foundry-api/src/lib.rs\tCapabilityInvokeApiSuccessResponse\nCapabilityInvokeApiResponseMetadata\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundry-api\tcrates/oya-foundry-api/src/lib.rs\tCapabilityInvokeApiResponseMetadata\nCapabilityInvokeApiErrorResponse\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundry-api\tcrates/oya-foundry-api/src/lib.rs\tCapabilityInvokeApiErrorResponse\nCapabilityInvokeApiErrorBody\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundry-api\tcrates/oya-foundry-api/src/lib.rs\tCapabilityInvokeApiErrorBody\nCapabilityInvokeApiErrorDetail\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundry-api\tcrates/oya-foundry-api/src/lib.rs\tCapabilityInvokeApiErrorDetail\n"
+        "CapabilityInvocationRequest\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundation-app\tcrates/oya-foundation-app/src/lib.rs\tCapabilityInvocationRequest\nCapabilityInvocationReceipt\tcontracts/openapi/foundry/capability-v1.yaml\toya-foundation-app\tcrates/oya-foundation-app/src/lib.rs\tInvocationReceipt\nCapabilityInvokeApiSuccessResponse\tcontracts/openapi/foundry/capability-v1.yaml\toya-intelligence-api\tcrates/oya-intelligence-api/src/lib.rs\tCapabilityInvokeApiSuccessResponse\nCapabilityInvokeApiResponseMetadata\tcontracts/openapi/foundry/capability-v1.yaml\toya-intelligence-api\tcrates/oya-intelligence-api/src/lib.rs\tCapabilityInvokeApiResponseMetadata\nCapabilityInvokeApiErrorResponse\tcontracts/openapi/foundry/capability-v1.yaml\toya-intelligence-api\tcrates/oya-intelligence-api/src/lib.rs\tCapabilityInvokeApiErrorResponse\nCapabilityInvokeApiErrorBody\tcontracts/openapi/foundry/capability-v1.yaml\toya-intelligence-api\tcrates/oya-intelligence-api/src/lib.rs\tCapabilityInvokeApiErrorBody\nCapabilityInvokeApiErrorDetail\tcontracts/openapi/foundry/capability-v1.yaml\toya-intelligence-api\tcrates/oya-intelligence-api/src/lib.rs\tCapabilityInvokeApiErrorDetail\n"
     } else {
         ""
     };
@@ -1164,9 +1167,9 @@ fn write_openapi_mirrors(root: &Path, include_machine_path: bool) -> (PathBuf, P
     )
     .expect("SPEC mirror written");
     let location = if include_machine_path {
-        "crates/oya-foundry-api + contracts/openapi/foundry/capability-v1.yaml"
+        "crates/oya-intelligence-api + contracts/openapi/foundry/capability-v1.yaml"
     } else {
-        "crates/oya-foundry-api"
+        "crates/oya-intelligence-api"
     };
     fs::write(
         &mirror,

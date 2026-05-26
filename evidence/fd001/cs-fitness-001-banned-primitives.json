@@ -24,8 +24,8 @@
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/tests/gate_cli.rs",
-    "crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-banned-primitives-kernel/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "docs/standards/ci-lanes.md",
     "evidence/fd001/cs-fitness-001-banned-primitives.json",
     "evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
@@ -33,7 +33,7 @@
     "registry/quality/lanes.yaml",
     "specs/master-plan-sequencing.json",
     "specs/masterplan.json",
-    "tools/oya-foundry-fitness-banned-primitives-app/src/main.rs"
+    "tools/oya-governance-banned-primitives-app/src/main.rs"
   ],
   "intent": "Wire the banned-primitives source-corpus detector into dev-cli, CI, branch-protection mirror, quality-lane registry, and active planning artifacts without overclaiming full command-log enforcement.",
   "implemented": [
@@ -61,7 +61,7 @@
       "evidence": "Rust sources formatted successfully before verification."
     },
     {
-      "command": "cargo test -q -p oya-foundry-fitness-banned-primitives-kernel -p oya-foundry-fitness-banned-primitives-app -- --nocapture",
+      "command": "cargo test -q -p oya-governance-banned-primitives-kernel -p oya-governance-banned-primitives-app -- --nocapture",
       "status": "passed",
       "evidence": "kernel/app tests passed: 5 app tests + 13 kernel tests, 0 failed."
     },
@@ -76,7 +76,7 @@
       "evidence": "banned-primitives validation passed: 1573 files, 18 sources, 18 fences, 0 usages, 0 documented exceptions"
     },
     {
-      "command": "cargo run -q -p oya-foundry-fitness-banned-primitives-app --locked --",
+      "command": "cargo run -q -p oya-governance-banned-primitives-app --locked --",
       "status": "passed",
       "evidence": "banned-primitives ok: sources_checked=18 fences_checked=18 usages_checked=0 documented_exceptions=0"
     },
@@ -101,7 +101,7 @@
       "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 303 status fields checked, blocker_count=0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-fitness-banned-primitives-kernel -p oya-foundry-fitness-banned-primitives-app -p oya-dev-cli --all-targets -- -D warnings",
+      "command": "cargo clippy -q -p oya-governance-banned-primitives-kernel -p oya-governance-banned-primitives-app -p oya-dev-cli --all-targets -- -D warnings",
       "status": "passed",
       "evidence": "targeted clippy completed with no warnings after worktree-branch regression."
     },

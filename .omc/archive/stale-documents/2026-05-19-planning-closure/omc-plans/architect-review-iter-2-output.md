@@ -18,7 +18,7 @@ ITERATE. The Planner landed 8 of 12 MUST-LAND revisions inside the plan body cle
 |---|---|---|
 | V1 P2 scaffold-claim | Y — plan L96 names scaffold-claim per ADR-0054, icm-coordination-lock fallback canonical, lift-source `pre-cutover-drafts §Draft 2` | Y — sequence is correct: icm lock → scaffold → workspace edit → `grit init` → close lock → normal claims on now-indexed symbols |
 | V2 P3 scaffold-claim | Y — plan L103 explicitly two-track with scaffold-claim per ADR-0054 for the new fitness-lane crate | Y — same canonical pattern; icm-lock symbol replaces non-existent file::Identifier |
-| V3 P10 scaffold-claim | Y — plan L165 names scaffold-claim per ADR-0054 for `oya-foundry-fitness-authoritative-tracked-kernel/` | Y — pattern consistent |
+| V3 P10 scaffold-claim | Y — plan L165 names scaffold-claim per ADR-0054 for `oya-governance-authoritative-tracked-kernel/` | Y — pattern consistent |
 | V4 ADR bootstrap-window | **N — claim-only** | N — plan §3 L183 says "iter-2 edits to lift-source: add bootstrap-window clause to §Decision" but ADR draft mtime 20:02:09 < plan mtime 20:14:07; §Decision still reads "exactly three" with no bootstrap-window carve-out. Plan’s Principle L14 carries the bootstrap-window text but the ADR lift-source does not — divergence is back |
 | Arch #1 P0.5 ADR-0054 | Y — phase exists at plan L80-86; lands ADR-0054 + RACI human-orchestrator row before P2 | Y — sequencing is correct; doc-only icm-lock-p0.5 is sound |
 | Arch #2 bootstrap clause | **N — claim-only** | N — same as V4 above. The bootstrap-window clause appears in plan §1 Principles but the canonical ADR lift-source was not edited. ADR-shape lane will flag this divergence at landing |

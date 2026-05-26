@@ -78,5 +78,5 @@
     "escalated_to_adversarial": false,
     "reason": "Zero CRITICAL/MAJOR findings; pattern is uniformly clean deletion."
   },
-  "summary": "PR #13 is a clean, deletion-only dependency change. Two workspace members (archive-orphan kernel + app) plus their Cargo.lock entries are removed; no external dep added, removed, or version-bumped. The only non-deletion edit is a 2-line comment update inside tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml that rewrites a sibling-pattern example list — it touches zero dependency declarations. dependency-rationales.json (registries/cross-cutting/) and deny.toml are untouched. ADR-0092 layer-seam policy, cargo-deny policy, and cargo-audit advisory surface are all unaffected. A5 PASS."
+  "summary": "PR #13 is a clean, deletion-only dependency change. Two workspace members (archive-orphan kernel + app) plus their Cargo.lock entries are removed; no external dep added, removed, or version-bumped. The only non-deletion edit is a 2-line comment update inside tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml that rewrites a sibling-pattern example list — it touches zero dependency declarations. dependency-rationales.json (registries/cross-cutting/) and deny.toml are untouched. ADR-0092 layer-seam policy, cargo-deny policy, and cargo-audit advisory surface are all unaffected. A5 PASS."
 }

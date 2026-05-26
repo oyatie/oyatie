@@ -19,7 +19,7 @@ Lane CI-blocks orphan artifacts (no inbound reference; not in known-orphan allow
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-orphan-detection-kernel/src/lib.rs::detect_orphans
+crates/oya-governance-orphan-detection-kernel/src/lib.rs::detect_orphans
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

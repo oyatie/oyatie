@@ -19,7 +19,7 @@ Lane hard-denies AGPL/GPL/SSPL/BUSL/RSAL in product code.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-license-policy-kernel/src/lib.rs::check
+crates/oya-governance-license-policy-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -63,10 +63,10 @@ v4 covers session execution per-account (spawn / inject / drain / kill / idempot
 
 | Surface | File | Lines | Notes |
 |---------|------|-------|-------|
-| `ProviderFamily` enum (4 variants used by templates: Claude, OpenAiOrCodex, Gemini; Aws+Oci unused here) | `crates/oya-foundry-account-kernel/src/lib.rs` | 23-29 | **Re-used as value; zero new public API on existing kernel.** Reachable via the existing `try_from(&str)` round-trip at L40-50. |
-| `SecretReference` (`sref://...` scheme) + `SecretReferenceError` | `crates/oya-foundry-account-kernel/src/lib.rs` | 57-79 | Templates reference secrets only by `sref://`; renderer never serializes raw material to disk. |
+| `ProviderFamily` enum (4 variants used by templates: Claude, OpenAiOrCodex, Gemini; Aws+Oci unused here) | `crates/oya-intelligence-account-kernel/src/lib.rs` | 23-29 | **Re-used as value; zero new public API on existing kernel.** Reachable via the existing `try_from(&str)` round-trip at L40-50. |
+| `SecretReference` (`sref://...` scheme) + `SecretReferenceError` | `crates/oya-intelligence-account-kernel/src/lib.rs` | 57-79 | Templates reference secrets only by `sref://`; renderer never serializes raw material to disk. |
 | `SecretStorePort` impl (in-memory ref) on `OpenBaoAdapter` | `crates/oya-foundry-account-adapter-openbao/src/lib.rs` | 26 (impl) + 88-164 (10 unit tests) | Spawn-time env-var injection resolves `sref://...` through this port at supervisor-app run-time; renderer never calls it. |
-| `AccountSnapshotProvider` port (v4 §B.2.3) | `crates/oya-foundry-supervisor-kernel/src/lib.rs::AccountSnapshotProvider` (new in v4 grit unit #24) | n/a — v4 declares it | v5 extends the **semantics** of `snapshot()` via composition (verify-via-side-channel); **trait signature unchanged**. |
+| `AccountSnapshotProvider` port (v4 §B.2.3) | `crates/oya-intelligence-supervisor-kernel/src/lib.rs::AccountSnapshotProvider` (new in v4 grit unit #24) | n/a — v4 declares it | v5 extends the **semantics** of `snapshot()` via composition (verify-via-side-channel); **trait signature unchanged**. |
 | `templates/` directory | `templates/` (verified `ls templates/`) | — | Existing root with `checklists/INDEX.md` and 12 `*-template.{md,yaml,json}` files. v5 adds new subdir `templates/foundry-supervisor/` (declared as scaffold artifact). |
 | `registry/accounts/` directory | path declared in v4 §B.10 row "registry/accounts/ directory (v4 patch #7)" | — | Scaffold artifact, not yet created. v5 templates point at this directory for the `target_secret_refs` field. |
 | **Codex CLI config layout** (verified ground truth, `ls /Users/jasonlee/.codex/`) | `~/.codex/config.toml` (3.2K real TOML) + `~/.codex/hooks.json` (9.2K, hooks ARE supported) + `~/.codex/AGENTS.md` | — | **Verified real, not assumed.** Hooks are out-of-band in `hooks.json`, NOT inline in `config.toml`. CodexRenderer materializes BOTH files. |
@@ -79,8 +79,8 @@ v4 covers session execution per-account (spawn / inject / drain / kill / idempot
 
 | Crate | v4-BNF + 12-layer-enum justification |
 |-------|--------------------------------------|
-| `oya-foundry-settings-template-kernel` | `oya-<foundry>-<settings-template>-<kernel>` — foundry is the registered µservice (Cargo.toml:290); settings-template is the new feature compound (mirrors v4 `jsonl-supervisor`); kernel = layer #1 (pure value types). Allowed deps: std + tokio (already baseline). No I/O. No per-provider serialization. |
-| `oya-foundry-settings-template-adapter-fs` | `oya-<foundry>-<settings-template>-<adapter-fs>` — settings-template same compound; adapter-fs = layer #5; the ONLY crate that writes to `~/.claude/`, `~/.codex/`, `~/.gemini/` filesystem locations. Allowed deps: std + tokio + workspace `bytes` (already baseline at Cargo.toml:481-492). Hand-rolled TOML + JSON parsers (no `serde`, no `toml` crate — Branch Y; reuses the precedent set by v4 `oya-foundry-jsonl-supervisor-adapter` hand-rolled framing and `capability-registry-app:L96` hand-rolled JSON). |
+| `oya-intelligence-settings-template-kernel` | `oya-<foundry>-<settings-template>-<kernel>` — foundry is the registered µservice (Cargo.toml:290); settings-template is the new feature compound (mirrors v4 `jsonl-supervisor`); kernel = layer #1 (pure value types). Allowed deps: std + tokio (already baseline). No I/O. No per-provider serialization. |
+| `oya-intelligence-settings-template-adapter-fs` | `oya-<foundry>-<settings-template>-<adapter-fs>` — settings-template same compound; adapter-fs = layer #5; the ONLY crate that writes to `~/.claude/`, `~/.codex/`, `~/.gemini/` filesystem locations. Allowed deps: std + tokio + workspace `bytes` (already baseline at Cargo.toml:481-492). Hand-rolled TOML + JSON parsers (no `serde`, no `toml` crate — Branch Y; reuses the precedent set by v4 `oya-intelligence-jsonl-supervisor-adapter` hand-rolled framing and `capability-registry-app:L96` hand-rolled JSON). |
 
 ---
 
@@ -88,10 +88,10 @@ v4 covers session execution per-account (spawn / inject / drain / kill / idempot
 
 All types value-only. No `&`/`Arc`/`Box<dyn>` in struct fields. Same invariant fence as v4 `SessionTicket`.
 
-#### B.2.1 `oya-foundry-settings-template-kernel` types
+#### B.2.1 `oya-intelligence-settings-template-kernel` types
 
 ```rust
-use oya_foundry_account_kernel::{ProviderFamily, SecretReference};
+use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -197,11 +197,11 @@ pub enum SettingsRendererError {
 }
 ```
 
-#### B.2.2 `oya-foundry-settings-template-kernel` port (sync trait, Branch Y)
+#### B.2.2 `oya-intelligence-settings-template-kernel` port (sync trait, Branch Y)
 
 ```rust
 use std::path::Path;
-use oya_foundry_account_domain::ProviderAccount;
+use oya_intelligence_account_domain::ProviderAccount;
 
 /// Per-provider renderer port. Each provider gets one impl in the adapter crate.
 pub trait SettingsRenderer: Send + Sync {
@@ -358,8 +358,8 @@ cargo run -p oya-dev-cli -- gate validate settings-drift \
 
 | # | RISK | Verification command (real ground truth verified) | Mitigation |
 |---|------|---------------------------------------------------|------------|
-| **R1** | **Codex hook-event vocabulary** is captured in `~/.codex/hooks.json` (9.2K, verified present), but the documented event-name set for that file is not yet checked into the workspace as a fixture. | `ls -la /Users/jasonlee/.codex/hooks.json` → exists (9.2K, verified); capture as fixture via `cp ~/.codex/hooks.json crates/oya-foundry-settings-template-adapter-fs/tests/fixtures/codex-hooks.observed.json` at Wave-4d scaffold time; `tests/hook_event_mapping.rs::codex_event_names_round_trip` asserts `HookEvent` → Codex event name → `HookEvent` for every variant the fixture declares. | Not a no-op — Codex DOES support hooks. Renderer materializes both `config.toml` and `hooks.json`. Capability-seed row records observed event vocabulary. |
-| **R2** | **Gemini hook surface** is undocumented in observable ground truth: `~/.gemini/settings.json` is 1.0K with no `hooks` key visible to a casual inspection. CLI may support hooks via a different config file, may not support hooks at all, or may evolve the schema. | `ls -la /Users/jasonlee/.gemini/` → only `settings.json`, `GEMINI.md`, `state.json`, `oauth_creds.json`, no separate hooks file; `gemini --help` and `gemini config --help` outputs to be captured at Wave-4d scaffold time into `crates/oya-foundry-settings-template-adapter-fs/tests/fixtures/gemini-cli-help.observed.txt`. | **Renderer reduces hooks to no-op for Gemini until capability confirmed.** Capability-seed file `registry/capabilities/foundry-supervisor.toml` (v4 §B.5) gains a per-driver `hooks_supported = false` row for `gemini-driver` — same pattern v4 uses for `request_id_supported = false`. No invented capability. |
+| **R1** | **Codex hook-event vocabulary** is captured in `~/.codex/hooks.json` (9.2K, verified present), but the documented event-name set for that file is not yet checked into the workspace as a fixture. | `ls -la /Users/jasonlee/.codex/hooks.json` → exists (9.2K, verified); capture as fixture via `cp ~/.codex/hooks.json crates/oya-intelligence-settings-template-adapter-fs/tests/fixtures/codex-hooks.observed.json` at Wave-4d scaffold time; `tests/hook_event_mapping.rs::codex_event_names_round_trip` asserts `HookEvent` → Codex event name → `HookEvent` for every variant the fixture declares. | Not a no-op — Codex DOES support hooks. Renderer materializes both `config.toml` and `hooks.json`. Capability-seed row records observed event vocabulary. |
+| **R2** | **Gemini hook surface** is undocumented in observable ground truth: `~/.gemini/settings.json` is 1.0K with no `hooks` key visible to a casual inspection. CLI may support hooks via a different config file, may not support hooks at all, or may evolve the schema. | `ls -la /Users/jasonlee/.gemini/` → only `settings.json`, `GEMINI.md`, `state.json`, `oauth_creds.json`, no separate hooks file; `gemini --help` and `gemini config --help` outputs to be captured at Wave-4d scaffold time into `crates/oya-intelligence-settings-template-adapter-fs/tests/fixtures/gemini-cli-help.observed.txt`. | **Renderer reduces hooks to no-op for Gemini until capability confirmed.** Capability-seed file `registry/capabilities/foundry-supervisor.toml` (v4 §B.5) gains a per-driver `hooks_supported = false` row for `gemini-driver` — same pattern v4 uses for `request_id_supported = false`. No invented capability. |
 | **R3** | **Path divergence between releases** — CLI may move config root (`~/.codex` → `~/.config/codex`). | At CI-lane init, the subcommand reads each renderer's `canonical_paths_for_provider(home: &Path) -> Vec<PathBuf>` and asserts at least one matches an observed CLI environment hint (e.g. `CODEX_HOME`, `GEMINI_HOME`) when those env vars exist; otherwise falls back to the documented default and emits a CI warning. | Logged as open question; no auto-mitigation in v5 — flagged for capability check in subsequent phase. |
 
 **No invented capability rule:** if at scaffold time a fixture cannot be captured for a provider, the corresponding renderer ships with the relevant `HookEvent` variants in `omitted_hook_events` and the capability-seed file records the limitation. v5 ships honest capability surface, not aspirational.
@@ -374,18 +374,18 @@ Anchor: `M02-P06-foundry-supervisor` (existing v4 phase). Sub-claim intent: `M02
 |-------|------------------------|-------|
 | v5.1 | `docs/decisions/ADR-NNNN-foundry-settings-template-canonical-rendering.md::header` | ADR (§B.8) |
 | v5.2 | `Cargo.toml::members` | Add 2 new crates to workspace |
-| v5.3 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::SettingsTemplate` | Value type |
-| v5.4 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::HookRef` + `HookEvent` | Enum + struct |
-| v5.5 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::SkillRef` | |
-| v5.6 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::McpServerRef` + `McpTransport` | |
-| v5.7 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::PermissionEntry` + `AllowedTool` | |
-| v5.8 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::ProviderOverrides` + `ProviderFamilyKey` | |
-| v5.9 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::RenderManifest` + `RenderedFile` + `DriftReport` + `DriftEntry` + `DriftState` + `SettingsRendererError` | |
-| v5.10 | `crates/oya-foundry-settings-template-kernel/src/lib.rs::SettingsRenderer` | Port trait |
-| v5.11 | `crates/oya-foundry-settings-template-adapter-fs/src/lib.rs::ClaudeRenderer` | Per-provider impl |
-| v5.12 | `crates/oya-foundry-settings-template-adapter-fs/src/lib.rs::CodexRenderer` | Per-provider impl (writes BOTH config.toml + hooks.json) |
-| v5.13 | `crates/oya-foundry-settings-template-adapter-fs/src/lib.rs::GeminiRenderer` | Per-provider impl (hooks no-op per R2) |
-| v5.14 | `crates/oya-foundry-settings-template-adapter-fs/src/lib.rs::parse_template_toml` + `emit_drift_report_json` | Hand-rolled TOML parser + JSON emitter (no serde) |
+| v5.3 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::SettingsTemplate` | Value type |
+| v5.4 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::HookRef` + `HookEvent` | Enum + struct |
+| v5.5 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::SkillRef` | |
+| v5.6 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::McpServerRef` + `McpTransport` | |
+| v5.7 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::PermissionEntry` + `AllowedTool` | |
+| v5.8 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::ProviderOverrides` + `ProviderFamilyKey` | |
+| v5.9 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::RenderManifest` + `RenderedFile` + `DriftReport` + `DriftEntry` + `DriftState` + `SettingsRendererError` | |
+| v5.10 | `crates/oya-intelligence-settings-template-kernel/src/lib.rs::SettingsRenderer` | Port trait |
+| v5.11 | `crates/oya-intelligence-settings-template-adapter-fs/src/lib.rs::ClaudeRenderer` | Per-provider impl |
+| v5.12 | `crates/oya-intelligence-settings-template-adapter-fs/src/lib.rs::CodexRenderer` | Per-provider impl (writes BOTH config.toml + hooks.json) |
+| v5.13 | `crates/oya-intelligence-settings-template-adapter-fs/src/lib.rs::GeminiRenderer` | Per-provider impl (hooks no-op per R2) |
+| v5.14 | `crates/oya-intelligence-settings-template-adapter-fs/src/lib.rs::parse_template_toml` + `emit_drift_report_json` | Hand-rolled TOML parser + JSON emitter (no serde) |
 | v5.15 | `templates/foundry-supervisor/claude.toml::header` | Template payload |
 | v5.16 | `templates/foundry-supervisor/codex.toml::header` | Template payload |
 | v5.17 | `templates/foundry-supervisor/gemini.toml::header` | Template payload |
@@ -404,10 +404,10 @@ Anchor: `M02-P06-foundry-supervisor` (existing v4 phase). Sub-claim intent: `M02
 | Doc-coverage (adapter-fs) | `docs/foundry/settings-template/adapter-fs/{README,architecture,operations,security,sample-payloads}.md` |
 | Templates | `templates/foundry-supervisor/{claude,codex,gemini}.toml` |
 | CI report (runtime artifact, not committed) | `.omc/state/settings-drift-report.json` |
-| Test fixtures (captured at scaffold) | `crates/oya-foundry-settings-template-adapter-fs/tests/fixtures/{codex-hooks.observed.json, gemini-cli-help.observed.txt}` |
+| Test fixtures (captured at scaffold) | `crates/oya-intelligence-settings-template-adapter-fs/tests/fixtures/{codex-hooks.observed.json, gemini-cli-help.observed.txt}` |
 
 **ADR `ADR-foundry-settings-template-canonical-rendering`:**
-- **Decision:** Canonical `SettingsTemplate` value type in `oya-foundry-settings-template-kernel` + per-provider `SettingsRenderer` impls in `oya-foundry-settings-template-adapter-fs`; drift verified at `AccountSnapshotProvider::snapshot()` time.
+- **Decision:** Canonical `SettingsTemplate` value type in `oya-intelligence-settings-template-kernel` + per-provider `SettingsRenderer` impls in `oya-intelligence-settings-template-adapter-fs`; drift verified at `AccountSnapshotProvider::snapshot()` time.
 - **Drivers:** multi-account-consistency, cross-provider-parity, drift-free-onboarding (mirrors §A.1.2).
 - **Alternatives considered:**
   - (a) Script-based per-provider settings (rejected: drift impossible to verify after the fact; no canonical source-of-truth).
@@ -425,8 +425,8 @@ Slotted into the existing 14-task team graph. Wave 1 + 3 (a-c) + 5 unchanged. Ad
 
 | Wave | Task id | Description | Depends on |
 |------|---------|-------------|-----------|
-| **2g** | `settings-template-kernel` | Implement `oya-foundry-settings-template-kernel` (grit units v5.3..v5.10): value types + `SettingsRenderer` trait. Doc-coverage 5 docs. Unit tests cover invariant fence + `SettingsTemplate` equality. | Wave 1 |
-| **2h** | `settings-template-adapter-fs` | Implement `oya-foundry-settings-template-adapter-fs` (grit units v5.11..v5.14): 3 renderer impls + hand-rolled TOML parser + JSON emitter. Atomic tempfile+rename; idempotent re-render; secret-ref resolution at-spawn (NOT at-render). Doc-coverage 5 docs. Unit tests cover round-trip TOML, drift detection (Modified/Missing/Extra), no-raw-secrets grep. | Wave 2g |
+| **2g** | `settings-template-kernel` | Implement `oya-intelligence-settings-template-kernel` (grit units v5.3..v5.10): value types + `SettingsRenderer` trait. Doc-coverage 5 docs. Unit tests cover invariant fence + `SettingsTemplate` equality. | Wave 1 |
+| **2h** | `settings-template-adapter-fs` | Implement `oya-intelligence-settings-template-adapter-fs` (grit units v5.11..v5.14): 3 renderer impls + hand-rolled TOML parser + JSON emitter. Atomic tempfile+rename; idempotent re-render; secret-ref resolution at-spawn (NOT at-render). Doc-coverage 5 docs. Unit tests cover round-trip TOML, drift detection (Modified/Missing/Extra), no-raw-secrets grep. | Wave 2g |
 | **4d** | `settings-template-payloads-and-lane` | Materialize templates (`templates/foundry-supervisor/{claude,codex,gemini}.toml`, grit units v5.15..v5.17); ADR (v5.1); `oya-dev-cli` `settings-drift` subcommand (v5.18); CI lane registration in `lean-settings-drift`. Capture fixtures from local `~/.codex/hooks.json` + `gemini --help` per §B.6 R1, R2. Append `hooks_supported` rows to `registry/capabilities/foundry-supervisor.toml`. | Wave 2h + Wave 4b (registry/accounts/) |
 
 No changes to Waves 1, 2a-f, 3a-c, 4a-c, 5. Wave 4d composes with 4b (registry/accounts/ scaffold) — 4d depends on 4b but is otherwise independent.
@@ -437,7 +437,7 @@ No changes to Waves 1, 2a-f, 3a-c, 4a-c, 5. Wave 4d composes with 4b (registry/a
 
 | # | Acceptance criterion | Verification |
 |---|---------------------|--------------|
-| **C.25** | Both new crates build under workspace | `rtk cargo build -p oya-foundry-settings-template-kernel && rtk cargo build -p oya-foundry-settings-template-adapter-fs` exits 0 |
+| **C.25** | Both new crates build under workspace | `rtk cargo build -p oya-intelligence-settings-template-kernel && rtk cargo build -p oya-intelligence-settings-template-adapter-fs` exits 0 |
 | **C.26** | `lean-settings-drift` CI lane green against example account files | `cargo run -p oya-dev-cli -- gate validate settings-drift --templates-root templates/foundry-supervisor --accounts-root registry/accounts --report-out .omc/state/settings-drift-report.json` exits 0 when run against `registry/accounts/{claude,codex,gemini}.example.toml` |
 | **C.27** | Drift detection works — hand-edit a rendered file, verify reports `DriftState::Modified` with non-empty `diff` | Test: render once; mutate `~/.claude/settings.json` (under CI-isolated root) `permissions[0].rule`; re-run `verify`; assert `entries.iter().any(\|e\| e.state == DriftState::Modified && e.diff.is_some())` |
 | **C.28** | Re-render is idempotent — second `render` invocation against an already-rendered root is a no-op (manifest hashes match all existing files; no writes occur) | Test: render once, capture `mtime` for every file in manifest; render second time; assert all `mtime`s unchanged |

@@ -37,7 +37,7 @@ purpose: Ship the top-level `oya` CLI binary that wraps `claim/work/verify/done/
 
 ## Scope
 
-Kernels exist (`oya-foundry-vcs-cli-ratchet-kernel`, `-promotion-controller-kernel`, 30+ `oya-foundry-fitness-*-kernel` crates) but no top-level binary an agent can invoke. Today agents fall back to direct `git` + `gh`, which silently violates `CLAUDE.md::sanctioned_primitives`. This IP scaffolds `tools/oya-cli/` as a thin wrapper crate that:
+Kernels exist (`oya-vcs-cli-ratchet-kernel`, `-promotion-controller-kernel`, 30+ `oya-foundry-fitness-*-kernel` crates) but no top-level binary an agent can invoke. Today agents fall back to direct `git` + `gh`, which silently violates `CLAUDE.md::sanctioned_primitives`. This IP scaffolds `tools/oya-cli/` as a thin wrapper crate that:
 
 - Exposes top-level subcommands: `oya claim`, `oya work`, `oya verify`, `oya done`, `oya promote`, `oya gate`, `oya audit`.
 - `oya gate run-all` fans out across every registered `oya-foundry-fitness-*-kernel` and emits a single rollup report (JSON + human-readable).
@@ -143,7 +143,7 @@ Per `crates/oya-dev-cli/src/lib.rs` top-level verb table:
 - `oya repoctl` → `commands/repoctl.rs` (repository control / fan-out)
 - `oya gate` (above)
 - `oya vcs` → `commands/vcs.rs` (cli-ratchet policy wrapper around
-  `oya-foundry-vcs-cli-ratchet-kernel`)
+  `oya-vcs-cli-ratchet-kernel`)
 
 ### Pipeline primitives STILL missing from canonical `oya` CLI
 

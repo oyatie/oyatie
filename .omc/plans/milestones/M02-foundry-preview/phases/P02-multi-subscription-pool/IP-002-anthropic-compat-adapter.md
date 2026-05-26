@@ -11,7 +11,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
-  Ship `oya-foundry-adapter-anthropic-compat-api`: an Axum-on-Hyper HTTP service that exposes
+  Ship `oya-intelligence-adapter-anthropic-compat-api`: an Axum-on-Hyper HTTP service that exposes
   the upstream Anthropic Messages-API shape (`POST /v1/messages`, `GET /v1/messages/count_tokens`)
   and translates incoming requests through the IP-001 `pick_account` decision into an internal
   `foundry.capability.invoke` call against the chosen subscription account. SSE streaming is
@@ -19,11 +19,11 @@ purpose: |
   the `ProviderAdapter` trait so the same kernel also serves the OpenAI-compat adapter
   (IP-003) by pluging in a different `RequestTranslator`.
 grit_claim_symbols:
-  - "crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::messages_handler"
-  - "crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::count_tokens_handler"
-  - "crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesRequest"
-  - "crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesResponse"
-  - "crates/oya-foundry-adapter-anthropic-compat-api/src/streaming.rs::sse_relay"
+  - "crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::messages_handler"
+  - "crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::count_tokens_handler"
+  - "crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesRequest"
+  - "crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesResponse"
+  - "crates/oya-intelligence-adapter-anthropic-compat-api/src/streaming.rs::sse_relay"
   - "contracts/foundry-compat-anthropic-v1.openapi.yaml::messagesCreate"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
@@ -66,13 +66,13 @@ works in Python and this IP delivers it in Rust with `ProviderAdapter` trait iso
 ## Symbols to grit-claim
 
 ```
-crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::messages_handler
-crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::count_tokens_handler
-crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesRequest
-crates/oya-foundry-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesResponse
-crates/oya-foundry-adapter-anthropic-compat-api/src/streaming.rs::sse_relay
-crates/oya-foundry-adapter-anthropic-compat-api/src/translate.rs::to_internal_invoke
-crates/oya-foundry-adapter-anthropic-compat-api/src/translate.rs::from_internal_invoke
+crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::messages_handler
+crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::count_tokens_handler
+crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesRequest
+crates/oya-intelligence-adapter-anthropic-compat-api/src/lib.rs::AnthropicMessagesResponse
+crates/oya-intelligence-adapter-anthropic-compat-api/src/streaming.rs::sse_relay
+crates/oya-intelligence-adapter-anthropic-compat-api/src/translate.rs::to_internal_invoke
+crates/oya-intelligence-adapter-anthropic-compat-api/src/translate.rs::from_internal_invoke
 contracts/foundry-compat-anthropic-v1.openapi.yaml::messagesCreate
 contracts/foundry-compat-anthropic-v1.openapi.yaml::messagesCountTokens
 ```
@@ -104,7 +104,7 @@ Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 anthropic-compat adapter ccproxy-api claude_api" --limit 5`.
 2. Confirm IP-001 merged (`pick_account` available); read `./IP-001-provider-account-pool-kernel.md`.
 3. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/forbidden-operations.json` (FO-01..FO-10).
-4. Confirm symbols unclaimed: `oya-tooling-agent-read grit-status crates/oya-foundry-adapter-anthropic-compat-api`.
+4. Confirm symbols unclaimed: `oya-tooling-agent-read grit-status crates/oya-intelligence-adapter-anthropic-compat-api`.
 5. Read `.omc/standards/dependency-policy.md §5.1` — Anthropic has no official Rust SDK; this adapter uses in-tree `reqwest` + `rustls` for upstream calls.
 6. Read the parent INDEX `./INDEX.md` for fitness-lane scope.
 <!-- agent-instructions:end -->
@@ -114,8 +114,8 @@ Before `grit claim`, the agent **MUST**:
 ## Acceptance test commands
 
 ```
-$ cargo nextest run -p oya-foundry-adapter-anthropic-compat-api --all-features    # expect: PASS, 0 failures
-$ cargo clippy -p oya-foundry-adapter-anthropic-compat-api -- -D warnings         # expect: PASS, 0 warnings
+$ cargo nextest run -p oya-intelligence-adapter-anthropic-compat-api --all-features    # expect: PASS, 0 failures
+$ cargo clippy -p oya-intelligence-adapter-anthropic-compat-api -- -D warnings         # expect: PASS, 0 warnings
 $ cargo deny check                                                                # expect: PASS
 $ oya gate validate oya-foundry-fitness-compat-api-shape-binding                  # expect: PASS (response shape matches Anthropic OpenAPI)
 $ oya gate validate oya-foundry-fitness-provider-coupling                         # expect: PASS (no provider imports outside adapter)

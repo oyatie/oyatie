@@ -13,7 +13,7 @@
     "crates/oya-dev-cli/Cargo.toml",
     "Cargo.toml",
     "Cargo.lock",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "registry/dependency-rationales.json",
     "registry/quality/lanes.yaml",
     "docs/standards/ci-lanes.md",
@@ -31,7 +31,7 @@
     "cargo clippy -p oya-check-dependency-seam --all-targets -- -D warnings: PASS",
     "cargo clippy -p oya-dev-cli --lib -- -D warnings: PASS",
     "cargo clippy -p oya-dev-cli --test gate_cli -- -D warnings: PASS",
-    "cargo test -p oya-foundry-gate-catalog-domain: PASS",
+    "cargo test -p oya-governance-gate-catalog-domain: PASS",
     "cargo run -q -p oya-dev-cli -- gate validate quality-lanes: PASS",
     "cargo run -q -p oya-dev-cli --locked -- gate validate planning-closure: PASS",
     "jq empty evidence/fd001/cs-p13-dependency-seam-report.json evidence/multispectrum/cs-p13-dependency-seam-1779166052.json evidence/fd001/cs-p13-dependency-seam-cargo-audit.json specs/masterplan.json registry/dependency-rationales.json plus fixuptasks JSONL parse: PASS"

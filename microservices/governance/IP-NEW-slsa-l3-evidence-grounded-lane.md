@@ -58,7 +58,7 @@ without simultaneously downgrading the scorecard.
 | `crates/oya-dev-cli/src/slsa_l3_evidence_grounded_gate.rs` | create — file-reading runner |
 | `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
 | `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add match arm |
-| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | edit — append `"slsa-l3-evidence-grounded"` |
+| `crates/oya-governance-gate-catalog-domain/src/lib.rs` | edit — append `"slsa-l3-evidence-grounded"` |
 | `.github/branch-protection.yaml` | edit — add to dev's required-status-checks |
 | `microservices/governance/catalog/oya-check-slsa-l3-evidence-grounded.yaml` | create — catalog entry |
 

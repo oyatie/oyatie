@@ -19,9 +19,9 @@ Council-Architecture signs every cross-axis-contract PR; merge-gate enforces sig
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-pr-merge-gate-kernel/src/lib.rs::CouncilSignature
-crates/oya-foundry-fitness-pr-merge-gate-kernel/src/lib.rs::parse_council_signature
-crates/oya-foundry-fitness-pr-merge-gate-kernel/src/lib.rs::evaluate
+crates/oya-governance-pr-merge-gate-kernel/src/lib.rs::CouncilSignature
+crates/oya-governance-pr-merge-gate-kernel/src/lib.rs::parse_council_signature
+crates/oya-governance-pr-merge-gate-kernel/src/lib.rs::evaluate
 ```
 (Migrated 2026-05-14 from `scripts/hooks/guard-pr-merge-review.mjs` per user directive "no shellscript no mjs etc all rust" — original .mjs deleted; semantics preserved 1:1 in pure Rust.)
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use oya_check_authority_cohesion::{AuthorityDocument, validate_authority_cohesion};
 use oya_check_claim_ceiling::FoundationClaimCeiling;
-use oya_foundry_catalog_domain::CatalogIndex;
+use oya_intelligence_catalog_domain::CatalogIndex;
 
 use crate::{read_catalog_records, usage};
 

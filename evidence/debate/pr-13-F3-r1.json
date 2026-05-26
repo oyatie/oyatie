@@ -101,7 +101,7 @@
       "id": "F3-5",
       "severity": "MINOR",
       "title": "Validation evidence narrower than risk surface",
-      "evidence": "PR body §Validation lists `cargo metadata --no-deps`, ADR-shape validator, `cargo check -p oya-foundry-fitness-authoritative-tracked-kernel`, `cargo check -p oya-foundry-fitness-authoritative-tracked-app`, JSON parse, filesystem assertion, `git diff --check`. §Not tested: 'Full workspace check'.",
+      "evidence": "PR body §Validation lists `cargo metadata --no-deps`, ADR-shape validator, `cargo check -p oya-governance-authoritative-tracked-kernel`, `cargo check -p oya-governance-authoritative-tracked-app`, JSON parse, filesystem assertion, `git diff --check`. §Not tested: 'Full workspace check'.",
       "why_it_matters": "Cargo metadata only confirms the workspace resolves, not that every member still builds. A transitive consumer (e.g., a tool with `[features] archive = ['oya-foundry-fitness-archive-orphan-kernel']`) would not be caught. The risk is low because no such consumer was found, but the validation did not prove it.",
       "fix": "Run `cargo check --workspace --all-targets` and either include the result or document that workspace CI on dev passed post-merge.",
       "confidence": "HIGH"
@@ -110,7 +110,7 @@
       "id": "F3-6",
       "severity": "MINOR",
       "title": "Stale doctrinal text in dispatcher Cargo.toml comment",
-      "evidence": "`tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml` Sibling pattern comment cites '(banned-primitives, archive-orphan, adr-shape, supply-chain gates, etc.)' as the BNF v4.1 conformance precedent. Archive-orphan is now retired.",
+      "evidence": "`tools/oya-intelligence-pr-review-dispatcher-app/Cargo.toml` Sibling pattern comment cites '(banned-primitives, archive-orphan, adr-shape, supply-chain gates, etc.)' as the BNF v4.1 conformance precedent. Archive-orphan is now retired.",
       "why_it_matters": "Comments that cite retired primitives as living precedent confuse future contributors and weaken the naming-justification trail.",
       "fix": "Replace `archive-orphan` in the sibling list with a still-living app (e.g., `authoritative-tracked`)."
     }

@@ -18,8 +18,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" cargo build -q --workspace 2>&1 | command tail -3 && echo --- && for cli in adr-status api-stability-tier capability-status crate-status dependency-status doc-status feature-flag-status migration-status plan-status; do\n  out=$(target/debug/oya-foundry-fitness-${cli}-lifecycle-app 2>&1 | command head -1)\n  rc=$?\n  printf 'rc=%s  %s\\n' \"$rc\" \"$out\"\ndone",
-    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" cargo test -q -p oya-foundry-fitness-lifecycle-kernel 2>&1 | command tail -3",
+    "buildCommand": "cd /Users/jasonlee/Developer/source\npgrep -f 'cargo build --workspace' >/dev/null && echo BUILDING || echo DONE\necho \"=== errors ===\"; grep -E '^error(\\[|:)' /tmp/laneb-build2.log 2>/dev/null | sort | uniq -c | sort -rn | head\necho \"=== tail ===\"; tail -3 /tmp/laneb-build2.log 2>/dev/null",
+    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" cargo test -q -p oya-governance-lifecycle-kernel 2>&1 | command tail -3",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -216,7 +216,7 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-fitness-predictable-naming-kernel/src/lib.rs",
+      "path": "crates/oya-governance-predictable-naming-kernel/src/lib.rs",
       "accessCount": 11,
       "lastAccessed": 1778840026095,
       "type": "file"
@@ -246,7 +246,7 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-fitness-adapter-with-no-importer-kernel/src/lib.rs",
+      "path": "crates/oya-governance-adapter-with-no-importer-kernel/src/lib.rs",
       "accessCount": 7,
       "lastAccessed": 1778839640122,
       "type": "file"
@@ -258,7 +258,7 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-capability-domain/src/lib.rs",
+      "path": "crates/oya-intelligence-capability-domain/src/lib.rs",
       "accessCount": 5,
       "lastAccessed": 1778838649946,
       "type": "file"
@@ -294,7 +294,7 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-openapi-domain/src/lib.rs",
+      "path": "crates/oya-intelligence-openapi-domain/src/lib.rs",
       "accessCount": 3,
       "lastAccessed": 1778838697361,
       "type": "file"
@@ -312,7 +312,7 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-fitness-adapter-with-no-importer-kernel/Cargo.toml",
+      "path": "crates/oya-governance-adapter-with-no-importer-kernel/Cargo.toml",
       "accessCount": 3,
       "lastAccessed": 1778839626398,
       "type": "file"
@@ -372,7 +372,7 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-evidence-domain/src/lib.rs",
+      "path": "crates/oya-intelligence-evidence-domain/src/lib.rs",
       "accessCount": 2,
       "lastAccessed": 1778838672018,
       "type": "file"
@@ -426,13 +426,13 @@
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-fitness-portfolio-citation-kernel/Cargo.toml",
+      "path": "crates/oya-governance-portfolio-citation-kernel/Cargo.toml",
       "accessCount": 1,
       "lastAccessed": 1778836866780,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs",
+      "path": "crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
       "accessCount": 1,
       "lastAccessed": 1778836867762,
       "type": "file"

@@ -19,7 +19,7 @@ Ship the flat-crates guard per ADR-0015.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-cargo-prefix-domain/src/lib.rs::validate_cargo_prefix
+crates/oya-intelligence-cargo-prefix-domain/src/lib.rs::validate_cargo_prefix
 crates/oya-dev-cli/src/commands/gate.rs::cargo-prefix
 crates/oya-shared-architecture-check-cli/src/main.rs::naming-collision
 ```
@@ -30,7 +30,7 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test --locked -p oya-foundry-cargo-prefix-domain
+cargo test --locked -p oya-intelligence-cargo-prefix-domain
 cargo run --quiet -p oya-dev-cli -- gate validate cargo-prefix --workspace Cargo.toml --prefix oya-
 scripts/check.sh
 ```

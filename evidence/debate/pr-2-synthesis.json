@@ -14,16 +14,16 @@
         "F8",
         "F9"
       ],
-      "headline": "The stable foundry.rag.retrieve contract still points at oya-foundry-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-foundry-rag-api --locked --offline` no longer resolves a package. That makes…",
+      "headline": "The stable foundry.rag.retrieve contract still points at oya-intelligence-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-intelligence-rag-api --locked --offline` no longer resolves a package. That makes…",
       "id": "PR2-CONV-1",
-      "recommended_remediation": "Either restore oya-foundry-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up.",
+      "recommended_remediation": "Either restore oya-intelligence-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up.",
       "remediation_fixuptasks": [
         "F-PR2-01"
       ],
       "severity": "BLOCKER"
     },
     {
-      "evidence": "crates/oya-foundry-rag-api/src/lib.rs:766-775",
+      "evidence": "crates/oya-intelligence-rag-api/src/lib.rs:766-775",
       "facets_concurring": [
         "F1",
         "F2",

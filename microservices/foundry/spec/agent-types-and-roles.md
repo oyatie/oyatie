@@ -620,7 +620,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-ROLE-ROUTED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at intake and the denial reason is appended.
-9. Verification: oya-foundry-vcs-changeset-state-kernel and oya-governance-changeset-state-monotonicity cover this branch.
+9. Verification: oya-vcs-changeset-state-kernel and oya-governance-changeset-state-monotonicity cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 1.01: intake_route moves request to intake only after workflow event or human task arrives, with EVT-FOUNDRY-AGENT-ROLE-ROUTED emitted and Cedar denial staying terminal for that attempt.
@@ -652,7 +652,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-HANDOFF-RECORDED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at planner and the denial reason is appended.
-9. Verification: oya-foundry-vcs-changeset-state-app and oya-governance-changeset-state-enum-closed cover this branch.
+9. Verification: oya-vcs-changeset-state-app and oya-governance-changeset-state-enum-closed cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 2.01: plan_slice moves intake to planner only after planner decomposes and names gates, with EVT-FOUNDRY-AGENT-HANDOFF-RECORDED emitted and Cedar denial staying terminal for that attempt.
@@ -684,7 +684,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-EXECUTION-STARTED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at claude_opus and the denial reason is appended.
-9. Verification: oya-foundry-vcs-merge-queue-conflict-kernel and oya-governance-merge-queue-ref-hygiene cover this branch.
+9. Verification: oya-vcs-merge-queue-conflict-kernel and oya-governance-merge-queue-ref-hygiene cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 3.01: deep_reason moves planner to claude_opus only after complex design or adversarial review required, with EVT-FOUNDRY-AGENT-EXECUTION-STARTED emitted and Cedar denial staying terminal for that attempt.
@@ -716,7 +716,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-AGENT-REVIEW-RECORDED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at codex and the denial reason is appended.
-9. Verification: oya-foundry-vcs-review-mergequeue-kernel and oya-governance-event-router-completeness cover this branch.
+9. Verification: oya-vcs-review-mergequeue-kernel and oya-governance-event-router-completeness cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 4.01: code_edit moves planner to codex only after repo-local implementation required, with EVT-FOUNDRY-AGENT-REVIEW-RECORDED emitted and Cedar denial staying terminal for that attempt.
@@ -748,7 +748,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-HUMAN-OVERRIDE-USED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at executor and the denial reason is appended.
-9. Verification: oya-foundry-webhook-receiver-kernel and oya-governance-webhook-stuck cover this branch.
+9. Verification: oya-vcs-webhook-receiver-kernel and oya-governance-webhook-stuck cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 5.01: execute_slice moves codex to executor only after bounded implementation lane runs, with EVT-FOUNDRY-HUMAN-OVERRIDE-USED emitted and Cedar denial staying terminal for that attempt.
@@ -778,96 +778,96 @@ Named checks below are the required evidence vocabulary for CI, local agent veri
 |---|---|---|---|
 | state monotonicity | oya gate validate changeset-state-monotonicity | oya-governance-changeset-state-monotonicity | event log replay never regresses |
 | closed enum | oya gate validate changeset-state-enum-closed | oya-governance-changeset-state-enum-closed | only accepted states appear |
-| merge projection | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel | oya-foundry-vcs-merge-queue-conflict-kernel | projected merge state is deterministic |
-| review merge queue | cargo test -p oya-foundry-vcs-review-mergequeue-kernel | oya-foundry-vcs-review-mergequeue-kernel | fairness and parked state work |
-| webhook receiver | cargo test -p oya-foundry-webhook-receiver-kernel | oya-foundry-webhook-receiver-kernel | HMAC and dedup paths are valid |
-| admission gate | cargo test -p oya-foundry-vcs-admission-gate-kernel | oya-foundry-vcs-admission-gate-kernel | policy and evidence gate refuses bad bundles |
-| changebundle | cargo test -p oya-foundry-vcs-changebundle-kernel | oya-foundry-vcs-changebundle-kernel | bundle shape is stable |
-| promotion controller | cargo test -p oya-foundry-vcs-promotion-controller-kernel | oya-foundry-vcs-promotion-controller-kernel | environment promotion respects state |
-| cli ratchet | cargo test -p oya-foundry-vcs-cli-ratchet-kernel | oya-foundry-vcs-cli-ratchet-kernel | claim/verify/done/promote CLI grammar holds |
+| merge projection | cargo test -p oya-vcs-merge-queue-conflict-kernel | oya-vcs-merge-queue-conflict-kernel | projected merge state is deterministic |
+| review merge queue | cargo test -p oya-vcs-review-mergequeue-kernel | oya-vcs-review-mergequeue-kernel | fairness and parked state work |
+| webhook receiver | cargo test -p oya-vcs-webhook-receiver-kernel | oya-vcs-webhook-receiver-kernel | HMAC and dedup paths are valid |
+| admission gate | cargo test -p oya-vcs-admission-gate-kernel | oya-vcs-admission-gate-kernel | policy and evidence gate refuses bad bundles |
+| changebundle | cargo test -p oya-vcs-changebundle-kernel | oya-vcs-changebundle-kernel | bundle shape is stable |
+| promotion controller | cargo test -p oya-vcs-promotion-controller-kernel | oya-vcs-promotion-controller-kernel | environment promotion respects state |
+| cli ratchet | cargo test -p oya-vcs-cli-ratchet-kernel | oya-vcs-cli-ratchet-kernel | claim/verify/done/promote CLI grammar holds |
 | audit emission | cargo test -p oya-governance-audit-event-emission | oya-governance-audit-event-emission | ADR-0263 audit linkage exists |
 | doc catalog | oya gate validate doc-catalog | oya-governance-doc-catalog | spec is discoverable and owned |
 | glossary | oya gate validate glossary | oya-governance-glossary | Foundry internal vs Intelligence consumer vocabulary is preserved |
 | agent-types-and-roles-matrix-01 | oya gate validate changeset-state-monotonicity --scope intake --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves intake cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-02 | oya gate validate changeset-state-enum-closed --scope planner --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves planner cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-03 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope claude_opus --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-04 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope codex --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-05 | cargo test -p oya-foundry-webhook-receiver-kernel --scope executor --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-06 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope reviewer --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-07 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope verifier --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-08 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope merge_queue --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-09 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope human_override --adr ADR-0221 | oya-foundry-vcs-cli-ratchet-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-03 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope claude_opus --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-04 | cargo test -p oya-vcs-review-mergequeue-kernel --scope codex --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-05 | cargo test -p oya-vcs-webhook-receiver-kernel --scope executor --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-06 | cargo test -p oya-vcs-admission-gate-kernel --scope reviewer --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-07 | cargo test -p oya-vcs-changebundle-kernel --scope verifier --adr ADR-0221 | oya-vcs-changebundle-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-08 | cargo test -p oya-vcs-promotion-controller-kernel --scope merge_queue --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-09 | cargo test -p oya-vcs-cli-ratchet-kernel --scope human_override --adr ADR-0221 | oya-vcs-cli-ratchet-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-10 | cargo test -p oya-governance-audit-event-emission --scope terminal --adr ADR-0221 | oya-governance-audit-event-emission | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-11 | oya gate validate doc-catalog --scope intake --adr ADR-0221 | oya-governance-doc-catalog | proves intake cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-12 | oya gate validate glossary --scope planner --adr ADR-0221 | oya-governance-glossary | proves planner cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-13 | oya gate validate changeset-state-monotonicity --scope claude_opus --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-14 | oya gate validate changeset-state-enum-closed --scope codex --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves codex cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-15 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope executor --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-16 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope reviewer --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-17 | cargo test -p oya-foundry-webhook-receiver-kernel --scope verifier --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-18 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope merge_queue --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-19 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope human_override --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-20 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope terminal --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-21 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope intake --adr ADR-0221 | oya-foundry-vcs-cli-ratchet-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-15 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope executor --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-16 | cargo test -p oya-vcs-review-mergequeue-kernel --scope reviewer --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-17 | cargo test -p oya-vcs-webhook-receiver-kernel --scope verifier --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-18 | cargo test -p oya-vcs-admission-gate-kernel --scope merge_queue --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-19 | cargo test -p oya-vcs-changebundle-kernel --scope human_override --adr ADR-0221 | oya-vcs-changebundle-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-20 | cargo test -p oya-vcs-promotion-controller-kernel --scope terminal --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-21 | cargo test -p oya-vcs-cli-ratchet-kernel --scope intake --adr ADR-0221 | oya-vcs-cli-ratchet-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-22 | cargo test -p oya-governance-audit-event-emission --scope planner --adr ADR-0221 | oya-governance-audit-event-emission | proves planner cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-23 | oya gate validate doc-catalog --scope claude_opus --adr ADR-0221 | oya-governance-doc-catalog | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-24 | oya gate validate glossary --scope codex --adr ADR-0221 | oya-governance-glossary | proves codex cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-25 | oya gate validate changeset-state-monotonicity --scope executor --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves executor cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-26 | oya gate validate changeset-state-enum-closed --scope reviewer --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-27 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope verifier --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-28 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope merge_queue --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-29 | cargo test -p oya-foundry-webhook-receiver-kernel --scope human_override --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-30 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope terminal --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-31 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope intake --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-32 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope planner --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves planner cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-33 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope claude_opus --adr ADR-0221 | oya-foundry-vcs-cli-ratchet-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-27 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope verifier --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-28 | cargo test -p oya-vcs-review-mergequeue-kernel --scope merge_queue --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-29 | cargo test -p oya-vcs-webhook-receiver-kernel --scope human_override --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-30 | cargo test -p oya-vcs-admission-gate-kernel --scope terminal --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-31 | cargo test -p oya-vcs-changebundle-kernel --scope intake --adr ADR-0221 | oya-vcs-changebundle-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-32 | cargo test -p oya-vcs-promotion-controller-kernel --scope planner --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves planner cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-33 | cargo test -p oya-vcs-cli-ratchet-kernel --scope claude_opus --adr ADR-0221 | oya-vcs-cli-ratchet-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-34 | cargo test -p oya-governance-audit-event-emission --scope codex --adr ADR-0221 | oya-governance-audit-event-emission | proves codex cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-35 | oya gate validate doc-catalog --scope executor --adr ADR-0221 | oya-governance-doc-catalog | proves executor cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-36 | oya gate validate glossary --scope reviewer --adr ADR-0221 | oya-governance-glossary | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-37 | oya gate validate changeset-state-monotonicity --scope verifier --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-38 | oya gate validate changeset-state-enum-closed --scope merge_queue --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-39 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope human_override --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-40 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope terminal --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-41 | cargo test -p oya-foundry-webhook-receiver-kernel --scope intake --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-42 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope planner --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves planner cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-43 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope claude_opus --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-44 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope codex --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-45 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope executor --adr ADR-0221 | oya-foundry-vcs-cli-ratchet-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-39 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope human_override --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-40 | cargo test -p oya-vcs-review-mergequeue-kernel --scope terminal --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-41 | cargo test -p oya-vcs-webhook-receiver-kernel --scope intake --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-42 | cargo test -p oya-vcs-admission-gate-kernel --scope planner --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves planner cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-43 | cargo test -p oya-vcs-changebundle-kernel --scope claude_opus --adr ADR-0221 | oya-vcs-changebundle-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-44 | cargo test -p oya-vcs-promotion-controller-kernel --scope codex --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-45 | cargo test -p oya-vcs-cli-ratchet-kernel --scope executor --adr ADR-0221 | oya-vcs-cli-ratchet-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-46 | cargo test -p oya-governance-audit-event-emission --scope reviewer --adr ADR-0221 | oya-governance-audit-event-emission | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-47 | oya gate validate doc-catalog --scope verifier --adr ADR-0221 | oya-governance-doc-catalog | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-48 | oya gate validate glossary --scope merge_queue --adr ADR-0221 | oya-governance-glossary | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-49 | oya gate validate changeset-state-monotonicity --scope human_override --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-50 | oya gate validate changeset-state-enum-closed --scope terminal --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-51 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope intake --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-52 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope planner --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves planner cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-53 | cargo test -p oya-foundry-webhook-receiver-kernel --scope claude_opus --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-54 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope codex --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-55 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope executor --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-56 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope reviewer --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-57 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope verifier --adr ADR-0221 | oya-foundry-vcs-cli-ratchet-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-51 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope intake --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves intake cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-52 | cargo test -p oya-vcs-review-mergequeue-kernel --scope planner --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves planner cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-53 | cargo test -p oya-vcs-webhook-receiver-kernel --scope claude_opus --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-54 | cargo test -p oya-vcs-admission-gate-kernel --scope codex --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-55 | cargo test -p oya-vcs-changebundle-kernel --scope executor --adr ADR-0221 | oya-vcs-changebundle-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-56 | cargo test -p oya-vcs-promotion-controller-kernel --scope reviewer --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-57 | cargo test -p oya-vcs-cli-ratchet-kernel --scope verifier --adr ADR-0221 | oya-vcs-cli-ratchet-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-58 | cargo test -p oya-governance-audit-event-emission --scope merge_queue --adr ADR-0221 | oya-governance-audit-event-emission | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-59 | oya gate validate doc-catalog --scope human_override --adr ADR-0221 | oya-governance-doc-catalog | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-60 | oya gate validate glossary --scope terminal --adr ADR-0221 | oya-governance-glossary | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-61 | oya gate validate changeset-state-monotonicity --scope intake --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves intake cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-62 | oya gate validate changeset-state-enum-closed --scope planner --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves planner cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-63 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope claude_opus --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-64 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope codex --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-65 | cargo test -p oya-foundry-webhook-receiver-kernel --scope executor --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-66 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope reviewer --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-67 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope verifier --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-68 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope merge_queue --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-69 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope human_override --adr ADR-0221 | oya-foundry-vcs-cli-ratchet-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-63 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope claude_opus --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-64 | cargo test -p oya-vcs-review-mergequeue-kernel --scope codex --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves codex cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-65 | cargo test -p oya-vcs-webhook-receiver-kernel --scope executor --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-66 | cargo test -p oya-vcs-admission-gate-kernel --scope reviewer --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-67 | cargo test -p oya-vcs-changebundle-kernel --scope verifier --adr ADR-0221 | oya-vcs-changebundle-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-68 | cargo test -p oya-vcs-promotion-controller-kernel --scope merge_queue --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-69 | cargo test -p oya-vcs-cli-ratchet-kernel --scope human_override --adr ADR-0221 | oya-vcs-cli-ratchet-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-70 | cargo test -p oya-governance-audit-event-emission --scope terminal --adr ADR-0221 | oya-governance-audit-event-emission | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-71 | oya gate validate doc-catalog --scope intake --adr ADR-0221 | oya-governance-doc-catalog | proves intake cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-72 | oya gate validate glossary --scope planner --adr ADR-0221 | oya-governance-glossary | proves planner cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-73 | oya gate validate changeset-state-monotonicity --scope claude_opus --adr ADR-0221 | oya-governance-changeset-state-monotonicity | proves claude_opus cannot advance without policy, evidence, trace, and audit correlation |
 | agent-types-and-roles-matrix-74 | oya gate validate changeset-state-enum-closed --scope codex --adr ADR-0221 | oya-governance-changeset-state-enum-closed | proves codex cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-75 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope executor --adr ADR-0221 | oya-foundry-vcs-merge-queue-conflict-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-76 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope reviewer --adr ADR-0221 | oya-foundry-vcs-review-mergequeue-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-77 | cargo test -p oya-foundry-webhook-receiver-kernel --scope verifier --adr ADR-0221 | oya-foundry-webhook-receiver-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-78 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope merge_queue --adr ADR-0221 | oya-foundry-vcs-admission-gate-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-79 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope human_override --adr ADR-0221 | oya-foundry-vcs-changebundle-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
-| agent-types-and-roles-matrix-80 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope terminal --adr ADR-0221 | oya-foundry-vcs-promotion-controller-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-75 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope executor --adr ADR-0221 | oya-vcs-merge-queue-conflict-kernel | proves executor cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-76 | cargo test -p oya-vcs-review-mergequeue-kernel --scope reviewer --adr ADR-0221 | oya-vcs-review-mergequeue-kernel | proves reviewer cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-77 | cargo test -p oya-vcs-webhook-receiver-kernel --scope verifier --adr ADR-0221 | oya-vcs-webhook-receiver-kernel | proves verifier cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-78 | cargo test -p oya-vcs-admission-gate-kernel --scope merge_queue --adr ADR-0221 | oya-vcs-admission-gate-kernel | proves merge_queue cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-79 | cargo test -p oya-vcs-changebundle-kernel --scope human_override --adr ADR-0221 | oya-vcs-changebundle-kernel | proves human_override cannot advance without policy, evidence, trace, and audit correlation |
+| agent-types-and-roles-matrix-80 | cargo test -p oya-vcs-promotion-controller-kernel --scope terminal --adr ADR-0221 | oya-vcs-promotion-controller-kernel | proves terminal cannot advance without policy, evidence, trace, and audit correlation |
 
 ## Cross-References
 

@@ -19,7 +19,7 @@ Lane CI-blocks filename patterns that violate canonical pattern.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-predictable-naming-kernel/src/lib.rs::check_naming
+crates/oya-governance-predictable-naming-kernel/src/lib.rs::check_naming
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

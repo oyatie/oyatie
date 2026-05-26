@@ -11,7 +11,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/manifest.json",
     "microservices/cloud-iac/cell-topology/foundation.json",
     "tasks/plan.md",
@@ -61,7 +61,7 @@
       "summary": "8 focused tests passed, covering parser defaults/unknown flags, coherent fixture acceptance, cross-cell traffic overclaim, missing catalog module refs, manifest context drift, secret marker rejection, and run-all catalog membership."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed after adding cloud-iac-cell-topology to AGGREGATED_VALIDATE_LANES."
     },
@@ -81,12 +81,12 @@
       "summary": "Existing Cloud IaC GitOps evidence gate remains green: 5 contexts and 5 templates checked."
     },
     {
-      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain",
+      "command": "cargo check -p oya-dev-cli -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "Scoped Rust check passed."
     },
     {
-      "command": "cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings",
+      "command": "cargo clippy -p oya-dev-cli -p oya-governance-gate-catalog-domain --all-targets -- -D warnings",
       "result": "PASS",
       "summary": "Scoped clippy passed with warnings denied."
     },
@@ -247,7 +247,7 @@
   },
   "promotion_status": "oya-vcs-promote-accepted-local-review-with-full-verify-unrelated-blockers",
   "full_verify_blockers": [
-    "D-5 oya gate run-all --ci-required: cargo run -q -p oya-foundry-vcs-admission-gate-app failed on unrelated app-shell multispectrum evidence files missing audit-chain coverage: CS-APPLICATION-SHELL-COMPLETE-MOCKUP-POLISH-20260524, CS-APPLICATION-SHELL-OPS-COCKPIT-POLISH-20260524, CS-APPLICATION-SHELL-REGRESSION-REPAIR-20260524, CS-APPLICATION-SHELL-WORKFLOW-EDITOR-PARITY-20260524.",
+    "D-5 oya gate run-all --ci-required: cargo run -q -p oya-vcs-admission-gate-app failed on unrelated app-shell multispectrum evidence files missing audit-chain coverage: CS-APPLICATION-SHELL-COMPLETE-MOCKUP-POLISH-20260524, CS-APPLICATION-SHELL-OPS-COCKPIT-POLISH-20260524, CS-APPLICATION-SHELL-REGRESSION-REPAIR-20260524, CS-APPLICATION-SHELL-WORKFLOW-EDITOR-PARITY-20260524.",
     "D-7 oya lint adr-shape: pre-existing ADR-0322..ADR-0349 files are missing required Context/Decision/Consequences sections.",
     "D-1 fmt, D-2 check, D-3 clippy, D-4 nextest, D-6 adr-index write, default run-all, and provider-execution subgate passed in the same verifier attempt."
   ],

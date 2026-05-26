@@ -2,7 +2,7 @@
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P16-IP-001
-title: oya-foundry-architecture-map-kernel source walkers
+title: oya-intelligence-architecture-map-kernel source walkers
 status: complete
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -12,16 +12,16 @@ dependency_additions: []
 purpose: Walk Cargo metadata + contracts/ + docs/products/ + ROADMAP + ADR-INDEX + milestone frontmatter.
 ---
 
-# M01-P16-IP-001 — oya-foundry-architecture-map-kernel source walkers
+# M01-P16-IP-001 — oya-intelligence-architecture-map-kernel source walkers
 
 ## Purpose
 Walk Cargo metadata + contracts/ + docs/products/ + ROADMAP + ADR-INDEX + milestone frontmatter.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-architecture-map-kernel/src/lib.rs::walk_cargo_metadata
-crates/oya-foundry-architecture-map-kernel/src/lib.rs::walk_openapi
-crates/oya-foundry-architecture-map-kernel/src/lib.rs::walk_frontmatter
+crates/oya-intelligence-architecture-map-kernel/src/lib.rs::walk_cargo_metadata
+crates/oya-intelligence-architecture-map-kernel/src/lib.rs::walk_openapi
+crates/oya-intelligence-architecture-map-kernel/src/lib.rs::walk_frontmatter
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -50,7 +50,7 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 
 ## Icm-store-payload
 ```
-icm store -t context-oyatie -c 'M01-P16-IP-001 oya-foundry-architecture-map-kernel source walkers shipped; acceptance commands green' -i high -k 'M01-P16-IP-001,complete'
+icm store -t context-oyatie -c 'M01-P16-IP-001 oya-intelligence-architecture-map-kernel source walkers shipped; acceptance commands green' -i high -k 'M01-P16-IP-001,complete'
 ```
 
 ## Decision-log (Linus good-taste row)
@@ -59,4 +59,4 @@ Special cases eliminated by this IP:
 - `ArchitectureMap::merge` accepts exact-duplicate nodes — idempotent re-walks don't fail; only label/owning-team conflicts surface as errors.
 - `walk_cargo_metadata` filters dependencies to in-workspace names only — external crates don't pollute the map; self-loops are dropped.
 - `walk_openapi` synthesizes placeholder BC + Cedar-fragment nodes so its edges have valid endpoints in isolation; merge with the richer `walk_frontmatter` output is documented to use matching labels.
-- Symbols ship in `src/walk.rs` as a submodule (`oya_foundry_architecture_map_kernel::walk::walk_*`) rather than directly in `lib.rs` — keeps the existing `ArchitectureMap` model surface uncluttered.
+- Symbols ship in `src/walk.rs` as a submodule (`oya_intelligence_architecture_map_kernel::walk::walk_*`) rather than directly in `lib.rs` — keeps the existing `ArchitectureMap` model surface uncluttered.

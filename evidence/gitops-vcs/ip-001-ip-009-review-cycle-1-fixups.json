@@ -15,8 +15,8 @@
       "severity": "HIGH",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-kernel/src/lib.rs",
-        "crates/oya-foundry-vcs-kernel/tests/gitops_vcs_ip_001.rs"
+        "crates/oya-vcs-kernel/src/lib.rs",
+        "crates/oya-vcs-kernel/tests/gitops_vcs_ip_001.rs"
       ]
     },
     {
@@ -24,7 +24,7 @@
       "severity": "HIGH",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-kernel/src/lib.rs"
+        "crates/oya-vcs-kernel/src/lib.rs"
       ]
     },
     {
@@ -32,8 +32,8 @@
       "severity": "HIGH",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-ast-index-kernel/src/lib.rs",
-        "crates/oya-foundry-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs"
+        "crates/oya-vcs-ast-index-kernel/src/lib.rs",
+        "crates/oya-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs"
       ]
     },
     {
@@ -41,8 +41,8 @@
       "severity": "HIGH",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-kernel/src/lib.rs",
-        "crates/oya-foundry-vcs-kernel/tests/gitops_vcs_ip_001.rs"
+        "crates/oya-vcs-kernel/src/lib.rs",
+        "crates/oya-vcs-kernel/tests/gitops_vcs_ip_001.rs"
       ]
     },
     {
@@ -50,8 +50,8 @@
       "severity": "MEDIUM",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-ast-index-kernel/src/lib.rs",
-        "crates/oya-foundry-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs"
+        "crates/oya-vcs-ast-index-kernel/src/lib.rs",
+        "crates/oya-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs"
       ]
     },
     {
@@ -59,8 +59,8 @@
       "severity": "HIGH",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-kernel/src/lib.rs",
-        "crates/oya-foundry-vcs-kernel/tests/gitops_vcs_ip_001.rs"
+        "crates/oya-vcs-kernel/src/lib.rs",
+        "crates/oya-vcs-kernel/tests/gitops_vcs_ip_001.rs"
       ]
     },
     {
@@ -68,8 +68,8 @@
       "severity": "HIGH",
       "status": "fixed",
       "files": [
-        "crates/oya-foundry-vcs-ast-index-kernel/src/lib.rs",
-        "crates/oya-foundry-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs"
+        "crates/oya-vcs-ast-index-kernel/src/lib.rs",
+        "crates/oya-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs"
       ]
     }
   ],

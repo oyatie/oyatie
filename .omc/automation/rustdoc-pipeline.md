@@ -12,7 +12,7 @@ purpose: |
 lift_target: oyatie/docs/automation/rustdoc-pipeline.md
 enforced_by: oya-foundry-fitness-rustdoc-publish
 extends_crates:
-  - oya-foundry-mdbook-kernel
+  - oya-intelligence-mdbook-kernel
   - oya-foundry-readme-doc-coverage-kernel
 companion_docs:
   - INDEX.md
@@ -23,7 +23,7 @@ companion_docs:
 
 ## 1. Purpose
 
-Take every workspace crate's `cargo doc --no-deps --document-private-items=false` JSON output and lift it into the `oya-foundry-mdbook-kernel`-validated source tree at `docs/site/src/api/rust/<crate>/`. No hand-authored Rust API reference is permitted; the kernel rejects unlisted markdown sources, so any drift fails CI.
+Take every workspace crate's `cargo doc --no-deps --document-private-items=false` JSON output and lift it into the `oya-intelligence-mdbook-kernel`-validated source tree at `docs/site/src/api/rust/<crate>/`. No hand-authored Rust API reference is permitted; the kernel rejects unlisted markdown sources, so any drift fails CI.
 
 ## 2. Inputs (sources of truth)
 
@@ -55,7 +55,7 @@ The lane consumes the JSON sidecar plus the rendered source tree and refuses to 
 2. **Orphan symbol.** A symbol exists in `_index.json` whose rendered chapter is missing from the mdbook source tree.
 3. **Broken cross-crate link.** A `use other_crate::Symbol` edge resolves to a symbol absent from `other_crate`'s `_index.json`.
 4. **Hand-authored intrusion.** Any markdown under `docs/site/src/api/rust/` lacks the `<!-- generated-by: rustdoc-pipeline -->` magic header (HIGH).
-5. **mdbook-kernel rejection.** The generated tree fails `oya-foundry-mdbook-kernel::validate_mdbook_source` for any reason.
+5. **mdbook-kernel rejection.** The generated tree fails `oya-intelligence-mdbook-kernel::validate_mdbook_source` for any reason.
 
 ## 6. Cross-crate link graph algorithm
 

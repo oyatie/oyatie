@@ -8,7 +8,7 @@ doc_status: published
 
 # Settings-Template Kernel — README
 
-**Crate:** `oya-foundry-settings-template-kernel`  
+**Crate:** `oya-intelligence-settings-template-kernel`  
 **Layer:** Kernel (12-layer-enum L1)  
 **Wave:** 2g (M02-P06, v5 delta)  
 **Dependencies:** std-only (Branch Y)
@@ -112,7 +112,7 @@ pub trait SettingsRenderer: Send + Sync {
 ## Usage Example
 
 ```rust
-use oya_foundry_settings_template_kernel::*;
+use oya_intelligence_settings_template_kernel::*;
 
 // Load template from TOML file
 let template = load_template_toml("templates/foundry-supervisor/claude.toml")?;

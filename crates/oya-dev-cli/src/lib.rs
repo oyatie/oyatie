@@ -27,8 +27,8 @@ use oya_check_vendor_lockin_discipline::{
 use oya_check_vendor_recency::{
     VendorContractRecencyPolicy, VendorContractRecord, validate_vendor_contract_recency,
 };
-use oya_foundry_api_semver_domain::validate_api_semver;
-use oya_foundry_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
+use oya_intelligence_api_semver_domain::validate_api_semver;
+use oya_intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;

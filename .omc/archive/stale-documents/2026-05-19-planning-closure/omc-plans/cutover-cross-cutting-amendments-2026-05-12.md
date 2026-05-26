@@ -24,7 +24,7 @@ These 12 directives were issued by the user across the planning loop. Every phas
 8. **Current LTS dependencies, CI-enforced** via `oya-foundry-fitness-lts-dependency`.
 9. **Hyperscaler-bar internal toolchain** + architectural robustness.
 10. **Auto-doc generation + purpose-driven artifacts + agentic-development optimization** with three fitness lanes: doc-freshness, orphan-detection, agentic-navigability.
-11. **Visualization-as-code, Foundry-owned, auto-updated**: `oya-foundry-architecture-map-kernel` + freshness lane. Mermaid + D2 + Graphviz outputs.
+11. **Visualization-as-code, Foundry-owned, auto-updated**: `oya-intelligence-architecture-map-kernel` + freshness lane. Mermaid + D2 + Graphviz outputs.
 12. **Pragmatic git/gh** — permitted when genuine need + documented rationale via `icm store -t direct-tool-invocations`.
 
 ## 2. LTS-pin amendments for cutover deliverables

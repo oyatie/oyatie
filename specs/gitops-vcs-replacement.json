@@ -203,7 +203,7 @@
     ],
     "planned_crates": [
       {
-        "crate": "oya-foundry-vcs-kernel",
+        "crate": "oya-vcs-kernel",
         "layer": "kernel",
         "owns": [
           "SymbolRef",
@@ -244,7 +244,7 @@
         ]
       },
       {
-        "crate": "oya-foundry-vcs-lockstore-adapter",
+        "crate": "oya-vcs-lockstore-adapter",
         "layer": "adapter",
         "owns": [
           "local",
@@ -273,7 +273,7 @@
         ]
       },
       {
-        "crate": "oya-foundry-vcs-polyglot-indexer-adapters",
+        "crate": "oya-vcs-polyglot-indexer-adapters",
         "layer": "adapter",
         "owns": [
           "SwiftSyntax/sourcekit",
@@ -312,7 +312,7 @@
         ]
       },
       {
-        "crate": "oya-foundry-vcs-ast-index-kernel",
+        "crate": "oya-vcs-ast-index-kernel",
         "layer": "kernel",
         "owns": [
           "language-neutral AST symbol model",
@@ -1446,7 +1446,7 @@
       {
         "id": "ci-admission-lane",
         "status": "patched-in-current-repo",
-        "acceptance": "cargo run -q -p oya-foundry-vcs-admission-gate-app runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
+        "acceptance": "cargo run -q -p oya-vcs-admission-gate-app runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
       },
       {
         "id": "multispectrum-evidence-closure",
@@ -1465,7 +1465,7 @@
       }
     ],
     "verification": [
-      "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "cargo run -q -p oya-vcs-admission-gate-app",
       "cargo run -q -p oya-dev-cli -- gate audit master-plan-completion --check",
       "cargo run -q -p oya-dev-cli -- doc render master-plan-ledger --check",
       "cargo test -p oya-dev-cli vcs",
@@ -1476,19 +1476,19 @@
     ]
   },
   "current_ci_admission_lane": {
-    "script": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+    "script": "cargo run -q -p oya-vcs-admission-gate-app",
     "workflow_job": "oya-vcs-admission",
     "branch_protection_status": "oya-vcs-admission",
     "package_tests": [
-      "oya-foundry-vcs-kernel",
-      "oya-foundry-vcs-ast-index-kernel",
-      "oya-foundry-vcs-lockstore-adapter",
-      "oya-foundry-vcs-changebundle-kernel",
-      "oya-foundry-vcs-polyglot-indexer-adapter",
-      "oya-foundry-vcs-test-standard-gate-kernel",
-      "oya-foundry-vcs-promotion-controller-kernel",
-      "oya-foundry-vcs-review-mergequeue-kernel",
-      "oya-foundry-vcs-cli-ratchet-kernel"
+      "oya-vcs-kernel",
+      "oya-vcs-ast-index-kernel",
+      "oya-vcs-lockstore-adapter",
+      "oya-vcs-changebundle-kernel",
+      "oya-vcs-polyglot-indexer-adapter",
+      "oya-vcs-test-standard-gate-kernel",
+      "oya-vcs-promotion-controller-kernel",
+      "oya-vcs-review-mergequeue-kernel",
+      "oya-vcs-cli-ratchet-kernel"
     ],
     "blocks_when": [
       "authority metadata regresses to legacy grit/icm closure authority",
@@ -1515,7 +1515,7 @@
       "argo-gitops"
     ],
     "provider_execution_proof_ref": "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json#provider_slots",
-    "provider_execution_script": "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app",
+    "provider_execution_script": "cargo run -q -p oya-vcs-provider-execution-gate-app",
     "provider_execution_workflow_job": "oya-vcs-provider-execution"
   }
 }

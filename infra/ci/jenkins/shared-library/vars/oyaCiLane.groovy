@@ -51,10 +51,10 @@ def call(Map cfg = [:]) {
           // Install Trivy (Apache-2.0) via the Rust supply-chain installer
           // before admission, then run the admission gate-app.
           sh 'cargo run -q -p oya-dev-cli -- supply-chain install-trivy'
-          sh 'cargo run -q -p oya-foundry-vcs-admission-gate-app'
+          sh 'cargo run -q -p oya-vcs-admission-gate-app'
         }
         stage('oya-vcs-provider-execution') {
-          sh 'cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json'
+          sh 'cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json'
         }
 
         // --- build + supply chain (mandatory) ------------------------------

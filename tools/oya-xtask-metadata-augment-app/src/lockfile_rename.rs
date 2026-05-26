@@ -218,10 +218,13 @@ checksum = "abc123"
     #[test]
     fn test_quoted_form() {
         let content = "[[package]]\nname = \"oya-foundry-evidence-kernel\"\nversion = \"0.1.0\"\n";
-        let m = map(&[("oya-foundry-evidence-kernel", "oya-foundry-evidence-domain")]);
+        let m = map(&[(
+            "oya-foundry-evidence-kernel",
+            "oya-intelligence-evidence-domain",
+        )]);
         let out = rewrite_lockfile(content, &m).unwrap();
         assert!(
-            out.contains("oya-foundry-evidence-domain"),
+            out.contains("oya-intelligence-evidence-domain"),
             "quoted rename: {out}"
         );
     }

@@ -9,7 +9,7 @@
     "ip_refs": [
       "M01-P17-IP-006"
     ],
-    "purpose": "Convergence-proof tick log emitted by oya-foundry-vcs-merge-queue-fix-loop-app every scheduler tick. Each entry records one action (admit/merge/park/revalidate/evict/idle) so an external observer can verify forward progress and detect deadlock or livelock."
+    "purpose": "Convergence-proof tick log emitted by oya-vcs-merge-queue-fix-loop-app every scheduler tick. Each entry records one action (admit/merge/park/revalidate/evict/idle) so an external observer can verify forward progress and detect deadlock or livelock."
   },
   "entries": []
 }

@@ -20,7 +20,7 @@ purpose: 8-week retention measurement + KPI dashboard for ≥50K runs/wk ≥99.5
 ## Symbols-to-grit-claim
 ```
 crates/oya-platform-metering-app/src/lib.rs::retention_kpi
-crates/oya-foundry-dashboard-app/src/lib.rs::kpi_view
+crates/oya-intelligence-dashboard-app/src/lib.rs::kpi_view
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

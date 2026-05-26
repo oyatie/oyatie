@@ -72,8 +72,8 @@
     "architecture_map_automation_per_session_start_directive": {
       "trigger": "session-start additional context 2026-05-12: Visualization-as-code directive — ADOPTED INTO FOUNDRY",
       "crates_to_author": [
-        "crates/oya-foundry-architecture-map-kernel — walks Cargo workspace + contracts + manifests; emits Mermaid + C4 diagrams",
-        "crates/oya-foundry-architecture-map-app — composition root binary",
+        "crates/oya-intelligence-architecture-map-kernel — walks Cargo workspace + contracts + manifests; emits Mermaid + C4 diagrams",
+        "crates/oya-intelligence-architecture-map-app — composition root binary",
         "crates/oya-foundry-fitness-architecture-map-freshness — CI fails if architecture map stale > 24h"
       ],
       "output": "evidence/architecture-map-*.svg + docs/diagrams/*.mmd",

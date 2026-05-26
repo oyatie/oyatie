@@ -31,7 +31,7 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §3.0 multi
 3 agents in parallel (one per provider); IP-004 follows on usage-window kernel completion.
 
 ## Symbols-touched
-`crates/oya-foundry-adapter-{anthropic,openai,gemini}-{api,subscription}-*`, `crates/oya-foundry-usage-window-kernel`, `crates/oya-foundry-route-policy-kernel`.
+`crates/oya-foundry-adapter-{anthropic,openai,gemini}-{api,subscription}-*`, `crates/oya-intelligence-usage-window-kernel`, `crates/oya-intelligence-route-policy-kernel`.
 
 ## Agent-handoff
 ```

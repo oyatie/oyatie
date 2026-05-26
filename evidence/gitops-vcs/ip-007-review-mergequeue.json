@@ -15,17 +15,17 @@
       "summary": "Rust source is formatted."
     },
     {
-      "command": "rustc --edition 2021 --crate-type lib --crate-name oya_foundry_vcs_kernel crates/oya-foundry-vcs-kernel/src/lib.rs -D warnings -o $TMPDIR/liboya_foundry_vcs_kernel.rlib",
+      "command": "rustc --edition 2021 --crate-type lib --crate-name oya_vcs_kernel crates/oya-vcs-kernel/src/lib.rs -D warnings -o $TMPDIR/liboya_vcs_kernel.rlib",
       "result": "pass",
-      "summary": "Path dependency oya-foundry-vcs-kernel compiled manually as a temporary rlib with warnings denied."
+      "summary": "Path dependency oya-vcs-kernel compiled manually as a temporary rlib with warnings denied."
     },
     {
-      "command": "rustc --edition 2021 --crate-type lib --crate-name oya_foundry_vcs_review_mergequeue crates/oya-foundry-vcs-review-mergequeue/src/lib.rs -D warnings --extern oya_foundry_vcs_kernel=$TMPDIR/liboya_foundry_vcs_kernel.rlib -L dependency=$TMPDIR -o $TMPDIR/liboya_foundry_vcs_review_mergequeue.rlib",
+      "command": "rustc --edition 2021 --crate-type lib --crate-name oya_foundry_vcs_review_mergequeue crates/oya-foundry-vcs-review-mergequeue/src/lib.rs -D warnings --extern oya_vcs_kernel=$TMPDIR/liboya_vcs_kernel.rlib -L dependency=$TMPDIR -o $TMPDIR/liboya_foundry_vcs_review_mergequeue.rlib",
       "result": "pass",
       "summary": "IP-007 library compiled with warnings denied using manually compiled path dependency."
     },
     {
-      "command": "rustc --edition 2021 --test --crate-name oya_foundry_vcs_review_mergequeue_tests crates/oya-foundry-vcs-review-mergequeue/src/lib.rs -D warnings --extern oya_foundry_vcs_kernel=$TMPDIR/liboya_foundry_vcs_kernel.rlib -L dependency=$TMPDIR -o $TMPDIR/ip007_tests && $TMPDIR/ip007_tests --nocapture",
+      "command": "rustc --edition 2021 --test --crate-name oya_foundry_vcs_review_mergequeue_tests crates/oya-foundry-vcs-review-mergequeue/src/lib.rs -D warnings --extern oya_vcs_kernel=$TMPDIR/liboya_vcs_kernel.rlib -L dependency=$TMPDIR -o $TMPDIR/ip007_tests && $TMPDIR/ip007_tests --nocapture",
       "result": "pass",
       "summary": "6 tests passed: terminal reducer, FixupTask ownership/boundedness, fake review/CI/merge queue failure injection, rejected-review fix requeue, independent bypass, lock-release/rebase/stale-digest negatives."
     },

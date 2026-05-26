@@ -20,7 +20,7 @@ Ship Cosign signing + Rekor anchoring for every artifact.
 ## Symbols-to-grit-claim
 ```
 .github/workflows/cosign.yml::Workflow
-crates/oya-foundry-fitness-supply-chain-kernel/src/lib.rs::check_signed
+crates/oya-governance-supply-chain-kernel/src/lib.rs::check_signed
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

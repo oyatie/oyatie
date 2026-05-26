@@ -2894,287 +2894,287 @@
       "reason": "Historical ledger \u2014 describes past state, do not rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-architecture-map-freshness-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-architecture-map-freshness-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-architecture-map-freshness-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-architecture-map-freshness-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-bypass-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-bypass-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-bypass-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-bypass-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-doc-freshness-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-doc-freshness-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-doc-freshness-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-doc-freshness-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-lifecycle-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-lifecycle-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-lifecycle-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-lifecycle-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-tos-policy-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-tos-policy-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-tos-policy-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-tos-policy-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-pr-traceability-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-pr-traceability-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-pr-traceability-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-pr-traceability-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-banned-primitives-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-banned-primitives-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-banned-primitives-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-image-discipline-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-image-discipline-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-image-discipline-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-image-discipline-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-supply-chain-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-supply-chain-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-supply-chain-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-supply-chain-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-adapter-with-no-importer-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-adapter-with-no-importer-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-adapter-with-no-importer-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-adapter-with-no-importer-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-purpose-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-purpose-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-purpose-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-purpose-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-sunset-lifecycle-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-sunset-lifecycle-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-sunset-lifecycle-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-sunset-lifecycle-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-doc-style-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-doc-style-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-doc-style-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-doc-style-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-license-policy-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-license-policy-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-license-policy-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-license-policy-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-orphan-detection-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-orphan-detection-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-orphan-detection-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-orphan-detection-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-agentic-navigability-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-agentic-navigability-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-agentic-navigability-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-agentic-navigability-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-upstream-api-drift-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-upstream-api-drift-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-upstream-api-drift-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-upstream-api-drift-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-pre-push-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-pre-push-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-pre-push-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-pre-push-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-adr-shape-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-adr-shape-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-adr-shape-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-adr-shape-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-portfolio-citation-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-portfolio-citation-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-portfolio-citation-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-quality-lane-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-quality-lane-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-quality-lane-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-quality-lane-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-quality-lane-kernel/src/lean_check.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-quality-lane-kernel/src/lean_check.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-predictable-naming-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-predictable-naming-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-predictable-naming-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-predictable-naming-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-pr-merge-gate-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-pr-merge-gate-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-pr-merge-gate-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-pr-merge-gate-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-provider-coupling-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-provider-coupling-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-provider-coupling-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-provider-coupling-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-authoritative-tracked-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-authoritative-tracked-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-authoritative-tracked-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-authoritative-tracked-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-claim-ceiling-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-claim-ceiling-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-claim-ceiling-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-claim-ceiling-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-cohesion-fitness-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-cohesion-fitness-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-cohesion-fitness-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-cohesion-fitness-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-mistakes-ledger-kernel/Cargo.toml",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-mistakes-ledger-kernel/Cargo.toml",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-fitness-mistakes-ledger-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-mistakes-ledger-kernel/src/lib.rs",
       "category": "C",
       "reason": "Actual Rust crate \u2014 requires separate code-migration ADR + git mv + Cargo.toml updates"
     },
@@ -3284,32 +3284,32 @@
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-architecture-map-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-intelligence-architecture-map-kernel/src/lib.rs",
       "category": "E",
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-governance-gate-catalog-domain/src/lib.rs",
       "category": "E",
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-vcs-admission-gate-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-vcs-admission-gate-kernel/src/lib.rs",
       "category": "E",
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-vcs-changeset-state-kernel/src/lib.rs",
       "category": "E",
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-vcs-provider-execution-gate-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-vcs-provider-execution-gate-kernel/src/lib.rs",
       "category": "E",
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/crates/oya-foundry-webhook-receiver-kernel/src/lib.rs",
+      "file": "/Users/jasonlee/oyatie/crates/oya-vcs-webhook-receiver-kernel/src/lib.rs",
       "category": "E",
       "reason": "Operational code using oya-foundry-fitness- as prefix detection, lane IDs, test fixtures \u2014 DO NOT rename"
     }

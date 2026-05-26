@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use oya_foundry_catalog_domain::CatalogIndex;
+use oya_intelligence_catalog_domain::CatalogIndex;
 
 use crate::{read_catalog_records, read_workspace_member_crate_ids};
 

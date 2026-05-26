@@ -13,15 +13,15 @@ purpose: Auto-generate architecture, product, service, tech-stack, roadmap, depe
 Per MASTERPLAN §2 Directive 11. Hand-drawn diagrams age out of sync; the sustainable form is generated-from-truth. Foundry owns the visualization kernel.
 
 ## Acceptance
-- `crates/oya-foundry-architecture-map-kernel` walks Cargo workspace + `contracts/` + `docs/products/` + `docs/ROADMAP.md` + `docs/ADR-INDEX.md` + milestone frontmatter; emits Mermaid + D2 + Graphviz.
+- `crates/oya-intelligence-architecture-map-kernel` walks Cargo workspace + `contracts/` + `docs/products/` + `docs/ROADMAP.md` + `docs/ADR-INDEX.md` + milestone frontmatter; emits Mermaid + D2 + Graphviz.
 - Generated outputs at `docs/site/architecture/`: product-map.svg, service-map.svg, architecture-diagram.svg, tech-stack-diagram.svg, roadmap.svg, dependency-graph.svg.
 - `oya-foundry-fitness-architecture-map-freshness` lane CI-blocks PRs that change source-of-truth without regenerating visualizations.
-- Renders publish via `oya-foundry-mdbook-kernel` (from M01-P09).
+- Renders publish via `oya-intelligence-mdbook-kernel` (from M01-P09).
 
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | `oya-foundry-architecture-map-kernel` source walkers (Cargo metadata, OpenAPI parser, frontmatter parser) | complete | [`IP-001-architecture-map-walkers.md`](IP-001-architecture-map-walkers.md) |
+| IP-001 | `oya-intelligence-architecture-map-kernel` source walkers (Cargo metadata, OpenAPI parser, frontmatter parser) | complete | [`IP-001-architecture-map-walkers.md`](IP-001-architecture-map-walkers.md) |
 | IP-002 | Mermaid + D2 + Graphviz emitters | complete | [`IP-002-mermaid-d2-graphviz-emitters.md`](IP-002-mermaid-d2-graphviz-emitters.md) |
 | IP-003 | mdbook publishing integration | complete | [`IP-003-mdbook-publish-integration.md`](IP-003-mdbook-publish-integration.md) |
 | IP-004 | `oya-foundry-fitness-architecture-map-freshness` lane | complete | [`IP-004-architecture-map-freshness-lane.md`](IP-004-architecture-map-freshness-lane.md) |
@@ -30,7 +30,7 @@ Per MASTERPLAN §2 Directive 11. Hand-drawn diagrams age out of sync; the sustai
 4 agents.
 
 ## Symbols-touched
-`crates/oya-foundry-architecture-map-{kernel,app}-*`, `crates/oya-foundry-fitness-architecture-map-freshness-kernel`, `docs/site/architecture/`.
+`crates/oya-foundry-architecture-map-{kernel,app}-*`, `crates/oya-governance-architecture-map-freshness-kernel`, `docs/site/architecture/`.
 
 ## Agent-handoff
 ```

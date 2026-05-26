@@ -80,7 +80,7 @@
       "summary": "Scoped Cloud IaC clippy passed with warnings denied."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "command": "cargo test -p oya-governance-gate-catalog-domain -- --nocapture",
       "result": "PASS",
       "summary": "Gate-catalog tests passed after adding the runtime Hyper-adapter dependency and catalog/manifest service-assembly scope."
     },

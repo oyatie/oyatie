@@ -6,7 +6,7 @@
   "created_at": "2026-05-14T00:00:00-04:00",
   "owner_agent": "codex-executor",
   "write_scope": [
-    "crates/oya-foundry-vcs-polyglot-indexer-adapters/**",
+    "crates/oya-vcs-polyglot-indexer-adapters/**",
     "/evidence/gitops-vcs/ip-006-polyglot-indexers.json"
   ],
   "claim_path": {
@@ -16,7 +16,7 @@
   },
   "implementation_summary": [
     "Added std-only production-shaped PolyglotIndexerAdapter boundary and deterministic line-scanner adapter for Rust, TS/JS, Swift, Kotlin, C#, C/C++, WinUI/XAML, schema/contract, and config surfaces.",
-    "Normalized all extracted symbols through oya_foundry_vcs_kernel::SymbolId and ArtifactPointer, including pointer-scoped XAML bindings, OpenAPI/AsyncAPI/Protobuf/schema selectors, and config selectors.",
+    "Normalized all extracted symbols through oya_vcs_kernel::SymbolId and ArtifactPointer, including pointer-scoped XAML bindings, OpenAPI/AsyncAPI/Protobuf/schema selectors, and config selectors.",
     "Mapped fixture dependency directives into AST-index DependencyEdge inputs and exposed PolyglotDiffMap with changed symbols, impacted symbols, impacted tests, dependency edges, and promotion blockers.",
     "Production parser failures require explicit pointer scope and emit fallback scoped symbols; unsupported production surfaces block instead of silently admitting."
   ],
@@ -40,37 +40,37 @@
   ],
   "commands": [
     {
-      "command": "rustfmt --check crates/oya-foundry-vcs-polyglot-indexer-adapters/src/lib.rs crates/oya-foundry-vcs-polyglot-indexer-adapters/tests/ip006_polyglot.rs",
+      "command": "rustfmt --check crates/oya-vcs-polyglot-indexer-adapters/src/lib.rs crates/oya-vcs-polyglot-indexer-adapters/tests/ip006_polyglot.rs",
       "result": "pass",
       "output_summary": "exit 0"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --crate-name oya_foundry_vcs_kernel --crate-type lib crates/oya-foundry-vcs-kernel/src/lib.rs --out-dir /tmp/oyatie-ip006-rustc.Wz8tEg",
+      "command": "rustc --edition=2021 -D warnings --crate-name oya_vcs_kernel --crate-type lib crates/oya-vcs-kernel/src/lib.rs --out-dir /tmp/oyatie-ip006-rustc.Wz8tEg",
       "result": "pass",
       "output_summary": "compiled VCS kernel dependency rlib with warnings denied"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --crate-name oya_foundry_vcs_ast_index_kernel --crate-type lib crates/oya-foundry-vcs-ast-index-kernel/src/lib.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip006-rustc.Wz8tEg/liboya_foundry_vcs_kernel.rlib --out-dir /tmp/oyatie-ip006-rustc.Wz8tEg",
+      "command": "rustc --edition=2021 -D warnings --crate-name oya_vcs_ast_index_kernel --crate-type lib crates/oya-vcs-ast-index-kernel/src/lib.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_vcs_kernel=/tmp/oyatie-ip006-rustc.Wz8tEg/liboya_vcs_kernel.rlib --out-dir /tmp/oyatie-ip006-rustc.Wz8tEg",
       "result": "pass",
       "output_summary": "compiled AST index kernel dependency rlib with warnings denied"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --crate-name oya_foundry_vcs_polyglot_indexer_adapters --crate-type lib crates/oya-foundry-vcs-polyglot-indexer-adapters/src/lib.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_foundry_vcs_kernel=<rlib> --extern oya_foundry_vcs_ast_index_kernel=<rlib> --out-dir /tmp/oyatie-ip006-rustc.Wz8tEg",
+      "command": "rustc --edition=2021 -D warnings --crate-name oya_vcs_polyglot_indexer_adapters --crate-type lib crates/oya-vcs-polyglot-indexer-adapters/src/lib.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_vcs_kernel=<rlib> --extern oya_vcs_ast_index_kernel=<rlib> --out-dir /tmp/oyatie-ip006-rustc.Wz8tEg",
       "result": "pass",
       "output_summary": "compiled adapter library with warnings denied"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --test --crate-name oya_foundry_vcs_polyglot_indexer_adapters_unit crates/oya-foundry-vcs-polyglot-indexer-adapters/src/lib.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_foundry_vcs_kernel=<rlib> --extern oya_foundry_vcs_ast_index_kernel=<rlib> -o /tmp/oyatie-ip006-rustc.Wz8tEg/polyglot_unit_tests && /tmp/oyatie-ip006-rustc.Wz8tEg/polyglot_unit_tests --nocapture",
+      "command": "rustc --edition=2021 -D warnings --test --crate-name oya_vcs_polyglot_indexer_adapters_unit crates/oya-vcs-polyglot-indexer-adapters/src/lib.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_vcs_kernel=<rlib> --extern oya_vcs_ast_index_kernel=<rlib> -o /tmp/oyatie-ip006-rustc.Wz8tEg/polyglot_unit_tests && /tmp/oyatie-ip006-rustc.Wz8tEg/polyglot_unit_tests --nocapture",
       "result": "pass",
       "output_summary": "5 tests passed; 0 failed; 0 ignored"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --test --crate-name ip006_polyglot crates/oya-foundry-vcs-polyglot-indexer-adapters/tests/ip006_polyglot.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_foundry_vcs_kernel=<rlib> --extern oya_foundry_vcs_ast_index_kernel=<rlib> --extern oya_foundry_vcs_polyglot_indexer_adapters=<rlib> -o /tmp/oyatie-ip006-rustc.Wz8tEg/ip006_polyglot_tests && /tmp/oyatie-ip006-rustc.Wz8tEg/ip006_polyglot_tests --nocapture",
+      "command": "rustc --edition=2021 -D warnings --test --crate-name ip006_polyglot crates/oya-vcs-polyglot-indexer-adapters/tests/ip006_polyglot.rs -L dependency=/tmp/oyatie-ip006-rustc.Wz8tEg --extern oya_vcs_kernel=<rlib> --extern oya_vcs_ast_index_kernel=<rlib> --extern oya_vcs_polyglot_indexer_adapters=<rlib> -o /tmp/oyatie-ip006-rustc.Wz8tEg/ip006_polyglot_tests && /tmp/oyatie-ip006-rustc.Wz8tEg/ip006_polyglot_tests --nocapture",
       "result": "pass",
       "output_summary": "2 tests passed; 0 failed; 0 ignored"
     },
     {
-      "command": "cargo check -p oya-foundry-vcs-polyglot-indexer-adapters",
+      "command": "cargo check -p oya-vcs-polyglot-indexer-adapters",
       "result": "known-pre-existing-blocker",
       "output_summary": "workspace manifest load fails before package check because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml (No such file or directory)"
     }

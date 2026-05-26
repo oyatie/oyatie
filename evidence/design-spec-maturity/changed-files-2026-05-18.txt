@@ -1,7 +1,7 @@
  M crates/oya-dev-cli/src/commands/gate/mod.rs
  M crates/oya-dev-cli/src/lib.rs
  M crates/oya-dev-cli/tests/gate_cli.rs
- M crates/oya-foundry-gate-catalog-domain/src/lib.rs
+ M crates/oya-governance-gate-catalog-domain/src/lib.rs
  M docs/ADR-INDEX.md
  M docs/MASTERPLAN.md
  M docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md

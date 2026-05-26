@@ -76,7 +76,7 @@ runner must mint, attach, and verify those tokens.
 This IP is the `runtime`-bounded-context slice for `IP-WASMTIME-002 — Capability-token binding for foundry-tool sandbox`. The stamped version named a target but did not explain how the slice closes Foundry's product gap: Wasm tool sandboxing with capability-token binding, metered execution, and WIT packaging discipline. The concrete gap is traceability from the implementation plan to real Foundry surfaces: `microservices/foundry/capabilities/runtime-capability-execute.yaml`, `microservices/foundry/capabilities/runtime-session-create.yaml`, `microservices/foundry/contracts/openapi/runtime-foundry-runtime.yaml`, and the policy set `microservices/foundry/policy/runtime-tenant-scope.cedar`, `microservices/foundry/policy/runtime-runtime-isolation.md`.
 
 ### B. Technical approach
-Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbing. The design starts at the capability or contract boundary, keeps tenant and principal fields in the DTO/event shape, and routes state changes through the `runtime` policy envelope before any adapter call. The implementation must use existing catalog and crate naming from `microservices/foundry/manifest.json`; the primary implementation anchor is `crates/oya-foundry-api/src/lib.rs` plus the matching catalog records under `microservices/foundry/catalog/`.
+Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbing. The design starts at the capability or contract boundary, keeps tenant and principal fields in the DTO/event shape, and routes state changes through the `runtime` policy envelope before any adapter call. The implementation must use existing catalog and crate naming from `microservices/foundry/manifest.json`; the primary implementation anchor is `crates/oya-intelligence-api/src/lib.rs` plus the matching catalog records under `microservices/foundry/catalog/`.
 
 ### C. Deliverables bound to real artifacts
 - Update or create the exact crate/catalog files named by this IP; do not use `.../` placeholder paths in the final ChangeSet.
@@ -94,7 +94,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 6. Emit or validate SLO/audit evidence through the Foundry evidence path so the ChangeSet can be verified by `oya verify --ci-required` and the service-specific gates.
 
 ### E. Acceptance evidence
-- `cargo test -p <changed-foundry-crate>` or the narrowest crate test covering `crates/oya-foundry-api/src/lib.rs`.
+- `cargo test -p <changed-foundry-crate>` or the narrowest crate test covering `crates/oya-intelligence-api/src/lib.rs`.
 - Contract parity for `microservices/foundry/contracts/openapi/runtime-foundry-runtime.yaml` and `microservices/foundry/contracts/proto/runtime-foundry-runtime.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/foundry/policy/runtime-tenant-scope.cedar`, `microservices/foundry/policy/runtime-runtime-isolation.md`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/foundry/slos/runtime-latency.openslo.yaml`, `microservices/foundry/slos/runtime-correctness.openslo.yaml`; no acceptance by line count alone.

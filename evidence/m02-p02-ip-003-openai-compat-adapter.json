@@ -7,14 +7,14 @@
     "phase": "P02-multi-subscription-pool",
     "produced_at": "2026-05-14",
     "auditor": "claude-a1-m02p02",
-    "scope": "crates/oya-foundry-adapter-openai-compat-api",
+    "scope": "crates/oya-intelligence-adapter-openai-compat-api",
     "purpose": "Auto-backfilled purpose for m02-p02-ip-003-openai-compat-adapter.json"
   },
   "ip_id": "IP-003-openai-compat-adapter",
   "role": "api",
   "crates_created": [
     {
-      "name": "oya-foundry-adapter-openai-compat-api",
+      "name": "oya-intelligence-adapter-openai-compat-api",
       "role": "api",
       "bnf_justification": "oya-<microservice:foundry>-<bc:adapter-openai-compat>-<layer:api>; v4.1 conformant; bounded-context isolates OpenAI-shape passthrough from upstream API-key adapter; layer=api per workspace 12-layer enum.",
       "purpose": "OpenAI /v1/chat/completions + /v1/embeddings + /v1/models passthrough. Translates OpenAI shape \u2194 internal CapabilityInvokeRequest; emits OpenAI-style SSE (data: {\u2026}\\n\\ndata: [DONE]\\n\\n).",

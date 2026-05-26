@@ -22,8 +22,8 @@
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/tests/gate_cli.rs",
-    "crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-banned-primitives-kernel/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "docs/standards/ci-lanes.md",
     "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json",
     "evidence/fd001/cs-fitness-001-command-log-corpus.json",
@@ -55,7 +55,7 @@
       "evidence": "Rust sources formatted successfully after command-log corpus bypass fix."
     },
     {
-      "command": "cargo test -q -p oya-foundry-fitness-banned-primitives-kernel -p oya-foundry-fitness-banned-primitives-app -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "command": "cargo test -q -p oya-governance-banned-primitives-kernel -p oya-governance-banned-primitives-app -p oya-governance-gate-catalog-domain -- --nocapture",
       "status": "passed",
       "evidence": "app 5 passed, kernel 16 passed, gate-catalog 17 passed; 0 failed."
     },
@@ -75,7 +75,7 @@
       "evidence": "banned-primitives validation passed: 1573 files, 18 sources, 18 fences, 3 command-log records, 0 usages, 0 documented exceptions"
     },
     {
-      "command": "cargo run -q -p oya-foundry-fitness-banned-primitives-app --",
+      "command": "cargo run -q -p oya-governance-banned-primitives-app --",
       "status": "passed",
       "evidence": "source-only direct runner remains green: sources_checked=18 fences_checked=18 usages_checked=0 documented_exceptions=0."
     },
@@ -100,7 +100,7 @@
       "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 303 status fields checked, blocker_count=0"
     },
     {
-      "command": "cargo clippy -q -p oya-foundry-fitness-banned-primitives-kernel -p oya-foundry-fitness-banned-primitives-app -p oya-foundry-gate-catalog-domain -p oya-dev-cli --all-targets -- -D warnings",
+      "command": "cargo clippy -q -p oya-governance-banned-primitives-kernel -p oya-governance-banned-primitives-app -p oya-governance-gate-catalog-domain -p oya-dev-cli --all-targets -- -D warnings",
       "status": "passed",
       "evidence": "targeted clippy completed with no warnings."
     },

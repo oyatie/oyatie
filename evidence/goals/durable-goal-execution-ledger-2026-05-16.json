@@ -930,7 +930,7 @@
       "status": "complete",
       "acceptance_snippet": "",
       "deps_snippet": "",
-      "title": "oya-foundry-architecture-map-kernel source walkers"
+      "title": "oya-intelligence-architecture-map-kernel source walkers"
     },
     {
       "item_id": "M01-foundation/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters",
@@ -1049,7 +1049,7 @@
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-008-banned-primitives-fitness-check",
       "status": "scaffolded",
-      "acceptance_snippet": "- `crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs::evaluate` exists with `(command_log, allow_list, sunset_state) -> Vec<Violation>` signature. - `tools/oya-foundry-fitness-banned-prim...",
+      "acceptance_snippet": "- `crates/oya-governance-banned-primitives-kernel/src/lib.rs::evaluate` exists with `(command_log, allow_list, sunset_state) -> Vec<Violation>` signature. - `tools/oya-foundry-fitness-banned-prim...",
       "deps_snippet": "- IP-002 (`oya` CLI) \u2014 the lane registers into `oya gate run-all`. - IP-003 (mistakes-ledger) \u2014 repeat offenders generat...",
       "title": "Banned-primitives fitness check (catches grit/git bypass; auto-flips when grit retires)"
     },
@@ -1071,7 +1071,7 @@
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-001-changeset-state-kernel",
       "status": "scaffolded",
-      "acceptance_snippet": "- 12-value closed enum exposed at   `oya_foundry_vcs_changeset_state_kernel::ChangesetState`. - `validate_monotonic_event_log(events: &[ChangesetEvent])` returns   `Result<MonotonicityReport, Monotoni...",
+      "acceptance_snippet": "- 12-value closed enum exposed at   `oya_vcs_changeset_state_kernel::ChangesetState`. - `validate_monotonic_event_log(events: &[ChangesetEvent])` returns   `Result<MonotonicityReport, Monotoni...",
       "deps_snippet": "None. Foundation IP. Must land before IP-002/003/004/005.",
       "title": "Changeset state kernel + event log + monotonicity lane"
     },

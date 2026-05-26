@@ -308,9 +308,9 @@
       "evidence": "A deterministic scan of evidence/multispectrum/*.json appended audit-chain rows for 46 backbone-microservices change_id values absent from evidence/audit-chain.jsonl, including this evidence file."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "result": "pass",
-      "evidence": "oya-foundry-vcs-admission-gate-app passed after audit-chain coverage backfill: metadata and authority checks passed; cargo tests + CLI smoke passed."
+      "evidence": "oya-vcs-admission-gate-app passed after audit-chain coverage backfill: metadata and authority checks passed; cargo tests + CLI smoke passed."
     },
     {
       "command": "./bin/oya verify --ci-required",

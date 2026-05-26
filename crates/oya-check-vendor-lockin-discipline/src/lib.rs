@@ -959,10 +959,10 @@ mod tests {
               "adoption_rationale": "frontier LLM",
               "replacement_path": "in-house substrate",
               "replacement_readiness_gate": "parity",
-              "seam_adapter_trait": "crates/oya-foundry-adapter-anthropic-api-kernel",
+              "seam_adapter_trait": "crates/oya-intelligence-adapter-anthropic-api-kernel",
               "seam_adapter_impls": [
-                "crates/oya-foundry-adapter-anthropic-api-adapter",
-                "crates/oya-foundry-adapter-openai-api-adapter"
+                "crates/oya-intelligence-adapter-anthropic-api-adapter",
+                "crates/oya-intelligence-adapter-openai-api-adapter"
               ],
               "phase_out_target_date_or_signal": "signal"
             }

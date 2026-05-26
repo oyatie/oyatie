@@ -6,7 +6,7 @@
   "created_at": "2026-05-14T00:00:00-04:00",
   "owner_agent": "codex-executor",
   "write_scope": [
-    "crates/oya-foundry-vcs-lockstore-adapter/**",
+    "crates/oya-vcs-lockstore-adapter/**",
     "/evidence/gitops-vcs/ip-002-lockstore.json"
   ],
   "implementation_summary": [
@@ -16,27 +16,27 @@
   ],
   "commands": [
     {
-      "command": "rustfmt --edition 2021 --check crates/oya-foundry-vcs-lockstore-adapter/src/lib.rs",
+      "command": "rustfmt --edition 2021 --check crates/oya-vcs-lockstore-adapter/src/lib.rs",
       "result": "pass",
       "output_summary": "exit 0"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --crate-name oya_foundry_vcs_kernel --crate-type lib crates/oya-foundry-vcs-kernel/src/lib.rs -o /tmp/oya-ip002-rustc/liboya_foundry_vcs_kernel.rlib",
+      "command": "rustc --edition=2021 -D warnings --crate-name oya_vcs_kernel --crate-type lib crates/oya-vcs-kernel/src/lib.rs -o /tmp/oya-ip002-rustc/liboya_vcs_kernel.rlib",
       "result": "pass",
       "output_summary": "compiled dependency rlib with warnings denied"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --crate-name oya_foundry_vcs_lockstore_adapter --crate-type lib crates/oya-foundry-vcs-lockstore-adapter/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/oya-ip002-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oya-ip002-rustc -o /tmp/oya-ip002-rustc/liboya_foundry_vcs_lockstore_adapter.rlib",
+      "command": "rustc --edition=2021 -D warnings --crate-name oya_vcs_lockstore_adapter --crate-type lib crates/oya-vcs-lockstore-adapter/src/lib.rs --extern oya_vcs_kernel=/tmp/oya-ip002-rustc/liboya_vcs_kernel.rlib -L dependency=/tmp/oya-ip002-rustc -o /tmp/oya-ip002-rustc/liboya_vcs_lockstore_adapter.rlib",
       "result": "pass",
       "output_summary": "compiled adapter lib with warnings denied"
     },
     {
-      "command": "rustc --edition=2021 -D warnings --test --crate-name oya_foundry_vcs_lockstore_adapter_tests crates/oya-foundry-vcs-lockstore-adapter/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/oya-ip002-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oya-ip002-rustc -o /tmp/oya-ip002-rustc/oya_foundry_vcs_lockstore_adapter_tests && /tmp/oya-ip002-rustc/oya_foundry_vcs_lockstore_adapter_tests --nocapture",
+      "command": "rustc --edition=2021 -D warnings --test --crate-name oya_vcs_lockstore_adapter_tests crates/oya-vcs-lockstore-adapter/src/lib.rs --extern oya_vcs_kernel=/tmp/oya-ip002-rustc/liboya_vcs_kernel.rlib -L dependency=/tmp/oya-ip002-rustc -o /tmp/oya-ip002-rustc/oya_vcs_lockstore_adapter_tests && /tmp/oya-ip002-rustc/oya_vcs_lockstore_adapter_tests --nocapture",
       "result": "pass",
       "output_summary": "7 tests passed; 0 failed; 0 ignored"
     },
     {
-      "command": "cargo test -p oya-foundry-vcs-lockstore-adapter --no-default-features",
+      "command": "cargo test -p oya-vcs-lockstore-adapter --no-default-features",
       "result": "known-pre-existing-blocker",
       "output_summary": "workspace manifest load fails before package test because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml (No such file or directory)."
     }

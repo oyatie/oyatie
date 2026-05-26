@@ -8,7 +8,7 @@ execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/capability-status-lifecycle.json
-  - tools/oya-foundry-fitness-capability-status-lifecycle-app
+  - tools/oya-governance-capability-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect capability grants whose status/expiry is unknown or overdue.
 ---
@@ -27,7 +27,7 @@ violations=0
 Fresh kernel; capability files appear once `oya-foundry-capability-registry-*` ships its first grant manifests.
 
 ## Done-criteria (Wave A)
-- `cargo run -q -p oya-foundry-fitness-capability-status-lifecycle-app -- --warn-only` succeeds (vacuous baseline).
+- `cargo run -q -p oya-governance-capability-status-lifecycle-app -- --warn-only` succeeds (vacuous baseline).
 
 ## Ratchet plan
 - Wave A: kernel ready; vacuous baseline.

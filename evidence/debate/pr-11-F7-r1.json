@@ -12,19 +12,19 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:160-183",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:160-183",
       "issue": "Projected merge-state invokes run_merge_tree(dev_head, candidate.head_sha, dev_head). The same dev_head is used as both merge base and one side, and queued PRs are not applied to the merge-tree input. A candidate can pass conflict simulation against the wrong projected base.",
       "remediation": "Compute the accumulated projected head after queued PRs and run merge-tree against the candidate's real base/projected base; add a regression where PR B conflicts only after PR A is applied."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs:184-201",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs:184-201",
       "issue": "The unreachable split path returns a synthetic PR #0 instead of failing. This masks an invariant breach with fabricated state, which can suppress evidence in a merge-queue admission path.",
       "remediation": "Return a closed error variant for impossible queue splits and refuse admission/revalidation with evidence instead of fabricating a candidate."
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:40-83,240-268",
+      "file": "tools/oya-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:40-83,240-268",
       "issue": "Conflict detection parses git merge-tree stdout with a marker heuristic. It fails closed on markers, but clean output is trusted without capturing git status, merge-tree exit semantics, or structured conflict metadata.",
       "remediation": "Capture the merge-tree exit status and raw conflict summary in evidence, and add fixtures for rename/delete/binary conflict outputs before using the result as a security gate for merge admission."
     }

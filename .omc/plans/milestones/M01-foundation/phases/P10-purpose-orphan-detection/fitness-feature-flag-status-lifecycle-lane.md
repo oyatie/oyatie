@@ -8,7 +8,7 @@ execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
   - specs/lifecycle-configs/feature-flag-status-lifecycle.json
-  - tools/oya-foundry-fitness-feature-flag-status-lifecycle-app
+  - tools/oya-governance-feature-flag-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect feature flags whose ramp/sunset has stalled past its declared deadline.
 ---
@@ -27,7 +27,7 @@ violations=0
 Fresh kernel; flag-status docs populate as `#[cfg(feature` usages grow beyond the current 6 occurrences.
 
 ## Done-criteria (Wave A)
-- `cargo run -q -p oya-foundry-fitness-feature-flag-status-lifecycle-app -- --warn-only` succeeds.
+- `cargo run -q -p oya-governance-feature-flag-status-lifecycle-app -- --warn-only` succeeds.
 
 ## Ratchet plan
 - Wave A: kernel ready.

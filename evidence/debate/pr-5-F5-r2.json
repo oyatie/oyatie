@@ -9,31 +9,31 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:104-111; crates/oya-dev-cli/src/changeset_state_monotonicity_gate.rs:53-63; crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:273-339",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:104-111; crates/oya-dev-cli/src/changeset_state_monotonicity_gate.rs:53-63; crates/oya-vcs-changeset-state-kernel/src/lib.rs:273-339",
       "issue": "The app and CI gate pass the entire global changeset-event-log into validate_monotonic_event_log as one stream. The validator keeps a single last_advancing_ordinal and terminal_state, with no grouping by changeset_id. That makes the second valid changeset fail after the first advances or terminates: e.g. cs1 opened->working followed by cs2 opened is treated as a backwards transition; cs1 produced followed by any terminal row for cs2 is treated as MultipleTerminalStates. ADR-0110 says the monotonic sequence is per changeset, so this implementation cannot reliably support more than one changeset in the canonical log.",
       "remediation": "Group events by changeset_id before validation. In the app, validate only the target changeset's existing rows plus the candidate, then write the global log after the per-changeset check passes. In the gate, iterate all changeset groups and report the failing changeset_id. Add regression tests with two interleaved valid changesets, two independent terminal states, and one invalid changeset among valid neighbors."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:168-170; crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:249-339",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:168-170; crates/oya-vcs-changeset-state-kernel/src/lib.rs:249-339",
       "issue": "The row contract says from_state is None only on the first Opened row and subsequent rows must carry the preceding to_state, but validate_monotonic_event_log never enforces either rule. It accepts a first row at an arbitrary later state, accepts missing from_state on non-first rows, and accepts a from_state that does not match the previous event. This weakens the state-machine contract into an ordinal-only check and lets malformed histories pass the new fitness lane.",
       "remediation": "Extend the validator to require first row to_state == Opened and from_state == None; for every subsequent advancing or terminal row, require from_state == previous.to_state except for explicitly modeled skip rules. Add tests for wrong first state, missing non-first from_state, mismatched from_state, and valid skip rows."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:149-157; crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:249-339; crates/oya-foundry-vcs-changeset-state-app/src/main.rs:371-397",
+      "file": "crates/oya-vcs-changeset-state-kernel/src/lib.rs:149-157; crates/oya-vcs-changeset-state-kernel/src/lib.rs:249-339; crates/oya-vcs-changeset-state-app/src/main.rs:371-397",
       "issue": "CostBudget::is_exhausted exists and the docs say an exhausted axis must force cost_exhausted, but the validator never calls is_exhausted and the app parser accepts any numeric usd_remaining, including negative values. A log can continue to reviewed/produced with usd_remaining < 0 and still pass monotonicity and enum-closed gates as long as ordinals increase. The unit tests only verify the helper returns true for zero; they do not test that exhausted budgets are rejected unless the transition is CostExhausted.",
       "remediation": "Make budget exhaustion part of the state validator: if any event's remaining budget is exhausted, the same row must be to_state == CostExhausted and no later rows may exist. Reject negative budget values unless they are deliberately allowed and documented. Add positive/negative validator tests for each budget axis."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:96-111; crates/oya-foundry-vcs-changeset-state-app/src/main.rs:431-444",
+      "file": "crates/oya-vcs-changeset-state-app/src/main.rs:96-111; crates/oya-vcs-changeset-state-app/src/main.rs:431-444",
       "issue": "Append is read-parse-push-validate-write with no interprocess lock or compare-and-swap. Atomic rename prevents torn writes, but it does not serialize two writers that both read the same old log and then write competing N+1 versions. The temp path is also fixed as path.with_extension(\"json.tmp\"), so concurrent writers can overwrite the same temp file before either rename. Under the webhook/orchestrator model introduced by the PR, this can silently lose valid events or rename another writer's payload.",
       "remediation": "Protect the entire read/validate/write critical section with a lock file or switch to an append-only JSONL/event-store shape with atomic append/CAS semantics. Use unique temp paths per process if retaining whole-file writes. Add a regression test that spawns multiple appends against the same log and asserts all distinct events survive."
     },
     {
       "severity": "MAJOR",
-      "file": "crates/oya-dev-cli/src/changeset_state_monotonicity_gate.rs:36-63; crates/oya-dev-cli/src/changeset_state_enum_closed_gate.rs:43-76; crates/oya-foundry-vcs-changeset-state-app/src/main.rs:490-548",
+      "file": "crates/oya-dev-cli/src/changeset_state_monotonicity_gate.rs:36-63; crates/oya-dev-cli/src/changeset_state_enum_closed_gate.rs:43-76; crates/oya-vcs-changeset-state-app/src/main.rs:490-548",
       "issue": "Test coverage is too shallow for the new CI surfaces. The kernel has unit tests for simple monotonic branches and the app has one append-to-empty-log round trip, but the newly added oya gate validate changeset-state-* dispatchers have no direct integration tests for malformed logs, invalid enum rows, non-empty success, missing/empty log policy, or multi-changeset logs. The current tests therefore pass while the per-changeset grouping, from_state-chain, cost-exhaustion, and concurrent-append defects remain uncovered.",
       "remediation": "Add gate_cli integration tests that invoke both new gate commands against fixture logs: valid multi-changeset, invalid enum, backwards transition within one changeset, missing/empty log with explicit expected policy, malformed event shape, and exhausted-budget cases. Add app-level concurrency and duplicate-dedup tests."
     },

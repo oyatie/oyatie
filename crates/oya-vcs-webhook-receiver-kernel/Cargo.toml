@@ -1,0 +1,39 @@
+[package]
+# Naming justification (per feedback_naming_justification):
+#   - BNF v4.1:  oya - foundry - webhook-receiver - kernel
+#   - slot-2 µservice: `foundry` (registered; internal engineering platform).
+#   - bc-tokens: `webhook-receiver` (kebab tokens; bounded context is the
+#                pure-domain receiver substrate that validates HMAC, dedups
+#                deliveries, and routes (event, action) → agent without ever
+#                touching the network).
+#   - layer (slot-N): `kernel` — port-in-kernel per ADR-0056; std + sha2 +
+#                hmac only; no HTTP, no clock, no filesystem.
+#
+# Introducing IP: M01-P18-IP-003 (ADR-0112 wave-A).
+name = "oya-vcs-webhook-receiver-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+vertical = "foundry"
+bounded_context = "webhook-receiver"
+kind = "shared"
+layer = "kernel"
+purpose = "Pure-domain port-in-kernel for the GitHub-webhook receiver substrate (ADR-0112): HMAC-SHA256 verification of X-Hub-Signature-256, X-GitHub-Delivery dedup-table parser/lookup with 7-day TTL, and (event, action) -> agent router-table lookup. No I/O; sha2 + hmac + std only."
+lifecycle.stage = "scaffolded"
+introducing_ip = "M01-P18-IP-003"
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
+hmac = { version = "0.12", default-features = false }
+
+[lib]
+name = "oya_vcs_webhook_receiver_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

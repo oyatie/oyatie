@@ -12,7 +12,7 @@
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:42-60 and tools/oya-foundry-webhook-receiver-app/src/main.rs:342-409",
+      "file": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:42-60 and tools/oya-vcs-webhook-receiver-app/src/main.rs:342-409",
       "issue": "M01-P18-IP-003 acceptance requires the HTTP receiver to dedup against an append-only delivery log and route deliveries, but the HTTP path only reads the startup log and returns accepted/routing-failed without appending a delivery outcome. Operators cannot adopt it as the canonical event-driven pipeline because restarts lose first-delivery evidence.",
       "remediation": "Append each HTTP delivery outcome atomically to `registry/vcs/webhook-delivery-log.json` before returning, add restart/redelivery tests, and make PR #7 evidence distinguish simulate-only behavior from live HTTP behavior."
     },
@@ -24,7 +24,7 @@
     },
     {
       "severity": "MAJOR",
-      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:15-22 and .omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:58-60",
+      "file": "tools/oya-vcs-webhook-receiver-app/src/main.rs:15-22 and .omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:58-60",
       "issue": "The plan calls for OpenBao SecretReference validation, but PR #7 documents a file-backed fallback/TODO. That is acceptable for local simulation, not for adopting the receiver as the live Foundry pipeline ingress.",
       "remediation": "Gate production deployment on a real SecretReference resolver smoke probe, and label the fallback as local-test-only in the IP exit evidence."
     }

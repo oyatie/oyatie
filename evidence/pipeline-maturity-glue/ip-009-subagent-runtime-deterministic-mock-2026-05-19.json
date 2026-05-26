@@ -16,10 +16,10 @@
     "observed_success_after_fix": "APPROVE with 21/21 APPROVE, panel_complete=true, subagent_runtime_pending=false"
   },
   "local_verification": [
-    "cargo test -p oya-foundry-subagent-runtime-kernel --lib -> PASS (15 tests, including embedded diff directive ignored)",
-    "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out against hosted run 26080734547 PR #148 review-input.md -> 21/21 APPROVE, subagent_runtime_pending=false",
-    "cargo test -p oya-foundry-subagent-runtime-app -> PASS (10 tests across lib/main)",
-    "cargo test -p oya-foundry-pr-review-dispatcher-app -> PASS (23 tests across lib/main)",
+    "cargo test -p oya-intelligence-subagent-runtime-kernel --lib -> PASS (15 tests, including embedded diff directive ignored)",
+    "cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out against hosted run 26080734547 PR #148 review-input.md -> 21/21 APPROVE, subagent_runtime_pending=false",
+    "cargo test -p oya-intelligence-subagent-runtime-app -> PASS (10 tests across lib/main)",
+    "cargo test -p oya-intelligence-pr-review-dispatcher-app -> PASS (23 tests across lib/main)",
     "cargo test -p oya-dev-cli hyperscaler_maturity_claims_gate_accepts_repo_control_surfaces --test gate_cli -- --nocapture -> PASS",
     "ruby YAML.load_file .github/workflows/pr-review.yml -> yaml ok",
     "cargo fmt --all -- --check -> PASS",

@@ -38,8 +38,8 @@ You are the **Planner** in iteration 2 of the ralplan `--consensus --direct --de
 
 ### Architect violations 1-4 (all four are gating)
 - **V1 P2 chicken-and-egg**: P2 must adopt the scaffold-claim pattern. Move scaffold-claim to canonical-for-new-crate-phases. Cite Draft 2 in P2 by path.
-- **V2 P3 chicken-and-egg**: P3 scaffolds `oya-foundry-fitness-portfolio-citation-kernel` — apply same scaffold-claim pattern. Cite Draft 2.
-- **V3 P10 chicken-and-egg**: P10 scaffolds `oya-foundry-fitness-authoritative-tracked-kernel` — apply same scaffold-claim pattern. Cite Draft 2.
+- **V2 P3 chicken-and-egg**: P3 scaffolds `oya-governance-portfolio-citation-kernel` — apply same scaffold-claim pattern. Cite Draft 2.
+- **V3 P10 chicken-and-egg**: P10 scaffolds `oya-governance-authoritative-tracked-kernel` — apply same scaffold-claim pattern. Cite Draft 2.
 - **V4 ADR false during P1-P2**: amend ADR draft per Architect revision request #2 — add "cutover bootstrap window" clause naming P1-P2 as the bootstrap interval; banned-primitives lane activates at P5 merge.
 
 ### Architect revision requests (all 8)

@@ -2,7 +2,7 @@
 
 - purpose: Verify every non-trivial directory has an `INDEX.md`, predictable naming, and grit-claim symbols on key entry points.
 - enforces: Directive 10 (MASTERPLAN) — agentic navigability.
-- kernel_crate: `oya-foundry-fitness-agentic-navigability-kernel` — `DirEntry { path, file_count, has_index }`, verdict `AgenticNavigabilityFitnessReport { dirs_checked }`.
+- kernel_crate: `oya-governance-agentic-navigability-kernel` — `DirEntry { path, file_count, has_index }`, verdict `AgenticNavigabilityFitnessReport { dirs_checked }`.
 - runner_path: `tools/oya-foundry-fitness-agentic-navigability`
 - inputs: directory snapshot, naming-rule registry, grit-claim symbol map.
 - failure_modes:

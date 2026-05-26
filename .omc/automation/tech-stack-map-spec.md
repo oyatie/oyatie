@@ -15,7 +15,7 @@ enforced_by: oya-foundry-fitness-tech-stack-map
 extends_crates:
   - oya-foundry-license-policy-kernel
   - oya-foundry-vendor-contract-recency-kernel
-  - oya-foundry-architecture-map-kernel
+  - oya-intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
   - service-map-spec.md

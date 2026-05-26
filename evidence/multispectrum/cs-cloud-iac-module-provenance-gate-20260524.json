@@ -13,7 +13,7 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "crates/oya-dev-cli/src/commands/gate/run_all.rs",
-    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "crates/oya-governance-gate-catalog-domain/src/lib.rs",
     "microservices/cloud-iac/manifest.json",
     "microservices/cloud-iac/tofu/modules/provenance.json",
     "tasks/plan.md",
@@ -68,7 +68,7 @@
       "summary": "Live Cloud IaC module provenance gate passed: 6 modules and 12 source-file digests checked."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "command": "cargo test -p oya-governance-gate-catalog-domain",
       "result": "PASS",
       "summary": "19 gate-catalog tests passed after adding cloud-iac-module-provenance to AGGREGATED_VALIDATE_LANES."
     },
@@ -78,7 +78,7 @@
       "summary": "Existing Cloud IaC regression gates remain green: module catalog, GitOps evidence, cell topology, and OpenTofu validation."
     },
     {
-      "command": "cargo check -p oya-dev-cli -p oya-foundry-gate-catalog-domain && cargo clippy -p oya-dev-cli -p oya-foundry-gate-catalog-domain --all-targets -- -D warnings && cargo fmt --all -- --check",
+      "command": "cargo check -p oya-dev-cli -p oya-governance-gate-catalog-domain && cargo clippy -p oya-dev-cli -p oya-governance-gate-catalog-domain --all-targets -- -D warnings && cargo fmt --all -- --check",
       "result": "PASS",
       "summary": "Scoped Rust check, clippy with warnings denied, and formatting check passed."
     },
@@ -93,7 +93,7 @@
       "summary": "Planning closure, API semver, and architecture-boundaries remain green."
     },
     {
-      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs --corpus-root crates/oya-dev-cli/src/lib.rs --corpus-root crates/oya-dev-cli/src/commands/gate/mod.rs --corpus-root crates/oya-dev-cli/src/commands/gate/run_all.rs --corpus-root crates/oya-foundry-gate-catalog-domain/src/lib.rs --corpus-root microservices/cloud-iac/manifest.json --corpus-root microservices/cloud-iac/tofu/modules/provenance.json --corpus-root tasks/plan.md --corpus-root tasks/todo.md",
+      "command": "./bin/oya gate validate honest-claims --clear-default-corpus --corpus-root crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs --corpus-root crates/oya-dev-cli/src/lib.rs --corpus-root crates/oya-dev-cli/src/commands/gate/mod.rs --corpus-root crates/oya-dev-cli/src/commands/gate/run_all.rs --corpus-root crates/oya-governance-gate-catalog-domain/src/lib.rs --corpus-root microservices/cloud-iac/manifest.json --corpus-root microservices/cloud-iac/tofu/modules/provenance.json --corpus-root tasks/plan.md --corpus-root tasks/todo.md",
       "result": "PASS",
       "summary": "Scoped honest-claims gate passed across claimed code, manifest, provenance, and task surfaces."
     },

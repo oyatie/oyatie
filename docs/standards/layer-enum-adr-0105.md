@@ -575,7 +575,7 @@ LAY-SB-048. Check `oya-cloud-compute-vm-api`.
 
 LAY-SB-049. Check `oya-cloud-kms-domain`.
 
-LAY-SB-050. Check `oya-foundry-evidence-domain`.
+LAY-SB-050. Check `oya-intelligence-evidence-domain`.
 
 LAY-SB-051. Verify generated REST stubs classify as `rest`.
 

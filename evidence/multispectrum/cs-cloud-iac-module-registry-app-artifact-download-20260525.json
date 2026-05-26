@@ -73,7 +73,7 @@
       "summary": "Formatting, scoped check, and scoped clippy passed for affected Cloud IaC/HTTP crates."
     },
     {
-      "command": "cargo test -p oya-foundry-gate-catalog-domain -- --nocapture; ./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog; ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog; ./bin/oya gate validate api-semver --contracts-dir contracts; ./bin/oya gate validate planning-closure; python3 -m json.tool microservices/cloud-iac/manifest.json; python3 -m json.tool evidence/multispectrum/cs-cloud-iac-module-registry-app-artifact-download-20260525.json",
+      "command": "cargo test -p oya-governance-gate-catalog-domain -- --nocapture; ./bin/oya catalog validate --workspace Cargo.toml --registry registry/catalog; ./bin/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog; ./bin/oya gate validate api-semver --contracts-dir contracts; ./bin/oya gate validate planning-closure; python3 -m json.tool microservices/cloud-iac/manifest.json; python3 -m json.tool evidence/multispectrum/cs-cloud-iac-module-registry-app-artifact-download-20260525.json",
       "result": "PASS",
       "log": "/tmp/cs-cloud-iac-module-registry-app-artifact-download-governance-core.log",
       "summary": "Gate-catalog domain tests, catalog validation, architecture-boundaries, api-semver, planning-closure, and JSON parsing passed."

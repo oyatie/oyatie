@@ -126,7 +126,7 @@
   "updated_at": "2026-05-15T14:54:00Z",
   "provider_evidence": {
     "schema_version": "1.0.0",
-    "contract_surface": "oya-foundry-vcs-promotion-controller-kernel::ProviderEvidenceSet",
+    "contract_surface": "oya-vcs-promotion-controller-kernel::ProviderEvidenceSet",
     "proof_level": "executed-provider-admission-plus-credentialless-gitops-dry-run",
     "required_slots": [
       "ci",

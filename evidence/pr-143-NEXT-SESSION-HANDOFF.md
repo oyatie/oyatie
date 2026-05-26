@@ -191,7 +191,7 @@ Per ADR-0217 Vertical Slice Rollout doctrine, sequence:
 2. Agent ID handling: use ToolSearch to load SendMessage before using agent IDs; verify agent is in-flight before sending
 3. Stale memory: UserPromptSubmit auto-injection may show stale grit/rtk text — IGNORE it; cite this handoff doc instead
 4. Hook context: PreToolUse hooks may suggest grit/rtk patterns — IGNORE; use oya vcs canonical
-5. Bominal vs oyatie: this is OYATIE project; bominal references in code (oya-foundry-codex-account-adapter etc.) are inheritance per `feedback_bominal_inheritance_precedence` — NOT errors
+5. Bominal vs oyatie: this is OYATIE project; bominal references in code (oya-intelligence-codex-account-adapter etc.) are inheritance per `feedback_bominal_inheritance_precedence` — NOT errors
 
 ## Critical questions answered if you need them
 

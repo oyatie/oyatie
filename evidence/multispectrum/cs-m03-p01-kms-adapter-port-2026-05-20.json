@@ -70,7 +70,7 @@
       "evidence": "Both evidence JSON files parsed and the appended audit-chain row parsed as valid JSONL."
     },
     {
-      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "command": "cargo run -q -p oya-vcs-admission-gate-app",
       "status": "passed",
       "evidence": "Admission gate metadata/authority checks, Trivy scans, cargo tests, and CLI smoke passed."
     },

@@ -19,7 +19,7 @@ Enforce docs/standards/doc-style.md; auto-format on commit.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-doc-style-kernel/src/lib.rs::check_style
+crates/oya-governance-doc-style-kernel/src/lib.rs::check_style
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -16,7 +16,7 @@
     "fallback_memory_id": "01KRJVYYW603JTBXWDQ99XS2KM",
     "write_scope": [
       "Cargo.toml",
-      "crates/oya-foundry-vcs-ast-index-kernel/**",
+      "crates/oya-vcs-ast-index-kernel/**",
       "/evidence/gitops-vcs/ip-009-ast-contract.json"
     ]
   },
@@ -48,16 +48,16 @@
   ],
   "commands": [
     {
-      "command": "rustfmt --check crates/oya-foundry-vcs-ast-index-kernel/src/lib.rs crates/oya-foundry-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs",
+      "command": "rustfmt --check crates/oya-vcs-ast-index-kernel/src/lib.rs crates/oya-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs",
       "result": "pass"
     },
     {
-      "command": "rustc -D warnings --edition=2021 --test crates/oya-foundry-vcs-ast-index-kernel/src/lib.rs --extern oya_foundry_vcs_kernel=<rlib>",
+      "command": "rustc -D warnings --edition=2021 --test crates/oya-vcs-ast-index-kernel/src/lib.rs --extern oya_vcs_kernel=<rlib>",
       "result": "pass",
       "tests": "9 passed"
     },
     {
-      "command": "rustc -D warnings --edition=2021 --test crates/oya-foundry-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs --extern oya_foundry_vcs_kernel=<rlib> --extern oya_foundry_vcs_ast_index_kernel=<rlib>",
+      "command": "rustc -D warnings --edition=2021 --test crates/oya-vcs-ast-index-kernel/tests/gitops_vcs_ip_009.rs --extern oya_vcs_kernel=<rlib> --extern oya_vcs_ast_index_kernel=<rlib>",
       "result": "pass",
       "tests": "8 passed"
     },

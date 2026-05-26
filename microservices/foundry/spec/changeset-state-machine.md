@@ -629,7 +629,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CHANGESET-OPENED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at opened and the denial reason is appended.
-9. Verification: oya-foundry-vcs-changeset-state-kernel and oya-governance-changeset-state-monotonicity cover this branch.
+9. Verification: oya-vcs-changeset-state-kernel and oya-governance-changeset-state-monotonicity cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 1.01: claim_accepts moves opened to working only after first edit or dry-run verify begins, with EVT-FOUNDRY-CHANGESET-OPENED emitted and Cedar denial staying terminal for that attempt.
@@ -661,7 +661,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CHANGESET-STATE-TRANSITIONED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at working and the denial reason is appended.
-9. Verification: oya-foundry-vcs-changeset-state-app and oya-governance-changeset-state-enum-closed cover this branch.
+9. Verification: oya-vcs-changeset-state-app and oya-governance-changeset-state-enum-closed cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 2.01: verify_ok moves working to verified only after local verification succeeds, with EVT-FOUNDRY-CHANGESET-STATE-TRANSITIONED emitted and Cedar denial staying terminal for that attempt.
@@ -693,7 +693,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CHANGESET-SKIP-STATE-RECORDED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at verified and the denial reason is appended.
-9. Verification: oya-foundry-vcs-merge-queue-conflict-kernel and oya-governance-merge-queue-ref-hygiene cover this branch.
+9. Verification: oya-vcs-merge-queue-conflict-kernel and oya-governance-merge-queue-ref-hygiene cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 3.01: done_kickoff moves verified to pr_open only after orchestrator opens PR against dev, with EVT-FOUNDRY-CHANGESET-SKIP-STATE-RECORDED emitted and Cedar denial staying terminal for that attempt.
@@ -725,7 +725,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CHANGESET-TERMINAL-FAILED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at pr_open and the denial reason is appended.
-9. Verification: oya-foundry-vcs-review-mergequeue-kernel and oya-governance-event-router-completeness cover this branch.
+9. Verification: oya-vcs-review-mergequeue-kernel and oya-governance-event-router-completeness cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 4.01: ci_start moves pr_open to ci_running only after pr-tests workflow begins, with EVT-FOUNDRY-CHANGESET-TERMINAL-FAILED emitted and Cedar denial staying terminal for that attempt.
@@ -757,7 +757,7 @@ Every event class below emits structured JSON logs with schema=oyatie/log/v1, te
 6. Evidence: The evidence bundle stores the command, stdout summary, exit code, trace_id, and audit_id.
 7. Audit: EVT-FOUNDRY-CHANGESET-BUDGET-DEBITED seals the state-changing fact before observability emission finalizes.
 8. Recovery: If the action fails, the changeset remains at ci_running and the denial reason is appended.
-9. Verification: oya-foundry-webhook-receiver-kernel and oya-governance-webhook-stuck cover this branch.
+9. Verification: oya-vcs-webhook-receiver-kernel and oya-governance-webhook-stuck cover this branch.
 10. Stop condition: the example is complete only when replay from append-only logs reproduces the same decision.
 
 - Example 5.01: ci_success moves ci_running to ci_passed only after CI green and no fix-loop debt remains, with EVT-FOUNDRY-CHANGESET-BUDGET-DEBITED emitted and Cedar denial staying terminal for that attempt.
@@ -787,96 +787,96 @@ Named checks below are the required evidence vocabulary for CI, local agent veri
 |---|---|---|---|
 | state monotonicity | oya gate validate changeset-state-monotonicity | oya-governance-changeset-state-monotonicity | event log replay never regresses |
 | closed enum | oya gate validate changeset-state-enum-closed | oya-governance-changeset-state-enum-closed | only accepted states appear |
-| merge projection | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel | oya-foundry-vcs-merge-queue-conflict-kernel | projected merge state is deterministic |
-| review merge queue | cargo test -p oya-foundry-vcs-review-mergequeue-kernel | oya-foundry-vcs-review-mergequeue-kernel | fairness and parked state work |
-| webhook receiver | cargo test -p oya-foundry-webhook-receiver-kernel | oya-foundry-webhook-receiver-kernel | HMAC and dedup paths are valid |
-| admission gate | cargo test -p oya-foundry-vcs-admission-gate-kernel | oya-foundry-vcs-admission-gate-kernel | policy and evidence gate refuses bad bundles |
-| changebundle | cargo test -p oya-foundry-vcs-changebundle-kernel | oya-foundry-vcs-changebundle-kernel | bundle shape is stable |
-| promotion controller | cargo test -p oya-foundry-vcs-promotion-controller-kernel | oya-foundry-vcs-promotion-controller-kernel | environment promotion respects state |
-| cli ratchet | cargo test -p oya-foundry-vcs-cli-ratchet-kernel | oya-foundry-vcs-cli-ratchet-kernel | claim/verify/done/promote CLI grammar holds |
+| merge projection | cargo test -p oya-vcs-merge-queue-conflict-kernel | oya-vcs-merge-queue-conflict-kernel | projected merge state is deterministic |
+| review merge queue | cargo test -p oya-vcs-review-mergequeue-kernel | oya-vcs-review-mergequeue-kernel | fairness and parked state work |
+| webhook receiver | cargo test -p oya-vcs-webhook-receiver-kernel | oya-vcs-webhook-receiver-kernel | HMAC and dedup paths are valid |
+| admission gate | cargo test -p oya-vcs-admission-gate-kernel | oya-vcs-admission-gate-kernel | policy and evidence gate refuses bad bundles |
+| changebundle | cargo test -p oya-vcs-changebundle-kernel | oya-vcs-changebundle-kernel | bundle shape is stable |
+| promotion controller | cargo test -p oya-vcs-promotion-controller-kernel | oya-vcs-promotion-controller-kernel | environment promotion respects state |
+| cli ratchet | cargo test -p oya-vcs-cli-ratchet-kernel | oya-vcs-cli-ratchet-kernel | claim/verify/done/promote CLI grammar holds |
 | audit emission | cargo test -p oya-governance-audit-event-emission | oya-governance-audit-event-emission | ADR-0263 audit linkage exists |
 | doc catalog | oya gate validate doc-catalog | oya-governance-doc-catalog | spec is discoverable and owned |
 | glossary | oya gate validate glossary | oya-governance-glossary | Foundry internal vs Intelligence consumer vocabulary is preserved |
 | changeset-state-machine-matrix-01 | oya gate validate changeset-state-monotonicity --scope opened --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves opened cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-02 | oya gate validate changeset-state-enum-closed --scope working --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves working cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-03 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope verified --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-04 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope pr_open --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-05 | cargo test -p oya-foundry-webhook-receiver-kernel --scope ci_running --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-06 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope ci_passed --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-07 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope reviewed --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-08 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope merged_dev --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-09 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope staged --adr ADR-0110 | oya-foundry-vcs-cli-ratchet-kernel | proves staged cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-03 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope verified --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-04 | cargo test -p oya-vcs-review-mergequeue-kernel --scope pr_open --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-05 | cargo test -p oya-vcs-webhook-receiver-kernel --scope ci_running --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-06 | cargo test -p oya-vcs-admission-gate-kernel --scope ci_passed --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-07 | cargo test -p oya-vcs-changebundle-kernel --scope reviewed --adr ADR-0110 | oya-vcs-changebundle-kernel | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-08 | cargo test -p oya-vcs-promotion-controller-kernel --scope merged_dev --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-09 | cargo test -p oya-vcs-cli-ratchet-kernel --scope staged --adr ADR-0110 | oya-vcs-cli-ratchet-kernel | proves staged cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-10 | cargo test -p oya-governance-audit-event-emission --scope produced --adr ADR-0110 | oya-governance-audit-event-emission | proves produced cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-11 | oya gate validate doc-catalog --scope abandoned --adr ADR-0110 | oya-governance-doc-catalog | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-12 | oya gate validate glossary --scope rejected --adr ADR-0110 | oya-governance-glossary | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-13 | oya gate validate changeset-state-monotonicity --scope cost_exhausted --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-14 | oya gate validate changeset-state-enum-closed --scope opened --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves opened cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-15 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope working --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-16 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope verified --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-17 | cargo test -p oya-foundry-webhook-receiver-kernel --scope pr_open --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-18 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope ci_running --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-19 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope ci_passed --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-20 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope reviewed --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-21 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope merged_dev --adr ADR-0110 | oya-foundry-vcs-cli-ratchet-kernel | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-15 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope working --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-16 | cargo test -p oya-vcs-review-mergequeue-kernel --scope verified --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-17 | cargo test -p oya-vcs-webhook-receiver-kernel --scope pr_open --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-18 | cargo test -p oya-vcs-admission-gate-kernel --scope ci_running --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-19 | cargo test -p oya-vcs-changebundle-kernel --scope ci_passed --adr ADR-0110 | oya-vcs-changebundle-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-20 | cargo test -p oya-vcs-promotion-controller-kernel --scope reviewed --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-21 | cargo test -p oya-vcs-cli-ratchet-kernel --scope merged_dev --adr ADR-0110 | oya-vcs-cli-ratchet-kernel | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-22 | cargo test -p oya-governance-audit-event-emission --scope staged --adr ADR-0110 | oya-governance-audit-event-emission | proves staged cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-23 | oya gate validate doc-catalog --scope produced --adr ADR-0110 | oya-governance-doc-catalog | proves produced cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-24 | oya gate validate glossary --scope abandoned --adr ADR-0110 | oya-governance-glossary | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-25 | oya gate validate changeset-state-monotonicity --scope rejected --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-26 | oya gate validate changeset-state-enum-closed --scope cost_exhausted --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-27 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope opened --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-28 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope working --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-29 | cargo test -p oya-foundry-webhook-receiver-kernel --scope verified --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-30 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope pr_open --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-31 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope ci_running --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-32 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope ci_passed --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-33 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope reviewed --adr ADR-0110 | oya-foundry-vcs-cli-ratchet-kernel | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-27 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope opened --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-28 | cargo test -p oya-vcs-review-mergequeue-kernel --scope working --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-29 | cargo test -p oya-vcs-webhook-receiver-kernel --scope verified --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-30 | cargo test -p oya-vcs-admission-gate-kernel --scope pr_open --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-31 | cargo test -p oya-vcs-changebundle-kernel --scope ci_running --adr ADR-0110 | oya-vcs-changebundle-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-32 | cargo test -p oya-vcs-promotion-controller-kernel --scope ci_passed --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-33 | cargo test -p oya-vcs-cli-ratchet-kernel --scope reviewed --adr ADR-0110 | oya-vcs-cli-ratchet-kernel | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-34 | cargo test -p oya-governance-audit-event-emission --scope merged_dev --adr ADR-0110 | oya-governance-audit-event-emission | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-35 | oya gate validate doc-catalog --scope staged --adr ADR-0110 | oya-governance-doc-catalog | proves staged cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-36 | oya gate validate glossary --scope produced --adr ADR-0110 | oya-governance-glossary | proves produced cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-37 | oya gate validate changeset-state-monotonicity --scope abandoned --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-38 | oya gate validate changeset-state-enum-closed --scope rejected --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-39 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope cost_exhausted --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-40 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope opened --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-41 | cargo test -p oya-foundry-webhook-receiver-kernel --scope working --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-42 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope verified --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-43 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope pr_open --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-44 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope ci_running --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-45 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope ci_passed --adr ADR-0110 | oya-foundry-vcs-cli-ratchet-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-39 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope cost_exhausted --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-40 | cargo test -p oya-vcs-review-mergequeue-kernel --scope opened --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-41 | cargo test -p oya-vcs-webhook-receiver-kernel --scope working --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-42 | cargo test -p oya-vcs-admission-gate-kernel --scope verified --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-43 | cargo test -p oya-vcs-changebundle-kernel --scope pr_open --adr ADR-0110 | oya-vcs-changebundle-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-44 | cargo test -p oya-vcs-promotion-controller-kernel --scope ci_running --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-45 | cargo test -p oya-vcs-cli-ratchet-kernel --scope ci_passed --adr ADR-0110 | oya-vcs-cli-ratchet-kernel | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-46 | cargo test -p oya-governance-audit-event-emission --scope reviewed --adr ADR-0110 | oya-governance-audit-event-emission | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-47 | oya gate validate doc-catalog --scope merged_dev --adr ADR-0110 | oya-governance-doc-catalog | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-48 | oya gate validate glossary --scope staged --adr ADR-0110 | oya-governance-glossary | proves staged cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-49 | oya gate validate changeset-state-monotonicity --scope produced --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves produced cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-50 | oya gate validate changeset-state-enum-closed --scope abandoned --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-51 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope rejected --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-52 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope cost_exhausted --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-53 | cargo test -p oya-foundry-webhook-receiver-kernel --scope opened --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-54 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope working --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-55 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope verified --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-56 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope pr_open --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-57 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope ci_running --adr ADR-0110 | oya-foundry-vcs-cli-ratchet-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-51 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope rejected --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-52 | cargo test -p oya-vcs-review-mergequeue-kernel --scope cost_exhausted --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-53 | cargo test -p oya-vcs-webhook-receiver-kernel --scope opened --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-54 | cargo test -p oya-vcs-admission-gate-kernel --scope working --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-55 | cargo test -p oya-vcs-changebundle-kernel --scope verified --adr ADR-0110 | oya-vcs-changebundle-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-56 | cargo test -p oya-vcs-promotion-controller-kernel --scope pr_open --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-57 | cargo test -p oya-vcs-cli-ratchet-kernel --scope ci_running --adr ADR-0110 | oya-vcs-cli-ratchet-kernel | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-58 | cargo test -p oya-governance-audit-event-emission --scope ci_passed --adr ADR-0110 | oya-governance-audit-event-emission | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-59 | oya gate validate doc-catalog --scope reviewed --adr ADR-0110 | oya-governance-doc-catalog | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-60 | oya gate validate glossary --scope merged_dev --adr ADR-0110 | oya-governance-glossary | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-61 | oya gate validate changeset-state-monotonicity --scope staged --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves staged cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-62 | oya gate validate changeset-state-enum-closed --scope produced --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves produced cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-63 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope abandoned --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-64 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope rejected --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-65 | cargo test -p oya-foundry-webhook-receiver-kernel --scope cost_exhausted --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-66 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope opened --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-67 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope working --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-68 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope verified --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-69 | cargo test -p oya-foundry-vcs-cli-ratchet-kernel --scope pr_open --adr ADR-0110 | oya-foundry-vcs-cli-ratchet-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-63 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope abandoned --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-64 | cargo test -p oya-vcs-review-mergequeue-kernel --scope rejected --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-65 | cargo test -p oya-vcs-webhook-receiver-kernel --scope cost_exhausted --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-66 | cargo test -p oya-vcs-admission-gate-kernel --scope opened --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-67 | cargo test -p oya-vcs-changebundle-kernel --scope working --adr ADR-0110 | oya-vcs-changebundle-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-68 | cargo test -p oya-vcs-promotion-controller-kernel --scope verified --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves verified cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-69 | cargo test -p oya-vcs-cli-ratchet-kernel --scope pr_open --adr ADR-0110 | oya-vcs-cli-ratchet-kernel | proves pr_open cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-70 | cargo test -p oya-governance-audit-event-emission --scope ci_running --adr ADR-0110 | oya-governance-audit-event-emission | proves ci_running cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-71 | oya gate validate doc-catalog --scope ci_passed --adr ADR-0110 | oya-governance-doc-catalog | proves ci_passed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-72 | oya gate validate glossary --scope reviewed --adr ADR-0110 | oya-governance-glossary | proves reviewed cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-73 | oya gate validate changeset-state-monotonicity --scope merged_dev --adr ADR-0110 | oya-governance-changeset-state-monotonicity | proves merged_dev cannot advance without policy, evidence, trace, and audit correlation |
 | changeset-state-machine-matrix-74 | oya gate validate changeset-state-enum-closed --scope staged --adr ADR-0110 | oya-governance-changeset-state-enum-closed | proves staged cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-75 | cargo test -p oya-foundry-vcs-merge-queue-conflict-kernel --scope produced --adr ADR-0110 | oya-foundry-vcs-merge-queue-conflict-kernel | proves produced cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-76 | cargo test -p oya-foundry-vcs-review-mergequeue-kernel --scope abandoned --adr ADR-0110 | oya-foundry-vcs-review-mergequeue-kernel | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-77 | cargo test -p oya-foundry-webhook-receiver-kernel --scope rejected --adr ADR-0110 | oya-foundry-webhook-receiver-kernel | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-78 | cargo test -p oya-foundry-vcs-admission-gate-kernel --scope cost_exhausted --adr ADR-0110 | oya-foundry-vcs-admission-gate-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-79 | cargo test -p oya-foundry-vcs-changebundle-kernel --scope opened --adr ADR-0110 | oya-foundry-vcs-changebundle-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
-| changeset-state-machine-matrix-80 | cargo test -p oya-foundry-vcs-promotion-controller-kernel --scope working --adr ADR-0110 | oya-foundry-vcs-promotion-controller-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-75 | cargo test -p oya-vcs-merge-queue-conflict-kernel --scope produced --adr ADR-0110 | oya-vcs-merge-queue-conflict-kernel | proves produced cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-76 | cargo test -p oya-vcs-review-mergequeue-kernel --scope abandoned --adr ADR-0110 | oya-vcs-review-mergequeue-kernel | proves abandoned cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-77 | cargo test -p oya-vcs-webhook-receiver-kernel --scope rejected --adr ADR-0110 | oya-vcs-webhook-receiver-kernel | proves rejected cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-78 | cargo test -p oya-vcs-admission-gate-kernel --scope cost_exhausted --adr ADR-0110 | oya-vcs-admission-gate-kernel | proves cost_exhausted cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-79 | cargo test -p oya-vcs-changebundle-kernel --scope opened --adr ADR-0110 | oya-vcs-changebundle-kernel | proves opened cannot advance without policy, evidence, trace, and audit correlation |
+| changeset-state-machine-matrix-80 | cargo test -p oya-vcs-promotion-controller-kernel --scope working --adr ADR-0110 | oya-vcs-promotion-controller-kernel | proves working cannot advance without policy, evidence, trace, and audit correlation |
 
 ## Cross-References
 

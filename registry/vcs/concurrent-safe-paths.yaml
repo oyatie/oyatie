@@ -14,7 +14,7 @@
 #       safe_paths:
 #         - <repo-relative path string>
 #
-# Loader: tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/
+# Loader: tools/oya-vcs-merge-queue-fix-loop-app/src/
 #         projected_merge_state.rs (concurrent_safe_paths_for_product).
 #
 # Schema version pinned for lane parity with

@@ -19,7 +19,7 @@ Block non-distroless bases + shells/package-managers + oversized images.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-image-discipline-kernel/src/lib.rs::check
+crates/oya-governance-image-discipline-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

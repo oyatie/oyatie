@@ -19,8 +19,8 @@ Ship REST + GraphQL transports binding to same use-case ports.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-api-rest/src/lib.rs::Routes
-crates/oya-foundry-api-graphql/src/lib.rs::Schema
+crates/oya-intelligence-api-rest/src/lib.rs::Routes
+crates/oya-intelligence-api-graphql/src/lib.rs::Schema
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

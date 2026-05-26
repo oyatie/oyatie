@@ -66,8 +66,8 @@
           "dependency-seam",
           "readme-doc-coverage",
           "layered-architecture-discipline",
-          "oya-foundry-vcs-admission-gate-app missing trivy",
-          "oya-foundry-vcs-provider-execution-gate-app missing trivy",
+          "oya-vcs-admission-gate-app missing trivy",
+          "oya-vcs-provider-execution-gate-app missing trivy",
           "github-actions-required-secrets-check missing gh"
         ]
       },

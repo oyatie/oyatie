@@ -340,12 +340,12 @@ fn validate_pr_review_pipeline(
     let contract = pr_review_workflow;
     require_contains(
         contract,
-        "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out",
+        "cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out",
         "Jenkins PR-review closure must run the agent review runtime",
     )?;
     require_contains(
         contract,
-        "cargo run -q -p oya-foundry-pr-review-dispatcher-app",
+        "cargo run -q -p oya-intelligence-pr-review-dispatcher-app",
         "Jenkins PR-review closure must run the dispatcher after runtime fan-out",
     )?;
     require_contains(
@@ -360,8 +360,8 @@ fn validate_pr_review_pipeline(
     )?;
     require_order(
         contract,
-        "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out",
-        "cargo run -q -p oya-foundry-pr-review-dispatcher-app",
+        "cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out",
+        "cargo run -q -p oya-intelligence-pr-review-dispatcher-app",
         "Jenkins PR-review closure must run the agent runtime before the dispatcher",
     )?;
     Ok(())
@@ -444,7 +444,7 @@ fn validate_ci_fix_loop(ci_fix_loop_workflow: &str) -> Result<(), String> {
         "upstream oya-verify build completion",
         "webhook repository-dispatch",
         "pr-review-fix-requested",
-        "oya-foundry-vcs-ci-fix-loop-dispatcher-app",
+        "oya-vcs-ci-fix-loop-dispatcher-app",
         "Surface-all-failures",
         "failed-jobs.tsv",
         "agent-remediation-required",

@@ -47,7 +47,7 @@
     {
       "failure_mode": "Typo in a `sref://...` URI (e.g. `srf://openbao/...`)",
       "expected_surfacing": "stderr line: `sref parse failed: scheme expected 'sref', got 'srf' at templates/foundry-supervisor/claude.toml:14 (or registry/accounts/claude.toml:7)`",
-      "actual_surfacing_per_v5_plan": "`SecretReferenceError` reused from `oya-foundry-account-kernel` (v5 \u00a7B.0). Variant detail not duplicated in v5; depends entirely on v4-era variant set. `SecretRefUnresolved(String)` exists. No commitment that the String includes the SOURCE file path.",
+      "actual_surfacing_per_v5_plan": "`SecretReferenceError` reused from `oya-intelligence-account-kernel` (v5 \u00a7B.0). Variant detail not duplicated in v5; depends entirely on v4-era variant set. `SecretRefUnresolved(String)` exists. No commitment that the String includes the SOURCE file path.",
       "verdict": "MARGINAL \u2014 actionability depends on what the upstream `SecretReferenceError::Display` impl emits; v5 doesn't pin a contract."
     },
     {
@@ -79,7 +79,7 @@
     "registry_accounts_provider_toml_NEW_ACCOUNT_ROW": {
       "fields_estimated": "3 to 5 (account_id, provider_family hint, secret_refs[], optional label, optional priority)",
       "v5_does_NOT_redeclare_v4_schema": true,
-      "note": "Schema is inherited from v4 \u00a7B.2.5 (`ProviderAccount` value type in oya-foundry-account-domain). v5 should re-cite the field set in \u00a7B.3 or \u00a7B.4 for contributor convenience. New contributor must cross-read v4 to know exactly what to fill."
+      "note": "Schema is inherited from v4 \u00a7B.2.5 (`ProviderAccount` value type in oya-intelligence-account-domain). v5 should re-cite the field set in \u00a7B.3 or \u00a7B.4 for contributor convenience. New contributor must cross-read v4 to know exactly what to fill."
     },
     "templates_foundry_supervisor_provider_toml": {
       "top_level_scalar_fields": "3 (version, provider_family, target_root)",
@@ -102,7 +102,7 @@
     },
     "for_advanced_journey_add_a_new_provider_driver": {
       "files_touched_by_contributor": 9,
-      "breakdown": "templates/foundry-supervisor/<provider>.toml (new) + crates/oya-foundry-settings-template-adapter-fs/src/lib.rs (add <Provider>Renderer impl) + tests/hook_event_mapping.rs (extend fixture) + tests/fixtures/<provider>-cli-help.observed.* (new) + registry/capabilities/foundry-supervisor.toml (add hooks_supported row) + 5 doc-coverage files + ADR (if behavior diverges) + Cargo.toml workspace members (already counted in v5.2 \u2014 no new member but feature-flag may apply) + open-questions.md row.",
+      "breakdown": "templates/foundry-supervisor/<provider>.toml (new) + crates/oya-intelligence-settings-template-adapter-fs/src/lib.rs (add <Provider>Renderer impl) + tests/hook_event_mapping.rs (extend fixture) + tests/fixtures/<provider>-cli-help.observed.* (new) + registry/capabilities/foundry-supervisor.toml (add hooks_supported row) + 5 doc-coverage files + ADR (if behavior diverges) + Cargo.toml workspace members (already counted in v5.2 \u2014 no new member but feature-flag may apply) + open-questions.md row.",
       "verdict": "Adding a new driver is NOT a new-contributor task; explicitly accept that this is expert work. F4 score against new-contributor archetype unaffected."
     }
   },

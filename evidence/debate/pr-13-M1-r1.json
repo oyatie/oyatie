@@ -40,7 +40,7 @@
     {
       "assumption": "ADR-0108 sunset \u2192 deprecation \u2192 removal doctrine does not apply because this is a 'one-time' lane.",
       "load_bearing": true,
-      "challenge": "ADR-0108 carries no one-time-lane carve-out. The user directive 'sunset > deprecation > removal. dispatch.' is doctrine \u2014 applied flat. PR 13 jumps straight to removal with no sunset window, no deprecation period, and no _sunset metadata. The 'no_exceptions_canonical' feedback explicitly forbids exemptions. This violates the canonical lifecycle the repo just scaffolded in oya-foundry-fitness-sunset-lifecycle-kernel one day prior (2026-05-15 CHANGELOG entry directly above the retirement entry).",
+      "challenge": "ADR-0108 carries no one-time-lane carve-out. The user directive 'sunset > deprecation > removal. dispatch.' is doctrine \u2014 applied flat. PR 13 jumps straight to removal with no sunset window, no deprecation period, and no _sunset metadata. The 'no_exceptions_canonical' feedback explicitly forbids exemptions. This violates the canonical lifecycle the repo just scaffolded in oya-governance-sunset-lifecycle-kernel one day prior (2026-05-15 CHANGELOG entry directly above the retirement entry).",
       "evidence": "docs/CHANGELOG.md 2026-05-15 entry establishes sunset-lifecycle kernel; 2026-05-16 entry skips it for archive-orphan.",
       "severity": "CRITICAL",
       "confidence": "HIGH"
@@ -58,7 +58,7 @@
     "No verification that any other fitness lane (e.g., adapter-with-no-importer, banned-primitives) actually scans for refs to bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12 \u2014 the replacement invariant is asserted but not located.",
     "No grep across the repo proving zero remaining live refs to the archive path before deletion; the lane itself was the proof, and it is removed in the same PR.",
     "ADR-0118 'supersedes: [ADR-0052]' but ADR-0052 was the inventory ledger driving the cutover \u2014 superseding it without replacement of the inventory contract leaves the cutover ledger orphaned.",
-    "No sunset_date / removal_date pair as the new oya-foundry-fitness-sunset-lifecycle-kernel would require."
+    "No sunset_date / removal_date pair as the new oya-governance-sunset-lifecycle-kernel would require."
   ],
   "verdict_justification": "Load-bearing citation ADR-0116 does not exist locally in Oyatie. The retirement is justified by a phantom ADR. Combined with skipping the just-scaffolded sunset-lifecycle doctrine and asserting replacement invariants without locating them, this PR is built on three unverified loads. REJECT until: (1) the actual local ADR establishing M01-P18 as canonical VCS substrate is cited (or created), (2) the replacement-invariant location is named with file:line, (3) the sunset-lifecycle workflow is honored or an explicit ADR-0108 carve-out is written.",
   "escalation_mode": "ADVERSARIAL",

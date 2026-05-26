@@ -18,7 +18,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 - `oya-foundry-domain-*` — capability lifecycle, run orchestration, autonomy-ceiling enforcement use-cases
 - `oya-foundry-adapter-codex` — Codex provider adapter (isolated `CODEX_HOME` per run)
 - `oya-foundry-adapter-claude` — Claude provider adapter (isolated `CLAUDE_CONFIG_DIR` per run)
-- `oya-foundation-app` — bootstrap capability invocation REST contract source (`contracts/openapi/foundry/capability-v1.yaml`); future `oya-foundry-api` owns the deployable REST/gRPC surface
+- `oya-foundation-app` — bootstrap capability invocation REST contract source (`contracts/openapi/foundry/capability-v1.yaml`); future `oya-intelligence-api` owns the deployable REST/gRPC surface
 - `oya-foundry-registry` — capability registry projection (reads from `registry/catalog/`)
 - `oya-foundry-rag` — RAG endpoint (Foundry + Search cross-axis contract)
 - `oya-foundry-runtime-*` — planned flat agent-daemon composition roots and hardening work (#1266 hook_bus, #1267 credential shadowing, #1268 shutdown checkpoint)

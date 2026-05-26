@@ -19,7 +19,7 @@ Lane CI-blocks missing INDEX.md / missing parent-pointer / undeclared symbols / 
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-agentic-navigability-kernel/src/lib.rs::check
+crates/oya-governance-agentic-navigability-kernel/src/lib.rs::check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

@@ -2,7 +2,7 @@
 
 - purpose: Verify `docs/architecture-map.md` (visualization) lists every active crate/axis and is regenerated when the crate list changes.
 - enforces: Directive 11 (MASTERPLAN) — visualization is up-to-date.
-- kernel_crate: `oya-foundry-fitness-architecture-map-freshness-kernel` — `MapNode { crate_id }`, verdict `ArchitectureMapFreshnessFitnessReport { crates_checked }`.
+- kernel_crate: `oya-governance-architecture-map-freshness-kernel` — `MapNode { crate_id }`, verdict `ArchitectureMapFreshnessFitnessReport { crates_checked }`.
 - runner_path: `tools/oya-foundry-fitness-architecture-map-freshness`
 - inputs: `docs/architecture-map.md` parse, workspace crate list, last regen timestamp.
 - failure_modes:

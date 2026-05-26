@@ -1916,16 +1916,16 @@ dependencies = [
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-eventing-domain",
- "oya-foundry-adapter-domain",
- "oya-foundry-bypass-domain",
- "oya-foundry-capability-domain",
- "oya-foundry-eval-domain",
- "oya-foundry-evidence-domain",
- "oya-foundry-mcp-gateway-domain",
- "oya-foundry-policy-domain",
- "oya-foundry-run-domain",
- "oya-foundry-step-domain",
+ "oya-governance-eval-domain",
  "oya-identity-domain",
+ "oya-intelligence-adapter-domain",
+ "oya-intelligence-bypass-domain",
+ "oya-intelligence-capability-domain",
+ "oya-intelligence-evidence-domain",
+ "oya-intelligence-mcp-gateway-domain",
+ "oya-intelligence-policy-domain",
+ "oya-intelligence-run-domain",
+ "oya-intelligence-step-domain",
  "oya-observability-domain",
  "oya-observability-tracing-adapter",
  "oya-ontology-domain",
@@ -2131,7 +2131,7 @@ version = "0.1.0"
 name = "oya-check-claim-ceiling"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-catalog-domain",
+ "oya-intelligence-catalog-domain",
 ]
 
 [[package]]
@@ -3066,7 +3066,7 @@ name = "oya-connect-tasks-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
+ "oya-intelligence-capability-domain",
 ]
 
 [[package]]
@@ -3242,24 +3242,24 @@ dependencies = [
  "oya-data-boundary-kernel",
  "oya-eventing-domain",
  "oya-eventing-file-adapter",
- "oya-foundry-api-semver-domain",
- "oya-foundry-architecture-map-app",
- "oya-foundry-bypass-domain",
- "oya-foundry-cargo-prefix-domain",
- "oya-foundry-catalog-domain",
- "oya-foundry-evidence-file-adapter",
- "oya-foundry-fitness-banned-primitives-kernel",
- "oya-foundry-gate-catalog-domain",
- "oya-foundry-mdbook-domain",
- "oya-foundry-openapi-domain",
- "oya-foundry-run-domain",
- "oya-foundry-run-file-adapter",
- "oya-foundry-step-domain",
- "oya-foundry-step-file-adapter",
- "oya-foundry-vcs-changeset-state-kernel",
- "oya-foundry-vcs-cli-ratchet-kernel",
+ "oya-governance-banned-primitives-kernel",
+ "oya-governance-gate-catalog-domain",
+ "oya-intelligence-api-semver-domain",
+ "oya-intelligence-architecture-map-app",
+ "oya-intelligence-bypass-domain",
+ "oya-intelligence-cargo-prefix-domain",
+ "oya-intelligence-catalog-domain",
+ "oya-intelligence-evidence-file-adapter",
+ "oya-intelligence-mdbook-domain",
+ "oya-intelligence-openapi-domain",
+ "oya-intelligence-run-domain",
+ "oya-intelligence-run-file-adapter",
+ "oya-intelligence-step-domain",
+ "oya-intelligence-step-file-adapter",
  "oya-secrets-domain",
  "oya-secrets-file-adapter",
+ "oya-vcs-changeset-state-kernel",
+ "oya-vcs-cli-ratchet-kernel",
  "serde_json",
  "sha2",
 ]
@@ -3619,1032 +3619,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-account-adapter-inmemory"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
-]
-
-[[package]]
-name = "oya-foundry-account-domain"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-account-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-adapter-anthropic-api-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-adapter-anthropic-api-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-anthropic-api-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-anthropic-compat-api"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
- "oya-foundry-provider-pool-kernel",
- "oya-http-router-kernel",
- "oya-http-sse-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-anthropic-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-adapter-anthropic-subscription-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-anthropic-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-domain"
-version = "0.1.0"
-dependencies = [
- "oya-check-cost-budget",
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
- "oya-secrets-domain",
-]
-
-[[package]]
-name = "oya-foundry-adapter-gemini-api-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-adapter-gemini-api-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-gemini-api-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-gemini-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-adapter-gemini-subscription-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-gemini-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-openai-api-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-adapter-openai-api-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-openai-api-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-openai-compat-api"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
- "oya-foundry-provider-pool-kernel",
- "oya-http-router-kernel",
- "oya-http-sse-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-openai-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-adapter-openai-subscription-kernel",
-]
-
-[[package]]
-name = "oya-foundry-adapter-openai-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-graphql-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-graphql-kernel",
- "oya-foundry-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-graphql-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-rest-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-rest-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-api-semver-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-api-sse-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-rest-kernel",
- "oya-foundry-api-sse-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-sse-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-websocket-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-rest-kernel",
- "oya-foundry-api-websocket-kernel",
-]
-
-[[package]]
-name = "oya-foundry-api-websocket-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-foundry-architecture-map-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-architecture-map-kernel",
-]
-
-[[package]]
-name = "oya-foundry-architecture-map-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-autonomy-ceiling-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-autonomy-ceiling-domain",
- "oya-foundry-autonomy-ceiling-kernel",
- "oya-foundry-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-foundry-autonomy-ceiling-domain"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-autonomy-ceiling-kernel",
-]
-
-[[package]]
-name = "oya-foundry-autonomy-ceiling-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-backbone-workload-live-app"
-version = "0.1.0"
-dependencies = [
- "oya-community-post-store-adapter-postgres",
- "oya-community-post-store-api",
- "oya-community-post-store-domain",
- "oya-community-post-store-usecase",
- "oya-mail-mailbox-store-adapter-postgres",
- "oya-mail-mailbox-store-api",
- "oya-mail-mailbox-store-usecase",
- "oya-messenger-message-stream-adapter-postgres",
- "oya-messenger-message-stream-api",
- "oya-messenger-message-stream-usecase",
- "oya-shared-postgres-command-adapter-sqlx",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-transactional-outbox-adapter-sqlx",
- "oya-shared-transactional-outbox-kernel",
- "oya-social-post-composition-adapter-postgres",
- "oya-social-post-composition-api",
- "oya-social-post-composition-usecase",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "oya-foundry-bypass-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
-]
-
-[[package]]
-name = "oya-foundry-bypass-ledger-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-capability-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-capability-registry-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-registry-domain",
- "oya-foundry-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-foundry-capability-registry-domain"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-foundry-capability-registry-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-cargo-prefix-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-catalog-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-claude-account-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-supervisor-kernel",
- "tokio",
-]
-
-[[package]]
-name = "oya-foundry-cloud-mutation-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
- "oya-foundry-policy-domain",
-]
-
-[[package]]
-name = "oya-foundry-codex-account-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-supervisor-kernel",
- "tokio",
-]
-
-[[package]]
-name = "oya-foundry-dashboard-api"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-foundry-dashboard-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-foundry-dashboard-dry-run-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-foundry-dashboard-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
-]
-
-[[package]]
-name = "oya-foundry-eval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-eval-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-eval-domain",
-]
-
-[[package]]
-name = "oya-foundry-evidence-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-evidence-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-evidence-domain",
-]
-
-[[package]]
-name = "oya-foundry-fitness-adapter-with-no-importer-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-adapter-with-no-importer-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-adapter-with-no-importer-kernel"
-version = "0.1.0"
-dependencies = [
- "tempfile",
-]
-
-[[package]]
-name = "oya-foundry-fitness-adr-shape-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-adr-shape-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-adr-shape-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-adr-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-agentic-navigability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-api-stability-tier-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-architecture-map-freshness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-authoritative-tracked-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-authoritative-tracked-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-authoritative-tracked-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-banned-primitives-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-banned-primitives-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-banned-primitives-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-bypass-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-capability-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-claim-ceiling-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-cohesion-fitness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-crate-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-dependency-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-doc-freshness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-doc-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-doc-style-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-feature-flag-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-image-discipline-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-license-policy-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-lifecycle-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-migration-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-mistakes-ledger-kernel"
-version = "0.1.0"
-dependencies = [
- "tempfile",
-]
-
-[[package]]
-name = "oya-foundry-fitness-orphan-detection-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-plan-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-portfolio-citation-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-portfolio-citation-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-portfolio-citation-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-pr-merge-gate-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-pr-traceability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-pre-push-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-predictable-naming-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-predictable-naming-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-predictable-naming-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-provider-coupling-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-purpose-audit-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "glob",
- "oya-foundry-fitness-purpose-kernel",
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
-name = "oya-foundry-fitness-purpose-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-quality-lane-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-sunset-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-sunset-lifecycle-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "oya-foundry-fitness-sunset-lifecycle-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-supply-chain-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-fitness-tos-policy-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
- "oya-foundry-provider-pool-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-upstream-api-drift-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-gate-catalog-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-gemini-account-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-supervisor-kernel",
- "tokio",
-]
-
-[[package]]
-name = "oya-foundry-jsonl-supervisor-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-supervisor-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "oya-foundry-mcp-gateway-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
-]
-
-[[package]]
-name = "oya-foundry-mdbook-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-mdbook-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-oauth-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-openapi-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-policy-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
-]
-
-[[package]]
-name = "oya-foundry-pr-review-dispatcher-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
- "oya-foundry-subagent-runtime-kernel",
- "oya-foundry-subagent-runtime-usecase",
- "tempfile",
-]
-
-[[package]]
-name = "oya-foundry-provider-pool-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-rag-endpoint-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-registry-kernel",
- "oya-foundry-rag-endpoint-domain",
- "oya-foundry-rag-endpoint-kernel",
-]
-
-[[package]]
-name = "oya-foundry-rag-endpoint-domain"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-foundry-rag-endpoint-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-foundry-registry-api"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
- "oya-foundry-eval-domain",
-]
-
-[[package]]
-name = "oya-foundry-route-policy-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
-]
-
-[[package]]
-name = "oya-foundry-run-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
-]
-
-[[package]]
-name = "oya-foundry-run-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-capability-domain",
- "oya-foundry-run-domain",
-]
-
-[[package]]
-name = "oya-foundry-settings-template-adapter"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "libc",
- "oya-foundry-account-domain",
- "oya-foundry-account-kernel",
- "oya-foundry-settings-template-kernel",
-]
-
-[[package]]
-name = "oya-foundry-settings-template-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-step-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-step-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-foundry-step-domain",
-]
-
-[[package]]
-name = "oya-foundry-subagent-runtime-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
- "oya-foundry-subagent-runtime-kernel",
- "oya-foundry-subagent-runtime-usecase",
- "tempfile",
-]
-
-[[package]]
-name = "oya-foundry-subagent-runtime-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
-]
-
-[[package]]
-name = "oya-foundry-subagent-runtime-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-subagent-runtime-kernel",
-]
-
-[[package]]
-name = "oya-foundry-supervisor-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-adapter-inmemory",
- "oya-foundry-account-domain",
- "oya-foundry-autonomy-ceiling-domain",
- "oya-foundry-claude-account-adapter",
- "oya-foundry-codex-account-adapter",
- "oya-foundry-gemini-account-adapter",
- "oya-foundry-jsonl-supervisor-adapter",
- "oya-foundry-route-policy-kernel",
- "oya-foundry-settings-template-adapter",
- "oya-foundry-settings-template-kernel",
- "oya-foundry-supervisor-kernel",
- "oya-foundry-supervisor-security-adapter",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-foundry-supervisor-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-autonomy-ceiling-kernel",
-]
-
-[[package]]
-name = "oya-foundry-supervisor-security-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
- "oya-foundry-autonomy-ceiling-domain",
- "oya-foundry-autonomy-ceiling-kernel",
- "oya-foundry-capability-registry-kernel",
- "oya-foundry-supervisor-kernel",
-]
-
-[[package]]
-name = "oya-foundry-usage-window-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-domain",
-]
-
-[[package]]
-name = "oya-foundry-vcs-admission-gate-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-admission-gate-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-foundry-vcs-admission-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-foundry-vcs-ast-index-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-changebundle-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-changeset-state-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-changeset-state-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-foundry-vcs-changeset-state-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-vcs-ci-fix-loop-dispatcher-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-account-kernel",
- "oya-foundry-subagent-runtime-kernel",
- "oya-foundry-subagent-runtime-usecase",
-]
-
-[[package]]
-name = "oya-foundry-vcs-cli-ratchet-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-vcs-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-vcs-lockstore-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-merge-queue-conflict-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-vcs-merge-queue-fix-loop-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-merge-queue-conflict-kernel",
- "oya-foundry-vcs-review-mergequeue-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-polyglot-indexer-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-ast-index-kernel",
- "oya-foundry-vcs-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-promotion-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-changebundle-kernel",
- "oya-foundry-vcs-kernel",
- "oya-foundry-vcs-test-standard-gate-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-provider-execution-gate-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-provider-execution-gate-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-foundry-vcs-provider-execution-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-foundry-vcs-review-mergequeue-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-kernel",
-]
-
-[[package]]
-name = "oya-foundry-vcs-test-standard-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-vcs-kernel",
-]
-
-[[package]]
-name = "oya-foundry-webhook-receiver-app"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "clap",
- "oya-foundry-webhook-receiver-kernel",
- "serde",
- "serde_json",
- "serde_yaml",
- "tokio",
-]
-
-[[package]]
-name = "oya-foundry-webhook-receiver-kernel"
-version = "0.1.0"
-dependencies = [
- "hmac",
- "sha2",
-]
-
-[[package]]
-name = "oya-foundry-write-gate-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-gen-microservice-manifests-app"
 version = "0.1.0"
 dependencies = [
@@ -4657,6 +3631,273 @@ name = "oya-global-trade-compliance-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-governance-adapter-with-no-importer-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-adapter-with-no-importer-kernel",
+]
+
+[[package]]
+name = "oya-governance-adapter-with-no-importer-kernel"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
+name = "oya-governance-adr-shape-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-adr-shape-kernel",
+]
+
+[[package]]
+name = "oya-governance-adr-shape-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-adr-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-agentic-navigability-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-api-stability-tier-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-architecture-map-freshness-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-authoritative-tracked-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-authoritative-tracked-kernel",
+]
+
+[[package]]
+name = "oya-governance-authoritative-tracked-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-banned-primitives-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-banned-primitives-kernel",
+]
+
+[[package]]
+name = "oya-governance-banned-primitives-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-bypass-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-capability-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-claim-ceiling-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-cohesion-fitness-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-crate-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-dependency-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-doc-freshness-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-doc-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-doc-style-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-governance-eval-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-eval-domain",
+]
+
+[[package]]
+name = "oya-governance-feature-flag-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-gate-catalog-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-image-discipline-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-license-policy-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-lifecycle-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-migration-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-mistakes-ledger-kernel"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
+name = "oya-governance-orphan-detection-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-plan-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-governance-portfolio-citation-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-portfolio-citation-kernel",
+]
+
+[[package]]
+name = "oya-governance-portfolio-citation-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-pr-merge-gate-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-pr-traceability-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-pre-push-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-predictable-naming-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-predictable-naming-kernel",
+]
+
+[[package]]
+name = "oya-governance-predictable-naming-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-provider-coupling-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-purpose-audit-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glob",
+ "oya-governance-purpose-kernel",
+ "serde_json",
+ "serde_yaml",
+]
+
+[[package]]
+name = "oya-governance-purpose-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-quality-lane-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-sunset-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-sunset-lifecycle-kernel",
+ "tempfile",
+]
+
+[[package]]
+name = "oya-governance-sunset-lifecycle-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-supply-chain-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-governance-tos-policy-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-provider-pool-kernel",
+]
+
+[[package]]
+name = "oya-governance-upstream-api-drift-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
 ]
 
 [[package]]
@@ -4782,6 +4023,215 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-account-adapter-inmemory"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+]
+
+[[package]]
+name = "oya-intelligence-account-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-account-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-adapter-anthropic-api-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-adapter-anthropic-api-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-anthropic-api-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-anthropic-compat-api"
+version = "0.1.0"
+dependencies = [
+ "oya-http-router-kernel",
+ "oya-http-sse-kernel",
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-provider-pool-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-anthropic-subscription-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-adapter-anthropic-subscription-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-anthropic-subscription-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-check-cost-budget",
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+ "oya-secrets-domain",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-gemini-api-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-adapter-gemini-api-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-gemini-api-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-gemini-subscription-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-adapter-gemini-subscription-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-gemini-subscription-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-openai-api-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-adapter-openai-api-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-openai-api-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-openai-compat-api"
+version = "0.1.0"
+dependencies = [
+ "oya-http-router-kernel",
+ "oya-http-sse-kernel",
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-provider-pool-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-openai-subscription-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-adapter-openai-subscription-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-adapter-openai-subscription-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-graphql-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-graphql-kernel",
+ "oya-intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-graphql-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-rest-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-rest-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-api-semver-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-api-sse-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-rest-kernel",
+ "oya-intelligence-api-sse-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-sse-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-websocket-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-rest-kernel",
+ "oya-intelligence-api-websocket-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-api-websocket-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-architecture-map-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-architecture-map-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-architecture-map-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-intelligence-assist-draft-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4879,6 +4329,129 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-autonomy-ceiling-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-autonomy-ceiling-domain",
+ "oya-intelligence-autonomy-ceiling-kernel",
+ "oya-intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-autonomy-ceiling-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-autonomy-ceiling-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-autonomy-ceiling-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-backbone-workload-live-app"
+version = "0.1.0"
+dependencies = [
+ "oya-community-post-store-adapter-postgres",
+ "oya-community-post-store-api",
+ "oya-community-post-store-domain",
+ "oya-community-post-store-usecase",
+ "oya-mail-mailbox-store-adapter-postgres",
+ "oya-mail-mailbox-store-api",
+ "oya-mail-mailbox-store-usecase",
+ "oya-messenger-message-stream-adapter-postgres",
+ "oya-messenger-message-stream-api",
+ "oya-messenger-message-stream-usecase",
+ "oya-shared-postgres-command-adapter-sqlx",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-parity-kernel",
+ "oya-shared-transactional-outbox-adapter-sqlx",
+ "oya-shared-transactional-outbox-kernel",
+ "oya-social-post-composition-adapter-postgres",
+ "oya-social-post-composition-api",
+ "oya-social-post-composition-usecase",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
+name = "oya-intelligence-bypass-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+]
+
+[[package]]
+name = "oya-intelligence-bypass-ledger-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-capability-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-capability-registry-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-capability-registry-domain",
+ "oya-intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-capability-registry-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-capability-registry-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-cargo-prefix-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-catalog-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-claude-account-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-supervisor-kernel",
+ "tokio",
+]
+
+[[package]]
+name = "oya-intelligence-cloud-mutation-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-domain",
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+ "oya-intelligence-policy-domain",
+]
+
+[[package]]
+name = "oya-intelligence-codex-account-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-supervisor-kernel",
+ "tokio",
+]
+
+[[package]]
 name = "oya-intelligence-context-aware-retrieval-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4931,6 +4504,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-dashboard-api"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-dashboard-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-dashboard-dry-run-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-dashboard-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+]
+
+[[package]]
 name = "oya-intelligence-dispatch-usecase"
 version = "0.1.0"
 dependencies = [
@@ -4972,6 +4576,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-evidence-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-evidence-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-evidence-domain",
+]
+
+[[package]]
+name = "oya-intelligence-gemini-account-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-supervisor-kernel",
+ "tokio",
+]
+
+[[package]]
 name = "oya-intelligence-guardrails-domain"
 version = "0.1.0"
 dependencies = [
@@ -4988,6 +4616,30 @@ version = "0.1.0"
 dependencies = [
  "oya-intelligence-guardrails-domain",
 ]
+
+[[package]]
+name = "oya-intelligence-jsonl-supervisor-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-supervisor-kernel",
+ "tempfile",
+]
+
+[[package]]
+name = "oya-intelligence-mcp-gateway-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+]
+
+[[package]]
+name = "oya-intelligence-mdbook-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-intelligence-mdbook-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-intelligence-model-routing-domain"
@@ -5008,12 +4660,216 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-oauth-subscription-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-openapi-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-policy-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+]
+
+[[package]]
+name = "oya-intelligence-pr-review-dispatcher-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-subagent-runtime-kernel",
+ "oya-intelligence-subagent-runtime-usecase",
+ "tempfile",
+]
+
+[[package]]
+name = "oya-intelligence-provider-pool-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
 name = "oya-intelligence-providers-adapter-openai"
 version = "0.1.0"
 dependencies = [
  "oya-intelligence-dispatch-usecase",
  "oya-intelligence-model-routing-domain",
 ]
+
+[[package]]
+name = "oya-intelligence-rag-endpoint-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-capability-registry-kernel",
+ "oya-intelligence-rag-endpoint-domain",
+ "oya-intelligence-rag-endpoint-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-rag-endpoint-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-rag-endpoint-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-registry-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-governance-eval-domain",
+ "oya-intelligence-capability-domain",
+]
+
+[[package]]
+name = "oya-intelligence-route-policy-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+]
+
+[[package]]
+name = "oya-intelligence-run-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+]
+
+[[package]]
+name = "oya-intelligence-run-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-capability-domain",
+ "oya-intelligence-run-domain",
+]
+
+[[package]]
+name = "oya-intelligence-settings-template-adapter"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "libc",
+ "oya-intelligence-account-domain",
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-settings-template-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-settings-template-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-step-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-step-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-intelligence-step-domain",
+]
+
+[[package]]
+name = "oya-intelligence-subagent-runtime-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-subagent-runtime-kernel",
+ "oya-intelligence-subagent-runtime-usecase",
+ "tempfile",
+]
+
+[[package]]
+name = "oya-intelligence-subagent-runtime-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-subagent-runtime-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-subagent-runtime-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-supervisor-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-adapter-inmemory",
+ "oya-intelligence-account-domain",
+ "oya-intelligence-autonomy-ceiling-domain",
+ "oya-intelligence-claude-account-adapter",
+ "oya-intelligence-codex-account-adapter",
+ "oya-intelligence-gemini-account-adapter",
+ "oya-intelligence-jsonl-supervisor-adapter",
+ "oya-intelligence-route-policy-kernel",
+ "oya-intelligence-settings-template-adapter",
+ "oya-intelligence-settings-template-kernel",
+ "oya-intelligence-supervisor-kernel",
+ "oya-intelligence-supervisor-security-adapter",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-intelligence-supervisor-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-autonomy-ceiling-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-supervisor-security-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-autonomy-ceiling-domain",
+ "oya-intelligence-autonomy-ceiling-kernel",
+ "oya-intelligence-capability-registry-kernel",
+ "oya-intelligence-supervisor-kernel",
+]
+
+[[package]]
+name = "oya-intelligence-usage-window-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+]
+
+[[package]]
+name = "oya-intelligence-write-gate-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-json-kernel"
@@ -6091,6 +5947,150 @@ name = "oya-treasury-cash-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-vcs-admission-gate-app"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-admission-gate-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-vcs-admission-gate-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-vcs-ast-index-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-kernel",
+]
+
+[[package]]
+name = "oya-vcs-changebundle-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-kernel",
+]
+
+[[package]]
+name = "oya-vcs-changeset-state-app"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-changeset-state-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-vcs-changeset-state-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-vcs-ci-fix-loop-dispatcher-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-subagent-runtime-kernel",
+ "oya-intelligence-subagent-runtime-usecase",
+]
+
+[[package]]
+name = "oya-vcs-cli-ratchet-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-vcs-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-vcs-lockstore-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-kernel",
+]
+
+[[package]]
+name = "oya-vcs-merge-queue-conflict-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-vcs-merge-queue-fix-loop-app"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-merge-queue-conflict-kernel",
+ "oya-vcs-review-mergequeue-kernel",
+]
+
+[[package]]
+name = "oya-vcs-polyglot-indexer-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-ast-index-kernel",
+ "oya-vcs-kernel",
+]
+
+[[package]]
+name = "oya-vcs-promotion-controller-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-changebundle-kernel",
+ "oya-vcs-kernel",
+ "oya-vcs-test-standard-gate-kernel",
+]
+
+[[package]]
+name = "oya-vcs-provider-execution-gate-app"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-provider-execution-gate-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-vcs-provider-execution-gate-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-vcs-review-mergequeue-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-kernel",
+]
+
+[[package]]
+name = "oya-vcs-test-standard-gate-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-vcs-kernel",
+]
+
+[[package]]
+name = "oya-vcs-webhook-receiver-app"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "clap",
+ "oya-vcs-webhook-receiver-kernel",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tokio",
+]
+
+[[package]]
+name = "oya-vcs-webhook-receiver-kernel"
+version = "0.1.0"
+dependencies = [
+ "hmac",
+ "sha2",
 ]
 
 [[package]]
