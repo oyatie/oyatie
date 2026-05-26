@@ -115,6 +115,15 @@
         "oya-identity-audit-emitter-api",
         "oya-identity-audit-emitter-adapter-audit-chain-bridge"
       ]
+    },
+    {
+      "name": "workload-identity",
+      "description": "Machine-to-machine (workload) identity per ADR-0002: pure workload-principal domain kernel, Cedar PARC authz gate (deny-by-default, forbid-wins), and OIDC JWS token validation (RS256/384/512, ES256 via ring) that projects verified claims into a workload principal. Task T3 first slice.",
+      "crates": [
+        "oya-identity-workload-domain",
+        "oya-identity-workload-authz-cedar-adapter",
+        "oya-identity-workload-oidc-adapter"
+      ]
     }
   ],
   "layers": [
