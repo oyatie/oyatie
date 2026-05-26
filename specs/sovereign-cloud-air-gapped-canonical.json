@@ -37,7 +37,7 @@
       "llm_providers_on_prem": {
         "vllm_models": ["Llama 3.x", "DeepSeek", "Qwen", "Mistral OSS"],
         "ollama_dev_tier": true,
-        "per_pack_model_selection": "microservices/foundry/iac/kustomize/components/pack-{name}/values.yaml"
+        "per_pack_model_selection": "microservices/intelligence/iac/kustomize/components/pack-{name}/values.yaml"
       },
       "dns_in_cell": "CoreDNS",
       "ntp_in_cell": "chrony",

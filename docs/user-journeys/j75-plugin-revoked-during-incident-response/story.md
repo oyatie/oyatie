@@ -276,7 +276,7 @@ Backpressure is per tenant, not global. A noisy tenant cannot starve the shared 
 All metrics carry bounded cardinality: `tenant_tier`, `service`, `journey_id`, `phase`, `status`, and `pack_family`; raw tenant ids stay in logs and traces only under controlled retention.
 
 ## 6. Acceptance Criteria
-AC-01. `foundry` ships a single-PR IP for `sca-cve-detection` under `microservices/foundry/IP-journey-j75-sca-cve-detection.md`.
+AC-01. `foundry` ships a single-PR IP for `sca-cve-detection` under `microservices/intelligence/IP-journey-j75-sca-cve-detection.md`.
 AC-01.a The IP names input contracts, output contracts, Cedar permits, audit events, rollback branch, and test gates.
 AC-01.b The IP preserves ADR-0131 flat per-µservice layout and ADR-0105 13-layer vocabulary.
 AC-02. `plugin-app-store` ships a single-PR IP for `quarantine` under `microservices/plugin-app-store/IP-journey-j75-quarantine.md`.

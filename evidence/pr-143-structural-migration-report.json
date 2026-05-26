@@ -52,7 +52,7 @@
           "microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-adapter-redis.yaml",
           "microservices/workflow-engine/runbooks/redis-failover.md",
           "microservices/tasks/catalog/oya-tasks-view-engine-adapter-redis.yaml",
-          "microservices/foundry/catalog/oya-foundry-runtime-session-state-adapter-redis.yaml",
+          "microservices/intelligence/catalog/oya-foundry-runtime-session-state-adapter-redis.yaml",
           "microservices/anonymous/catalog/oya-anonymous-feed-timeline-adapter-redis.yaml",
           "microservices/anonymous/catalog/oya-anonymous-vote-engine-adapter-redis.yaml",
           "microservices/anonymous/IP-005-redis-cache.md"
@@ -74,9 +74,9 @@
         "kind": "yaml_helm_values_keys",
         "count_in_scope": 18,
         "examples": [
-          "microservices/foundry/iac/helm/milvus/values.yaml: 'minio:' top-level values key",
-          "microservices/foundry/iac/kustomize/overlays/pack-eu/eval/kustomization.yaml: '/spec/values/minio/buckets/...' JSON-path patches",
-          "microservices/foundry/iac/helm/eval/golden-store/values.yaml: 'app: minio-foundry-eval' Helm release label"
+          "microservices/intelligence/iac/helm/milvus/values.yaml: 'minio:' top-level values key",
+          "microservices/intelligence/iac/kustomize/overlays/pack-eu/eval/kustomization.yaml: '/spec/values/minio/buckets/...' JSON-path patches",
+          "microservices/intelligence/iac/helm/eval/golden-store/values.yaml: 'app: minio-foundry-eval' Helm release label"
         ],
         "rationale": "These are YAML key names mandated by the upstream Bitnami helm chart schema. Renaming them to `seaweedfs:` requires switching the upstream chart dep from `bitnami/minio` to `seaweedfs/seaweedfs` first AND updating every kustomize JSON-patch path. Bitnami chart switch is an IaC migration not a sweep migration. Tracked via /registry/placeholder-debt/audit-followups.yaml entry F-PR143-SEAWEEDFS-HELM-KEY-RENAME."
       }

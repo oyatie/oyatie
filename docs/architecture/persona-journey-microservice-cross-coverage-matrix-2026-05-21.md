@@ -3718,7 +3718,7 @@ Cross-reference: `microservices/<svc>/PRD.md` for each µservice; enterprise-sof
 - **Per-µservice IP-journey-* slice count (derived from README microservices_touched lists):** 2.
 - **Per-pack overlays applicable:** EU-AI-Act + per-vertical-Annex-III.
 - **Critical-path responsibilities (per documentation-rigor.md §3.2.5):** row 1 (default-deny), row 8 (cross-tenant exfil), row 24 (audit-chain seal); plus role-specific rows.
-- **PRD citation:** `microservices/foundry/PRD.md`.
+- **PRD citation:** `microservices/intelligence/PRD.md`.
 
 ### §4.21 developer-sdk — substrate (Tier-2; cell-tier T1)
 

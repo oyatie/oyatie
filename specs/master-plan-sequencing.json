@@ -469,10 +469,10 @@
           "ontology": "agent state + cross-µservice entity projection",
           "governance_tenancy": "oyatie.foundry.* Cedar principal namespace"
         },
-        "foundry_retirement_queue": "microservices/foundry/ retired 2026-05-21 per ADR-0335 (Wave 15I); RETIRED.md marker at microservices/foundry/RETIRED.md; absorption authority intelligence µservice manifest",
+        "foundry_retirement_queue": "microservices/intelligence/ retired 2026-05-21 per ADR-0335 (Wave 15I); RETIRED.md marker at microservices/intelligence/RETIRED.md; absorption authority intelligence µservice manifest",
         "foundry_retirement_landed_adr": "ADR-0335",
         "foundry_retirement_landed_at": "2026-05-21",
-        "foundry_retirement_marker": "microservices/foundry/RETIRED.md",
+        "foundry_retirement_marker": "microservices/intelligence/RETIRED.md",
         "foundry_absorbed_by": "intelligence",
         "hermes_terminology_status": "retired per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36",
         "dependencies": [

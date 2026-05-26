@@ -138,7 +138,7 @@
       {"ip_id": "IP-M01-MIGR-006", "microservice": "accounting"},
       {"ip_id": "IP-M01-MIGR-007", "microservice": "connect"},
       {"ip_id": "IP-M01-MIGR-008", "microservice": "application"},
-      {"ip_id": "IP-M01-MIGR-009", "microservice": "foundry", "note": "consolidates docs/prds/foundry.md + docs/products/foundry/ into microservices/foundry/"},
+      {"ip_id": "IP-M01-MIGR-009", "microservice": "foundry", "note": "consolidates docs/prds/foundry.md + docs/products/foundry/ into microservices/intelligence/"},
       {"ip_id": "IP-M01-MIGR-010", "microservice": "cloud"},
       {"ip_id": "IP-M01-MIGR-011", "microservice": "enterprise"},
       {"ip_id": "IP-M01-MIGR-012", "microservice": "audit-chain"},
@@ -150,7 +150,7 @@
   },
 
   "open_questions": [
-    {"id": "Q-001", "question": "Each oya-check-<topic> crate as its own microservices/check-<topic>/ folder, or bundled under microservices/foundry/checks/?", "default": "one folder each; flat-catalog discipline holds", "resolution": "IP-M01-MIGR-014 ChangeSet"},
+    {"id": "Q-001", "question": "Each oya-check-<topic> crate as its own microservices/check-<topic>/ folder, or bundled under microservices/intelligence/checks/?", "default": "one folder each; flat-catalog discipline holds", "resolution": "IP-M01-MIGR-014 ChangeSet"},
     {"id": "Q-002", "question": "Per-microservice .github/workflows/*.yml or repo-root only?", "default": "repo-root only; GitHub Actions does not pick up nested workflows", "resolution": "deferred to ADR-#### follow-up if per-service triggering becomes needed"},
     {"id": "Q-003", "question": "regional-packs/ interaction with this layout?", "default": "regional packs span multiple microservices; retain as cross-cutting at regional-packs/", "resolution": "ADR-#### if rule changes"}
   ]

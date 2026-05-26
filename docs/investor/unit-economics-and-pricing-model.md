@@ -588,7 +588,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Internal source: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
 - Internal source: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
 - Internal source: `docs/standards/per-tenant-resource-quotas-canonical.md`.
-- Internal source: `microservices/foundry/capability-tiers/tier-matrix.md`.
+- Internal source: `microservices/intelligence/capability-tiers/tier-matrix.md`.
 - Internal source: local count of 78 microservice directories.
 - Internal source: local count of 61 capability-tier matrices.
 - Internal source: local count of 575 Cedar policy files.

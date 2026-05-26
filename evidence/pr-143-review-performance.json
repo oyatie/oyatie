@@ -15,8 +15,8 @@
     "microservices/sheets/iac/helm/visual-grid-rest/templates/hpa.yaml",
     "microservices/workflow-studio/capacity-model.md",
     "microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/hpa.yaml",
-    "microservices/foundry/slos/runtime-latency.openslo.yaml",
-    "microservices/foundry/capacity-model.md",
+    "microservices/intelligence/slos/runtime-latency.openslo.yaml",
+    "microservices/intelligence/capacity-model.md",
     "microservices/ontology/capacity-model.md",
     "microservices/audit-chain/capacity-model.md",
     "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml",
@@ -98,7 +98,7 @@
     {
       "risk": "foundry-providers concurrent calls capped at 5000 cross-tenant (capacity-model 'max per cell') — for 100k-tenant XL deployment this is 0.05 concurrent calls/tenant; Anthropic/OpenAI per-tenant burst behavior may exceed this if 1% of tenants synchronously fan out 10 calls each = 10000 concurrent (2× over cell ceiling). Multi-cell fanout exists in capacity-model but the rate-limit fan-in to external providers is per-account-key — single OpenAI account API key cannot be sharded across cells, this is a real bottleneck not addressed",
       "severity": "HIGH",
-      "evidence": "microservices/foundry/capacity-model.md line 35; INV-CIRCUIT-BREAKER-BULKHEAD canonical alert covers downstream but not provider-account-key fan-in"
+      "evidence": "microservices/intelligence/capacity-model.md line 35; INV-CIRCUIT-BREAKER-BULKHEAD canonical alert covers downstream but not provider-account-key fan-in"
     },
     {
       "risk": "sheets recalc-engine capacity-model declares 'recalcs_per_worker_per_sec = 50' but the 1M-cell recalc SLO in slos/recalc-1m-cells-latency.openslo.yaml is a different unit (per-workbook latency) — for 1M-cell recalc on rayon-pool of 4-8 cores the throughput is workbook-scoped, not 'recalcs/sec'; conflation may misprovision",
@@ -155,7 +155,7 @@
       "severity": "MAJOR",
       "title": "External provider rate-limit fan-in not addressed at XL scale",
       "detail": "foundry-providers caps concurrent calls at 5000 per cell. At 100k-tenant XL deployment, multi-cell fanout exists for runtime/router but Anthropic/OpenAI/Google account API keys cannot shard across cells — single API account is the actual rate-limit ceiling. INV-CIRCUIT-BREAKER-BULKHEAD covers downstream failure but not pre-failure backpressure from provider account quota.",
-      "remediation": "Document per-provider-account capacity in microservices/foundry/capacity-model.md; require per-tenant fair-share scheduling in providers BC to prevent one tenant from exhausting account quota for others. Consider per-tenant-tier API key allocation."
+      "remediation": "Document per-provider-account capacity in microservices/intelligence/capacity-model.md; require per-tenant fair-share scheduling in providers BC to prevent one tenant from exhausting account quota for others. Consider per-tenant-tier API key allocation."
     },
     {
       "id": "PERF-143-006",

@@ -33,5 +33,5 @@ Scope guard: no `docs/decisions/ADR-*.md` deletion, no ADR renumbering, no ADR m
 
 ## Explicit keeps / exclusions (2)
 
-- `microservices/foundry/RETIRED.md` — KEEP: RETIRED.md inside substantive microservice directory; sampled files: microservices/foundry/ARCHITECTURE.md, microservices/foundry/AUDIT-FINDINGS-2026-05-18.json, microservices/foundry/IP-001-runtime-runtime-cluster-iac.md, microservices/foundry/IP-002-runtime-redis-and-postgres-baseline.md
-- `specs/microservices/foundry.json` — KEEP: retired-shaped but outside v2 delete predicate (doc_class='Microservice-Retirement-Marker', status='Retired', title='Microservice:Foundry — RETIRED')
+- `microservices/intelligence/RETIRED.md` — KEEP: RETIRED.md inside substantive microservice directory; sampled files: microservices/intelligence/ARCHITECTURE.md, microservices/intelligence/AUDIT-FINDINGS-2026-05-18.json, microservices/intelligence/IP-001-runtime-runtime-cluster-iac.md, microservices/intelligence/IP-002-runtime-redis-and-postgres-baseline.md
+- `specs/microservices/intelligence.json` — KEEP: retired-shaped but outside v2 delete predicate (doc_class='Microservice-Retirement-Marker', status='Retired', title='Microservice:Foundry — RETIRED')

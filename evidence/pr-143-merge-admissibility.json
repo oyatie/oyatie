@@ -89,7 +89,7 @@
     },
     "foundry_consolidation": {
       "status": "green",
-      "evidence": "6 foundry-{runtime,supervisor,eval,evidence,guardrails,providers} dirs deleted; 506 files at microservices/foundry/; ADR-0136/0137/0138 land; authority-cohesion validator passes"
+      "evidence": "6 foundry-{runtime,supervisor,eval,evidence,guardrails,providers} dirs deleted; 506 files at microservices/intelligence/; ADR-0136/0137/0138 land; authority-cohesion validator passes"
     },
     "hyperscaler_inv_overlay": {
       "status": "green",
@@ -342,7 +342,7 @@
         ],
         "deployments_refactored_substrate": [
           "microservices/cell/iac/helm/scheduler/templates/deployment.yaml (-4 lines)",
-          "microservices/foundry/iac/helm/runtime/templates/deployment.yaml (-4 lines)",
+          "microservices/intelligence/iac/helm/runtime/templates/deployment.yaml (-4 lines)",
           "microservices/application/iac/helm/shell-app/templates/deployment.yaml (-4 lines)",
           "microservices/audit-chain/iac/helm/audit-storage/templates/deployment.yaml (-4 lines)",
           "microservices/cloud-iac/iac/helm/helm-controller/templates/deployment.yaml (-4 lines)",

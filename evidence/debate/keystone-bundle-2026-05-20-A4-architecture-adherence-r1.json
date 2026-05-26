@@ -106,7 +106,7 @@
       "severity": "OPEN",
       "category": "Foundry axis ownership during dissolution",
       "between": ["ADR-0247 owners", "ADR-0247 Decision (Foundry dissolves)"],
-      "finding": "ADR-0247 retains `axis-foundry` in its `owners:` list while dissolving microservices/foundry/. Per ADR-0245 substrate doctrine and the active 'oya-governance-*' lane rename (visible in recent git log), axis-foundry is being decommissioned. ADR-0247 should explicitly state the axis decommission timeline and the receiving axes for residual responsibility (axis-workflow-engine, axis-intelligence, axis-audit-chain, axis-policy-engine). Currently the axis-foundry ownership-during-dissolution is implicit, which is exactly the 'implicit load-bearing fact' anti-pattern ADR-0280 calls out."
+      "finding": "ADR-0247 retains `axis-foundry` in its `owners:` list while dissolving microservices/intelligence/. Per ADR-0245 substrate doctrine and the active 'oya-governance-*' lane rename (visible in recent git log), axis-foundry is being decommissioned. ADR-0247 should explicitly state the axis decommission timeline and the receiving axes for residual responsibility (axis-workflow-engine, axis-intelligence, axis-audit-chain, axis-policy-engine). Currently the axis-foundry ownership-during-dissolution is implicit, which is exactly the 'implicit load-bearing fact' anti-pattern ADR-0280 calls out."
     },
     {
       "severity": "OPEN",

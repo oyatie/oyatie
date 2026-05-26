@@ -106,7 +106,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - transfer posture: E&O insurance only covers defense cost; product prohibition is not transferable.
 - microservice mitigations: `oya-foundry-guardrails-autonomy-tier-gate-kernel`, `oya-check-high-risk-auto-decision-refusal`, `oya-regional-pack-api`, and `oya-foundry-evidence-regulator-export-framework-profiles`.
 - Cedar policies: `policy.ai_high_risk_deployer_gate`, `policy.prohibited_practice_refusal`, `policy.human_oversight_required`, `policy.regional_pack_ai_act_overlay`.
-- monitoring: `microservices/foundry/dashboards/runtime-autonomy-tier-mix.json`, `microservices/foundry/dashboards/guardrails-jailbreak-attempt-rate.json`, `registry/dashboards/compliance-pack-attestation-lag.yaml`.
+- monitoring: `microservices/intelligence/dashboards/runtime-autonomy-tier-mix.json`, `microservices/intelligence/dashboards/guardrails-jailbreak-attempt-rate.json`, `registry/dashboards/compliance-pack-attestation-lag.yaml`.
 - named indicators: high-risk workflow count, T3/T4 autonomy attempt rate, AI Act pack attestation age, denied prohibited-practice requests, regulator publication delta.
 - early-warning trigger: new regulator guidance names a category already present in a customer journey or capability registry row.
 - control evidence: AI risk-class registry entry, evidence pack export, human-oversight attestation, and capability eval result.
@@ -202,7 +202,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - transfer posture: Non-dilutive funding, cloud credits, customer prepay, and insurance do not transfer product-market risk.
 - microservice mitigations: `oya-cloud-billing-tax-app`, `oya-cloud-finops-api`, `oya-metering-domain`, `oya-foundry-providers-router-domain`.
 - Cedar policies: `policy.cost_budget_enforced`, `policy.provider_cost_ceiling`, `policy.tenant_margin_guard`, `policy.discount_approval_dual_control`.
-- monitoring: `microservices/foundry/dashboards/providers-provider-cost-per-tenant.json`, `registry/dashboards/capability-tier-sla-conformance.yaml`, FinOps monthly close.
+- monitoring: `microservices/intelligence/dashboards/providers-provider-cost-per-tenant.json`, `registry/dashboards/capability-tier-sla-conformance.yaml`, FinOps monthly close.
 - named indicators: runway months, CAC payback, cloud cost per active tenant, provider quota spend, discount depth, deferred compliance work.
 - early-warning trigger: sales pressure proposes bypassing foundation gates to close a deal.
 - control evidence: cost attribution report, budget exception ledger, priced capability tier, board risk minutes.
@@ -234,7 +234,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - transfer posture: Not transferable; partnership and provider abstraction reduce provider-specific exposure.
 - microservice mitigations: `oya-foundry-eval-eval-runner-domain`, `oya-foundry-evidence-evidence-pack-builder-domain`, `oya-foundry-guardrails-output-validator-kernel`, `oya-foundry-providers-router-domain`.
 - Cedar policies: `policy.model_provider_abstraction_required`, `policy.eval_gate_before_model_cutover`, `policy.evidence_pack_required`.
-- monitoring: `microservices/foundry/dashboards/eval-parity-trend.json`, `microservices/foundry/dashboards/providers-provider-error-rate.json`, `microservices/foundry/dashboards/evidence-pack-assembly-rate.json`.
+- monitoring: `microservices/intelligence/dashboards/eval-parity-trend.json`, `microservices/intelligence/dashboards/providers-provider-error-rate.json`, `microservices/intelligence/dashboards/evidence-pack-assembly-rate.json`.
 - named indicators: eval parity delta, per-capability pass rate, model vendor feature overlap, churn due to "good enough" customer agents.
 - early-warning trigger: a customer replaces an Oyatie proof-of-concept with generic agents plus spreadsheets.
 - control evidence: capability-specific eval suite, evidence export, audited run ledger, tenant-specific Cedar decision logs.
@@ -298,7 +298,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - transfer posture: E&O and cyber coverage help response cost but not trust recovery.
 - microservice mitigations: `oya-foundry-supervisor-autonomy-policy-enforcement-kernel`, `oya-foundry-supervisor-kill-switch-circuit-breaker-domain`, `oya-audit-chain-domain`.
 - Cedar policies: `policy.autonomy_ceiling_runtime_enforced`, `policy.human_approval_required_for_t4`, `policy.kill_switch_authorized_operator`.
-- monitoring: `microservices/foundry/dashboards/supervisor-autonomy-violation-rate.json`, `microservices/foundry/dashboards/supervisor-kill-switch-coverage.json`.
+- monitoring: `microservices/intelligence/dashboards/supervisor-autonomy-violation-rate.json`, `microservices/intelligence/dashboards/supervisor-kill-switch-coverage.json`.
 - named indicators: autonomy violation attempts, kill-switch coverage gaps, customer override rate, human approval latency, public complaint volume.
 - early-warning trigger: a tenant asks for unsupervised agent authority beyond declared capability tier.
 - control evidence: autonomy decision log, Cedar evaluation trace, kill-switch drill, customer approval receipt.
@@ -364,7 +364,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - transfer posture: Cyber insurance transfers response cost only.
 - microservice mitigations: `oya-audit-chain-domain`, `oya-platform-audit-chain-kernel`, `oya-foundry-evidence-evidence-pack-builder-adapter-audit-chain-bridge`.
 - Cedar policies: `policy.audit_event_emit_required`, `policy.evidence_pack_read_scope`, `policy.audit_chain_replay_operator`.
-- monitoring: `registry/dashboards/audit-event-emission-throughput.yaml`, `microservices/foundry/dashboards/evidence-pack-assembly-rate.json`, `microservices/foundry/dashboards/evidence-regulator-export-status.json`.
+- monitoring: `registry/dashboards/audit-event-emission-throughput.yaml`, `microservices/intelligence/dashboards/evidence-pack-assembly-rate.json`, `microservices/intelligence/dashboards/evidence-regulator-export-status.json`.
 - named indicators: emission gap count, hash-chain verification failure, replay divergence, evidence export failure, per-capability missing event rate.
 - early-warning trigger: audit-chain check fails for any regulated capability invocation.
 - control evidence: chain integrity check, evidence replay, sealed event sample, missing-event exception ledger.
@@ -1428,7 +1428,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - named indicators: eval regression, output drift, cost spike, provider 5xx, fairness degradation, high-risk refusal miss.
 - early-warning trigger: eval parity drops below threshold on regulated capability.
 - control evidence: eval report, replay artifact, model card, rollback test, audit-chain evidence.
-- runbook reference: `microservices/foundry/runbooks/eval-eval-set-rollback.md`.
+- runbook reference: `microservices/intelligence/runbooks/eval-eval-set-rollback.md`.
 - incident class: ai-model-lifecycle.
 - customer communication: capability-specific release note and rollback notice if visible.
 - regulator action reference: EU AI Act, EDPB AI model opinion, sector fairness expectations.
@@ -1492,7 +1492,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - named indicators: pod unschedulable, cross-cell placement, node quota failure, PDB deadlock, Karpenter provisioning delay.
 - early-warning trigger: regulated workload schedules outside approved node pool.
 - control evidence: scheduling simulation, node pool policy, chaos drill, placement audit.
-- runbook reference: `microservices/foundry/runbooks/supervisor-kubernetes-operator-restart.md`.
+- runbook reference: `microservices/intelligence/runbooks/supervisor-kubernetes-operator-restart.md`.
 - incident class: k8s-platform.
 - customer communication: degraded service notice if external SLO breached.
 - regulator action reference: DORA and sovereign placement implications.

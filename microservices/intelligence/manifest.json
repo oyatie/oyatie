@@ -827,7 +827,7 @@
         "webhook-driven agent invocation (ADR-0112)",
         "HG-FOUNDRY hyperscaler-grade conformance gate (folds into HG-INTELLIGENCE)"
       ],
-      "retirement_marker": "microservices/foundry/RETIRED.md",
+      "retirement_marker": "microservices/intelligence/RETIRED.md",
       "self_modification_principal_namespace_preserved": "oyatie.foundry.* Cedar principal namespace persists per ADR-0247 (independent of \u00b5service retirement)",
       "hermes_terminology_status": "retired corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36"
     }

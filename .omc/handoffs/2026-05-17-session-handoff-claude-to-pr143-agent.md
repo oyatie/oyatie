@@ -49,7 +49,7 @@ Confirmed in `microservices/governance/PRD.md`: "The historical `oya-governance-
 
 ### Critical (block production safety)
 
-**1. F-PORTFOLIO-LLM-CAPABILITY-CIRCUIT-BREAKER** → IPs in `microservices/foundry-supervisor/` AND `microservices/foundry-runtime/`. Add `CapabilityRun { max_retry_budget: u32, circuit_breaker_threshold: f32, circuit_state: enum {closed, half_open, open} }`. Workflow-engine + ontology API mirror. Production safety on runaway LLM loops. Source: PR #128 meta-audit.
+**1. F-PORTFOLIO-LLM-CAPABILITY-CIRCUIT-BREAKER** → IPs in `microservices/intelligence-supervisor/` AND `microservices/intelligence-runtime/`. Add `CapabilityRun { max_retry_budget: u32, circuit_breaker_threshold: f32, circuit_state: enum {closed, half_open, open} }`. Workflow-engine + ontology API mirror. Production safety on runaway LLM loops. Source: PR #128 meta-audit.
 
 **2. F-ADR-0008 + ADR-0015 + ADR-0053 critical contradictions** → resolve before any µservice IP cites them. ADR-0008 + 0015 have live `## Open questions` in accepted status. ADR-0053 literal `<placeholder>` in audit-chain emission ID.
 
@@ -59,7 +59,7 @@ Confirmed in `microservices/governance/PRD.md`: "The historical `oya-governance-
 
 **4. F-PORTFOLIO-PER-TENANT-RATE-LIMIT** → new substrate µservice `microservices/tenancy-rate-limit/` OR per-API-µservice IP. Token-bucket per-tenant + shuffle-sharding on `(tenant_id, capability_id)`. Required at foundry-runtime, workflow-engine, ontology API surfaces. Return 429+Retry-After.
 
-**5. F-FOUNDRY-PROVIDER-DEGRADED-SHED** → `microservices/foundry-providers/` IP: `ProviderRunQueue.shed_policy: enum {none, hard_503, queue_drop}` + all-providers-degraded fast-fail.
+**5. F-FOUNDRY-PROVIDER-DEGRADED-SHED** → `microservices/intelligence-providers/` IP: `ProviderRunQueue.shed_policy: enum {none, hard_503, queue_drop}` + all-providers-degraded fast-fail.
 
 **6. F-WORKFLOW-STUDIO-GOLDEN-SIGNALS** → `microservices/workflow-engine/` observability contract: traffic (`active_sessions_per_second`), errors (`failed_saves_per_min`), saturation (`crdt_merge_queue_depth`). Currently only latency + availability.
 

@@ -119,7 +119,7 @@
       "google_sre_prr": "green",
       "cis_k8s_benchmark": "green",
       "slsa_l3": "green",
-      "overrides_path": "microservices/foundry/scorecards/overrides.json",
+      "overrides_path": "microservices/intelligence/scorecards/overrides.json",
       "chart_name": "runtime"
     },
     "governance": {

@@ -41,7 +41,7 @@
     },
     "example_2_session_start_orientation": {
       "trigger": "SessionStart",
-      "new_behavior": "Hook injects into Claude's context: 'CANONICAL PRIMITIVES for this project (2026-05-18): VCS = oya vcs (not grit). Contracts = OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 (not 3.3 / 3.0.0). AI = microservices/intelligence/ (consumer) + microservices/foundry/ (internal Hermes). Plugin/app store ≠ marketplace ≠ community. Multi-context platform per ADR-0215. Vertical-slice rollout per ADR-0217. Buildability bar: 100+ artifacts per µservice. No-code-first UX with optional AI-assist.' This is read-only context; agent sees it but is not blocked by it."
+      "new_behavior": "Hook injects into Claude's context: 'CANONICAL PRIMITIVES for this project (2026-05-18): VCS = oya vcs (not grit). Contracts = OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 (not 3.3 / 3.0.0). AI = microservices/intelligence/ (consumer) + microservices/intelligence/ (internal Hermes). Plugin/app store ≠ marketplace ≠ community. Multi-context platform per ADR-0215. Vertical-slice rollout per ADR-0217. Buildability bar: 100+ artifacts per µservice. No-code-first UX with optional AI-assist.' This is read-only context; agent sees it but is not blocked by it."
     },
     "example_3_spec_version_guide": {
       "user_input": "Agent edits contracts/openapi.yaml with `openapi: 3.3.0`",

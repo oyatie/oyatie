@@ -66,9 +66,9 @@
       "retired_at": "2026-05-21",
       "absorbed_by": "intelligence",
       "absorbing_manifest": "microservices/intelligence/manifest.json",
-      "retirement_marker": "microservices/foundry/RETIRED.md",
+      "retirement_marker": "microservices/intelligence/RETIRED.md",
       "do_not_treat_as_active": true,
-      "manifest": "microservices/foundry/manifest.json"
+      "manifest": "microservices/intelligence/manifest.json"
     },
     {
       "name": "intelligence",

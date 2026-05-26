@@ -10,7 +10,7 @@
     "linus_critique_anchor": "Wave 1 IP-X1 catalog-prelude per ralplan-docs-portal v7 line 247 + M02-P19 + masterplan \u00a72.1 ops block",
     "supersedes_markdown": [
       "docs/microservices/ops.md (existing or planned; this row is canonical going forward)",
-      "docs/microservices/foundry.md (PHASE-6 migration target)",
+      "docs/microservices/intelligence.md (PHASE-6 migration target)",
       "docs/microservices/connect.md (PHASE-6 migration target)",
       "docs/microservices/application.md (PHASE-6 migration target)",
       "docs/microservices/audit-chain.md + cloud-*.md + others (PHASE-6 batch)"
@@ -121,7 +121,7 @@
   "honest_gaps": [
     "Only 4 of ~27 microservices populated this slice (ops + foundry + connect + application). Remaining ~23 follow PHASE-6 migration when docs/microservices/<name>.md retire.",
     "owned_bounded_contexts_ref is a SELECTOR (filter by microservice_id) \u2014 bounded-contexts.json registry must be queryable at validator runtime; today this is informational only.",
-    "Markdown retirement: docs/microservices/foundry.md / connect.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired oya-check-doc-coverage check-crate refactor."
+    "Markdown retirement: docs/microservices/intelligence.md / connect.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired oya-check-doc-coverage check-crate refactor."
   ],
   "purpose": "Auto-backfilled purpose for microservices.json"
 }

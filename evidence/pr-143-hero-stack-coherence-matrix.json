@@ -43,7 +43,7 @@
     {
       "hero": "workflow-studio",
       "adr": "ADR-0136 (foundry consolidation — does WS use foundry capabilities?)",
-      "expectation": "WS uses foundry-providers SDK + foundry-runtime SDK via single microservices/foundry/ surface per ADR-0136; no references to legacy foundry-runtime/ or foundry-providers/ µservice dirs",
+      "expectation": "WS uses foundry-providers SDK + foundry-runtime SDK via single microservices/intelligence/ surface per ADR-0136; no references to legacy foundry-runtime/ or foundry-providers/ µservice dirs",
       "evidence_path": "grep -rln 'foundry-runtime\\|foundry-providers' microservices/workflow-studio/",
       "verdict": "ALIGNED",
       "notes": "0 references to legacy foundry-* paths in workflow-studio tree. WS PHASE-01 line 11 cites 'foundry-providers SDK available for LLM-assist' as a capability dependency — this is the correct consolidated surface name (foundry-providers BC inside the foundry µservice)"
@@ -84,16 +84,16 @@
     {
       "hero": "foundry",
       "adr": "ADR-0136 (6→1 µservice consolidation)",
-      "expectation": "microservices/foundry-* legacy dirs do NOT exist; microservices/foundry/ contains bc-sources/{runtime,supervisor,eval,evidence,guardrails,providers}/ archives + consolidated top-level docs + 90+ IP files with <bc>-prefixed names",
-      "evidence_path": "find microservices/foundry-* -type d (returns empty) + ls microservices/foundry/bc-sources/ (returns 6 BCs)",
+      "expectation": "microservices/intelligence-* legacy dirs do NOT exist; microservices/intelligence/ contains bc-sources/{runtime,supervisor,eval,evidence,guardrails,providers}/ archives + consolidated top-level docs + 90+ IP files with <bc>-prefixed names",
+      "evidence_path": "find microservices/intelligence-* -type d (returns empty) + ls microservices/intelligence/bc-sources/ (returns 6 BCs)",
       "verdict": "ALIGNED",
-      "notes": "ADR-0136 §Verification line 372 ('find microservices/foundry-* -type d returns empty') PASSES today. All 6 BC archives present under bc-sources/. 101 IPs at microservices/foundry/IP-NNN-<bc>-*.md with proper BC-prefix"
+      "notes": "ADR-0136 §Verification line 372 ('find microservices/intelligence-* -type d returns empty') PASSES today. All 6 BC archives present under bc-sources/. 101 IPs at microservices/intelligence/IP-NNN-<bc>-*.md with proper BC-prefix"
     },
     {
       "hero": "foundry",
       "adr": "ADR-0137 (foundry bounded contexts)",
       "expectation": "6 BCs (runtime, supervisor, eval, evidence, guardrails, providers) with declared inter-BC dependency rules",
-      "evidence_path": "microservices/foundry/bc-sources/ + microservices/foundry/decisions/ + 101 BC-prefixed IPs",
+      "evidence_path": "microservices/intelligence/bc-sources/ + microservices/intelligence/decisions/ + 101 BC-prefixed IPs",
       "verdict": "ALIGNED",
       "notes": "IP distribution matches ADR-0137: runtime IP-001..015 (15), supervisor IP-016..030 (15), eval IP-031..045 (15), evidence IP-046..060 (15), guardrails IP-061..075 (15), providers IP-076..090+ (extends beyond 090; appears foundry has additional IPs beyond the original 90-IP plan — that's growth not drift)"
     },
@@ -109,15 +109,15 @@
       "hero": "foundry",
       "adr": "ADR-0192 (Milvus primary vector DB for RAG)",
       "expectation": "Foundry RAG / capability invocation embedding-search uses Milvus disaggregated cluster",
-      "evidence_path": "microservices/foundry/iac/helm/milvus/values.yaml exists + IP-045-eval-replay-engine-bootstrap.md cites Milvus",
+      "evidence_path": "microservices/intelligence/iac/helm/milvus/values.yaml exists + IP-045-eval-replay-engine-bootstrap.md cites Milvus",
       "verdict": "ALIGNED",
-      "notes": "Milvus Helm chart present at microservices/foundry/iac/helm/milvus/values.yaml (confirmed in grep). 0 pgvector-at-scale references in foundry tree"
+      "notes": "Milvus Helm chart present at microservices/intelligence/iac/helm/milvus/values.yaml (confirmed in grep). 0 pgvector-at-scale references in foundry tree"
     },
     {
       "hero": "foundry",
       "adr": "ADR-0200 (Wasmtime tool sandboxing)",
       "expectation": "Capability/tool execution uses Wasmtime as canonical WASM runtime",
-      "evidence_path": "microservices/foundry/decisions/ + IP-003-runtime-capability-executor-kernel.md",
+      "evidence_path": "microservices/intelligence/decisions/ + IP-003-runtime-capability-executor-kernel.md",
       "verdict": "VERIFIED-VIA-V3-AUDIT",
       "notes": "v3 audit's wasmer_engine pattern found 1 soft hit across all µservices (not foundry); foundry's capability-executor uses Wasmtime. ADR-0200 alignment is preserved per v3 baseline"
     },
@@ -125,7 +125,7 @@
       "hero": "foundry",
       "adr": "ADR-0198 (Karpenter for K8s node autoscaling)",
       "expectation": "GPU pool + cell node-pool scaling via Karpenter NodeClaim; NO references to Cluster Autoscaler",
-      "evidence_path": "microservices/foundry/bc-sources/eval/PRD.md + failure-modes.md",
+      "evidence_path": "microservices/intelligence/bc-sources/eval/PRD.md + failure-modes.md",
       "verdict_before_delta": "DRIFT",
       "verdict_after_delta": "ALIGNED",
       "drift_description": "Before this delta: bc-sources/eval/PRD.md line 357 cited 'cluster-autoscaler-managed' GPU pool; failure-modes.md line 51 cited 'cluster-autoscaler nudge'. v3 audit fixed microservices/cloud-k8s/* references but missed the bc-sources/eval/* archive references.",
@@ -136,7 +136,7 @@
       "hero": "foundry",
       "adr": "ADR-0145 Invariant 3 (canonical-entity ontology projection)",
       "expectation": "AgentFleet + CapabilityCard projected via manifest.json ontology_projections",
-      "evidence_path": "microservices/foundry/manifest.json",
+      "evidence_path": "microservices/intelligence/manifest.json",
       "verdict": "ALIGNED",
       "notes": "foundry manifest correctly declares 2 projections (AgentFleet, CapabilityCard). Hyperscaler-shape entity ownership clean"
     }

@@ -2084,87 +2084,87 @@
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/eval/compliance.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/eval/compliance.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/guardrails/competitor-parity-matrix.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/guardrails/competitor-parity-matrix.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/guardrails/failure-modes.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/guardrails/failure-modes.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/guardrails/PHASE-01-GUARDRAILS-SAFETY-AND-POLICY-ENFORCEMENT.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/guardrails/PHASE-01-GUARDRAILS-SAFETY-AND-POLICY-ENFORCEMENT.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/guardrails/threat-model.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/guardrails/threat-model.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/providers/competitor-parity-matrix.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/providers/competitor-parity-matrix.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/runtime/competitor-parity-matrix.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/runtime/competitor-parity-matrix.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/bc-sources/supervisor/competitor-parity-matrix.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/bc-sources/supervisor/competitor-parity-matrix.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/iac/cedar/guardrails-build.sh",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/iac/cedar/guardrails-build.sh",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/IP-012-runtime-autonomy-tier-gate.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/IP-012-runtime-autonomy-tier-gate.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/IP-015-runtime-hg-fr-hyperscaler-gate-registration.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/IP-015-runtime-hg-fr-hyperscaler-gate-registration.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/IP-061-guardrails-cedar-policy-engine-iac.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/IP-061-guardrails-cedar-policy-engine-iac.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/IP-073-guardrails-runtime-guardrails-coupling-lane.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/IP-073-guardrails-runtime-guardrails-coupling-lane.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/manifest.json",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/manifest.json",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/policy/guardrails-guardrail-enforcement.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/policy/guardrails-guardrail-enforcement.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/policy/guardrails-schema.cedarschema",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/policy/guardrails-schema.cedarschema",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/foundry/policy/guardrails-tenant-isolation.md",
+      "file": "/Users/jasonlee/oyatie/microservices/intelligence/policy/guardrails-tenant-isolation.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },

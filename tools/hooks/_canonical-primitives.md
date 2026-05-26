@@ -54,7 +54,7 @@ Counterpart-fact preservation: external-product Redis references (Discord/Twitch
 ## AI Substrate
 
 microservices/intelligence/  — canonical AI substrate (Layer A + Layer B) per ADR-0255 KS#14; absorbs foundry per ADR-0335 (Wave 15I)
-microservices/foundry/       — RETIRED 2026-05-21 per ADR-0335; see microservices/foundry/RETIRED.md
+microservices/intelligence/       — RETIRED 2026-05-21 per ADR-0335; see microservices/intelligence/RETIRED.md
 Authority: ADR-0255 (intelligence two-layer); ADR-0335 (foundry retirement + Hermes drop); ADR-0247 (self-modification via oyatie.foundry.* Cedar principals — principal namespace persists)
 
 Hermes terminology: RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. Do NOT introduce "Hermes" as a canonical primitive in new content.
@@ -277,7 +277,7 @@ AsyncAPI must be 3.1.0.
 1. Bypassing `oya vcs` claim / verify / done / promote for agent state transitions.
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
-4. Treating microservices/foundry/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
+4. Treating microservices/intelligence/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
 5. Conflating plugin-app-store / marketplace / community
 6. Creating µservices with <100 artifacts (buildability bar)
 7. Bundling multiple concerns into one µservice (ADR-0132 no-suite policy)

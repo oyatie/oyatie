@@ -93,7 +93,7 @@ and usage charge cascades developer to oyatie to tenant through Stripe Connect s
 | `plugin-app-store` | [IP-journey-j116-publish-install-catalog.md](../../../microservices/plugin-app-store/IP-journey-j116-publish-install-catalog.md) | publish-install-catalog |
 | `payments` | [IP-journey-j116-three-way-connect-settlement.md](../../../microservices/payments/IP-journey-j116-three-way-connect-settlement.md) | three-way-connect-settlement |
 | `tenancy` | [IP-journey-j116-tenant-install-boundary.md](../../../microservices/tenancy/IP-journey-j116-tenant-install-boundary.md) | tenant-install-boundary |
-| `foundry` | [IP-journey-j116-capability-vetting-attestation.md](../../../microservices/foundry/IP-journey-j116-capability-vetting-attestation.md) | capability-vetting-attestation |
+| `foundry` | [IP-journey-j116-capability-vetting-attestation.md](../../../microservices/intelligence/IP-journey-j116-capability-vetting-attestation.md) | capability-vetting-attestation |
 | `community` | [IP-journey-j116-developer-reputation-channel.md](../../../microservices/community/IP-journey-j116-developer-reputation-channel.md) | developer-reputation-channel |
 
 ## Integration points

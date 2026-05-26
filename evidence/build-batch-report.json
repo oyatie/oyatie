@@ -47,7 +47,7 @@
       }
     ],
     "helm_charts_authored": [
-      "microservices/foundry/iac/helm/wasmtime-sandbox/ (Chart, values, templates/deployment)",
+      "microservices/intelligence/iac/helm/wasmtime-sandbox/ (Chart, values, templates/deployment)",
       "microservices/comms-email/iac/helm/postal/ (Chart, values, templates/deployment)",
       "microservices/comms-email/iac/helm/ses-adapter/ (config-only values)",
       "microservices/cloud-iac/iac/helm/argocd/ (Chart, values, templates/.gitkeep)"

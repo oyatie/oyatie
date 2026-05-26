@@ -339,7 +339,7 @@ What is MISSING from outbound citations across the µservice:
   "Foundry pipelines that handle billing-tax dataset updates (rate
   card publishes, tax code additions) run as `oyatie.foundry.<pipeline-id>`
   principals". This is CORRECT — Foundry survives as a principal
-  namespace even as `microservices/foundry/` retires per ADR-0247 +
+  namespace even as `microservices/intelligence/` retires per ADR-0247 +
   ADR-0255-amendment. No finding.
 
 ### §2.3 Findings (Dim 2)

@@ -26,8 +26,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd /Users/jasonlee/Developer/source\npgrep -f 'cargo build --workspace' >/dev/null && echo \"BUILDING\" || echo \"BUILD DONE\"\necho \"build errors:\"; grep -cE '^error' /tmp/lb-std-build.log 2>/dev/null\necho \"=== gate results ===\"; grep -E '== |rc=|CHAIN_DONE' /tmp/lb-std-gates.log 2>/dev/null",
-    "testCommand": "cd /Users/jasonlee/Developer/source\ncargo test -q -p oya-check-aspirational-enforcement 2>&1 | grep -iE 'error\\[|test result|FAILED|panicked' | head\necho \"=== rebuild oya + run aspirational + quality-lanes on real specs ===\"\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -2\ntarget/debug/oya gate validate aspirational-enforcement 2>&1 | tail -1\ntarget/debug/oya gate validate quality-lanes 2>&1 | tail -1",
+    "buildCommand": "cd /Users/jasonlee/Developer/source\ngit ls-files microservices/foundry | wc -l   # confirm 0 tracked files there\nrm -rf microservices/foundry\nls -d microservices/foundry 2>/dev/null && echo \"STILL EXISTS\" || echo \"foundry dir removed\"\necho \"=== intelligence absorbed count ===\"; find microservices/intelligence -type f | wc -l\necho \"=== rebuild oya + verify doc/governance gates (no crates moved, so build is cached) ===\"\ncargo build -q -p oya-dev-cli --bin oya 2>&1 | tail -1\nfor g in doc-catalog architecture-boundaries aspirational-enforcement glossary-vocabulary; do\n  out=$(target/debug/oya gate validate \"$g\" 2>&1); printf '%-26s %s\\n' \"$g\" \"$([ $? = 0 ] && echo PASS || echo FAIL)\"\n  echo \"$out\" | grep -iE 'fail|foundry|missing|orphan' | head -3\ndone",
+    "testCommand": "cd /Users/jasonlee/Developer/source\necho \"=== confirm the 2 rewritten path literals point to real files ===\"\nls -la microservices/intelligence/scorecards/overrides.json microservices/intelligence/iac/helm/foundry/deployment.yaml 2>&1\necho\necho \"=== test the 2 affected gate-check crates ===\"\ncargo test -q -p oya-check-slsa-l3-evidence-grounded -p oya-check-tenant-cost-labels-coverage 2>&1 | tail -20",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -280,9 +280,27 @@
       "type": "file"
     },
     {
+      "path": "microservices/README.md",
+      "accessCount": 3,
+      "lastAccessed": 1779765898643,
+      "type": "file"
+    },
+    {
       "path": "crates/oya-dev-cli/src/aspirational_enforcement_gate.rs",
       "accessCount": 2,
       "lastAccessed": 1779762992877,
+      "type": "file"
+    },
+    {
+      "path": "specs/microservices/intelligence.json",
+      "accessCount": 1,
+      "lastAccessed": 1779765931452,
+      "type": "file"
+    },
+    {
+      "path": "docs/ideas/post-cutover-program.md",
+      "accessCount": 1,
+      "lastAccessed": 1779767686626,
       "type": "file"
     }
   ],

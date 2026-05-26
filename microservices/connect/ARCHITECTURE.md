@@ -210,7 +210,7 @@ Every row carries `tenant_id` (UUIDv7 per ADR-0244 §D-2). Tables:
 - `microservices/workflow-engine/` (executes wirings that call connectors)
 - `microservices/marketplace/` (lists connector adapters as marketplace items)
 - `microservices/ops-dashboard-control-center/` (admin actions for OAuth provisioning)
-- `microservices/foundry/` (Foundry jobs call connectors)
+- `microservices/intelligence/` (Foundry jobs call connectors)
 - `microservices/intelligence/` (consumes via library-first per ADR-0255 amendment)
 
 Depends on (substrate-of-substrate per ADR-0280):

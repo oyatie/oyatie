@@ -49,8 +49,8 @@ Per `docs/STANDARDS-AND-TEMPLATES.md` + ADR-0131 + the `documentation-and-adrs` 
 ## Cross-µservice References
 
 These ADRs cross-reference:
-- `microservices/foundry/decisions/` (when published) for provider-router patterns.
-- `microservices/foundry/decisions/` (when published) for capability-execution patterns.
+- `microservices/intelligence/decisions/` (when published) for provider-router patterns.
+- `microservices/intelligence/decisions/` (when published) for capability-execution patterns.
 - `microservices/observability/decisions/` (when published) for SLO-promotion patterns.
 
 ## Lifecycle

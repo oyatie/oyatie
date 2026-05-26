@@ -25,18 +25,18 @@
       "build_status": "0 errors workspace-wide"
     },
     "helm_charts": [
-      "microservices/foundry/iac/helm/milvus/",
-      "microservices/foundry/iac/helm/timescaledb-extension/",
+      "microservices/intelligence/iac/helm/milvus/",
+      "microservices/intelligence/iac/helm/timescaledb-extension/",
       "microservices/observability/iac/helm/clickhouse/",
       "microservices/observability/iac/helm/timescaledb-extension/"
     ],
     "kustomize_components": [
       "microservices/observability/iac/kustomize/components/clickhouse-keeper/",
-      "microservices/foundry/iac/kustomize/components/milvus-collections/"
+      "microservices/intelligence/iac/kustomize/components/milvus-collections/"
     ],
     "kustomize_overlays": [
-      "microservices/foundry/iac/kustomize/overlays/pack-kr/milvus/",
-      "microservices/foundry/iac/kustomize/overlays/pack-eu/milvus/"
+      "microservices/intelligence/iac/kustomize/overlays/pack-kr/milvus/",
+      "microservices/intelligence/iac/kustomize/overlays/pack-eu/milvus/"
     ],
     "standards_docs": [
       "docs/standards/stream-processing-rubric.md",
@@ -44,8 +44,8 @@
     ],
     "openslo_manifests": [
       "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml",
-      "microservices/foundry/slos/milvus-search-latency.openslo.yaml",
-      "microservices/foundry/slos/milvus-ingest-lag.openslo.yaml",
+      "microservices/intelligence/slos/milvus-search-latency.openslo.yaml",
+      "microservices/intelligence/slos/milvus-ingest-lag.openslo.yaml",
       "microservices/observability/slos/clickhouse-ingest-throughput.openslo.yaml"
     ],
     "new_microservice": {
@@ -92,21 +92,21 @@
       "compliance_brief": "microservices/analytics/compliance.md"
     },
     "foundry_milvus_extension_ips": [
-      "microservices/foundry/IP-091-milvus-cluster-iac.md",
-      "microservices/foundry/IP-092-vector-collection-bootstrap.md",
-      "microservices/foundry/IP-093-embedding-ingest-pipeline.md",
-      "microservices/foundry/IP-094-hnsw-tuning-and-adapter.md",
-      "microservices/foundry/IP-095-gpu-acceleration-optional.md",
-      "microservices/foundry/IP-096-milvus-backup-restore.md",
-      "microservices/foundry/IP-097-milvus-cross-region-replication.md"
+      "microservices/intelligence/IP-091-milvus-cluster-iac.md",
+      "microservices/intelligence/IP-092-vector-collection-bootstrap.md",
+      "microservices/intelligence/IP-093-embedding-ingest-pipeline.md",
+      "microservices/intelligence/IP-094-hnsw-tuning-and-adapter.md",
+      "microservices/intelligence/IP-095-gpu-acceleration-optional.md",
+      "microservices/intelligence/IP-096-milvus-backup-restore.md",
+      "microservices/intelligence/IP-097-milvus-cross-region-replication.md"
     ],
     "foundry_runbooks": [
-      "microservices/foundry/runbooks/milvus.md",
-      "microservices/foundry/runbooks/milvus-restore.md",
-      "microservices/foundry/runbooks/milvus-tenant-quota.md"
+      "microservices/intelligence/runbooks/milvus.md",
+      "microservices/intelligence/runbooks/milvus-restore.md",
+      "microservices/intelligence/runbooks/milvus-tenant-quota.md"
     ],
     "foundry_dashboards": [
-      "microservices/foundry/dashboards/milvus-overview.json"
+      "microservices/intelligence/dashboards/milvus-overview.json"
     ],
     "observability_clickhouse_extension_ips": [
       "microservices/observability/IP-021-clickhouse-cluster-iac.md",

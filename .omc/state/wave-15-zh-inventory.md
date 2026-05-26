@@ -21,7 +21,7 @@ Output lines: 3
 Output:
 
 ~~~text
-specs/microservices/foundry.json
+specs/microservices/intelligence.json
 specs/microservices/network.json
 specs/microservices/shorts.json
 
@@ -62,7 +62,7 @@ Output lines: 24
 Output:
 
 ~~~text
-./microservices/foundry/RETIRED.md
+./microservices/intelligence/RETIRED.md
 ./microservices/network/RETIRED.md
 ./microservices/cell/RETIRED.md
 ./microservices/shorts/RETIRED.md
@@ -704,8 +704,8 @@ docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md:| 2026-05-
 docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md:O.012. Acceptance criterion: Section D-7 includes Postgres DDL for tenant_capability_tier_grants.
 docs/README.md:166. [j166-cso-mira-goldberg-strategic-acquisition-go-no-go](user-journeys/j166-cso-mira-goldberg-strategic-acquisition-go-no-go/README.md) - J166 Cso Mira Goldberg Strategic Acquisition Go No Go: journey dossier entry point with story, UX flow, handshake, and integration-test plan beneath the same directory.
 docs/README.md:42. [cso-mira-goldberg.md](personas/cso-mira-goldberg.md) - Cso Mira Goldberg: persona dossier for role, context, locale, tenant membership, and journey coverage.
-docs/README.md:32. [IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md](../microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md) - Ip 032 Eval Layer A Postgres Clickhouse Golden Store Iac: Foundry implementation, operations, policy, catalog, or rollout artifact.
-docs/README.md:3. [eval-golden-output-restore.md](../microservices/foundry/runbooks/eval-golden-output-restore.md) - Eval Golden Output Restore: Foundry implementation, operations, policy, catalog, or rollout artifact.
+docs/README.md:32. [IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md](../microservices/intelligence/IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md) - Ip 032 Eval Layer A Postgres Clickhouse Golden Store Iac: Foundry implementation, operations, policy, catalog, or rollout artifact.
+docs/README.md:3. [eval-golden-output-restore.md](../microservices/intelligence/runbooks/eval-golden-output-restore.md) - Eval Golden Output Restore: Foundry implementation, operations, policy, catalog, or rollout artifact.
 docs/README.md:2. [bronze tier](../registry/capability-tiers/bronze.json) - Bronze tier capability contract.
 docs/README.md:3. [silver tier](../registry/capability-tiers/silver.json) - Silver tier capability contract.
 docs/README.md:4. [gold tier](../registry/capability-tiers/gold.json) - Gold tier capability contract.

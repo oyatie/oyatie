@@ -760,7 +760,7 @@ The six axes are A artifact suite, B ADR/52-row proxy, C engineering, D six-hop 
 
 ### §3.29 `foundry`
 
-- Evidence anchors: `microservices/foundry/PRD.md:1`, `microservices/foundry/ARCHITECTURE.md:1`, `microservices/foundry/compliance.md:1`, `microservices/foundry/manifest.json:1`.
+- Evidence anchors: `microservices/intelligence/PRD.md:1`, `microservices/intelligence/ARCHITECTURE.md:1`, `microservices/intelligence/compliance.md:1`, `microservices/intelligence/manifest.json:1`.
 - Artifact tier: **EXEMPLAR-130+** with 576 files, 571 doc files, 115 IP files, 14 IP-journey files.
 - PRD signal: 388 lines, 0 US stories, 0/10 A-J sections.
 - Architecture/compliance signal: ARCH 972 lines with 15 § anchors; compliance 1261 lines with 19 § anchors.
@@ -3371,12 +3371,12 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/sheets/contracts/openapi/sheets.yaml | OpenAPI | PASS |
 | microservices/recordings/contracts/openapi/recordings.yaml | OpenAPI | PASS |
 | microservices/calendar/contracts/openapi/calendar.yaml | OpenAPI | PASS |
-| microservices/foundry/contracts/openapi/providers-provider-router.yaml | OpenAPI | PASS |
-| microservices/foundry/contracts/openapi/evidence-foundry-evidence.yaml | OpenAPI | PASS |
-| microservices/foundry/contracts/openapi/eval-eval-runner.yaml | OpenAPI | PASS |
-| microservices/foundry/contracts/openapi/supervisor-foundry-supervisor.yaml | OpenAPI | PASS |
-| microservices/foundry/contracts/openapi/runtime-foundry-runtime.yaml | OpenAPI | PASS |
-| microservices/foundry/contracts/openapi/guardrails-guardrails.yaml | OpenAPI | PASS |
+| microservices/intelligence/contracts/openapi/providers-provider-router.yaml | OpenAPI | PASS |
+| microservices/intelligence/contracts/openapi/evidence-foundry-evidence.yaml | OpenAPI | PASS |
+| microservices/intelligence/contracts/openapi/eval-eval-runner.yaml | OpenAPI | PASS |
+| microservices/intelligence/contracts/openapi/supervisor-foundry-supervisor.yaml | OpenAPI | PASS |
+| microservices/intelligence/contracts/openapi/runtime-foundry-runtime.yaml | OpenAPI | PASS |
+| microservices/intelligence/contracts/openapi/guardrails-guardrails.yaml | OpenAPI | PASS |
 | microservices/tasks/contracts/openapi/tasks.yaml | OpenAPI | PASS |
 | microservices/comms-email/contracts/openapi.yaml | OpenAPI | PASS |
 | microservices/performance-management/contracts/openapi-v1.yaml | OpenAPI | PASS |
@@ -3460,12 +3460,12 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/sheets/contracts/asyncapi/sheets-events.yaml | AsyncAPI | PASS |
 | microservices/recordings/contracts/asyncapi/recordings-events.yaml | AsyncAPI | PASS |
 | microservices/calendar/contracts/asyncapi/calendar-events.yaml | AsyncAPI | PASS |
-| microservices/foundry/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml | AsyncAPI | PASS |
-| microservices/foundry/contracts/asyncapi/runtime-foundry-runtime-events.yaml | AsyncAPI | PASS |
-| microservices/foundry/contracts/asyncapi/eval-eval-events.yaml | AsyncAPI | PASS |
-| microservices/foundry/contracts/asyncapi/evidence-foundry-evidence-events.yaml | AsyncAPI | PASS |
-| microservices/foundry/contracts/asyncapi/guardrails-decision-events.yaml | AsyncAPI | PASS |
-| microservices/foundry/contracts/asyncapi/providers-provider-events.yaml | AsyncAPI | PASS |
+| microservices/intelligence/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml | AsyncAPI | PASS |
+| microservices/intelligence/contracts/asyncapi/runtime-foundry-runtime-events.yaml | AsyncAPI | PASS |
+| microservices/intelligence/contracts/asyncapi/eval-eval-events.yaml | AsyncAPI | PASS |
+| microservices/intelligence/contracts/asyncapi/evidence-foundry-evidence-events.yaml | AsyncAPI | PASS |
+| microservices/intelligence/contracts/asyncapi/guardrails-decision-events.yaml | AsyncAPI | PASS |
+| microservices/intelligence/contracts/asyncapi/providers-provider-events.yaml | AsyncAPI | PASS |
 | microservices/tasks/contracts/asyncapi/tasks-events.yaml | AsyncAPI | PASS |
 | microservices/comms-email/contracts/asyncapi.yaml | AsyncAPI | PASS |
 | microservices/performance-management/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
@@ -3547,12 +3547,12 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/sheets/contracts/proto/sheets.proto | proto | PASS |
 | microservices/recordings/contracts/proto/recordings.proto | proto | PASS |
 | microservices/calendar/contracts/proto/calendar.proto | proto | PASS |
-| microservices/foundry/contracts/proto/eval-eval_runner.proto | proto | PASS |
-| microservices/foundry/contracts/proto/evidence-foundry-evidence.proto | proto | PASS |
-| microservices/foundry/contracts/proto/supervisor-foundry-supervisor.proto | proto | PASS |
-| microservices/foundry/contracts/proto/runtime-foundry-runtime.proto | proto | PASS |
-| microservices/foundry/contracts/proto/providers-provider-invoke.proto | proto | PASS |
-| microservices/foundry/contracts/proto/guardrails-guardrails.proto | proto | PASS |
+| microservices/intelligence/contracts/proto/eval-eval_runner.proto | proto | PASS |
+| microservices/intelligence/contracts/proto/evidence-foundry-evidence.proto | proto | PASS |
+| microservices/intelligence/contracts/proto/supervisor-foundry-supervisor.proto | proto | PASS |
+| microservices/intelligence/contracts/proto/runtime-foundry-runtime.proto | proto | PASS |
+| microservices/intelligence/contracts/proto/providers-provider-invoke.proto | proto | PASS |
+| microservices/intelligence/contracts/proto/guardrails-guardrails.proto | proto | PASS |
 | microservices/tasks/contracts/proto/tasks.proto | proto | PASS |
 | microservices/comms-email/contracts/comms_email.proto | proto | PASS |
 | microservices/performance-management/contracts/performance-management-v1.proto | proto | PASS |
@@ -3817,7 +3817,7 @@ The invariant requires <=6-hop reachability by BFS over links/frontmatter: `docs
 | specs/microservices/calendar.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/connect-suite.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/enterprise-suite.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
-| specs/microservices/foundry.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
+| specs/microservices/intelligence.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/hr.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/mail.json | True | True | True | 0 | 0 | 0 | 65 | REVISE |
 | specs/microservices/manifest-schema.json | True | False | True | 34 | 18 | 0 | 48 | CRITICAL |

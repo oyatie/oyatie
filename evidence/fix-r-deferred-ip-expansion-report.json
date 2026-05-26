@@ -8,13 +8,13 @@
   "pr": 143,
   "scope": {
     "foundry_milvus_ips": [
-      "microservices/foundry/IP-091-milvus-cluster-iac.md",
-      "microservices/foundry/IP-092-vector-collection-bootstrap.md",
-      "microservices/foundry/IP-093-embedding-ingest-pipeline.md",
-      "microservices/foundry/IP-094-hnsw-tuning-and-adapter.md",
-      "microservices/foundry/IP-095-gpu-acceleration-optional.md",
-      "microservices/foundry/IP-096-milvus-backup-restore.md",
-      "microservices/foundry/IP-097-milvus-cross-region-replication.md"
+      "microservices/intelligence/IP-091-milvus-cluster-iac.md",
+      "microservices/intelligence/IP-092-vector-collection-bootstrap.md",
+      "microservices/intelligence/IP-093-embedding-ingest-pipeline.md",
+      "microservices/intelligence/IP-094-hnsw-tuning-and-adapter.md",
+      "microservices/intelligence/IP-095-gpu-acceleration-optional.md",
+      "microservices/intelligence/IP-096-milvus-backup-restore.md",
+      "microservices/intelligence/IP-097-milvus-cross-region-replication.md"
     ],
     "observability_clickhouse_ips": [
       "microservices/observability/IP-021-clickhouse-cluster-iac.md",
@@ -24,7 +24,7 @@
       "microservices/observability/IP-025-clickhouse-backup-restore.md"
     ],
     "phase_addenda": [
-      "microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md",
+      "microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md",
       "microservices/observability/PHASE-02-OBSERVABILITY-CLICKHOUSE-EXTENSION-ADDENDUM.md"
     ]
   },
@@ -75,7 +75,7 @@
   },
   "phase_traceability": {
     "foundry_phase_addendum": {
-      "path": "microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md",
+      "path": "microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md",
       "reason": "Existing PHASE-01-FOUNDRY-FOUNDATION.md predates ADR-0192 (promoted 2026-05-18); new PHASE-02 entry needed to anchor IP-091..097 inside M01 sequencing.",
       "ips_anchored": ["IP-091","IP-092","IP-093","IP-094","IP-095","IP-096","IP-097"]
     },
@@ -116,7 +116,7 @@
       {
         "ip": "IP-091",
         "buildable_by_stranger": true,
-        "rationale": "Document lists every file target with line range, the cluster topology table, acceptance criteria, smoke-test cases with names + locations, audit-chain seal contract, rollback ladder (5 steps), blocking deps (4 items), exit criteria (7 items). A stranger can: read the topology table -> identify 6 coord + 12 worker + storage planes; open the Helm chart at microservices/foundry/iac/helm/milvus/; run helm install per dev cell instructions; verify the 12 smoke test rows; emit the audit-chain bootstrap event. Capacity sizing baseline + security posture sections make pod-resource calculations concrete."
+        "rationale": "Document lists every file target with line range, the cluster topology table, acceptance criteria, smoke-test cases with names + locations, audit-chain seal contract, rollback ladder (5 steps), blocking deps (4 items), exit criteria (7 items). A stranger can: read the topology table -> identify 6 coord + 12 worker + storage planes; open the Helm chart at microservices/intelligence/iac/helm/milvus/; run helm install per dev cell instructions; verify the 12 smoke test rows; emit the audit-chain bootstrap event. Capacity sizing baseline + security posture sections make pod-resource calculations concrete."
       },
       {
         "ip": "IP-094",

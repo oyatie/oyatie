@@ -73,7 +73,7 @@
       "lhs": "ADR-0136 (foundry 6→1 consolidation)",
       "rhs": "Any reference to separate foundry-runtime / foundry-supervisor / foundry-eval / foundry-evidence / foundry-guardrails / foundry-providers µservices",
       "potential_contradiction": "µservice or doc references a foundry-<bc>/ path as if it were a separate µservice",
-      "check": "find microservices/foundry-* -type d returned 0 matches (ADR-0136 §Verification line 372 PASSES). grep -rln 'foundry-runtime/|foundry-supervisor/' microservices/ --include='*.md' returned hits ONLY inside foundry/bc-sources/ archived per-BC PRDs (historical preservation per ADR-0136 §Decision) + 3 hits in translate/ catalog files where the names refer to FOUNDRY-RUNTIME BC (oya-translate-langdetect-adapter-foundry-runtime.yaml — this is BC-namespaced crate name, NOT µservice path).",
+      "check": "find microservices/intelligence-* -type d returned 0 matches (ADR-0136 §Verification line 372 PASSES). grep -rln 'foundry-runtime/|foundry-supervisor/' microservices/ --include='*.md' returned hits ONLY inside foundry/bc-sources/ archived per-BC PRDs (historical preservation per ADR-0136 §Decision) + 3 hits in translate/ catalog files where the names refer to FOUNDRY-RUNTIME BC (oya-translate-langdetect-adapter-foundry-runtime.yaml — this is BC-namespaced crate name, NOT µservice path).",
       "verdict": "ALIGNED",
       "rationale": "0 active references to foundry-* as separate µservices. ADR-0136 Strangler migration effectively complete in tree. Crate names like 'oya-foundry-runtime-*' carry BC in their name (ADR-0056 BNF v4.1) and are correct"
     },

@@ -45,7 +45,7 @@
           "severity": "critical",
           "id": "CORR-03",
           "summary": "OpenAPI/AsyncAPI version drift inside foundry contracts contradicts PR-stated 'OpenAPI 3.2.0 + AsyncAPI 3.1.0' consistency claim.",
-          "file": "microservices/foundry/contracts/{openapi,asyncapi}/*.{yaml}",
+          "file": "microservices/intelligence/contracts/{openapi,asyncapi}/*.{yaml}",
           "evidence": "foundry openapi versions: eval-eval-runner.yaml=3.1.0, evidence-foundry-evidence.yaml=3.1.0, providers-provider-router.yaml=3.1.0 (vs 3.2.0 for runtime/supervisor/guardrails). foundry asyncapi versions: eval-eval-events.yaml=3.0.0, providers-provider-events.yaml=2.6.0 (vs 3.1.0 elsewhere). providers-provider-events.yaml at 2.6.0 is a full major-version skew.",
           "suggestion": "Single-pass normalisation: bump every foundry contract to openapi 3.2.0 + asyncapi 3.1.0 to match the cross-µservice contract version invariant the PR description claims."
         },
@@ -54,7 +54,7 @@
           "id": "CORR-04",
           "summary": "47 unresolved ADR-XXXX/ADR-NNNN placeholders survive in microservices/ despite PR claim 'Zero TODO/follow-up/MVP/v2-pending survive'.",
           "file": "microservices/{workflow-engine,foundry,mail,tenancy,sheets,forms,meet,calendar,sites,recordings,docs,slides,tasks,translate,community,social,shorts,network,anonymous,application,ontology,cell,cloud-iac,cloud-k8s,cloud-secrets,governance,observability,audit-chain,workflow-studio,messenger,drive,notes,connect}/{PRD.md,runbooks/*.md,sdk-plan.md,decisions/README.md}",
-          "evidence": "47 hits for the regex /ADR-XXXX|ADR-NNNN|ADR-XXX|ADR-NNN/ inside microservices/. Examples: microservices/workflow-engine/PRD.md:432-437 (3× ADR-XXXX for Open Questions gating IP-005/IP-007); microservices/foundry/PRD.md:357-359 (ADR-NNNN); microservices/mail/PRD.md:355-360 + runbooks/e2e-encryption-key-recovery.md:14/25/108/131 (6× ADR-NNNN placeholders for key-recovery, search-index, IP-pool, JMAP/IMAP, prompt-safety, passphrase-derivation). decisions/README.md occurrences are template explanation (legit); PRD/runbook occurrences are real unresolved decisions.",
+          "evidence": "47 hits for the regex /ADR-XXXX|ADR-NNNN|ADR-XXX|ADR-NNN/ inside microservices/. Examples: microservices/workflow-engine/PRD.md:432-437 (3× ADR-XXXX for Open Questions gating IP-005/IP-007); microservices/intelligence/PRD.md:357-359 (ADR-NNNN); microservices/mail/PRD.md:355-360 + runbooks/e2e-encryption-key-recovery.md:14/25/108/131 (6× ADR-NNNN placeholders for key-recovery, search-index, IP-pool, JMAP/IMAP, prompt-safety, passphrase-derivation). decisions/README.md occurrences are template explanation (legit); PRD/runbook occurrences are real unresolved decisions.",
           "suggestion": "PR description claim is partly inaccurate. Either resolve the open questions with service-scoped ADRs in this PR, or amend the PR description to acknowledge surviving 'tracked-open-questions' with explicit gating IPs."
         },
         {
@@ -63,7 +63,7 @@
           "summary": "SLO count uniformity violated across µservices — substrate µservices report 0 SLOs in manifest; product µservices vary 6-11; foundry has 4 for 18 capabilities.",
           "file": "microservices/*/manifest.json#slos",
           "evidence": "Profile (manifest IP/SLO/contract count): foundry=90/4, tenancy=15/4, ontology=15/5, application=15/5, workflow-studio=15/6, community=15/7, social=15/8, anonymous/calendar/docs/drive/forms/mail/network/notes/sheets/shorts/sites/tasks/translate=15/9, messenger/recordings/slides=15/10, meet=15/11, audit-chain/cell/cloud-iac/cloud-k8s/cloud-secrets/governance/observability/workflow-engine=15/0. Foundry's 4 SLOs cover only the runtime BC; supervisor/eval/evidence/guardrails/providers BCs have no SLO files despite ADR-0137 stating per-BC SLOs.",
-          "suggestion": "Author per-BC SLO files inside microservices/foundry/slos/ (currently only runtime-* files present). Document the per-BC SLO authority commitment from ADR-0137 §Decision Structural-commitment-2 in concrete manifests."
+          "suggestion": "Author per-BC SLO files inside microservices/intelligence/slos/ (currently only runtime-* files present). Document the per-BC SLO authority commitment from ADR-0137 §Decision Structural-commitment-2 in concrete manifests."
         },
         {
           "severity": "minor",
@@ -111,7 +111,7 @@
           "severity": "major",
           "id": "ARCH-02",
           "summary": "Foundry consolidation honours ADR-0131 + ADR-0132 + matches hyperscaler shape; bc-sources/ archive preserves 493 artefacts verbatim; crate names unchanged; Strangler migration with explicit REPORT-ONLY→BLOCKER promotion at 2026-11-18.",
-          "file": "microservices/foundry/, microservices/foundry/bc-sources/{runtime,supervisor,eval,evidence,guardrails,providers}/",
+          "file": "microservices/intelligence/, microservices/intelligence/bc-sources/{runtime,supervisor,eval,evidence,guardrails,providers}/",
           "evidence": "ADR-0136 §Verification: file count 493 preservation invariant + cargo run -p oya-check-authority-cohesion exit 0. ADR-0138 §Strangler Phase 0-3 with concrete dates. ADR-0137 §Inter-BC dependency rules table (14 producer→consumer event channels enumerated).",
           "suggestion": "FYI — this is hyperscaler-bar architecture work. Reference example for future structural consolidations."
         },
@@ -205,7 +205,7 @@
     },
     {
       "severity": "critical",
-      "file": "microservices/foundry/contracts/{openapi,asyncapi}/*.yaml",
+      "file": "microservices/intelligence/contracts/{openapi,asyncapi}/*.yaml",
       "issue": "OpenAPI version drift (3.1.0 vs 3.2.0) and AsyncAPI version drift (2.6.0, 3.0.0 vs 3.1.0) inside the foundry µservice contradicts PR claim of uniform contract versions.",
       "suggestion": "Bump every foundry contract to openapi 3.2.0 + asyncapi 3.1.0."
     },
@@ -217,9 +217,9 @@
     },
     {
       "severity": "major",
-      "file": "microservices/foundry/manifest.json#slos (4 SLOs for 6 BCs / 18 capabilities)",
+      "file": "microservices/intelligence/manifest.json#slos (4 SLOs for 6 BCs / 18 capabilities)",
       "issue": "foundry SLO coverage incomplete — only runtime BC has SLO files; supervisor/eval/evidence/guardrails/providers BCs lack SLOs despite ADR-0137 per-BC SLO authority commitment.",
-      "suggestion": "Author per-BC SLO files at microservices/foundry/slos/ per ADR-0137 §Decision."
+      "suggestion": "Author per-BC SLO files at microservices/intelligence/slos/ per ADR-0137 §Decision."
     },
     {
       "severity": "major",

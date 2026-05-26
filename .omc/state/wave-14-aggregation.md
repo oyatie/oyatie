@@ -277,7 +277,7 @@ All 21 had `capability-tiers/` directories deleted, `capability_tiers` manifest 
 
 ### Wave 15I — foundry retirement + Hermes drop (QUEUED)
 
-- `microservices/foundry/` retires per ADR-0247 + foundry-absorption doctrine.
+- `microservices/intelligence/` retires per ADR-0247 + foundry-absorption doctrine.
 - Capability distributed to intelligence + workflow-engine + workflow-studio + ontology + governance/tenancy (already covered in Wave 4 audits via foundry-absorption dimension).
 - Plan: 1 Claude agent for retirement + cross-reference update + Hermes terminology drop.
 
@@ -310,7 +310,7 @@ All 21 had `capability-tiers/` directories deleted, `capability_tiers` manifest 
 | network → community | Wave 15K | codex | network/RETIRED.md; LinkedIn-class content migrated into community 4-pillar (Reddit/Teamblind/Handshake/LinkedIn-jobs+profile+InMail) | `microservices/network/RETIRED.md` |
 | cell µservice retire | Wave 15L | codex + Claude | cell/RETIRED.md; concerns absorbed by tenancy+cloud-iac+observability+api-gateway+audit-chain; oya-shuffle-sharding crate authored | `microservices/cell/RETIRED.md` + `crates/oya-shuffle-sharding/` + ADR-0333 (620L) |
 | imaging-diagnostics split | Wave 15M-reconcile | codex | diagnostics imaging contexts stripped; imaging promoted to 8th healthcare µservice | ADR-0332 amendment |
-| foundry retirement | Wave 15I (QUEUED) | 1 Claude agent | distributed to intelligence + workflow-engine + workflow-studio + ontology + governance/tenancy | `microservices/foundry/` retire + Hermes terminology drop |
+| foundry retirement | Wave 15I (QUEUED) | 1 Claude agent | distributed to intelligence + workflow-engine + workflow-studio + ontology + governance/tenancy | `microservices/intelligence/` retire + Hermes terminology drop |
 | shorts → social merge | Wave 15O (UNCONFIRMED) | TBD | awaiting user decision | n/a |
 
 ---

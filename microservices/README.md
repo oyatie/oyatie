@@ -39,13 +39,12 @@ This directory contains the live flat µservice catalog. The table is intentiona
 | `financial-planning` | product | Budgeting, forecasting, scenario planning, variance analysis, and finance planning workflows. | Not authored yet |
 | `finops-portal` | product | Cost attribution, showback/chargeback, budgets, optimization, and tenant FinOps reporting. | Not authored yet |
 | `forms` | product | Form builder, structured submissions, approval intake, validation, and routed evidence capture. | Not authored yet |
-| `foundry` | substrate | Internal engineering platform for agents, gates, catalogs, evals, capability routing, and promotion controls. | Not authored yet |
 | `global-trade` | product | Cross-border trade, customs, restricted-party, tariff, and logistics compliance product surface. | Not authored yet |
 | `governance` | substrate | Policy, standards, controls, evidence, quality gates, and corpus governance substrate. | Not authored yet |
 | `healthcare-integration` | product | Healthcare interoperability, FHIR/EHR handoff, clinical workflow, and regulated integration surface. | Not authored yet |
 | `identity` | substrate | Identity, passkeys, OIDC/SAML/SCIM, step-up auth, memberships, and account recovery substrate. | Not authored yet |
 | `incident-management` | product | Incident intake, response coordination, escalation, postmortem, and reliability workflow product. | Not authored yet |
-| `intelligence` | substrate | Two-layer AI substrate for model routing, policy-bound inference, evaluations, and agent assistance. | Not authored yet |
+| `intelligence` | substrate | AI-agent platform + two-layer AI substrate: model routing, policy-bound inference, agent runtime/supervisor, adapters, evals, capability routing, and RAG (absorbed the former `foundry` platform per ADR-0363). | Not authored yet |
 | `itsm` | product | IT service management: service catalog, tickets, approvals, asset linkage, and change workflows. | Not authored yet |
 | `learning-management` | product | Training catalog, assignments, completion evidence, certification, and learning workflows. | Not authored yet |
 | `mail` | product | Workspace mail, threading, DKIM/SPF/DMARC, retention, delegation, and secure messaging workflows. | Not authored yet |

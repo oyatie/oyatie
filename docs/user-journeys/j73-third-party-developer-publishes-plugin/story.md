@@ -291,7 +291,7 @@ All metrics carry bounded cardinality: `tenant_tier`, `service`, `journey_id`, `
 AC-01. `plugin-app-store` ships a single-PR IP for `catalog-publication` under `microservices/plugin-app-store/IP-journey-j73-catalog-publication.md`.
 AC-01.a The IP names input contracts, output contracts, Cedar permits, audit events, rollback branch, and test gates.
 AC-01.b The IP preserves ADR-0131 flat per-µservice layout and ADR-0105 13-layer vocabulary.
-AC-02. `foundry` ships a single-PR IP for `supply-chain-checks` under `microservices/foundry/IP-journey-j73-supply-chain-checks.md`.
+AC-02. `foundry` ships a single-PR IP for `supply-chain-checks` under `microservices/intelligence/IP-journey-j73-supply-chain-checks.md`.
 AC-02.a The IP names input contracts, output contracts, Cedar permits, audit events, rollback branch, and test gates.
 AC-02.b The IP preserves ADR-0131 flat per-µservice layout and ADR-0105 13-layer vocabulary.
 AC-03. `identity` ships a single-PR IP for `publisher-validation` under `microservices/identity/IP-journey-j73-publisher-validation.md`.

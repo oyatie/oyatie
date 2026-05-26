@@ -16,7 +16,7 @@ sibling_products:
   - microservices/workflow-studio/ (CRDT collab pattern; Loro alignment)
   - microservices/cell/ (per-workbook cell substrate)
   - microservices/ontology/ (Workbook/Sheet/Cell/Range/Chart object types)
-  - microservices/foundry/ (AI-formula + smart-fill bridge)
+  - microservices/intelligence/ (AI-formula + smart-fill bridge)
 date: 2026-05-17
 owner_team: axis-sheets + council-design-system
 doc_status: published

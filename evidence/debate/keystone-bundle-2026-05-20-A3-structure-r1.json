@@ -31,7 +31,7 @@
       "severity": "INFO",
       "adr": "ADR-0245",
       "location": "§D-3.A foundry row",
-      "finding": "ADR-0245 marks `microservices/foundry/` with the reserved subtype `substrate-meta` and notes the µservice 'is being decomposed per ADR-0247 self-modification doctrine'. ADR-0131 §D-3 table (Foundry under IP-M01-MIGR-009) treats Foundry as a single µservice; ADR-0245 keeps it but defers final shape. No layout violation today, but the dissolution path is unspecified — if Foundry decomposes into N microservices, each MUST land flat under microservices/<ms>/ per ADR-0131. Flag for follow-on ADR.",
+      "finding": "ADR-0245 marks `microservices/intelligence/` with the reserved subtype `substrate-meta` and notes the µservice 'is being decomposed per ADR-0247 self-modification doctrine'. ADR-0131 §D-3 table (Foundry under IP-M01-MIGR-009) treats Foundry as a single µservice; ADR-0245 keeps it but defers final shape. No layout violation today, but the dissolution path is unspecified — if Foundry decomposes into N microservices, each MUST land flat under microservices/<ms>/ per ADR-0131. Flag for follow-on ADR.",
       "remediation": "Add follow-on ADR scheduling Foundry decomposition with one IP-MIGR per resulting µservice; or accept the substrate-meta tier as a permanent classification with no decomposition."
     },
     {

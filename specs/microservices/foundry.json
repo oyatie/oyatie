@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/microservices/foundry.schema.json",
+  "$id": "https://docs.oyatie.dev/schemas/microservices/intelligence.schema.json",
   "title": "Microservice:Foundry — RETIRED",
   "_meta": {
     "doc_class": "Microservice-Retirement-Marker",
@@ -13,8 +13,8 @@
     "absorbed_by": "intelligence",
     "absorbing_microservice_manifest": "microservices/intelligence/manifest.json",
     "absorbing_microservice_directory": "microservices/intelligence/",
-    "retirement_marker_path": "microservices/foundry/RETIRED.md",
-    "doc_class_note": "This file replaces the prior six-to-one consolidation spec authored by ADR-0136. Per ADR-0335, the foundry µservice is retired and absorbed into the intelligence µservice as the canonical AI substrate per ADR-0255 KS#14 two-layer intelligence doctrine. The historical artifacts under microservices/foundry/ remain as historical evidence but are no longer live authority.",
+    "retirement_marker_path": "microservices/intelligence/RETIRED.md",
+    "doc_class_note": "This file replaces the prior six-to-one consolidation spec authored by ADR-0136. Per ADR-0335, the foundry µservice is retired and absorbed into the intelligence µservice as the canonical AI substrate per ADR-0255 KS#14 two-layer intelligence doctrine. The historical artifacts under microservices/intelligence/ remain as historical evidence but are no longer live authority.",
     "purpose": "Retirement marker — foundry µservice retired and absorbed into intelligence µservice. Do not cite this file as live authority. Cite microservices/intelligence/manifest.json for AI substrate concerns and ADR-0335 for the retirement decision.",
     "do_not_treat_as_live_authority": true,
     "do_not_generate_new_oya_foundry_crates": true,
@@ -25,7 +25,7 @@
     "adr": "ADR-0335",
     "absorbed_by": "intelligence",
     "absorbed_by_manifest": "microservices/intelligence/manifest.json",
-    "retirement_marker": "microservices/foundry/RETIRED.md",
+    "retirement_marker": "microservices/intelligence/RETIRED.md",
     "authority_adrs": [
       "ADR-0335-foundry-microservice-retired-absorbed-by-intelligence",
       "ADR-0255-intelligence-as-two-layer-ai-substrate",
@@ -76,11 +76,11 @@
   },
   "do_not_use": {
     "deprecated_paths": [
-      "microservices/foundry/PRD.md (do NOT cite as live authority)",
-      "microservices/foundry/ARCHITECTURE.md (do NOT cite as live authority)",
-      "microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md (do NOT cite as live authority)",
-      "microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md (do NOT cite as live authority)",
-      "microservices/foundry/manifest.json (do NOT cite as active manifest)"
+      "microservices/intelligence/PRD.md (do NOT cite as live authority)",
+      "microservices/intelligence/ARCHITECTURE.md (do NOT cite as live authority)",
+      "microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md (do NOT cite as live authority)",
+      "microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md (do NOT cite as live authority)",
+      "microservices/intelligence/manifest.json (do NOT cite as active manifest)"
     ],
     "use_instead": [
       "microservices/intelligence/manifest.json",

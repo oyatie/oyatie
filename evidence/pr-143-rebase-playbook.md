@@ -50,9 +50,9 @@ Dev does not have `specs/microservices/`. Our branch flattened all `specs/produc
 
 **Resolution:** Take our version. The flatten is correct per ADR-0132 + ADR-0131 + user directive 2026-05-18.
 
-### Category 7 — `microservices/foundry-*/` vs `microservices/foundry/`
+### Category 7 — `microservices/intelligence-*/` vs `microservices/intelligence/`
 
-Dev does not have `microservices/foundry-runtime` etc. — they were authored on our branch then consolidated by Sweep-B into `microservices/foundry/`. No upstream conflict.
+Dev does not have `microservices/intelligence-runtime` etc. — they were authored on our branch then consolidated by Sweep-B into `microservices/intelligence/`. No upstream conflict.
 
 ### Category 8 — `docs/decisions/ADR-0126*.md`
 
@@ -107,8 +107,8 @@ grep -rln 'oya-foundry-fitness' .github/workflows/ | wc -l   # should be 0 after
 # 2. No specs/products/ residue
 grep -rln 'specs/products/' microservices/ docs/ specs/microservices/ registry/   # should be 0 (except tombstone)
 # 3. Foundry consolidation preserved
-find microservices/foundry-* -type d   # should be empty
-find microservices/foundry -type f | wc -l   # should be ~506
+find microservices/intelligence-* -type d   # should be empty
+find microservices/intelligence -type f | wc -l   # should be ~506
 # 4. ADR-0135/0136/0137/0138 exist
 ls docs/decisions/ADR-013{5,6,7,8}-*.md   # 4 files
 # 5. All scorecards + manifests present

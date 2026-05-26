@@ -92,7 +92,7 @@ follow_ups:
       namespace or split across 6 for blast-radius isolation.
       Default at M01 completion: one namespace per BC.
     driver_docs:
-      - microservices/foundry/PRD.md
+      - microservices/intelligence/PRD.md
     owner: ops-sre-reliability + axis-foundry
     trigger: M01 foundry GA.
     status: pending
@@ -103,7 +103,7 @@ follow_ups:
       independently) vs unified foundry product version (digest of 6).
       Default: per-BC SemVer; product version = digest.
     driver_docs:
-      - microservices/foundry/PRD.md
+      - microservices/intelligence/PRD.md
     owner: council-architecture
     trigger: First cross-BC breaking change proposed.
     status: pending
@@ -113,7 +113,7 @@ follow_ups:
       GPU pool sharing policy for foundry-eval — dedicated pool vs
       shared with foundry-runtime + foundry-providers.
     driver_docs:
-      - microservices/foundry/bc-sources/eval/PRD.md
+      - microservices/intelligence/bc-sources/eval/PRD.md
     owner: ops-sre-reliability + axis-foundry
     trigger: First eval workload that requires > 1 H100 hour / day.
     status: pending
@@ -123,7 +123,7 @@ follow_ups:
       Multi-tenant capability registry mirror — Postgres logical
       replication vs CDC stream vs application-layer fanout.
     driver_docs:
-      - microservices/foundry/bc-sources/runtime/PRD.md
+      - microservices/intelligence/bc-sources/runtime/PRD.md
     owner: axis-foundry + axis-observability
     trigger: Second region onboards.
     status: pending
@@ -135,7 +135,7 @@ follow_ups:
       tenant comms via gtm-customer-success.
     driver_docs:
       - microservices/workflow-engine/sdk-plan.md
-      - microservices/foundry/bc-sources/guardrails/sdk-plan.md
+      - microservices/intelligence/bc-sources/guardrails/sdk-plan.md
       - microservices/cloud-k8s/sdk-plan.md
       - microservices/observability/sdk-plan.md
     owner: council-architecture + gtm-customer-success
@@ -159,7 +159,7 @@ follow_ups:
       to BLOCKER? At what cardinality / time-window?
       Default at M01 launch: strict (no escalation).
     driver_docs:
-      - microservices/foundry/PRD.md
+      - microservices/intelligence/PRD.md
     owner: ops-security
     trigger: Signal-overload observed in M01 launch operational data.
     status: pending
