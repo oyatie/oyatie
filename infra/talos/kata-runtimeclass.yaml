@@ -1,0 +1,27 @@
+# RuntimeClass aliasing our platform's pinned `kata-cloud-hypervisor` (ADR-0147, pinned across 10+
+# microservices) to the Talos Kata extension's containerd handler `kata` — which IS cloud-hypervisor
+# (verified: the extension ships only [hypervisor.clh]). Without this alias, every pod with
+# runtimeClassName: kata-cloud-hypervisor fails to schedule. Ship as ArgoCD sync-wave "0".
+# See .omx/plans/talos-on-apple-silicon-procedure.md §2.
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata-cloud-hypervisor     # the name our workloads pin via runtimeClassName
+handler: kata                     # Talos extension handler — backed by cloud-hypervisor
+overhead:
+  podFixed:
+    memory: "160Mi"
+    cpu: "250m"
+scheduling:
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"   # only the Kata-labelled workers (w-1/w-2)
+---
+# Upstream-named class kept for compatibility with charts that reference plain `kata`.
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata
+handler: kata
+scheduling:
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"
