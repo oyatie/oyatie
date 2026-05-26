@@ -67,6 +67,7 @@ mod cross_axis_contracts;
 mod cross_tenant_access_gates;
 mod data_class_gates;
 mod date_utils;
+mod dependency_blessed_allowlist_gate;
 mod dependency_seam_gates;
 mod design_spec_maturity_claims_gate;
 mod documentation_gates;
@@ -190,6 +191,9 @@ pub(crate) use cross_tenant_access_gates::{
 pub(crate) use data_class_gates::{parse_data_class_validate_args, validate_data_class_gate};
 pub(crate) use date_utils::{
     current_epoch_days, current_epoch_days_i64, parse_yyyy_mm_dd_to_epoch_days,
+};
+pub(crate) use dependency_blessed_allowlist_gate::{
+    parse_dependency_blessed_allowlist_args, validate_dependency_blessed_allowlist_gate,
 };
 pub(crate) use dependency_seam_gates::{
     parse_dependency_seam_validate_args, validate_dependency_seam_gate,
@@ -409,6 +413,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate cloud-iac-provider-lockfile [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>] [--lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>]"
         + "\n       oya gate validate cloud-iac-provider-signature-review [--repo-root <.>] [--manifest <microservices/cloud-iac/manifest.json>] [--lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>] [--review <microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
         + "\n       oya gate validate dependency-seam [--repo-root <.>] [--registry <registry/dependency-rationales.json>] [--evidence <evidence/multispectrum/<change>.json>]... [--fixture-root <crates/oya-check-dependency-seam/tests/fixtures>] [--offline|--online-audit] [--severity <report-only|error>] [--emit-report <path>]"
+        + "\n       oya gate validate dependency-blessed-allowlist [--repo-root <.>] [--allowlist <registry/dependency-blessed-allowlist.json>] [--report-only|--enforce] [--emit-report <path>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-lockin-discipline [--registry <registry/vendor-lockin-phaseout/index.json>] [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"
