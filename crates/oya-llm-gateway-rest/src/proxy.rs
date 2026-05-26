@@ -274,15 +274,19 @@ async fn proxy_handler(
         let chosen = match choice {
             KeyChoice::Chosen(c) => c,
             KeyChoice::Exhausted => {
-                state
-                    .metrics()
-                    .record_request(&group_name, channel_label, ProxyOutcome::Exhausted.as_str());
+                state.metrics().record_request(
+                    &group_name,
+                    channel_label,
+                    ProxyOutcome::Exhausted.as_str(),
+                );
                 return ProxyError::NoUsableKey(ProxyOutcome::Exhausted).into_response();
             }
             KeyChoice::Empty => {
-                state
-                    .metrics()
-                    .record_request(&group_name, channel_label, ProxyOutcome::NoKeys.as_str());
+                state.metrics().record_request(
+                    &group_name,
+                    channel_label,
+                    ProxyOutcome::NoKeys.as_str(),
+                );
                 return ProxyError::NoUsableKey(ProxyOutcome::NoKeys).into_response();
             }
         };
@@ -410,8 +414,8 @@ const MAX_REQUEST_BODY: usize = 1024 * 1024;
 /// body. The body is `Body::from_stream(...)` over the hyper `Incoming` frame
 /// stream — never collected, parsed, buffered, or logged.
 fn stream_response(upstream: hyper::Response<Incoming>) -> Response {
-    let status = StatusCode::from_u16(upstream.status().as_u16())
-        .unwrap_or(StatusCode::BAD_GATEWAY);
+    let status =
+        StatusCode::from_u16(upstream.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
 
     // Copy response headers verbatim except hop-by-hop ones.
     let mut headers = HeaderMap::new();
@@ -442,10 +446,7 @@ fn stream_response(upstream: hyper::Response<Incoming>) -> Response {
                     Err(_non_data) => continue,
                 },
                 Some(Err(err)) => {
-                    return Some((
-                        Err(std::io::Error::other(err.to_string())),
-                        body,
-                    ));
+                    return Some((Err(std::io::Error::other(err.to_string())), body));
                 }
                 None => return None,
             }
@@ -474,10 +475,7 @@ const STRIP_RESPONSE_HEADERS: &[&str] = &[
 /// Build the forwarded request headers: copy the inbound headers minus the
 /// strip-list and minus any header the channel will overwrite with pooled
 /// auth.
-fn build_upstream_headers(
-    inbound: &HeaderMap,
-    managed: &[&str],
-) -> Vec<(String, String)> {
+fn build_upstream_headers(inbound: &HeaderMap, managed: &[&str]) -> Vec<(String, String)> {
     let mut out = Vec::new();
     for (name, value) in inbound {
         let lname = name.as_str().to_ascii_lowercase();
@@ -511,9 +509,7 @@ fn build_upstream_request(
     auth_headers: Vec<(&'static str, String)>,
     body: Bytes,
 ) -> Result<hyper::Request<Full<Bytes>>, hyper::http::Error> {
-    let mut builder = hyper::Request::builder()
-        .method(method.as_str())
-        .uri(url);
+    let mut builder = hyper::Request::builder().method(method.as_str()).uri(url);
     if let Some(headers) = builder.headers_mut() {
         for (name, value) in forwarded_headers {
             if let (Ok(hn), Ok(hv)) = (
@@ -663,8 +659,14 @@ mod tests {
     fn build_upstream_headers_drops_strip_and_managed() {
         let mut h = HeaderMap::new();
         h.insert("host", HeaderValue::from_static("client.example"));
-        h.insert("x-oya-proxy-key", HeaderValue::from_static("ingress-secret"));
-        h.insert("authorization", HeaderValue::from_static("Bearer client-token"));
+        h.insert(
+            "x-oya-proxy-key",
+            HeaderValue::from_static("ingress-secret"),
+        );
+        h.insert(
+            "authorization",
+            HeaderValue::from_static("Bearer client-token"),
+        );
         h.insert("content-type", HeaderValue::from_static("application/json"));
         h.insert("accept", HeaderValue::from_static("text/event-stream"));
 
@@ -692,11 +694,15 @@ mod tests {
         assert_eq!(req.method(), Method::POST);
         assert_eq!(req.uri(), "https://api.openai.com/v1/chat/completions");
         assert_eq!(
-            req.headers().get("authorization").and_then(|v| v.to_str().ok()),
+            req.headers()
+                .get("authorization")
+                .and_then(|v| v.to_str().ok()),
             Some("Bearer sk-POOLED")
         );
         assert_eq!(
-            req.headers().get("content-type").and_then(|v| v.to_str().ok()),
+            req.headers()
+                .get("content-type")
+                .and_then(|v| v.to_str().ok()),
             Some("application/json")
         );
     }

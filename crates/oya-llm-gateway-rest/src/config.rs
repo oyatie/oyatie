@@ -175,7 +175,10 @@ impl std::fmt::Display for ConfigError {
                 write!(f, "group {group}: unknown channel {channel:?}")
             }
             ConfigError::BadUpstreamUrl { group, url } => {
-                write!(f, "group {group}: upstream_base_url must be http(s): {url:?}")
+                write!(
+                    f,
+                    "group {group}: upstream_base_url must be http(s): {url:?}"
+                )
             }
             ConfigError::EmptyBaoPath { group } => {
                 write!(f, "group {group}: bao_key_path must not be empty")
@@ -317,13 +320,19 @@ mod tests {
             sample_group("dup", "openai"),
             sample_group("dup", "anthropic"),
         ]);
-        assert_eq!(cfg.validate(), Err(ConfigError::DuplicateGroup("dup".to_string())));
+        assert_eq!(
+            cfg.validate(),
+            Err(ConfigError::DuplicateGroup("dup".to_string()))
+        );
     }
 
     #[test]
     fn unknown_channel_is_rejected() {
         let cfg = sample_config(vec![sample_group("g", "mistral")]);
-        assert!(matches!(cfg.validate(), Err(ConfigError::UnknownChannel { .. })));
+        assert!(matches!(
+            cfg.validate(),
+            Err(ConfigError::UnknownChannel { .. })
+        ));
     }
 
     #[test]
@@ -331,7 +340,10 @@ mod tests {
         let mut g = sample_group("g", "openai");
         g.upstream_base_url = "ftp://nope".to_string();
         let cfg = sample_config(vec![g]);
-        assert!(matches!(cfg.validate(), Err(ConfigError::BadUpstreamUrl { .. })));
+        assert!(matches!(
+            cfg.validate(),
+            Err(ConfigError::BadUpstreamUrl { .. })
+        ));
     }
 
     #[test]
@@ -339,7 +351,10 @@ mod tests {
         let mut g = sample_group("g", "openai");
         g.bao_key_path = "   ".to_string();
         let cfg = sample_config(vec![g]);
-        assert!(matches!(cfg.validate(), Err(ConfigError::EmptyBaoPath { .. })));
+        assert!(matches!(
+            cfg.validate(),
+            Err(ConfigError::EmptyBaoPath { .. })
+        ));
     }
 
     #[test]
@@ -364,7 +379,10 @@ mod tests {
         assert_eq!(cfg.openbao.kv_mount, "secret");
         assert_eq!(cfg.key_refresh_secs, 300);
         assert_eq!(cfg.groups[0].retry.attempts(), 3);
-        assert_eq!(cfg.groups[0].parsed_channel(), Some(ProviderChannel::OpenAi));
+        assert_eq!(
+            cfg.groups[0].parsed_channel(),
+            Some(ProviderChannel::OpenAi)
+        );
     }
 
     #[test]
