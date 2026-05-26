@@ -45,6 +45,7 @@ mod canonical_base_neutrality_gate;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
+mod changeset_state_gates;
 mod cloud_iac_cell_topology_gate;
 mod cloud_iac_gitops_evidence_gate;
 mod cloud_iac_helm_chart_gate;
