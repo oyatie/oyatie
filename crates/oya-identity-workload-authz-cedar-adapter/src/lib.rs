@@ -36,10 +36,7 @@
 //! `registry/catalog/oya-identity-workload-authz-cedar-adapter.yaml`.
 
 // ADR-0083 Tier 3: production code stays panic-free; tests may use unwrap/expect.
-#![cfg_attr(
-    test,
-    allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)
-)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_identity_workload_domain::{
     Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, Resource, WorkloadPrincipal,
@@ -315,7 +312,9 @@ mod tests {
         let mut principal =
             WorkloadPrincipal::provision("ten_acme", "wl_deployer", "cap.cloud.deploy")
                 .expect("valid");
-        principal.transition_to(WorkloadState::Active).expect("activate");
+        principal
+            .transition_to(WorkloadState::Active)
+            .expect("activate");
         principal
             .with_scope("cloud.deploy.write")
             .expect("scope ok")
@@ -414,11 +413,14 @@ mod tests {
     #[test]
     fn suspended_principal_denied_before_policies() {
         let mut principal = active_principal();
-        principal.transition_to(WorkloadState::Suspended).expect("suspend");
+        principal
+            .transition_to(WorkloadState::Suspended)
+            .expect("suspend");
         // A permit that WOULD match if active.
-        let authorizer = CedarWorkloadAuthorizer::new()
-            .add_policy(Policy::permit("allow-all-acme")
-                .when_principal(PrincipalCondition::TenantIs("ten_acme".into())));
+        let authorizer = CedarWorkloadAuthorizer::new().add_policy(
+            Policy::permit("allow-all-acme")
+                .when_principal(PrincipalCondition::TenantIs("ten_acme".into())),
+        );
         let decision = authorizer.authorize(&deploy_request(principal));
         assert!(matches!(
             decision.reason(),

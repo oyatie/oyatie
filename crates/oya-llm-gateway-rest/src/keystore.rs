@@ -171,7 +171,10 @@ impl OpenBaoKeyStore {
     /// `http://openbao.oya-kms.svc.cluster.local:8200`) with KV `kv_mount`,
     /// reading the token from the `BAO_TOKEN` env var. Fails closed if the
     /// token is absent or empty.
-    pub fn from_env(address: impl Into<String>, kv_mount: impl Into<String>) -> Result<Self, KeyStoreError> {
+    pub fn from_env(
+        address: impl Into<String>,
+        kv_mount: impl Into<String>,
+    ) -> Result<Self, KeyStoreError> {
         let token = std::env::var("BAO_TOKEN")
             .ok()
             .filter(|t| !t.trim().is_empty())
@@ -240,7 +243,11 @@ impl OpenBaoKeyStore {
 }
 
 impl KeyStore for OpenBaoKeyStore {
-    async fn load(&self, path: &str, channel: ProviderChannel) -> Result<KeyMaterial, KeyStoreError> {
+    async fn load(
+        &self,
+        path: &str,
+        channel: ProviderChannel,
+    ) -> Result<KeyMaterial, KeyStoreError> {
         let url = self.data_url(path);
         let request = hyper::Request::builder()
             .method(hyper::Method::GET)
@@ -257,7 +264,10 @@ impl KeyStore for OpenBaoKeyStore {
         if !status.is_success() {
             // Do NOT include the body verbatim (it could echo secret material
             // on some backends); the status code is enough to act on.
-            return Err(KeyStoreError::Upstream(format!("status {}", status.as_u16())));
+            return Err(KeyStoreError::Upstream(format!(
+                "status {}",
+                status.as_u16()
+            )));
         }
         // The KV read is a small config response (a label→key map), not the
         // proxy hot path, so collecting it fully is correct here.
@@ -317,7 +327,11 @@ impl InMemoryKeyStore {
 }
 
 impl KeyStore for InMemoryKeyStore {
-    async fn load(&self, path: &str, channel: ProviderChannel) -> Result<KeyMaterial, KeyStoreError> {
+    async fn load(
+        &self,
+        path: &str,
+        channel: ProviderChannel,
+    ) -> Result<KeyMaterial, KeyStoreError> {
         match self.by_path.get(path) {
             Some(material) if material.channel() == channel => Ok(material.clone()),
             // A path seeded for a different channel is a misconfiguration; treat
@@ -411,7 +425,9 @@ mod tests {
     #[tokio::test]
     async fn in_memory_store_fails_closed_on_unseeded_path() {
         let store = InMemoryKeyStore::new();
-        let result = store.load("agent-gateway/openai", ProviderChannel::OpenAi).await;
+        let result = store
+            .load("agent-gateway/openai", ProviderChannel::OpenAi)
+            .await;
         assert!(matches!(result.err(), Some(KeyStoreError::MissingKeys(_))));
     }
 

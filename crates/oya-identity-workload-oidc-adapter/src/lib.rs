@@ -30,17 +30,16 @@
 //! `RSAPublicKey` DER that `ring` expects (see [`rsa_pkcs1_der`]).
 
 // ADR-0083 Tier 3: production code stays panic-free; tests may use unwrap/expect.
-#![cfg_attr(
-    test,
-    allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)
-)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use ring::signature;
 use serde::Deserialize;
 
-use oya_identity_workload_domain::{ClaimValue, WorkloadIdentityError, WorkloadPrincipal, WorkloadState};
+use oya_identity_workload_domain::{
+    ClaimValue, WorkloadIdentityError, WorkloadPrincipal, WorkloadState,
+};
 
 /// Errors produced while validating a workload OIDC token.
 #[derive(Debug)]
@@ -306,7 +305,9 @@ pub fn validate_workload_token(
     let mut parts = token.split('.');
     let (header_b64, payload_b64, signature_b64) =
         match (parts.next(), parts.next(), parts.next(), parts.next()) {
-            (Some(h), Some(p), Some(s), None) if !h.is_empty() && !p.is_empty() && !s.is_empty() => {
+            (Some(h), Some(p), Some(s), None)
+                if !h.is_empty() && !p.is_empty() && !s.is_empty() =>
+            {
                 (h, p, s)
             }
             _ => return Err(OidcValidationError::MalformedToken),
@@ -320,7 +321,10 @@ pub fn validate_workload_token(
 
     // 3. Resolve the verification key by kid and verify the signature over the
     //    `header.payload` signing input.
-    let kid = header.kid.as_deref().ok_or(OidcValidationError::UnknownKey)?;
+    let kid = header
+        .kid
+        .as_deref()
+        .ok_or(OidcValidationError::UnknownKey)?;
     let jwk = jwks.find(kid).ok_or(OidcValidationError::UnknownKey)?;
     let signature_bytes = b64url_decode(signature_b64)?;
     let signing_input = format!("{header_b64}.{payload_b64}");
@@ -473,7 +477,10 @@ fn rsa_pkcs1_der(n_b64: &str, e_b64: &str) -> Result<Vec<u8>, OidcValidationErro
 fn der_unsigned_integer(bytes: &[u8]) -> Vec<u8> {
     // Strip leading zero bytes (canonical minimal encoding) but keep at least one.
     let trimmed = {
-        let first_nonzero = bytes.iter().position(|b| *b != 0).unwrap_or(bytes.len() - 1);
+        let first_nonzero = bytes
+            .iter()
+            .position(|b| *b != 0)
+            .unwrap_or(bytes.len() - 1);
         &bytes[first_nonzero..]
     };
     let mut content = Vec::with_capacity(trimmed.len() + 1);
@@ -554,7 +561,7 @@ mod tests {
     // key with `ring` at test time, sign a token, and validate it. This proves
     // the full verify path against real crypto without any network/JWKS fetch.
     use ring::rand::SystemRandom;
-    use ring::signature::{EcdsaKeyPair, KeyPair, ECDSA_P256_SHA256_FIXED_SIGNING};
+    use ring::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
 
     fn b64url(bytes: &[u8]) -> String {
         URL_SAFE_NO_PAD.encode(bytes)
@@ -580,10 +587,12 @@ mod tests {
         let y = &public[33..65];
 
         let header = format!(r#"{{"alg":"ES256","typ":"JWT","kid":"{kid}"}}"#);
-        let signing_input = format!("{}.{}", b64url(header.as_bytes()), b64url(claims_json.as_bytes()));
-        let sig = key_pair
-            .sign(&rng, signing_input.as_bytes())
-            .expect("sign");
+        let signing_input = format!(
+            "{}.{}",
+            b64url(header.as_bytes()),
+            b64url(claims_json.as_bytes())
+        );
+        let sig = key_pair.sign(&rng, signing_input.as_bytes()).expect("sign");
         let token = format!("{signing_input}.{}", b64url(sig.as_ref()));
 
         SignedToken {
@@ -645,8 +654,7 @@ mod tests {
         parts[1] = &forged_payload;
         let forged = parts.join(".");
 
-        let err =
-            validate_workload_token(&forged, &jwks, &config(), now).expect_err("must reject");
+        let err = validate_workload_token(&forged, &jwks, &config(), now).expect_err("must reject");
         assert!(matches!(err, OidcValidationError::SignatureInvalid));
     }
 

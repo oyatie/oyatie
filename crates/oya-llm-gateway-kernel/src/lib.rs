@@ -121,7 +121,11 @@ impl PoolPolicy {
     /// a misconfigured `0` can never blacklist a key on its very first use in
     /// a way that permanently starves the pool.
     #[must_use]
-    pub fn new(blacklist_threshold: u32, cooldown_base_millis: u64, cooldown_jitter_millis: u64) -> Self {
+    pub fn new(
+        blacklist_threshold: u32,
+        cooldown_base_millis: u64,
+        cooldown_jitter_millis: u64,
+    ) -> Self {
         PoolPolicy {
             blacklist_threshold: blacklist_threshold.max(1),
             cooldown_base_millis,
@@ -197,7 +201,11 @@ impl KeyPool {
     /// Build a pool for `channel` from a list of key fingerprints, applying
     /// `policy`. Order is preserved and defines the round-robin order.
     #[must_use]
-    pub fn new(channel: ProviderChannel, policy: PoolPolicy, fingerprints: Vec<KeyFingerprint>) -> Self {
+    pub fn new(
+        channel: ProviderChannel,
+        policy: PoolPolicy,
+        fingerprints: Vec<KeyFingerprint>,
+    ) -> Self {
         let slots = fingerprints
             .into_iter()
             .map(|fingerprint| KeySlot {
@@ -242,7 +250,9 @@ impl KeyPool {
             .iter()
             .filter(|slot| match slot.state {
                 KeyState::Active => true,
-                KeyState::Blacklisted { cooldown_until_millis } => now_unix_millis >= cooldown_until_millis,
+                KeyState::Blacklisted {
+                    cooldown_until_millis,
+                } => now_unix_millis >= cooldown_until_millis,
             })
             .count()
     }
@@ -267,7 +277,9 @@ impl KeyPool {
             let idx = (start + offset) % len;
             let restore = match self.slots[idx].state {
                 KeyState::Active => true,
-                KeyState::Blacklisted { cooldown_until_millis } => now_unix_millis >= cooldown_until_millis,
+                KeyState::Blacklisted {
+                    cooldown_until_millis,
+                } => now_unix_millis >= cooldown_until_millis,
             };
             if restore {
                 // Lazy restore: clear blacklist + failure history on re-entry.
@@ -305,7 +317,12 @@ impl KeyPool {
     /// runtime (e.g. low bits of a monotonic clock or an injected RNG). The
     /// kernel folds it into `[0, cooldown_jitter_millis]` deterministically so
     /// tests can pin exact cooldown windows.
-    pub fn record_failure(&mut self, id: KeyId, now_unix_millis: u64, jitter_seed: u64) -> Option<KeyState> {
+    pub fn record_failure(
+        &mut self,
+        id: KeyId,
+        now_unix_millis: u64,
+        jitter_seed: u64,
+    ) -> Option<KeyState> {
         let slot = self.slots.get_mut(id.0)?;
         slot.failure_count = slot.failure_count.saturating_add(1);
         if slot.failure_count >= self.policy.blacklist_threshold {
@@ -317,7 +334,9 @@ impl KeyPool {
             let cooldown_until_millis = now_unix_millis
                 .saturating_add(self.policy.cooldown_base_millis)
                 .saturating_add(jitter);
-            slot.state = KeyState::Blacklisted { cooldown_until_millis };
+            slot.state = KeyState::Blacklisted {
+                cooldown_until_millis,
+            };
         }
         Some(slot.state)
     }
@@ -352,16 +371,29 @@ mod tests {
 
     #[test]
     fn channel_roundtrips_through_str() {
-        for ch in [ProviderChannel::OpenAi, ProviderChannel::Anthropic, ProviderChannel::Gemini] {
+        for ch in [
+            ProviderChannel::OpenAi,
+            ProviderChannel::Anthropic,
+            ProviderChannel::Gemini,
+        ] {
             assert_eq!(ProviderChannel::parse(ch.as_str()), Some(ch));
         }
     }
 
     #[test]
     fn channel_parse_accepts_aliases_and_rejects_unknown() {
-        assert_eq!(ProviderChannel::parse("Codex"), Some(ProviderChannel::OpenAi));
-        assert_eq!(ProviderChannel::parse("CLAUDE"), Some(ProviderChannel::Anthropic));
-        assert_eq!(ProviderChannel::parse(" google "), Some(ProviderChannel::Gemini));
+        assert_eq!(
+            ProviderChannel::parse("Codex"),
+            Some(ProviderChannel::OpenAi)
+        );
+        assert_eq!(
+            ProviderChannel::parse("CLAUDE"),
+            Some(ProviderChannel::Anthropic)
+        );
+        assert_eq!(
+            ProviderChannel::parse(" google "),
+            Some(ProviderChannel::Gemini)
+        );
         assert_eq!(ProviderChannel::parse("mistral"), None);
     }
 
@@ -428,7 +460,12 @@ mod tests {
         pool.record_failure(id, 100, 999);
         let state = pool.record_failure(id, 100, 999).unwrap();
         // jitter disabled -> exactly base cooldown from now.
-        assert_eq!(state, KeyState::Blacklisted { cooldown_until_millis: 5100 });
+        assert_eq!(
+            state,
+            KeyState::Blacklisted {
+                cooldown_until_millis: 5100
+            }
+        );
     }
 
     #[test]
@@ -436,12 +473,22 @@ mod tests {
         let mut pool = pool_of(1, PoolPolicy::new(1, 1000, 10));
         // seed 7 -> 7 % 11 = 7 ms jitter on top of 1000 base from now=0.
         let state = pool.record_failure(KeyId(0), 0, 7).unwrap();
-        assert_eq!(state, KeyState::Blacklisted { cooldown_until_millis: 1007 });
+        assert_eq!(
+            state,
+            KeyState::Blacklisted {
+                cooldown_until_millis: 1007
+            }
+        );
 
         let mut pool2 = pool_of(1, PoolPolicy::new(1, 1000, 10));
         // seed 100 -> 100 % 11 = 1 ms jitter; always within [0, jitter_max].
         let state2 = pool2.record_failure(KeyId(0), 0, 100).unwrap();
-        assert_eq!(state2, KeyState::Blacklisted { cooldown_until_millis: 1001 });
+        assert_eq!(
+            state2,
+            KeyState::Blacklisted {
+                cooldown_until_millis: 1001
+            }
+        );
     }
 
     #[test]
@@ -449,7 +496,12 @@ mod tests {
         let mut pool = pool_of(2, PoolPolicy::new(1, 1000, 0));
         // Trip key 0 at t=0 -> cooldown until 1000.
         pool.record_failure(KeyId(0), 0, 0);
-        assert_eq!(pool.state_of(KeyId(0)), Some(KeyState::Blacklisted { cooldown_until_millis: 1000 }));
+        assert_eq!(
+            pool.state_of(KeyId(0)),
+            Some(KeyState::Blacklisted {
+                cooldown_until_millis: 1000
+            })
+        );
 
         // At t=500 only key 1 is selectable; repeated selects all land on 1.
         for _ in 0..4 {
@@ -501,7 +553,10 @@ mod tests {
     fn success_on_blacklisted_key_restores_it_immediately() {
         let mut pool = pool_of(1, PoolPolicy::new(1, 10_000, 0));
         pool.record_failure(KeyId(0), 0, 0);
-        assert!(matches!(pool.state_of(KeyId(0)), Some(KeyState::Blacklisted { .. })));
+        assert!(matches!(
+            pool.state_of(KeyId(0)),
+            Some(KeyState::Blacklisted { .. })
+        ));
         // An out-of-band success (e.g. a manual health probe) restores it.
         pool.record_success(KeyId(0));
         assert_eq!(pool.state_of(KeyId(0)), Some(KeyState::Active));

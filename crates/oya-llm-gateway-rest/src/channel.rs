@@ -125,7 +125,10 @@ mod tests {
     fn openai_injects_bearer_authorization() {
         let a = ChannelAdapter::new(ProviderChannel::OpenAi, "https://api.openai.com/", None);
         let headers = a.auth_headers("sk-xyz");
-        assert_eq!(headers, vec![("authorization", "Bearer sk-xyz".to_string())]);
+        assert_eq!(
+            headers,
+            vec![("authorization", "Bearer sk-xyz".to_string())]
+        );
     }
 
     #[test]
@@ -147,9 +150,16 @@ mod tests {
 
     #[test]
     fn anthropic_falls_back_to_default_version() {
-        let a = ChannelAdapter::new(ProviderChannel::Anthropic, "https://api.anthropic.com", None);
+        let a = ChannelAdapter::new(
+            ProviderChannel::Anthropic,
+            "https://api.anthropic.com",
+            None,
+        );
         let headers = a.auth_headers("ak-123");
-        assert_eq!(headers[1], ("anthropic-version", DEFAULT_ANTHROPIC_VERSION.to_string()));
+        assert_eq!(
+            headers[1],
+            ("anthropic-version", DEFAULT_ANTHROPIC_VERSION.to_string())
+        );
     }
 
     #[test]
@@ -166,8 +176,14 @@ mod tests {
     #[test]
     fn upstream_url_joins_with_single_slash() {
         let a = ChannelAdapter::new(ProviderChannel::OpenAi, "https://api.openai.com/", None);
-        assert_eq!(a.upstream_url("/v1/chat/completions"), "https://api.openai.com/v1/chat/completions");
-        assert_eq!(a.upstream_url("v1/models"), "https://api.openai.com/v1/models");
+        assert_eq!(
+            a.upstream_url("/v1/chat/completions"),
+            "https://api.openai.com/v1/chat/completions"
+        );
+        assert_eq!(
+            a.upstream_url("v1/models"),
+            "https://api.openai.com/v1/models"
+        );
         assert_eq!(a.upstream_url(""), "https://api.openai.com");
         assert_eq!(a.upstream_url("/"), "https://api.openai.com");
     }
@@ -187,14 +203,18 @@ mod tests {
 
     #[test]
     fn managed_headers_cover_each_dialect() {
-        assert!(ChannelAdapter::new(ProviderChannel::OpenAi, "https://x", None)
-            .managed_header_names()
-            .contains(&"authorization"));
+        assert!(
+            ChannelAdapter::new(ProviderChannel::OpenAi, "https://x", None)
+                .managed_header_names()
+                .contains(&"authorization")
+        );
         let anth = ChannelAdapter::new(ProviderChannel::Anthropic, "https://x", None);
         assert!(anth.managed_header_names().contains(&"x-api-key"));
         assert!(anth.managed_header_names().contains(&"anthropic-version"));
-        assert!(ChannelAdapter::new(ProviderChannel::Gemini, "https://x", None)
-            .managed_header_names()
-            .contains(&"x-goog-api-key"));
+        assert!(
+            ChannelAdapter::new(ProviderChannel::Gemini, "https://x", None)
+                .managed_header_names()
+                .contains(&"x-goog-api-key")
+        );
     }
 }

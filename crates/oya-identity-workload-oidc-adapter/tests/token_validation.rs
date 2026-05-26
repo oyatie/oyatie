@@ -11,10 +11,10 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use ring::rand::SystemRandom;
 use ring::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
 
+use oya_identity_workload_domain::WorkloadState;
 use oya_identity_workload_oidc_adapter::{
     Jwk, Jwks, OidcValidationError, ValidationConfig, validate_workload_token,
 };
-use oya_identity_workload_domain::WorkloadState;
 
 fn b64url(bytes: &[u8]) -> String {
     URL_SAFE_NO_PAD.encode(bytes)
@@ -31,7 +31,11 @@ fn mint(claims_json: &str, kid: &str) -> (String, Jwk) {
     let (x, y) = (&public[1..33], &public[33..65]);
 
     let header = format!(r#"{{"alg":"ES256","typ":"JWT","kid":"{kid}"}}"#);
-    let signing_input = format!("{}.{}", b64url(header.as_bytes()), b64url(claims_json.as_bytes()));
+    let signing_input = format!(
+        "{}.{}",
+        b64url(header.as_bytes()),
+        b64url(claims_json.as_bytes())
+    );
     let sig = key.sign(&rng, signing_input.as_bytes()).expect("sign");
     (
         format!("{signing_input}.{}", b64url(sig.as_ref())),

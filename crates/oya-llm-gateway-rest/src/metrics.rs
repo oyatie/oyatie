@@ -112,7 +112,8 @@ impl GatewayMetrics {
     /// Record a per-key upstream success (label is a hash, never the raw key).
     pub fn record_key_success(&self, group: &str, key_fp: &str) {
         if let Ok(mut map) = self.inner.key_success_total.lock() {
-            *map.entry((group.to_string(), key_fp.to_string())).or_insert(0) += 1;
+            *map.entry((group.to_string(), key_fp.to_string()))
+                .or_insert(0) += 1;
         }
         tracing::debug!(
             target: "oya_llm_gateway::metrics",
@@ -126,7 +127,8 @@ impl GatewayMetrics {
     /// Record a per-key upstream failure (label is a hash, never the raw key).
     pub fn record_key_failure(&self, group: &str, key_fp: &str) {
         if let Ok(mut map) = self.inner.key_failure_total.lock() {
-            *map.entry((group.to_string(), key_fp.to_string())).or_insert(0) += 1;
+            *map.entry((group.to_string(), key_fp.to_string()))
+                .or_insert(0) += 1;
         }
         tracing::debug!(
             target: "oya_llm_gateway::metrics",
@@ -199,7 +201,9 @@ impl GatewayMetrics {
             for ((group, key_fp), v) in map.iter() {
                 out.push_str(&format!(
                     "oya_llm_gateway_key_success_total{{group=\"{}\",key_fp=\"{}\"}} {}\n",
-                    esc(group), esc(key_fp), v
+                    esc(group),
+                    esc(key_fp),
+                    v
                 ));
             }
         }
@@ -210,18 +214,23 @@ impl GatewayMetrics {
             for ((group, key_fp), v) in map.iter() {
                 out.push_str(&format!(
                     "oya_llm_gateway_key_failure_total{{group=\"{}\",key_fp=\"{}\"}} {}\n",
-                    esc(group), esc(key_fp), v
+                    esc(group),
+                    esc(key_fp),
+                    v
                 ));
             }
         }
 
-        out.push_str("# HELP oya_llm_gateway_retries_total Failover next-key rotations performed.\n");
+        out.push_str(
+            "# HELP oya_llm_gateway_retries_total Failover next-key rotations performed.\n",
+        );
         out.push_str("# TYPE oya_llm_gateway_retries_total counter\n");
         if let Ok(map) = self.inner.retries_total.lock() {
             for (group, v) in map.iter() {
                 out.push_str(&format!(
                     "oya_llm_gateway_retries_total{{group=\"{}\"}} {}\n",
-                    esc(group), v
+                    esc(group),
+                    v
                 ));
             }
         }
@@ -247,7 +256,8 @@ impl GatewayMetrics {
             for (group, v) in map.iter() {
                 out.push_str(&format!(
                     "oya_llm_gateway_active_keys{{group=\"{}\"}} {}\n",
-                    esc(group), v
+                    esc(group),
+                    v
                 ));
             }
         }
