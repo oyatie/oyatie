@@ -2249,6 +2249,10 @@ name = "oya-check-mobile-native"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-no-grouping"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-olap-tier-discipline"
 version = "0.1.0"
 
@@ -3205,6 +3209,7 @@ dependencies = [
  "oya-check-license-policy",
  "oya-check-metric-cardinality",
  "oya-check-mobile-native",
+ "oya-check-no-grouping",
  "oya-check-olap-tier-discipline",
  "oya-check-ontology-projection-coverage",
  "oya-check-openapi-rest-route-parity",

@@ -19,6 +19,7 @@ use oya_check_mobile_native::{
     MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
     MobileNativeProductRecord, validate_mobile_native,
 };
+use oya_check_no_grouping::{GroupingArtifact, is_grouping_artifact, validate_no_grouping};
 use oya_check_vendor_lockin_discipline::{
     VendorLockinReport, parse_registry_json as parse_vendor_lockin_registry,
     validate_registry as validate_vendor_lockin_registry,
@@ -357,6 +358,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate cross-tenant-access-fuzz"
         + "\n       oya gate validate adr-citation [--docs-dir <docs>] [--decisions-dir <docs/decisions>] [--inheritance-registry <registry/adr/inherited-bominal-adrs.yaml>]"
         + "\n       oya gate validate brand-residue [--docs-dir <docs>]"
+        + "\n       oya gate validate no-grouping [--microservices-dir <specs/microservices>]"
         + "\n       oya gate validate api-semver [--contracts-dir <contracts>]"
         + "\n       oya gate validate supply-chain [--registry <registry/catalog>] [--deny <deny.toml>] [--check-script <scripts/check.sh>] [--adr0039-script <scripts/supply-chain-adr0039.sh>] [--adr0039-rust <crates/oya-dev-cli/src/commands/supply_chain.rs>] [--workflows-dir <.github/workflows>] [--release-images <registry/release/images.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--admission-policy <infra/kyverno/policies/require-signed-images.yaml>] [--require-adr0039-evidence]"
         + "\n       oya gate validate release-supply-chain [--release-images <registry/release/images.yaml>] [--evidence-dir <registry/release/supply-chain>] [--phase <pre-release|release>]"
@@ -1043,6 +1045,81 @@ fn validate_brand_residue_gate(args: BrandResidueValidateArgs) -> Result<(usize,
     let report = validate_brand_residue(documents)
         .map_err(|error| format!("brand residue invalid: {error:?}"))?;
     Ok((report.documents_checked, report.patterns_checked))
+}
+
+struct NoGroupingValidateArgs {
+    microservices_dir: PathBuf,
+}
+
+fn parse_no_grouping_validate_args(args: Vec<String>) -> Result<NoGroupingValidateArgs, String> {
+    let mut parsed = NoGroupingValidateArgs {
+        microservices_dir: PathBuf::from("specs/microservices"),
+    };
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
+        let Some(path) = iter.next() else {
+            return Err(usage());
+        };
+        match flag.as_str() {
+            "--microservices-dir" => parsed.microservices_dir = PathBuf::from(path),
+            _ => return Err(usage()),
+        }
+    }
+    Ok(parsed)
+}
+
+fn validate_no_grouping_gate(args: NoGroupingValidateArgs) -> Result<(usize, usize), String> {
+    let artifacts = read_grouping_artifacts(&args.microservices_dir)?;
+    let report = validate_no_grouping(artifacts).map_err(|error| {
+        format!("grouping artifact violates flat-only doctrine (ADR-0362): {error:?}")
+    })?;
+    Ok((report.artifacts_checked, report.retiring_wrappers))
+}
+
+// Discover grouping-shaped spec wrappers under `microservices_dir` and read each
+// `_meta.status` / `_meta.retirement_ref`. Tolerates an absent directory (no
+// microservice specs => no grouping artifacts => clean).
+fn read_grouping_artifacts(dir: &Path) -> Result<Vec<GroupingArtifact>, String> {
+    let mut out = Vec::new();
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(error) => {
+            return Err(format!(
+                "no-grouping: directory unreadable {}: {error}",
+                dir.display()
+            ));
+        }
+    };
+    for entry in entries {
+        let entry = entry.map_err(|error| format!("no-grouping: dir entry unreadable: {error}"))?;
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !path.is_file() || !is_grouping_artifact(name) {
+            continue;
+        }
+        let text = fs::read_to_string(&path)
+            .map_err(|error| format!("no-grouping: read {} failed: {error}", path.display()))?;
+        let value: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|error| format!("no-grouping: parse {} failed: {error}", path.display()))?;
+        let meta = value.get("_meta");
+        let status = meta
+            .and_then(|m| m.get("status"))
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_string);
+        let has_retirement_ref = meta
+            .and_then(|m| m.get("retirement_ref"))
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|s| !s.trim().is_empty());
+        out.push(GroupingArtifact {
+            file_name: name.to_string(),
+            status,
+            has_retirement_ref,
+        });
+    }
+    Ok(out)
 }
 
 fn read_brand_residue_documents(docs_dir: &Path) -> Result<Vec<BrandResidueDocument>, String> {

@@ -7,7 +7,8 @@
     "spec_id": "PRD-ENTERPRISE-SUITE",
     "version": "1.0.0",
     "audit": "industry-audit-2026-05-17:OP-11",
-    "status": "Accepted",
+    "status": "Deprecated",
+    "retirement_ref": "ADR-0362 (grouping retired, flat-only). Decomposition into flat HR / Payroll / Accounting µservices is owned by a future enterprise-product-council dissolution ADR (not yet authored — reserved to that authority per ADR-0132). This wrapper is a tombstone; it is NOT a live architecture artifact and binds nothing new.",
     "owner_team": "enterprise-product-council",
     "created_at": "2026-05-16T16:15:00Z",
     "purpose": "Enterprise suite PRD: native business operating system bundling HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops contracts."

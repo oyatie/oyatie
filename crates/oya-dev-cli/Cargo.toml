@@ -19,6 +19,7 @@ oya-foundry-architecture-map-app = { path = "../oya-foundry-architecture-map-app
 oya-foundry-api-semver-domain = { path = "../oya-foundry-api-semver-domain" }
 oya-check-authority-cohesion = { path = "../oya-check-authority-cohesion" }
 oya-check-brand-residue = { path = "../oya-check-brand-residue" }
+oya-check-no-grouping = { path = "../oya-check-no-grouping" }
 oya-foundry-bypass-domain = { path = "../oya-foundry-bypass-domain" }
 oya-foundry-cargo-prefix-domain = { path = "../oya-foundry-cargo-prefix-domain" }
 oya-foundry-catalog-domain = { path = "../oya-foundry-catalog-domain" }
