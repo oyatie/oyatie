@@ -6,17 +6,17 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 300,
-    "numbering": "ADR-0001..ADR-0363 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 301,
+    "numbering": "ADR-0001..ADR-0364 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0364",
+    "next_adr": "ADR-0365",
     "status_counts": {
-      "Accepted": 127,
+      "Accepted": 128,
       "Accepted (amendment)": 1,
       "Amended": 1,
-      "Proposed": 90,
+      "Proposed": 87,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
-      "Superseded": 4,
+      "Superseded": 7,
       "accepted": 39,
       "deprecated": 1,
       "proposed": 36
@@ -1071,12 +1071,12 @@
       "adr": "ADR-0110",
       "number": 110,
       "title": "Changeset state machine",
-      "status": "Proposed",
+      "status": "Superseded",
       "owner": "council-foundry-vcs",
       "date": "2026-05-16",
       "path": "decisions/ADR-0110-changeset-state-machine.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0363"],
       "related": ["ADR-0054", "ADR-0083", "ADR-0086"]
     },
     {
@@ -1095,24 +1095,24 @@
       "adr": "ADR-0112",
       "number": 112,
       "title": "Webhook-driven Foundry agent invocation",
-      "status": "Proposed",
+      "status": "Superseded",
       "owner": "council-foundry-vcs",
       "date": "2026-05-16",
       "path": "decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0363"],
       "related": ["ADR-0110", "ADR-0111", "ADR-0113", "ADR-0058"]
     },
     {
       "adr": "ADR-0113",
       "number": 113,
       "title": "VCS orchestrator (`oya vcs done`) end-to-end",
-      "status": "Proposed",
+      "status": "Superseded",
       "owner": "council-foundry-vcs",
       "date": "2026-05-16",
       "path": "decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0363"],
       "related": ["ADR-0110", "ADR-0111", "ADR-0112"]
     },
     {
@@ -3283,7 +3283,7 @@
       "owner": "council-architecture, axis-intelligence, axis-foundry",
       "date": "2026-05-21",
       "path": "decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md",
-      "supersedes": ["microservices/intelligence/PRD.md, microservices/intelligence/ARCHITECTURE.md, microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md, microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
+      "supersedes": ["microservices/foundry/PRD.md, microservices/foundry/ARCHITECTURE.md, microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md, microservices/foundry/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md"],
       "superseded_by": [],
       "related": ["ADR-0255", "ADR-0247", "ADR-0220", "ADR-0239", "ADR-0136", "ADR-0138", "ADR-0116", "ADR-0112", "ADR-0113", "ADR-0132", "ADR-0245", "ADR-0333", "ADR-0334", "ADR-0328"]
     },
@@ -3622,6 +3622,18 @@
       "supersedes": ["ADR-0110, ADR-0112, ADR-0113"],
       "superseded_by": [],
       "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0349", "ADR-0357", "ADR-0361", "ADR-0362"]
+    },
+    {
+      "adr": "ADR-0364",
+      "number": 364,
+      "title": "Generative ADR template; masterplan generated from the ADR log",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0364-generative-adr-template-and-masterplan-generation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0357", "ADR-0363", "ADR-0217", "ADR-0247"]
     }
   ]
 }
