@@ -490,6 +490,79 @@ fn dependency_seam_gate_rejects_strict_import_violation() {
 }
 
 #[test]
+fn dependency_blessed_allowlist_gate_reports_unblessed_dep_per_crate_without_failing() {
+    let temp = temp_dir("dependency-blessed-allowlist-report");
+    write_dependency_blessed_allowlist_fixture(&temp, true);
+    let report = temp.join("blessed-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_blessed_allowlist_args(&temp, &report, false))
+        .output()
+        .expect("dependency-blessed-allowlist gate command runs");
+
+    assert!(
+        output.status.success(),
+        "report-only must not fail; stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("offender-adapter")
+            && stdout.contains("sketchy-unblessed-crate")
+            && stdout.contains("crates/offender/Cargo.toml"),
+        "per-crate finding must name crate + dep + path; stdout={stdout}"
+    );
+    assert!(stdout.contains("report-only"));
+    assert!(report.exists(), "report should be emitted");
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn dependency_blessed_allowlist_gate_fails_under_enforce_on_unblessed_dep() {
+    let temp = temp_dir("dependency-blessed-allowlist-enforce");
+    write_dependency_blessed_allowlist_fixture(&temp, true);
+    let report = temp.join("blessed-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_blessed_allowlist_args(&temp, &report, true))
+        .output()
+        .expect("dependency-blessed-allowlist gate command runs");
+
+    assert!(!output.status.success(), "enforce must fail on unblessed dep");
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("unblessed direct dependencies"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn dependency_blessed_allowlist_gate_passes_under_enforce_when_all_blessed() {
+    let temp = temp_dir("dependency-blessed-allowlist-clean");
+    write_dependency_blessed_allowlist_fixture(&temp, false);
+    let report = temp.join("blessed-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_blessed_allowlist_args(&temp, &report, true))
+        .output()
+        .expect("dependency-blessed-allowlist gate command runs");
+
+    assert!(
+        output.status.success(),
+        "all-blessed crate must pass even under enforce; stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("0 unblessed findings"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn vendor_contract_recency_gate_accepts_explicit_no_signed_contracts_declaration() {
     let temp = temp_dir("vendor-contract-recency-empty");
     let ledger = write_vendor_contract_ledger(
@@ -4495,6 +4568,88 @@ fn dependency_seam_gate_args(root: &Path, report: &Path, severity: &str) -> Vec<
         "--emit-report".into(),
         report.to_str().expect("utf8 report").into(),
     ]
+}
+
+fn write_dependency_blessed_allowlist_fixture(root: &Path, include_offender: bool) {
+    fs::create_dir_all(root.join("crates/clean/src")).expect("clean dir created");
+    let mut members = vec!["\"crates/clean\"".to_string()];
+    // A clean crate: blessed workspace dep + an exempt oya-* path dep.
+    fs::write(
+        root.join("crates/clean/Cargo.toml"),
+        r#"[package]
+name = "clean-adapter"
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+[dependencies]
+tokio.workspace = true
+oya-kernel = { path = "../oya-kernel" }
+"#,
+    )
+    .expect("clean manifest written");
+    fs::write(
+        root.join("crates/clean/src/lib.rs"),
+        "pub fn clean() {}\n",
+    )
+    .expect("clean source written");
+
+    if include_offender {
+        fs::create_dir_all(root.join("crates/offender/src")).expect("offender dir created");
+        fs::write(
+            root.join("crates/offender/Cargo.toml"),
+            r#"[package]
+name = "offender-adapter"
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+[dependencies]
+tokio.workspace = true
+sketchy-unblessed-crate = "1"
+"#,
+        )
+        .expect("offender manifest written");
+        fs::write(
+            root.join("crates/offender/src/lib.rs"),
+            "pub fn offender() {}\n",
+        )
+        .expect("offender source written");
+        members.push("\"crates/offender\"".to_string());
+    }
+
+    fs::write(
+        root.join("Cargo.toml"),
+        format!(
+            "[workspace]\nmembers = [{}]\n[workspace.dependencies]\ntokio = \"1\"\n",
+            members.join(", ")
+        ),
+    )
+    .expect("workspace manifest written");
+
+    fs::create_dir_all(root.join("registry")).expect("registry dir created");
+    fs::write(
+        root.join("registry/dependency-blessed-allowlist.json"),
+        r#"{"blessed":{"tokio":{"rationale":"runtime"},"serde":{"rationale":"serialization"}}}
+"#,
+    )
+    .expect("blessed allowlist written");
+}
+
+fn dependency_blessed_allowlist_args(root: &Path, report: &Path, enforce: bool) -> Vec<String> {
+    let mut args = vec![
+        "gate".to_string(),
+        "validate".to_string(),
+        "dependency-blessed-allowlist".to_string(),
+        "--repo-root".to_string(),
+        root.to_str().expect("utf8 root").to_string(),
+        "--emit-report".to_string(),
+        report.to_str().expect("utf8 report").to_string(),
+    ];
+    if enforce {
+        args.push("--enforce".to_string());
+    } else {
+        args.push("--report-only".to_string());
+    }
+    args
 }
 
 fn dependency_seam_valid_evidence() -> &'static str {
