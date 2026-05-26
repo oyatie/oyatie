@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 306,
-    "numbering": "ADR-0001..ADR-0369 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 309,
+    "numbering": "ADR-0001..ADR-0372 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0370",
+    "next_adr": "ADR-0373",
     "status_counts": {
-      "Accepted": 133,
+      "Accepted": 136,
       "Accepted (amendment)": 1,
       "Amended": 1,
       "Proposed": 87,
@@ -3694,6 +3694,42 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0367", "ADR-0366", "ADR-0363", "ADR-0111", "ADR-0362"]
+    },
+    {
+      "adr": "ADR-0370",
+      "number": 370,
+      "title": "Local production-fidelity substrate — multi-node Talos on Apple Silicon",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0147", "ADR-0165", "ADR-0130", "ADR-0131", "ADR-0363", "ADR-0341"]
+    },
+    {
+      "adr": "ADR-0371",
+      "number": 371,
+      "title": "Secure control-plane access via Cloudflare Tunnel (L4) + Access",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0370", "ADR-0363", "ADR-0043", "ADR-0147"]
+    },
+    {
+      "adr": "ADR-0372",
+      "number": 372,
+      "title": "Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "path": "decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0013", "ADR-0023"]
     }
   ]
 }
