@@ -896,6 +896,10 @@ walkdir = "2"
 serde_yaml = "0.9"
 toml = "0.8"
 regex = "1"
+# Cedar authorization engine (AWS, Apache-2.0) — formally-verified default-deny +
+# forbid-overrides-permit policy evaluation. Isolated to the workload-authz adapter
+# per ADR-0183 (Cedar app-authz). See registry/dependency-rationales.json.
+cedar-policy = "4.11"
 
 # Workspace lints — DENY since 2026-05-15. Phase E1 promotion fully landed:
 # 128-warning cleanup arc + Tier 1 refactors at 7 production `.expect()` sites
