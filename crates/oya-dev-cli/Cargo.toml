@@ -15,14 +15,14 @@ oya-check-adr-index = { path = "../oya-check-adr-index" }
 oya-check-cedar-fragment-coverage = { path = "../oya-check-cedar-fragment-coverage" }
 oya-check-dependency-seam = { path = "../oya-check-dependency-seam" }
 oya-check-openapi-rest-route-parity = { path = "../oya-check-openapi-rest-route-parity" }
-oya-intelligence-architecture-map-app = { path = "../oya-intelligence-architecture-map-app" }
-oya-intelligence-api-semver-domain = { path = "../oya-intelligence-api-semver-domain" }
+oya-intelligence-architecture-map-app = { path = "../../microservices/intelligence/crates/oya-intelligence-architecture-map-app" }
+oya-intelligence-api-semver-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-api-semver-domain" }
 oya-check-authority-cohesion = { path = "../oya-check-authority-cohesion" }
 oya-check-brand-residue = { path = "../oya-check-brand-residue" }
 oya-check-no-grouping = { path = "../oya-check-no-grouping" }
-oya-intelligence-bypass-domain = { path = "../oya-intelligence-bypass-domain" }
-oya-intelligence-cargo-prefix-domain = { path = "../oya-intelligence-cargo-prefix-domain" }
-oya-intelligence-catalog-domain = { path = "../oya-intelligence-catalog-domain" }
+oya-intelligence-bypass-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-bypass-domain" }
+oya-intelligence-cargo-prefix-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-cargo-prefix-domain" }
+oya-intelligence-catalog-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-catalog-domain" }
 oya-governance-gate-catalog-domain = { path = "../oya-governance-gate-catalog-domain" }
 oya-check-claim-ceiling = { path = "../oya-check-claim-ceiling" }
 oya-check-codeowners-mirror = { path = "../oya-check-codeowners-mirror" }
@@ -34,7 +34,7 @@ oya-check-benchmark = { path = "../oya-check-benchmark" }
 oya-check-data-class = { path = "../oya-check-data-class" }
 oya-check-doc-catalog = { path = "../oya-check-doc-catalog" }
 oya-check-documentation-system = { path = "../oya-check-documentation-system" }
-oya-intelligence-evidence-file-adapter = { path = "../oya-intelligence-evidence-file-adapter" }
+oya-intelligence-evidence-file-adapter = { path = "../../microservices/intelligence/crates/oya-intelligence-evidence-file-adapter" }
 oya-check-glossary-coverage = { path = "../oya-check-glossary-coverage" }
 oya-check-glossary-vocabulary = { path = "../oya-check-glossary-vocabulary" }
 oya-check-honest-claims = { path = "../oya-check-honest-claims" }
@@ -54,8 +54,8 @@ oya-check-a11y-discipline = { path = "../oya-check-a11y-discipline" }
 oya-check-i18n-coverage = { path = "../oya-check-i18n-coverage" }
 oya-check-compliance-evidence-coverage = { path = "../oya-check-compliance-evidence-coverage" }
 oya-check-realtime-transport-tier = { path = "../oya-check-realtime-transport-tier" }
-oya-intelligence-mdbook-domain = { path = "../oya-intelligence-mdbook-domain" }
-oya-intelligence-openapi-domain = { path = "../oya-intelligence-openapi-domain" }
+oya-intelligence-mdbook-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-mdbook-domain" }
+oya-intelligence-openapi-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-openapi-domain" }
 oya-check-mobile-native = { path = "../oya-check-mobile-native" }
 oya-check-placeholder-debt = { path = "../oya-check-placeholder-debt" }
 oya-check-pre-push = { path = "../oya-check-pre-push" }
@@ -66,10 +66,10 @@ oya-check-raci-coverage = { path = "../oya-check-raci-coverage" }
 oya-check-readme-coverage = { path = "../oya-check-readme-coverage" }
 oya-check-release-pack = { path = "../oya-check-release-pack" }
 oya-check-retired-vocabulary = { path = "../oya-check-retired-vocabulary" }
-oya-intelligence-run-file-adapter = { path = "../oya-intelligence-run-file-adapter" }
+oya-intelligence-run-file-adapter = { path = "../../microservices/intelligence/crates/oya-intelligence-run-file-adapter" }
 oya-check-runbook-freshness = { path = "../oya-check-runbook-freshness" }
 oya-check-runbook-index = { path = "../oya-check-runbook-index" }
-oya-intelligence-run-domain = { path = "../oya-intelligence-run-domain" }
+oya-intelligence-run-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-run-domain" }
 oya-check-slo-coverage = { path = "../oya-check-slo-coverage" }
 oya-check-supply-chain = { path = "../oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../oya-check-typescript-workspace" }
@@ -91,8 +91,8 @@ oya-check-image-signing-discipline = { path = "../oya-check-image-signing-discip
 # ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture discipline.
 oya-check-layered-architecture-discipline = { path = "../oya-check-layered-architecture-discipline" }
 oya-check-client-stack-discipline = { path = "../oya-check-client-stack-discipline" }
-oya-intelligence-step-file-adapter = { path = "../oya-intelligence-step-file-adapter" }
-oya-intelligence-step-domain = { path = "../oya-intelligence-step-domain" }
+oya-intelligence-step-file-adapter = { path = "../../microservices/intelligence/crates/oya-intelligence-step-file-adapter" }
+oya-intelligence-step-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-step-domain" }
 oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
 oya-audit-chain-file-adapter = { path = "../oya-audit-chain-file-adapter" }
 oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }

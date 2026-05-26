@@ -12,7 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-account-kernel = { path = "../oya-intelligence-account-kernel" }
+oya-intelligence-account-kernel = { path = "../../microservices/intelligence/crates/oya-intelligence-account-kernel" }
 
 [lints]
 workspace = true

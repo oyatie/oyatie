@@ -7,16 +7,16 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-intelligence-adapter-domain = { path = "../oya-intelligence-adapter-domain" }
-oya-intelligence-bypass-domain = { path = "../oya-intelligence-bypass-domain" }
-oya-intelligence-capability-domain = { path = "../oya-intelligence-capability-domain" }
+oya-intelligence-adapter-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-adapter-domain" }
+oya-intelligence-bypass-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-bypass-domain" }
+oya-intelligence-capability-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-capability-domain" }
 oya-check-cost-budget = { path = "../oya-check-cost-budget" }
-oya-intelligence-evidence-domain = { path = "../oya-intelligence-evidence-domain" }
+oya-intelligence-evidence-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-evidence-domain" }
 oya-governance-eval-domain = { path = "../oya-governance-eval-domain" }
-oya-intelligence-mcp-gateway-domain = { path = "../oya-intelligence-mcp-gateway-domain" }
-oya-intelligence-policy-domain = { path = "../oya-intelligence-policy-domain" }
-oya-intelligence-run-domain = { path = "../oya-intelligence-run-domain" }
-oya-intelligence-step-domain = { path = "../oya-intelligence-step-domain" }
+oya-intelligence-mcp-gateway-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-mcp-gateway-domain" }
+oya-intelligence-policy-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-policy-domain" }
+oya-intelligence-run-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-run-domain" }
+oya-intelligence-step-domain = { path = "../../microservices/intelligence/crates/oya-intelligence-step-domain" }
 oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
 oya-cell-domain = { path = "../oya-cell-domain" }
 oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
