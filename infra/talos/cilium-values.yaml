@@ -1,0 +1,33 @@
+# Cilium CNI values for Talos. Talos sets cluster.network.cni.name=none + cluster.proxy.disabled=true
+# (see controlplane.patch.yaml), so Cilium provides BOTH the CNI and the kube-proxy replacement.
+# kube-proxy replacement targets the apiserver via KubePrism, exposed on localhost:7445 on every
+# Talos node. Sources: docs.siderolabs.com "Deploy Cilium CNI".
+# Install as ArgoCD sync-wave "0" — nothing else schedules until the CNI is Ready.
+ipam:
+  mode: kubernetes               # use node PodCIDRs from kube-controller-manager
+kubeProxyReplacement: true
+k8sServiceHost: localhost        # KubePrism in-cluster apiserver endpoint on every Talos node
+k8sServicePort: 7445
+cgroup:
+  autoMount:
+    enabled: false               # Talos already mounts cgroup2; Cilium must not remount
+  hostRoot: /sys/fs/cgroup
+securityContext:
+  capabilities:
+    # SYS_MODULE intentionally absent: Talos forbids workloads loading kernel modules.
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE

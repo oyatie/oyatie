@@ -1,0 +1,33 @@
+# Dex (OIDC provider) for Omni. Self-contained: one static admin login, no upstream IdP.
+# Swap the staticPasswords block for a Google/GitHub connector later if you want SSO.
+# issuer host + port must match Omni's --auth-oidc-provider-url (https://<AUTH_ENDPOINT>:5556).
+issuer: https://REPLACE_WITH_AUTH_ENDPOINT:5556
+
+storage:
+  type: sqlite3
+  config:
+    file: /var/dex/dex.db
+
+web:
+  https: 0.0.0.0:5556
+  tlsCert: /tls/cert.pem
+  tlsKey: /tls/key.pem
+
+oauth2:
+  skipApprovalScreen: true
+
+staticClients:
+  - id: omni
+    name: Omni
+    # MUST equal secrets/oidc-client-secret AND Omni's --auth-oidc-client-secret.
+    secret: REPLACE_WITH_OIDC_CLIENT_SECRET
+    redirectURIs:
+      - https://REPLACE_WITH_OMNI_ENDPOINT/oidc/callback
+
+enablePasswordDB: true
+staticPasswords:
+  # Generate hash:  htpasswd -bnBC 10 "" 'your-password' | tr -d ':\n' | sed 's/$2y/$2a/'
+  - email: "jason931225@gmail.com"
+    hash: "REPLACE_WITH_BCRYPT_HASH"
+    username: "jason"
+    userID: "00000000-0000-0000-0000-000000000001"
