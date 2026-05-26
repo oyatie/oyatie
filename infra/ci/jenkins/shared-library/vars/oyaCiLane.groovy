@@ -16,10 +16,26 @@ def call(Map cfg = [:]) {
   boolean isTrunk = (env.BRANCH_NAME in ['dev', 'main', 'staging', 'production'])
   String verifyMode = isTrunk ? '--ci-required' : "--affected --base ${cfg.base ?: 'dev'}"
 
+  // Branch-protection required status contexts (.github/branch-protection.yaml,
+  // kept in sync by the oya-governance-protection-context-match gate). Posted to
+  // the Forgejo Commit Status API (ADR-0363 substrate) so a PR merges on real
+  // green checks — retiring the enforce_admins-toggle admin-merge seam.
+  // (oya-pr-review is posted separately by the reviewer agent, not this lane.)
+  List requiredContexts = [
+    'cargo-fmt', 'cargo-check', 'cargo-clippy', 'cargo-nextest',
+    'oya-vcs-admission', 'oya-vcs-provider-execution',
+    'oya-governance-supply-chain', 'oya-governance-cohesion',
+    'oya-governance-api-semver', 'oya-governance-honest-claims',
+    'oya-governance-aspirational-enforcement', 'oya-governance-banned-primitives',
+    'oya-governance-protection-context-match', 'oya-governance-dependency-seam',
+  ]
+
   podTemplateForOya(label) {
     node(label) {
       container('rust') {
         stage("checkout: ${svc}") { checkout scm }
+        postForgeStatuses(requiredContexts, 'pending', 'oyaCiLane running')
+        try {
 
         // --- presubmit fail-fast (mandatory) -------------------------------
         stage('lint: fmt + clippy') {
@@ -74,6 +90,11 @@ def call(Map cfg = [:]) {
             sh 'cosign attest --yes --predicate target/provenance.intoto.json --type slsaprovenance "$IMAGE_DIGEST"'
           }
         }
+          postForgeStatuses(requiredContexts, 'success', 'oyaCiLane green')
+        } catch (err) {
+          postForgeStatuses(requiredContexts, 'failure', "oyaCiLane failed: ${err}")
+          throw err
+        }
       }
     }
   }
@@ -84,3 +105,23 @@ def podTemplateForOya(String label, Closure body) { body() }
 
 // Minimal `when` for scripted stages.
 def when(boolean cond, Closure body) { if (cond) body() }
+
+// --- Forgejo Commit Status API wiring (ADR-0363 substrate) -----------------
+// Posts a branch-protection required status context to the self-hosted Forgejo
+// instance. The token is a Jenkins string credential `forgejo-ci-token` (scope
+// write:repository); FORGE_API/FORGE_REPO are JCasC env with farm defaults.
+// This is the mechanism that gates PR merges on real green checks, retiring the
+// enforce_admins-toggle admin-merge seam.
+def postForgeStatus(String context, String state, String description) {
+  withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGE_TOKEN')]) {
+    String api  = env.FORGE_API  ?: 'http://forgejo.oya-forge.svc.cluster.local:3000/api/v1'
+    String repo = env.FORGE_REPO ?: 'oya-admin/oyatie'
+    String sha  = env.GIT_COMMIT
+    sh """curl -sf -X POST -H 'Authorization: token \$FORGE_TOKEN' -H 'Content-Type: application/json' \
+      ${api}/repos/${repo}/statuses/${sha} \
+      -d '{"context":"${context}","state":"${state}","description":"${description}"}' >/dev/null"""
+  }
+}
+def postForgeStatuses(List contexts, String state, String description) {
+  contexts.each { postForgeStatus(it, state, description) }
+}
