@@ -186,52 +186,18 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "axum"
-version = "0.7.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
-dependencies = [
- "async-trait",
- "axum-core 0.4.5",
- "bytes",
- "futures-util",
- "http",
- "http-body",
- "http-body-util",
- "hyper",
- "hyper-util",
- "itoa",
- "matchit 0.7.3",
- "memchr",
- "mime",
- "percent-encoding",
- "pin-project-lite",
- "rustversion",
- "serde",
- "serde_json",
- "serde_path_to_error",
- "serde_urlencoded",
- "sync_wrapper",
- "tokio",
- "tower",
- "tower-layer",
- "tower-service",
- "tracing",
-]
-
-[[package]]
-name = "axum"
 version = "0.8.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"
 dependencies = [
- "axum-core 0.5.6",
+ "axum-core",
  "bytes",
  "futures-util",
  "http",
  "http-body",
  "http-body-util",
  "itoa",
- "matchit 0.8.4",
+ "matchit",
  "memchr",
  "mime",
  "percent-encoding",
@@ -241,27 +207,6 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
-]
-
-[[package]]
-name = "axum-core"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09f2bd6146b97ae3359fa0cc6d6b376d9539582c7b4220f041a33ec24c226199"
-dependencies = [
- "async-trait",
- "bytes",
- "futures-util",
- "http",
- "http-body",
- "http-body-util",
- "mime",
- "pin-project-lite",
- "rustversion",
- "sync_wrapper",
- "tower-layer",
- "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -1684,12 +1629,6 @@ checksum = "d1525a2a28c7f4fa0fc98bb91ae755d1e2d1505079e05539e35bc876b5d65ae9"
 dependencies = [
  "regex-automata",
 ]
-
-[[package]]
-name = "matchit"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
 
 [[package]]
 name = "matchit"
@@ -5965,20 +5904,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-vcs-ast-index-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-kernel",
-]
-
-[[package]]
-name = "oya-vcs-changebundle-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-kernel",
-]
-
-[[package]]
 name = "oya-vcs-changeset-state-app"
 version = "0.1.0"
 dependencies = [
@@ -5991,57 +5916,8 @@ name = "oya-vcs-changeset-state-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-vcs-ci-fix-loop-dispatcher-app"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-kernel",
- "oya-intelligence-subagent-runtime-kernel",
- "oya-intelligence-subagent-runtime-usecase",
-]
-
-[[package]]
 name = "oya-vcs-cli-ratchet-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-vcs-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-vcs-lockstore-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-kernel",
-]
-
-[[package]]
-name = "oya-vcs-merge-queue-conflict-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-vcs-merge-queue-fix-loop-app"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-merge-queue-conflict-kernel",
- "oya-vcs-review-mergequeue-kernel",
-]
-
-[[package]]
-name = "oya-vcs-polyglot-indexer-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-ast-index-kernel",
- "oya-vcs-kernel",
-]
-
-[[package]]
-name = "oya-vcs-promotion-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-changebundle-kernel",
- "oya-vcs-kernel",
- "oya-vcs-test-standard-gate-kernel",
-]
 
 [[package]]
 name = "oya-vcs-provider-execution-gate-app"
@@ -6056,41 +5932,6 @@ name = "oya-vcs-provider-execution-gate-kernel"
 version = "0.1.0"
 dependencies = [
  "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-review-mergequeue-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-kernel",
-]
-
-[[package]]
-name = "oya-vcs-test-standard-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-kernel",
-]
-
-[[package]]
-name = "oya-vcs-webhook-receiver-app"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "clap",
- "oya-vcs-webhook-receiver-kernel",
- "serde",
- "serde_json",
- "serde_yaml",
- "tokio",
-]
-
-[[package]]
-name = "oya-vcs-webhook-receiver-kernel"
-version = "0.1.0"
-dependencies = [
- "hmac",
- "sha2",
 ]
 
 [[package]]
@@ -7178,17 +7019,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_path_to_error"
-version = "0.1.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a9ff822e371bb5403e391ecd83e182e0e77ba7f6fe0160b795797109d1b457"
-dependencies = [
- "itoa",
- "serde",
- "serde_core",
-]
-
-[[package]]
 name = "serde_qs"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7215,18 +7045,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6662b5879511e06e8999a8a235d848113e942c9124f211511b16466ee2995f26"
 dependencies = [
  "serde_core",
-]
-
-[[package]]
-name = "serde_urlencoded"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
-dependencies = [
- "form_urlencoded",
- "itoa",
- "ryu",
- "serde",
 ]
 
 [[package]]
@@ -7840,7 +7658,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac2a5518c70fa84342385732db33fb3f44bc4cc748936eb5833d2df34d6445ef"
 dependencies = [
  "async-trait",
- "axum 0.8.9",
+ "axum",
  "base64",
  "bytes",
  "h2",
