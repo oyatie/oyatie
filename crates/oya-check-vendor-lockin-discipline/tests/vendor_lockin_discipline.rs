@@ -60,7 +60,10 @@ fn real_registry_anthropic_api_has_multi_impl_seam() {
         anthropic
             .seam_adapter_trait
             .as_ref()
-            .is_some_and(|trait_path| trait_path.starts_with("crates/")),
+            .is_some_and(|trait_path| {
+                trait_path.starts_with("crates/")
+                    || trait_path.starts_with("microservices/")
+            }),
         "seam trait must point into the workspace"
     );
 }

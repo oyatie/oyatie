@@ -392,11 +392,11 @@
       "adoption_rationale": "Frontier-class LLM access for foundry providers; in-house substrate (ADR-0026) not at parity yet. ADR-0020 multi-provider adapter model.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "human-eval >= 95% on internal benchmark suite + tool-use parity + per-second-token throughput parity at target cost",
-      "seam_adapter_trait": "crates/oya-intelligence-adapter-anthropic-api-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-kernel",
       "seam_adapter_impls": [
-        "crates/oya-intelligence-adapter-anthropic-api-adapter",
-        "crates/oya-intelligence-adapter-openai-api-adapter",
-        "crates/oya-intelligence-adapter-gemini-api-adapter"
+        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -408,11 +408,11 @@
       "adoption_rationale": "OAuth/subscription auth path (Claude Code); ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "crates/oya-intelligence-adapter-anthropic-subscription-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-kernel",
       "seam_adapter_impls": [
-        "crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "crates/oya-intelligence-adapter-openai-subscription-adapter",
-        "crates/oya-intelligence-adapter-gemini-subscription-adapter"
+        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -424,11 +424,11 @@
       "adoption_rationale": "Frontier-class LLM access; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "crates/oya-intelligence-adapter-openai-api-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-kernel",
       "seam_adapter_impls": [
-        "crates/oya-intelligence-adapter-openai-api-adapter",
-        "crates/oya-intelligence-adapter-anthropic-api-adapter",
-        "crates/oya-intelligence-adapter-gemini-api-adapter"
+        "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -440,11 +440,11 @@
       "adoption_rationale": "Codex subscription auth path; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "crates/oya-intelligence-adapter-openai-subscription-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-kernel",
       "seam_adapter_impls": [
-        "crates/oya-intelligence-adapter-openai-subscription-adapter",
-        "crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "crates/oya-intelligence-adapter-gemini-subscription-adapter"
+        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -456,11 +456,11 @@
       "adoption_rationale": "Frontier-class LLM access; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "crates/oya-intelligence-adapter-gemini-api-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-kernel",
       "seam_adapter_impls": [
-        "crates/oya-intelligence-adapter-gemini-api-adapter",
-        "crates/oya-intelligence-adapter-anthropic-api-adapter",
-        "crates/oya-intelligence-adapter-openai-api-adapter"
+        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -472,11 +472,11 @@
       "adoption_rationale": "Subscription auth path; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "crates/oya-intelligence-adapter-gemini-subscription-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-kernel",
       "seam_adapter_impls": [
-        "crates/oya-intelligence-adapter-gemini-subscription-adapter",
-        "crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "crates/oya-intelligence-adapter-openai-subscription-adapter"
+        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
+        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },

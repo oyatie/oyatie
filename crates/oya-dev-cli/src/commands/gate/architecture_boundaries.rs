@@ -433,8 +433,28 @@ fn validate_packages(
         let relative_parent = relative_path(manifest_parent, repo_root);
         let crates_parent = PathBuf::from("crates").join(&package.name);
         let tools_parent = PathBuf::from("tools").join(&package.name);
+        // Derive the microservices nested path: microservices/<ms>/crates/<name>
+        // where <ms> is inferred as the first segment of the crate name after "oya-" prefix.
+        // e.g. oya-intelligence-api -> microservices/intelligence/crates/oya-intelligence-api
+        let ms_nested_parent = package
+            .name
+            .strip_prefix("oya-")
+            .and_then(|rest| rest.split('-').next())
+            .map(|ms| {
+                PathBuf::from("microservices")
+                    .join(ms)
+                    .join("crates")
+                    .join(&package.name)
+            });
         let parent_matches = match &relative_parent {
-            Some(rel) => rel == &crates_parent || rel == &tools_parent,
+            Some(rel) => {
+                rel == &crates_parent
+                    || rel == &tools_parent
+                    || ms_nested_parent
+                        .as_ref()
+                        .map(|p| rel == p)
+                        .unwrap_or(false)
+            }
             None => false,
         };
         if !parent_matches {
@@ -1124,5 +1144,26 @@ mod tests {
     #[test]
     fn full_self_test_passes() {
         run_self_test().expect("self-test cases all pass");
+    }
+
+    #[test]
+    fn microservices_nested_crate_path_passes() {
+        // ADR-0357: microservices/<ms>/crates/<name> is a valid workspace member location.
+        let (mut pkg, rec) = fixture_package("oya-intelligence-api", "api", &[], "crates");
+        // Override the manifest path to the new nested location.
+        pkg.manifest_path = fixture_repo_root()
+            .join("microservices")
+            .join("intelligence")
+            .join("crates")
+            .join("oya-intelligence-api")
+            .join("Cargo.toml");
+        let packages = vec![pkg];
+        let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            errors.is_empty(),
+            "microservices/intelligence/crates/oya-intelligence-api should pass: {errors:?}"
+        );
     }
 }

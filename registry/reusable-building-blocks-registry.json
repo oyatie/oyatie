@@ -342,7 +342,7 @@
     {
       "block_id": "SettingsTemplate",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-intelligence-settings-template-kernel/src/lib.rs",
+      "canonical_path": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel/src/lib.rs",
       "canonical_symbol": "SettingsTemplate",
       "version": "1.0.0",
       "purpose_short": "Sealed port trait for per-account settings file generation. Implementors produce provider-specific config from AccountRow + template. Consumers: oya-intelligence-supervisor-app, M03+ Workflow Studio settings adapters.",
@@ -352,8 +352,8 @@
       "replacement_block_id": null,
       "owner_team": "axis-foundry",
       "consumer_refs": [
-        "crates/oya-intelligence-supervisor-app/src/main.rs",
-        "crates/oya-intelligence-settings-template-adapter/src/lib.rs"
+        "microservices/intelligence/crates/oya-intelligence-supervisor-app/src/main.rs",
+        "microservices/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs"
       ],
       "consumer_selectors": [],
       "consumer_count_listed": 2
@@ -361,7 +361,7 @@
     {
       "block_id": "SettingsRenderer",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-intelligence-settings-template-kernel/src/lib.rs",
+      "canonical_path": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel/src/lib.rs",
       "canonical_symbol": "SettingsRenderer",
       "version": "1.0.0",
       "purpose_short": "Sealed port trait for drift detection + reconciliation of rendered settings files. Uses blake3 content hashing for idempotent re-render. Reads secrets via SecretStorePort. Consumers: oya-intelligence-supervisor-app, oya-intelligence-settings-template-adapter.",
@@ -371,8 +371,8 @@
       "replacement_block_id": null,
       "owner_team": "axis-foundry",
       "consumer_refs": [
-        "crates/oya-intelligence-supervisor-app/src/main.rs",
-        "crates/oya-intelligence-settings-template-adapter/src/lib.rs"
+        "microservices/intelligence/crates/oya-intelligence-supervisor-app/src/main.rs",
+        "microservices/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs"
       ],
       "consumer_selectors": [],
       "consumer_count_listed": 2
@@ -380,7 +380,7 @@
     {
       "block_id": "HookEvent",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-intelligence-settings-template-kernel/src/lib.rs",
+      "canonical_path": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel/src/lib.rs",
       "canonical_symbol": "HookEvent",
       "version": "1.0.0",
       "purpose_short": "Sealed enum/trait for supervisor hook lifecycle events (SessionStart, SessionEnd, TickComplete, DriftDetected). Consumed by all 3 driver impls (claude, codex, gemini) and settings-template-adapter for event-driven reconciliation.",
@@ -390,8 +390,8 @@
       "replacement_block_id": null,
       "owner_team": "axis-foundry",
       "consumer_refs": [
-        "crates/oya-intelligence-supervisor-kernel/src/lib.rs",
-        "crates/oya-intelligence-settings-template-adapter/src/lib.rs",
+        "microservices/intelligence/crates/oya-intelligence-supervisor-kernel/src/lib.rs",
+        "microservices/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs",
         "crates/oya-foundry-account-adapter-claude-code/src/lib.rs",
         "crates/oya-foundry-account-adapter-codex/src/lib.rs",
         "crates/oya-foundry-account-adapter-gemini/src/lib.rs"
@@ -402,7 +402,7 @@
     {
       "block_id": "McpServerRef",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-intelligence-settings-template-kernel/src/lib.rs",
+      "canonical_path": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel/src/lib.rs",
       "canonical_symbol": "McpServerRef",
       "version": "1.0.0",
       "purpose_short": "Value type referencing an MCP server (id, transport, endpoint) for per-account settings wiring. Used by settings-template-adapter to inject MCP server config into rendered files. Consumers reference via sref:// for endpoint secrets per ADR-0067.",
@@ -412,7 +412,7 @@
       "replacement_block_id": null,
       "owner_team": "axis-foundry",
       "consumer_refs": [
-        "crates/oya-intelligence-settings-template-adapter/src/lib.rs",
+        "microservices/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs",
         "crates/oya-foundry-account-adapter-openbao/src/lib.rs"
       ],
       "consumer_selectors": [],
