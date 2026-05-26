@@ -283,11 +283,8 @@ fn git_push_current_branch() -> Result<(), String> {
 }
 
 fn oya_git_command() -> Result<Command, String> {
-    let executable = std::env::current_exe()
-        .map_err(|error| format!("could not resolve current oya executable: {error}"))?;
-    let mut command = Command::new(executable);
-    command.arg("git");
-    Ok(command)
+    // PR-3 / ADR-0363: the `oya git` wrapper is retired — use plain `git`.
+    Ok(Command::new("git"))
 }
 
 fn oya_git_output(args: &[&str]) -> Result<std::process::Output, String> {

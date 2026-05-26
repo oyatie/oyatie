@@ -10,16 +10,16 @@ Manual Wave-B bootstrap note (prose only): until the webhook receiver is deploye
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
-  - oya-git
-  - oya-vcs
-  - oya-vcs-admission
+  - git
+  - oya-gate
+  - oya-verify
 required_sequence:
-  - oya vcs claim --agent <id> --intent "<slice>" <file::Identifier>
-  - oya vcs verify --agent <id> --changeset <id>
-  - oya vcs done --agent <id> --changeset <id>
-  - oya vcs promote --changeset <id>
+  - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
+  - commit and push on that lane
+  - open a PR against dev               # enters the governance pipeline
+  - Jenkins CI + oya gate run-all + reviewer APPROVE gate merge readiness
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-retirement_note: external agent-coordination tools are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. `oya git <git-subcommand>` is the git drop-in surface; Oya VCS remains the compatibility policy-ratchet spelling for claim / verify / done / promote until those policy verbs split explicitly.
+  adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
+retirement_note: the `oya git` wrapper and the `oya vcs` ratchet (claim/verify/done/promote) are RETIRED per ADR-0363. Coordination rides plain `git` + a PR against `dev` + Jenkins CI + governance gates; self-hosted Forgejo required-checks/auto-merge is the substrate target. `oya` is a governance-gate engine only (`oya gate`, `oya verify`).
 <!-- agent-instructions:end -->
