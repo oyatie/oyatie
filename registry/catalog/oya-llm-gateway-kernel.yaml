@@ -1,0 +1,16 @@
+context: llm-gateway
+role: kernel
+capability: llm-key-pool-state-machine
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
+  source_adrs: [ADR-0105, ADR-0131]
+non_claims:
+  - pure round-robin key-pool selection plus failure-count blacklist, jittered cooldown, success-reset, and provider-channel enum only
+  - no HTTP listener, network I/O, async runtime, clock read, randomness source, secret material, prompt/response handling, or cloud provisioning claim

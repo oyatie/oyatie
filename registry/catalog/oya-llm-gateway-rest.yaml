@@ -1,0 +1,17 @@
+context: llm-gateway
+role: rest
+capability: llm-agent-dispatch-reverse-proxy
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
+  source_adrs: [ADR-0105, ADR-0131]
+non_claims:
+  - axum reverse-proxy adapter that streams upstream SSE byte-for-byte, injects per-provider auth headers, rotates pooled keys on a configurable retry-status set, and exposes hash-only logs plus a Prometheus registry
+  - keys are sourced from OpenBao KV v2 at startup and on periodic refresh; the gateway reads no plaintext provider key from file or env, only the BAO token
+  - no production deployment, daemonized listener readiness, persistence, tenant-runtime, prompt/response body parsing or logging, or cloud provisioning claim

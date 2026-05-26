@@ -1,0 +1,81 @@
+[package]
+name = "oya-llm-gateway-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# REST / adapter layer (ADR-0105 Layer 5) for the agent-dispatch gateway.
+#
+# This is the I/O-bearing reverse proxy. It owns: the axum app, the per-
+# provider channel adapters (auth-header injection + upstream base URL), the
+# OpenBao-sourced key store, the failover/retry loop over the pure
+# `oya-llm-gateway-kernel` state machine, the two constant-time auth realms,
+# Prometheus metrics, and hash-only structured logging.
+#
+# Hyperscaler-blessed deps only (dependency-seam memory + the
+# "would a hyperscaler use this dependency?" criterion from
+# docs/ideas/llm-gateway-best-of-both.md). Blessed/in-tree set:
+#   tokio, axum, tower, hyper, hyper-util, hyper-rustls, http-body-util,
+#   tracing, serde/serde_json, ring (crypto), bytes, futures-util.
+#
+# The upstream HTTP client is built DIRECTLY on hyper 1.x via
+# `hyper-util`'s `client::legacy::Client` over a `hyper-rustls` HTTPS
+# connector (ring backend, webpki trust roots — TLS stays in-process with
+# no OpenSSL/native-cert system dependency). reqwest was DROPPED: a
+# hyperscaler builds a hot-path streaming proxy on hyper, not the heavier
+# reqwest convenience wrapper (and the pinned `reqwest = "0.13"` never
+# existed). The upstream response body (`hyper::body::Incoming`) is streamed
+# straight into the axum response (TRUE SSE passthrough; bodies are never
+# buffered, parsed, or logged).
+#
+# Crypto is consolidated on `ring` (constant-time compare + SHA-256);
+# `subtle`/`sha2`/`hmac` were dropped. `aes-gcm`/`pbkdf2` and the local
+# encrypt-at-rest path were dropped — OpenBao owns encryption-at-rest. The
+# raw `prometheus` dep was dropped; metrics flow through the existing
+# tracing/OTel path (see metrics.rs TODO).
+[dependencies]
+oya-llm-gateway-kernel = { path = "../oya-llm-gateway-kernel" }
+
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync", "time"] }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+hyper = { version = "1", default-features = false, features = ["server", "client", "http1"] }
+# Upstream client: hyper-util legacy client (connection pooling) + a rustls
+# HTTPS connector. `ring` keeps a single vetted crypto base (no aws-lc-rs);
+# `webpki-tokio` supplies bundled trust roots (no native-cert dependency).
+hyper-util = { version = "0.1", default-features = false, features = ["client-legacy", "http1", "tokio"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "ring", "webpki-tokio", "tls12"] }
+http-body-util = { version = "0.1", default-features = false }
+bytes = { version = "1", default-features = false }
+futures-util = { version = "0.3", default-features = false }
+tracing = { version = "0.1", default-features = false, features = ["std", "attributes"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["std", "fmt", "json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Single vetted crypto base (blessed, already in the workspace lock graph):
+# `ring::constant_time` for constant-time auth compare and `ring::digest`
+# SHA-256 for hash-only key fingerprints. Replaces subtle + sha2 + hmac.
+ring = { version = "0.17", default-features = false }
+
+[dev-dependencies]
+# E2E proxy test harness: a localhost mock upstream + a minimal hyper-based
+# client driving the gateway (reqwest is intentionally NOT reintroduced).
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync", "time", "io-util"] }
+hyper = { version = "1", default-features = false, features = ["client", "http1"] }
+hyper-util = { version = "0.1", default-features = false, features = ["client-legacy", "http1", "tokio"] }
+http-body-util = { version = "0.1", default-features = false }
+bytes = { version = "1", default-features = false }
+
+[lib]
+name = "oya_llm_gateway_rest"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-llm-gateway-rest"
+path = "src/main.rs"
+
+[lints]
+workspace = true
