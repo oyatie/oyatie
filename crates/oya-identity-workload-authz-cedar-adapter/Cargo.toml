@@ -9,6 +9,7 @@ description = "Cedar authorization gate for workload identities: evaluates PARC 
 
 [dependencies]
 oya-identity-workload-domain = { path = "../oya-identity-workload-domain" }
+cedar-policy = { workspace = true }
 
 [lib]
 name = "oya_identity_workload_authz_cedar_adapter"
