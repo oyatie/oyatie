@@ -5885,7 +5885,7 @@ fn protection_context_match_gate_catches_applied_branch_protection_drift() {
     let applied_config = temp.join("dev.json");
     fs::write(
         &applied_config,
-        r#"{"required_status_checks":{"contexts":["cargo-fmt","oya-governance-protection-context-match"]}}"#,
+        r#"{"required_status_checks":{"contexts":["cargo-fmt","stale-applied-check"]}}"#,
     )
     .expect("applied config written");
 
@@ -5924,9 +5924,7 @@ fn protection_context_match_gate_catches_applied_branch_protection_drift() {
         "stderr must name the missing new context; got: {stderr}"
     );
     assert!(
-        stderr.contains(
-            "extra in applied branch-protection config: oya-governance-protection-context-match"
-        ),
+        stderr.contains("extra in applied branch-protection config: stale-applied-check"),
         "stderr must name the stale old context; got: {stderr}"
     );
 
@@ -7112,7 +7110,7 @@ fn aspirational_enforcement_gate_rejects_missing_required_workflow() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9001.md"),
-        "required check: oya-governance-missing\n",
+        "required check: oya-governance-lane-only\n",
     )
     .expect("doc written");
 
@@ -7153,7 +7151,7 @@ fn aspirational_enforcement_gate_rejects_negated_advisory_required_claim() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9008.md"),
-        "required check: oya-governance-missing is active, not advisory\n",
+        "required check: oya-governance-lane-only is active, not advisory\n",
     )
     .expect("doc written");
 
@@ -7276,7 +7274,7 @@ fn aspirational_enforcement_gate_rejects_unindented_multiline_required_check() {
     let fixture = write_aspirational_fixture(temp.path());
     fs::write(
         fixture.docs.join("ADR-9011.md"),
-        "required check:\n- oya-governance-missing\n",
+        "required check:\n- oya-governance-lane-only\n",
     )
     .expect("doc written");
 
@@ -7823,6 +7821,14 @@ fn aspirational_enforcement_gate_rejects_active_quality_lane_without_workflow() 
 fn aspirational_enforcement_gate_rejects_workflow_without_quality_lane() {
     let temp = TempDirGuard::new("aspirational-workflow-only");
     let fixture = write_aspirational_fixture(temp.path());
+    // Declare oya-governance-workflow-only (so it is validated, not advisory per
+    // ADR-0362(a)) but leave it status:proposed so it is NOT an active quality
+    // lane -> the workflow-backed binding claim must flag MissingQualityLane.
+    fs::write(
+        &fixture.quality_lanes,
+        "lanes:\n  - id: oya-governance-real\n    status: active\n  - id: oya-governance-workflow-only\n    status: proposed\n",
+    )
+    .expect("quality lanes rewritten");
     fs::write(
         fixture.workflows.join("oya-governance-workflow-only.yml"),
         "name: oya-governance-workflow-only\njobs:\n  oya-governance-workflow-only:\n    name: oya-governance-workflow-only\n",
