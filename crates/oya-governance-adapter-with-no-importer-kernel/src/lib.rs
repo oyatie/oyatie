@@ -115,9 +115,9 @@ fn is_importer_crate(name: &str) -> bool {
 /// `-adapter` segment (and any variant suffix that follows).
 ///
 /// Examples:
-/// - `oya-intelligence-account-adapter-inmemory` -> `oya-foundry-account`
+/// - `oya-intelligence-account-adapter-inmemory` -> `oya-intelligence-account`
 /// - `oya-cloud-billing-adapter-aws` -> `oya-cloud-billing`
-/// - `oya-intelligence-claude-account-adapter` -> `oya-foundry-claude-account`
+/// - `oya-intelligence-claude-account-adapter` -> `oya-intelligence-claude-account`
 fn adapter_base(name: &str) -> Option<String> {
     if let Some(prefix) = name.strip_suffix("-adapter") {
         return Some(prefix.to_string());
@@ -202,7 +202,7 @@ mod tests {
     fn accepts_adapter_with_matching_importer() {
         let report = check(&[
             krate("oya-intelligence-claude-account-adapter"),
-            krate("oya-foundry-claude-account-importer-supervisor"),
+            krate("oya-intelligence-claude-account-importer-supervisor"),
         ]);
         assert!(report.is_clean(), "expected no violations, got {report:?}");
         assert_eq!(report.adapters_checked, 1);
@@ -227,7 +227,7 @@ mod tests {
     fn variant_suffixed_adapter_matches_base_importer() {
         let report = check(&[
             krate("oya-intelligence-account-adapter-inmemory"),
-            krate("oya-foundry-account-importer-supervisor"),
+            krate("oya-intelligence-account-importer-supervisor"),
         ]);
         assert!(report.is_clean(), "{report:?}");
     }
@@ -281,7 +281,7 @@ mod tests {
         for name in [
             "oya-cloud-billing-adapter-aws",           // orphan: no importer
             "oya-intelligence-claude-account-adapter", // matched by importer below
-            "oya-foundry-claude-account-importer-supervisor",
+            "oya-intelligence-claude-account-importer-supervisor",
             "oya-intelligence-supervisor-kernel", // ignored: not an adapter
         ] {
             let dir = root.join(name);
