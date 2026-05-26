@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 300
-- **Numbering:** ADR-0001..ADR-0363 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0364
-- **Status counts:** Accepted 127, Accepted (amendment) 1, Amended 1, Proposed 90, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 4, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 301
+- **Numbering:** ADR-0001..ADR-0364 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0365
+- **Status counts:** Accepted 128, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 7, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -108,10 +108,10 @@ doc_status: published
 | ADR-0107 | Superseded | `tools/` directory canonical-suffix binding (was: implicit `app` layer — superseded) | council-architecture | [`ADR-0107-tools-implicit-app-convention.md`](decisions/ADR-0107-tools-implicit-app-convention.md) |
 | ADR-0108 | Accepted | Sunset → deprecation → removal lifecycle automation schema (machine-readable) | council-architecture | [`ADR-0108-sunset-lifecycle-automation.md`](decisions/ADR-0108-sunset-lifecycle-automation.md) |
 | ADR-0109 | Accepted | Lifecycle-automation framework (generic kernel + per-lifecycle configs) | council-architecture | [`ADR-0109-lifecycle-automation-framework.md`](decisions/ADR-0109-lifecycle-automation-framework.md) |
-| ADR-0110 | Proposed | Changeset state machine | council-foundry-vcs | [`ADR-0110-changeset-state-machine.md`](decisions/ADR-0110-changeset-state-machine.md) |
+| ADR-0110 | Superseded | Changeset state machine | council-foundry-vcs | [`ADR-0110-changeset-state-machine.md`](decisions/ADR-0110-changeset-state-machine.md) |
 | ADR-0111 | Proposed | Merge queue: projected-merge-state + fix-at-any-stage | council-foundry-vcs | [`ADR-0111-merge-queue-projected-state-fix-at-any-stage.md`](decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md) |
-| ADR-0112 | Proposed | Webhook-driven Foundry agent invocation | council-foundry-vcs | [`ADR-0112-webhook-driven-foundry-agent-invocation.md`](decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md) |
-| ADR-0113 | Proposed | VCS orchestrator (`oya vcs done`) end-to-end | council-foundry-vcs | [`ADR-0113-vcs-orchestrator-end-to-end.md`](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) |
+| ADR-0112 | Superseded | Webhook-driven Foundry agent invocation | council-foundry-vcs | [`ADR-0112-webhook-driven-foundry-agent-invocation.md`](decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md) |
+| ADR-0113 | Superseded | VCS orchestrator (`oya vcs done`) end-to-end | council-foundry-vcs | [`ADR-0113-vcs-orchestrator-end-to-end.md`](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) |
 | ADR-0114 | Proposed | Canary observability gate + rollback | council-foundry-vcs | [`ADR-0114-canary-observability-rollback.md`](decisions/ADR-0114-canary-observability-rollback.md) |
 | ADR-0115 | Accepted | Registry consolidation: flat singular `registry/` | council-architecture | [`ADR-0115-registry-consolidation-flat-singular.md`](decisions/ADR-0115-registry-consolidation-flat-singular.md) |
 | ADR-0116 | accepted | Retire external agent-coordination tooling (grit, rtk, icm, vox) in favour of the Foundry pipeline | council-architecture + foundry-vcs | [`ADR-0116-retire-external-agent-coordination-tooling.md`](decisions/ADR-0116-retire-external-agent-coordination-tooling.md) |
@@ -321,11 +321,12 @@ doc_status: published
 | ADR-0361 | Proposed | Execute the Jenkins-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0361-jenkins-native-cicd-revamp-execution.md`](decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md) |
 | ADR-0362 | Accepted | Full grouping retirement (flat-only catalog) | council-architecture | [`ADR-0362-full-grouping-retirement-flat-only-catalog.md`](decisions/ADR-0362-full-grouping-retirement-flat-only-catalog.md) |
 | ADR-0363 | Accepted | Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine | council-architecture | [`ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md`](decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md) |
+| ADR-0364 | Accepted | Generative ADR template; masterplan generated from the ADR log | council-architecture | [`ADR-0364-generative-adr-template-and-masterplan-generation.md`](decisions/ADR-0364-generative-adr-template-and-masterplan-generation.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0364), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0365), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -352,6 +353,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 300 ADR files (sorted ascending)
+- `decisions/` directory listing — 301 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
