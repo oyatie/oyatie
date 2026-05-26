@@ -107,13 +107,13 @@ impl KeyFingerprint {
 pub struct PoolPolicy {
     /// Consecutive failures that trip a key from active → blacklisted.
     /// Must be >= 1 (a value of 0 is clamped to 1 at construction).
-    pub blacklist_threshold: u32,
+    pub blacklist_threshold: u32, // data_class: INTERNAL_ONLY
     /// Base cooldown duration (milliseconds) applied when a key is
     /// blacklisted, before any jitter is added.
-    pub cooldown_base_millis: u64,
+    pub cooldown_base_millis: u64, // data_class: INTERNAL_ONLY
     /// Maximum extra jitter (milliseconds) added on top of the base cooldown.
     /// `0` disables jitter (cooldown is exactly `cooldown_base_millis`).
-    pub cooldown_jitter_millis: u64,
+    pub cooldown_jitter_millis: u64, // data_class: INTERNAL_ONLY
 }
 
 impl PoolPolicy {
@@ -150,16 +150,16 @@ pub enum KeyState {
     /// at which point selection lazily restores it to [`KeyState::Active`].
     Blacklisted {
         /// Absolute timestamp (caller's clock, ms) when cooldown expires.
-        cooldown_until_millis: u64,
+        cooldown_until_millis: u64, // data_class: INTERNAL_ONLY
     },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct KeySlot {
-    fingerprint: KeyFingerprint,
-    state: KeyState,
+    fingerprint: KeyFingerprint, // data_class: INTERNAL_ONLY
+    state: KeyState,             // data_class: INTERNAL_ONLY
     /// Consecutive failures since the last success / restore.
-    failure_count: u32,
+    failure_count: u32, // data_class: INTERNAL_ONLY
 }
 
 /// A round-robin pool of API keys for a single [`ProviderChannel`].
@@ -174,10 +174,10 @@ struct KeySlot {
 /// race-free to reason about and to test.
 #[derive(Debug)]
 pub struct KeyPool {
-    channel: ProviderChannel,
-    policy: PoolPolicy,
-    slots: Vec<KeySlot>,
-    cursor: AtomicUsize,
+    channel: ProviderChannel, // data_class: INTERNAL_ONLY
+    policy: PoolPolicy,       // data_class: INTERNAL_ONLY
+    slots: Vec<KeySlot>,      // data_class: INTERNAL_ONLY
+    cursor: AtomicUsize,      // data_class: INTERNAL_ONLY
 }
 
 /// Outcome of a [`KeyPool::select`] call.
@@ -186,9 +186,9 @@ pub enum Selection {
     /// A usable key was found.
     Key {
         /// Stable slot handle to report success/failure against.
-        id: KeyId,
+        id: KeyId, // data_class: INTERNAL_ONLY
         /// Hash-only fingerprint for logging/metrics.
-        fingerprint: KeyFingerprint,
+        fingerprint: KeyFingerprint, // data_class: INTERNAL_ONLY
     },
     /// Every key is currently blacklisted/in-cooldown; caller should fail the
     /// request (typically 503) rather than rotate forever.
