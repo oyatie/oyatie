@@ -51,7 +51,22 @@ echo "   argocd controller render: $ARGOCD_BYTES bytes (cap 1048576) — OK"
 ARGOCD_APP_VERSION=$(helm show chart argo/argo-cd --version "$ARGOCD_VERSION" 2>/dev/null \
   | /usr/bin/awk '/^appVersion:/{gsub(/"/,"",$2); print $2}')
 echo "   argo-cd chart $ARGOCD_VERSION -> appVersion ${ARGOCD_APP_VERSION:-<unknown>}"
-echo "   VERIFY: infra/capi/clusters/values.yaml defaults.argocdCrdManifests URLs must reference Argo CD ${ARGOCD_APP_VERSION:-<that appVersion>} CRDs."
+if [ -z "${ARGOCD_APP_VERSION:-}" ]; then
+  echo "ERROR: could not resolve argo-cd chart appVersion for chart $ARGOCD_VERSION" >&2
+  exit 1
+fi
+ARGOCD_CRD_VERSIONS=$(
+  { grep -Eo 'argoproj/argo-cd/v[0-9]+\.[0-9]+\.[0-9]+' "$REPO/infra/capi/clusters/values.yaml" || true; } \
+    | sed 's#.*argo-cd/##' \
+    | sort -u \
+    | tr '\n' ' ' \
+    | sed 's/[[:space:]]*$//'
+)
+if [ "$ARGOCD_CRD_VERSIONS" != "$ARGOCD_APP_VERSION" ]; then
+  echo "ERROR: infra/capi/clusters/values.yaml defaults.argocdCrdManifests references Argo CD version(s) [${ARGOCD_CRD_VERSIONS:-none}], expected $ARGOCD_APP_VERSION for chart $ARGOCD_VERSION" >&2
+  exit 1
+fi
+echo "   argo-cd CRD URLs match chart appVersion $ARGOCD_APP_VERSION"
 
 # CRS resources are ConfigMaps whose data is the manifests CAPI applies to each cluster.
 mk_cm() { kubectl create configmap "$1" -n "$NS" --from-file="$2=$3" \
@@ -64,8 +79,11 @@ echo ">> build + apply bootstrap ConfigMaps + CRS to the control plane"
   mk_cm argocd-root-app  root-app.yaml "$REPO/infra/gitops/root-app.yaml"
 } > "$OUT/crs-configmaps.yaml"
 
+sed -E "s/^([[:space:]]*)namespace: default$/\\1namespace: ${NS}/" \
+  "$HERE/clusterresourceset.yaml" > "$OUT/clusterresourceset.yaml"
+
 kubectl apply -f "$OUT/crs-configmaps.yaml"
-kubectl apply -f "$HERE/clusterresourceset.yaml"
+kubectl apply -f "$OUT/clusterresourceset.yaml"
 echo "DONE — label spoke Clusters with oya.io/bootstrap=true to receive the bootstrap."
 echo "     Ordering: cilium + argocd install land via the ApplyOnce CRS; the root"
 echo "     Application lands via the Reconcile CRS, which retries until Argo CD's"

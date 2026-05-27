@@ -18,12 +18,12 @@ defaults:
   # (URL-fetched at bootstrap). They CANNOT travel through the CRS ConfigMap — the
   # applicationsets CRD alone is ~1.32 MiB, over the 1 MiB etcd cap (see
   # infra/capi/crs/render.sh). These URLs MUST reference the Argo CD app version
-  # behind the `argo-cd` chart pinned in render.sh (ARGOCD_VERSION); render.sh echoes
-  # that appVersion so drift is caught. VERIFY the version tag below matches it.
+  # behind the `argo-cd` chart pinned in render.sh (ARGOCD_VERSION); render.sh
+  # verifies the tag below against the chart appVersion before applying CRS.
   argocdCrdManifests:
-    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/crds/application-crd.yaml"
-    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/crds/applicationset-crd.yaml"
-    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/crds/appproject-crd.yaml"
+    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.2/manifests/crds/application-crd.yaml"
+    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.2/manifests/crds/applicationset-crd.yaml"
+    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.2/manifests/crds/appproject-crd.yaml"
   # Talos installer image with the Kata Containers system extension baked in.
   # On-disk Talos uses this as its install source; without it the disk is vanilla
   # and the `katacontainers.io/kata-runtime` worker label has no runtime to bind to.

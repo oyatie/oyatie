@@ -222,5 +222,5 @@ systemctl list-units --type=service --state=running --no-pager 2>&1 \
 echo
 echo "CLEANUP_OK"
 echo "Next (per ADR-0375): build Talos installation media —"
-echo "  HUB_ENDPOINT=https://<this-host-ip>:6443 bash infra/talos/installation-media/gen-media.sh control-plane"
+echo "  CONTROLPLANE_ENDPOINT=https://<this-host-ip>:6443 bash infra/talos/installation-media/gen-media.sh control-plane"
 echo "  dd the ISO to USB, boot this host, then: KUBECONFIG=<hub> bash infra/capi/init.sh"
