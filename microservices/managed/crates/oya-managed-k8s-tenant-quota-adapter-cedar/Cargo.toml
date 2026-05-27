@@ -1,0 +1,24 @@
+[package]
+name = "oya-managed-k8s-tenant-quota-adapter-cedar"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Cedar RBAC adapter for managed-K8s tenant quota: reuses oya-identity-workload-authz-cedar-adapter. ADR-0376/0183."
+
+[dependencies]
+oya-managed-k8s-tenant-quota-api = { path = "../oya-managed-k8s-tenant-quota-api" }
+oya-managed-k8s-tenant-quota-kernel = { path = "../oya-managed-k8s-tenant-quota-kernel" }
+oya-identity-workload-authz-cedar-adapter = { path = "../../../../crates/oya-identity-workload-authz-cedar-adapter" }
+oya-identity-workload-domain = { path = "../../../../crates/oya-identity-workload-domain" }
+cedar-policy = { workspace = true }
+serde = { workspace = true }
+
+[lib]
+name = "oya_managed_k8s_tenant_quota_adapter_cedar"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

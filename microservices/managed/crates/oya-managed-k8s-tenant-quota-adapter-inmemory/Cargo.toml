@@ -1,0 +1,21 @@
+[package]
+name = "oya-managed-k8s-tenant-quota-adapter-inmemory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "In-memory quota store fake for tests and single-node bring-up. ADR-0376."
+
+[dependencies]
+oya-managed-k8s-tenant-quota-api = { path = "../oya-managed-k8s-tenant-quota-api" }
+oya-managed-k8s-tenant-quota-kernel = { path = "../oya-managed-k8s-tenant-quota-kernel" }
+serde = { workspace = true }
+
+[lib]
+name = "oya_managed_k8s_tenant_quota_adapter_inmemory"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

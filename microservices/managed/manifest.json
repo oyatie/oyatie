@@ -1,0 +1,266 @@
+{
+  "schema_version": "1.0",
+  "microservice": "managed-k8s",
+  "version": "0.1.0",
+  "owner": "axis-cloud-k8s",
+  "bounded_contexts": [
+    {
+      "name": "managed-k8s-tenant-quota",
+      "description": "Per-tenant quota and RBAC enforcement for managed Kubernetes clusters. Provides the QuotaDecision PORT (oya-managed-k8s-tenant-quota-api) that cluster-lifecycle calls before provisioning. ADR-0376.",
+      "crates": [
+        "oya-managed-k8s-tenant-quota-kernel",
+        "oya-managed-k8s-tenant-quota-api",
+        "oya-managed-k8s-tenant-quota-adapter-cedar",
+        "oya-managed-k8s-tenant-quota-adapter-inmemory",
+        "oya-managed-k8s-tenant-quota-app"
+      ]
+    },
+    {
+      "name": "managed-k8s-control-plane-host",
+      "description": "Hosted-tier (Kamaji TenantControlPlane) + dedicated-tier (Talos spoke) tenant control-plane provisioning + management-cluster multi-tenancy hardening (ADR-0376). Provides the ControlPlaneProvisioning PORT (oya-managed-k8s-control-plane-host-api) that cluster-lifecycle + sla-observability consume. Control plane (provision/observe/teardown); never runs tenant workloads.",
+      "crates": [
+        "oya-managed-k8s-control-plane-host-kernel",
+        "oya-managed-k8s-control-plane-host-api",
+        "oya-managed-k8s-control-plane-host-adapter-capi",
+        "oya-managed-k8s-control-plane-host-adapter-inmemory",
+        "oya-managed-k8s-control-plane-host-app"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/managed/control-plane-host/contracts/openapi.yaml"
+    ],
+    "asyncapi": [
+      "microservices/managed/control-plane-host/contracts/asyncapi.yaml"
+    ],
+    "proto": [
+      "microservices/managed/control-plane-host/contracts/control_plane_host.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T3",
+      "name": "quota-decision-evaluate",
+      "file": "microservices/managed/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "quota-decision-port",
+      "file": "microservices/managed/crates/oya-managed-k8s-tenant-quota-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "quota-rbac-cedar-authz",
+      "file": "microservices/managed/crates/oya-managed-k8s-tenant-quota-adapter-cedar/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "quota-admin-rest-api",
+      "file": "microservices/managed/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T3",
+      "name": "control-plane-provision",
+      "file": "microservices/managed/control-plane-host/capabilities/control-plane-provision.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "control-plane-teardown",
+      "file": "microservices/managed/control-plane-host/capabilities/control-plane-teardown.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "control-plane-status",
+      "file": "microservices/managed/control-plane-host/capabilities/control-plane-status.yaml",
+      "risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "quota-decision-latency",
+      "target": "p99 < 1ms",
+      "sli": "QuotaDecision evaluate() on the cluster-lifecycle hot path must complete in under 1ms p99 (O(1) pure Rust, no I/O).",
+      "file": "microservices/managed/slos/quota-decision-latency.openslo.yaml"
+    },
+    {
+      "name": "control-plane-provisioning-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_control_plane_provision_duration_seconds_bucket[5m])) by (le))",
+      "file": "microservices/managed/control-plane-host/slos/provisioning-latency.openslo.yaml"
+    },
+    {
+      "name": "control-plane-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))",
+      "file": "microservices/managed/control-plane-host/slos/availability.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "ADR-0376",
+      "title": "Per-tenant quota and RBAC for managed K8s tenant clusters",
+      "acceptance_status": "accepted",
+      "file": "docs/decisions/ADR-0376-managed-k8s-tenant-quota.md"
+    },
+    {
+      "id": "IP-001-control-plane-host-kernel-api-adapters-app",
+      "title": "IP-001: control-plane-host kernel + ControlPlaneProvisioning port + CAPI/in-memory adapters + composition root",
+      "acceptance_status": "ga",
+      "file": "microservices/managed/control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.83",
+    "kube": "3.1 (pin lands in registry/lts-pins.yaml when kamaji-provider-live-integration wires the live reconcile per ADR-0376)",
+    "kamaji": "version-agnostic at ADR-0376; concrete pin deferred to the live-integration follow-on ADR"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0376",
+      "title": "Oyatie managed-Kubernetes product surface (two-tier hosted+dedicated)",
+      "scope": "microservice",
+      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+    },
+    {
+      "id": "ADR-0375",
+      "title": "Talos + Cluster API + Argo CD fleet substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+    },
+    {
+      "id": "ADR-0155",
+      "title": "Port and Adapter Pattern",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0155-port-and-adapter-pattern.md"
+    },
+    {
+      "id": "ADR-0148",
+      "title": "Service mesh: Cilium L3/L4 + Istio Ambient L7",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md"
+    },
+    {
+      "id": "ADR-0092",
+      "title": "Workspace dependency-seam policy",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+    },
+    {
+      "id": "ADR-0007",
+      "title": "Cedar Default Deny",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0007-cedar-default-deny.md"
+    },
+    {
+      "id": "ADR-0083",
+      "title": "Pod Runtime Tier Panic Policy",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0083-pod-runtime-tier-panic-policy.md"
+    },
+    {
+      "id": "ADR-0183",
+      "title": "Cedar App Authz",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0183-cedar-app-authz.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "partial: the control-plane-host CAPI adapter fails closed (typed ProvisioningError) on management-cluster unreachability with no unbounded retry on the provision path; the tenant-quota concern has no circuit-breaker (pure in-memory hot path).",
+    "tenant_rate_limit": "partial: per-tenant control-plane provisioning is admission-gated by Cedar (only platform/control-plane-operator may provision; tenants default-deny) before any management-cluster write; rate-limit on the quota-check endpoint is not yet implemented.",
+    "golden_signals": "partial: control-plane provisioning-latency + status-availability SLIs declared in control-plane-host/slos/; tenant-quota emits no metrics yet.",
+    "error_budget_burn": "partial: control-plane provisioning-latency + availability error budgets declared per control-plane-host/slos/*.openslo.yaml; tenant-quota declares quota-decision-latency but has no measured SLI/burn-rate rule yet."
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.managed-k8s.control-plane.tier-selected",
+      "oya.managed-k8s.control-plane.datastore-bound",
+      "oya.managed-k8s.control-plane.provisioned",
+      "oya.managed-k8s.control-plane.torn-down"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.01,
+    "baseline_ram_per_tenant": 32,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {
+      "valkey": 0,
+      "postgres": 0,
+      "outbound_http": 0
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-3",
+    "notes": "ADR-0340 planning declaration only. tenant-quota evaluate() is O(1) pure Rust and its in-memory store is test-only; the control-plane-host in-memory adapter is the deterministic reference and the kube-rs CAPI live reconcile is honest-deferred. Production storage / live provisioning not yet wired."
+  },
+  "pod_runtime_tier": 3,
+  "pod_runtime_tier_justification": "Pure quota enforcement kernel + in-memory adapters; no database, no external I/O on the hot path. The control-plane-host app is a management-cluster-only control plane that never runs tenant workloads; the live CAPI reconcile is honest-deferred. ADR-0083 Tier-3.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/managed/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs",
+    "microservices/managed/crates/oya-managed-k8s-control-plane-host-kernel/src/lib.rs"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 1,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
+    "deprecation_calendar": [],
+    "public_surface_files": {}
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "axum",
+    "tokio",
+    "kube",
+    "kube-runtime",
+    "k8s-openapi"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [],
+  "data_classes_processed": [
+    "INTERNAL_ONLY",
+    "AUDIT"
+  ],
+  "threat_model": {
+    "quota_bypass": "mitigated: evaluate() checks all dimensions; deny-by-default when no quota record exists",
+    "rbac_escalation": "mitigated: Cedar default-deny; no principal can grant their own role; PlatformOperator scope required for cross-tenant writes",
+    "cross_tenant_limit_read": "mitigated: Cedar tenant_id condition on all read policies; TenantMismatch deny in evaluate()",
+    "tenant_control_plane_escape": "design-mitigated (live wiring honest-deferred): per-tenant NetworkPolicy / Cilium L3-L4 deny + Istio Ambient ztunnel so a tenant control plane can never reach the management cluster or a sibling tenant; the CAPI adapter returns Unimplemented until kamaji-provider-live-integration lands."
+  }
+}
