@@ -25,6 +25,15 @@
         "oya-managed-k8s-control-plane-host-adapter-inmemory",
         "oya-managed-k8s-control-plane-host-app"
       ]
+    },
+    {
+      "name": "managed-k8s-cluster-lifecycle",
+      "description": "Tenant-facing managed-Kubernetes cluster lifecycle admission. Consumes QuotaDecisionPort before ControlPlaneProvisioning; quota denial/not-found/failure fails closed and does not invoke provisioning.",
+      "crates": [
+        "oya-managed-k8s-cluster-lifecycle-kernel",
+        "oya-managed-k8s-cluster-lifecycle-api",
+        "oya-managed-k8s-cluster-lifecycle-app"
+      ]
     }
   ],
   "layers": [
@@ -35,7 +44,8 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/managed/control-plane-host/contracts/openapi.yaml"
+      "microservices/managed/control-plane-host/contracts/openapi.yaml",
+      "microservices/managed/cluster-lifecycle/contracts/openapi.yaml"
     ],
     "asyncapi": [
       "microservices/managed/control-plane-host/contracts/asyncapi.yaml"
@@ -86,6 +96,12 @@
       "name": "control-plane-status",
       "file": "microservices/managed/control-plane-host/capabilities/control-plane-status.yaml",
       "risk_class": "minimal"
+    },
+    {
+      "tier": "T3",
+      "name": "cluster-lifecycle-create",
+      "file": "microservices/managed/cluster-lifecycle/capabilities/cluster-create.yaml",
+      "risk_class": "high"
     }
   ],
   "slos": [
@@ -106,6 +122,12 @@
       "target": "0.999",
       "sli": "sum(rate(oya_managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))",
       "file": "microservices/managed/control-plane-host/slos/availability.openslo.yaml"
+    },
+    {
+      "name": "cluster-lifecycle-create-admission-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05",
+      "file": "microservices/managed/cluster-lifecycle/slos/create-admission-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -120,6 +142,12 @@
       "title": "IP-001: control-plane-host kernel + ControlPlaneProvisioning port + CAPI/in-memory adapters + composition root",
       "acceptance_status": "ga",
       "file": "microservices/managed/control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
+    },
+    {
+      "id": "IP-001-cluster-lifecycle-foundation",
+      "title": "IP-001: cluster-lifecycle kernel + quota/provisioning orchestration + app composition root",
+      "acceptance_status": "ga",
+      "file": "microservices/managed/cluster-lifecycle/IPs/IP-001-cluster-lifecycle-foundation.md"
     }
   ],
   "regulatory_packs": [
@@ -191,7 +219,7 @@
   ],
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "partial: the control-plane-host CAPI adapter fails closed (typed ProvisioningError) on management-cluster unreachability with no unbounded retry on the provision path; the tenant-quota concern has no circuit-breaker (pure in-memory hot path).",
-    "tenant_rate_limit": "partial: per-tenant control-plane provisioning is admission-gated by Cedar (only platform/control-plane-operator may provision; tenants default-deny) before any management-cluster write; rate-limit on the quota-check endpoint is not yet implemented.",
+    "tenant_rate_limit": "partial: per-tenant control-plane provisioning is admission-gated by Cedar (only platform/control-plane-operator may provision; tenants default-deny) before any management-cluster write; rate-limit on the quota-check endpoint is not yet implemented. Cluster-lifecycle create admission now fails closed on quota denial/not-found/failure before invoking control-plane provisioning.",
     "golden_signals": "partial: control-plane provisioning-latency + status-availability SLIs declared in control-plane-host/slos/; tenant-quota emits no metrics yet.",
     "error_budget_burn": "partial: control-plane provisioning-latency + availability error budgets declared per control-plane-host/slos/*.openslo.yaml; tenant-quota declares quota-decision-latency but has no measured SLI/burn-rate rule yet."
   },
@@ -226,7 +254,7 @@
     },
     "scaling_dimension": "per_request",
     "cell_placement_class": "Tier-3",
-    "notes": "ADR-0340 planning declaration only. tenant-quota evaluate() is O(1) pure Rust and its in-memory store is test-only; the control-plane-host in-memory adapter is the deterministic reference and the kube-rs CAPI live reconcile is honest-deferred. Production storage / live provisioning not yet wired."
+    "notes": "ADR-0340 planning declaration only. tenant-quota evaluate() is O(1) pure Rust and its in-memory store is test-only; the control-plane-host in-memory adapter is the deterministic reference and the kube-rs CAPI live reconcile is honest-deferred. Production storage / live provisioning not yet wired. Cluster-lifecycle admission is a narrow composition over quota and control-plane-host ports; no new storage or external dependency introduced."
   },
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "Pure quota enforcement kernel + in-memory adapters; no database, no external I/O on the hot path. The control-plane-host app is a management-cluster-only control plane that never runs tenant workloads; the live CAPI reconcile is honest-deferred. ADR-0083 Tier-3.",
@@ -255,7 +283,8 @@
   "iac_module_invocations": [],
   "data_classes_processed": [
     "INTERNAL_ONLY",
-    "AUDIT"
+    "AUDIT",
+    "TENANT_SCOPED"
   ],
   "threat_model": {
     "quota_bypass": "mitigated: evaluate() checks all dimensions; deny-by-default when no quota record exists",

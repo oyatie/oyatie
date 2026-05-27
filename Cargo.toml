@@ -657,6 +657,9 @@ members = [
   "microservices/managed/crates/oya-managed-k8s-control-plane-host-adapter-capi",
   "microservices/managed/crates/oya-managed-k8s-control-plane-host-adapter-inmemory",
   "microservices/managed/crates/oya-managed-k8s-control-plane-host-app",
+  "microservices/managed/crates/oya-managed-k8s-cluster-lifecycle-kernel",
+  "microservices/managed/crates/oya-managed-k8s-cluster-lifecycle-api",
+  "microservices/managed/crates/oya-managed-k8s-cluster-lifecycle-app",
 ]
 resolver = "2"
 
