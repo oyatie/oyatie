@@ -268,7 +268,9 @@ mod tests {
             labels: vec!["masterplan:IP-108".to_owned()],
             html_url: None,
             repository_full_name: "owner/repo".to_owned(),
-            snapshot_id: "issue:owner/repo:108:edited".to_owned(),
+            snapshot_id:
+                "issue:sha256:0000000000000000000000000000000000000000000000000000000000000108"
+                    .to_owned(),
         })
     }
 
@@ -280,7 +282,9 @@ mod tests {
             repository_full_name: "owner/repo".to_owned(),
             commits: 1,
             deleted: false,
-            snapshot_id: "push:owner/repo:refs/heads/dev:def".to_owned(),
+            snapshot_id:
+                "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"
+                    .to_owned(),
         })
     }
 
@@ -355,7 +359,10 @@ mod tests {
                         ..
                     } => {
                         assert_eq!(issue_number, 108);
-                        assert_eq!(snapshot_id, "issue:owner/repo:108:edited");
+                        assert_eq!(
+                            snapshot_id,
+                            "issue:sha256:0000000000000000000000000000000000000000000000000000000000000108"
+                        );
                         assert_eq!(labels, vec!["masterplan:IP-108"]);
                     }
                     other => panic!("expected issue snapshot, got {other:?}"),
@@ -370,7 +377,10 @@ mod tests {
         );
         assert_eq!(
             receipt.snapshot_id,
-            Some("issue:owner/repo:108:edited".to_owned())
+            Some(
+                "issue:sha256:0000000000000000000000000000000000000000000000000000000000000108"
+                    .to_owned()
+            )
         );
     }
 
@@ -388,7 +398,10 @@ mod tests {
                     } => {
                         assert_eq!(reference, "refs/heads/dev");
                         assert_eq!(after_sha, "def");
-                        assert_eq!(snapshot_id, "push:owner/repo:refs/heads/dev:def");
+                        assert_eq!(
+                            snapshot_id,
+                            "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"
+                        );
                     }
                     other => panic!("expected push snapshot, got {other:?}"),
                 }
@@ -404,7 +417,10 @@ mod tests {
         );
         assert_eq!(
             receipt.snapshot_id,
-            Some("push:owner/repo:refs/heads/dev:def".to_owned())
+            Some(
+                "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"
+                    .to_owned()
+            )
         );
     }
 
