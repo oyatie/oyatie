@@ -198,4 +198,5 @@ Before this ADR can become Accepted:
 - ADR-0369 — gated stacked-trunk change flow on plain git + Forgejo.
 - ADR-0374 — Forgejo webhook gateway to Jenkins.
 - Forgejo documentation checked 2026-05-27: v15.0.2 latest / v11.0.14 LTS; label
-  docs define scoped exclusive labels and organization-wide labels.
+  docs define scoped exclusive labels and organization-wide labels:
+  <https://forgejo.org/docs/latest/user/labels/>.
