@@ -987,3 +987,38 @@ follow_ups:
       dispatch evidence, OR a compliance review that demands an
       immutable `intel.eval.v1` audit record from the eval-app.
     status: pending
+
+  - id: kamaji-provider-live-integration
+    intent: |
+      Wire the LIVE Cluster API control-plane reconciliation into the
+      `oya-managed-k8s-control-plane-host-adapter-capi` crate (ADR-0376):
+      create/read/delete a Kamaji `TenantControlPlane`
+      (controlplane.cluster.x-k8s.io) for the HOSTED tier and reference the
+      dedicated Talos control plane (ADR-0375 CABPT/CACPPT spoke) for the
+      DEDICATED tier, plus the management-cluster multi-tenancy hardening the
+      threat model requires (per-tenant NetworkPolicy / Cilium L3-L4 deny +
+      Istio Ambient ztunnel so a tenant control plane can never reach the
+      management cluster or a sibling tenant). Today the CAPI adapter holds the
+      kube-rs Client + the dynamic `TenantControlPlane` GVK descriptor but every
+      `ControlPlaneProvisioning` port method returns
+      `ProvisioningError::Unimplemented(KamajiProviderLiveIntegration)` (surfaced
+      as HTTP 501) — NO fake success. The in-memory adapter is the deterministic
+      reference that exercises the full lifecycle for tests/bring-up. When this
+      follow-on lands, the production path activates without any caller change,
+      and the concrete Kamaji / CAPI-provider version pin lands in
+      `registry/lts-pins.yaml` (ADR-0376 left it version-agnostic). The drop-in
+      fallback control-plane provider is k0smotron (ADR-0376 Door).
+    driver_docs:
+      - docs/decisions/ADR-0376-managed-kubernetes-product-surface.md
+      - microservices/oya-managed-k8s-control-plane-host/PRD.md
+      - microservices/oya-managed-k8s-control-plane-host/threat-model.md
+      - crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
+      - crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
+    owner: council-architecture + ops-platform
+    trigger: |
+      The dogfood tenant-zero milestone where Oyatie provisions its OWN clusters
+      via the cluster-CRUD API (oyatie-dogfood-tenancy), OR the first hosted-tier
+      tenant control-plane request that needs a real Kamaji `TenantControlPlane`
+      rather than the in-memory reference adapter.
+    status: pending
+    adr_when_landed: a follow-on ADR owns the live CRD wiring (builds on ADR-0376; names the Kamaji/CAPI-provider version pin)

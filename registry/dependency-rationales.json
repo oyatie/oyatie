@@ -613,6 +613,39 @@
       "allowed_crates": [
         "oya-identity-workload-authz-cedar-adapter"
       ]
+    },
+    "kube": {
+      "version_pin": "3.1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture + ops-platform",
+      "rationale": "Kubernetes client (Client + dynamic Api) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Used only to talk to the management cluster's CAPI control-plane providers (Kamaji TenantControlPlane on controlplane.cluster.x-k8s.io; the dedicated Talos control-plane reference). The LIVE CRD reconciliation is honest-deferred per registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration, so the adapter references kube-rs's dynamic surface and returns Unimplemented::KamajiProviderLiveIntegration instead of faking success. Kernel/api/inmemory crates stay kube-free.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
+      "allowed_crates": [
+        "oya-managed-k8s-control-plane-host-adapter-capi"
+      ]
+    },
+    "kube-runtime": {
+      "version_pin": "3.1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture + ops-platform",
+      "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; the live control-plane reconcile loop is honest-deferred (kamaji-provider-live-integration), so the dependency is the declared seam the follow-on ADR's controller will consume without a caller change.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
+      "allowed_crates": [
+        "oya-managed-k8s-control-plane-host-adapter-capi"
+      ]
+    },
+    "k8s-openapi": {
+      "version_pin": "0.27",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture + ops-platform",
+      "rationale": "Kubernetes API object types (ObjectMeta and core types referenced by the dynamic CAPI objects) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; isolated to the -adapter-capi crate. Kernel/api/inmemory crates stay k8s-openapi-free.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
+      "allowed_crates": [
+        "oya-managed-k8s-control-plane-host-adapter-capi"
+      ]
     }
   },
   "lane_contract": {
