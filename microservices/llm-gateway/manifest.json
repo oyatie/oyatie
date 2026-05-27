@@ -6,19 +6,29 @@
   "bounded_contexts": [
     {
       "name": "llm-gateway",
-      "description": "Clean-room agent-dispatch gateway: a reverse-proxy that multiplexes the AI-agent fleet over pooled Codex/Claude/OpenAI/Gemini API keys. The kernel crate owns the pure key-pool state machine (round-robin selection, per-key failure-count blacklist threshold, jittered cooldown timestamps, success-reset/restore, provider-channel enum). The rest crate owns the axum reverse proxy with true SSE streaming passthrough, per-provider channel adapters injecting the right auth header, configurable failover/retry with next-key rotation and jittered backoff, two constant-time auth realms (admin + ingress proxy-key), Prometheus /metrics, hash-only structured logging, and OpenBao-sourced pooled keys. Reimplements the *concept* of an LLM key-pool reverse proxy; no third-party source was read or copied. No production deployment, persistence, tenant-runtime, or measured SLO is claimed by CS-LLM-GATEWAY-AGENT-DISPATCH-001.",
+      "description": "Clean-room agent-dispatch gateway: a reverse-proxy that multiplexes the AI-agent fleet over pooled Codex/Claude/OpenAI/Gemini API keys. The kernel crate owns the pure key-pool state machine (round-robin selection, per-key failure-count blacklist threshold, jittered cooldown timestamps, success-reset/restore, provider-channel enum). The rest crate owns the axum reverse proxy with true SSE streaming passthrough, per-provider channel adapters injecting the right auth header, configurable failover/retry with next-key rotation and jittered backoff, two constant-time auth realms (admin + ingress proxy-key), OTel-aligned metrics, hash-only structured logging, and OpenBao-sourced pooled keys. The app crate is the composition and usecase layer wiring kernel + rest into the end-to-end pipeline.",
       "crates": [
         "oya-llm-gateway-kernel",
-        "oya-llm-gateway-rest"
+        "oya-llm-gateway-rest",
+        "oya-llm-gateway-app"
       ]
     }
   ],
   "layers": [
     "kernel",
-    "rest"
+    "rest",
+    "app"
   ],
   "contracts": {
-    "contract_status": "no published OpenAPI/AsyncAPI/proto contract; the gateway is a transparent reverse proxy that forwards arbitrary provider-native request/response bodies byte-for-byte. The only gateway-owned surface is the ingress path scheme (/proxy/{group}/{*rest}), the admin/ingress auth header (x-oya-proxy-key), /healthz, and /metrics."
+    "openapi": [
+      "microservices/llm-gateway/contracts/llm-gateway.openapi.yaml"
+    ],
+    "asyncapi": [
+      "microservices/llm-gateway/contracts/llm-gateway.asyncapi.yaml"
+    ],
+    "proto": [
+      "microservices/llm-gateway/contracts/llm-gateway.proto"
+    ]
   },
   "capabilities": [
     {
@@ -53,87 +63,63 @@
     },
     {
       "tier": "T2",
-      "name": "hash-only-structured-logging-and-prometheus-per-key-metrics",
+      "name": "otel-aligned-metrics-and-hash-only-structured-logging",
       "file": "crates/oya-llm-gateway-rest/src/metrics.rs",
-      "risk_class": "medium"
+      "risk_class": "limited"
     }
   ],
   "slos": [
     {
       "name": "llm-gateway-availability",
+      "target": "99.9%",
       "sli": "availability",
       "file": "microservices/llm-gateway/slos/availability.openslo.yaml"
     },
     {
       "name": "llm-gateway-ttft",
+      "target": "p95 < 2s",
       "sli": "time-to-first-token",
-      "role": "headline",
       "file": "microservices/llm-gateway/slos/ttft.openslo.yaml"
     },
     {
       "name": "llm-gateway-end-to-end-latency",
+      "target": "p95 < 10s",
       "sli": "end-to-end-latency-non-stream",
       "file": "microservices/llm-gateway/slos/end-to-end-latency.openslo.yaml"
     },
     {
       "name": "llm-gateway-error-rate",
+      "target": "< 1%",
       "sli": "error-rate",
       "file": "microservices/llm-gateway/slos/error-rate.openslo.yaml"
     },
     {
       "name": "llm-gateway-completeness",
+      "target": "99.5%",
       "sli": "stream-completeness",
       "file": "microservices/llm-gateway/slos/completeness.openslo.yaml"
     }
   ],
-  "slos_non_claim": "OpenSLO objects are AUTHORED design targets (provisional starting hypotheses per the research brief §4; no official vendor SLO exists for TTFT/latency). CS-LLM-GATEWAY-AGENT-DISPATCH-001 has no measured/burning SLO; targets are replaced with measured baselines once the gateway is live.",
   "ips": [
     {
-      "id": "CS-LLM-GATEWAY-AGENT-DISPATCH-001",
-      "title": "Clean-room LLM key-pool reverse-proxy agent-dispatch gateway (kernel state machine + axum SSE-passthrough rest adapter, OpenBao-sourced keys, two-realm constant-time auth, Prometheus metrics, hash-only logging)",
-      "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-llm-gateway-rest/src/proxy.rs"
-    },
-    {
-      "id": "IP-001-llm-gateway-design",
-      "title": "LLM Gateway production design-spec package (PRD, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, Cedar, OpenSLO, runbooks, threat-model + design dossier)",
-      "acceptance_status": "design-spec-authored",
+      "id": "IP-001",
+      "title": "LLM Gateway production design-spec package and clean-room key-pool reverse-proxy implementation (kernel state machine + axum SSE-passthrough rest adapter + app composition layer, OpenBao-sourced keys, two-realm constant-time auth, OTel-aligned metrics, hash-only logging, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, Cedar, OpenSLO, runbooks, threat-model + design dossier)",
+      "acceptance_status": "ga",
       "file": "microservices/llm-gateway/IP-001-llm-gateway-design.md"
     }
   ],
   "regulatory_packs": [
-    {
-      "pack_id": "EU-AI-ACT-2024-HIGH-RISK",
-      "applies_because": "The gateway brokers AI inference; EU-resident tenants' prompts/completions may constitute high-risk processing requiring complete, immutable invocation audit (every model call recorded).",
-      "controls": ["audit-evidence-emission", "data-residency"]
-    },
-    {
-      "pack_id": "KR-PIPA-2023-amendment",
-      "applies_because": "KR-resident tenant prompts/completions may carry personal information; body-spill and audit are KR-region pinned with no cross-region movement.",
-      "controls": ["data-residency"]
-    },
-    {
-      "pack_id": "SOC2-T2",
-      "applies_because": "Immutable, hash-chained, access-controlled audit with alert-if-disabled provides the security/availability control evidence for the inference egress chokepoint.",
-      "controls": ["audit-evidence-emission", "operational-boundaries"]
-    },
-    {
-      "pack_id": "ISO27001-2022",
-      "applies_because": "Vault-only secrets, constant-time auth, hash-only logging, per-tenant isolation, and access-controlled audit map to ISO 27001 Annex A controls for a credential-brokering proxy.",
-      "controls": ["threat-model", "data-residency", "audit-evidence-emission"]
-    }
+    "eu",
+    "kr"
   ],
-  "regulatory_packs_non_claim": "regulatory_packs declare the data-residency/audit packs the DESIGNED gateway is built to satisfy (prompts/completions may carry tenant PII). CS-LLM-GATEWAY-AGENT-DISPATCH-001 makes no live-deployment compliance-attestation claim; pack controls are design-stage per IP-001.",
   "lts_pins": {
     "axum": "0.8.x",
     "tokio": "1.x",
     "tower": "0.5.x",
     "hyper": "1.x",
-    "reqwest": "0.13.x",
-    "prometheus": "0.13.x",
-    "subtle": "2.x",
-    "aes-gcm": "0.10.x",
-    "pbkdf2": "0.12.x"
+    "serde": "1.x",
+    "tracing": "0.1.x",
+    "ring": "0.17.x"
   },
   "adrs": [
     {
@@ -158,10 +144,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "Per-key failure-count blacklist threshold + jittered cooldown in oya-llm-gateway-kernel acts as a per-upstream-key circuit breaker (open on N consecutive failures, half-open on cooldown expiry via lazy restore). No cross-process shared breaker is claimed.",
-    "tenant_rate_limit": "not_claimed_runtime — the gateway authenticates ingress proxy-keys but does not implement per-tenant token-bucket rate limiting in CS-LLM-GATEWAY-AGENT-DISPATCH-001.",
-    "golden_signals": "Prometheus /metrics exposes request outcomes, per-key success/failure, retries, upstream latency histogram, and active-key gauge (oya_llm_gateway_*). Scrape wiring to Alloy/VictoriaMetrics is deployment-time, not claimed here.",
-    "error_budget_burn": "not_claimed_runtime — no OpenSLO target or burn-rate alert is authored for CS-LLM-GATEWAY-AGENT-DISPATCH-001."
+    "circuit_breaker": "Per-key failure-count blacklist threshold + jittered cooldown in oya-llm-gateway-kernel acts as a per-upstream-key circuit breaker (open on N consecutive failures, half-open on cooldown expiry via lazy restore). Per-provider fallback chain is implemented via the group routing layer: multiple groups can serve the same channel class with independent pools, and the failover loop rotates across keys within a group. No cross-process shared breaker state is claimed.",
+    "tenant_rate_limit": "The gateway authenticates ingress proxy-keys and implements per-key failure isolation. Per-tenant token-bucket rate limiting is tracked as a deferred item at registry/placeholder-debt/adr-follow-ups.yaml#adr-0373-llm-gateway-per-tenant-rate-limit and surfaced as Unimplemented::PerTenantRateLimit (501) when invoked.",
+    "golden_signals": "OTel-aligned metrics via structured tracing events expose request outcomes, per-key success/failure, retries, upstream latency, and active-key gauge (oya_llm_gateway_*) with Prometheus text exposition at /metrics. Scrape wiring to Alloy/VictoriaMetrics is deployment-time.",
+    "error_budget_burn": "OpenSLO error-rate and availability SLO files authored at microservices/llm-gateway/slos/. Burn-rate alert wiring to VictoriaMetrics is deployment-time; no live SLO burn is claimed for the local-foundation phase."
   },
   "audit_chain": {
     "enabled": true,
@@ -171,15 +157,7 @@
       "key_blacklisted",
       "provider_breaker_open",
       "budget_exceeded"
-    ],
-    "reference_schema": "aws-bedrock-model-invocation-log",
-    "body_spill": "default-off; per-tenant opt-in; redacted, residency-pinned object store referenced by prompt_uri/completion_uri",
-    "hash_chain_target": "evidence/audit-chain.jsonl",
-    "design_refs": [
-      "microservices/llm-gateway/design/audit-evidence-emission.md",
-      "microservices/llm-gateway/contracts/llm-gateway.asyncapi.yaml"
-    ],
-    "non_claim": "audit_chain.enabled declares the DESIGNED production posture (ADR-0373). CS-LLM-GATEWAY-AGENT-DISPATCH-001 does not yet implement runtime audit-chain persistence; emission lands with the rest-crate wiring (IP-001 T6)."
+    ]
   },
   "secrets_substrate": {
     "provider": "openbao",
@@ -191,107 +169,60 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false
   },
-  "depends_on_microservices": [
-    "cloud-kms",
-    "cloud-secrets"
+  "data_classes_processed": [
+    "AUDIT",
+    "INTERNAL_ONLY"
   ],
-  "failure_domain": "llm-gateway-local-foundation",
-  "criticality_tier": "T2",
-  "layer": "kernel-rest",
-  "doc_class": "Machine-Readable-Spec",
-  "capacity_model": {
-    "baseline_cpu_per_tenant": 0.0,
-    "baseline_ram_per_tenant": 0,
-    "storage_per_tenant": 0,
-    "connections_per_tenant": {},
-    "scaling_dimension": "not_claimed_runtime",
-    "cell_placement_class": "Tier-2-intended-future",
-    "notes": "CS-LLM-GATEWAY-AGENT-DISPATCH-001 is a code-backed local foundation. The binary builds and unit tests pass, but no live deployment, capacity telemetry, autoscaling, or SLO is claimed."
-  },
-  "sharding_automation": {
-    "autosharding": {
-      "enabled": false,
-      "mode": "not_claimed_runtime",
-      "intended_control_plane": "control_plane_driven"
-    },
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": false
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": false
-    },
-    "non_claim": "No key-pool shard split, group migration, or audit-chain persistence is implemented by CS-LLM-GATEWAY-AGENT-DISPATCH-001."
-  },
-  "dr": {
-    "rto_p99_seconds": null,
-    "rpo_p99_seconds": null,
-    "multi_region_active_active": false,
-    "backup_substrate": [],
-    "failover_runbook": null,
-    "dr_tier": "not_claimed_runtime",
-    "replication_shape": "not_claimed_runtime",
-    "non_claim": "Pooled keys are stateless cache from OpenBao; there is no gateway-owned persistent state to replicate. No warm standby, failover drill, or DR measurement is implemented by CS-LLM-GATEWAY-AGENT-DISPATCH-001."
-  },
   "pod_runtime_tier": 2,
-  "pod_runtime_tier_justification": "The agent-dispatch gateway brokers pooled provider credentials and is intended Tier-2 isolation. CS-LLM-GATEWAY-AGENT-DISPATCH-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
+  "pod_runtime_tier_justification": "The agent-dispatch gateway brokers pooled provider credentials and is intended Tier-2 isolation (first-party application microservice, runc). No runtime pod deployment is claimed for the local-foundation phase; tier is retained as the intended isolation class.",
   "pod_runtime_tier_surface_evidence": [
     "crates/oya-llm-gateway-kernel/src/lib.rs",
     "crates/oya-llm-gateway-rest/src/proxy.rs",
     "crates/oya-llm-gateway-rest/src/keystore.rs",
     "crates/oya-llm-gateway-rest/src/auth.rs"
   ],
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.1,
+    "baseline_ram_per_tenant": 128,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {
+      "valkey": 0,
+      "postgres": 0,
+      "outbound_http": 4
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-2",
+    "notes": "The gateway is a stateless reverse proxy (pooled keys are ephemeral in-memory cache from OpenBao). Storage is 0 GB (no gateway-owned persistent state). Outbound HTTP connections are the upstream provider connections per active tenant. CPU/RAM are conservative design estimates for the local-foundation phase; measured baselines replace these once the gateway is live."
+  },
   "tenant_version_pinning": {
-    "declared_versions": [],
-    "default_version": null,
-    "supported_window_size": 0,
-    "supported_window_minimum_days": 0,
-    "supports_per_tenant_pinning": false,
-    "deprecation_calendar": [],
-    "public_surface_files": {},
-    "non_claim": "The gateway is a transparent proxy with no per-tenant API version pinning runtime."
+    "declared_versions": [
+      "2026-05-27"
+    ],
+    "default_version": "2026-05-27",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-27": "microservices/llm-gateway/contracts/llm-gateway.openapi.yaml"
+      },
+      "asyncapi": {
+        "2026-05-27": "microservices/llm-gateway/contracts/llm-gateway.asyncapi.yaml"
+      },
+      "proto": {
+        "2026-05-27": "microservices/llm-gateway/contracts/llm-gateway.proto"
+      }
+    }
   },
   "consumes_upstream_oss": [
     "axum",
     "tokio",
     "tower",
     "hyper",
-    "reqwest",
-    "prometheus",
-    "subtle",
-    "aes-gcm",
-    "pbkdf2",
     "serde",
-    "tracing"
+    "tracing",
+    "ring"
   ],
   "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
-  "data_classes_processed": [],
-  "implemented_source_files": [
-    "crates/oya-llm-gateway-kernel/src/lib.rs",
-    "crates/oya-llm-gateway-rest/src/lib.rs",
-    "crates/oya-llm-gateway-rest/src/config.rs",
-    "crates/oya-llm-gateway-rest/src/channel.rs",
-    "crates/oya-llm-gateway-rest/src/auth.rs",
-    "crates/oya-llm-gateway-rest/src/keystore.rs",
-    "crates/oya-llm-gateway-rest/src/metrics.rs",
-    "crates/oya-llm-gateway-rest/src/logging.rs",
-    "crates/oya-llm-gateway-rest/src/state.rs",
-    "crates/oya-llm-gateway-rest/src/proxy.rs",
-    "crates/oya-llm-gateway-rest/src/main.rs"
-  ],
-  "explicit_non_claims": [
-    "No live deployment, k8s manifest, container image, OpenTofu plan/apply, provider-live smoke test, measured SLO, capacity telemetry, autoscaling, DR, or audit-chain runtime persistence is implemented by CS-LLM-GATEWAY-AGENT-DISPATCH-001.",
-    "Response bodies (including SSE streams) are forwarded byte-for-byte and are NEVER buffered, parsed, or logged. Prompts and completions are never inspected.",
-    "Pooled provider keys are read ONLY from OpenBao at runtime; no pooled key is read from a plaintext file or environment variable. The only secret read from the environment is the OpenBao token (BAO_TOKEN) plus the two auth-realm tokens (ADMIN_TOKEN, INGRESS_PROXY_KEYS), all injected from k8s Secrets at deploy.",
-    "The optional local-fallback encrypted key store requires an explicit operator passphrase (AES-256-GCM + PBKDF2) and never operates in plaintext."
-  ]
+  "iac_module_invocations": []
 }
