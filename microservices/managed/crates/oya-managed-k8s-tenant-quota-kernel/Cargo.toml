@@ -1,0 +1,19 @@
+[package]
+name = "oya-managed-k8s-tenant-quota-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Pure quota model for per-tenant K8s cluster resources: max clusters, nodes/cluster, vCPU/RAM. Deterministic evaluate(). ADR-0376/0083 Tier-3."
+
+[dependencies]
+serde = { workspace = true }
+
+[lib]
+name = "oya_managed_k8s_tenant_quota_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

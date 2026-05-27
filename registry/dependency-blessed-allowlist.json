@@ -162,6 +162,21 @@
       "rationale": "Async Postgres driver for infrastructure persistence adapters.",
       "policy_ref": "docs/standards/dependency-policy.md"
     },
+    "kube": {
+      "layer_seam": "adapter-only",
+      "rationale": "Kubernetes client + controller-runtime for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Isolated to oya-managed-k8s-control-plane-host-adapter-capi ONLY; the live Kamaji TenantControlPlane / Talos control-plane CRD reconciliation is honest-deferred per registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration.",
+      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+    },
+    "kube-runtime": {
+      "layer_seam": "adapter-only",
+      "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; live reconciliation honest-deferred.",
+      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+    },
+    "k8s-openapi": {
+      "layer_seam": "adapter-only",
+      "rationale": "Kubernetes API object types for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; isolated to oya-managed-k8s-control-plane-host-adapter-capi.",
+      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+    },
     "regex": {
       "layer_seam": "tooling",
       "rationale": "Regular expressions for tooling/gate text scans.",

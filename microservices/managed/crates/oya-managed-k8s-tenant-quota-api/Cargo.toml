@@ -1,0 +1,20 @@
+[package]
+name = "oya-managed-k8s-tenant-quota-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "QuotaDecision PORT (the trait cluster-lifecycle calls before provisioning) + DTOs. ADR-0376/0155/0007."
+
+[dependencies]
+oya-managed-k8s-tenant-quota-kernel = { path = "../oya-managed-k8s-tenant-quota-kernel" }
+serde = { workspace = true }
+
+[lib]
+name = "oya_managed_k8s_tenant_quota_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
