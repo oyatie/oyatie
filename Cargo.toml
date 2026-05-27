@@ -274,6 +274,7 @@ members = [
   "crates/oya-http-runtime-hyper-adapter",
   "crates/oya-llm-gateway-kernel",
   "crates/oya-llm-gateway-rest",
+  "crates/oya-llm-gateway-app",
   "crates/oya-identity-workload-domain",
   "crates/oya-identity-workload-authz-cedar-adapter",
   "crates/oya-identity-workload-oidc-adapter",

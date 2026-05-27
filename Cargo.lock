@@ -5257,6 +5257,26 @@ name = "oya-json-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-llm-gateway-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "oya-llm-gateway-kernel",
+ "oya-llm-gateway-rest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-llm-gateway-kernel"
 version = "0.1.0"
 
