@@ -5951,6 +5951,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-managed-k8s-sla-observability-adapter-inmemory"
+version = "0.1.0"
+dependencies = [
+ "oya-managed-k8s-sla-observability-api",
+ "oya-managed-k8s-sla-observability-kernel",
+ "tokio",
+]
+
+[[package]]
+name = "oya-managed-k8s-sla-observability-api"
+version = "0.1.0"
+dependencies = [
+ "oya-managed-k8s-sla-observability-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-managed-k8s-sla-observability-app"
+version = "0.1.0"
+dependencies = [
+ "oya-managed-k8s-control-plane-host-adapter-inmemory",
+ "oya-managed-k8s-control-plane-host-api",
+ "oya-managed-k8s-sla-observability-adapter-inmemory",
+ "oya-managed-k8s-sla-observability-api",
+ "oya-managed-k8s-sla-observability-kernel",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "oya-managed-k8s-sla-observability-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-managed-k8s-tenant-quota-adapter-cedar"
 version = "0.1.0"
 dependencies = [
