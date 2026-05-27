@@ -6,6 +6,20 @@ cell: control-plane                                         # overridden per spo
 
 # Each app -> one Argo CD Application. type=path (in-repo manifests) or type=chart (Helm repo).
 apps:
+  # Cilium L3/L4 (ADR-0148). CRS bootstraps Cilium ApplyOnce at cluster provision;
+  # Argo CD takes ownership for ongoing lifecycle (drift detection, CVE rollforward,
+  # version bumps via PR — the original ADR-0148 amendment 1.16→1.19 was driven by
+  # an EOL trap that this lifecycle path closes). Same chart + same values file as the
+  # CRS bootstrap, so first reconcile is a no-op.
+  - name: cilium
+    type: chart
+    repoURL: https://helm.cilium.io
+    chart: cilium
+    targetRevision: 1.19.4
+    namespace: kube-system
+    valueFiles: [infra/talos/cilium-values.yaml]
+    syncWave: "0"
+
   - name: kyverno
     type: chart
     repoURL: https://kyverno.github.io/kyverno
@@ -72,7 +86,12 @@ apps:
 
   - name: observability
     type: path
-    path: microservices/observability/iac/helm/observability   # local helm chart
+    # The umbrella chart with a Chart.yaml lives at iac/k8s/helm (the
+    # iac/helm/observability path has only templates/, no Chart.yaml, so
+    # `helm template` fails on it). Per-backend subcharts (clickhouse/loki/
+    # mimir/grafana/tempo/...) live under iac/helm/<backend> and are pulled in
+    # by this umbrella chart's dependencies.
+    path: microservices/observability/iac/k8s/helm   # local helm chart (has Chart.yaml)
     helmPath: true
     namespace: observability
     syncWave: "2"

@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 311
-- **Numbering:** ADR-0001..ADR-0374 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0375
-- **Status counts:** Accepted 138, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 7, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 312
+- **Numbering:** ADR-0001..ADR-0375 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0376
+- **Status counts:** Accepted 139, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 7, accepted 37, deprecated 1, proposed 36, superseded 2
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -118,8 +118,8 @@ doc_status: published
 | ADR-0117 | Accepted | Repo hygiene: gitignore .audit/, consolidate kyverno admission | council-developer-experience | [`ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md`](decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md) |
 | ADR-0118 | Accepted | Retire archive-orphan fitness lane | axis-foundry | [`ADR-0118-retire-archive-orphan-fitness-lane.md`](decisions/ADR-0118-retire-archive-orphan-fitness-lane.md) |
 | ADR-0119 | Accepted | Specs flat-root topology | council-architecture | [`ADR-0119-specs-flat-root-topology.md`](decisions/ADR-0119-specs-flat-root-topology.md) |
-| ADR-0120 | accepted | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
-| ADR-0121 | accepted | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
+| ADR-0120 | superseded | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
+| ADR-0121 | superseded | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
 | ADR-0122 | Accepted | Ontology crate rename — retire "object-graph" naming | council-architecture | [`ADR-0122-ontology-crate-rename-from-object-graph.md`](decisions/ADR-0122-ontology-crate-rename-from-object-graph.md) |
 | ADR-0123 | Accepted | Hyperscaler maturity claim gate | council-architecture | [`ADR-0123-hyperscaler-maturity-claim-gate.md`](decisions/ADR-0123-hyperscaler-maturity-claim-gate.md) |
 | ADR-0124 | accepted | Own merge-queue policy — webhook-driven, GitHub-merge-queue-free | jason931225 | [`ADR-0124-own-merge-queue-webhook-driven.md`](decisions/ADR-0124-own-merge-queue-webhook-driven.md) |
@@ -332,11 +332,12 @@ doc_status: published
 | ADR-0372 | Accepted | Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules | council-architecture | [`ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md`](decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md) |
 | ADR-0373 | Accepted | LLM gateway production design (provider-abstraction, key-pool resilience, audit) | council-architecture | [`ADR-0373-llm-gateway-production-design.md`](decisions/ADR-0373-llm-gateway-production-design.md) |
 | ADR-0374 | Accepted | CI webhook gateway (Forgejo → Jenkins gated pipeline trigger) | council-architecture | [`ADR-0374-ci-webhook-gateway-forgejo-jenkins.md`](decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md) |
+| ADR-0375 | Accepted | Talos + Cluster API + Argo CD fleet substrate (retire Omni / OCI-TF / on-prem) | council-architecture | [`ADR-0375-talos-capi-argocd-fleet-substrate.md`](decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0375), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0376), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -363,6 +364,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 311 ADR files (sorted ascending)
+- `decisions/` directory listing — 312 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

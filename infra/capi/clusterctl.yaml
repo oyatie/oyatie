@@ -13,8 +13,10 @@
 #   CAPM3 (metal3)    v1.13.0
 providers:
   - name: talos
-    url: https://github.com/siderolabs/cluster-api-bootstrap-provider-talos/releases/v0.6.12/bootstrap-components.yaml
+    # GitHub release-asset URL MUST include /download/ (the /releases/<tag>/<asset>
+    # form 404s and clusterctl init fails to fetch the provider components).
+    url: https://github.com/siderolabs/cluster-api-bootstrap-provider-talos/releases/download/v0.6.12/bootstrap-components.yaml
     type: BootstrapProvider
   - name: talos
-    url: https://github.com/siderolabs/cluster-api-control-plane-provider-talos/releases/v0.5.13/control-plane-components.yaml
+    url: https://github.com/siderolabs/cluster-api-control-plane-provider-talos/releases/download/v0.5.13/control-plane-components.yaml
     type: ControlPlaneProvider

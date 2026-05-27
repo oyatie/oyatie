@@ -1,9 +1,14 @@
-> **SUPERSEDED (2026-05-26).** The cluster bring-up is now OpenTofu, not shell:
-> module `microservices/cloud-iac/tofu/modules/talos-cluster/` + root `infra/talos/tofu/`
-> (libvirt + talos + helm providers, Linux/KVM host). The UTM/Parallels Apple-Silicon
-> `bootstrap.sh` / `create-cluster.sh` below were removed. The `*.patch.yaml`,
+> **SUPERSEDED (2026-05-27) by ADR-0375.** Cluster bring-up is now **Talos
+> installation-media (USB zero-touch) + Cluster API + per-cell Argo CD**:
+> `infra/talos/installation-media/` (the `gen-media.sh` ISO generator + README),
+> `infra/capi/` (clusterctl pins + init + ClusterResourceSet), and
+> `infra/capi/clusters/` (the parameterized spoke-cell Helm chart). There is NO
+> OpenTofu/libvirt Talos module — the earlier `infra/talos/tofu/` /
+> `microservices/cloud-iac/tofu/modules/talos-cluster/` direction was dropped before it
+> landed; OpenTofu owns only the Cloudflare edge per ADR-0375. The `*.patch.yaml`,
 > `cilium-values.yaml`, `kata-runtimeclass.yaml`, `schematic.yaml`, and `smoke-kata.sh`
-> remain as references for the future Kata worker pool. The prose below is historical.
+> here remain the canonical Kata-worker-pool + Cilium-values references the new path
+> consumes. The Apple-Silicon UTM prose below is historical.
 
 # Talos local production-fidelity substrate (Apple Silicon)
 

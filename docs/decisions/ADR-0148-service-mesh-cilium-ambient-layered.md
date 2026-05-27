@@ -192,7 +192,7 @@ This keeps single-source-of-truth for authorization while honoring the layer bou
 1. **Two control planes to operate.** Cilium operator (CNI + L4 mesh + Hubble) + istiod (Istio Ambient control plane). Mitigation: both managed via Flux + Helm; both produce CRDs that the governance µservice's policy compiler emits to; ops-sre-reliability runs a single mesh runbook spanning both layers; on-call rotation gets both layers' alerts.
 2. **L7 hop cost when waypoint is enrolled.** ~80-150 microseconds per request at Tier 3 (measured in upstream Istio Ambient benchmarks). Mitigation: only the 5 µservices that handle L7-policed traffic (governance, foundry, audit-chain, application, workflow-studio) enroll a waypoint by default; per-µservice IP can add or remove the enrollment with one manifest field change. Sidecarless fast-path keeps the other 27 µservices at zero L7 hop cost.
 3. **Cedar policy compiler emits two artifacts.** CNP for Tier 1 + AuthorizationPolicy for Tier 3 from the same Cedar source. Mitigation: governance µservice's compiler already does CNP; the AuthorizationPolicy emit shape is a parameterized template.
-4. **eBPF kernel-version coupling.** Cilium 1.16 features require Linux kernel >= 5.10 (oyatie's Debian 13 trixie + Oracle Linux 9 satisfy this; ADR-0121 documents the floor).
+4. **eBPF kernel-version coupling.** Cilium 1.19.x features require Linux kernel >= 5.10 (oyatie's Talos baseline + Debian 13 trixie + Oracle Linux 9 satisfy this; the floor is recorded in the Cilium upstream release notes for the pinned minor).
 
 ### Operational
 
@@ -209,8 +209,8 @@ Per user directive 2026-05-18 ("Wherever possible, we should support in-house te
 
 | Component | Classification | Rationale | In-house Phase 2 plan |
 |---|---|---|---|
-| **Cilium 1.18** | KEEP (CNCF Graduated 2023) | eBPF kernel dataplane + Hubble obs + ClusterMesh is THE standard for L3/L4 at hyperscaler scale. Datadog, Adobe, Bell Canada, Capital One run it in production. There is no industry-comparable in-house alternative. | None planned. Adapter at `crates/oya-shared-mesh-l4-kernel` wraps Cilium for theoretical swap; the kernel never grows a competing implementation. |
-| **Istio Ambient 1.29.2** | KEEP (CNCF Graduated 2024) | SPIFFE-native ztunnel + per-namespace waypoint + AuthorizationPolicy v1 is THE standard for L7 mesh. Anthos, GKE, AWS EKS, Solo.io reference deployments all run it. | None planned. Adapter at `crates/oya-shared-mesh-l7-kernel` wraps Istio Ambient for theoretical swap. |
+| **Cilium 1.19.x** (pin 1.19.4) | KEEP (CNCF Graduated 2023) | eBPF kernel dataplane + Hubble obs + ClusterMesh is THE standard for L3/L4 at hyperscaler scale. Datadog, Adobe, Bell Canada, Capital One run it in production. There is no industry-comparable in-house alternative. | None planned. Adapter at `crates/oya-shared-mesh-l4-kernel` wraps Cilium for theoretical swap; the kernel never grows a competing implementation. |
+| **Istio Ambient** (track current stable; 1.30.x as of 2026-05) | KEEP (CNCF Graduated 2024) | SPIFFE-native ztunnel + per-namespace waypoint + AuthorizationPolicy v1 is THE standard for L7 mesh. Anthos, GKE, AWS EKS, Solo.io reference deployments all run it. | None planned. Adapter at `crates/oya-shared-mesh-l7-kernel` wraps Istio Ambient for theoretical swap. |
 | **SPIFFE / SPIRE** | KEEP (open standard; CNCF Graduated 2022) | Workload identity is THE standard; native to both Cilium and Istio Ambient. | None planned. |
 | **Envoy** (referenced data plane) | KEEP (CNCF Graduated 2018) | THE standard proxy at hyperscaler scale. | None planned. |
 | **Hubble** | KEEP (Cilium subproject) | Cilium-coupled; same KEEP rationale. | None planned. |

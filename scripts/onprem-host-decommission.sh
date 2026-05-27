@@ -1,20 +1,55 @@
 #!/usr/bin/env bash
 # onprem-host-decommission.sh — tear down host-direct services so this box becomes
-# a thin Talos substrate. Pairs with scripts/onprem-bring-up.sh.
+# a thin Talos substrate (per ADR-0375). Pairs with the Talos installation-media
+# bring-up (infra/talos/installation-media/gen-media.sh + infra/capi/init.sh).
 #
 # Doctrine: everything that's a workload moves into Talos. Host keeps only the bits
 # that physically can't (Tailscale daemon, Cloudflared connector, VM hypervisor).
-# Phased cutover — Docker stays for now (Omni's host) and is removed in a later step
-# once Omni has migrated into the Talos bootstrap cluster.
 #
 # This is a CLEAN uninstall: apt purge (configs gone), data dirs deleted, system
 # users removed, unit files removed. Idempotent: safe to re-run.
+#
+# ⚠️  DESTRUCTIVE + IRREVERSIBLE. It rm -rf's user state ($HOME/.claude, .cargo,
+#     .rustup, .cache, build dirs, shell history) + system services. It therefore
+#     REFUSES TO RUN by default. To actually decommission a host you MUST pass
+#     `--apply` AND set the confirmation token:
+#       OYA_DECOMMISSION_CONFIRM=i-understand-this-wipes-the-host \
+#         sudo -E bash scripts/onprem-host-decommission.sh --apply
+#     Without both, it prints the destructive target list and exits 0 (dry-run).
 
 set -euo pipefail
 
 if [[ $EUID -ne 0 ]]; then
   echo "must run as root (sudo bash $0)" >&2
   exit 1
+fi
+
+# --- Destruction guard (default = dry-run; refuses to delete without explicit opt-in) ---
+APPLY=0
+for arg in "$@"; do
+  [[ "$arg" == "--apply" ]] && APPLY=1
+done
+CONFIRM_TOKEN="i-understand-this-wipes-the-host"
+if [[ "$APPLY" -ne 1 || "${OYA_DECOMMISSION_CONFIRM:-}" != "$CONFIRM_TOKEN" ]]; then
+  cat >&2 <<DRYRUN
+
+=== onprem-host-decommission.sh — DRY RUN (no changes made) ===
+
+This script is destructive and irreversible. It WOULD:
+  - stop/disable/mask systemd units (openbao, kubelet, oyatie-*, ...)
+  - apt purge openbao/kubelet/kubeadm + drop the kubernetes apt repo
+  - rm -rf /opt/istio, /etc/{openbao,oyatie,oya,kubernetes,cni}, /var/lib/{openbao,kubelet,etcd,cni}
+  - deluser openbao/oya system users
+  - rm -rf the invoking user's \$HOME/{.claude,.codex,.gemini,.continue,.rustup,.cargo,.cache,.npm}
+  - find + rm -rf target/, node_modules/, __pycache__/, .terraform/ under \$HOME
+  - wipe shell + AI-assistant history
+
+To proceed you MUST pass --apply AND export the confirmation token:
+  OYA_DECOMMISSION_CONFIRM=$CONFIRM_TOKEN sudo -E bash $0 --apply
+
+DRYRUN
+  echo "DRY_RUN_OK (no changes made)"
+  exit 0
 fi
 
 step() { printf '\n=== %s ===\n' "$*"; }
@@ -186,4 +221,6 @@ systemctl list-units --type=service --state=running --no-pager 2>&1 \
 
 echo
 echo "CLEANUP_OK"
-echo "Next: install libvirt deps, then \`cd infra/talos/tofu && tofu init && tofu apply\` (OpenTofu cluster bring-up)."
+echo "Next (per ADR-0375): build Talos installation media —"
+echo "  HUB_ENDPOINT=https://<this-host-ip>:6443 bash infra/talos/installation-media/gen-media.sh control-plane"
+echo "  dd the ISO to USB, boot this host, then: KUBECONFIG=<hub> bash infra/capi/init.sh"

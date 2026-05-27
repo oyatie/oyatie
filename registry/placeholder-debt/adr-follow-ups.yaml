@@ -22,6 +22,109 @@
 version: 1
 
 follow_ups:
+  - id: adr-0247-bootstrap-repo-source-cutover
+    intent: |
+      The fleet GitOps bootstrap source (`repoURL`) is currently hardcoded as
+      the founder's personal GitHub `https://github.com/jason931225/oyatie` in
+      four production-path files: `infra/forge/forgejo-argocd-app.yaml`,
+      `infra/gitops/root-app.yaml`, `infra/gitops/values.yaml`, and
+      `infra/kyverno/oya-vcs-admission/application.json`. ADR-0247 documents the
+      cutover to the self-hosted Forgejo URL once the in-cell Forgejo deploy
+      stabilises. Until then every cell pulls from a single personal-account
+      SPOF. Cutover: (a) parameterise `repoURL` via an ApplicationSet so the
+      value lands once, (b) flip the bootstrap source to Forgejo, (c) document
+      the per-cell override for air-gapped/sovereign packs (ADR-0164/0240).
+    driver_docs:
+      - infra/gitops/values.yaml
+      - infra/gitops/root-app.yaml
+      - infra/forge/forgejo-argocd-app.yaml
+      - infra/kyverno/oya-vcs-admission/application.json
+    owner: council-architecture + ops-platform
+    trigger: First in-cluster Forgejo cell reaches GA, or the personal-account SPOF is hit.
+    status: pending
+    adr_when_landed: ADR-0247 (impl tracks an already-accepted ADR)
+
+  - id: adr-0375-installation-media-shred-action
+    intent: |
+      `infra/talos/installation-media/gen-media.sh` bakes the cluster's full PKI
+      (root CA + key, etcd CA + key, kubelet bootstrap token, apiserver client
+      certs, service-account signing key) into the control-plane ISO. The script
+      does not yet (a) back up/verify `secrets/secrets.yaml` before regenerating,
+      (b) cryptographically shred `_out/*.iso` after the control plane is up, or
+      (c) automate PKI rotation on compromise. README documents the manual
+      discipline; this follow-up implements `gen-media.sh shred <iso>` +
+      `gen-media.sh rotate-pki`. Post-bootstrap PKI custody flips to OpenBao per
+      the app-of-apps; this entry covers only the bootstrap-window gap.
+    driver_docs:
+      - infra/talos/installation-media/gen-media.sh
+      - infra/talos/installation-media/README.md
+    owner: ops-security + axis-platform
+    trigger: First production fleet deploy where the bootstrap ISO leaves a trusted host.
+    status: pending
+    adr_when_landed: ADR-0375 (impl tracks an already-accepted ADR)
+
+  - id: adr-0375-node-config-serving-plane
+    intent: |
+      The `node` installation-media preset boots with `talos.config=$CONFIG_URL`
+      and fetches its role/cluster config from a hub config endpoint
+      (`gen-media.sh` node path + `presets.yaml`), but no config-serving plane
+      (MAC/UUID→machineconfig assignment service) is deployed in this PR. Until
+      that serving plane lands, node zero-touch is EXPERIMENTAL — bare-metal
+      worker nodes must be assigned config manually. Implement (or adopt) the
+      hub-side config endpoint (Talos `siderolink`/`metadata` server or a small
+      Rust service) + the MAC-or-UUID assignment registry.
+    driver_docs:
+      - infra/talos/installation-media/gen-media.sh
+      - infra/talos/installation-media/presets.yaml
+    owner: axis-platform + ops-sre-reliability
+    trigger: First bare-metal cell with more than a hand-assigned node count.
+    status: pending
+    adr_when_landed: ADR-0375 (impl tracks an already-accepted ADR)
+
+  - id: adr-0375-jenkins-fleet-bootstrap-pipeline
+    intent: |
+      `make fleet` is informational-only (prints the gen-media.sh/init.sh/render.sh
+      sequence). The deployment-ops-contract describes fleet bring-up as a
+      multi-step hardware-gated flow, not a single executable command. This
+      follow-up wires the end-to-end fleet bootstrap into a Jenkins pipeline
+      (control-plane media build is hardware-gated and stays manual; the
+      clusterctl init + CRS render + spoke apply legs become a pipeline once a
+      hub kubeconfig is available to the Jenkins agent).
+    driver_docs:
+      - Makefile
+      - specs/deployment-ops-contract.json
+      - infra/capi/init.sh
+      - infra/capi/crs/render.sh
+    owner: ops-platform + council-architecture
+    trigger: First repeatable fleet bring-up against a standing hub.
+    status: pending
+    adr_when_landed: ADR-0375 (impl tracks an already-accepted ADR)
+
+  - id: adr-0375-managed-k8s-product-surface
+    intent: |
+      ADR-0375 lands the substrate primitive (Talos + CAPI + Argo CD: provision,
+      lifecycle, delivery) and frames it as Oyatie's own OKE/GKE/EKS. The
+      CUSTOMER-FACING managed-Kubernetes product layer on top is not yet built:
+      (a) a cluster-CRUD API (create/scale/upgrade/delete a tenant cluster as a
+      first-class resource, wrapping the CAPI cells[] mechanism), (b) per-tenant
+      quota + billing + RBAC + network isolation across tenant clusters, (c)
+      control-plane multi-tenancy hardening (a tenant must not reach the mgmt
+      cluster or another tenant's cluster), (d) the SLA + observability contract
+      (control-plane uptime, provisioning latency, per-cluster health surfaced to
+      the tenant). Tenant-zero is Oyatie itself (oyatie-dogfood-tenancy); the
+      product is proven by self-use before external sale.
+    driver_docs:
+      - docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md
+      - infra/capi/clusters/values.yaml
+      - microservices/cloud-compute/PRD.md
+    owner: council-architecture + axis-cloud-compute + gtm-customer-success
+    trigger: |
+      First external tenant cluster request, OR the dogfood self-tenant milestone
+      reaches the point where cluster provisioning needs an API rather than a
+      hand-edited values file.
+    status: pending
+    adr_when_landed: ADR-0375 (product layer builds on the accepted substrate ADR)
+
   - id: adr-0361-promote-pipelines
     intent: |
       Implement the Jenkins-native promote-dev-to-staging and

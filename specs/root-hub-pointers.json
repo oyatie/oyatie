@@ -101,7 +101,7 @@
       "current_path": "/specs/deployment-ops-contract.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Deployment entrypoint contract for OpenTofu-owned infra, root Makefile bootstrap/install/ops targets, no manual SSH troubleshooting, and Rust migration inventory for infra/onprem shell scripts."
+      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD; root Makefile owns operator entry; no manual SSH troubleshooting."
     },
     "ci_fix_loop_context_bundle": {
       "kind": "spec",
