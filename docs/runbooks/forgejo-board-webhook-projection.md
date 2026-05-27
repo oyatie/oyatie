@@ -69,12 +69,13 @@ Ignore push events outside `refs/heads/claims/`. Do not infer a claim from unrel
 
 1. Derive the deliverable id from the issue mapping or `refs/heads/claims/<deliverable-id>`.
 2. Load the current masterplan deliverable record and current Forgejo issue label set.
-3. Normalize column labels into one exclusive board-state family. At most one active column label may remain after projection.
+3. Normalize column labels into the exclusive `state/*` family. At most one active state label may remain after projection.
 4. Apply the deterministic target column from the current deliverable state and claim state:
-   - no active claim: backlog / ready label;
-   - active claim with live claim ref: claimed / in-progress label;
-   - completed deliverable evidence accepted: done label;
-   - blocked claim or failed verification: blocked / needs-attention label.
+   - no active claim: `state/declared`;
+   - active claim with live claim ref: `state/claimed`;
+   - lane commit/evidence ready for review: `state/review`;
+   - completed deliverable evidence accepted: `state/done`;
+   - blocked claim or failed verification: `state/blocked`.
 5. Remove loser labels from the same exclusive family before adding the winning label.
 6. Preserve non-board labels such as area, priority, severity, or evidence labels unless a separate approved policy says otherwise.
 7. Emit or record projection evidence with event delivery id, projection key, before labels, after labels, and claim ref observed.

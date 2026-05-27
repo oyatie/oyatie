@@ -96,8 +96,8 @@ idempotent diff against Forgejo Issues:
 - stable issue identity from the deliverable id, not from issue number;
 - labels for status, owner, milestone/phase, and risk;
 - exclusive scoped labels for single-valued dimensions, for example
-  `state/open`, `state/claimed`, `state/blocked`, `state/done` and
-  `owner/<agent-id>`.
+  `state/declared`, `state/claimed`, `state/review`, `state/blocked`,
+  `state/done`, and `owner/<agent-id>`.
 
 The Forgejo board is a projection, not the source of truth. The source of truth
 remains the masterplan plus git claim refs and verified commits.
