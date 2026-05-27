@@ -1,7 +1,7 @@
 # Per-cell app-of-apps root. Argo CD (bootstrapped on each cell by the CAPI ClusterResourceSet)
 # reconciles this; it renders the oya-platform Helm chart -> the cell's Argo CD Applications.
 # Source = GitHub at bootstrap; flips to Forgejo post-cutover (ADR-0247). Per-cell config via
-# helm.values overrides (cell name, etc.) — defaults to the hub.
+# helm.values overrides (cell name, etc.) — defaults to the control plane.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -17,7 +17,7 @@ spec:
     path: infra/gitops
     helm:
       valuesObject:
-        cell: hub            # spokes override: eu / jp / kr / ksa / us / us-gov / uae
+        cell: control-plane            # spokes override: eu / jp / kr / ksa / us / us-gov / uae
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

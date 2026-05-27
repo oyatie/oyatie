@@ -1,5 +1,5 @@
-# Hub control-plane machine-config patch (baked into the hub USB).
-# The hub is the CAPI management cluster — schedulable CPs (it runs CAPI + Argo CD on them),
+# Control-plane machine-config patch (baked into the control-plane installation media).
+# The control plane is the CAPI management cluster — schedulable CPs (it runs CAPI + Argo CD on them),
 # Cilium-ready (cni:none + proxy.disabled per ADR-0148). certSANs for off-host kubectl via CF.
 cluster:
   allowSchedulingOnControlPlanes: true

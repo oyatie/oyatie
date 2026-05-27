@@ -1,0 +1,6 @@
+apiVersion: v2
+name: oya-spokes
+description: CAPI Talos spoke-cell clusters (OCI / AWS / Metal3), parameterized per cell. A cell is a values entry, not a copied file (ADR-0375 D3).
+type: application
+version: 0.1.0
+appVersion: "1.36.1"

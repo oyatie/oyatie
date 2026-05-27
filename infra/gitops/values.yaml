@@ -2,7 +2,7 @@
 # per cluster (ApplicationSet/CRS injects them, or a per-cell values file).
 repoURL: https://github.com/jason931225/oyatie   # bootstrap source; flips to Forgejo post-cutover (ADR-0247)
 targetRevision: dev
-cell: hub                                         # overridden per spoke (eu/jp/kr/...)
+cell: control-plane                                         # overridden per spoke (eu/jp/kr/...)
 
 # Each app -> one Argo CD Application. type=path (in-repo manifests) or type=chart (Helm repo).
 apps:
@@ -10,7 +10,7 @@ apps:
     type: chart
     repoURL: https://kyverno.github.io/kyverno
     chart: kyverno
-    targetRevision: 3.5.2
+    targetRevision: 3.8.1
     namespace: kyverno
     syncWave: "0"
 
@@ -20,14 +20,14 @@ apps:
     type: chart
     repoURL: https://istio-release.storage.googleapis.com/charts
     chart: base
-    targetRevision: 1.28.1
+    targetRevision: 1.30.0
     namespace: istio-system
     syncWave: "0"
   - name: istiod
     type: chart
     repoURL: https://istio-release.storage.googleapis.com/charts
     chart: istiod
-    targetRevision: 1.28.1
+    targetRevision: 1.30.0
     namespace: istio-system
     values: { profile: ambient }
     syncWave: "1"
@@ -35,7 +35,7 @@ apps:
     type: chart
     repoURL: https://istio-release.storage.googleapis.com/charts
     chart: cni
-    targetRevision: 1.28.1
+    targetRevision: 1.30.0
     namespace: istio-system
     values: { profile: ambient }
     syncWave: "1"
@@ -43,7 +43,7 @@ apps:
     type: chart
     repoURL: https://istio-release.storage.googleapis.com/charts
     chart: ztunnel
-    targetRevision: 1.28.1
+    targetRevision: 1.30.0
     namespace: istio-system
     syncWave: "2"
 
@@ -65,7 +65,7 @@ apps:
     type: chart
     repoURL: https://charts.jenkins.io
     chart: jenkins
-    targetRevision: 5.8.18
+    targetRevision: 5.9.22
     namespace: oya-ci
     valueFiles: [infra/ci/jenkins/values-local.yaml]
     syncWave: "2"
