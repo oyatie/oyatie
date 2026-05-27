@@ -57,7 +57,7 @@ paths:
               description: Forgejo webhook payload (pull_request, issues, push, ping, ...).
       responses:
         "202":
-          description: Routable event accepted and the Jenkins pipeline was kicked.
+          description: Routable event accepted and dispatched to its configured boundary; PR events kick Jenkins, board events return board-projection receipts.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DispatchedResponse" }

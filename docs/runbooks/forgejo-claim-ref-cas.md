@@ -14,7 +14,7 @@ doc_status: published
 
 - Forgejo target: `oya-forge`, Forgejo `11.0.14`.
 - Native Forgejo Projects REST endpoints returned `404`, so board state must not depend on native Projects availability.
-- Exclusive label projection works for board columns: `board/backlog` can be replaced by `board/claimed` as a visible issue-state projection.
+- Exclusive label projection works for board columns: `state/declared` can be replaced by `state/claimed` as a visible issue-state projection.
 - Native issue-assignee mutation is not an atomic claim primitive: two concurrent `PATCH` requests both succeeded, and the issue ended with two assignees.
 - Git ref creation under `refs/heads/claims/<deliverable-id>` is atomic enough for claim ownership: one concurrent push succeeded; the other failed with remote ref-lock / reference-exists behavior.
 - Push webhooks include sender identity, allowing the winning claimant to be reconciled from the ref update event.
@@ -23,7 +23,7 @@ doc_status: published
 
 1. The claim source of truth is exactly one Git ref: `refs/heads/claims/<deliverable-id>`.
 2. Claim creation is compare-and-set by ref creation: create the ref only when it does not already exist.
-3. Issue labels are projection-only. `board/backlog`, `board/claimed`, and related exclusive labels mirror claim state for humans; they are not locks.
+3. Issue labels are projection-only. `state/declared`, `state/claimed`, and related exclusive labels mirror claim state for humans; they are not locks.
 4. Issue assignees are projection-only. They may be updated after a claim, but they do not prove exclusive ownership.
 5. A losing claimant must not retry by overwriting, deleting, force-pushing, or moving another worker's claim ref.
 6. Project availability is optional. Forgejo Projects REST `404` must degrade to the issue-label projection path.
@@ -37,7 +37,7 @@ doc_status: published
 3. Attempt to create `refs/heads/claims/<deliverable-id>` pointing at the agreed claim commit or empty marker commit.
 4. If ref creation succeeds:
    - record this worker/user as the claim winner;
-   - project the issue from `board/backlog` to `board/claimed` using exclusive labels;
+   - project the issue from `state/declared` to `state/claimed` using exclusive labels;
    - optionally project assignee metadata for convenience;
    - wait for or consume the push webhook and reconcile sender identity.
 5. If ref creation fails because the remote already has the ref or reports a ref-lock/reference-exists conflict:
@@ -58,8 +58,8 @@ A loser exits cleanly with a conflict result that names the deliverable id and, 
 
 ## Projection label rules
 
-- `board/*` labels are mutually exclusive within the board-state family.
-- Claim success projects `board/backlog -> board/claimed`.
+- `state/*` labels are mutually exclusive within the state-label family.
+- Claim success projects `state/declared -> state/claimed`.
 - Projection updates are best-effort and repeatable. They may lag the ref but must converge to the ref state.
 - Label state is never sufficient to grant ownership without the matching claim ref.
 
@@ -69,15 +69,15 @@ Future code that implements this contract should provide targeted checks equival
 
 ```bash
 # Unit/integration: concurrent ref creation has one winner and one loser.
-oya plan claim <deliverable-id> --repo <forgejo-remote> --actor worker-a &
-oya plan claim <deliverable-id> --repo <forgejo-remote> --actor worker-b &
+oya plan claim --deliverable <deliverable-id> --repo-root . --remote <forgejo-remote> --claimant worker-a &
+oya plan claim --deliverable <deliverable-id> --repo-root . --remote <forgejo-remote> --claimant worker-b &
 wait
 
 git ls-remote <forgejo-remote> refs/heads/claims/<deliverable-id>
 
 # Sync: issue labels project the winning ref and rerun idempotently.
-oya gen board-sync --masterplan <path> --board-snapshot <snapshot> --dry-run
-oya gen board-sync --masterplan <path> --board-snapshot <snapshot> --dry-run
+oya gen board-sync --master-plan <path> --snapshot <snapshot> --claim-ref-snapshot <claims> --write
+oya gen board-sync --master-plan <path> --snapshot <snapshot> --claim-ref-snapshot <claims> --check
 
 # Gate: snapshot and masterplan agree in both directions.
 oya gate validate board-masterplan-consistency --master-plan <path> --board-snapshot <snapshot>

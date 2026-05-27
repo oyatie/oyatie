@@ -10,7 +10,7 @@ doc_status: published
 > **Owner:** Governance tooling maintainers.
 > **Last verified:** 2026-05-27 from leader-supplied live Forgejo board
 > evidence.
-> **Scope:** Plain Git worktrees, Forgejo issues, exclusive `board/*` labels,
+> **Scope:** Plain Git worktrees, Forgejo issues, exclusive `state/*` labels,
 > Git claim refs, and webhooks. This runbook does not authorize `oya git`,
 > `oya vcs`, GitHub Projects, native Forgejo Projects automation, concurrent
 > `oya gate run-all`, or a bespoke long-running board service.
@@ -69,21 +69,21 @@ If the push fails with a remote ref-lock, reference-exists, or
 non-fast-forward style conflict, treat it as a lost race. Do not force-push,
 delete, move, or overwrite another worker's claim ref.
 
-## Board label projection
+## State label projection
 
-Use exclusive `board/*` labels as non-authoritative board columns:
+Use exclusive `state/*` labels as non-authoritative board columns:
 
-- `board/backlog` means the issue is ready but unclaimed.
-- `board/claimed` means a winning claim ref exists.
-- `board/review` means the lane has a commit and evidence ready for review.
-- `board/done` means the lane has been integrated or closed by the leader.
-- `board/blocked` means the lane needs reassignment, scope change, or
+- `state/declared` means the issue is ready but unclaimed.
+- `state/claimed` means a winning claim ref exists.
+- `state/review` means the lane has a commit and evidence ready for review.
+- `state/done` means the lane has been integrated or closed by the leader.
+- `state/blocked` means the lane needs reassignment, scope change, or
   external authority.
 
 Rules:
 
-1. Only move `board/*` labels after the authoritative state exists.
-2. Claim success may project `board/backlog -> board/claimed`.
+1. Only move `state/*` labels after the authoritative state exists.
+2. Claim success may project `state/declared -> state/claimed`.
 3. A failed claim must not project ownership labels.
 4. Label updates must be idempotent. Reapplying the same projection should
    produce no semantic change.
@@ -151,7 +151,7 @@ A lane commit must include:
 
 After commit:
 
-1. Project the issue to `board/review` if the team has authorized label
+1. Project the issue to `state/review` if the team has authorized label
    projection for completed lane work.
 2. Send the leader the commit hash, scoped files, and verification evidence.
 3. Do not start another lane in the same worktree unless the leader assigns it
@@ -182,7 +182,7 @@ Do not use or reintroduce:
 
 1. Read the claim ref and issue labels.
 2. Recompute the expected projection.
-3. Apply only the missing exclusive `board/*` transition.
+3. Apply only the missing exclusive `state/*` transition.
 4. Preserve an evidence note that labels were repaired from refs.
 
 ### Webhook gap
@@ -203,7 +203,7 @@ Do not use or reintroduce:
 - [ ] One worktree exists for the lane.
 - [ ] The agent created or verified the winning claim ref before editing.
 - [ ] Only scoped files changed.
-- [ ] `board/*` labels were treated as projection-only.
+- [ ] `state/*` labels were treated as projection-only.
 - [ ] Webhook sender identity and commit author were recorded when available.
 - [ ] Verification was affected-only and did not include concurrent
   `oya gate run-all`.
