@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_at": "2026-05-19",
-  "manifest_count": 32,
+  "manifest_count": 33,
   "microservices": [
     {
       "name": "application",
@@ -170,6 +170,11 @@
     {
       "name": "ops-dashboard-control-center",
       "manifest": "microservices/ops-dashboard-control-center/manifest.json"
+    },
+    {
+      "name": "llm-gateway",
+      "manifest": "microservices/llm-gateway/manifest.json",
+      "fd001_material": false
     }
   ]
 }
