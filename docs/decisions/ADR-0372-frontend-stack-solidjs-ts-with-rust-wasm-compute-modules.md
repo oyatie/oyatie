@@ -29,20 +29,23 @@ deliverables:
     exit_criteria: "at least the heaviest compute widget (e.g. Workflow Studio canvas or a large data-grid) runs as a Rust→WASM module inside the SolidJS shell; the 95% plain-DOM shell pays zero WASM tax."
     verified_by: "the WASM compute module mounts + passes its widget tests inside the TS shell"
   - id: ADR-0372-D4
-    description: "Retire the Leptos prototype (crates/oya-application-shell-frontend-prototype): migrate its surfaces to the SolidJS shell; the existing 4.3k-line static/prototype-interactions.js already shows UI logic living outside Rust, lowering switch cost."
-    exit_criteria: "the Leptos prototype is superseded by the SolidJS app-shell; no production frontend path depends on Leptos."
-    verified_by: "the Leptos crate is removed or marked archived; the shell is SolidJS"
+    description: "WITHDRAWN by the 2026-05-27 amendment. The Leptos prototype (crates/oya-application-shell-frontend-prototype) is RETAINED as the canonical app-shell frontend; it is NOT retired. The SolidJS shell is an evaluation track only — Leptos is replaced as canonical ONLY if SolidJS demonstrates superiority at massive scale."
+    exit_criteria: "Leptos remains the canonical app-shell; the SolidJS scaffold exists as an evaluation, not a migration commitment; no Leptos retirement occurs absent proven massive-scale SolidJS superiority."
+    verified_by: "the Leptos crate remains present + canonical; SolidJS is evaluation-only"
   - id: ADR-0372-D5
     description: "Frontend stays OSI-clean + hyperscaler-norm: SolidJS (MIT), SolidStart (MIT); no forbidden-license frontend deps; WASM remains the server-side-sandbox + client-compute-module pattern (ADR-0023 Wasmtime is server-side, NOT the frontend rendering layer)."
     exit_criteria: "frontend dependency licenses pass the policy gate; WASM usage is compute-modules + server-sandbox only."
     verified_by: "license/dependency policy gate green on the frontend"
-purpose: Choose the app-shell FRONTEND stack on performance, scalability, resource-efficiency, and hyperscaler norms (not language ideology). Decision — TypeScript + SolidJS (fine-grained reactivity, SolidStart SSR) for the DOM-heavy shell, with targeted Rust→WASM modules only for compute-bound widgets, and OpenAPI 3.2.0→TS codegen for end-to-end type safety. Backend/services/gateway stay Rust (settled, out of scope). Supersedes the Leptos (Rust→WASM) prototype.
+purpose: Choose the app-shell FRONTEND stack on performance, scalability, resource-efficiency, and hyperscaler norms (not language ideology). Original decision — TypeScript + SolidJS (fine-grained reactivity, SolidStart SSR) for the DOM-heavy shell, with targeted Rust→WASM modules only for compute-bound widgets, and OpenAPI 3.2.0→TS codegen for end-to-end type safety. Backend/services/gateway stay Rust (settled, out of scope). AMENDED 2026-05-27 — the supersede-Leptos stance is REVERSED: Leptos is RETAINED as the canonical app-shell frontend; SolidJS is an evaluation track only, adopted as canonical solely on proven massive-scale superiority.
 ---
 
 # ADR-0372: Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules
 
 ## Status
-Accepted — 2026-05-26.
+Accepted — 2026-05-26. **AMENDED 2026-05-27** (see Amendment): the supersede-Leptos stance is reversed — Leptos retained canonical, SolidJS evaluation-only.
+
+## Amendment (2026-05-27)
+**Founder decision (2026-05-27) REVERSES the supersede-Leptos stance of this ADR.** Leptos (`crates/oya-application-shell-frontend-prototype`, Rust→WASM) is RETAINED as the **canonical** app-shell frontend. SolidJS is retained as an **evaluation track only** — the `microservices/app-shell-frontend` SolidJS scaffold (PR #201) is that evaluation, NOT a migration commitment. SolidJS replaces Leptos as canonical ONLY if it demonstrates superiority **at massive scale**; absent that proof, Leptos stays. Deliverable D4 (retire the Leptos prototype) is WITHDRAWN; D1–D3 stand as EVALUATION work, not a committed migration. The analysis below is retained as the historical rationale for the (now-reversed) decision; the backend-stays-Rust and WASM-for-compute conclusions are unaffected.
 
 ## Context
 The app-shell prototype is **Leptos** (Rust→WASM; `crates/oya-application-shell-frontend-prototype`,
