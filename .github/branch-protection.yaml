@@ -13,14 +13,18 @@
 #   - dev        Shared-world entry point. PRs target here. 3-gate:
 #                signed-commits + linear-history + every required
 #                CI check green. Default branch on github.
-#   - staging    Auto-promoted from dev (workflow:
-#                .github/workflows/promote-dev-to-staging.yml).
-#                No PR review; signed-commits + linear-history;
+#   - staging    Auto-promoted from dev by the Jenkins promote-dev-to-staging
+#                pipeline (per ADR-0361 Jenkins-native CI/CD; pipeline impl
+#                tracked in registry/placeholder-debt/adr-follow-ups.yaml
+#                #adr-0361-promote-pipelines). The prior GHA workflow at
+#                .github/workflows/promote-dev-to-staging.yml was retired in
+#                R5 (ADR-0361). No PR review; signed-commits + linear-history;
 #                CANARY cohort exposure begins on this ref.
-#   - production Auto-promoted from staging (workflow:
-#                .github/workflows/promote-staging-to-production.yml).
-#                No PR review; signed-commits + linear-history;
-#                FULL ROLLOUT exposure on this ref.
+#   - production Auto-promoted from staging by the Jenkins
+#                promote-staging-to-production pipeline (per ADR-0361; pipeline
+#                impl tracked in the same placeholder-debt entry). The prior
+#                GHA workflow was retired in R5. No PR review; signed-commits
+#                + linear-history; FULL ROLLOUT exposure on this ref.
 #
 # `main` is RETAINED for read-only legacy compatibility but has NO
 # protection and is not the default branch. PRs targeting `main` are
@@ -38,10 +42,10 @@ branches:
     # reviews are not the merge authority; the required `oya-pr-review`
     # check below is.
     required_approving_reviews: 0
-    # Canonical contract: each entry below is BOTH the workflow YAML
-    # job-key AND the workflow's `name:` field. The
-    # `oya-governance-protection-context-match` lane enforces
-    # this invariant.
+    # Canonical contract: each entry below is a Jenkins job status context
+    # posted to GitHub via the commit-status API (per ADR-0361 Jenkins-native
+    # CI/CD; the prior GHA workflow contract was retired in R5). The
+    # `oya-governance-protection-context-match` lane enforces this invariant.
     required_status_checks:
       - cargo-fmt
       - cargo-check
@@ -60,12 +64,13 @@ branches:
       - oya-pr-review
 
   staging:
-    # Auto-promoted from dev by promote-dev-to-staging.yml; the
-    # fast-forward inherits dev's signature + CI state. No PR
-    # required, no review, no CI gate at THIS layer — those gates
-    # already fired on dev. What we do enforce: the ref must only
-    # move forward, the underlying commits must be signed, no
-    # force-push, no deletion.
+    # Auto-promoted from dev by the Jenkins promote-dev-to-staging pipeline
+    # (per ADR-0361); the fast-forward inherits dev's signature + CI state.
+    # No PR required, no review, no CI gate at THIS layer — those gates
+    # already fired on dev. What we do enforce: the ref must only move
+    # forward, the underlying commits must be signed, no force-push, no
+    # deletion. Pipeline impl is tracked in
+    # registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true
@@ -73,11 +78,11 @@ branches:
     require_signed_tags: true
 
   production:
-    # Auto-promoted from staging by
-    # promote-staging-to-production.yml; same fast-forward inheritance
-    # as staging. FULL-rollout layer; canary observability gate (per
-    # FINAL-FINAL) is the future addition that conditions this
-    # promotion.
+    # Auto-promoted from staging by the Jenkins promote-staging-to-production
+    # pipeline (per ADR-0361); same fast-forward inheritance as staging.
+    # FULL-rollout layer; canary observability gate (per FINAL-FINAL) is the
+    # future addition that conditions this promotion. Pipeline impl tracked
+    # in registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
     require_pull_request: false
     require_linear_history: true
     disallow_force_push: true
