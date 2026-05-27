@@ -3,7 +3,7 @@ role: rest
 capability: workload-identity
 plane: control
 slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING, AUTHENTICATION]
+data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
