@@ -763,11 +763,11 @@
               "verified_by": "the WASM compute module mounts + passes its widget tests inside the TS shell"
             },
             {
-              "description": "Retire the Leptos prototype (crates/oya-application-shell-frontend-prototype): migrate its surfaces to the SolidJS shell; the existing 4.3k-line static/prototype-interactions.js already shows UI logic living outside Rust, lowering switch cost.",
-              "exit_criteria": "the Leptos prototype is superseded by the SolidJS app-shell; no production frontend path depends on Leptos.",
+              "description": "WITHDRAWN by the 2026-05-27 amendment. The Leptos prototype (crates/oya-application-shell-frontend-prototype) is RETAINED as the canonical app-shell frontend; it is NOT retired. The SolidJS shell is an evaluation track only — Leptos is replaced as canonical ONLY if SolidJS demonstrates superiority at massive scale.",
+              "exit_criteria": "Leptos remains the canonical app-shell; the SolidJS scaffold exists as an evaluation, not a migration commitment; no Leptos retirement occurs absent proven massive-scale SolidJS superiority.",
               "id": "ADR-0372-D4",
               "status": "declared",
-              "verified_by": "the Leptos crate is removed or marked archived; the shell is SolidJS"
+              "verified_by": "the Leptos crate remains present + canonical; SolidJS is evaluation-only"
             },
             {
               "description": "Frontend stays OSI-clean + hyperscaler-norm: SolidJS (MIT), SolidStart (MIT); no forbidden-license frontend deps; WASM remains the server-side-sandbox + client-compute-module pattern (ADR-0023 Wasmtime is server-side, NOT the frontend rendering layer).",

@@ -167,6 +167,25 @@ token. The four microservices land in their own IPs.
    clusterctl-compliant control-plane providers, and lets the tenant choose. The
    additional operational surface (Kamaji in the management cluster) is bounded and
    additive, not a fork of the substrate.
+4. **Gardener (SAP / Linux Foundation NeoNephos) as the hosted-control-plane mechanism.**
+   Evaluated at founder challenge ("why Kamaji, not Gardener?") with a sourced comparison
+   (2026-05-27). Gardener is the more battle-hardened managed-k8s PRODUCT — SAP, T-Systems,
+   and STACKIT run it at tens-of-thousands-of-clusters scale; its seed/shoot "kubeception"
+   delivers the FULL managed-k8s lifecycle out of the box (provisioning, upgrades, node OS,
+   DNS, certs, autoscaling, monitoring); and it has neutral multi-vendor governance
+   (LF / NeoNephos). Those are two axes (completeness, governance) on which Gardener beats
+   Kamaji. Rejected for now on the DECIDING axis — substrate fit: Gardener is a different
+   top-down paradigm (Garden→Seed→Shoot, gardenlet, its own machine-controller-manager +
+   extensions) that is explicitly NOT CAPI-native (`cluster-api-provider-gardener`, Aug 2025,
+   is an experimental migration bridge, not convergence). Adopting it would SUPPLANT most of
+   the just-landed ADR-0375 CAPI + Talos + Argo substrate rather than extend it — a substrate
+   U-turn, not a tier choice — and would make ~2 of the four product microservices
+   (cluster-lifecycle, sla-observability) largely redundant. Kamaji instead drops into
+   ADR-0375 as one more clusterctl-compliant control-plane provider, preserves the tenant-zero
+   dogfood CAPI model, and keeps the four microservices as Oyatie's product differentiation.
+   Re-evaluate if the strategic priority shifts to time-to-market for a full external
+   managed-k8s product with minimal in-house platform engineering — Gardener would then be the
+   rational choice and worth the substrate rewrite.
 
 ## Consequences
 
@@ -194,12 +213,20 @@ token. The four microservices land in their own IPs.
 - **Versioning**: Kamaji is adopted version-agnostically here. A concrete Kamaji /
   CAPI-provider version pin lands in `registry/lts-pins.yaml` when the
   `oya-managed-k8s-control-plane-host` lane integrates the provider, not in this ADR.
+- **Tracked risk — Kamaji maturity + vendor concentration**: Kamaji is CNCF *Sandbox*
+  with a single primary backer (Clastix). This is an accepted risk given the two-way door;
+  re-evaluate at CNCF Incubation or if Clastix backing weakens. The drop-in fallback is
+  **k0smotron** (Mirantis) — also a clusterctl-compliant CAPI control-plane provider
+  (`K0smotronControlPlane`, CNCF Sandbox) — so switching the hosted-tier provider is
+  low-cost and does not touch the substrate. Production adopters (NVIDIA DOCA/DPF, Rackspace,
+  OVHcloud, IONOS) evidence Kamaji's hyperscaler-grade fitness today, which is why it passes
+  the "would a hyperscaler use this dependency?" bar.
 
 ## Door
-Two-way: Kamaji is an additive, replaceable clusterctl-compliant control-plane provider;
-the dedicated Talos tier remains fully functional without it, and the two-tier model can
-collapse back to dedicated-only by retiring the hosted provider without touching the
-substrate.
+Two-way: Kamaji is an additive, replaceable clusterctl-compliant control-plane provider
+(k0smotron is the drop-in fallback provider); the dedicated Talos tier remains fully
+functional without it, and the two-tier model can collapse back to dedicated-only by
+retiring the hosted provider without touching the substrate.
 
 ## References
 - ADR-0375 — Talos + Cluster API + Argo CD fleet substrate (the substrate this product builds on).
@@ -212,3 +239,6 @@ substrate.
   Cluster API provider reference at `cluster-api.sigs.k8s.io/reference/providers`).
 - `registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-managed-k8s-product-surface` —
   the follow-up this ADR realizes (repointed at ADR-0376).
+- Evaluated alternative — Gardener (`gardener.cloud`, LF / NeoNephos); drop-in fallback
+  provider — k0smotron (`docs.k0smotron.io`, Mirantis, CNCF Sandbox). See the 2026-05-27
+  sourced Kamaji-vs-Gardener comparison that backs the Alternatives-Considered entry above.
