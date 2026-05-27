@@ -157,7 +157,8 @@ ADR-0377 may be proposed for lift from conditional only when:
 4. Assignee races and claim-ref CAS races have deterministic loser handling.
 5. Push webhook identity is sufficient for audit-chain attribution.
 6. Affected-only local verification has a reproducible changed-file mapping.
-7. Reviewer sign-off cites the evidence packet and names any deferred risks.
+7. The evidence packet is linked from the implementation acceptance record.
+8. Reviewer sign-off cites the evidence packet and names any deferred risks.
 
 ## Failure handling
 
