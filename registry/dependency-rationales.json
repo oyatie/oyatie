@@ -404,6 +404,7 @@
         "oya-shared-backbone-grpc-transport-adapter",
         "oya-shared-backbone-rest-runtime-adapter",
         "oya-shared-connector-kernel",
+        "oya-shared-postgres-command-adapter-sqlx",
         "oya-shared-postgres-command-kernel",
         "oya-shared-realtime-transport-kernel",
         "oya-shared-timeseries-kernel",
