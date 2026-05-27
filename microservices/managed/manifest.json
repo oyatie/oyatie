@@ -161,9 +161,9 @@
   "ips": [
     {
       "id": "ADR-0376",
-      "title": "Per-tenant quota and RBAC for managed K8s tenant clusters",
+      "title": "Oyatie managed-Kubernetes product surface (two-tier: hosted-default + dedicated-premium)",
       "acceptance_status": "accepted",
-      "file": "docs/decisions/ADR-0376-managed-k8s-tenant-quota.md"
+      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
     },
     {
       "id": "IP-001-control-plane-host-kernel-api-adapters-app",
