@@ -21,6 +21,7 @@ TALOS_VERSION="${TALOS_VERSION:-v1.13.3}"
 K8S_VERSION="${K8S_VERSION:-1.36.1}"
 ARCH="${ARCH:-amd64}"
 INSTALL_DISK="${INSTALL_DISK:-/dev/sda}"
+INSTALL_IMAGE="${INSTALL_IMAGE:-ghcr.io/siderolabs/installer:${TALOS_VERSION}}"
 IMAGER="ghcr.io/siderolabs/imager:${TALOS_VERSION}"
 
 # imager needs /dev + privileged to build images; outputs to the mounted /out.
@@ -35,7 +36,9 @@ case "$PRESET" in
     talosctl gen config "$CLUSTER" "$CONTROLPLANE_ENDPOINT" \
       --with-secrets "$SECRETS/secrets.yaml" \
       --kubernetes-version "$K8S_VERSION" \
+      --talos-version "$TALOS_VERSION" \
       --install-disk "$INSTALL_DISK" \
+      --install-image "$INSTALL_IMAGE" \
       --output-types controlplane \
       --output "$SECRETS/control-plane-config.yaml" \
       --config-patch "@$HERE/patches/control-plane.yaml" \

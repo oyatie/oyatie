@@ -41,9 +41,11 @@ hubble:
     enabled: true
   metrics:
     enableOpenMetrics: true
-    # ServiceMonitors are scraped by the observability stack (microservices/observability/).
+    # Bootstrap runs before the observability stack installs the
+    # monitoring.coreos.com/v1 ServiceMonitor CRD. Keep this disabled so the
+    # CRS/Argo CD Day-1 path never emits a CR before its CRD exists.
     serviceMonitor:
-      enabled: true
+      enabled: false
     enabled:
       - dns
       - drop

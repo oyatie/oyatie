@@ -16,6 +16,8 @@
 #      Argo CD owns ongoing reconciliation; the CRS re-apply is an idempotent no-op.
 #
 # The referenced ConfigMaps are produced by render.sh (helm template -> ConfigMap).
+# render.sh templates metadata.namespace to match NS so namespaced CRS resourceRefs
+# resolve the ConfigMaps it just created.
 apiVersion: addons.cluster.x-k8s.io/v1beta1
 kind: ClusterResourceSet
 metadata:
