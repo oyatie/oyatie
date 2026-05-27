@@ -701,7 +701,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-      "purpose": "ADR-0349 authority for Jenkins LTS plus ArgoCD as the canonical self-hostable CI/CD substrate, with GitHub Actions parity, cosign-verified sync, tenant namespace isolation, JCasC-only controller state, and deploy audit-chain emission."
+      "purpose": "ADR-0349 authority for Jenkins LTS plus ArgoCD as the canonical self-hostable CI/CD substrate, with cosign-verified sync, tenant namespace isolation, JCasC-only controller state, and deploy audit-chain emission. AMENDED by ADR-0359/ADR-0361: Jenkins is the SOLE CI orchestrator and GitHub Actions is retired (no Jenkins/GitHub-Actions parity surface remains); the parity lane is replaced by oya-governance-jenkins-canonical-no-gha-residue."
     },
     "wave_15_zf_doctrine_propagation_adr_0346_0349": {
       "kind": "batch-control",
@@ -1096,10 +1096,10 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
     "step_2_context_recall": "Prefer Oya VCS / intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Every agent→repo state transition uses Oya VCS claim → work → verify → done → promote. Legacy grit/icm/rtk/vox/omx/omc surfaces are read/provenance/compatibility only during cutover.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + Jenkins CI + `oya gate` (ADR-0363): work on an isolated worktree branch, push, open a PR against dev; Jenkins + `oya gate run-all` + reviewer APPROVE gate merge. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every ChangeBundle promotion carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks Oya VCS admission.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/gitops-vcs-replacement.json: Oya VCS owns claim coverage, ChangeBundle closeout, review/fix loops, controller rebase/merge queue, and GitOps promotion."
+    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate (`oya gate run-all`, locally and in Jenkins CI). The legacy 'ChangeBundle promotion / Oya VCS admission' framing is provenance-only per ADR-0363.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/gitops-vcs-replacement.json as a HISTORICAL contract: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and merge-queue mechanisms are RETIRED per ADR-0363 (which supersedes ADR-0110/0112/0113). The live substrate is plain git + Jenkins CI + `oya gate` + reviewer APPROVE; merge-queue is deferred (auto-merge + required checks suffice per ADR-0363 §3)."
   },
   "specs_directory_audit_2026_05_20": {
     "top_level_specs_count": 63,
