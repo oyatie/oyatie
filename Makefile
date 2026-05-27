@@ -3,58 +3,38 @@ SHELL := /bin/sh
 
 TOFU ?= tofu
 CARGO ?= cargo
-OCI_DIR := infra/oci
+# OpenTofu now owns only the Cloudflare edge. The cluster fleet is provisioned by
+# Cluster API + Talos (USB zero-touch) + per-cell Argo CD — see infra/capi, infra/talos/usb,
+# infra/gitops (ADR-0374, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
 CLOUDFLARE_DIR := infra/cloudflare
 
-# OCI tenancies — each is an OpenTofu workspace with its own tfvars file.
-# Add a new tenancy by appending its name to OCI_TENANCIES and creating
-# infra/oci/<name>.tfvars + the corresponding workspace.
-OCI_TENANCIES := bitween bominal-oci
-
-.PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops check-tofu
+.PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops fleet check-tofu
 
 help:
-	@printf '%s\n' 'Oyatie deployment entrypoints (OpenTofu + Rust gates; no SSH troubleshooting)'
+	@printf '%s\n' 'Oyatie deployment entrypoints (OpenTofu edge + CAPI/Talos fleet; no SSH troubleshooting)'
 	@printf '%s\n' ''
-	@printf '%s\n' '  make bootstrap              Verify contract + initialize OpenTofu roots'
-	@printf '%s\n' '  make install                Apply OpenTofu desired state for ALL tenancies + Cloudflare'
-	@printf '%s\n' '  make plan                   Preview changes across ALL tenancies + Cloudflare'
-	@printf '%s\n' '  make apply                  Apply changes across ALL tenancies + Cloudflare'
-	@printf '%s\n' '  make plan-<tenancy>         Plan a single OCI tenancy (e.g. plan-bominal-oci)'
-	@printf '%s\n' '  make apply-<tenancy>        Apply a single OCI tenancy'
+	@printf '%s\n' '  make bootstrap              Verify contract + initialize the OpenTofu edge root'
+	@printf '%s\n' '  make install                Apply OpenTofu desired state (Cloudflare edge)'
+	@printf '%s\n' '  make plan                   Preview Cloudflare edge changes'
+	@printf '%s\n' '  make apply                  Apply Cloudflare edge changes'
+	@printf '%s\n' '  make fleet                  Show the Talos/CAPI fleet bring-up entrypoints'
 	@printf '%s\n' '  make ops                    Show day-2 ops surface'
 	@printf '%s\n' '  make verify                 Run deployment contract gate + OpenTofu fmt check'
-	@printf '%s\n' ''
-	@printf '%s\n' 'Configured OCI tenancies (workspaces): $(OCI_TENANCIES)'
 
 bootstrap: verify-deploy-contract check-tofu tofu-init
 
 install: apply
 
-# Per-tenancy plan/apply targets. Each selects its OpenTofu workspace and
-# loads <tenancy>.tfvars so credentials, region, and live-state assumptions
-# stay aligned with the right OCI account.
-plan-%: check-tofu verify-deploy-contract
-	$(TOFU) -chdir=$(OCI_DIR) workspace select $* >/dev/null 2>&1 || $(TOFU) -chdir=$(OCI_DIR) workspace new $*
-	$(TOFU) -chdir=$(OCI_DIR) plan -var-file=$*.tfvars -input=false
-
-apply-%: check-tofu verify-deploy-contract
-	$(TOFU) -chdir=$(OCI_DIR) workspace select $* >/dev/null 2>&1 || $(TOFU) -chdir=$(OCI_DIR) workspace new $*
-	$(TOFU) -chdir=$(OCI_DIR) apply -var-file=$*.tfvars -input=false
-
-# Aggregate targets — run plan/apply for every configured tenancy plus Cloudflare.
-plan: check-tofu verify-deploy-contract $(addprefix plan-,$(OCI_TENANCIES))
+plan: check-tofu verify-deploy-contract
 	$(TOFU) -chdir=$(CLOUDFLARE_DIR) plan -input=false
 
-apply: check-tofu verify-deploy-contract $(addprefix apply-,$(OCI_TENANCIES))
+apply: check-tofu verify-deploy-contract
 	$(TOFU) -chdir=$(CLOUDFLARE_DIR) apply -input=false
 
 tofu-init: check-tofu
-	$(TOFU) -chdir=$(OCI_DIR) init -input=false
 	$(TOFU) -chdir=$(CLOUDFLARE_DIR) init -input=false
 
 tofu-fmt-check: check-tofu
-	$(TOFU) -chdir=$(OCI_DIR) fmt -check -recursive
 	$(TOFU) -chdir=$(CLOUDFLARE_DIR) fmt -check -recursive
 
 verify: verify-deploy-contract tofu-fmt-check
@@ -62,9 +42,17 @@ verify: verify-deploy-contract tofu-fmt-check
 verify-deploy-contract:
 	$(CARGO) run -p oya-dev-cli -- gate validate deployment-ops-contract
 
+# Cluster fleet is declarative + git-driven (CAPI/Talos/Argo CD), not a Makefile concern.
+fleet:
+	@printf '%s\n' 'Talos + Cluster API + Argo CD fleet (ADR-0374):'
+	@printf '%s\n' '  USB hub image : HUB_ENDPOINT=https://<hub-ip>:6443 infra/talos/usb/gen-usb.sh hub'
+	@printf '%s\n' '  USB node image: CONFIG_URL=https://join.oyatie.dev/config infra/talos/usb/gen-usb.sh node'
+	@printf '%s\n' '  CAPI install  : KUBECONFIG=<hub> infra/capi/init.sh   (then infra/capi/crs/render.sh)'
+	@printf '%s\n' '  Spokes        : commit a filled infra/capi/clusters/<substrate>/cluster.yaml; CAPI reconciles'
+
 ops:
 	@printf '%s\n' 'Day-2 operations surface: https://ops.oyatie.com'
-	@printf '%s\n' 'Route drift repair, incident work, and desired-state changes through ops/OpenTofu/Rust controllers.'
+	@printf '%s\n' 'Route drift repair, incident work, and desired-state changes through ops/OpenTofu/Argo CD/Rust controllers.'
 	@printf '%s\n' 'Direct host troubleshooting is intentionally not a supported deployment path.'
 
 check-tofu:
