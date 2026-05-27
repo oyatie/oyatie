@@ -20,6 +20,8 @@
 //! is a typed `UnroutableEvent` (logged + rejected), never a silent drop.
 
 use serde::Deserialize;
+use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 use crate::error::{GatewayError, Result};
 
@@ -313,11 +315,23 @@ fn route_issue(body: &[u8]) -> Result<RouteOutcome> {
         .repository
         .map(|repo| repo.full_name)
         .unwrap_or_else(|| "unknown".to_owned());
-    let snapshot_id = format!(
-        "issue:{}:{}:{}",
-        repository_full_name,
-        raw.issue.number,
-        action.id()
+    let labels = raw
+        .issue
+        .labels
+        .into_iter()
+        .map(|label| label.name)
+        .collect::<Vec<_>>();
+    let snapshot_id = content_addressed_snapshot_id(
+        "issue",
+        &serde_json::json!({
+            "action": action.id(),
+            "issue_number": raw.issue.number,
+            "labels": labels,
+            "repository_full_name": repository_full_name,
+            "state": raw.issue.state,
+            "title": raw.issue.title,
+            "updated_at": raw.issue.updated_at,
+        }),
     );
 
     Ok(RouteOutcome::Dispatch(CiEvent::IssueSnapshot(
@@ -327,12 +341,7 @@ fn route_issue(body: &[u8]) -> Result<RouteOutcome> {
             title: raw.issue.title,
             state: raw.issue.state,
             updated_at: raw.issue.updated_at,
-            labels: raw
-                .issue
-                .labels
-                .into_iter()
-                .map(|label| label.name)
-                .collect(),
+            labels,
             html_url: raw.issue.html_url,
             repository_full_name,
             snapshot_id,
@@ -369,9 +378,15 @@ fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
         .repository
         .map(|repo| repo.full_name)
         .unwrap_or_else(|| "unknown".to_owned());
-    let snapshot_id = format!(
-        "push:{}:{}:{}",
-        repository_full_name, raw.reference, raw.after
+    let snapshot_id = content_addressed_snapshot_id(
+        "push",
+        &serde_json::json!({
+            "after_sha": raw.after,
+            "before_sha": raw.before,
+            "commits": raw.commits.len(),
+            "reference": raw.reference,
+            "repository_full_name": repository_full_name,
+        }),
     );
 
     Ok(RouteOutcome::Dispatch(CiEvent::PushSnapshot(
@@ -389,6 +404,12 @@ fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
 
 fn matches_target_ref(reference: &str, target_branch: &str) -> bool {
     reference == target_branch || reference == format!("refs/heads/{target_branch}")
+}
+
+fn content_addressed_snapshot_id(kind: &str, canonical: &Value) -> String {
+    let bytes = serde_json::to_string(canonical).unwrap_or_else(|_| canonical.to_string());
+    let digest = Sha256::digest(bytes.as_bytes());
+    format!("{kind}:sha256:{digest:x}")
 }
 
 #[cfg(test)]
@@ -501,22 +522,26 @@ mod tests {
 
     #[test]
     fn issue_action_dispatches_snapshot() {
-        let body = br#"{"action":"edited",
-            "issue":{"number":108,"title":"board sync","state":"open",
-              "updated_at":"2026-05-27T19:00:00Z",
-              "labels":[{"name":"masterplan:IP-108"}],
-              "html_url":"https://forgejo/owner/repo/issues/108"},
-            "repository":{"full_name":"owner/repo"}}"#;
+        let body = include_bytes!("../tests/fixtures/issue-label-snapshot.json");
         let outcome = route("issues", body, "dev").unwrap();
         match outcome {
             RouteOutcome::Dispatch(CiEvent::IssueSnapshot(ev)) => {
                 assert_eq!(ev.action, IssueAction::Edited);
                 assert_eq!(ev.issue_number, 108);
-                assert_eq!(ev.labels, vec!["masterplan:IP-108"]);
-                assert_eq!(ev.snapshot_id, "issue:owner/repo:108:edited");
+                assert_eq!(ev.labels, vec!["masterplan:IP-108", "sync-state:ready"]);
+                assert!(ev.snapshot_id.starts_with("issue:sha256:"));
+                assert_eq!(ev.snapshot_id.len(), "issue:sha256:".len() + 64);
             }
             other => panic!("expected issue snapshot, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn issue_snapshot_content_address_is_idempotent() {
+        let body = include_bytes!("../tests/fixtures/issue-label-snapshot.json");
+        let first = route("issues", body, "dev").unwrap();
+        let second = route("issues", body, "dev").unwrap();
+        assert_eq!(first, second);
     }
 
     #[test]
@@ -530,18 +555,26 @@ mod tests {
 
     #[test]
     fn push_to_target_branch_dispatches_snapshot() {
-        let body = br#"{"ref":"refs/heads/dev","before":"abc","after":"def",
-            "commits":[{"id":"def"}],"repository":{"full_name":"owner/repo"}}"#;
+        let body = include_bytes!("../tests/fixtures/push-snapshot.json");
         let outcome = route("push", body, "dev").unwrap();
         match outcome {
             RouteOutcome::Dispatch(CiEvent::PushSnapshot(ev)) => {
                 assert_eq!(ev.reference, "refs/heads/dev");
-                assert_eq!(ev.after_sha, "def");
+                assert_eq!(ev.after_sha, "def456");
                 assert_eq!(ev.commits, 1);
-                assert_eq!(ev.snapshot_id, "push:owner/repo:refs/heads/dev:def");
+                assert!(ev.snapshot_id.starts_with("push:sha256:"));
+                assert_eq!(ev.snapshot_id.len(), "push:sha256:".len() + 64);
             }
             other => panic!("expected push snapshot, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn push_snapshot_content_address_is_idempotent() {
+        let body = include_bytes!("../tests/fixtures/push-snapshot.json");
+        let first = route("push", body, "dev").unwrap();
+        let second = route("push", body, "dev").unwrap();
+        assert_eq!(first, second);
     }
 
     #[test]

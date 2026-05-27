@@ -1,0 +1,6 @@
+{
+  "issues": [
+    { "number": 1, "labels": [{ "name": "masterplan:IP-001" }] },
+    { "number": 2, "body": "tracked deliverable:IP-002" }
+  ]
+}

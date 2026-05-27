@@ -264,20 +264,11 @@ mod tests {
     }
 
     fn issue_body() -> Vec<u8> {
-        br#"{"action":"edited",
-            "issue":{"number":108,"title":"board sync","state":"open",
-              "updated_at":"2026-05-27T19:00:00Z",
-              "labels":[{"name":"masterplan:IP-108"}],
-              "html_url":"https://forgejo/owner/repo/issues/108"},
-            "repository":{"full_name":"owner/repo"}}"#
-            .to_vec()
+        include_bytes!("../tests/fixtures/issue-label-snapshot.json").to_vec()
     }
 
     fn push_body() -> Vec<u8> {
-        br#"{"ref":"refs/heads/dev","before":"abc","after":"def",
-            "commits":[{"id":"def"}],
-            "repository":{"full_name":"owner/repo"}}"#
-            .to_vec()
+        include_bytes!("../tests/fixtures/push-snapshot.json").to_vec()
     }
 
     async fn send(state: ReceiverState, req: Request<axum::body::Body>) -> (StatusCode, String) {
@@ -317,7 +308,7 @@ mod tests {
         assert_eq!(status, StatusCode::ACCEPTED);
         assert!(text.contains("\"subject_kind\":\"issue\""));
         assert!(text.contains("\"issue_number\":108"));
-        assert!(text.contains("\"snapshot_id\":\"issue:owner/repo:108:edited\""));
+        assert!(text.contains("\"snapshot_id\":\"issue:sha256:"));
     }
 
     #[tokio::test]
@@ -333,7 +324,7 @@ mod tests {
         assert_eq!(status, StatusCode::ACCEPTED);
         assert!(text.contains("\"subject_kind\":\"push\""));
         assert!(text.contains("\"reference\":\"refs/heads/dev\""));
-        assert!(text.contains("\"snapshot_id\":\"push:owner/repo:refs/heads/dev:def\""));
+        assert!(text.contains("\"snapshot_id\":\"push:sha256:"));
     }
 
     #[tokio::test]

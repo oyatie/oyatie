@@ -1,0 +1,7 @@
+{
+  "ref": "refs/heads/dev",
+  "before": "abc123",
+  "after": "def456",
+  "commits": [{ "id": "def456" }],
+  "repository": { "full_name": "owner/repo" }
+}

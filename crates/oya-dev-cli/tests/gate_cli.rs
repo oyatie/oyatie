@@ -5067,17 +5067,12 @@ fn board_masterplan_consistency_gate_is_dispatched() {
     fs::create_dir_all(&evidence_dir).expect("board evidence dir created");
     fs::write(
         specs_dir.join("masterplan.json"),
-        board_masterplan_fixture(),
+        include_str!("fixtures/board-sync/masterplan-minimal.json"),
     )
     .expect("masterplan written");
     fs::write(
         evidence_dir.join("board-snapshot.json"),
-        r#"{
-  "issues": [
-    {"number": 1, "deliverable_id": "IP-001"},
-    {"number": 2, "labels": [{"name": "masterplan:IP-002"}]}
-  ]
-}"#,
+        include_str!("fixtures/board-sync/board-snapshot-matching.json"),
     )
     .expect("board snapshot written");
 
@@ -5122,12 +5117,12 @@ fn board_masterplan_consistency_gate_rejects_forward_orphans() {
     fs::create_dir_all(&evidence_dir).expect("board evidence dir created");
     fs::write(
         specs_dir.join("masterplan.json"),
-        board_masterplan_fixture(),
+        include_str!("fixtures/board-sync/masterplan-minimal.json"),
     )
     .expect("masterplan written");
     fs::write(
         evidence_dir.join("board-snapshot.json"),
-        r#"{"issues": [{"number": 1, "deliverable_id": "IP-001"}]}"#,
+        include_str!("fixtures/board-sync/board-snapshot-forward-orphan.json"),
     )
     .expect("board snapshot written");
 
@@ -5166,18 +5161,12 @@ fn board_masterplan_consistency_gate_rejects_reverse_orphans() {
     fs::create_dir_all(&evidence_dir).expect("board evidence dir created");
     fs::write(
         specs_dir.join("masterplan.json"),
-        board_masterplan_fixture(),
+        include_str!("fixtures/board-sync/masterplan-minimal.json"),
     )
     .expect("masterplan written");
     fs::write(
         evidence_dir.join("board-snapshot.json"),
-        r#"{
-  "issues": [
-    {"number": 1, "deliverable_id": "IP-001"},
-    {"number": 2, "deliverable_id": "IP-002"},
-    {"number": 3, "deliverable_id": "IP-999"}
-  ]
-}"#,
+        include_str!("fixtures/board-sync/board-snapshot-reverse-orphan.json"),
     )
     .expect("board snapshot written");
 
@@ -5205,27 +5194,6 @@ fn board_masterplan_consistency_gate_rejects_reverse_orphans() {
     assert!(stderr.contains("board snapshot deliverables missing from masterplan"));
     assert!(stderr.contains("IP-999"));
     fs::remove_dir_all(temp).ok();
-}
-
-fn board_masterplan_fixture() -> &'static str {
-    r#"{
-  "live_implementation_index": {
-    "milestones": [
-      {
-        "phases": [
-          {
-            "id": "P-X",
-            "status": "in-progress",
-            "implementation_plans": [
-              {"id": "IP-001", "status": "complete"},
-              {"id": "IP-002", "status": "pending"}
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}"#
 }
 
 #[test]
