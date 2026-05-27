@@ -115,13 +115,7 @@ fn kick_jenkins(url: String, kickoff: PipelineKickoff) -> std::result::Result<()
     // Block on a small dedicated runtime task; the dispatcher calls this from
     // async context but the kick itself is a short, bounded request.
     let (host, port, path) = parse_http_url(&url)?;
-    let body = serde_json::json!({
-        "pr_number": kickoff.pr_number,
-        "head_ref": kickoff.head_ref,
-        "head_sha": kickoff.head_sha,
-        "revalidation": kickoff.revalidation,
-    })
-    .to_string();
+    let body = kickoff_json(&kickoff).to_string();
 
     let handle = tokio::runtime::Handle::try_current()
         .map_err(|e| format!("no tokio runtime for Jenkins kick: {e}"))?;
@@ -167,6 +161,59 @@ fn kick_jenkins(url: String, kickoff: PipelineKickoff) -> std::result::Result<()
             }
         })
     })
+}
+
+fn kickoff_json(kickoff: &PipelineKickoff) -> serde_json::Value {
+    match kickoff {
+        PipelineKickoff::PullRequest {
+            pr_number,
+            head_ref,
+            head_sha,
+            revalidation,
+        } => serde_json::json!({
+            "kind": kickoff.kind(),
+            "pr_number": pr_number,
+            "head_ref": head_ref,
+            "head_sha": head_sha,
+            "revalidation": revalidation,
+        }),
+        PipelineKickoff::IssueSnapshot {
+            issue_number,
+            action,
+            repository_full_name,
+            snapshot_id,
+            labels,
+        } => serde_json::json!({
+            "kind": kickoff.kind(),
+            "issue_number": issue_number,
+            "action": action.id(),
+            "repository_full_name": repository_full_name,
+            "snapshot_id": snapshot_id,
+            "labels": labels,
+        }),
+        PipelineKickoff::PushSnapshot {
+            reference,
+            deliverable_id,
+            before_sha,
+            after_sha,
+            sender_login,
+            pusher_login,
+            repository_full_name,
+            commits,
+            snapshot_id,
+        } => serde_json::json!({
+            "kind": kickoff.kind(),
+            "reference": reference,
+            "deliverable_id": deliverable_id,
+            "before_sha": before_sha,
+            "after_sha": after_sha,
+            "sender_login": sender_login,
+            "pusher_login": pusher_login,
+            "repository_full_name": repository_full_name,
+            "commits": commits,
+            "snapshot_id": snapshot_id,
+        }),
+    }
 }
 
 /// Parse `http://host[:port]/path` → (host, port, path). HTTPS is rejected

@@ -50,9 +50,14 @@ pub mod receiver;
 pub mod signature;
 
 pub use config::GatewayConfig;
-pub use dispatch::{DispatchReceipt, JenkinsDispatcher, PipelineDispatcher, PipelineKickoff};
+pub use dispatch::{
+    DispatchReceipt, DispatchSubject, JenkinsDispatcher, PipelineDispatcher, PipelineKickoff,
+};
 pub use error::{GatewayError, PipelineStage, Result};
-pub use event::{PrAction, PullRequestEvent, RouteOutcome};
+pub use event::{
+    CiEvent, IssueAction, IssueSnapshotEvent, PrAction, PullRequestEvent, PushSnapshotEvent,
+    RouteOutcome,
+};
 pub use receiver::{HEALTHZ_PATH, ReceiverState, WEBHOOK_PATH, router};
 pub use signature::WebhookSecret;
 

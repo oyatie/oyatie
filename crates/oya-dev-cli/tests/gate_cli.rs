@@ -5059,6 +5059,144 @@ fn master_plan_completion_gate_is_dispatched() {
 }
 
 #[test]
+fn board_masterplan_consistency_gate_is_dispatched() {
+    let temp = temp_dir("board-masterplan-consistency-dispatch");
+    let specs_dir = temp.join("specs");
+    let evidence_dir = temp.join("evidence/board-sync");
+    fs::create_dir_all(&specs_dir).expect("specs dir created");
+    fs::create_dir_all(&evidence_dir).expect("board evidence dir created");
+    fs::write(
+        specs_dir.join("masterplan.json"),
+        include_str!("fixtures/board-sync/masterplan-minimal.json"),
+    )
+    .expect("masterplan written");
+    fs::write(
+        evidence_dir.join("board-snapshot.json"),
+        include_str!("fixtures/board-sync/board-snapshot-matching.json"),
+    )
+    .expect("board snapshot written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "board-masterplan-consistency",
+            "--master-plan",
+            specs_dir
+                .join("masterplan.json")
+                .to_str()
+                .expect("utf8 masterplan"),
+            "--board-snapshot",
+            evidence_dir
+                .join("board-snapshot.json")
+                .to_str()
+                .expect("utf8 snapshot"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("board-masterplan-consistency validation passed: 2 masterplan deliverables, 2 board deliverables")
+    );
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn board_masterplan_consistency_gate_rejects_forward_orphans() {
+    let temp = temp_dir("board-masterplan-consistency-forward-orphan");
+    let specs_dir = temp.join("specs");
+    let evidence_dir = temp.join("evidence/board-sync");
+    fs::create_dir_all(&specs_dir).expect("specs dir created");
+    fs::create_dir_all(&evidence_dir).expect("board evidence dir created");
+    fs::write(
+        specs_dir.join("masterplan.json"),
+        include_str!("fixtures/board-sync/masterplan-minimal.json"),
+    )
+    .expect("masterplan written");
+    fs::write(
+        evidence_dir.join("board-snapshot.json"),
+        include_str!("fixtures/board-sync/board-snapshot-forward-orphan.json"),
+    )
+    .expect("board snapshot written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "board-masterplan-consistency",
+            "--master-plan",
+            specs_dir
+                .join("masterplan.json")
+                .to_str()
+                .expect("utf8 masterplan"),
+            "--board-snapshot",
+            evidence_dir
+                .join("board-snapshot.json")
+                .to_str()
+                .expect("utf8 snapshot"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("masterplan deliverables missing from board snapshot"));
+    assert!(stderr.contains("IP-002"));
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn board_masterplan_consistency_gate_rejects_reverse_orphans() {
+    let temp = temp_dir("board-masterplan-consistency-reverse-orphan");
+    let specs_dir = temp.join("specs");
+    let evidence_dir = temp.join("evidence/board-sync");
+    fs::create_dir_all(&specs_dir).expect("specs dir created");
+    fs::create_dir_all(&evidence_dir).expect("board evidence dir created");
+    fs::write(
+        specs_dir.join("masterplan.json"),
+        include_str!("fixtures/board-sync/masterplan-minimal.json"),
+    )
+    .expect("masterplan written");
+    fs::write(
+        evidence_dir.join("board-snapshot.json"),
+        include_str!("fixtures/board-sync/board-snapshot-reverse-orphan.json"),
+    )
+    .expect("board snapshot written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "board-masterplan-consistency",
+            "--master-plan",
+            specs_dir
+                .join("masterplan.json")
+                .to_str()
+                .expect("utf8 masterplan"),
+            "--board-snapshot",
+            evidence_dir
+                .join("board-snapshot.json")
+                .to_str()
+                .expect("utf8 snapshot"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("board snapshot deliverables missing from masterplan"));
+    assert!(stderr.contains("IP-999"));
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn planning_closure_gate_accepts_closed_minimal_masterplan_surface() {
     let temp = TempDirGuard::new("planning-closure-pass");
     fs::create_dir_all(temp.path()).expect("temp dir created");

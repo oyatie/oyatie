@@ -17,6 +17,10 @@ channels:
     messages:
       pullRequestDelivery:
         $ref: "#/components/messages/PullRequestDelivery"
+      issueDelivery:
+        $ref: "#/components/messages/IssueDelivery"
+      pushDelivery:
+        $ref: "#/components/messages/PushDelivery"
   auditChain:
     address: oya.audit-chain.ci-webhook-gateway
     description: Outbound audit-chain seal events (ADR-0263).
@@ -44,6 +48,31 @@ components:
           action: { type: string }
           number: { type: integer }
           pull_request: { type: object }
+    IssueDelivery:
+      name: issueDelivery
+      payload:
+        type: object
+        properties:
+          action: { type: string }
+          issue: { type: object }
+          repository: { type: object }
+    PushDelivery:
+      name: pushDelivery
+      summary: Claim-ref push delivery (`refs/heads/claims/<deliverable-id>`) for board projection.
+      payload:
+        type: object
+        properties:
+          ref: { type: string }
+          before: { type: string }
+          after: { type: string }
+          commits: { type: array }
+          repository: { type: object }
+          sender:
+            type: object
+            description: Authenticated Forgejo/Gitea user that emitted the claim-ref push webhook.
+          pusher:
+            type: object
+            description: Git pusher identity from the claim-ref push payload, when provided by Forgejo/Gitea.
     DeliveryAccepted:
       name: webhook.delivery.accepted
       payload: { $ref: "#/components/schemas/AuditRow" }
@@ -64,6 +93,9 @@ components:
         event: { type: string }
         delivery_id: { type: string }
         pr_number: { type: [integer, "null"] }
+        issue_number: { type: [integer, "null"] }
+        reference: { type: [string, "null"] }
         head_sha: { type: [string, "null"] }
+        snapshot_id: { type: [string, "null"] }
         outcome: { type: string }
         at: { type: string, format: date-time }

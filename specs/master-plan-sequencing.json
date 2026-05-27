@@ -3,12 +3,12 @@
     "version": "1.0.0",
     "description": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
     "owner_team": "council-architecture + axis-foundry",
-    "validation_check": "json-valid + referenced-paths-exist + no-git-gh-primitives",
+    "validation_check": "json-valid + referenced-paths-exist + retired-agentic-vcs-primitives-absent",
     "authority_note": "Execution overlay only; /specs/masterplan.json, /specs/planning-closure-contract.json, the doctrinal substrate (decision-principles.json + forbidden-operations.json + decision-rights.json + governance-amendment.json), ADRs, and checklist templates remain authoritative. docs/MASTERPLAN.md is compatibility projection only."
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
-    "status": "accepted-oya-vcs-authority-cutover",
+    "status": "accepted-plain-git-jenkins-forgejo-authority-cutover",
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
@@ -254,38 +254,33 @@
   "planning_hierarchy": {
     "milestone": "multi-quarter outcome; M<NN>-slug; owns phase index and exit gate",
     "phase": "1-6 week deliverable; P<NN>-slug; owns entry/exit gates and dependency ordering",
-    "implementation_plan": "ChangeSet-sized executable phase-local slice; owns Oya VCS symbols/artifact pointers, issue-level scope, code shape, tests, evidence, handoff, and promotion eligibility"
+    "implementation_plan": "ChangeSet-sized executable phase-local slice; owns plain-git worktree branch scope, issue-level scope, code shape, tests, evidence, handoff, and promotion eligibility."
   },
   "forbidden_primitives": [
     {
-      "primitive": "git",
+      "primitive": "oya git",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "retired by ADR-0363; agents use plain git only, with no wrapper resurrection"
+    },
+    {
+      "primitive": "oya vcs",
+      "enforcement_lane_id": "oya-governance-banned-primitives",
+      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + Jenkins + self-hosted Forgejo branch protection + oya gate evidence"
     },
     {
       "primitive": "gh",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "forbidden as forward substrate; self-hosted Forgejo is the target and GitHub remains bootstrap-only per ADR-0363/ADR-0247"
     },
     {
-      "primitive": "manual-branch",
+      "primitive": "manual-merge-bypassing-required-checks",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "forbidden; branch protection, Jenkins required checks, reviewer approval, and oya gate evidence own merge readiness"
     },
     {
-      "primitive": "manual-rebase",
+      "primitive": "manual-push-to-protected-branch",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
-    },
-    {
-      "primitive": "manual-merge",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
-    },
-    {
-      "primitive": "manual-push",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "forbidden; agent lanes use isolated worktree branches and protected integration flow"
     },
     {
       "primitive": "line-count-only verification",
@@ -305,18 +300,18 @@
   ],
   "chained_enforcement_contract": {
     "adr_citation": "ADR-0133",
-    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub enforcement deployment remains a GitOps verification gap.",
+    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted Forgejo/Jenkins enforcement deployment remains a GitOps verification gap.",
     "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verification pending before production reliance"
   },
   "repo_state_protocol": [
     {
       "step": "claim",
-      "primitive": "Oya VCS claim --agent <id> --intent <slice> <symbols-or-artifact-pointers>",
-      "fallback": "legacy grit/scaffold locks may record compatibility blockers only when the Oya VCS command surface is unavailable; they are not closure authority"
+      "primitive": "plain git worktree branch plus issue/ChangeSet scope record accepted by the orchestration lane",
+      "fallback": "legacy grit/scaffold locks may record compatibility blockers only for historical provenance; they are not closure authority"
     },
     {
       "step": "work",
-      "primitive": "edit only inside isolated Oya VCS claimed workspace / ChangeSet boundary",
+      "primitive": "edit only inside the isolated worktree branch / ChangeSet boundary",
       "fallback": "stop and narrow the ChangeSet on shared-symbol conflict"
     },
     {
@@ -326,13 +321,13 @@
     },
     {
       "step": "done",
-      "primitive": "Oya VCS done seals the signed ChangeBundle and requests Promotion; local merge/done primitives are compatibility-only",
-      "fallback": "do not manually merge; report blocked Oya VCS closeout"
+      "primitive": "commit the ChangeSet on the worktree branch and package the signed ChangeBundle for review",
+      "fallback": "do not bypass required checks; report blocked closeout evidence"
     },
     {
       "step": "promote",
-      "primitive": "Oya VCS GitOps controller owns remote ref/PR-equivalent publication, CI/CD admission, review/fix, controller rebase, merge queue, environment reconciliation, and lock release",
-      "fallback": "keep/release locks according to terminal policy; never agent-run git/gh"
+      "primitive": "self-hosted Forgejo branch protection, Jenkins required checks, reviewer approval, and governance gates own publication, review/fix, integration, environment reconciliation, and lock release",
+      "fallback": "keep/release locks according to terminal policy; never bypass protected-branch required checks"
     }
   ],
   "sequence": [
@@ -343,7 +338,7 @@
     "build_completion_ledger",
     "topologically_sort_by_gates_on_and_dependencies",
     "select_next_ready_item",
-    "claim_with_oya_vcs",
+    "claim_plain_git_worktree_branch",
     "inspect_current_state",
     "implement_smallest_correct_slice",
     "update_tests_contracts_docs_catalog_adrs",
@@ -352,8 +347,8 @@
     "run_linus_style_critic_pass",
     "fix_and_reverify",
     "record_evidence_bundle",
-    "close_changeset_with_oya_vcs_done_bundle",
-    "oya_vcs_promote_or_record_blocker",
+    "close_changeset_with_signed_changebundle",
+    "forgejo_jenkins_promote_or_record_blocker",
     "repeat_until_ledger_complete",
     "full_plan_adversarial_audit",
     "store_vcs_completion_summary",
@@ -367,13 +362,13 @@
       "/specs/masterplan.json",
       "/specs/planning-closure-contract.json",
       "/specs/planning-closure-status-closure-ledger.json",
-      "Oya VCS claim/admission state",
+      "plain-git worktree branch + issue/ChangeSet scope state",
       "runtime plan-tree scan",
       "gate output evidence"
     ],
     "historical_snapshot_handling": {
       "live_implementation_index_snapshot_status": "historical-snapshot-not-current",
-      "selection_rule": "Use live_implementation_index rows as provenance only; a current next-ready item requires current source inspection plus Oya VCS claim acceptance.",
+      "selection_rule": "Use live_implementation_index rows as provenance only; a current next-ready item requires current source inspection plus plain-git worktree branch / ChangeSet scope acceptance.",
       "blocked_reclaim_rule": "Do not select completed compatibility rows or stale snapshot-only rows as FD-001 product implementation work."
     },
     "serialized_before_product_fanout": [
@@ -910,12 +905,53 @@
             "module-library nodepool primitives serve ADR-0338 pod-runtime-tier kata-pool + runc-pool + runc-edge-pool"
           ],
           "canonical_primitives_per_context": {
-            "aws-guest": ["eks-cluster", "rds-postgres", "elasticache-valkey", "s3-bucket", "kms-key", "iam-role", "vpc", "alb", "route53-zone", "sg-baseline"],
-            "oci-guest": ["oke-cluster", "autonomous-db", "oci-cache-valkey", "object-storage", "vault", "vcn", "lb", "dynamic-routing-gateway"],
-            "oci-guest/always-free": ["ampere-a1", "e2-micro", "atp", "adw", "lb-free", "vault-free"],
-            "on-prem": ["kubeadm-cluster", "cilium-cni", "istio-ambient", "envoy-gateway", "valkey-cluster", "pg-cluster", "milvus-cluster"],
-            "colo": ["alias of on-prem"],
-            "oyatie-as-cloud-provider": ["cell-zone", "shard-cell", "tenant-namespace"]
+            "aws-guest": [
+              "eks-cluster",
+              "rds-postgres",
+              "elasticache-valkey",
+              "s3-bucket",
+              "kms-key",
+              "iam-role",
+              "vpc",
+              "alb",
+              "route53-zone",
+              "sg-baseline"
+            ],
+            "oci-guest": [
+              "oke-cluster",
+              "autonomous-db",
+              "oci-cache-valkey",
+              "object-storage",
+              "vault",
+              "vcn",
+              "lb",
+              "dynamic-routing-gateway"
+            ],
+            "oci-guest/always-free": [
+              "ampere-a1",
+              "e2-micro",
+              "atp",
+              "adw",
+              "lb-free",
+              "vault-free"
+            ],
+            "on-prem": [
+              "kubeadm-cluster",
+              "cilium-cni",
+              "istio-ambient",
+              "envoy-gateway",
+              "valkey-cluster",
+              "pg-cluster",
+              "milvus-cluster"
+            ],
+            "colo": [
+              "alias of on-prem"
+            ],
+            "oyatie-as-cloud-provider": [
+              "cell-zone",
+              "shard-cell",
+              "tenant-namespace"
+            ]
           },
           "sunset_window": "30 days post-ADR-0339-Acceptance OR Wave 15Q-IaC-modules landing, whichever later",
           "new_ci_lanes": [
@@ -1186,8 +1222,14 @@
             "oya-governance-sustainability-tag-allowlist (existing ADR-0174 lane preserved verbatim)"
           ],
           "carbon_aware_tier_eligibility": {
-            "eligible_for_deferral": [2, 3],
-            "ineligible_for_deferral": [0, 1],
+            "eligible_for_deferral": [
+              2,
+              3
+            ],
+            "ineligible_for_deferral": [
+              0,
+              1
+            ],
             "rationale": "Tier 0 + Tier 1 carry tenant-customer-untrusted code or substrate-touching tenant data plane per ADR-0338; deferral is forbidden per ADR-0344 B2.019."
           },
           "carbon_aware_compliance_pack_exclusions": [
@@ -1348,9 +1390,55 @@
             "future substrate-adoption ADR contract (every new substrate ADR adds a registry entry as required artifact)"
           ],
           "stewardship_class_floor_enumerations": {
-            "maintainer_floor": ["oya-shuffle-sharding", "oya-dev-cli", "oya-shared-policy-engine-client", "oya-shared-workflow-engine", "oya-shared-ontology-projection", "oya-*-domain-layer-roll-up", "oya-*-kernel-layer-roll-up", "oya-*-app-layer-roll-up", "oya-*-api-layer-roll-up", "oya-*-adapter-layer-roll-up", "oya-check-* + oya-governance-* lane roll-up"],
-            "contributor_floor": ["cilium", "istio", "valkey", "opentofu", "cedar", "openbao", "wasmtime", "iceberg", "kafka", "opensearch", "kyverno"],
-            "consumer_floor": ["postgresql", "clickhouse", "linux-kernel-mainline", "rhel", "oracle-linux", "sles", "ubuntu-lts", "debian", "rocky-linux", "almalinux", "centos-stream", "amazon-linux", "flatcar", "photon-os", "talos", "static-debian13", "opentelemetry", "rust-toolchain", "cargo-deny", "cargo-vet", "cosign"]
+            "maintainer_floor": [
+              "oya-shuffle-sharding",
+              "oya-dev-cli",
+              "oya-shared-policy-engine-client",
+              "oya-shared-workflow-engine",
+              "oya-shared-ontology-projection",
+              "oya-*-domain-layer-roll-up",
+              "oya-*-kernel-layer-roll-up",
+              "oya-*-app-layer-roll-up",
+              "oya-*-api-layer-roll-up",
+              "oya-*-adapter-layer-roll-up",
+              "oya-check-* + oya-governance-* lane roll-up"
+            ],
+            "contributor_floor": [
+              "cilium",
+              "istio",
+              "valkey",
+              "opentofu",
+              "cedar",
+              "openbao",
+              "wasmtime",
+              "iceberg",
+              "kafka",
+              "opensearch",
+              "kyverno"
+            ],
+            "consumer_floor": [
+              "postgresql",
+              "clickhouse",
+              "linux-kernel-mainline",
+              "rhel",
+              "oracle-linux",
+              "sles",
+              "ubuntu-lts",
+              "debian",
+              "rocky-linux",
+              "almalinux",
+              "centos-stream",
+              "amazon-linux",
+              "flatcar",
+              "photon-os",
+              "talos",
+              "static-debian13",
+              "opentelemetry",
+              "rust-toolchain",
+              "cargo-deny",
+              "cargo-vet",
+              "cosign"
+            ]
           },
           "cve_response_sla_by_class": {
             "maintainer_substrate": "P0 <= 3 days; P1 <= 14 days (Oyatie authors the patch)",
@@ -1492,7 +1580,11 @@
           "adr": "ADR-0346",
           "scope": "extend crates/oya-dev-cli/src/commands/verify.rs to run the full CI mirror locally on every invocation: cargo fmt --all --check + cargo check --workspace --all-targets --keep-going + cargo clippy --workspace --all-targets --keep-going -- -D warnings + cargo nextest run --workspace --no-fail-fast + oya gate run-all --ci-required + oya doc adr-index --write (advisory) + oya lint adr-shape (per new ADR). Block on exit-0 of each step. Skip-flag allowlist closed set {--skip-fmt,--skip-clippy,--skip-nextest,--skip-gates}. oya submit MUST call oya verify --ci-required before push (existing behavior reinforced + verified by E.4 lane). Authored as ADR-0346 doctrine; implementation deferred.",
           "dispatch_mode": "1 Claude orchestrator for crates/oya-dev-cli/src/commands/verify.rs extension + 5 new governance lanes (oya-governance-oya-verify-ci-mirror-coverage + oya-governance-oya-verify-ci-step-exit-semantics + oya-governance-oya-verify-skip-flag-allowlist + oya-governance-oya-submit-calls-verify + oya-governance-oya-verify-exit-code-contract) + JCasC parity smoke-test",
-          "depends_on": ["ADR-0346 Acceptance", "ADR-0221 hooks-vs-gates", "ADR-0212 buildability"]
+          "depends_on": [
+            "ADR-0346 Acceptance",
+            "ADR-0221 hooks-vs-gates",
+            "ADR-0212 buildability"
+          ]
         },
         "15-ZB-foundry-fitness-to-governance-rename": {
           "status": "queued",
@@ -1500,7 +1592,11 @@
           "adr": "ADR-0347",
           "scope": "bulk rename oya-governance-* → oya-governance-* across 10 GitHub Actions workflows + ~40 lane records in registry/quality/lanes.yaml + 28 catalog records at registry/catalog/oya-governance-*.yaml + ~51 crate dirs at crates/oya-governance-*-* + workspace Cargo.toml + Cargo.lock regeneration + ~41 ADR cross-citations under docs/decisions/ + 1 file docs/standards/ + 1 file .omc/state/ + 14 sub-wave entries in specs/master-plan-sequencing.json + tools/hooks/_canonical-primitives.md + .github/branch-protection.yaml required-status-checks. Pre-rename inventory at .omc/state/oya-governance-rename-inventory-2026-05-21.json (machine-readable list of 34 lanes + their target governance-* names). E.1 oya-governance-no-foundry-fitness-residue + E.2 oya-governance-lane-prefix-vocabulary + E.3 oya-governance-rename-inventory-presence + E.4 oya-governance-rename-residue-allowlist-integrity.",
           "dispatch_mode": "1 codex orchestrator for the mechanical rename across 34 lane prefixes + ~200 cross-references + workspace Cargo.toml + Cargo.lock regen + 4 new governance lanes",
-          "depends_on": ["ADR-0347 Acceptance", "ADR-0132 no-suite-policy (governance prefix doctrine)", "ADR-0335 foundry-retired"]
+          "depends_on": [
+            "ADR-0347 Acceptance",
+            "ADR-0132 no-suite-policy (governance prefix doctrine)",
+            "ADR-0335 foundry-retired"
+          ]
         },
         "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate": {
           "status": "queued",
@@ -1508,9 +1604,32 @@
           "adr": "ADR-0349",
           "scope": "Jenkins (LTS) self-hostable CI orchestrator for air-gap + on-prem + colo + Oyatie-cloud-provider contexts. AMENDED by ADR-0359/ADR-0361: Jenkins is the SOLE CI orchestrator (no longer augmenting GitHub Actions); GitHub Actions is retired in R5. ArgoCD GitOps CD orchestrator (declarative app sync git → K8s; replaces manual kubectl + Helm CLI). Both run on Oyatie K8s per ADR-0254. Per-µservice Jenkinsfile carries the canonical CI matrix; the oya-governance-jenkins-canonical-no-gha-residue lane refuses any new .github/workflows CI definition (the former github-actions-parity lane is retired). Per-cluster apps.yaml is the canonical GitOps manifest. cosign signature verification on every ArgoCD Application source image per ADR-0181. Deploy events emit audit-chain rows per ADR-0263. Both Contributor stewardship class per ADR-0345. Per-context OpenTofu modules under microservices/cloud-iac/modules/<context>/{jenkins,argocd}/ per ADR-0339. Trivy scan green required at every Jenkins build step per ADR-0039 + ADR-0181.",
           "dispatch_mode": "Claude orchestrator for OpenTofu modules + 8 Claude per-µservice cluster for Jenkinsfile + Helm chart + ArgoCD Application authoring + 5 new governance lanes",
-          "five_new_lanes": ["oya-governance-jenkins-canonical-no-gha-residue", "oya-governance-argocd-application-cosign-verified", "oya-governance-argocd-tenant-namespace-isolation", "oya-governance-jenkins-jcasc-only", "oya-governance-deploy-audit-chain-emit"],
-          "forbidden_alternatives": ["Jenkins X", "Tekton", "Flux CD", "Spinnaker", "CircleCI/Travis/Buildkite SaaS", "GitHub Actions self-hosted runners (ties to GitHub.com control plane; not air-gap)"],
-          "depends_on": ["ADR-0349 Acceptance", "ADR-0028 cloud-microservice-architecture", "ADR-0181 container-image-promotion-pipeline (Trivy + cosign + SBOM)", "ADR-0211 in-house-tech-stack-policy (Class C approved)", "ADR-0215 multi-context-platform", "ADR-0254 K8s-everywhere", "ADR-0339 shared-IaC-module-library", "ADR-0345 OSS-stewardship-class (Contributor)", "ADR-0164 sovereign-cloud-air-gapped"]
+          "five_new_lanes": [
+            "oya-governance-jenkins-canonical-no-gha-residue",
+            "oya-governance-argocd-application-cosign-verified",
+            "oya-governance-argocd-tenant-namespace-isolation",
+            "oya-governance-jenkins-jcasc-only",
+            "oya-governance-deploy-audit-chain-emit"
+          ],
+          "forbidden_alternatives": [
+            "Jenkins X",
+            "Tekton",
+            "Flux CD",
+            "Spinnaker",
+            "CircleCI/Travis/Buildkite SaaS",
+            "GitHub Actions self-hosted runners (ties to GitHub.com control plane; not air-gap)"
+          ],
+          "depends_on": [
+            "ADR-0349 Acceptance",
+            "ADR-0028 cloud-microservice-architecture",
+            "ADR-0181 container-image-promotion-pipeline (Trivy + cosign + SBOM)",
+            "ADR-0211 in-house-tech-stack-policy (Class C approved)",
+            "ADR-0215 multi-context-platform",
+            "ADR-0254 K8s-everywhere",
+            "ADR-0339 shared-IaC-module-library",
+            "ADR-0345 OSS-stewardship-class (Contributor)",
+            "ADR-0164 sovereign-cloud-air-gapped"
+          ]
         },
         "15-ZF-doctrine-propagation-adr-0346-0349": {
           "status": "queued",
@@ -1533,16 +1652,48 @@
             "ADR-0349"
           ],
           "batch_order": {
-            "batch_1_foundational": ["ZF-1", "ZF-2", "ZF-3", "ZF-4", "ZF-5", "ZF-20", "ZF-21", "ZF-22"],
-            "batch_2_microservice_manifest_and_ip": ["ZF-6", "ZF-7", "ZF-8", "ZF-9", "ZF-16", "ZF-17", "ZF-18", "ZF-23"],
-            "batch_3_microservice_doctrine_surface": ["ZF-10", "ZF-11", "ZF-12", "ZF-13", "ZF-14", "ZF-15", "ZF-19"]
+            "batch_1_foundational": [
+              "ZF-1",
+              "ZF-2",
+              "ZF-3",
+              "ZF-4",
+              "ZF-5",
+              "ZF-20",
+              "ZF-21",
+              "ZF-22"
+            ],
+            "batch_2_microservice_manifest_and_ip": [
+              "ZF-6",
+              "ZF-7",
+              "ZF-8",
+              "ZF-9",
+              "ZF-16",
+              "ZF-17",
+              "ZF-18",
+              "ZF-23"
+            ],
+            "batch_3_microservice_doctrine_surface": [
+              "ZF-10",
+              "ZF-11",
+              "ZF-12",
+              "ZF-13",
+              "ZF-14",
+              "ZF-15",
+              "ZF-19"
+            ]
           },
           "zf_4_validation": [
             "cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
           "skill_binding": "every subagent reads tools/agent-skills/skills/{spec-driven-development,documentation-and-adrs}/SKILL.md + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21",
-          "depends_on": ["ADR-0346 Acceptance", "ADR-0347 Acceptance", "ADR-0348 Acceptance", "ADR-0349 Acceptance", "Wave 15-ZA + 15-ZB + 15-ZD + 15-ZE implementation PRs preferable but not blocking"]
+          "depends_on": [
+            "ADR-0346 Acceptance",
+            "ADR-0347 Acceptance",
+            "ADR-0348 Acceptance",
+            "ADR-0349 Acceptance",
+            "Wave 15-ZA + 15-ZB + 15-ZD + 15-ZE implementation PRs preferable but not blocking"
+          ]
         }
       },
       "dependencies": [
@@ -1570,7 +1721,7 @@
         "M01-P08",
         "broad M01/M02/M03 parallel fan-out"
       ],
-      "compatibility_window": "P00 core is complete and Oya VCS admission is required for forward agentic fan-out; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
+      "compatibility_window": "P00 core is complete and forward agentic fan-out uses plain git worktree branches plus Jenkins/Forgejo governance admission; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
     }
   ],
   "implementation_plan_changeset_contract": {
@@ -1583,7 +1734,7 @@
       "phase_parent",
       "ip_id",
       "change_boundary",
-      "oya_vcs_claim_scope",
+      "plain_git_worktree_branch_scope",
       "affected_symbols_or_artifact_pointers",
       "affected_crates_packages_deployables",
       "required_test_evidence",
@@ -1598,7 +1749,7 @@
       "review/fix task independent from original ChangeSet"
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-governance-plan-hierarchy + oya-vcs-admission"
+    "validation_lane": "oya-governance-plan-hierarchy + governance-admission"
   },
   "deployment_contexts": {
     "version": "1.0.0",
