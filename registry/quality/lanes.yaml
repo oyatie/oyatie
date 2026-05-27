@@ -803,3 +803,11 @@ lanes:
     source: ADR-0364
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate masterplan-drift
+  - id: oya-governance-adr-supersession-consistency
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: "#6b — every ADR supersedes/superseded_by pair is bidirectional; fails on any one-directional link (X supersedes Y but Y does not back-link X, or vice versa) over ADR-to-ADR edges"
+    source: ADR-0083
+    runtime_budget_seconds: 30
+    check_command: cargo run -p oya-dev-cli -- gate validate adr-supersession-consistency

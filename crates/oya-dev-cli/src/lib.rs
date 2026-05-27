@@ -36,6 +36,7 @@ mod adr_0145_gates;
 // completeness and masterplan-drift gates.
 mod adr_planning_completeness_gate;
 mod adr_planning_frontmatter;
+mod adr_supersession_consistency_gate;
 mod api_contract_registry;
 mod architecture_map_emit_gate;
 mod architecture_plane_gates;

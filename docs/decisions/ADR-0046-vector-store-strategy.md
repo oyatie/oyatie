@@ -1,14 +1,15 @@
 ---
 id: ADR-0046
-status: proposed
+status: Superseded
 doc_status: published
+superseded_by: [ADR-0192]
 ---
 
 # ADR-0046: Vector store strategy — pgvector day-1, in-house Rust HNSW/IVF at billion-scale long-horizon, FAISS only as adapter
 
-> **Status:** Proposed
+> **Status:** Superseded by [ADR-0192](ADR-0192-vector-database-canonical-milvus.md)
 > **Supersedes:** -
-> **Superseded-by:** -
+> **Superseded-by:** [ADR-0192](ADR-0192-vector-database-canonical-milvus.md)
 > **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0026, ADR-0030, ADR-0033, ADR-0045, ADR-0047
