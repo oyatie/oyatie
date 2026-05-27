@@ -53,6 +53,8 @@ pub enum WorkloadIdentityError {
     InvalidWorkloadId,
     /// Owning-capability id did not match the canonical `cap.<dotted>` shape.
     InvalidCapabilityId,
+    /// Trust domain was not a bare `spiffe://<authority>` SPIFFE trust-domain id.
+    InvalidTrustDomain,
     /// A claim name was empty or contained control/whitespace characters.
     InvalidClaimName,
     /// A scope string was empty or whitespace-only.
@@ -77,6 +79,9 @@ impl fmt::Display for WorkloadIdentityError {
             Self::InvalidWorkloadId => f.write_str("invalid workload id (expected wl_<slug>)"),
             Self::InvalidCapabilityId => {
                 f.write_str("invalid owning-capability id (expected cap.<dotted>)")
+            }
+            Self::InvalidTrustDomain => {
+                f.write_str("invalid trust domain (expected bare spiffe://<authority>)")
             }
             Self::InvalidClaimName => f.write_str("invalid claim name"),
             Self::InvalidScope => f.write_str("invalid scope"),
@@ -191,6 +196,90 @@ impl fmt::Display for CapabilityId {
     }
 }
 
+/// SPIFFE-shaped trust domain of a workload principal (`spiffe://<authority>`).
+///
+/// In the Oyatie workload model the SPIFFE trust-domain authority is the
+/// tenant: every workload's SPIFFE identity is rooted at `spiffe://<tenant>`,
+/// so a token minted for `ten_acme` can only ever speak for the `ten_acme`
+/// trust domain. The authority segment is therefore *always* equal to the
+/// owning [`TenantId`] (enforced by [`TrustDomain::for_tenant`]); this binding
+/// is what lets the mesh (Istio Ambient ztunnel / SPIFFE SVID, ADR-0148) and
+/// the authz layer agree on a single tenant-scoped identity root and reject a
+/// cross-trust-domain (cross-tenant) token at the boundary.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct TrustDomain(String);
+
+impl TrustDomain {
+    /// SPIFFE URI scheme prefix every trust domain carries.
+    const SPIFFE_SCHEME: &'static str = "spiffe://";
+
+    /// Derive the trust domain for a tenant: `spiffe://<tenant>`.
+    ///
+    /// This is the only constructor that builds a trust domain from identity
+    /// material, and it is total: a valid [`TenantId`] always yields a valid
+    /// `spiffe://ten_<slug>` authority, preserving the `trust_domain == tenant`
+    /// invariant by construction.
+    #[must_use]
+    pub fn for_tenant(tenant: &TenantId) -> Self {
+        Self(format!("{}{}", Self::SPIFFE_SCHEME, tenant.as_str()))
+    }
+
+    /// Construct from a raw `spiffe://<authority>` string, validating the SPIFFE
+    /// shape (scheme present, non-empty authority, no path/query/fragment — a
+    /// trust domain is the authority alone, not a full SVID path).
+    ///
+    /// # Errors
+    /// Returns [`WorkloadIdentityError::InvalidTrustDomain`] when the value is
+    /// not a bare `spiffe://<authority>` trust-domain id.
+    pub fn new(value: impl Into<String>) -> Result<Self, WorkloadIdentityError> {
+        let value = value.into();
+        let Some(authority) = value.strip_prefix(Self::SPIFFE_SCHEME) else {
+            return Err(WorkloadIdentityError::InvalidTrustDomain);
+        };
+        // A trust domain is the authority only: reject SVID paths/queries so a
+        // full `spiffe://td/ns/sa` SVID is never mistaken for a trust domain.
+        let well_formed = !authority.is_empty()
+            && !authority.contains('/')
+            && !authority.contains('?')
+            && !authority.contains('#')
+            && authority
+                .chars()
+                .all(|c| !c.is_whitespace() && !c.is_control());
+        if well_formed {
+            Ok(Self(value))
+        } else {
+            Err(WorkloadIdentityError::InvalidTrustDomain)
+        }
+    }
+
+    /// The SPIFFE authority segment (the part after `spiffe://`).
+    #[must_use]
+    pub fn authority(&self) -> &str {
+        self.0
+            .strip_prefix(Self::SPIFFE_SCHEME)
+            .unwrap_or(self.0.as_str())
+    }
+
+    /// Whether this trust domain's authority equals `tenant` — the
+    /// `trust_domain == tenant` invariant the authz/mesh boundary relies on.
+    #[must_use]
+    pub fn matches_tenant(&self, tenant: &TenantId) -> bool {
+        self.authority() == tenant.as_str()
+    }
+
+    /// Borrow the full `spiffe://<authority>` string.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for TrustDomain {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
 /// A single, validated claim value carried by a workload principal.
 ///
 /// Claims are the typed projection of the verified token payload. Keeping the
@@ -286,6 +375,7 @@ pub struct WorkloadPrincipal {
     tenant_id: TenantId,
     workload_id: WorkloadId,
     owning_capability: CapabilityId,
+    trust_domain: TrustDomain,
     state: WorkloadState,
     claims: BTreeMap<String, ClaimValue>,
     scopes: Vec<String>,
@@ -303,10 +393,17 @@ impl WorkloadPrincipal {
         workload_id: impl Into<String>,
         owning_capability: impl Into<String>,
     ) -> Result<Self, WorkloadIdentityError> {
+        let tenant_id = TenantId::new(tenant_id)?;
+        // The trust domain is derived from (and therefore always equal to) the
+        // tenant: a workload's SPIFFE identity is rooted at `spiffe://<tenant>`.
+        // Deriving rather than accepting it keeps the `trust_domain == tenant`
+        // invariant unbreakable at construction.
+        let trust_domain = TrustDomain::for_tenant(&tenant_id);
         Ok(Self {
-            tenant_id: TenantId::new(tenant_id)?,
+            tenant_id,
             workload_id: WorkloadId::new(workload_id)?,
             owning_capability: CapabilityId::new(owning_capability)?,
+            trust_domain,
             state: WorkloadState::Provisioned,
             claims: BTreeMap::new(),
             scopes: Vec::new(),
@@ -330,6 +427,13 @@ impl WorkloadPrincipal {
     #[must_use]
     pub fn owning_capability(&self) -> &CapabilityId {
         &self.owning_capability
+    }
+
+    /// SPIFFE trust domain (`spiffe://<tenant>`) the workload's identity is
+    /// rooted at. Always equal to the [`tenant_id`](Self::tenant_id) authority.
+    #[must_use]
+    pub fn trust_domain(&self) -> &TrustDomain {
+        &self.trust_domain
     }
 
     /// Current lifecycle state.
@@ -707,6 +811,49 @@ mod tests {
             principal.schema_version(),
             WORKLOAD_PRINCIPAL_SCHEMA_VERSION
         );
+    }
+
+    #[test]
+    fn trust_domain_is_spiffe_shaped_and_equals_tenant() {
+        let principal = WorkloadPrincipal::provision("ten_acme", "wl_a", "cap.x.y").expect("valid");
+        assert_eq!(principal.trust_domain().as_str(), "spiffe://ten_acme");
+        assert_eq!(principal.trust_domain().authority(), "ten_acme");
+        // The derived trust domain always matches the owning tenant.
+        assert!(
+            principal
+                .trust_domain()
+                .matches_tenant(principal.tenant_id())
+        );
+    }
+
+    #[test]
+    fn trust_domain_rejects_non_spiffe_and_svid_paths() {
+        // Missing scheme.
+        assert_eq!(
+            TrustDomain::new("ten_acme"),
+            Err(WorkloadIdentityError::InvalidTrustDomain)
+        );
+        // Empty authority.
+        assert_eq!(
+            TrustDomain::new("spiffe://"),
+            Err(WorkloadIdentityError::InvalidTrustDomain)
+        );
+        // A full SVID path is NOT a bare trust domain.
+        assert_eq!(
+            TrustDomain::new("spiffe://ten_acme/ns/sa"),
+            Err(WorkloadIdentityError::InvalidTrustDomain)
+        );
+        // A bare authority is accepted.
+        assert!(TrustDomain::new("spiffe://ten_acme").is_ok());
+    }
+
+    #[test]
+    fn trust_domain_matches_tenant_is_tenant_scoped() {
+        let acme = TenantId::new("ten_acme").expect("valid");
+        let globex = TenantId::new("ten_globex").expect("valid");
+        let td = TrustDomain::for_tenant(&acme);
+        assert!(td.matches_tenant(&acme));
+        assert!(!td.matches_tenant(&globex));
     }
 
     #[test]

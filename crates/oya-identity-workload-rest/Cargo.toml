@@ -1,0 +1,43 @@
+[package]
+name = "oya-identity-workload-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Workload-identity REST surface (axum): mounts the oya-identity-workload-app use-cases behind /authorize, /authorize:batch, /authorize-with-token, /tokens/validate, and /principals/{id}:suspend|retire with fail-closed PEP semantics (authz-fail 403, token-fail 422, store/JWKS-unavailable 503) and one immutable audit record per authorize + token-validation. Task T3."
+
+# REST / adapter layer (ADR-0105 Layer 5). I/O-bearing axum app that composes
+# the inward use-case core (oya-identity-workload-app) + the API DTO contract
+# (oya-identity-workload-api) + the pure domain. Hyperscaler-blessed deps only
+# (Tokio/Axum/Tower/serde/tracing per the runtime-dependency allowlist).
+[dependencies]
+oya-identity-workload-domain = { path = "../oya-identity-workload-domain" }
+oya-identity-workload-api = { path = "../oya-identity-workload-api" }
+oya-identity-workload-app = { path = "../oya-identity-workload-app" }
+oya-identity-workload-oidc-adapter = { path = "../oya-identity-workload-oidc-adapter" }
+oya-identity-workload-authz-cedar-adapter = { path = "../oya-identity-workload-authz-cedar-adapter" }
+
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync"] }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+# E2E: drive the router with tower::ServiceExt::oneshot and mint a real ES256
+# workload JWT with ring (the same crypto the OIDC adapter validates with;
+# already in Cargo.lock, OSI-clean). Dev-only — NOT a library dependency.
+http-body-util = { version = "0.1", default-features = false }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+ring = "0.17.14"
+base64 = "0.22.1"
+
+[lib]
+name = "oya_identity_workload_rest"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -9,16 +9,27 @@
 //!
 //! 1. The token is a well-formed three-segment compact JWS.
 //! 2. The JOSE header declares a supported signature algorithm
-//!    (`RS256`/`RS384`/`RS512` or `ES256`).
-//! 3. The signature verifies against the issuer's JWK (selected by `kid`)
+//!    (`RS256`/`RS384`/`RS512` or `ES256`). The unsecured `none` algorithm is
+//!    rejected unconditionally and a symmetric `HS*` alg (against this
+//!    asymmetric-only verifier) is rejected as an algorithm-mismatch — the
+//!    RS256→HS256 key-confusion class (RFC 8725 §2.1/§2.2/§3.1).
+//! 3. The JOSE `typ` header is present and in the accepted set (cross-JWT
+//!    confusion — RFC 8725 §3.11), and any `jku`/`x5u` key-source URL is
+//!    refused unless explicitly allowlisted (SSRF / key-injection —
+//!    RFC 8725 §3.8). Keys come from the static JWKS, never a header URL.
+//! 4. The token's `alg` is bound to the algorithm the resolved `kid` is for:
+//!    the key material pins a family (RSA vs EC) and the JWK may pin an exact
+//!    `alg`; a mismatch is refused (RFC 8725 §2.2/§3.1).
+//! 5. The signature verifies against the issuer's JWK (selected by `kid`)
 //!    using **ring** (BoringSSL-backed; constant-time; the blessed crypto
 //!    primitive per the runtime-dependency allowlist).
-//! 4. The `iss` claim equals the configured expected issuer.
-//! 5. The `aud` claim contains the configured expected audience.
-//! 6. `exp` is in the future and `nbf`/`iat` (if present) are not in the
+//! 6. The `iss` claim equals the configured expected issuer.
+//! 7. The `aud` claim contains the configured expected audience.
+//! 8. `exp` is in the future and `nbf`/`iat` (if present) are not in the
 //!    future, using the caller-supplied `now_epoch_seconds` (no ambient clock).
 //!
-//! Only after all checks pass are the claims projected into a principal.
+//! Only after all checks pass are the claims projected into a principal whose
+//! SPIFFE `trust_domain` is rooted at (and equal to) the verified tenant.
 //!
 //! ## Why ring (and not a higher-level JWT crate)
 //!
@@ -50,6 +61,21 @@ pub enum OidcValidationError {
     DecodeError,
     /// The JOSE `alg` is unsupported or absent.
     UnsupportedAlgorithm,
+    /// The JOSE `alg` was the unsecured `none` algorithm, which is rejected
+    /// unconditionally (RFC 8725 §2.1/§3.1 — never accept an unsecured JWS).
+    AlgNone,
+    /// The JOSE `typ` header was absent or not in the accepted set, guarding
+    /// against cross-JWT confusion (RFC 8725 §3.11).
+    InvalidType,
+    /// The JOSE header carried a `jku`/`x5u` key-source URL that was not in the
+    /// configured allowlist — refused to prevent SSRF / key-injection
+    /// (RFC 8725 §3.8). With no allowlist configured (the default), *any*
+    /// `jku`/`x5u` is refused because keys come from the static JWKS.
+    UntrustedKeySourceUrl,
+    /// The token's `alg` did not match the algorithm the resolved `kid` is
+    /// bound to (e.g. an `HS256` token presented against an RSA `kid`), an
+    /// algorithm-substitution / key-confusion attack (RFC 8725 §2.2/§3.1).
+    AlgorithmMismatch,
     /// No JWK matched the token's `kid` (or `kid` was absent).
     UnknownKey,
     /// A JWK was structurally invalid (bad base64url in `n`/`e`/`x`/`y`).
@@ -76,6 +102,16 @@ impl std::fmt::Display for OidcValidationError {
             Self::MalformedToken => f.write_str("token is not a compact three-segment JWS"),
             Self::DecodeError => f.write_str("base64url/JSON decode failed"),
             Self::UnsupportedAlgorithm => f.write_str("unsupported or missing JOSE alg"),
+            Self::AlgNone => f.write_str("unsecured 'none' algorithm is rejected (RFC 8725)"),
+            Self::InvalidType => {
+                f.write_str("JOSE typ header absent or not in the accepted set (RFC 8725)")
+            }
+            Self::UntrustedKeySourceUrl => {
+                f.write_str("JOSE jku/x5u key-source URL is not in the allowlist (RFC 8725)")
+            }
+            Self::AlgorithmMismatch => {
+                f.write_str("token alg does not match the algorithm bound to the kid (RFC 8725)")
+            }
             Self::UnknownKey => f.write_str("no JWK matched the token kid"),
             Self::MalformedKey => f.write_str("JWK is structurally invalid"),
             Self::SignatureInvalid => f.write_str("signature verification failed"),
@@ -122,15 +158,44 @@ impl JwsAlg {
     fn is_rsa(self) -> bool {
         matches!(self, Self::Rs256 | Self::Rs384 | Self::Rs512)
     }
+
+    /// The key family this algorithm requires, used to bind a token's `alg` to
+    /// the algorithm the resolved `kid` is declared for (RFC 8725 §2.2/§3.1).
+    fn family(self) -> AlgFamily {
+        if self.is_rsa() {
+            AlgFamily::Rsa
+        } else {
+            AlgFamily::EcP256
+        }
+    }
+}
+
+/// The asymmetric key family an [`JwsAlg`] belongs to. A JWK may pin the family
+/// (and, optionally, the exact `alg`) it is valid for so a token cannot present
+/// one algorithm against a key minted for another.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum AlgFamily {
+    Rsa,
+    EcP256,
 }
 
 /// A single JSON Web Key. Supports RSA (`n`/`e`) and EC P-256 (`x`/`y`) keys.
+///
+/// The key material implies an algorithm *family* (RSA vs EC P-256) that the
+/// token's `alg` is always bound to. A key MAY additionally pin the exact `alg`
+/// it is valid for via [`Jwk::with_alg`]; when pinned, a token presenting any
+/// other `alg` is refused with [`OidcValidationError::AlgorithmMismatch`]
+/// (RFC 8725 §2.2 algorithm-substitution defense).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Jwk {
     /// Key id matched against the token's `kid`.
     pub kid: String,
     /// Key material.
     pub material: JwkMaterial,
+    /// Optional exact JWS `alg` this key is pinned to (e.g. `"RS256"`). When
+    /// `Some`, the token's `alg` MUST equal it; when `None`, only the family
+    /// implied by `material` is enforced.
+    pub alg: Option<String>,
 }
 
 /// The key-type-specific material of a [`Jwk`].
@@ -153,7 +218,7 @@ pub enum JwkMaterial {
 }
 
 impl Jwk {
-    /// Construct an RSA JWK.
+    /// Construct an RSA JWK (no exact-`alg` pin; family is enforced).
     #[must_use]
     pub fn rsa(kid: impl Into<String>, n: impl Into<String>, e: impl Into<String>) -> Self {
         Self {
@@ -162,10 +227,11 @@ impl Jwk {
                 n: n.into(),
                 e: e.into(),
             },
+            alg: None,
         }
     }
 
-    /// Construct an EC P-256 JWK.
+    /// Construct an EC P-256 JWK (no exact-`alg` pin; family is enforced).
     #[must_use]
     pub fn ec_p256(kid: impl Into<String>, x: impl Into<String>, y: impl Into<String>) -> Self {
         Self {
@@ -174,6 +240,23 @@ impl Jwk {
                 x: x.into(),
                 y: y.into(),
             },
+            alg: None,
+        }
+    }
+
+    /// Pin the exact JWS `alg` this key may verify (builder). A token whose
+    /// `alg` differs is refused as an [`OidcValidationError::AlgorithmMismatch`].
+    #[must_use]
+    pub fn with_alg(mut self, alg: impl Into<String>) -> Self {
+        self.alg = Some(alg.into());
+        self
+    }
+
+    /// The key family implied by the material.
+    fn family(&self) -> AlgFamily {
+        match self.material {
+            JwkMaterial::Rsa { .. } => AlgFamily::Rsa,
+            JwkMaterial::EcP256 { .. } => AlgFamily::EcP256,
         }
     }
 }
@@ -226,10 +309,21 @@ pub struct ValidationConfig {
     /// Claim carrying the granted scopes as a space-delimited string
     /// (default `scope`, per OAuth 2.0).
     pub scope_claim: String,
+    /// Accepted JOSE `typ` header values (case-insensitive), guarding against
+    /// cross-JWT confusion (RFC 8725 §3.11). Default: `["JWT", "at+jwt"]`. A
+    /// token whose `typ` is absent or outside this set is refused. An empty set
+    /// disables the check (NOT recommended).
+    pub accepted_token_types: Vec<String>,
+    /// Allowlist of `jku`/`x5u` key-source URLs the JOSE header may carry
+    /// (RFC 8725 §3.8 SSRF defense). Default: empty — because keys are resolved
+    /// from the static [`Jwks`], *any* `jku`/`x5u` in the header is refused.
+    pub trusted_key_source_urls: Vec<String>,
 }
 
 impl ValidationConfig {
-    /// Construct a config with OAuth/OIDC-conventional claim names.
+    /// Construct a config with OAuth/OIDC-conventional claim names and the
+    /// hardened RFC 8725 defaults (accept `JWT`/`at+jwt` typ; refuse any
+    /// `jku`/`x5u` since keys come from the static JWKS).
     #[must_use]
     pub fn new(expected_issuer: impl Into<String>, expected_audience: impl Into<String>) -> Self {
         Self {
@@ -239,7 +333,45 @@ impl ValidationConfig {
             workload_claim: "sub".into(),
             capability_claim: "owning_capability".into(),
             scope_claim: "scope".into(),
+            accepted_token_types: vec!["JWT".into(), "at+jwt".into()],
+            trusted_key_source_urls: Vec::new(),
         }
+    }
+
+    /// Replace the accepted `typ` set (builder).
+    #[must_use]
+    pub fn with_accepted_token_types(
+        mut self,
+        types: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        self.accepted_token_types = types.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Allowlist a `jku`/`x5u` key-source URL (builder). Without this, any
+    /// `jku`/`x5u` header is refused.
+    #[must_use]
+    pub fn allow_key_source_url(mut self, url: impl Into<String>) -> Self {
+        self.trusted_key_source_urls.push(url.into());
+        self
+    }
+
+    /// Whether `typ` is accepted (case-insensitive). An empty accepted set
+    /// disables the check (returns `true`).
+    fn accepts_type(&self, typ: &str) -> bool {
+        if self.accepted_token_types.is_empty() {
+            return true;
+        }
+        self.accepted_token_types
+            .iter()
+            .any(|accepted| accepted.eq_ignore_ascii_case(typ))
+    }
+
+    /// Whether a `jku`/`x5u` URL is on the allowlist (exact match).
+    fn trusts_key_source_url(&self, url: &str) -> bool {
+        self.trusted_key_source_urls
+            .iter()
+            .any(|trusted| trusted == url)
     }
 }
 
@@ -250,6 +382,14 @@ struct JoseHeader {
     alg: String,
     #[serde(default)]
     kid: Option<String>,
+    #[serde(default)]
+    typ: Option<String>,
+    /// JWK Set URL (RFC 7515 §4.1.2). Refused unless allowlisted (RFC 8725 §3.8).
+    #[serde(default)]
+    jku: Option<String>,
+    /// X.509 URL (RFC 7515 §4.1.5). Refused unless allowlisted (RFC 8725 §3.8).
+    #[serde(default)]
+    x5u: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -313,11 +453,47 @@ pub fn validate_workload_token(
             _ => return Err(OidcValidationError::MalformedToken),
         };
 
-    // 2. Parse the JOSE header and resolve the algorithm.
+    // 2. Parse the JOSE header.
     let header_bytes = b64url_decode(header_b64)?;
     let header: JoseHeader =
         serde_json::from_slice(&header_bytes).map_err(|_| OidcValidationError::DecodeError)?;
+
+    // 2a. Reject the unsecured `none` algorithm unconditionally, BEFORE any
+    //     other algorithm handling (RFC 8725 §2.1/§3.1). Case-insensitive: the
+    //     attack uses `none`/`None`/`NONE` interchangeably.
+    if header.alg.eq_ignore_ascii_case("none") {
+        return Err(OidcValidationError::AlgNone);
+    }
+    // A symmetric `HS*` alg against this asymmetric-only verifier is the classic
+    // RS256->HS256 key-confusion attack (the RSA public key used as the HMAC
+    // secret). Surface it as a distinct algorithm-mismatch rather than a generic
+    // unsupported-alg so the audit chain records the substitution attempt
+    // (RFC 8725 §2.2/§3.1).
+    if header.alg.len() >= 2 && header.alg[..2].eq_ignore_ascii_case("hs") {
+        return Err(OidcValidationError::AlgorithmMismatch);
+    }
     let alg = JwsAlg::parse(&header.alg).ok_or(OidcValidationError::UnsupportedAlgorithm)?;
+
+    // 2b. Explicit `typ` check (cross-JWT confusion — RFC 8725 §3.11). The
+    //     header must declare a `typ` in the configured accepted set so a token
+    //     minted for another purpose cannot be replayed here.
+    match header.typ.as_deref() {
+        Some(typ) if config.accepts_type(typ) => {}
+        _ => return Err(OidcValidationError::InvalidType),
+    }
+
+    // 2c. `jku`/`x5u` SSRF defense (RFC 8725 §3.8): keys are resolved ONLY from
+    //     the static JWKS, so a header-supplied key-source URL is refused unless
+    //     it is explicitly allowlisted. Default config has an empty allowlist,
+    //     so any `jku`/`x5u` is rejected.
+    for key_source in [header.jku.as_deref(), header.x5u.as_deref()]
+        .into_iter()
+        .flatten()
+    {
+        if !config.trusts_key_source_url(key_source) {
+            return Err(OidcValidationError::UntrustedKeySourceUrl);
+        }
+    }
 
     // 3. Resolve the verification key by kid and verify the signature over the
     //    `header.payload` signing input.
@@ -326,6 +502,22 @@ pub fn validate_workload_token(
         .as_deref()
         .ok_or(OidcValidationError::UnknownKey)?;
     let jwk = jwks.find(kid).ok_or(OidcValidationError::UnknownKey)?;
+
+    // 3a. Bind the token's `alg` to the algorithm the resolved `kid` is for
+    //     (RFC 8725 §2.2/§3.1 algorithm-substitution defense). The key material
+    //     pins a family (RSA vs EC), and the JWK MAY pin an exact `alg`. A
+    //     mismatch (e.g. `HS256` against an RSA `kid`, or `ES256` against an
+    //     RSA key) is refused as an explicit algorithm mismatch — distinct from
+    //     a generic unsupported-alg so the audit chain sees the attack class.
+    if alg.family() != jwk.family() {
+        return Err(OidcValidationError::AlgorithmMismatch);
+    }
+    if let Some(pinned) = jwk.alg.as_deref()
+        && !pinned.eq_ignore_ascii_case(&header.alg)
+    {
+        return Err(OidcValidationError::AlgorithmMismatch);
+    }
+
     let signature_bytes = b64url_decode(signature_b64)?;
     let signing_input = format!("{header_b64}.{payload_b64}");
     verify_signature(alg, jwk, signing_input.as_bytes(), &signature_bytes)?;
@@ -601,6 +793,32 @@ mod tests {
         }
     }
 
+    /// Mint an ES256 token with a caller-supplied RAW JOSE header JSON. The
+    /// signature is genuine (so the token only fails on the header-policy
+    /// checks under test, not on signature). Returns the token + verifying JWK.
+    fn mint_with_header(header_json: &str, claims_json: &str, kid: &str) -> SignedToken {
+        let rng = SystemRandom::new();
+        let pkcs8 = EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng)
+            .expect("generate pkcs8");
+        let key_pair =
+            EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref(), &rng)
+                .expect("load key");
+        let public = key_pair.public_key().as_ref();
+        let x = &public[1..33];
+        let y = &public[33..65];
+        let signing_input = format!(
+            "{}.{}",
+            b64url(header_json.as_bytes()),
+            b64url(claims_json.as_bytes())
+        );
+        let sig = key_pair.sign(&rng, signing_input.as_bytes()).expect("sign");
+        let token = format!("{signing_input}.{}", b64url(sig.as_ref()));
+        SignedToken {
+            token,
+            jwk: Jwk::ec_p256(kid, b64url(x), b64url(y)),
+        }
+    }
+
     fn config() -> ValidationConfig {
         ValidationConfig::new("https://idp.oyatie.dev", "oya-cloud-kms")
     }
@@ -625,6 +843,13 @@ mod tests {
         assert_eq!(principal.tenant_id().as_str(), "ten_acme");
         assert_eq!(principal.workload_id().as_str(), "wl_secrets_sync");
         assert_eq!(principal.owning_capability().as_str(), "cap.cloud.kms");
+        // The verified principal's SPIFFE trust domain is rooted at the tenant.
+        assert_eq!(principal.trust_domain().as_str(), "spiffe://ten_acme");
+        assert!(
+            principal
+                .trust_domain()
+                .matches_tenant(principal.tenant_id())
+        );
         assert_eq!(principal.state(), WorkloadState::Active);
         assert!(principal.has_scope("cloud.kms.decrypt"));
         assert!(principal.has_scope("cloud.kms.describe"));
@@ -723,6 +948,147 @@ mod tests {
             validate_workload_token("only.two", &jwks, &config(), 0),
             Err(OidcValidationError::MalformedToken)
         ));
+    }
+
+    // ---- RFC 8725 hardening (steps 2a–4) -----------------------------------
+
+    #[test]
+    fn alg_none_is_rejected_unconditionally() {
+        let now = 1_700_000_000;
+        // An `alg:none` token with an empty signature segment would parse as a
+        // JWS structurally; the alg check must reject it before anything else.
+        // Build it by hand so the (empty) signature is not the reason.
+        let header = b64url(br#"{"alg":"none","typ":"JWT","kid":"kid-1"}"#);
+        let payload = b64url(valid_claims(now).as_bytes());
+        // Non-empty signature segment so the structural 3-part check passes.
+        let token = format!("{header}.{payload}.AAAA");
+        let jwks = Jwks::new().add_key(Jwk::ec_p256("kid-1", "AA", "AA"));
+        assert!(matches!(
+            validate_workload_token(&token, &jwks, &config(), now),
+            Err(OidcValidationError::AlgNone)
+        ));
+        // Case variations of the none attack are caught too.
+        let header_upper = b64url(br#"{"alg":"NONE","typ":"JWT","kid":"kid-1"}"#);
+        let token_upper = format!("{header_upper}.{payload}.AAAA");
+        assert!(matches!(
+            validate_workload_token(&token_upper, &jwks, &config(), now),
+            Err(OidcValidationError::AlgNone)
+        ));
+    }
+
+    #[test]
+    fn hs256_against_asymmetric_kid_is_algorithm_mismatch() {
+        // RS256->HS256 key-confusion: present HS256 against an asymmetric key.
+        let now = 1_700_000_000;
+        let header = b64url(br#"{"alg":"HS256","typ":"JWT","kid":"kid-1"}"#);
+        let payload = b64url(valid_claims(now).as_bytes());
+        let token = format!("{header}.{payload}.AAAA");
+        let jwks = Jwks::new().add_key(Jwk::ec_p256("kid-1", "AA", "AA"));
+        assert!(matches!(
+            validate_workload_token(&token, &jwks, &config(), now),
+            Err(OidcValidationError::AlgorithmMismatch)
+        ));
+    }
+
+    #[test]
+    fn missing_or_unaccepted_typ_is_rejected() {
+        let now = 1_700_000_000;
+        // No `typ` header at all -> cross-JWT-confusion guard fires.
+        let signed = mint_with_header(
+            r#"{"alg":"ES256","kid":"kid-1"}"#,
+            &valid_claims(now),
+            "kid-1",
+        );
+        let jwks = Jwks::new().add_key(signed.jwk.clone());
+        assert!(matches!(
+            validate_workload_token(&signed.token, &jwks, &config(), now),
+            Err(OidcValidationError::InvalidType)
+        ));
+
+        // A `typ` outside the accepted set is rejected.
+        let signed_wrong = mint_with_header(
+            r#"{"alg":"ES256","typ":"secevent+jwt","kid":"kid-1"}"#,
+            &valid_claims(now),
+            "kid-1",
+        );
+        let jwks_wrong = Jwks::new().add_key(signed_wrong.jwk);
+        assert!(matches!(
+            validate_workload_token(&signed_wrong.token, &jwks_wrong, &config(), now),
+            Err(OidcValidationError::InvalidType)
+        ));
+    }
+
+    #[test]
+    fn accepts_configured_alternate_typ() {
+        // `at+jwt` is in the default accepted set (RFC 9068 access tokens).
+        let now = 1_700_000_000;
+        let signed = mint_with_header(
+            r#"{"alg":"ES256","typ":"at+jwt","kid":"kid-1"}"#,
+            &valid_claims(now),
+            "kid-1",
+        );
+        let jwks = Jwks::new().add_key(signed.jwk);
+        assert!(validate_workload_token(&signed.token, &jwks, &config(), now).is_ok());
+    }
+
+    #[test]
+    fn jku_and_x5u_are_refused_unless_allowlisted() {
+        let now = 1_700_000_000;
+        // A `jku` header pointing anywhere is refused with the default (empty)
+        // allowlist — keys come from the static JWKS, not a header URL.
+        let signed = mint_with_header(
+            r#"{"alg":"ES256","typ":"JWT","kid":"kid-1","jku":"https://evil.example/jwks.json"}"#,
+            &valid_claims(now),
+            "kid-1",
+        );
+        let jwks = Jwks::new().add_key(signed.jwk.clone());
+        assert!(matches!(
+            validate_workload_token(&signed.token, &jwks, &config(), now),
+            Err(OidcValidationError::UntrustedKeySourceUrl)
+        ));
+
+        // `x5u` is treated the same way.
+        let signed_x5u = mint_with_header(
+            r#"{"alg":"ES256","typ":"JWT","kid":"kid-1","x5u":"https://evil.example/cert.pem"}"#,
+            &valid_claims(now),
+            "kid-1",
+        );
+        let jwks_x5u = Jwks::new().add_key(signed_x5u.jwk);
+        assert!(matches!(
+            validate_workload_token(&signed_x5u.token, &jwks_x5u, &config(), now),
+            Err(OidcValidationError::UntrustedKeySourceUrl)
+        ));
+
+        // When the exact URL is allowlisted, the header no longer blocks.
+        let signed_ok = mint_with_header(
+            r#"{"alg":"ES256","typ":"JWT","kid":"kid-1","jku":"https://idp.oyatie.dev/jwks.json"}"#,
+            &valid_claims(now),
+            "kid-1",
+        );
+        let jwks_ok = Jwks::new().add_key(signed_ok.jwk);
+        let cfg = config().allow_key_source_url("https://idp.oyatie.dev/jwks.json");
+        assert!(validate_workload_token(&signed_ok.token, &jwks_ok, &cfg, now).is_ok());
+    }
+
+    #[test]
+    fn kid_alg_pin_mismatch_is_rejected() {
+        // The resolved JWK pins RS256, but the token presents ES256 -> mismatch
+        // even though the family check would also apply for a true RSA key.
+        let now = 1_700_000_000;
+        let signed = mint_es256_token(&valid_claims(now), "kid-1");
+        // Re-key the JWK with an exact RS256 pin (still EC material). The exact
+        // alg pin must trip before signature verification.
+        let pinned_jwk = signed.jwk.clone().with_alg("RS256");
+        let jwks = Jwks::new().add_key(pinned_jwk);
+        assert!(matches!(
+            validate_workload_token(&signed.token, &jwks, &config(), now),
+            Err(OidcValidationError::AlgorithmMismatch)
+        ));
+
+        // An ES256 pin on the same key validates normally.
+        let signed_ok = mint_es256_token(&valid_claims(now), "kid-2");
+        let jwks_ok = Jwks::new().add_key(signed_ok.jwk.clone().with_alg("ES256"));
+        assert!(validate_workload_token(&signed_ok.token, &jwks_ok, &config(), now).is_ok());
     }
 
     #[test]

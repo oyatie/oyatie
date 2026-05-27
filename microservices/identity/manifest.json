@@ -122,7 +122,10 @@
       "crates": [
         "oya-identity-workload-domain",
         "oya-identity-workload-authz-cedar-adapter",
-        "oya-identity-workload-oidc-adapter"
+        "oya-identity-workload-oidc-adapter",
+        "oya-identity-workload-app",
+        "oya-identity-workload-api",
+        "oya-identity-workload-rest"
       ]
     }
   ],
@@ -140,44 +143,47 @@
   "contracts": {
     "openapi": [
       "microservices/identity/contracts/openapi/identity.yaml",
-      "microservices/identity/contracts/openapi/multi-context-split.yaml"
+      "microservices/identity/contracts/openapi/multi-context-split.yaml",
+      "microservices/identity/contracts/openapi/workload.yaml"
     ],
     "asyncapi": [
       "microservices/identity/contracts/asyncapi/identity-events.yaml",
-      "microservices/identity/contracts/asyncapi/multi-context-events.yaml"
+      "microservices/identity/contracts/asyncapi/multi-context-events.yaml",
+      "microservices/identity/contracts/asyncapi/workload-events.yaml"
     ],
     "proto": [
       "microservices/identity/contracts/proto/identity.proto",
-      "microservices/identity/contracts/proto/multi_context_split.proto"
+      "microservices/identity/contracts/proto/multi_context_split.proto",
+      "microservices/identity/contracts/proto/workload.proto"
     ]
   },
   "capabilities": [
     {
-      "tenant_class": "T0",
+      "tier": "T0",
       "name": "oidc-token-issue",
       "file": "microservices/identity/capabilities/oidc-token-issue.yaml",
       "risk_class": "none"
     },
     {
-      "tenant_class": "T0",
+      "tier": "T0",
       "name": "webauthn-authenticate",
       "file": "microservices/identity/capabilities/webauthn-authenticate.yaml",
       "risk_class": "none"
     },
     {
-      "tenant_class": "T1",
+      "tier": "T1",
       "name": "step-up-acr-grant",
       "file": "microservices/identity/capabilities/step-up-acr-grant.yaml",
       "risk_class": "limited"
     },
     {
-      "tenant_class": "T1",
+      "tier": "T1",
       "name": "multi-context-principal-resolve",
       "file": "microservices/identity/capabilities/multi-context-principal-resolve.yaml",
       "risk_class": "limited"
     },
     {
-      "tenant_class": "T2",
+      "tier": "T2",
       "name": "scim-user-provision",
       "file": "microservices/identity/capabilities/scim-user-provision.yaml",
       "risk_class": "limited"
@@ -660,7 +666,7 @@
       ],
       "design_notes": [
         "microservices/identity/design/hyperscaler-best-practice-brief.md",
-        "microservices/identity/design/threat-model.md",
+        "microservices/identity/threat-model.md",
         "microservices/identity/design/failure-modes.md",
         "microservices/identity/design/data-residency.md",
         "microservices/identity/design/cost-finops.md",

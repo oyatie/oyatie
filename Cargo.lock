@@ -4370,6 +4370,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-identity-workload-api"
+version = "0.1.0"
+dependencies = [
+ "oya-identity-workload-domain",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-identity-workload-app"
 version = "0.1.0"
 dependencies = [
@@ -4401,6 +4410,26 @@ dependencies = [
  "ring",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "oya-identity-workload-rest"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "base64",
+ "http-body-util",
+ "oya-identity-workload-api",
+ "oya-identity-workload-app",
+ "oya-identity-workload-authz-cedar-adapter",
+ "oya-identity-workload-domain",
+ "oya-identity-workload-oidc-adapter",
+ "ring",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower",
+ "tracing",
 ]
 
 [[package]]
@@ -6133,6 +6162,7 @@ version = "0.1.0"
 dependencies = [
  "oya-shared-postgres-command-kernel",
  "sqlx",
+ "tokio",
 ]
 
 [[package]]

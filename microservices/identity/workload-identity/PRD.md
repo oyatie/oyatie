@@ -160,7 +160,7 @@ returns the typed reason (brief §1):
 
 This pipeline is implemented in `oya-identity-workload-oidc-adapter` and exposed
 as `/tokens/validate` and the `ValidateToken` RPC. Each numbered step maps to a
-mandatory verifier test case (see §6 and `design/threat-model.md`).
+mandatory verifier test case (see §6 and the canonical `../threat-model.md#workload-identity-threat-model`).
 
 ### 3.2 Trust domain = tenant
 
@@ -288,6 +288,6 @@ paths via the swap-in trait. Detail: `design/cost-finops.md`.
 - Contracts: `contracts/identity.openapi.yaml`, `contracts/identity.asyncapi.yaml`, `contracts/identity.proto`
 - Policy: `policy/identity.cedar`
 - SLOs: `slos/authorize-latency-p99.openslo.yaml`, `slos/validation-availability.openslo.yaml`, `slos/decision-correctness.openslo.yaml`
-- Design notes: `design/threat-model.md`, `design/failure-modes.md`, `design/data-residency.md`, `design/cost-finops.md`, `design/audit-evidence-emission.md`, `design/tenant-isolation.md`, `design/operational-boundaries.md`
+- Design notes: `../threat-model.md` (canonical, consolidated threat model — workload section `#workload-identity-threat-model`), `design/failure-modes.md`, `design/data-residency.md`, `design/cost-finops.md`, `design/audit-evidence-emission.md`, `design/tenant-isolation.md`, `design/operational-boundaries.md`
 - Implementation plan: `IP-001-identity-design.md`
 - ADRs: ADR-0002 (tenant-and-identity-kernel), ADR-0131 (flat layout), ADR-0183 (Cedar policy-engine separation)
