@@ -15,7 +15,7 @@ use axum::{Json, Router};
 use serde_json::json;
 
 use crate::config::GatewayConfig;
-use crate::dispatch::PipelineDispatcher;
+use crate::dispatch::{DispatchSubject, PipelineDispatcher};
 use crate::error::GatewayError;
 use crate::event::{self, RouteOutcome};
 use crate::signature::{self, WebhookSecret};
@@ -108,14 +108,17 @@ async fn handle_webhook(
             )
                 .into_response()
         }
-        RouteOutcome::Dispatch(pr_event) => {
+        RouteOutcome::Dispatch(ci_event) => {
             // 4. Dispatch the gated pipeline (kick the trusted runner).
-            match state.dispatcher.dispatch(&pr_event).await {
+            match state.dispatcher.dispatch(&ci_event).await {
                 Ok(receipt) => {
+                    let subject_kind = receipt.subject.kind();
+                    let subject = subject_json(&receipt.subject);
                     tracing::info!(
                         delivery = %delivery,
-                        pr = receipt.pr_number,
+                        subject_kind = %subject_kind,
                         sha = %receipt.head_sha,
+                        snapshot_id = ?receipt.snapshot_id,
                         kicked_through = %receipt.kicked_through,
                         "pipeline dispatched"
                     );
@@ -124,8 +127,10 @@ async fn handle_webhook(
                         StatusCode::ACCEPTED,
                         Json(json!({
                             "status": "dispatched",
-                            "pr_number": receipt.pr_number,
+                            "subject_kind": subject_kind,
+                            "subject": subject,
                             "head_sha": receipt.head_sha,
+                            "snapshot_id": receipt.snapshot_id,
                             "kicked_through": receipt.kicked_through.id(),
                             "trusted_runner_owns_from": boundary,
                             "delivery": delivery,
@@ -134,11 +139,19 @@ async fn handle_webhook(
                         .into_response()
                 }
                 Err(err) => {
-                    tracing::error!(delivery = %delivery, pr = pr_event.pr_number, error = %err, "dispatch failed");
+                    tracing::error!(delivery = %delivery, event = %event, error = %err, "dispatch failed");
                     error_response(&err)
                 }
             }
         }
+    }
+}
+
+fn subject_json(subject: &DispatchSubject) -> serde_json::Value {
+    match subject {
+        DispatchSubject::PullRequest { pr_number } => json!({ "pr_number": pr_number }),
+        DispatchSubject::Issue { issue_number } => json!({ "issue_number": issue_number }),
+        DispatchSubject::Push { reference } => json!({ "reference": reference }),
     }
 }
 
@@ -161,9 +174,9 @@ fn error_response(err: &GatewayError) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dispatch::{DispatchReceipt, PipelineKickoff};
+    use crate::dispatch::{DispatchReceipt, DispatchSubject, PipelineKickoff};
     use crate::error::{PipelineStage, Result};
-    use crate::event::PullRequestEvent;
+    use crate::event::CiEvent;
     use axum::body::to_bytes;
     use axum::http::Request;
     use hmac::{Hmac, Mac};
@@ -180,18 +193,41 @@ mod tests {
     impl PipelineDispatcher for FakeDispatcher {
         fn dispatch<'a>(
             &'a self,
-            event: &'a PullRequestEvent,
+            event: &'a CiEvent,
         ) -> Pin<Box<dyn Future<Output = Result<DispatchReceipt>> + Send + 'a>> {
             let boundary = self.boundary;
             Box::pin(async move {
                 // touch the kickoff conversion so the path is exercised
                 let _ = PipelineKickoff::from_event(event);
-                Ok(DispatchReceipt {
-                    pr_number: event.pr_number,
-                    head_sha: event.head_sha.clone(),
-                    kicked_through: PipelineStage::GateRunAll,
-                    boundary,
-                })
+                match event {
+                    CiEvent::PullRequest(event) => Ok(DispatchReceipt {
+                        subject: DispatchSubject::PullRequest {
+                            pr_number: event.pr_number,
+                        },
+                        head_sha: event.head_sha.clone(),
+                        snapshot_id: None,
+                        kicked_through: PipelineStage::GateRunAll,
+                        boundary,
+                    }),
+                    CiEvent::IssueSnapshot(event) => Ok(DispatchReceipt {
+                        subject: DispatchSubject::Issue {
+                            issue_number: event.issue_number,
+                        },
+                        head_sha: event.snapshot_id.clone(),
+                        snapshot_id: Some(event.snapshot_id.clone()),
+                        kicked_through: PipelineStage::GateRunAll,
+                        boundary,
+                    }),
+                    CiEvent::PushSnapshot(event) => Ok(DispatchReceipt {
+                        subject: DispatchSubject::Push {
+                            reference: event.reference.clone(),
+                        },
+                        head_sha: event.after_sha.clone(),
+                        snapshot_id: Some(event.snapshot_id.clone()),
+                        kicked_through: PipelineStage::GateRunAll,
+                        boundary,
+                    }),
+                }
             })
         }
     }
@@ -227,6 +263,23 @@ mod tests {
             .to_vec()
     }
 
+    fn issue_body() -> Vec<u8> {
+        br#"{"action":"edited",
+            "issue":{"number":108,"title":"board sync","state":"open",
+              "updated_at":"2026-05-27T19:00:00Z",
+              "labels":[{"name":"masterplan:IP-108"}],
+              "html_url":"https://forgejo/owner/repo/issues/108"},
+            "repository":{"full_name":"owner/repo"}}"#
+            .to_vec()
+    }
+
+    fn push_body() -> Vec<u8> {
+        br#"{"ref":"refs/heads/dev","before":"abc","after":"def",
+            "commits":[{"id":"def"}],
+            "repository":{"full_name":"owner/repo"}}"#
+            .to_vec()
+    }
+
     async fn send(state: ReceiverState, req: Request<axum::body::Body>) -> (StatusCode, String) {
         let resp = router(state).oneshot(req).await.unwrap();
         let status = resp.status();
@@ -246,7 +299,41 @@ mod tests {
         let (status, text) = send(test_state(), req).await;
         assert_eq!(status, StatusCode::ACCEPTED);
         assert!(text.contains("\"status\":\"dispatched\""));
+        assert!(text.contains("\"subject_kind\":\"pull_request\""));
+        assert!(text.contains("\"pr_number\":7"));
         assert!(text.contains("oya-pr-review")); // the honest boundary
+    }
+
+    #[tokio::test]
+    async fn valid_signed_issue_dispatches_snapshot_202() {
+        let body = issue_body();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "issues")
+            .header("x-forgejo-delivery", "uuid-issue")
+            .header("x-hub-signature-256", sign(&body))
+            .body(axum::body::Body::from(body.clone()))
+            .unwrap();
+        let (status, text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::ACCEPTED);
+        assert!(text.contains("\"subject_kind\":\"issue\""));
+        assert!(text.contains("\"issue_number\":108"));
+        assert!(text.contains("\"snapshot_id\":\"issue:owner/repo:108:edited\""));
+    }
+
+    #[tokio::test]
+    async fn valid_signed_push_dispatches_snapshot_202() {
+        let body = push_body();
+        let req = Request::post(WEBHOOK_PATH)
+            .header("x-forgejo-event", "push")
+            .header("x-forgejo-delivery", "uuid-push")
+            .header("x-hub-signature-256", sign(&body))
+            .body(axum::body::Body::from(body.clone()))
+            .unwrap();
+        let (status, text) = send(test_state(), req).await;
+        assert_eq!(status, StatusCode::ACCEPTED);
+        assert!(text.contains("\"subject_kind\":\"push\""));
+        assert!(text.contains("\"reference\":\"refs/heads/dev\""));
+        assert!(text.contains("\"snapshot_id\":\"push:owner/repo:refs/heads/dev:def\""));
     }
 
     #[tokio::test]

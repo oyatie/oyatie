@@ -5,9 +5,9 @@ info:
   description: >
     HTTP webhook receiver for the gated change-coordination pipeline
     (ADR-0363/0366/0367/0374). Verifies the Forgejo webhook HMAC, parses
-    pull_request events against the gated branch, and dispatches the Jenkins
-    oyaCiLane pipeline. Inbound surface only — outbound dispatch is a Jenkins
-    kick, not a published API.
+    pull_request events against the gated branch plus issue/push board-snapshot
+    refresh events, and dispatches the Jenkins oyaCiLane pipeline. Inbound
+    surface only — outbound dispatch is a Jenkins kick, not a published API.
   license:
     name: Apache-2.0
 servers:
@@ -22,6 +22,8 @@ paths:
         The body is the raw webhook payload. The HMAC signature header is
         verified on the raw bytes BEFORE parsing (fail-closed). Only
         pull_request events against the gated branch dispatch the pipeline.
+        Issue and push events dispatch snapshot refresh intents without adding
+        a second long-running board service.
       parameters:
         - name: X-Hub-Signature-256
           in: header
@@ -37,6 +39,7 @@ paths:
           in: header
           required: true
           schema: { type: string, example: "pull_request" }
+          description: One of the closed routed events (`pull_request`, `issues`/`issue`, `push`) or `ping`.
         - name: X-Forgejo-Delivery
           in: header
           required: false
@@ -48,10 +51,10 @@ paths:
           application/json:
             schema:
               type: object
-              description: Forgejo webhook payload (pull_request, ping, ...).
+              description: Forgejo webhook payload (pull_request, issues, push, ping, ...).
       responses:
         "202":
-          description: PR event accepted and the Jenkins pipeline was kicked.
+          description: Routable event accepted and the Jenkins pipeline was kicked.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DispatchedResponse" }
@@ -86,11 +89,25 @@ components:
   schemas:
     DispatchedResponse:
       type: object
-      required: [status, pr_number, head_sha, kicked_through]
+      required: [status, subject_kind, subject, head_sha, kicked_through]
       properties:
         status: { type: string, enum: [dispatched] }
-        pr_number: { type: integer }
+        subject_kind: { type: string, enum: [pull_request, issue, push] }
+        subject:
+          oneOf:
+            - type: object
+              required: [pr_number]
+              properties: { pr_number: { type: integer } }
+            - type: object
+              required: [issue_number]
+              properties: { issue_number: { type: integer } }
+            - type: object
+              required: [reference]
+              properties: { reference: { type: string } }
         head_sha: { type: string }
+        snapshot_id:
+          type: [string, "null"]
+          description: Present for issue/push board snapshot refresh dispatches.
         kicked_through: { type: string, example: "oya-gate-run-all" }
         trusted_runner_owns_from:
           type: [string, "null"]

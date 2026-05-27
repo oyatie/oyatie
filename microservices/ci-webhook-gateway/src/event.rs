@@ -1,7 +1,9 @@
 //! Forgejo webhook event parsing + the closed router table.
 //!
 //! The gateway acts on `pull_request` events whose base branch is the gated
-//! target (default `dev`). Forgejo's `pull_request` payload mirrors Gitea's:
+//! target (default `dev`) and on issue/push events that need to snapshot board
+//! metadata without standing up a second long-running service. Forgejo's
+//! `pull_request` payload mirrors Gitea's:
 //!   { "action": "opened|synchronized|...",
 //!     "number": 42,
 //!     "pull_request": {
@@ -52,6 +54,54 @@ impl PrAction {
     }
 }
 
+/// The closed set of issue actions that should refresh board snapshots.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum IssueAction {
+    Opened,
+    Edited,
+    Reopened,
+    Closed,
+    Labeled,
+    Unlabeled,
+    Assigned,
+    Unassigned,
+    Milestoned,
+    Demilestoned,
+}
+
+impl IssueAction {
+    fn parse(action: &str) -> Option<Self> {
+        match action {
+            "opened" => Some(IssueAction::Opened),
+            "edited" => Some(IssueAction::Edited),
+            "reopened" => Some(IssueAction::Reopened),
+            "closed" => Some(IssueAction::Closed),
+            "labeled" => Some(IssueAction::Labeled),
+            "unlabeled" => Some(IssueAction::Unlabeled),
+            "assigned" => Some(IssueAction::Assigned),
+            "unassigned" => Some(IssueAction::Unassigned),
+            "milestoned" => Some(IssueAction::Milestoned),
+            "demilestoned" => Some(IssueAction::Demilestoned),
+            _ => None,
+        }
+    }
+
+    pub fn id(self) -> &'static str {
+        match self {
+            IssueAction::Opened => "opened",
+            IssueAction::Edited => "edited",
+            IssueAction::Reopened => "reopened",
+            IssueAction::Closed => "closed",
+            IssueAction::Labeled => "labeled",
+            IssueAction::Unlabeled => "unlabeled",
+            IssueAction::Assigned => "assigned",
+            IssueAction::Unassigned => "unassigned",
+            IssueAction::Milestoned => "milestoned",
+            IssueAction::Demilestoned => "demilestoned",
+        }
+    }
+}
+
 /// A parsed, routable pull-request event — the input to the dispatcher.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PullRequestEvent {
@@ -61,6 +111,40 @@ pub struct PullRequestEvent {
     pub head_ref: String,
     pub head_sha: String,
     pub draft: bool,
+}
+
+/// A parsed issue event that refreshes the downstream board snapshot.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IssueSnapshotEvent {
+    pub action: IssueAction,
+    pub issue_number: u64,
+    pub title: String,
+    pub state: String,
+    pub updated_at: Option<String>,
+    pub labels: Vec<String>,
+    pub html_url: Option<String>,
+    pub repository_full_name: String,
+    pub snapshot_id: String,
+}
+
+/// A parsed push event that refreshes the downstream board snapshot.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PushSnapshotEvent {
+    pub reference: String,
+    pub before_sha: String,
+    pub after_sha: String,
+    pub repository_full_name: String,
+    pub commits: usize,
+    pub deleted: bool,
+    pub snapshot_id: String,
+}
+
+/// Every delivery the gateway can dispatch.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CiEvent {
+    PullRequest(PullRequestEvent),
+    IssueSnapshot(IssueSnapshotEvent),
+    PushSnapshot(PushSnapshotEvent),
 }
 
 // ---- raw payload shapes (serde) ------------------------------------------
@@ -91,11 +175,56 @@ struct RawRef {
     sha: String,
 }
 
+#[derive(Deserialize)]
+struct RawIssuePayload {
+    action: String,
+    issue: RawIssue,
+    #[serde(default)]
+    repository: Option<RawRepository>,
+}
+
+#[derive(Deserialize)]
+struct RawIssue {
+    number: u64,
+    title: String,
+    state: String,
+    #[serde(default)]
+    updated_at: Option<String>,
+    #[serde(default)]
+    labels: Vec<RawLabel>,
+    #[serde(default)]
+    html_url: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RawLabel {
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct RawRepository {
+    full_name: String,
+}
+
+#[derive(Deserialize)]
+struct RawPushPayload {
+    #[serde(rename = "ref")]
+    reference: String,
+    before: String,
+    after: String,
+    #[serde(default)]
+    repository: Option<RawRepository>,
+    #[serde(default)]
+    commits: Vec<serde_json::Value>,
+    #[serde(default)]
+    deleted: bool,
+}
+
 /// The outcome of routing a raw delivery.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RouteOutcome {
-    /// A PR event against the target branch that the pipeline should act on.
-    Dispatch(PullRequestEvent),
+    /// An event the pipeline should act on.
+    Dispatch(CiEvent),
     /// Authentic + parseable, but deliberately ignored (wrong base branch, a
     /// draft PR, or a PR action we don't gate). Distinguished from an error so
     /// the receiver returns 200 (no Forgejo redelivery storm) without dispatch.
@@ -109,6 +238,8 @@ pub enum RouteOutcome {
 pub fn route(event: &str, body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
     match event {
         "pull_request" => route_pull_request(body, target_branch),
+        "issues" | "issue" => route_issue(body),
+        "push" => route_push(body, target_branch),
         // `ping` is Forgejo's webhook-registration handshake — accept + ignore.
         "ping" => Ok(RouteOutcome::Ignored {
             reason: "ping handshake".to_owned(),
@@ -156,14 +287,108 @@ fn route_pull_request(body: &[u8], target_branch: &str) -> Result<RouteOutcome> 
         ));
     }
 
-    Ok(RouteOutcome::Dispatch(PullRequestEvent {
-        action,
-        pr_number,
-        base_ref: raw.pull_request.base.ref_name,
-        head_ref: raw.pull_request.head.ref_name,
-        head_sha: raw.pull_request.head.sha,
-        draft: raw.pull_request.draft,
-    }))
+    Ok(RouteOutcome::Dispatch(CiEvent::PullRequest(
+        PullRequestEvent {
+            action,
+            pr_number,
+            base_ref: raw.pull_request.base.ref_name,
+            head_ref: raw.pull_request.head.ref_name,
+            head_sha: raw.pull_request.head.sha,
+            draft: raw.pull_request.draft,
+        },
+    )))
+}
+
+fn route_issue(body: &[u8]) -> Result<RouteOutcome> {
+    let raw: RawIssuePayload = serde_json::from_slice(body)
+        .map_err(|e| GatewayError::MalformedPayload(format!("issues: {e}")))?;
+
+    let Some(action) = IssueAction::parse(&raw.action) else {
+        return Ok(RouteOutcome::Ignored {
+            reason: format!("issues action {:?} not snapshot-worthy", raw.action),
+        });
+    };
+
+    let repository_full_name = raw
+        .repository
+        .map(|repo| repo.full_name)
+        .unwrap_or_else(|| "unknown".to_owned());
+    let snapshot_id = format!(
+        "issue:{}:{}:{}",
+        repository_full_name,
+        raw.issue.number,
+        action.id()
+    );
+
+    Ok(RouteOutcome::Dispatch(CiEvent::IssueSnapshot(
+        IssueSnapshotEvent {
+            action,
+            issue_number: raw.issue.number,
+            title: raw.issue.title,
+            state: raw.issue.state,
+            updated_at: raw.issue.updated_at,
+            labels: raw
+                .issue
+                .labels
+                .into_iter()
+                .map(|label| label.name)
+                .collect(),
+            html_url: raw.issue.html_url,
+            repository_full_name,
+            snapshot_id,
+        },
+    )))
+}
+
+fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
+    let raw: RawPushPayload = serde_json::from_slice(body)
+        .map_err(|e| GatewayError::MalformedPayload(format!("push: {e}")))?;
+
+    if !matches_target_ref(&raw.reference, target_branch) {
+        return Ok(RouteOutcome::Ignored {
+            reason: format!(
+                "push ref {:?} != gated target {:?}",
+                raw.reference, target_branch
+            ),
+        });
+    }
+
+    if raw.deleted {
+        return Ok(RouteOutcome::Ignored {
+            reason: format!("push ref {:?} deleted", raw.reference),
+        });
+    }
+
+    if raw.after.trim().is_empty() || raw.after.chars().all(|c| c == '0') {
+        return Err(GatewayError::MalformedPayload(
+            "missing push.after sha".to_owned(),
+        ));
+    }
+
+    let repository_full_name = raw
+        .repository
+        .map(|repo| repo.full_name)
+        .unwrap_or_else(|| "unknown".to_owned());
+    let snapshot_id = format!(
+        "push:{}:{}:{}",
+        repository_full_name, raw.reference, raw.after
+    );
+
+    Ok(RouteOutcome::Dispatch(CiEvent::PushSnapshot(
+        PushSnapshotEvent {
+            reference: raw.reference,
+            before_sha: raw.before,
+            after_sha: raw.after,
+            repository_full_name,
+            commits: raw.commits.len(),
+            deleted: raw.deleted,
+            snapshot_id,
+        },
+    )))
+}
+
+fn matches_target_ref(reference: &str, target_branch: &str) -> bool {
+    reference == target_branch || reference == format!("refs/heads/{target_branch}")
 }
 
 #[cfg(test)]
@@ -185,7 +410,7 @@ mod tests {
     fn opened_against_dev_dispatches() {
         let outcome = route("pull_request", &pr_body("opened", "dev", false), "dev").unwrap();
         match outcome {
-            RouteOutcome::Dispatch(ev) => {
+            RouteOutcome::Dispatch(CiEvent::PullRequest(ev)) => {
                 assert_eq!(ev.action, PrAction::Opened);
                 assert_eq!(ev.pr_number, 42);
                 assert_eq!(ev.head_sha, "headsha123");
@@ -204,10 +429,10 @@ mod tests {
         .unwrap();
         assert!(matches!(
             outcome,
-            RouteOutcome::Dispatch(PullRequestEvent {
+            RouteOutcome::Dispatch(CiEvent::PullRequest(PullRequestEvent {
                 action: PrAction::Synchronized,
                 ..
-            })
+            }))
         ));
     }
 
@@ -216,10 +441,10 @@ mod tests {
         let outcome = route("pull_request", &pr_body("synchronize", "dev", false), "dev").unwrap();
         assert!(matches!(
             outcome,
-            RouteOutcome::Dispatch(PullRequestEvent {
+            RouteOutcome::Dispatch(CiEvent::PullRequest(PullRequestEvent {
                 action: PrAction::Synchronized,
                 ..
-            })
+            }))
         ));
     }
 
@@ -272,5 +497,58 @@ mod tests {
               "head":{"ref":"f","sha":""},"draft":false}}"#;
         let err = route("pull_request", body, "dev").unwrap_err();
         assert!(matches!(err, GatewayError::MalformedPayload(_)));
+    }
+
+    #[test]
+    fn issue_action_dispatches_snapshot() {
+        let body = br#"{"action":"edited",
+            "issue":{"number":108,"title":"board sync","state":"open",
+              "updated_at":"2026-05-27T19:00:00Z",
+              "labels":[{"name":"masterplan:IP-108"}],
+              "html_url":"https://forgejo/owner/repo/issues/108"},
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("issues", body, "dev").unwrap();
+        match outcome {
+            RouteOutcome::Dispatch(CiEvent::IssueSnapshot(ev)) => {
+                assert_eq!(ev.action, IssueAction::Edited);
+                assert_eq!(ev.issue_number, 108);
+                assert_eq!(ev.labels, vec!["masterplan:IP-108"]);
+                assert_eq!(ev.snapshot_id, "issue:owner/repo:108:edited");
+            }
+            other => panic!("expected issue snapshot, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn unsupported_issue_action_is_ignored() {
+        let body = br#"{"action":"pinned",
+            "issue":{"number":108,"title":"board sync","state":"open"},
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("issue", body, "dev").unwrap();
+        assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
+    }
+
+    #[test]
+    fn push_to_target_branch_dispatches_snapshot() {
+        let body = br#"{"ref":"refs/heads/dev","before":"abc","after":"def",
+            "commits":[{"id":"def"}],"repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("push", body, "dev").unwrap();
+        match outcome {
+            RouteOutcome::Dispatch(CiEvent::PushSnapshot(ev)) => {
+                assert_eq!(ev.reference, "refs/heads/dev");
+                assert_eq!(ev.after_sha, "def");
+                assert_eq!(ev.commits, 1);
+                assert_eq!(ev.snapshot_id, "push:owner/repo:refs/heads/dev:def");
+            }
+            other => panic!("expected push snapshot, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn push_to_other_branch_is_ignored() {
+        let body = br#"{"ref":"refs/heads/main","before":"abc","after":"def",
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("push", body, "dev").unwrap();
+        assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
     }
 }
