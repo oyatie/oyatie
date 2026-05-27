@@ -10,6 +10,9 @@ license = "Apache-2.0"
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 sqlx.workspace = true
 
+[dev-dependencies]
+tokio.workspace = true
+
 [lib]
 name = "oya_shared_postgres_command_adapter_sqlx"
 path = "src/lib.rs"
