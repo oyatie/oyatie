@@ -1,6 +1,7 @@
 use std::process::ExitCode;
 
 mod architecture_boundaries;
+mod board_masterplan_consistency;
 mod deployment_ops_contract;
 mod master_plan_completion_audit;
 mod milestone_audit;
@@ -1358,6 +1359,34 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                         }
                         Err(message) => {
                             eprintln!("master-plan-completion validation failed:\n{message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("board-masterplan-consistency")) => {
+            match board_masterplan_consistency::parse_board_masterplan_consistency_args(
+                args.collect(),
+            ) {
+                Ok(parsed) => {
+                    match board_masterplan_consistency::validate_board_masterplan_consistency(
+                        parsed,
+                    ) {
+                        Ok(report) => {
+                            println!(
+                                "board-masterplan-consistency validation passed: {} masterplan deliverables, {} board deliverables",
+                                report.masterplan_deliverables_checked,
+                                report.board_deliverables_checked
+                            );
+                            ExitCode::SUCCESS
+                        }
+                        Err(message) => {
+                            eprintln!("board-masterplan-consistency validation failed:\n{message}");
                             ExitCode::FAILURE
                         }
                     }

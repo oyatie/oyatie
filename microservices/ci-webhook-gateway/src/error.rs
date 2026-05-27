@@ -22,6 +22,9 @@ pub enum PipelineStage {
     /// Local CI mirror gates: `oya gate run-all` (the trusted-runner re-exec
     /// is owned by Jenkins per ADR-0367; the gateway only dispatches).
     GateRunAll,
+    /// Narrow board projection snapshot path. This is intentionally not
+    /// `oya gate run-all`; label/claim-ref webhooks must not trigger global CI.
+    BoardProjection,
     /// Adversarial reviewer gate — a CI stage powered by the Intelligence
     /// service (ADR-0367 D2). Distinct identity from the author.
     ReviewerGate,
@@ -37,6 +40,7 @@ impl PipelineStage {
         match self {
             PipelineStage::Admission => "oya-vcs-admission",
             PipelineStage::GateRunAll => "oya-gate-run-all",
+            PipelineStage::BoardProjection => "oya-board-projection",
             PipelineStage::ReviewerGate => "oya-pr-review",
             PipelineStage::MergeQueue => "merge-queue-admit",
         }
@@ -157,6 +161,7 @@ mod tests {
     #[test]
     fn stage_ids_are_stable() {
         assert_eq!(PipelineStage::Admission.id(), "oya-vcs-admission");
+        assert_eq!(PipelineStage::BoardProjection.id(), "oya-board-projection");
         assert_eq!(PipelineStage::ReviewerGate.id(), "oya-pr-review");
     }
 }

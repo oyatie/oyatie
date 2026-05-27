@@ -12,6 +12,7 @@ pub(crate) mod generate;
 pub(crate) mod lint;
 pub(crate) mod onprem;
 pub(crate) mod ops;
+pub(crate) mod plan;
 pub(crate) mod submit;
 pub(crate) mod supply_chain;
 pub(crate) mod verify;

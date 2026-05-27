@@ -1,7 +1,11 @@
 //! Forgejo webhook event parsing + the closed router table.
 //!
 //! The gateway acts on `pull_request` events whose base branch is the gated
-//! target (default `dev`). Forgejo's `pull_request` payload mirrors Gitea's:
+//! target (default `dev`) and on issue/push events that need to snapshot board
+//! metadata without standing up a second long-running service. Board push
+//! snapshots are restricted to `refs/heads/claims/*`; ordinary branch pushes do
+//! not drive board projection. Forgejo's
+//! `pull_request` payload mirrors Gitea's:
 //!   { "action": "opened|synchronized|...",
 //!     "number": 42,
 //!     "pull_request": {
@@ -18,6 +22,8 @@
 //! is a typed `UnroutableEvent` (logged + rejected), never a silent drop.
 
 use serde::Deserialize;
+use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 use crate::error::{GatewayError, Result};
 
@@ -52,6 +58,54 @@ impl PrAction {
     }
 }
 
+/// The closed set of issue actions that should refresh board snapshots.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum IssueAction {
+    Opened,
+    Edited,
+    Reopened,
+    Closed,
+    Labeled,
+    Unlabeled,
+    Assigned,
+    Unassigned,
+    Milestoned,
+    Demilestoned,
+}
+
+impl IssueAction {
+    fn parse(action: &str) -> Option<Self> {
+        match action {
+            "opened" => Some(IssueAction::Opened),
+            "edited" => Some(IssueAction::Edited),
+            "reopened" => Some(IssueAction::Reopened),
+            "closed" => Some(IssueAction::Closed),
+            "labeled" => Some(IssueAction::Labeled),
+            "unlabeled" => Some(IssueAction::Unlabeled),
+            "assigned" => Some(IssueAction::Assigned),
+            "unassigned" => Some(IssueAction::Unassigned),
+            "milestoned" => Some(IssueAction::Milestoned),
+            "demilestoned" => Some(IssueAction::Demilestoned),
+            _ => None,
+        }
+    }
+
+    pub fn id(self) -> &'static str {
+        match self {
+            IssueAction::Opened => "opened",
+            IssueAction::Edited => "edited",
+            IssueAction::Reopened => "reopened",
+            IssueAction::Closed => "closed",
+            IssueAction::Labeled => "labeled",
+            IssueAction::Unlabeled => "unlabeled",
+            IssueAction::Assigned => "assigned",
+            IssueAction::Unassigned => "unassigned",
+            IssueAction::Milestoned => "milestoned",
+            IssueAction::Demilestoned => "demilestoned",
+        }
+    }
+}
+
 /// A parsed, routable pull-request event — the input to the dispatcher.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PullRequestEvent {
@@ -61,6 +115,43 @@ pub struct PullRequestEvent {
     pub head_ref: String,
     pub head_sha: String,
     pub draft: bool,
+}
+
+/// A parsed issue event that refreshes the downstream board snapshot.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IssueSnapshotEvent {
+    pub action: IssueAction,
+    pub issue_number: u64,
+    pub title: String,
+    pub state: String,
+    pub updated_at: Option<String>,
+    pub labels: Vec<String>,
+    pub html_url: Option<String>,
+    pub repository_full_name: String,
+    pub snapshot_id: String,
+}
+
+/// A parsed push event that refreshes the downstream board snapshot.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PushSnapshotEvent {
+    pub reference: String,
+    pub deliverable_id: String,
+    pub before_sha: String,
+    pub after_sha: String,
+    pub sender_login: String,
+    pub pusher_login: Option<String>,
+    pub repository_full_name: String,
+    pub commits: usize,
+    pub deleted: bool,
+    pub snapshot_id: String,
+}
+
+/// Every delivery the gateway can dispatch.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CiEvent {
+    PullRequest(PullRequestEvent),
+    IssueSnapshot(IssueSnapshotEvent),
+    PushSnapshot(PushSnapshotEvent),
 }
 
 // ---- raw payload shapes (serde) ------------------------------------------
@@ -91,11 +182,74 @@ struct RawRef {
     sha: String,
 }
 
+#[derive(Deserialize)]
+struct RawIssuePayload {
+    action: String,
+    issue: RawIssue,
+    #[serde(default)]
+    repository: Option<RawRepository>,
+}
+
+#[derive(Deserialize)]
+struct RawIssue {
+    number: u64,
+    title: String,
+    state: String,
+    #[serde(default)]
+    updated_at: Option<String>,
+    #[serde(default)]
+    labels: Vec<RawLabel>,
+    #[serde(default)]
+    html_url: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RawLabel {
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct RawRepository {
+    full_name: String,
+}
+
+#[derive(Deserialize)]
+struct RawActor {
+    #[serde(default)]
+    login: Option<String>,
+    #[serde(default)]
+    username: Option<String>,
+    #[serde(default)]
+    full_name: Option<String>,
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    email: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RawPushPayload {
+    #[serde(rename = "ref")]
+    reference: String,
+    before: String,
+    after: String,
+    #[serde(default)]
+    repository: Option<RawRepository>,
+    #[serde(default)]
+    commits: Vec<serde_json::Value>,
+    #[serde(default)]
+    deleted: bool,
+    #[serde(default)]
+    sender: Option<RawActor>,
+    #[serde(default)]
+    pusher: Option<RawActor>,
+}
+
 /// The outcome of routing a raw delivery.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RouteOutcome {
-    /// A PR event against the target branch that the pipeline should act on.
-    Dispatch(PullRequestEvent),
+    /// An event the pipeline should act on.
+    Dispatch(CiEvent),
     /// Authentic + parseable, but deliberately ignored (wrong base branch, a
     /// draft PR, or a PR action we don't gate). Distinguished from an error so
     /// the receiver returns 200 (no Forgejo redelivery storm) without dispatch.
@@ -109,6 +263,8 @@ pub enum RouteOutcome {
 pub fn route(event: &str, body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
     match event {
         "pull_request" => route_pull_request(body, target_branch),
+        "issues" | "issue" => route_issue(body),
+        "push" => route_push(body, target_branch),
         // `ping` is Forgejo's webhook-registration handshake — accept + ignore.
         "ping" => Ok(RouteOutcome::Ignored {
             reason: "ping handshake".to_owned(),
@@ -156,14 +312,153 @@ fn route_pull_request(body: &[u8], target_branch: &str) -> Result<RouteOutcome> 
         ));
     }
 
-    Ok(RouteOutcome::Dispatch(PullRequestEvent {
-        action,
-        pr_number,
-        base_ref: raw.pull_request.base.ref_name,
-        head_ref: raw.pull_request.head.ref_name,
-        head_sha: raw.pull_request.head.sha,
-        draft: raw.pull_request.draft,
-    }))
+    Ok(RouteOutcome::Dispatch(CiEvent::PullRequest(
+        PullRequestEvent {
+            action,
+            pr_number,
+            base_ref: raw.pull_request.base.ref_name,
+            head_ref: raw.pull_request.head.ref_name,
+            head_sha: raw.pull_request.head.sha,
+            draft: raw.pull_request.draft,
+        },
+    )))
+}
+
+fn route_issue(body: &[u8]) -> Result<RouteOutcome> {
+    let raw: RawIssuePayload = serde_json::from_slice(body)
+        .map_err(|e| GatewayError::MalformedPayload(format!("issues: {e}")))?;
+
+    let Some(action) = IssueAction::parse(&raw.action) else {
+        return Ok(RouteOutcome::Ignored {
+            reason: format!("issues action {:?} not snapshot-worthy", raw.action),
+        });
+    };
+
+    let repository_full_name = raw
+        .repository
+        .map(|repo| repo.full_name)
+        .unwrap_or_else(|| "unknown".to_owned());
+    let mut labels = raw
+        .issue
+        .labels
+        .into_iter()
+        .map(|label| label.name)
+        .collect::<Vec<_>>();
+    labels.sort();
+    labels.dedup();
+    let snapshot_id = content_addressed_snapshot_id(
+        "issue",
+        &serde_json::json!({
+            "action": action.id(),
+            "issue_number": raw.issue.number,
+            "labels": labels,
+            "repository_full_name": repository_full_name,
+            "state": raw.issue.state,
+            "title": raw.issue.title,
+            "updated_at": raw.issue.updated_at,
+        }),
+    );
+
+    Ok(RouteOutcome::Dispatch(CiEvent::IssueSnapshot(
+        IssueSnapshotEvent {
+            action,
+            issue_number: raw.issue.number,
+            title: raw.issue.title,
+            state: raw.issue.state,
+            updated_at: raw.issue.updated_at,
+            labels,
+            html_url: raw.issue.html_url,
+            repository_full_name,
+            snapshot_id,
+        },
+    )))
+}
+
+fn route_push(body: &[u8], _target_branch: &str) -> Result<RouteOutcome> {
+    let raw: RawPushPayload = serde_json::from_slice(body)
+        .map_err(|e| GatewayError::MalformedPayload(format!("push: {e}")))?;
+
+    let Some(deliverable_id) = claim_ref_deliverable_id(&raw.reference) else {
+        return Ok(RouteOutcome::Ignored {
+            reason: format!("push ref {:?} is not a claim ref", raw.reference),
+        });
+    };
+
+    if raw.deleted {
+        return Ok(RouteOutcome::Ignored {
+            reason: format!("push ref {:?} deleted", raw.reference),
+        });
+    }
+
+    if raw.after.trim().is_empty() || raw.after.chars().all(|c| c == '0') {
+        return Err(GatewayError::MalformedPayload(
+            "missing push.after sha".to_owned(),
+        ));
+    }
+
+    let repository_full_name = raw
+        .repository
+        .map(|repo| repo.full_name)
+        .unwrap_or_else(|| "unknown".to_owned());
+    let sender_login = actor_identity(raw.sender.as_ref())
+        .ok_or_else(|| GatewayError::MalformedPayload("missing push.sender identity".to_owned()))?;
+    let pusher_login = actor_identity(raw.pusher.as_ref());
+    let snapshot_id = content_addressed_snapshot_id(
+        "push",
+        &serde_json::json!({
+            "after_sha": raw.after,
+            "before_sha": raw.before,
+            "commits": raw.commits.len(),
+            "deliverable_id": deliverable_id,
+            "pusher_login": pusher_login,
+            "reference": raw.reference,
+            "repository_full_name": repository_full_name,
+            "sender_login": sender_login,
+        }),
+    );
+
+    Ok(RouteOutcome::Dispatch(CiEvent::PushSnapshot(
+        PushSnapshotEvent {
+            reference: raw.reference,
+            deliverable_id,
+            before_sha: raw.before,
+            after_sha: raw.after,
+            sender_login,
+            pusher_login,
+            repository_full_name,
+            commits: raw.commits.len(),
+            deleted: raw.deleted,
+            snapshot_id,
+        },
+    )))
+}
+
+fn claim_ref_deliverable_id(reference: &str) -> Option<String> {
+    let suffix = reference.strip_prefix("refs/heads/claims/")?;
+    let deliverable_id = suffix.trim();
+    (!deliverable_id.is_empty()).then(|| deliverable_id.to_owned())
+}
+
+fn actor_identity(actor: Option<&RawActor>) -> Option<String> {
+    let actor = actor?;
+    [
+        actor.login.as_deref(),
+        actor.username.as_deref(),
+        actor.full_name.as_deref(),
+        actor.name.as_deref(),
+        actor.email.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    .map(str::trim)
+    .find(|value| !value.is_empty())
+    .map(ToOwned::to_owned)
+}
+
+fn content_addressed_snapshot_id(kind: &str, canonical: &Value) -> String {
+    let bytes = serde_json::to_string(canonical).unwrap_or_else(|_| canonical.to_string());
+    let digest = Sha256::digest(bytes.as_bytes());
+    format!("{kind}:sha256:{digest:x}")
 }
 
 #[cfg(test)]
@@ -185,7 +480,7 @@ mod tests {
     fn opened_against_dev_dispatches() {
         let outcome = route("pull_request", &pr_body("opened", "dev", false), "dev").unwrap();
         match outcome {
-            RouteOutcome::Dispatch(ev) => {
+            RouteOutcome::Dispatch(CiEvent::PullRequest(ev)) => {
                 assert_eq!(ev.action, PrAction::Opened);
                 assert_eq!(ev.pr_number, 42);
                 assert_eq!(ev.head_sha, "headsha123");
@@ -204,10 +499,10 @@ mod tests {
         .unwrap();
         assert!(matches!(
             outcome,
-            RouteOutcome::Dispatch(PullRequestEvent {
+            RouteOutcome::Dispatch(CiEvent::PullRequest(PullRequestEvent {
                 action: PrAction::Synchronized,
                 ..
-            })
+            }))
         ));
     }
 
@@ -216,10 +511,10 @@ mod tests {
         let outcome = route("pull_request", &pr_body("synchronize", "dev", false), "dev").unwrap();
         assert!(matches!(
             outcome,
-            RouteOutcome::Dispatch(PullRequestEvent {
+            RouteOutcome::Dispatch(CiEvent::PullRequest(PullRequestEvent {
                 action: PrAction::Synchronized,
                 ..
-            })
+            }))
         ));
     }
 
@@ -271,6 +566,115 @@ mod tests {
               "base":{"ref":"dev","sha":"b"},
               "head":{"ref":"f","sha":""},"draft":false}}"#;
         let err = route("pull_request", body, "dev").unwrap_err();
+        assert!(matches!(err, GatewayError::MalformedPayload(_)));
+    }
+
+    #[test]
+    fn issue_action_dispatches_snapshot() {
+        let body = include_bytes!("../tests/fixtures/issue-label-snapshot.json");
+        let outcome = route("issues", body, "dev").unwrap();
+        match outcome {
+            RouteOutcome::Dispatch(CiEvent::IssueSnapshot(ev)) => {
+                assert_eq!(ev.action, IssueAction::Edited);
+                assert_eq!(ev.issue_number, 108);
+                assert_eq!(ev.labels, vec!["masterplan:IP-108", "sync-state:ready"]);
+                assert!(ev.snapshot_id.starts_with("issue:sha256:"));
+                assert_eq!(ev.snapshot_id.len(), "issue:sha256:".len() + 64);
+            }
+            other => panic!("expected issue snapshot, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn issue_snapshot_content_address_is_idempotent() {
+        let body = include_bytes!("../tests/fixtures/issue-label-snapshot.json");
+        let first = route("issues", body, "dev").unwrap();
+        let second = route("issues", body, "dev").unwrap();
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn issue_snapshot_content_address_is_label_order_stable() {
+        let first = route(
+            "issues",
+            br#"{"action":"edited",
+                "issue":{"number":108,"title":"Board sync labels","state":"open",
+                  "updated_at":"2026-05-27T19:00:00Z",
+                  "labels":[{"name":"sync-state:ready"},{"name":"masterplan:IP-108"}]},
+                "repository":{"full_name":"owner/repo"}}"#,
+            "dev",
+        )
+        .unwrap();
+        let second = route(
+            "issues",
+            br#"{"action":"edited",
+                "issue":{"number":108,"title":"Board sync labels","state":"open",
+                  "updated_at":"2026-05-27T19:00:00Z",
+                  "labels":[{"name":"masterplan:IP-108"},{"name":"sync-state:ready"},{"name":"sync-state:ready"}]},
+                "repository":{"full_name":"owner/repo"}}"#,
+            "dev",
+        )
+        .unwrap();
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn unsupported_issue_action_is_ignored() {
+        let body = br#"{"action":"pinned",
+            "issue":{"number":108,"title":"board sync","state":"open"},
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("issue", body, "dev").unwrap();
+        assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
+    }
+
+    #[test]
+    fn push_to_claim_ref_dispatches_snapshot() {
+        let body = include_bytes!("../tests/fixtures/push-snapshot.json");
+        let outcome = route("push", body, "dev").unwrap();
+        match outcome {
+            RouteOutcome::Dispatch(CiEvent::PushSnapshot(ev)) => {
+                assert_eq!(ev.reference, "refs/heads/claims/ADR-0377-D2");
+                assert_eq!(ev.deliverable_id, "ADR-0377-D2");
+                assert_eq!(ev.after_sha, "def456");
+                assert_eq!(ev.sender_login, "worker-a");
+                assert_eq!(ev.pusher_login, Some("worker-a".to_owned()));
+                assert_eq!(ev.commits, 1);
+                assert!(ev.snapshot_id.starts_with("push:sha256:"));
+                assert_eq!(ev.snapshot_id.len(), "push:sha256:".len() + 64);
+            }
+            other => panic!("expected push snapshot, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn push_snapshot_content_address_is_idempotent() {
+        let body = include_bytes!("../tests/fixtures/push-snapshot.json");
+        let first = route("push", body, "dev").unwrap();
+        let second = route("push", body, "dev").unwrap();
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn push_to_other_branch_is_ignored() {
+        let body = br#"{"ref":"refs/heads/main","before":"abc","after":"def",
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("push", body, "dev").unwrap();
+        assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
+    }
+
+    #[test]
+    fn push_to_dev_branch_is_ignored_for_board_projection() {
+        let body = br#"{"ref":"refs/heads/dev","before":"abc","after":"def",
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("push", body, "dev").unwrap();
+        assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
+    }
+
+    #[test]
+    fn push_to_claim_ref_requires_sender_identity() {
+        let body = br#"{"ref":"refs/heads/claims/ADR-0377-D2","before":"abc","after":"def",
+            "repository":{"full_name":"owner/repo"}}"#;
+        let err = route("push", body, "dev").unwrap_err();
         assert!(matches!(err, GatewayError::MalformedPayload(_)));
     }
 }
