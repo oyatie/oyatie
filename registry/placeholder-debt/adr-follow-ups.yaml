@@ -22,6 +22,29 @@
 version: 1
 
 follow_ups:
+  - id: adr-0361-promote-pipelines
+    intent: |
+      Implement the Jenkins-native promote-dev-to-staging and
+      promote-staging-to-production pipelines that fast-forward the staging
+      and production refs after dev's gates land green (per ADR-0361
+      Jenkins-native CI/CD revamp). The prior GHA workflows
+      (`.github/workflows/promote-dev-to-staging.yml` +
+      `promote-staging-to-production.yml`) were retired in R5 and
+      `.github/branch-protection.yaml` now references the Jenkins pipelines
+      generically; the Jenkinsfile/pipeline implementations are pending. The
+      canary-observability gate that conditions staging→production (per
+      feedback_branch_pipeline_final_final) lands with the same effort.
+    driver_docs:
+      - .github/branch-protection.yaml
+      - docs/decisions/ADR-0361-jenkins-native-ci-cd-revamp.md
+      - infra/ci/jenkins/
+    owner: council-architecture + ops-platform
+    trigger: |
+      Staging or production drift from dev observed in the wild, or the
+      first cell-deploy that needs ordered promotion across the three refs.
+    status: pending
+    adr_when_landed: ADR-0361 (impl tracks an already-accepted ADR)
+
   - id: personal-mail-key-recovery
     intent: |
       Key-recovery design for the personal-pillar mail bounded context;
