@@ -1,0 +1,14 @@
+# Hub control-plane machine-config patch (baked into the hub USB).
+# The hub is the CAPI management cluster — schedulable CPs (it runs CAPI + Argo CD on them),
+# Cilium-ready (cni:none + proxy.disabled per ADR-0148). certSANs for off-host kubectl via CF.
+cluster:
+  allowSchedulingOnControlPlanes: true
+  network:
+    cni:
+      name: none
+  proxy:
+    disabled: true
+  apiServer:
+    certSANs:
+      - k8s.oyatie.dev
+      - api.oyatie.dev

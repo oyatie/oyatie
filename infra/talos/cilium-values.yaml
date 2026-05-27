@@ -31,3 +31,32 @@ securityContext:
       - NET_ADMIN
       - SYS_ADMIN
       - SYS_RESOURCE
+
+# Hubble — eBPF L4 flow observability. ADR-0148 assigns flow observability to Cilium
+# (Hubble is the source of truth at L4; Istio Ambient owns L7 telemetry). Relay + metrics
+# are the production baseline (golden-signals INV-FOUR-GOLDEN-SIGNALS). UI is opt-in/heavier.
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  metrics:
+    enableOpenMetrics: true
+    # ServiceMonitors are scraped by the observability stack (microservices/observability/).
+    serviceMonitor:
+      enabled: true
+    enabled:
+      - dns
+      - drop
+      - tcp
+      - flow
+      - port-distribution
+      - icmp
+      - "httpV2:exemplars=true;labelsContext=source_ip,source_namespace,destination_ip,destination_namespace"
+
+# Socket-level load balancing must stay in the HOST netns only, so that when Istio Ambient
+# (ztunnel) is layered on the workload node pools, pod-originated connections are redirected
+# THROUGH ztunnel instead of being short-circuited by Cilium's socket-LB before ztunnel sees
+# them. Required for the ADR-0148 Cilium-L4 + Ambient-L7 zero-overlap layering.
+# Ref: github.com/istio/istio/wiki/Troubleshooting-Istio-Ambient (bpf-lb-sock-hostns-only).
+socketLB:
+  hostNamespaceOnly: true
