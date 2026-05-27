@@ -1,0 +1,17 @@
+context: analytics
+role: domain
+capability: analytics
+plane: control
+slo: planned
+data_classes_owned: [AUDIT_INTERNAL, TENANT_AUDIT, TENANT_PUBLIC, TENANT_PRIVATE, FINANCIAL, PII_IDENTIFYING]
+operational_classes_owned: []
+api_stability: planned
+security_review: unreviewed
+supply_chain: source-only
+non_claims:
+  - no persistence in this scaffolding
+  - no event-bus wiring in this scaffolding
+  - no live Cedar authorization in this scaffolding
+traceability:
+  source_adrs: [ADR-0083, ADR-0193]
+  ip_anchor: IP-015

@@ -613,6 +613,17 @@
       "allowed_crates": [
         "oya-identity-workload-authz-cedar-adapter"
       ]
+    },
+    "clickhouse": {
+      "version_pin": "0.13",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-analytics",
+      "rationale": "ClickHouse 26.3 LTS HTTP client (Apache-2.0, OSI-clean). Provides async query execution and LZ4 compression for the OLAP analytics warehouse mandated by ADR-0193. Isolated exclusively to oya-shared-olap-clickhouse-adapter; no kernel, domain, usecase, or api crate may take this as a direct dependency. Matches manifest.json lts_pins.clickhouse=26.3.10.60-lts.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-shared-olap-clickhouse-adapter",
+      "allowed_crates": [
+        "oya-shared-olap-clickhouse-adapter"
+      ]
     }
   },
   "lane_contract": {
