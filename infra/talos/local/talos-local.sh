@@ -257,7 +257,7 @@ cmd_up() {
     log "Generating Talos cluster config (talosctl gen config)"
     local patch=""
     [ "$role" = "single" ] && patch="--config-patch @${WORKDIR}/allow-scheduling.json"
-    [ "$role" = "single" ] && printf '[{"op":"add","path":"/cluster/allowSchedulingOnControlPlanes","value":true}]' > "$WORKDIR/allow-scheduling.json"
+    [ "$role" = "single" ] && printf '{"cluster":{"allowSchedulingOnControlPlanes":true}}' > "$WORKDIR/allow-scheduling.json"
     talosctl gen config "$CLUSTER" "https://${ip}:6443" \
       --kubernetes-version "$K8S_VERSION" --output-dir "$WORKDIR" --force $patch
   fi
