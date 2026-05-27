@@ -3,5 +3,7 @@
   "before": "abc123",
   "after": "def456",
   "commits": [{ "id": "def456" }],
-  "repository": { "full_name": "owner/repo" }
+  "repository": { "full_name": "owner/repo" },
+  "sender": { "login": "worker-a" },
+  "pusher": { "login": "worker-a" }
 }

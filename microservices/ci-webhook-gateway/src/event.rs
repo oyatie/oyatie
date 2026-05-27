@@ -138,6 +138,8 @@ pub struct PushSnapshotEvent {
     pub deliverable_id: String,
     pub before_sha: String,
     pub after_sha: String,
+    pub sender_login: String,
+    pub pusher_login: Option<String>,
     pub repository_full_name: String,
     pub commits: usize,
     pub deleted: bool,
@@ -212,6 +214,20 @@ struct RawRepository {
 }
 
 #[derive(Deserialize)]
+struct RawActor {
+    #[serde(default)]
+    login: Option<String>,
+    #[serde(default)]
+    username: Option<String>,
+    #[serde(default)]
+    full_name: Option<String>,
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    email: Option<String>,
+}
+
+#[derive(Deserialize)]
 struct RawPushPayload {
     #[serde(rename = "ref")]
     reference: String,
@@ -223,6 +239,10 @@ struct RawPushPayload {
     commits: Vec<serde_json::Value>,
     #[serde(default)]
     deleted: bool,
+    #[serde(default)]
+    sender: Option<RawActor>,
+    #[serde(default)]
+    pusher: Option<RawActor>,
 }
 
 /// The outcome of routing a raw delivery.
@@ -380,6 +400,9 @@ fn route_push(body: &[u8], _target_branch: &str) -> Result<RouteOutcome> {
         .repository
         .map(|repo| repo.full_name)
         .unwrap_or_else(|| "unknown".to_owned());
+    let sender_login = actor_identity(raw.sender.as_ref())
+        .ok_or_else(|| GatewayError::MalformedPayload("missing push.sender identity".to_owned()))?;
+    let pusher_login = actor_identity(raw.pusher.as_ref());
     let snapshot_id = content_addressed_snapshot_id(
         "push",
         &serde_json::json!({
@@ -387,8 +410,10 @@ fn route_push(body: &[u8], _target_branch: &str) -> Result<RouteOutcome> {
             "before_sha": raw.before,
             "commits": raw.commits.len(),
             "deliverable_id": deliverable_id,
+            "pusher_login": pusher_login,
             "reference": raw.reference,
             "repository_full_name": repository_full_name,
+            "sender_login": sender_login,
         }),
     );
 
@@ -398,6 +423,8 @@ fn route_push(body: &[u8], _target_branch: &str) -> Result<RouteOutcome> {
             deliverable_id,
             before_sha: raw.before,
             after_sha: raw.after,
+            sender_login,
+            pusher_login,
             repository_full_name,
             commits: raw.commits.len(),
             deleted: raw.deleted,
@@ -410,6 +437,22 @@ fn claim_ref_deliverable_id(reference: &str) -> Option<String> {
     let suffix = reference.strip_prefix("refs/heads/claims/")?;
     let deliverable_id = suffix.trim();
     (!deliverable_id.is_empty()).then(|| deliverable_id.to_owned())
+}
+
+fn actor_identity(actor: Option<&RawActor>) -> Option<String> {
+    let actor = actor?;
+    [
+        actor.login.as_deref(),
+        actor.username.as_deref(),
+        actor.full_name.as_deref(),
+        actor.name.as_deref(),
+        actor.email.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    .map(str::trim)
+    .find(|value| !value.is_empty())
+    .map(ToOwned::to_owned)
 }
 
 fn content_addressed_snapshot_id(kind: &str, canonical: &Value) -> String {
@@ -593,6 +636,8 @@ mod tests {
                 assert_eq!(ev.reference, "refs/heads/claims/ADR-0377-D2");
                 assert_eq!(ev.deliverable_id, "ADR-0377-D2");
                 assert_eq!(ev.after_sha, "def456");
+                assert_eq!(ev.sender_login, "worker-a");
+                assert_eq!(ev.pusher_login, Some("worker-a".to_owned()));
                 assert_eq!(ev.commits, 1);
                 assert!(ev.snapshot_id.starts_with("push:sha256:"));
                 assert_eq!(ev.snapshot_id.len(), "push:sha256:".len() + 64);
@@ -623,5 +668,13 @@ mod tests {
             "repository":{"full_name":"owner/repo"}}"#;
         let outcome = route("push", body, "dev").unwrap();
         assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
+    }
+
+    #[test]
+    fn push_to_claim_ref_requires_sender_identity() {
+        let body = br#"{"ref":"refs/heads/claims/ADR-0377-D2","before":"abc","after":"def",
+            "repository":{"full_name":"owner/repo"}}"#;
+        let err = route("push", body, "dev").unwrap_err();
+        assert!(matches!(err, GatewayError::MalformedPayload(_)));
     }
 }

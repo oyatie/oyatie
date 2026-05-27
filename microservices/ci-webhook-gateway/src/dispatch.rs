@@ -60,6 +60,8 @@ pub enum PipelineKickoff {
         deliverable_id: String,
         before_sha: String,
         after_sha: String,
+        sender_login: String,
+        pusher_login: Option<String>,
         repository_full_name: String,
         commits: usize,
         snapshot_id: String,
@@ -88,6 +90,8 @@ impl PipelineKickoff {
                 deliverable_id: event.deliverable_id.clone(),
                 before_sha: event.before_sha.clone(),
                 after_sha: event.after_sha.clone(),
+                sender_login: event.sender_login.clone(),
+                pusher_login: event.pusher_login.clone(),
                 repository_full_name: event.repository_full_name.clone(),
                 commits: event.commits,
                 snapshot_id: event.snapshot_id.clone(),
@@ -291,6 +295,8 @@ mod tests {
             deliverable_id: "ADR-0377-D2".to_owned(),
             before_sha: "abc".to_owned(),
             after_sha: "def".to_owned(),
+            sender_login: "worker-a".to_owned(),
+            pusher_login: Some("worker-a".to_owned()),
             repository_full_name: "owner/repo".to_owned(),
             commits: 1,
             deleted: false,
@@ -414,11 +420,15 @@ mod tests {
                     PipelineKickoff::PushSnapshot {
                         reference,
                         after_sha,
+                        sender_login,
+                        pusher_login,
                         snapshot_id,
                         ..
                     } => {
                         assert_eq!(reference, "refs/heads/claims/ADR-0377-D2");
                         assert_eq!(after_sha, "def");
+                        assert_eq!(sender_login, "worker-a");
+                        assert_eq!(pusher_login, Some("worker-a".to_owned()));
                         assert_eq!(
                             snapshot_id,
                             "push:sha256:0000000000000000000000000000000000000000000000000000000000000def"

@@ -67,6 +67,12 @@ components:
           after: { type: string }
           commits: { type: array }
           repository: { type: object }
+          sender:
+            type: object
+            description: Authenticated Forgejo/Gitea user that emitted the claim-ref push webhook.
+          pusher:
+            type: object
+            description: Git pusher identity from the claim-ref push payload, when provided by Forgejo/Gitea.
     DeliveryAccepted:
       name: webhook.delivery.accepted
       payload: { $ref: "#/components/schemas/AuditRow" }

@@ -176,8 +176,10 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
 
 - Tokens need only the issue/label routes required for board projection plus git
   push rights for `refs/heads/claims/*`.
-- Branch protection must prevent arbitrary human pushes to claim refs except via
-  the service/agent principal that D2 tests.
+- Before production lift, claim-ref branch protection must prevent arbitrary
+  human pushes to claim refs except via the service/agent principal that D2
+  tests. The spike evidence may proceed while this remains a tracked
+  production-readiness gate; it is not required for the conditional ADR record.
 - Board-sync should be safe to run repeatedly and in dry-run mode for audit.
 
 ## Verification

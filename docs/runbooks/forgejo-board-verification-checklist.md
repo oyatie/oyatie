@@ -110,6 +110,19 @@ Create one evidence packet per verification run containing:
 - **Evidence:** Completed table, blocker register, proposed ADR-0377 lift note,
   and reviewer sign-off.
 
+### 9. Claim-ref branch protection for production lift
+
+- **PASS:** Production Forgejo protects `refs/heads/claims/*` from arbitrary
+  human force-push/delete and allows claim creation/recovery only through the
+  approved service or agent principal.
+- **FAIL:** Any maintainer or unscoped token can overwrite, delete, or bypass
+  claim refs without the lease-aware recovery path.
+- **Evidence:** Forgejo protected-branch/rule configuration, negative push
+  transcript with a non-authorized token, and positive transcript from the
+  approved agent/service principal.
+- **Spike note:** This is a production-lift gate. It does not block ADR-0377's
+  conditional spike record as long as the blocker remains explicitly tracked.
+
 ## Probe commands
 
 Adjust host, owner, repo, token, and ref names for the target environment. Store
