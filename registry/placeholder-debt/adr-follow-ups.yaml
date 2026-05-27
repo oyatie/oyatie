@@ -724,3 +724,48 @@ follow_ups:
       onboarded with a hard spend cap that needs enforcement before the
       kernel's per-key blacklist trips.
     status: pending
+
+  - id: adr-0374-provider-pool-app-openbao-secret-resolution
+    intent: |
+      Wire the `oya-intelligence-provider-pool-app` production
+      `HyperProviderInvocationTransport` to an OpenBao-backed credential
+      resolver so the chosen `ProviderAccountId` is exchanged for the
+      provider's live OAuth/api access token via `sref://...` →
+      OpenBao `secret/data/...`. Today the transport returns a typed
+      `TransportError::NonRetryable` referencing
+      `Unimplemented::OpenBaoSecretResolution` so the kernel's
+      deterministic fallback_chain progression is exercised end-to-end
+      against the in-memory transport while the production path is
+      honestly absent (no silent fake success). When the OpenBao client
+      adapter lands the production path activates without caller change.
+    driver_docs:
+      - microservices/intelligence/PRD.md
+      - microservices/intelligence/crates/oya-intelligence-provider-pool-app/src/lib.rs
+    owner: council-foundry + ops-security
+    trigger: |
+      First cell-deploy of the provider-pool composition root against a
+      real OpenBao instance, OR a tenant onboarding that requires the
+      provider-pool app to dispatch through pooled OAuth/subscription
+      credentials rather than the in-memory test transport.
+    status: pending
+
+  - id: adr-0374-provider-pool-app-bedrock-audit-emission
+    intent: |
+      Emit a Bedrock-shaped `llm.audit.v1` immutable invocation record
+      for every `dispatch_to_pool` outcome (`PoolRoutingDecision.reason`,
+      `attempts`, chosen `ProviderAccountId`, upstream `status` +
+      `retry_after_seconds`), hash-chained into
+      `evidence/audit-chain.jsonl`. The composition root currently
+      surfaces a typed `Unimplemented::BedrockAuditEmission` boundary;
+      the dispatch loop is structured to feed the (eventual) emitter
+      verbatim. No stubbed `Ok(())` for the audit path while it is
+      absent — callers can rely on the boundary surface today.
+    driver_docs:
+      - microservices/intelligence/PRD.md
+      - microservices/intelligence/crates/oya-intelligence-provider-pool-app/src/lib.rs
+    owner: council-foundry + axis-audit
+    trigger: |
+      First production tenant requiring auditable provider-pool
+      dispatch evidence, OR a compliance review that demands a
+      Bedrock-shape audit record from the provider-pool app.
+    status: pending
