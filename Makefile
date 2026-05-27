@@ -48,7 +48,9 @@ fleet:
 	@printf '%s\n' '  Control-plane media : CONTROLPLANE_ENDPOINT=https://<cp-ip>:6443 infra/talos/installation-media/gen-media.sh control-plane'
 	@printf '%s\n' '  Node media    : CONFIG_URL=https://join.oyatie.dev/config infra/talos/installation-media/gen-media.sh node'
 	@printf '%s\n' '  CAPI install  : KUBECONFIG=<control-plane> infra/capi/init.sh   (then infra/capi/crs/render.sh)'
-	@printf '%s\n' '  Spokes        : commit a filled infra/capi/clusters/<substrate>/cluster.yaml; CAPI reconciles'
+	@printf '%s\n' '  Spokes        : add cells to infra/capi/clusters/values.yaml, then'
+	@printf '%s\n' '                  helm template oya-spokes infra/capi/clusters -f <cells>.yaml | kubectl apply -f - ; CAPI reconciles'
+	@printf '%s\n' '  NOTE: fleet bring-up is hardware-gated + multi-step (boot media on real nodes); this target only PRINTS the sequence.'
 
 ops:
 	@printf '%s\n' 'Day-2 operations surface: https://ops.oyatie.com'

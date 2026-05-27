@@ -99,22 +99,23 @@
           "specs/deployment-ops-contract.json (OpenTofu + Makefile + ops-only deployment contract)",
           "Makefile (minimal bootstrap/install/plan/apply/ops entrypoint)",
           "infra/kyverno/<svc>/application.json (Argo Application)",
-          "infra/onprem/ (per ADR-0121 — kubeadm + containerd + Istio + Envoy)",
-          "infra/oci/ (per ADR-0117 — OKE)",
-          "infra/cloudflare/ (tunnel + DNS)"
+          "infra/talos/installation-media/ (per ADR-0375 — Talos USB zero-touch installer)",
+          "infra/capi/ (per ADR-0375 — Cluster API: clusterctl pins + ClusterResourceSet + spoke Cluster CRs)",
+          "infra/gitops/ (per ADR-0375 — per-cell Argo CD app-of-apps, pull model)",
+          "infra/cloudflare/ (tunnel + DNS; OpenTofu owns only the edge per ADR-0375)"
         ],
         "entry_gate": "Staging-to-production promotion successful + canary observability rollback gate green (per ADR-0114)",
         "exit_gate": "Live workload serving traffic with mTLS strict (per ADR-0044) + telemetry healthy + no production incident open",
         "argo_required_settings": ["automated.prune=true", "automated.selfHeal=true", "ServerSideApply=true", "CreateNamespace=true"],
         "admission_policy": "Kyverno ClusterPolicy: cosign keyless + rekor for ghcr.io/oyatie/*",
         "cell_topology": {
-          "primary_onprem": "KR primary cell — kubeadm vanilla upstream (per ADR-0121)",
-          "cloud_cells": "OCI OKE (KR secondary; future regions per ADR-0117)"
+          "primary_onprem": "KR primary cell — bare-metal Talos via Cluster API + Metal3 (per ADR-0375)",
+          "cloud_cells": "OCI/AWS spoke cells via Cluster API (CAPOCI/CAPA); future regions per ADR-0009/ADR-0375"
         },
         "back_edge_production_incident": "If production health degrades OR canary rollback fires → Argo auto-rollback to previous revision (FIRST, before anything else) + file incident in registry/incidents/<id>.json + emit EVT-PRODUCTION-INCIDENT-OPEN audit-chain row. THEN: dispatch autonomous incident-response quorum per autonomous_foundry.roles.incident_responder. Quorum identifies root cause: if code, open autonomous hotfix PR through full pipeline with hotfix-priority lane budget; if infra/config, converge desired state through specs/deployment-ops-contract.json via OpenTofu/ops surfaces; if unknown / first-of-kind, hold service in rolled-back state + open F-INCIDENT-UNKNOWN-ROOT-CAUSE for compounding investigation. NO human page and NO manual SSH troubleshooting.",
         "back_edge_drift_detected": "If live cluster state drifts from infra/ git (Argo selfHeal would diverge) → emit EVT-GITOPS-DRIFT row; investigate before forcing reconcile.",
         "loop": "iteration_loops.deploy_observability",
-        "references": ["ADR-0117", "ADR-0121", "ADR-0044", "ADR-0114", "deployment_ops_contract"]
+        "references": ["ADR-0375", "ADR-0044", "ADR-0114", "ADR-0148", "deployment_ops_contract"]
       }
     ]
   },

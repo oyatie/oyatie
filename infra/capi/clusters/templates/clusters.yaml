@@ -5,7 +5,7 @@
 {{- $infraApi := include "spoke.infraApiVersion" . -}}
 {{- $infraCluster := include "spoke.infraClusterKind" . -}}
 {{- $infraMT := include "spoke.infraMachineTemplateKind" . -}}
-{{- $ver := .talosVersion | default $d.talosVersion -}}
+{{- $ver := .kubernetesVersion | default $d.kubernetesVersion -}}
 ---
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: Cluster
@@ -64,6 +64,16 @@ spec:
       configPatches:
         - { op: add, path: /cluster/network/cni, value: { name: none } }     # Cilium via CRS
         - { op: add, path: /cluster/proxy, value: { disabled: true } }
+        # Kata-baked Talos installer image: without this the on-disk Talos is vanilla
+        # and the `katacontainers.io/kata-runtime` worker label has no runtime to bind
+        # to — ADR-0147/0338 RuntimeClass scheduling would silently fail on every spoke.
+        - { op: add, path: /machine/install/image, value: {{ $d.kataInstallerImage | quote }} }
+        # Argo CD CRDs land here (Talos fetches each URL at bootstrap) — they are too
+        # large for the CRS ConfigMap path (render.sh ships controllers only). This is
+        # what lets the Reconcile CRS root-Application apply succeed on the spoke.
+        {{- with $d.argocdCrdManifests }}
+        - { op: add, path: /cluster/extraManifests, value: {{ . | toJson }} }
+        {{- end }}
 ---
 apiVersion: {{ $infraApi }}
 kind: {{ $infraMT }}
@@ -96,8 +106,16 @@ metadata:
 spec:
   clusterName: {{ $name }}
   replicas: {{ dig "workers" "replicas" $d.workers.replicas . }}
-  selector: { matchLabels: {} }
+  # Scope the selector + template labels to THIS cluster. An empty selector matches
+  # every MachineSet in the namespace, so co-located cells' MachineDeployments would
+  # adopt each other's MachineSets (scale fights / orphaned Machines).
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: {{ $name }}
   template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: {{ $name }}
     spec:
       clusterName: {{ $name }}
       version: {{ $ver }}
@@ -146,4 +164,7 @@ spec:
       configPatches:
         - { op: add, path: /machine/nodeLabels, value: { "katacontainers.io/kata-runtime": "true" } }   # Kata pool (ADR-0147/0338)
         - { op: add, path: /machine/kernel, value: { modules: [{ name: vhost_net }, { name: vhost_vsock }] } }
+        # Same Kata-baked installer image as the control plane: on-disk Talos must carry
+        # the Kata Containers extension for the kata-runtime label above to be operational.
+        - { op: add, path: /machine/install/image, value: {{ $d.kataInstallerImage | quote }} }
 {{ end }}

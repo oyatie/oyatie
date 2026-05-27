@@ -1,3 +1,6 @@
+> **SUPERSEDED 2026-05-27 by [ADR-0375](../decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md)** — the same evaluation cycle landed on Talos + Cluster API + Argo CD (vendor-neutral OSS, CNCF-standard). The Omni-Managed recommendation below is preserved as historical record only; do not act on it.
+
+
 # Single-Bootstrap Omni-Managed Talos Platform
 
 > Status: direction locked 2026-05-26 (via /idea-refine). Build pending.
@@ -55,16 +58,16 @@ Argo CD reconciles the rest. Operator runs ONE command.
   + `helm_release cilium`) → moves into the Omni cluster template.
 
 ## Endpoint naming (all Cloudflare, no Tailscale)
-| Hostname | Who connects | Path / protocol | CF Access? |
+| Hostname | Who connects | Path / protocol | Cloudflare Access? |
 |---|---|---|---|
 | `omni.oyatie.dev` | humans (browser) | Omni UI/API → loopback :443 | yes (OTP) |
 | `dex.oyatie.dev` | OIDC discovery | Dex → loopback :5556 | no (issuer creds) |
 | `join.oyatie.dev` | Talos machines | SideroLink machine-join, WireGuard-over-gRPC tunnel (`--siderolink-use-grpc-tunnel`) → loopback :443 | no (join-token) |
 | `k8s.oyatie.dev` | operators' kubectl | Kubernetes API via Omni k8s-proxy :8100 | yes / service-token |
-| `127.0.0.1:443` | omnictl / automation | loopback (bypasses CF Access) | n/a |
+| `127.0.0.1:443` | omnictl / automation | loopback (bypasses Cloudflare Access) | n/a |
 
 Local libvirt VMs may also reach the machine plane directly on the libvirt bridge `10.42.0.1`
-(faster, no CF round-trip); `join.oyatie.dev` is the path for off-host/remote machines. Tailscale
+(faster, no Cloudflare round-trip); `join.oyatie.dev` is the path for off-host/remote machines. Tailscale
 is fully retired from the critical path.
 
 ## Node-Pool Topology (what runs where)
