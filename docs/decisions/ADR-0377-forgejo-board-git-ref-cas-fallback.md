@@ -3,7 +3,7 @@ id: ADR-0377
 status: Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)
 planning_impact: true
 deciders: council-architecture, ops-platform
- date: 2026-05-27
+date: 2026-05-27
 owner: council-architecture
 supersedes: []
 superseded_by: []
