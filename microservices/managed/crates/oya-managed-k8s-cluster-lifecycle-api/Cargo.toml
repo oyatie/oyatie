@@ -1,0 +1,25 @@
+[package]
+name = "oya-managed-k8s-cluster-lifecycle-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Managed-Kubernetes cluster-lifecycle orchestration API: fail-closed quota admission before ControlPlaneProvisioning (ADR-0376)."
+
+[dependencies]
+oya-managed-k8s-cluster-lifecycle-kernel = { path = "../oya-managed-k8s-cluster-lifecycle-kernel" }
+oya-managed-k8s-tenant-quota-api = { path = "../oya-managed-k8s-tenant-quota-api" }
+oya-managed-k8s-control-plane-host-api = { path = "../oya-managed-k8s-control-plane-host-api" }
+serde = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lib]
+name = "oya_managed_k8s_cluster_lifecycle_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

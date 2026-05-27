@@ -5860,6 +5860,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-managed-k8s-cluster-lifecycle-api"
+version = "0.1.0"
+dependencies = [
+ "oya-managed-k8s-cluster-lifecycle-kernel",
+ "oya-managed-k8s-control-plane-host-api",
+ "oya-managed-k8s-tenant-quota-api",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "oya-managed-k8s-cluster-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "oya-managed-k8s-cluster-lifecycle-api",
+ "oya-managed-k8s-cluster-lifecycle-kernel",
+ "oya-managed-k8s-control-plane-host-adapter-inmemory",
+ "oya-managed-k8s-tenant-quota-adapter-inmemory",
+ "oya-managed-k8s-tenant-quota-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.4.13",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-managed-k8s-cluster-lifecycle-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "oya-managed-k8s-control-plane-host-adapter-capi"
 version = "0.1.0"
 dependencies = [
