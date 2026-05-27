@@ -455,7 +455,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
         + "\n       oya gate validate master-plan-completion [--master-plan <specs/masterplan.json>] [--evidence-dir <evidence/foundation>]..."
-        + "\n       oya gate validate board-masterplan-consistency [--master-plan <specs/masterplan.json>] [--board-snapshot <evidence/board-sync/board-snapshot.json>]"
+        + "\n       oya gate validate board-masterplan-consistency [--master-plan <docs/machine-readable/masterplan.generated.json>] [--board-snapshot <docs/machine-readable/board-sync.generated.json>]"
         + "\n       oya gate validate product-index [--products-readme <docs/products/README.md>] [--catalog <docs/machine-readable/catalog.json>]"
         + "\n       oya gate validate product-prd-json [--repo-root <.>] [--product <specs/products/<id>.json>]..."
         + "\n       oya gate validate stage0-prereqs [--repo-root <.>] [--self-test]"

@@ -5,8 +5,8 @@ use serde_json::Value;
 
 use crate::usage;
 
-const DEFAULT_MASTER_PLAN: &str = "specs/masterplan.json";
-const DEFAULT_BOARD_SNAPSHOT: &str = "evidence/board-sync/board-snapshot.json";
+const DEFAULT_MASTER_PLAN: &str = "docs/machine-readable/masterplan.generated.json";
+const DEFAULT_BOARD_SNAPSHOT: &str = "docs/machine-readable/board-sync.generated.json";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct BoardMasterplanConsistencyArgs {
@@ -120,9 +120,21 @@ pub(crate) fn validate_board_masterplan_consistency_strings(
 }
 
 fn collect_masterplan_deliverable_ids(master_plan: &Value) -> Result<BTreeSet<String>, String> {
-    let index = master_plan
-        .get("live_implementation_index")
-        .ok_or_else(|| "masterplan missing live_implementation_index".to_string())?;
+    if let Some(index) = master_plan.get("live_implementation_index") {
+        return collect_live_implementation_ids(index);
+    }
+
+    let mut ids = BTreeSet::new();
+    collect_generated_deliverable_ids(master_plan, &mut ids)?;
+    if ids.is_empty() {
+        return Err(
+            "masterplan missing live_implementation_index or generated deliverables".to_string(),
+        );
+    }
+    Ok(ids)
+}
+
+fn collect_live_implementation_ids(index: &Value) -> Result<BTreeSet<String>, String> {
     let milestones = index
         .get("milestones")
         .and_then(Value::as_array)
@@ -155,6 +167,39 @@ fn collect_masterplan_deliverable_ids(master_plan: &Value) -> Result<BTreeSet<St
         }
     }
     Ok(ids)
+}
+
+fn collect_generated_deliverable_ids(
+    value: &Value,
+    ids: &mut BTreeSet<String>,
+) -> Result<(), String> {
+    match value {
+        Value::Object(object) => {
+            if let Some(deliverables) = object.get("deliverables").and_then(Value::as_array) {
+                for deliverable in deliverables {
+                    let id = deliverable
+                        .get("id")
+                        .and_then(Value::as_str)
+                        .map(str::trim)
+                        .filter(|id| !id.is_empty())
+                        .ok_or_else(|| {
+                            "generated masterplan deliverable missing non-empty id".to_string()
+                        })?;
+                    ids.insert(id.to_string());
+                }
+            }
+            for child in object.values() {
+                collect_generated_deliverable_ids(child, ids)?;
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                collect_generated_deliverable_ids(item, ids)?;
+            }
+        }
+        _ => {}
+    }
+    Ok(())
 }
 
 fn collect_board_deliverable_ids(snapshot: &Value) -> Result<BTreeSet<String>, String> {
@@ -302,6 +347,29 @@ mod tests {
           ]
         }"#;
         let report = validate_board_masterplan_consistency_strings(PLAN, board).expect("match");
+        assert_eq!(report.masterplan_deliverables_checked, 2);
+        assert_eq!(report.board_deliverables_checked, 2);
+    }
+
+    #[test]
+    fn passes_with_generated_masterplan_deliverables() {
+        let plan = r#"{
+          "milestones": [{
+            "adrs": [{
+              "deliverables": [
+                {"id":"ADR-0377-D2"},
+                {"id":"ADR-0377-D3"}
+              ]
+            }]
+          }]
+        }"#;
+        let board = r#"{
+          "issues": [
+            {"number": 1, "deliverable_id": "ADR-0377-D2"},
+            {"number": 2, "labels": [{"name":"deliverable:ADR-0377-D3"}]}
+          ]
+        }"#;
+        let report = validate_board_masterplan_consistency_strings(plan, board).expect("match");
         assert_eq!(report.masterplan_deliverables_checked, 2);
         assert_eq!(report.board_deliverables_checked, 2);
     }
