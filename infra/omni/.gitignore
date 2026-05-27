@@ -1,3 +1,0 @@
-# Never commit Omni secret material or the rendered env (ADR-0043 / ADR-0371-D5).
-secrets/
-.env

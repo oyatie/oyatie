@@ -1,0 +1,23 @@
+# CAPI ClusterResourceSet — Day-1 bootstrap applied to every cluster labelled
+# `oya.io/bootstrap: "true"` at provision time. Installs, in order:
+#   1. Cilium (CNI)   — nodes are NotReady until this lands
+#   2. Argo CD        — the GitOps agent; afterward it pulls the cell's app-of-apps from git
+# CRS is fire-once/thin (strategy ApplyOnce) — bootstrap ONLY. All ongoing delivery is Argo CD.
+# The referenced ConfigMaps are produced by render.sh (helm template -> ConfigMap).
+apiVersion: addons.cluster.x-k8s.io/v1beta1
+kind: ClusterResourceSet
+metadata:
+  name: bootstrap-cilium-argocd
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      oya.io/bootstrap: "true"
+  strategy: ApplyOnce
+  resources:
+    - name: cilium-bootstrap   # rendered by render.sh (sync-wave: applied first)
+      kind: ConfigMap
+    - name: argocd-bootstrap   # rendered by render.sh
+      kind: ConfigMap
+    - name: argocd-root-app    # the per-cell Argo CD root Application (infra/gitops/root-app.yaml)
+      kind: ConfigMap

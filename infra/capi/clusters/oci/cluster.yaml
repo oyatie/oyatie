@@ -1,0 +1,124 @@
+# OCI spoke cell — CAPI Cluster (CAPOCI infra + Talos providers). One per OCI-hosted cell.
+# Copy + fill the ${PLACEHOLDERS}; git-commit; CAPI on the hub reconciles it into a live cluster.
+# Talos config: cni:none + proxy.disabled (Cilium installed by the CRS); workers Kata-labelled.
+# Replace ${CELL} (eg us, jp), ${REGION} (OCI region), ${COMPARTMENT_OCID}, ${IMAGE_OCID} (Talos
+# OCI image), ${CP_SHAPE}/${WORKER_SHAPE}, ${VCN_OCID}/${SUBNET_OCID}.
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: oya-${CELL}
+  namespace: default
+  labels:
+    oya.io/cell: "${CELL}"
+    oya.io/substrate: oci
+    oya.io/bootstrap: "true"   # triggers the CRS (Cilium + Argo CD)
+spec:
+  clusterNetwork:
+    pods: { cidrBlocks: ["10.244.0.0/16"] }
+    services: { cidrBlocks: ["10.96.0.0/12"] }
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: TalosControlPlane
+    name: oya-${CELL}-cp
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+    kind: OCICluster
+    name: oya-${CELL}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+kind: OCICluster
+metadata:
+  name: oya-${CELL}
+  namespace: default
+spec:
+  compartmentId: "${COMPARTMENT_OCID}"
+  region: "${REGION}"
+  # networkSpec: reference an existing VCN/subnets or let CAPOCI create them.
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+kind: TalosControlPlane
+metadata:
+  name: oya-${CELL}-cp
+  namespace: default
+spec:
+  replicas: 3
+  version: v1.36.1
+  infrastructureTemplate:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+    kind: OCIMachineTemplate
+    name: oya-${CELL}-cp
+  controlPlaneConfig:
+    controlplane:
+      generateType: controlplane
+      configPatches:
+        - op: add
+          path: /cluster/network/cni
+          value: { name: none }       # Cilium via CRS
+        - op: add
+          path: /cluster/proxy
+          value: { disabled: true }
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+kind: OCIMachineTemplate
+metadata:
+  name: oya-${CELL}-cp
+  namespace: default
+spec:
+  template:
+    spec:
+      imageId: "${IMAGE_OCID}"
+      shape: "${CP_SHAPE}"
+      shapeConfig: { ocpus: "4", memoryInGBs: "16" }
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: oya-${CELL}-workers
+  namespace: default
+spec:
+  clusterName: oya-${CELL}
+  replicas: 2
+  selector: { matchLabels: {} }
+  template:
+    spec:
+      clusterName: oya-${CELL}
+      version: v1.36.1
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: TalosConfigTemplate
+          name: oya-${CELL}-workers
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+        kind: OCIMachineTemplate
+        name: oya-${CELL}-workers
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+kind: OCIMachineTemplate
+metadata:
+  name: oya-${CELL}-workers
+  namespace: default
+spec:
+  template:
+    spec:
+      imageId: "${IMAGE_OCID}"        # Kata/CLH-baked Talos image for tenant workloads
+      shape: "${WORKER_SHAPE}"
+      shapeConfig: { ocpus: "8", memoryInGBs: "32" }
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: TalosConfigTemplate
+metadata:
+  name: oya-${CELL}-workers
+  namespace: default
+spec:
+  template:
+    spec:
+      generateType: worker
+      configPatches:
+        - op: add
+          path: /machine/nodeLabels
+          value: { "katacontainers.io/kata-runtime": "true" }   # Kata worker pool (ADR-0147/0338)
+        - op: add
+          path: /machine/kernel
+          value: { modules: [{ name: vhost_net }, { name: vhost_vsock }] }
