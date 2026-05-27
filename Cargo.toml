@@ -636,6 +636,13 @@ members = [
   "crates/oya-enterprise-suite-storage-adapter-inmemory",
   "crates/oya-enterprise-suite-workflow-adapter-inmemory",
   "crates/oya-enterprise-suite-workflow-runtime-evidence",
+  # Analytics µservice crates (ADR-0193 / IP-003 / IP-015) — introduced 2026-05-27
+  "crates/oya-shared-olap-clickhouse-adapter",
+  "microservices/analytics/crates/oya-analytics-domain",
+  "microservices/analytics/crates/oya-analytics-usecase",
+  "microservices/analytics/crates/oya-analytics-api",
+  "microservices/analytics/crates/oya-analytics-app",
+  "microservices/analytics/crates/oya-analytics-tenant-bootstrap-app",
 ]
 resolver = "2"
 
@@ -908,6 +915,11 @@ regex = "1"
 # forbid-overrides-permit policy evaluation. Isolated to the workload-authz adapter
 # per ADR-0183 (Cedar app-authz). See registry/dependency-rationales.json.
 cedar-policy = "4.11"
+# ClickHouse 26.3 LTS OLAP client — dependency-seam: isolated to
+# oya-shared-olap-clickhouse-adapter only (layer_seam=adapter-only per ADR-0092).
+# Version pin matches manifest.json lts_pins.clickhouse = "26.3.10.60-lts".
+# See registry/dependency-blessed-allowlist.json and registry/dependency-rationales.json.
+clickhouse = { version = "0.13", default-features = false, features = ["lz4"] }
 
 # Workspace lints — DENY since 2026-05-15. Phase E1 promotion fully landed:
 # 128-warning cleanup arc + Tier 1 refactors at 7 production `.expect()` sites
