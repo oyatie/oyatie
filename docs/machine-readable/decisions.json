@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 312,
-    "numbering": "ADR-0001..ADR-0375 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 313,
+    "numbering": "ADR-0001..ADR-0376 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0376",
+    "next_adr": "ADR-0377",
     "status_counts": {
-      "Accepted": 139,
+      "Accepted": 140,
       "Accepted (amendment)": 1,
       "Amended": 1,
       "Proposed": 87,
@@ -3766,6 +3766,18 @@
       "supersedes": ["ADR-0120, ADR-0121"],
       "superseded_by": [],
       "related": ["ADR-0009", "ADR-0147", "ADR-0148", "ADR-0306", "ADR-0338", "ADR-0339", "ADR-0363", "ADR-0370", "ADR-0371", "ADR-0158", "ADR-0171", "ADR-0198"]
+    },
+    {
+      "adr": "ADR-0376",
+      "number": 376,
+      "title": "Oyatie managed-Kubernetes product surface (two-tier: hosted-default + dedicated-premium)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-27",
+      "path": "decisions/ADR-0376-managed-kubernetes-product-surface.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0375", "ADR-0148", "ADR-0147", "ADR-0338", "ADR-0131", "ADR-0132", "ADR-0009", "ADR-0306"]
     }
   ]
 }
