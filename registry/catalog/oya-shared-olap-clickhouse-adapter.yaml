@@ -2,10 +2,10 @@ context: analytics
 role: adapter
 capability: olap-clickhouse
 plane: data
-slo: planned
+slo: preview-data-plane
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
-api_stability: planned
+api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 non_claims:

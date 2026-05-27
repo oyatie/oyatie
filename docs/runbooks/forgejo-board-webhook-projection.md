@@ -5,7 +5,8 @@ doc_status: published
 # Runbook: Forgejo Board Webhook Projection
 
 > **Owner:** `platform-governance` / `agentic-pipeline`
-> **Severity supported:** Sev 3
+> **Status:** Active
+> **Severity scope:** Sev 3
 > **Last verified:** 2026-05-27 by worker-6 in documentation review
 > **Related:** [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md), [`TOOLCHAIN.md`](../TOOLCHAIN.md), [`MASTERPLAN.md`](../MASTERPLAN.md)
 

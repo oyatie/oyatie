@@ -2,10 +2,10 @@ context: analytics
 role: usecase
 capability: analytics
 plane: control
-slo: planned
-data_classes_owned: [AUDIT_INTERNAL, TENANT_AUDIT, FINANCIAL]
-operational_classes_owned: []
-api_stability: planned
+slo: preview-control-plane
+data_classes_owned: [FINANCIAL]
+operational_classes_owned: [AUDIT]
+api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 non_claims:
