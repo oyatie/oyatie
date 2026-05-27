@@ -1,0 +1,19 @@
+context: analytics
+role: app
+capability: analytics-tenant-bootstrap
+plane: control
+slo: planned
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: planned
+security_review: unreviewed
+supply_chain: source-only
+non_claims:
+  - no live Kafka consumer in this scaffolding (IP-002 deferred)
+  - no live ClickHouse reconciliation in this scaffolding
+  - container_image not yet built
+  - no production deployment claim
+  - tenant_suspended/reactivated quota enforcement Unimplemented pending IP-002/ADR-0155
+traceability:
+  source_adrs: [ADR-0083, ADR-0145, ADR-0155, ADR-0038, ADR-0193]
+  ip_anchor: IP-002
