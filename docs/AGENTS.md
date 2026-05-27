@@ -8,7 +8,7 @@ excludes:
   reason: Machine-readable entry-point registry; this contract is discovered through
     it.
 - path: /specs/master-plan-sequencing.json
-  reason: Primitive policy, Oya VCS sequencing, and ChangeSet promotion; cited and
+  reason: Primitive policy, plain-git sequencing, and ChangeSet promotion; cited and
     not duplicated fully.
 - path: /specs/markdown-retirement-policy.json
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
@@ -282,7 +282,7 @@ Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `super
 
 Active hooks (PreToolUse / PostToolUse / Stop / SessionStart): merge-review gate (`scripts/hooks/guard-pr-merge-review.mjs`), pre-push gate, telemetry, loop-cancellation enforcement, memory bootstrap.
 
-Legacy OMC magic-keyword routing remains compatibility-only while Oya VCS/Foundry-native command adapters finish landing. It does not own forward repo-state closure; Oya VCS admission does. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/Jenkins/Forgejo closeout path finishes landing. It does not own forward repo-state closure; branch protection, Jenkins required checks, and governance admission do. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
@@ -312,13 +312,13 @@ Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
 ### Legacy OMC (oh-my-claudecode subagents)
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new Foundry agentic closeout routes through Oya VCS.
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, Jenkins required checks, self-hosted Forgejo branch protection, and `oya gate` governance evidence.
 
 Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by Oya VCS evidence.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/Jenkins/Forgejo path.
 
 ## Anti-overlap
 
