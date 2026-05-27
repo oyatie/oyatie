@@ -1,10 +1,10 @@
 ---
 id: ADR-0120
-status: accepted
+status: superseded
 doc_status: published
 date: 2026-05-16
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0375]
 related: [ADR-0083, ADR-0121]
 ---
 

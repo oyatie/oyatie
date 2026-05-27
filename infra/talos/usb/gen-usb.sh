@@ -21,7 +21,6 @@ TALOS_VERSION="${TALOS_VERSION:-v1.13.3}"
 K8S_VERSION="${K8S_VERSION:-1.36.1}"
 ARCH="${ARCH:-amd64}"
 INSTALL_DISK="${INSTALL_DISK:-/dev/sda}"
-KATA_EXT="${KATA_EXT:-ghcr.io/siderolabs/kata-containers:3.21.0}" # pin per Talos release notes
 IMAGER="ghcr.io/siderolabs/imager:${TALOS_VERSION}"
 
 # imager needs /dev + privileged to build images; outputs to the mounted /out.

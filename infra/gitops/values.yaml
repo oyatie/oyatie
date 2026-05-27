@@ -14,13 +14,38 @@ apps:
     namespace: kyverno
     syncWave: "0"
 
-  - name: istio-ambient
+  # Istio Ambient L7 (ADR-0148) — the full 4-chart set, not a stub. ztunnel/waypoints land on
+  # workload pools; istiod on the system pool. syncWave 0 (base CRDs) -> 1 (istiod) -> 2 (cni/ztunnel).
+  - name: istio-base
     type: chart
     repoURL: https://istio-release.storage.googleapis.com/charts
-    chart: base            # NOTE: ambient also needs istiod + cni + ztunnel charts (follow-on apps)
+    chart: base
     targetRevision: 1.28.1
     namespace: istio-system
     syncWave: "0"
+  - name: istiod
+    type: chart
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: istiod
+    targetRevision: 1.28.1
+    namespace: istio-system
+    values: { profile: ambient }
+    syncWave: "1"
+  - name: istio-cni
+    type: chart
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: cni
+    targetRevision: 1.28.1
+    namespace: istio-system
+    values: { profile: ambient }
+    syncWave: "1"
+  - name: ztunnel
+    type: chart
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: ztunnel
+    targetRevision: 1.28.1
+    namespace: istio-system
+    syncWave: "2"
 
   - name: forgejo
     type: path

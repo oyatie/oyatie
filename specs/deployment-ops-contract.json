@@ -2,42 +2,27 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/deployment-ops-contract.json",
   "title": "DeploymentOpsContract",
-  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns infra state, root Makefile owns operator entry, day-2 changes route through ops, and infra/onprem shell is legacy inventory to migrate into Rust where appropriate.",
+  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos (USB zero-touch) + per-cell Argo CD, the root Makefile owns operator entry, day-2 changes route through ops, and no manual SSH troubleshooting.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DEPLOYMENT-OPS-CONTRACT",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "status": "Accepted",
     "owner_team": "axis-cloud + axis-foundry + council-architecture",
     "created_at": "2026-05-16T12:45:00Z",
+    "amended_at": "2026-05-27T00:00:00Z",
+    "amendment_note": "v2.0.0 (ADR-0374): retire the OCI/on-prem OpenTofu+shell deployment model. OpenTofu now owns only the Cloudflare edge; cluster lifecycle moves to Cluster API + Talos (USB) + Argo CD. The infra/oci + infra/onprem trees and their shell-consolidation inventory are removed.",
     "source_directives": [
-      "For deployment, no handrolling everything done with opentofu and minimal and intuitive boostrap, install, Makefile.",
-      "once setup everything should be managed through ops.",
+      "no handrolling; declarative IaC and a minimal, intuitive bootstrap/Makefile.",
+      "once setup, everything managed through ops/GitOps.",
       "no manual ssh command troubleshooting. just works out of the box.",
-      "currently too many shell scripts. consolidate what we can do rust where it make sense to do so."
+      "everything from hub to worker auto-installs from USB; cluster lifecycle via CAPI, apps via Argo CD."
     ]
   },
   "deployment_authority": {
     "primary": "opentofu",
-    "rationale": "OpenTofu declarative state is the only normal path for provisioning, resizing, DNS/tunnel/access, alerts, and deployment infra drift correction.",
+    "rationale": "OpenTofu declarative state owns the Cloudflare edge (tunnel, DNS, Zero Trust Access). The Talos cluster fleet is provisioned by Cluster API (declared in git, reconciled by controllers) — see cluster_fleet below; it is not a tofu root.",
     "roots": [
-      {
-        "id": "oci_stage0_and_free_tier",
-        "path": "infra/oci",
-        "engine": "opentofu",
-        "state_policy": "root-declared backend; do not hand-edit provider state; do not mutate OCI resources with oci CLI or console outside audited break-glass",
-        "managed_concerns": [
-          "compartments",
-          "network",
-          "compute",
-          "kms",
-          "object_storage",
-          "bastion",
-          "logging",
-          "notifications",
-          "container_registry"
-        ]
-      },
       {
         "id": "cloudflare_edge",
         "path": "infra/cloudflare",
@@ -57,6 +42,13 @@
       "https://opentofu.org/docs/cli/run/"
     ]
   },
+  "cluster_fleet": {
+    "model": "Cluster API + Talos + Argo CD (ADR-0374; supersedes ADR-0120/0121)",
+    "node_install": "Talos USB zero-touch (infra/talos/usb) — hub config baked offline, nodes fetch config",
+    "cluster_lifecycle": "CAPI (infra/capi): clusterctl init + Talos/OCI/AWS/Metal3 providers; spoke Cluster CRs in infra/capi/clusters/",
+    "bootstrap_addons": "CAPI ClusterResourceSet installs Cilium + Argo CD per cluster (infra/capi/crs)",
+    "app_delivery": "per-cell Argo CD, Helm-first app-of-apps (infra/gitops)"
+  },
   "operator_entrypoints": {
     "makefile": {
       "path": "Makefile",
@@ -72,22 +64,21 @@
         "verify-deploy-contract",
         "ops"
       ],
-      "command_policy": "Make targets may invoke cargo/Rust gates and tofu only. They must not embed ssh troubleshooting, oci compute mutation, terraform CLI, or per-component infra/onprem shell scripts."
+      "command_policy": "Make targets may invoke cargo/Rust gates and tofu only (Cloudflare edge). They must not embed ssh troubleshooting, oci compute mutation, or terraform CLI. Cluster-fleet bring-up is git/CAPI-driven (see `make fleet`)."
     },
     "allowed_human_commands_after_clone": [
       "make bootstrap",
       "make install",
       "make plan",
       "make apply",
+      "make fleet",
       "make ops",
       "make verify"
     ],
     "forbidden_human_commands": [
       "ssh <host> ... for troubleshooting",
       "oci compute instance update ...",
-      "terraform ...",
-      "infra/onprem/**/install.sh",
-      "infra/onprem/**/diagnose.sh"
+      "terraform ..."
     ]
   },
   "bootstrap_contract": {
@@ -96,7 +87,7 @@
     "minimum_behaviour": [
       "validate this deployment contract with Rust",
       "verify tofu is installed and point to official OpenTofu install docs if absent",
-      "run tofu init for infra/oci and infra/cloudflare",
+      "run tofu init for infra/cloudflare",
       "avoid networked package installation except OpenTofu/provider downloads requested by tofu init"
     ],
     "non_goals": [
@@ -109,19 +100,19 @@
     "entrypoint": "make install",
     "normal_flow": [
       "run Rust deployment contract gate",
-      "run tofu apply for infra/oci",
       "run tofu apply for infra/cloudflare",
-      "leave day-2 host/service changes to ops-managed controllers"
+      "provision the cluster fleet via CAPI/Talos (make fleet) — git-declared, controller-reconciled",
+      "leave day-2 changes to ops-managed controllers + Argo CD"
     ],
     "confirmation_policy": "OpenTofu apply prompts by default; do not use hidden auto-approve in the Makefile."
   },
   "ops_management_contract": {
     "day_2_surface": "https://ops.oyatie.com",
-    "rule": "After bootstrap/install, desired-state changes, drift repair, status, and incident workflows are initiated through ops or repo-native Rust controllers, not ad hoc SSH sessions.",
+    "rule": "After bootstrap/install, desired-state changes, drift repair, status, and incident workflows are initiated through ops, Argo CD, or repo-native Rust controllers, not ad hoc SSH sessions.",
     "incident_flow": [
       "auto-rollback first when canary/health fails",
       "write registry/incidents/<id>.json evidence",
-      "route fix through CI/CD hotfix PR or OpenTofu desired-state change",
+      "route fix through CI/CD hotfix PR, OpenTofu desired-state change, or Argo CD git change",
       "do not page a human and do not manually SSH-troubleshoot"
     ]
   },
@@ -137,158 +128,11 @@
     "break_glass": {
       "allowed": true,
       "preconditions": [
-        "active production safety incident where OpenTofu/ops is unavailable",
+        "active production safety incident where OpenTofu/CAPI/ops is unavailable",
         "audit-chain row emitted before or immediately after action",
         "follow-up PR restores declarative desired state"
       ],
       "normal_runbook": "not present; break-glass is not a troubleshooting recipe"
-    }
-  },
-  "shell_consolidation": {
-    "policy": "Rust owns idempotent host/component orchestration where logic branches, status checks, dependency ordering, rollback, or diagnostics exist. Shell may remain only as a cold-start shim that immediately execs Rust/OpenTofu, or as temporary legacy inventory until replaced.",
-    "target_rust_surfaces": [
-      "oya gate validate deployment-ops-contract",
-      "oya onprem plan",
-      "oya onprem install",
-      "oya onprem uninstall",
-      "oya onprem doctor",
-      "oya ops oci-a1-capacity-retry",
-      "oya ops oci-readiness-probe",
-      "oya ops onprem-bring-up"
-    ],
-    "completed_consolidation": [
-      {
-        "legacy_path": "infra/onprem/setup.sh",
-        "replacement": "oya onprem install",
-        "mode": "compatibility_shim",
-        "rule": "No hand-written phase logic, manual action recipes, OpenTofu apply snippets, or component shell dispatch may remain in this top-level file."
-      },
-      {
-        "legacy_path": "infra/onprem/diagnose.sh",
-        "replacement": "oya onprem doctor",
-        "mode": "compatibility_shim",
-        "rule": "Diagnostics entry is Rust-owned and reports deployment-contract/shim health without SSH troubleshooting."
-      },
-      {
-        "legacy_path": "infra/onprem/uninstall-all.sh",
-        "replacement": "oya onprem uninstall",
-        "mode": "compatibility_shim",
-        "rule": "Destructive teardown is routed to Rust/ops planning instead of direct shell execution."
-      },
-      {
-        "legacy_path": "scripts/oci-a1-capacity-retry.sh",
-        "replacement": "oya ops oci-a1-capacity-retry",
-        "mode": "compatibility_shim",
-        "rule": "The retry loop is Rust-owned and invokes OpenTofu directly; shell may only locate the repo and exec the Rust command."
-      },
-      {
-        "legacy_path": "scripts/oci-readiness-probe.sh",
-        "replacement": "oya ops oci-readiness-probe",
-        "mode": "compatibility_shim",
-        "rule": "OCI readiness probes are Rust-owned read-only command executions with evidence output; shell must not embed probe logic."
-      },
-      {
-        "legacy_path": "scripts/onprem-bring-up.sh",
-        "replacement": "oya ops onprem-bring-up",
-        "mode": "compatibility_shim",
-        "rule": "On-prem bring-up routes through Makefile bootstrap/install plus OpenTofu and ops; shell must not run sudo package/service installation recipes."
-      }
-    ],
-    "legacy_manual_guidance_forbidden_fragments": [
-      "ssh session",
-      "ssh host",
-      "scp ",
-      "TO ACTIVATE",
-      "TO FULLY DISABLE PASSWORD AUTH",
-      "manual SSH troubleshooting"
-    ],
-    "allowed_shell_after_migration": [],
-    "legacy_shell_inventory": {
-      "count": 37,
-      "migrate_to_rust": [
-        "infra/onprem/agent-paths.sh",
-        "infra/onprem/build/build-all-targets.sh",
-        "infra/onprem/build/uninstall.sh",
-        "infra/onprem/cleanup/install.sh",
-        "infra/onprem/cleanup/uninstall.sh",
-        "infra/onprem/cloudflared/setup-cloudflared.sh",
-        "infra/onprem/cloudflared/uninstall.sh",
-        "infra/onprem/containerd/install.sh",
-        "infra/onprem/containerd/uninstall.sh",
-        "infra/onprem/diagnose.sh",
-        "infra/onprem/foundry/install.sh",
-        "infra/onprem/foundry/uninstall.sh",
-        "infra/onprem/hardening/install.sh",
-        "infra/onprem/hardening/uninstall.sh",
-        "infra/onprem/istio/install.sh",
-        "infra/onprem/istio/uninstall.sh",
-        "infra/onprem/k3s/install.sh",
-        "infra/onprem/k3s/uninstall.sh",
-        "infra/onprem/kubeadm/install.sh",
-        "infra/onprem/kubeadm/uninstall.sh",
-        "infra/onprem/openbao/diagnose.sh",
-        "infra/onprem/openbao/install.sh",
-        "infra/onprem/openbao/post-init/enable-transit.sh",
-        "infra/onprem/openbao/uninstall.sh",
-        "infra/onprem/podman/install.sh",
-        "infra/onprem/podman/uninstall.sh",
-        "infra/onprem/reboots/install.sh",
-        "infra/onprem/reboots/uninstall.sh",
-        "infra/onprem/sanoid/install.sh",
-        "infra/onprem/sanoid/uninstall.sh",
-        "infra/onprem/security/install.sh",
-        "infra/onprem/security/scan.sh",
-        "infra/onprem/security/uninstall.sh",
-        "infra/onprem/setup.sh",
-        "infra/onprem/tarball/install-from-tarball.sh",
-        "infra/onprem/tarball/uninstall.sh",
-        "infra/onprem/uninstall-all.sh"
-      ],
-      "migration_order": [
-        {
-          "wave": "W1",
-          "components": [
-            "cleanup",
-            "reboots",
-            "sanoid",
-            "security-scan"
-          ],
-          "reason": "simple idempotent file/service checks"
-        },
-        {
-          "wave": "W2",
-          "components": [
-            "podman",
-            "containerd",
-            "k3s",
-            "kubeadm"
-          ],
-          "reason": "package/service installation with dependency graph"
-        },
-        {
-          "wave": "W3",
-          "components": [
-            "istio",
-            "openbao",
-            "cloudflared",
-            "foundry",
-            "hardening",
-            "tarball"
-          ],
-          "reason": "multi-file, secret-adjacent, or cluster-coupled flows"
-        },
-        {
-          "wave": "W4",
-          "components": [
-            "setup",
-            "diagnose",
-            "uninstall-all",
-            "build-all-targets",
-            "agent-paths"
-          ],
-          "reason": "replace top-level shell orchestration with Rust CLI entrypoints"
-        }
-      ]
     }
   },
   "acceptance_criteria": [
@@ -298,35 +142,21 @@
     },
     {
       "id": "DEP-OPS-AC-002",
-      "rule": "OpenTofu roots are the only deploy mutation authority for OCI and Cloudflare"
+      "rule": "OpenTofu is the only deploy mutation authority for the Cloudflare edge; the cluster fleet is CAPI/Talos/Argo CD declared in git"
     },
     {
       "id": "DEP-OPS-AC-003",
       "rule": "manual SSH troubleshooting and OCI CLI mutation are explicitly forbidden"
     },
     {
-      "id": "DEP-OPS-AC-004",
-      "rule": "every infra/onprem shell script is inventoried for Rust migration, with top-level setup/diagnose/uninstall orchestration already shimmed to Rust"
-    },
-    {
       "id": "DEP-OPS-AC-005",
       "rule": "the deployment durable goal no longer routes incidents to page-on-call"
-    },
-    {
-      "id": "DEP-OPS-AC-006",
-      "rule": "root deployment helper scripts are compatibility shims that exec Rust ops commands"
     }
   ],
   "verification_commands": [
-    "cargo test -p oya-dev-cli deployment_ops_contract --test deployment_ops_contract",
-    "cargo test -p oya-dev-cli --test onprem_cli",
-    "cargo test -p oya-dev-cli --test ops_cli",
-    "cargo run -p oya-dev-cli -- ops oci-a1-capacity-retry --dry-run",
-    "cargo run -p oya-dev-cli -- ops oci-readiness-probe --dry-run",
-    "cargo run -p oya-dev-cli -- ops onprem-bring-up --dry-run",
-    "cargo run -p oya-dev-cli -- onprem doctor",
     "cargo run -p oya-dev-cli -- gate validate deployment-ops-contract",
     "make help",
+    "make fleet",
     "make verify-deploy-contract",
     "TOFU=tofu make tofu-fmt-check"
   ]

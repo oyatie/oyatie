@@ -1,10 +1,10 @@
 ---
 id: ADR-0121
-status: accepted
+status: superseded
 doc_status: published
 date: 2026-05-16
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0375]
 related: [ADR-0009, ADR-0028, ADR-0043, ADR-0044, ADR-0117, ADR-0119, ADR-0120]
 renumber_note: "Originally drafted as ADR-0119 in PR #19 (on-prem KR primary cell + OCI KR secondary cell bring-up, signed replacement of PR #16), merged 2026-05-16T08:57:20Z. Collided with ADR-0119-specs-flat-root-topology from PR #18 (merged 2026-05-16T08:53:49Z — 3m31s earlier). Per merge-order precedence and PRs-12-18 multispectrum review (evidence/debate/pr-18-F4-r1.json, pr-18-M1-r1.json), renumbered to ADR-0121 (ADR-0120 was already taken by rust-first-onprem-tooling)."
 ---
