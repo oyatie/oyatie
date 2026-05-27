@@ -7,6 +7,7 @@ doc_status: published
 owner: council-architecture
 date: 2026-05-15
 amends: ADR-0056-rust-clean-architecture-bnf.md
+supersedes: [ADR-0107]
 relates_to:
   - ADR-0056-rust-clean-architecture-bnf.md
   - ADR-0104-ecosystem-expansion-toolchain-and-adapters.md

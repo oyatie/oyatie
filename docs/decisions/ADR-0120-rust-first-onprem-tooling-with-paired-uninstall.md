@@ -1,6 +1,6 @@
 ---
 id: ADR-0120
-status: superseded
+status: Superseded
 doc_status: published
 date: 2026-05-16
 supersedes: []
@@ -10,7 +10,7 @@ related: [ADR-0083, ADR-0121]
 
 # ADR-0120: Rust-first on-prem tooling; every install paired with uninstall
 
-> **Status:** Accepted
+> **Status:** Superseded by [ADR-0375](ADR-0375-talos-capi-argocd-fleet-substrate.md)
 > **Owner:** `axis-foundry` + `ops-sre`
 > **Date:** 2026-05-16
 > **Decision driver:** user directive 2026-05-16 ("we only keep limited number of shell scripts and keep everything else rust"; "every install, cleanup, action, script, bootstrap should come with cleanup and uninstall").

@@ -1870,6 +1870,15 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("adr-planning-completeness")) => {
             crate::adr_planning_completeness_gate::run_adr_planning_completeness(args.collect())
         }
+        // #6b: ADR supersession back-link integrity. FAILs if any
+        // supersedes/superseded_by pair is one-directional (X supersedes Y but
+        // Y does not back-link X, or vice versa). Pure link-reciprocity check
+        // over ADR<->ADR edges (ADR-0083 Tier-3 panic-free).
+        (Some("validate"), Some("adr-supersession-consistency")) => {
+            crate::adr_supersession_consistency_gate::run_adr_supersession_consistency(
+                args.collect(),
+            )
+        }
         // ADR-0364 D4: masterplan drift gate. Wraps `gen masterplan --check`:
         // the committed projection must equal the regenerated projection.
         (Some("validate"), Some("masterplan-drift")) => {

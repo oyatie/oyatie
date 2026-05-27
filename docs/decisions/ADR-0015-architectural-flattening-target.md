@@ -2,13 +2,15 @@
 id: ADR-0015
 status: accepted
 doc_status: published
+superseded_by: [ADR-0131]
+supersession_note: "Partial — ADR-0131 supersedes only the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force, so status stays accepted."
 ---
 
 # ADR-0015: Architectural flattening target — flat-crates `crates/oya-<context>-<role>[-<capability>]/`, role taxonomy (kernel / domain / app / api / worker / adapter / runtime), dep-direction kernel←domain←app←api/worker/adapter←runtime, boundary validator, migration path from legacy modules / services / platform tree
 
 > **Status:** Accepted
 > **Supersedes:** -
-> **Superseded-by:** -
+> **Superseded-by:** [ADR-0131](ADR-0131-per-microservice-flat-layout.md) (partial — only the docs-vs-crates top-level split; BC and layer rules remain in force)
 > **Owner:** `council-architecture`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0002, ADR-0006, ADR-0011, ADR-0014, ADR-0017, ADR-0105, ADR-0106

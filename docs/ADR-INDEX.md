@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 312
 - **Numbering:** ADR-0001..ADR-0375 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
 - **Next ADR number:** 0376
-- **Status counts:** Accepted 139, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 7, accepted 37, deprecated 1, proposed 36, superseded 2
+- **Status counts:** Accepted 139, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 10, accepted 37, deprecated 1, proposed 35
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -64,7 +64,7 @@ doc_status: published
 | ADR-0043 | proposed | Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCminimum-shippable-tier + FIPS 140-3), per-capability SecretProvider | foundry | [`ADR-0043-secrets-management-openbao-and-hsm-per-cell.md`](decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md) |
 | ADR-0044 | proposed | Service mesh — Istio Ambient mode for east-west, Envoy as edge gateway, mTLS everywhere, per-cell namespace, audited cross-cell traffic | cloud | [`ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`](decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md) |
 | ADR-0045 | proposed | Database tier strategy — PostgreSQL + Citus for OLTP, ClickHouse-fork for OLAP, Iceberg + DataFusion for lakehouse | foundry | [`ADR-0045-database-tier-strategy.md`](decisions/ADR-0045-database-tier-strategy.md) |
-| ADR-0046 | proposed | Vector store strategy — pgvector day-1, in-house Rust HNSW/IVF at billion-scale long-horizon, FAISS only as adapter | foundry | [`ADR-0046-vector-store-strategy.md`](decisions/ADR-0046-vector-store-strategy.md) |
+| ADR-0046 | Superseded | Vector store strategy — pgvector day-1, in-house Rust HNSW/IVF at billion-scale long-horizon, FAISS only as adapter | foundry | [`ADR-0046-vector-store-strategy.md`](decisions/ADR-0046-vector-store-strategy.md) |
 | ADR-0047 | proposed | Search backend strategy — pgroonga day-1 (LGPL legal isolation), Tantivy in-Rust at scale, OpenSearch as Apache-2 adapter, in-house long-horizon | axis-search | [`ADR-0047-search-backend-strategy.md`](decisions/ADR-0047-search-backend-strategy.md) |
 | ADR-0048 | proposed | Korean morphology + multilingual tokenization — `Tokenizer` trait per language family, mecab-ko + khaiii FFI day-1, in-house Rust port long-horizon | axis-search | [`ADR-0048-korean-morphology-and-multilingual-tokenization.md`](decisions/ADR-0048-korean-morphology-and-multilingual-tokenization.md) |
 | ADR-0049 | proposed | Cross-region replication + residency — per-pack default residency class, opt-in cross-region per consent, immutable post-create | council-architecture | [`ADR-0049-cross-region-replication-and-residency.md`](decisions/ADR-0049-cross-region-replication-and-residency.md) |
@@ -118,8 +118,8 @@ doc_status: published
 | ADR-0117 | Accepted | Repo hygiene: gitignore .audit/, consolidate kyverno admission | council-developer-experience | [`ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md`](decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md) |
 | ADR-0118 | Accepted | Retire archive-orphan fitness lane | axis-foundry | [`ADR-0118-retire-archive-orphan-fitness-lane.md`](decisions/ADR-0118-retire-archive-orphan-fitness-lane.md) |
 | ADR-0119 | Accepted | Specs flat-root topology | council-architecture | [`ADR-0119-specs-flat-root-topology.md`](decisions/ADR-0119-specs-flat-root-topology.md) |
-| ADR-0120 | superseded | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
-| ADR-0121 | superseded | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
+| ADR-0120 | Superseded | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
+| ADR-0121 | Superseded | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
 | ADR-0122 | Accepted | Ontology crate rename — retire "object-graph" naming | council-architecture | [`ADR-0122-ontology-crate-rename-from-object-graph.md`](decisions/ADR-0122-ontology-crate-rename-from-object-graph.md) |
 | ADR-0123 | Accepted | Hyperscaler maturity claim gate | council-architecture | [`ADR-0123-hyperscaler-maturity-claim-gate.md`](decisions/ADR-0123-hyperscaler-maturity-claim-gate.md) |
 | ADR-0124 | accepted | Own merge-queue policy — webhook-driven, GitHub-merge-queue-free | jason931225 | [`ADR-0124-own-merge-queue-webhook-driven.md`](decisions/ADR-0124-own-merge-queue-webhook-driven.md) |

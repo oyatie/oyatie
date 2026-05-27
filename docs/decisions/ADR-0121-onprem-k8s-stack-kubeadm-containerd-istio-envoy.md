@@ -1,6 +1,6 @@
 ---
 id: ADR-0121
-status: superseded
+status: Superseded
 doc_status: published
 date: 2026-05-16
 supersedes: []
@@ -11,7 +11,7 @@ renumber_note: "Originally drafted as ADR-0119 in PR #19 (on-prem KR primary cel
 
 # ADR-0121: On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy
 
-> **Status:** Accepted
+> **Status:** Superseded by [ADR-0375](ADR-0375-talos-capi-argocd-fleet-substrate.md)
 > **Owner:** `axis-cloud` + `axis-foundry`
 > **Date:** 2026-05-16
 > **Decision driver:** user directive 2026-05-16 ("istio + envoy + kubeadm + containerd"), ADR-0043 production-cell hardening, ADR-0117 OKE parity

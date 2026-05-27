@@ -4,7 +4,7 @@ status: Accepted
 deciders: council-architecture, ops-sre-reliability, axis-ontology, axis-workflow-engine
 date: 2026-05-18
 owner: council-architecture
-supersedes: []
+supersedes: [ADR-0140, ADR-0141]
 superseded_by: []
 related: [ADR-0064, ADR-0131, ADR-0132, ADR-0135, ADR-0136, ADR-0139]
 related_specs: [/specs/microservices/manifest-schema.json, /specs/hyperscaler-architecture-invariants.json]

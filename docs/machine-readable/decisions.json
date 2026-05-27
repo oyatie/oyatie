@@ -16,11 +16,10 @@
       "Amended": 1,
       "Proposed": 87,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
-      "Superseded": 7,
+      "Superseded": 10,
       "accepted": 37,
       "deprecated": 1,
-      "proposed": 36,
-      "superseded": 2
+      "proposed": 35
     }
   },
   "decisions": [
@@ -189,7 +188,7 @@
       "date": "2026-05-09",
       "path": "decisions/ADR-0015-architectural-flattening-target.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0131"],
       "related": ["ADR-0001", "ADR-0002", "ADR-0006", "ADR-0011", "ADR-0014", "ADR-0017", "ADR-0105", "ADR-0106"]
     },
     {
@@ -544,12 +543,12 @@
       "adr": "ADR-0046",
       "number": 46,
       "title": "Vector store strategy — pgvector day-1, in-house Rust HNSW/IVF at billion-scale long-horizon, FAISS only as adapter",
-      "status": "proposed",
+      "status": "Superseded",
       "owner": "foundry",
       "date": "2026-05-09",
       "path": "decisions/ADR-0046-vector-store-strategy.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0192"],
       "related": ["ADR-0001", "ADR-0026", "ADR-0030", "ADR-0033", "ADR-0045", "ADR-0047"]
     },
     {
@@ -1016,7 +1015,7 @@
       "owner": "council-architecture",
       "date": "2026-05-15",
       "path": "decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md",
-      "supersedes": [],
+      "supersedes": ["ADR-0107"],
       "superseded_by": [],
       "related": []
     },
@@ -1192,7 +1191,7 @@
       "adr": "ADR-0120",
       "number": 120,
       "title": "Rust-first on-prem tooling; every install paired with uninstall",
-      "status": "superseded",
+      "status": "Superseded",
       "owner": "axis-foundry + ops-sre",
       "date": "2026-05-16",
       "path": "decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md",
@@ -1204,7 +1203,7 @@
       "adr": "ADR-0121",
       "number": 121,
       "title": "On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy",
-      "status": "superseded",
+      "status": "Superseded",
       "owner": "axis-cloud + axis-foundry",
       "date": "2026-05-16",
       "path": "decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
@@ -1460,7 +1459,7 @@
       "owner": "council-architecture",
       "date": "2026-05-18",
       "path": "decisions/ADR-0145-inter-microservice-communication-reform.md",
-      "supersedes": [],
+      "supersedes": ["ADR-0140, ADR-0141"],
       "superseded_by": [],
       "related": ["ADR-0064", "ADR-0131", "ADR-0132", "ADR-0135", "ADR-0136", "ADR-0139"]
     },
@@ -3057,7 +3056,7 @@
       "date": "2026-05-20",
       "path": "decisions/ADR-0316-capability-tier-over-product-fragmentation.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0329"],
       "related": ["ADR-0132", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0246", "ADR-0249", "ADR-0251", "ADR-0255", "ADR-0257", "ADR-0263", "ADR-0313", "ADR-0314", "ADR-0315"]
     },
     {
