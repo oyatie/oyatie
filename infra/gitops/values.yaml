@@ -1,0 +1,53 @@
+# Per-cell app-of-apps values. Argo CD on each cell renders this chart; override `cell`/`repoURL`
+# per cluster (ApplicationSet/CRS injects them, or a per-cell values file).
+repoURL: https://github.com/jason931225/oyatie   # bootstrap source; flips to Forgejo post-cutover (ADR-0247)
+targetRevision: dev
+cell: hub                                         # overridden per spoke (eu/jp/kr/...)
+
+# Each app -> one Argo CD Application. type=path (in-repo manifests) or type=chart (Helm repo).
+apps:
+  - name: kyverno
+    type: chart
+    repoURL: https://kyverno.github.io/kyverno
+    chart: kyverno
+    targetRevision: 3.5.2
+    namespace: kyverno
+    syncWave: "0"
+
+  - name: istio-ambient
+    type: chart
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: base            # NOTE: ambient also needs istiod + cni + ztunnel charts (follow-on apps)
+    targetRevision: 1.28.1
+    namespace: istio-system
+    syncWave: "0"
+
+  - name: forgejo
+    type: path
+    path: infra/forge
+    include: forgejo.yaml
+    namespace: oya-forge
+    syncWave: "1"
+
+  - name: openbao
+    type: path
+    path: infra/kms
+    include: openbao.k8s.yaml
+    namespace: oya-kms
+    syncWave: "1"
+
+  - name: jenkins
+    type: chart
+    repoURL: https://charts.jenkins.io
+    chart: jenkins
+    targetRevision: 5.8.18
+    namespace: oya-ci
+    valueFiles: [infra/ci/jenkins/values-local.yaml]
+    syncWave: "2"
+
+  - name: observability
+    type: path
+    path: microservices/observability/iac/helm/observability   # local helm chart
+    helmPath: true
+    namespace: observability
+    syncWave: "2"

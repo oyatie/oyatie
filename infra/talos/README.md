@@ -1,3 +1,10 @@
+> **SUPERSEDED (2026-05-26).** The cluster bring-up is now OpenTofu, not shell:
+> module `microservices/cloud-iac/tofu/modules/talos-cluster/` + root `infra/talos/tofu/`
+> (libvirt + talos + helm providers, Linux/KVM host). The UTM/Parallels Apple-Silicon
+> `bootstrap.sh` / `create-cluster.sh` below were removed. The `*.patch.yaml`,
+> `cilium-values.yaml`, `kata-runtimeclass.yaml`, `schematic.yaml`, and `smoke-kata.sh`
+> remain as references for the future Kata worker pool. The prose below is historical.
+
 # Talos local production-fidelity substrate (Apple Silicon)
 
 The Oyatie local cluster runs **Talos Linux** (immutable, API-managed) multi-node on this Mac via
