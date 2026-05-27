@@ -660,6 +660,10 @@ members = [
   "microservices/managed/crates/oya-managed-k8s-cluster-lifecycle-kernel",
   "microservices/managed/crates/oya-managed-k8s-cluster-lifecycle-api",
   "microservices/managed/crates/oya-managed-k8s-cluster-lifecycle-app",
+  "microservices/managed/crates/oya-managed-k8s-sla-observability-kernel",
+  "microservices/managed/crates/oya-managed-k8s-sla-observability-api",
+  "microservices/managed/crates/oya-managed-k8s-sla-observability-adapter-inmemory",
+  "microservices/managed/crates/oya-managed-k8s-sla-observability-app",
 ]
 resolver = "2"
 
