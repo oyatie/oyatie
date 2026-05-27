@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 312
-- **Numbering:** ADR-0001..ADR-0375 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0376
-- **Status counts:** Accepted 139, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 10, accepted 37, deprecated 1, proposed 35
+- **Total ADRs:** 313
+- **Numbering:** ADR-0001..ADR-0376 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0377
+- **Status counts:** Accepted 140, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 10, accepted 37, deprecated 1, proposed 35
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -333,11 +333,12 @@ doc_status: published
 | ADR-0373 | Accepted | LLM gateway production design (provider-abstraction, key-pool resilience, audit) | council-architecture | [`ADR-0373-llm-gateway-production-design.md`](decisions/ADR-0373-llm-gateway-production-design.md) |
 | ADR-0374 | Accepted | CI webhook gateway (Forgejo → Jenkins gated pipeline trigger) | council-architecture | [`ADR-0374-ci-webhook-gateway-forgejo-jenkins.md`](decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md) |
 | ADR-0375 | Accepted | Talos + Cluster API + Argo CD fleet substrate (retire Omni / OCI-TF / on-prem) | council-architecture | [`ADR-0375-talos-capi-argocd-fleet-substrate.md`](decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md) |
+| ADR-0376 | Accepted | Oyatie managed-Kubernetes product surface (two-tier: hosted-default + dedicated-premium) | council-architecture | [`ADR-0376-managed-kubernetes-product-surface.md`](decisions/ADR-0376-managed-kubernetes-product-surface.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0376), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0377), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -364,6 +365,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 312 ADR files (sorted ascending)
+- `decisions/` directory listing — 313 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

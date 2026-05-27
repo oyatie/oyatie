@@ -75,8 +75,10 @@ architecture is deliberately the same shape the hyperscalers use for managed k8s
 What this ADR lands is the substrate primitive (provision/lifecycle/delivery). The
 customer-facing managed-k8s surface on top of it — the cluster-CRUD API, per-tenant
 quota/billing/RBAC, control-plane multi-tenancy hardening, and the SLA/observability
-contract — is the **product layer** that builds on this primitive and is tracked
-separately (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-managed-k8s-product-surface).
+contract — is the **product layer**, decided in **ADR-0376** (two-tier hosted-default +
+dedicated-premium, Kamaji as an additive CAPI control-plane provider, dogfood-first). The
+`registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-managed-k8s-product-surface`
+follow-up is repointed at ADR-0376.
 
 ## Context
 The local substrate needed a production-fidelity, hyperscaler-shaped foundation for ~8

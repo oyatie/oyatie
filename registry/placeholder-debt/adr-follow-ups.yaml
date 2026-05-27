@@ -122,8 +122,8 @@ follow_ups:
       First external tenant cluster request, OR the dogfood self-tenant milestone
       reaches the point where cluster provisioning needs an API rather than a
       hand-edited values file.
-    status: pending
-    adr_when_landed: ADR-0375 (product layer builds on the accepted substrate ADR)
+    status: drafting
+    adr_when_landed: ADR-0376 (managed-Kubernetes product surface — two-tier hosted+dedicated, dogfood-first; builds on ADR-0375)
 
   - id: adr-0361-promote-pipelines
     intent: |
