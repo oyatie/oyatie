@@ -485,6 +485,7 @@ members = [
   "crates/oya-saas-bench-app",
   "crates/oya-workspace-chat-api",
   "microservices/intelligence/crates/oya-intelligence-provider-pool-kernel",
+  "microservices/intelligence/crates/oya-intelligence-provider-pool-app",
   "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-compat-api",
   "microservices/intelligence/crates/oya-intelligence-adapter-openai-compat-api",
   "microservices/intelligence/crates/oya-intelligence-oauth-subscription-kernel",

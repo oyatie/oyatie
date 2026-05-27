@@ -5073,6 +5073,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-provider-pool-app"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "oya-intelligence-account-kernel",
+ "oya-intelligence-provider-pool-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "oya-intelligence-provider-pool-kernel"
 version = "0.1.0"
 dependencies = [
