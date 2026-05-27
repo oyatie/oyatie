@@ -121,6 +121,7 @@
         "oya-intelligence-subagent-runtime-app",
         "oya-intelligence-subagent-runtime-kernel",
         "oya-json-kernel",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest",
         "oya-ops-workspace-shell-app",
         "oya-payroll-run-domain",
@@ -184,6 +185,7 @@
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
         "oya-http-runtime-hyper-adapter",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest"
       ]
     },
@@ -207,6 +209,7 @@
         "oya-intelligence-adapter-openai-compat-api",
         "oya-intelligence-api-rest-adapter",
         "oya-intelligence-supervisor-app",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest",
         "oya-ops-workspace-shell-app",
         "oya-ops-workspace-shell-rest",
@@ -224,6 +227,7 @@
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
         "oya-http-runtime-hyper-adapter",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest"
       ]
     },
@@ -270,6 +274,7 @@
         "oya-intelligence-openapi-domain",
         "oya-intelligence-pr-review-dispatcher-app",
         "oya-intelligence-subagent-runtime-kernel",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest",
         "oya-ops-workspace-shell-app",
         "oya-payroll-run-api",
@@ -310,6 +315,7 @@
         "oya-hr-employment-runtime",
         "oya-identity-workload-oidc-adapter",
         "oya-json-kernel",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest",
         "oya-payroll-run-api",
         "oya-payroll-run-runtime",
@@ -379,6 +385,7 @@
         "oya-intelligence-codex-account-adapter",
         "oya-intelligence-gemini-account-adapter",
         "oya-intelligence-supervisor-app",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest",
         "oya-ops-workspace-shell-app",
         "oya-payments-charge-kernel",
@@ -427,6 +434,7 @@
       "allowed_crates": [
         "oya-application-app",
         "oya-intelligence-supervisor-app",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest",
         "oya-shared-connector-kernel",
         "oya-shared-tracing-client-kernel"
@@ -442,6 +450,7 @@
       "allowed_crates": [
         "oya-application-app",
         "oya-intelligence-supervisor-app",
+        "oya-llm-gateway-app",
         "oya-llm-gateway-rest"
       ]
     },

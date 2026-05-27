@@ -38,6 +38,7 @@ pub mod config;
 pub mod keystore;
 pub mod logging;
 pub mod metrics;
+pub mod openai;
 pub mod proxy;
 pub mod state;
 
@@ -46,6 +47,11 @@ pub use channel::ChannelAdapter;
 pub use config::{GatewayConfig, GroupConfig, RetryPolicyConfig};
 pub use keystore::{InMemoryKeyStore, KeyMaterial, KeyStore, KeyStoreError, OpenBaoKeyStore};
 pub use metrics::GatewayMetrics;
+pub use openai::{
+    ChatRequestPeek, OpenAiAppState, OpenAiError, OpenAiErrorBody, Unimplemented, UpstreamBody,
+    UpstreamError, UpstreamResponse, UpstreamTransport, build_openai_router,
+    extract_retry_after_seconds, retry_after_from_headers,
+};
 pub use proxy::{ProxyError, ProxyOutcome};
 pub use state::{GatewayState, GroupRuntime};
 
