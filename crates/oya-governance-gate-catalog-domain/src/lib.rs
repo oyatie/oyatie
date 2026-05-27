@@ -161,6 +161,9 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     // ADR-0364 generative-masterplan governance lanes.
     "adr-planning-completeness",
     "masterplan-drift",
+    // #6b: ADR supersession back-link integrity — fails on any one-directional
+    // supersedes/superseded_by pair (ADR-0083 Tier-3 panic-free).
+    "adr-supersession-consistency",
 ];
 
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =

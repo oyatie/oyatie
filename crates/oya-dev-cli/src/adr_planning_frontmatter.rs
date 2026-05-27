@@ -148,7 +148,7 @@ pub(crate) fn frontmatter_scalar(frontmatter: &str, key: &str) -> Option<String>
 
 /// Read a top-level list — either inline `[a, b]` or a block of `- item`
 /// lines that follow `<key>:`.
-fn frontmatter_list(frontmatter: &str, key: &str) -> Vec<String> {
+pub(crate) fn frontmatter_list(frontmatter: &str, key: &str) -> Vec<String> {
     let mut lines = frontmatter.lines().peekable();
     while let Some(line) = lines.next() {
         if line.starts_with(char::is_whitespace) || line.starts_with('#') {
