@@ -34,16 +34,81 @@ Create one evidence packet per verification run containing:
 
 ## Checklist
 
-| Check | PASS condition | FAIL condition | Evidence to attach |
-|---|---|---|---|
-| Live Forgejo health/version | Authenticated and unauthenticated health/version probes reach the intended self-hosted Forgejo instance and return a stable version/build identity. | Probe reaches the wrong host, requires undocumented credentials, omits version/build identity, or is unavailable outside a local developer machine. | `GET /api/healthz` or equivalent health endpoint, `GET /api/v1/version`, response headers, TLS certificate summary. |
-| Projects REST endpoint absence | Probes confirm the target Forgejo version does not expose a stable Projects REST endpoint suitable for board automation, or document the exact supported endpoint if it appears. | Automation assumes a Projects REST endpoint without live proof, or endpoint behavior differs between authenticated users. | `GET /api/v1/repos/{owner}/{repo}/projects`, `GET /api/v1/projects`, status codes, API docs/version note. |
-| Exclusive label projection | A deliverable maps to exactly one active board-state label in the configured exclusive label family, and re-projection is idempotent. | Two active state labels remain on one issue, projection removes unrelated labels, or repeated sync changes the issue after the first successful run. | Before/after issue label JSON, sync command transcript, second-run no-op transcript. |
-| Non-atomic assignee race | Concurrent assignee updates are proven non-atomic or safely serialized by the chosen implementation guard; losing writes are detected and retried or refused. | Two writers silently overwrite each other, final assignee differs from both recorded intents, or no race evidence exists. | Two concurrent update transcripts, final issue JSON, retry/refusal log, timing notes. |
-| Git-ref CAS exactly-one-wins | Two concurrent claim attempts against the same claim ref produce exactly one successful ref update and one rejected stale update. | Both writers succeed, both fail without a clear winner, or the loser cannot identify the winning ref value. | `git update-ref` or push-with-lease transcript, old/new SHAs, loser error, final ref value. |
-| Push webhook sender identity | Push webhook payload identifies the actor, repository, ref, before/after SHAs, and delivery ID needed to project board state and audit who changed it. | Sender is anonymous/ambiguous, missing ref or SHA fields, delivery cannot be replayed, or receiver logs cannot correlate the delivery ID. | Raw webhook payload, headers, receiver log line, redaction note. |
-| Affected-only local verification | The local verifier derives an affected file/surface set from the change and runs only the relevant checks before broader CI. | Verifier runs unrelated global checks by default, skips changed surfaces, or cannot explain why each check was selected. | Changed-file list, affected-surface mapping, command transcript, selected-check rationale. |
-| ADR-0377 conditional lift criteria | Every item in this checklist is PASS, remaining blockers have owner/date, and the implementation plan names the exact evidence needed to lift ADR-0377 from conditional. | Any required check is FAIL/BLOCKED without an owner/date, or ADR-0377 is proposed for lift based on assumptions instead of live evidence. | Completed table, blocker register, proposed ADR-0377 lift note, reviewer sign-off. |
+### 1. Live Forgejo health/version
+
+- **PASS:** Authenticated and unauthenticated probes reach the intended
+  self-hosted Forgejo instance and return a stable version/build identity.
+- **FAIL:** A probe reaches the wrong host, requires undocumented credentials,
+  omits version/build identity, or only works on a local developer machine.
+- **Evidence:** `GET /api/healthz` or equivalent health endpoint,
+  `GET /api/v1/version`, response headers, and TLS certificate summary.
+
+### 2. Projects REST endpoint absence
+
+- **PASS:** Probes confirm the target Forgejo version does not expose a stable
+  Projects REST endpoint suitable for board automation, or document the exact
+  supported endpoint if it appears.
+- **FAIL:** Automation assumes a Projects REST endpoint without live proof, or
+  endpoint behavior differs between authenticated users.
+- **Evidence:** `GET /api/v1/repos/{owner}/{repo}/projects`,
+  `GET /api/v1/projects`, status codes, and API docs/version note.
+
+### 3. Exclusive label projection
+
+- **PASS:** A deliverable maps to exactly one active board-state label in the
+  configured exclusive label family, and re-projection is idempotent.
+- **FAIL:** Two active state labels remain on one issue, projection removes
+  unrelated labels, or repeated sync changes the issue after the first run.
+- **Evidence:** Before/after issue label JSON, sync command transcript, and
+  second-run no-op transcript.
+
+### 4. Non-atomic assignee race
+
+- **PASS:** Concurrent assignee updates are proven non-atomic or safely
+  serialized by the chosen implementation guard; losing writes are detected and
+  retried or refused.
+- **FAIL:** Two writers silently overwrite each other, final assignee differs
+  from both recorded intents, or no race evidence exists.
+- **Evidence:** Two concurrent update transcripts, final issue JSON,
+  retry/refusal log, and timing notes.
+
+### 5. Git-ref CAS exactly-one-wins
+
+- **PASS:** Two concurrent claim attempts against the same claim ref produce
+  exactly one successful ref update and one rejected stale update.
+- **FAIL:** Both writers succeed, both fail without a clear winner, or the loser
+  cannot identify the winning ref value.
+- **Evidence:** `git update-ref` or push-with-lease transcript, old/new SHAs,
+  loser error, and final ref value.
+
+### 6. Push webhook sender identity
+
+- **PASS:** Push webhook payload identifies the actor, repository, ref,
+  before/after SHAs, and delivery ID needed to project board state and audit who
+  changed it.
+- **FAIL:** Sender is anonymous or ambiguous, ref/SHA fields are missing,
+  delivery cannot be replayed, or receiver logs cannot correlate the delivery.
+- **Evidence:** Raw webhook payload, headers, receiver log line, and redaction
+  note.
+
+### 7. Affected-only local verification
+
+- **PASS:** The local verifier derives an affected file/surface set from the
+  change and runs only the relevant checks before broader CI.
+- **FAIL:** Verifier runs unrelated global checks by default, skips changed
+  surfaces, or cannot explain why each check was selected.
+- **Evidence:** Changed-file list, affected-surface mapping, command
+  transcript, and selected-check rationale.
+
+### 8. ADR-0377 conditional lift criteria
+
+- **PASS:** Every checklist item is PASS, remaining blockers have owner/date,
+  and the implementation plan names the evidence needed to lift ADR-0377 from
+  conditional.
+- **FAIL:** Any required check is FAIL/BLOCKED without an owner/date, or
+  ADR-0377 is proposed for lift based on assumptions instead of live evidence.
+- **Evidence:** Completed table, blocker register, proposed ADR-0377 lift note,
+  and reviewer sign-off.
 
 ## Probe commands
 
