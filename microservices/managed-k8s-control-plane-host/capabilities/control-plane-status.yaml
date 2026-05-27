@@ -16,8 +16,8 @@ maturity: preview
 created_at: 2026-05-27
 related_adrs: [ADR-0376, ADR-0083, ADR-0105]
 related_artifacts:
-  - microservices/managed/control-plane-host/PRD.md
-  - microservices/managed/control-plane-host/slos/provisioning-latency.openslo.yaml
+  - microservices/oya-managed-k8s-control-plane-host/PRD.md
+  - microservices/oya-managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml
 autonomy_tier: T1
 # T1 = read-only status; no mutation. Available to platform operators +
 # the cluster-lifecycle / sla-observability services.
