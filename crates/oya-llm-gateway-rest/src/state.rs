@@ -16,7 +16,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use oya_llm_gateway_kernel::{
-    KeyFingerprint, KeyId, KeyPool, PoolPolicy, ProviderChannel, Selection,
+    KeyFingerprint, KeyId, KeyPool, KeyState, PoolPolicy, ProviderChannel, Selection,
 };
 
 use crate::auth::AuthVerifier;
@@ -40,6 +40,14 @@ struct GroupInner {
     /// `raw_keys[i]` is the live key for `KeyId(i)`. Replaced atomically with
     /// the pool on refresh.
     raw_keys: Vec<String>,
+    /// Upstream-`Retry-After`-driven cooldown override per slot, in unix
+    /// millis. The kernel's intrinsic cooldown is the primary mechanism; this
+    /// map *extends* a slot's effective cooldown when the upstream told us to
+    /// wait longer than the kernel's policy. Selection skips a slot while
+    /// `now < retry_after_until_millis[id]`. Entries are cleared on success or
+    /// on natural expiry; the map only ever grows by `len()` entries (one per
+    /// key), so its memory is bounded.
+    retry_after_until_millis: BTreeMap<usize, u64>, // data_class: INTERNAL_ONLY
 }
 
 /// A key chosen for an attempt: its slot id, hash fingerprint, and raw value.
@@ -77,7 +85,11 @@ impl GroupRuntime {
             name: name.into(),
             adapter,
             retry,
-            inner: Mutex::new(GroupInner { pool, raw_keys }),
+            inner: Mutex::new(GroupInner {
+                pool,
+                raw_keys,
+                retry_after_until_millis: BTreeMap::new(),
+            }),
         }
     }
 
@@ -100,49 +112,81 @@ impl GroupRuntime {
     }
 
     /// Replace the pooled keys (periodic refresh). Preserves the policy; the
-    /// round-robin cursor resets (acceptable: refresh is infrequent).
+    /// round-robin cursor resets (acceptable: refresh is infrequent). Retry-
+    /// After overrides are dropped — a fresh key set starts with a clean
+    /// cooldown slate.
     pub fn refresh_keys(&self, policy: PoolPolicy, material: &KeyMaterial) {
         let (pool, raw_keys) = build_pool(self.adapter.channel(), policy, material);
         if let Ok(mut inner) = self.inner.lock() {
             inner.pool = pool;
             inner.raw_keys = raw_keys;
+            inner.retry_after_until_millis.clear();
         }
     }
 
-    /// Number of currently-selectable keys at the current wall clock.
+    /// Number of currently-selectable keys at the current wall clock,
+    /// considering both the kernel state machine AND the Retry-After overrides.
     #[must_use]
     pub fn active_key_count(&self) -> usize {
         let now = now_unix_millis();
         self.inner
             .lock()
-            .map(|inner| inner.pool.active_count(now))
+            .map(|inner| {
+                inner
+                    .pool
+                    .active_count(now)
+                    .saturating_sub(retry_after_active_block_count(&inner, now))
+            })
             .unwrap_or(0)
     }
 
     /// Select the next key for an attempt, injecting the wall clock.
+    ///
+    /// Walks the kernel's round-robin selection up to `len()` times so a key
+    /// whose Retry-After override has not yet elapsed is skipped (not
+    /// returned). When every key is either kernel-blacklisted or under an
+    /// active Retry-After override, returns [`KeyChoice::Exhausted`].
     pub fn choose_key(&self) -> KeyChoice {
         let now = now_unix_millis();
         let Ok(mut inner) = self.inner.lock() else {
             return KeyChoice::Empty;
         };
-        match inner.pool.select(now) {
-            Selection::Key { id, fingerprint } => {
-                let raw = inner.raw_keys.get(id.0).cloned().unwrap_or_default();
-                KeyChoice::Chosen(ChosenKey {
-                    id,
-                    fingerprint: fingerprint.as_str().to_string(),
-                    raw_key: raw,
-                })
-            }
-            Selection::Exhausted => KeyChoice::Exhausted,
-            Selection::Empty => KeyChoice::Empty,
+        let total = inner.pool.len();
+        if total == 0 {
+            return KeyChoice::Empty;
         }
+        for _ in 0..total {
+            match inner.pool.select(now) {
+                Selection::Key { id, fingerprint } => {
+                    let blocked = inner
+                        .retry_after_until_millis
+                        .get(&id.0)
+                        .is_some_and(|&until| now < until);
+                    if blocked {
+                        // The kernel will rotate the cursor onward; we just
+                        // loop to look at the next slot.
+                        continue;
+                    }
+                    let raw = inner.raw_keys.get(id.0).cloned().unwrap_or_default();
+                    return KeyChoice::Chosen(ChosenKey {
+                        id,
+                        fingerprint: fingerprint.as_str().to_string(),
+                        raw_key: raw,
+                    });
+                }
+                Selection::Exhausted => return KeyChoice::Exhausted,
+                Selection::Empty => return KeyChoice::Empty,
+            }
+        }
+        KeyChoice::Exhausted
     }
 
-    /// Report a successful upstream call for `id`.
+    /// Report a successful upstream call for `id`. Clears any Retry-After
+    /// override so the slot is immediately eligible again.
     pub fn record_success(&self, id: KeyId) {
         if let Ok(mut inner) = self.inner.lock() {
             inner.pool.record_success(id);
+            inner.retry_after_until_millis.remove(&id.0);
         }
     }
 
@@ -154,6 +198,100 @@ impl GroupRuntime {
             inner.pool.record_failure(id, now, jitter);
         }
     }
+
+    /// Report a failed upstream call for `id`, applying the kernel's failure
+    /// counter AND (if `retry_after_seconds` is set) extending the slot's
+    /// effective cooldown so it is not re-selected until `now + retry_after`.
+    /// This propagates an upstream `Retry-After` directly into the gateway's
+    /// rotation logic (PRD §4.3 / AC-4.1).
+    pub fn record_failure_with_retry_after(&self, id: KeyId, retry_after_seconds: Option<u64>) {
+        let now = now_unix_millis();
+        let jitter = jitter_seed();
+        if let Ok(mut inner) = self.inner.lock() {
+            inner.pool.record_failure(id, now, jitter);
+            if let Some(secs) = retry_after_seconds {
+                let until = now.saturating_add(secs.saturating_mul(1_000));
+                let existing = inner
+                    .retry_after_until_millis
+                    .get(&id.0)
+                    .copied()
+                    .unwrap_or(0);
+                if until > existing {
+                    inner.retry_after_until_millis.insert(id.0, until);
+                }
+            }
+        }
+    }
+
+    /// The soonest restore time across all keys (kernel cooldown OR Retry-
+    /// After override), in seconds-from-now. Used to set the `Retry-After`
+    /// header on a 503 when the pool is exhausted (PRD §4.3 / AC-3.5).
+    /// Returns `None` if at least one key is currently selectable.
+    #[must_use]
+    pub fn soonest_restore_seconds(&self) -> Option<u64> {
+        let now = now_unix_millis();
+        let Ok(inner) = self.inner.lock() else {
+            return None;
+        };
+        let total = inner.pool.len();
+        if total == 0 {
+            return None;
+        }
+        let mut soonest: Option<u64> = None;
+        for idx in 0..total {
+            let key_id = KeyId(idx);
+            let kernel_until = match inner.pool.state_of(key_id) {
+                Some(KeyState::Active) => None,
+                Some(KeyState::Blacklisted {
+                    cooldown_until_millis,
+                }) if cooldown_until_millis > now => Some(cooldown_until_millis),
+                Some(KeyState::Blacklisted { .. }) | None => None,
+            };
+            let override_until = inner
+                .retry_after_until_millis
+                .get(&idx)
+                .copied()
+                .filter(|&until| until > now);
+            let combined = match (kernel_until, override_until) {
+                // If neither, this key is selectable right now -> the pool is
+                // not exhausted; no Retry-After to compute.
+                (None, None) => return None,
+                (Some(a), Some(b)) => Some(a.max(b)),
+                (Some(a), None) => Some(a),
+                (None, Some(b)) => Some(b),
+            };
+            if let Some(until) = combined {
+                soonest = Some(match soonest {
+                    Some(prev) => prev.min(until),
+                    None => until,
+                });
+            }
+        }
+        soonest.map(|until| {
+            // Ceiling division of millis -> seconds, minimum 1 so the caller
+            // is told to retry at least a second from now.
+            let delta = until.saturating_sub(now);
+            delta.div_ceil(1_000).max(1)
+        })
+    }
+}
+
+/// How many slots whose kernel state is `Active` are nonetheless blocked by
+/// an unexpired Retry-After override. Used by [`GroupRuntime::active_key_count`]
+/// so the gauge reflects effective availability.
+fn retry_after_active_block_count(inner: &GroupInner, now: u64) -> usize {
+    let mut blocked = 0usize;
+    for (&idx, &until) in &inner.retry_after_until_millis {
+        if until <= now {
+            continue;
+        }
+        // Only subtract from `active_count` when the kernel side reports the
+        // slot as Active. A kernel-blacklisted slot was already excluded.
+        if let Some(KeyState::Active) = inner.pool.state_of(KeyId(idx)) {
+            blocked += 1;
+        }
+    }
+    blocked
 }
 
 fn build_pool(
@@ -226,6 +364,31 @@ impl GatewayState {
         for (name, group) in &self.groups {
             self.metrics.set_active_keys(name, group.active_key_count());
         }
+    }
+
+    /// Record a failure on a group's key, propagating an upstream Retry-After
+    /// into the effective cooldown (`Some(seconds)`) or applying just the
+    /// kernel's policy when none was provided. No-op for an unknown group.
+    pub fn record_failure_with_retry_after(
+        &self,
+        group: &str,
+        id: KeyId,
+        retry_after_seconds: Option<u64>,
+    ) {
+        if let Some(group) = self.groups.get(group) {
+            group.record_failure_with_retry_after(id, retry_after_seconds);
+        }
+    }
+
+    /// The soonest restore time, in seconds-from-now, across `group`'s pool.
+    /// `None` if the group is unknown OR at least one key is selectable right
+    /// now. Used by the OpenAI handlers to set the 503 `Retry-After` when the
+    /// pool is exhausted (PRD §4.3 / AC-3.5).
+    #[must_use]
+    pub fn soonest_restore_seconds(&self, group: &str) -> Option<u64> {
+        self.groups
+            .get(group)
+            .and_then(|g| g.soonest_restore_seconds())
     }
 
     /// Build a [`PoolPolicy`] for each group from a validated config. Helper

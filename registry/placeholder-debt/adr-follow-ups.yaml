@@ -659,3 +659,68 @@ follow_ups:
       Duplicate Jenkins kicks from redelivery measurably waste CI budget,
       OR an audit requirement needs a persistent per-delivery ledger.
     status: pending
+
+  - id: adr-0373-llm-gateway-openbao-wire-in
+    intent: |
+      Wire the production OpenBao-backed `KeyMaterialRepository` adapter
+      into `oya-llm-gateway-app` so pooled provider keys are sourced
+      from `secret/data/agent-gateway/<provider>` at startup and on a
+      periodic refresh task (PRD §4.5 vault-only secrets). The composition
+      root currently surfaces a typed `Unimplemented::OpenBaoResolution`
+      boundary; the in-memory key repository is the reference adapter,
+      and `main.rs` already constructs an `OpenBaoKeyStore` for any
+      operator that exports `BAO_TOKEN` + `GATEWAY_CONFIG`. This follow-up
+      promotes that path to a periodic-refresh tokio task with retain-
+      previous-keys-on-failure semantics (the rest crate's `OpenBaoKeyStore`
+      already implements the at-most-once load).
+    driver_docs:
+      - microservices/llm-gateway/PRD.md
+      - crates/oya-llm-gateway-app/src/lib.rs
+      - crates/oya-llm-gateway-app/src/main.rs
+      - crates/oya-llm-gateway-rest/src/keystore.rs
+    owner: council-foundry + ops-security
+    trigger: |
+      First cell-deploy of the LLM gateway against a real OpenBao
+      instance, or a tenant onboarding that requires non-vault-only
+      keys to be rejected end-to-end.
+    status: pending
+
+  - id: adr-0373-llm-gateway-bedrock-audit-emission
+    intent: |
+      Emit the Bedrock-shaped `llm.audit.v1` immutable invocation record
+      (schema_version, timestamp, tenant_id, request_id, provider,
+      model_id, operation, hashed token/key refs, token counts, status,
+      latency_ms, ttft_ms, cost, residency_region) per PRD §4.6 / AC-6,
+      hash-chained into `evidence/audit-chain.jsonl`. The composition
+      root currently surfaces a typed `Unimplemented::BedrockAuditEmission`
+      boundary so audit-aware callers do not silently lose evidence; the
+      audit-chain consumer trait + Bedrock-shape contract land in this
+      follow-up.
+    driver_docs:
+      - microservices/llm-gateway/PRD.md
+      - microservices/llm-gateway/design/hyperscaler-best-practice-brief.md
+    owner: council-foundry + axis-audit
+    trigger: |
+      First production tenant requiring auditable invocation evidence,
+      or a compliance review that demands the Bedrock-shape audit record.
+    status: pending
+
+  - id: adr-0373-llm-gateway-per-tenant-rate-limit
+    intent: |
+      Per-tenant token budget admission + concurrent budget windows
+      (PRD §4.4 / AC-4.2) on the gateway hot path: estimate prompt
+      tokens at admission, meter on actual returned tokens, return
+      `budget_exceeded` 429 + `Retry-After` + `x-oyatie-tokens-remaining`
+      when a tenant exceeds its budget. The composition root currently
+      surfaces a typed `Unimplemented::PerTenantRateLimit` boundary; the
+      kernel's per-key cooldown is the front-line denial-of-wallet
+      control but is NOT a substitute for per-tenant accounting.
+    driver_docs:
+      - microservices/llm-gateway/PRD.md
+      - microservices/llm-gateway/design/hyperscaler-best-practice-brief.md
+    owner: council-foundry + axis-finops
+    trigger: |
+      First multi-tenant deployment of the gateway, OR a tenant being
+      onboarded with a hard spend cap that needs enforcement before the
+      kernel's per-key blacklist trips.
+    status: pending
