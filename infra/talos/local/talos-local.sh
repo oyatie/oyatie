@@ -1,30 +1,36 @@
 #!/usr/bin/env bash
 # talos-local.sh — one-shot local Talos substrate on this Apple-Silicon Mac via
-# UTM + Apple Virtualization.framework (`vz` backend). Production-fidelity local
-# Kubernetes (real VMs, real disks/NICs, nested virt for Kata) — the laptop
-# mirror of the bare-metal/cloud fleet in infra/capi (ADR-0375).
+# vfkit + Apple Virtualization.framework (`vz` backend). Production-fidelity local
+# Kubernetes (real VMs, real disks/NICs, nested virt for Kata) — the laptop mirror
+# of the bare-metal/cloud fleet in infra/capi (ADR-0375).
 #
 # Subcommands:
 #   check                 preflight ONLY (read-only): arch, macOS, chip, RAM,
-#                         nested-virt, UTM/utmctl/talosctl/kubectl. Exit 0 = ready.
-#   setup                 install missing host deps (UTM, talosctl, kubectl) via brew. Idempotent.
+#                         nested-virt, vfkit/talosctl/kubectl. Exit 0 = ready.
+#   setup                 install missing host deps (vfkit, talosctl, kubectl) via brew. Idempotent.
 #   up   [--role R] [--name N] [--cpus N] [--ram-gb N] [--disk-gb N]
 #                         create + boot the VM(s), apply Talos config, (for cp/single)
 #                         bootstrap etcd, fetch kubeconfig + talosconfig. Idempotent-ish.
 #   down [--name N] [--all]   stop + delete the VM(s) and the local config bundle.
-#   status                show VM + node state.
+#   status                show VM (vfkit pids) + node state.
 #
 #   --role control-plane | worker | single   (default: single — 1 schedulable CP, dev box)
 #
-# Why UTM-vz (not QEMU/HVF, not docker): Apple Virtualization.framework exposes
-# nested virtualization on M3+/macOS 15+, which the Kata runtime tier (ADR-0147/0338)
-# needs. Raw QEMU-HVF does not. This is the production-fidelity local substrate.
+# Why vfkit-vz (not UTM, not QEMU/HVF, not docker): Apple Virtualization.framework
+# exposes nested virtualization on M3+/macOS 15+, which the Kata runtime tier
+# (ADR-0147/0338) needs. vfkit (github.com/crc-org/vfkit) is the single-command,
+# headless CLI front-end to that same `vz` backend — same Apple-VM fidelity, but
+# scriptable. (UTM's utmctl can only drive GUI-created VMs; a hand-authored bundle
+# is never imported headless, so UTM cannot do GUI-less bring-up. vfkit can.)
 #
-# HONESTY: UTM has no first-class "create VM from ISO" CLI. This script generates a
-# `.utm` bundle (config.plist for the apple-vz backend) programmatically so bring-up
-# is GUI-less. The plist schema is UTM-version-sensitive; if `up` fails at VM-create
-# on a future UTM, fall back to the documented golden-VM + `utmctl clone` path in
-# README.md (the talosctl config/bootstrap/kubeconfig legs below still apply).
+# HONESTY: vfkit NAT has no API to report the guest IP, so we pin a FIXED MAC per
+# node and read the macOS DHCP lease for it from `/var/db/dhcpd_leases`. bootpd
+# writes that file log-structured, type-prefixed (`1,`), and with per-octet leading
+# zeros STRIPPED (e.g. `0c`→`c`); the lookup below normalizes both sides and takes
+# the last lease block for the MAC. If NAT lease discovery proves unreliable on a
+# given host, install `socket_vmnet` (brew) for a bridged interface and pass its
+# socket to vfkit (`--device virtio-net,unixSocketPath=…`) — see README. Plain NAT
+# + lease lookup is preferred and is what `up` uses.
 
 set -euo pipefail
 
@@ -33,13 +39,14 @@ TALOS_VERSION="${TALOS_VERSION:-v1.13.3}"          # Talos OS version (arm64)
 K8S_VERSION="${K8S_VERSION:-1.36.1}"               # Kubernetes version
 CLUSTER="${CLUSTER:-oya-local}"
 # Image Factory schematic with the Kata Containers extension baked in (matches the
-# fleet's kataInstallerImage). arm64 metal image for the vz backend.
+# fleet's kataInstallerImage). arm64 metal raw image for the vz backend.
 SCHEMATIC_ID="${SCHEMATIC_ID:-3da7f440f279f4814fa73bdf83c84710a8e93c40a4a3cbba4d969f14afb96298}"
-WORKDIR="${WORKDIR:-$HOME/.oya/talos-local}"        # gen configs + downloaded image live here
-UTM_DOCS="$HOME/Library/Containers/com.utmapp.UTM/Data/Documents"
+WORKDIR="${WORKDIR:-$HOME/.oya/talos-local}"        # gen configs, image, per-VM disks/efi/pid/log live here
 MIN_MACOS_MAJOR=15                                  # nested virt floor
+DHCPD_LEASES="${DHCPD_LEASES:-/var/db/dhcpd_leases}" # macOS bootpd NAT lease database
+IP_WAIT_TRIES="${IP_WAIT_TRIES:-60}"                # DHCP-lease poll attempts (×5s ≈ 5 min)
 
-UTMCTL="$(command -v utmctl 2>/dev/null || echo /Applications/UTM.app/Contents/MacOS/utmctl)"
+VFKIT="$(command -v vfkit 2>/dev/null || echo /opt/homebrew/bin/vfkit)"
 
 log()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
@@ -71,14 +78,15 @@ cmd_check() {
   if [ "${freegb:-0}" -ge 20 ]; then ok "disk free: ${freegb} GB"; else
     warn "disk free: ${freegb:-?} GB — each Talos node disk defaults to 20 GB"; fi
 
-  if [ -d /Applications/UTM.app ]; then ok "UTM.app: present"; else
-    warn "UTM.app: MISSING — run \`$0 setup\` (brew install --cask utm)"; fail=1; fi
-  if [ -x "$UTMCTL" ]; then ok "utmctl: $UTMCTL"; else
-    warn "utmctl: MISSING (ships with UTM) — run \`$0 setup\`"; fail=1; fi
+  if [ -x "$VFKIT" ]; then ok "vfkit: $VFKIT"; else
+    warn "vfkit: MISSING — run \`$0 setup\` (brew install vfkit)"; fail=1; fi
   if command -v talosctl >/dev/null; then ok "talosctl: $(command -v talosctl)"; else
     warn "talosctl: MISSING — run \`$0 setup\`"; fail=1; fi
   if command -v kubectl >/dev/null; then ok "kubectl: $(command -v kubectl)"; else
     warn "kubectl: MISSING — run \`$0 setup\`"; fail=1; fi
+  if [ -r "$DHCPD_LEASES" ] || [ ! -e "$DHCPD_LEASES" ]; then
+    ok "DHCP leases: $DHCPD_LEASES (created by bootpd on first NAT lease)"; else
+    warn "DHCP leases: $DHCPD_LEASES exists but is unreadable — \`up\` may need sudo to read the VM IP"; fi
 
   if [ "$fail" -eq 0 ]; then log "READY — \`$0 up\` will bring up a local Talos cluster."; else
     die "Not ready — resolve the items above (\`$0 setup\` installs the missing deps)."; fi
@@ -88,9 +96,10 @@ cmd_check() {
 cmd_setup() {
   log "Installing host dependencies (idempotent)"
   command -v brew >/dev/null || die "Homebrew required (https://brew.sh) — cannot auto-install deps."
-  [ -d /Applications/UTM.app ] || { log "brew install --cask utm"; brew install --cask utm; }
+  [ -x "$VFKIT" ] || command -v vfkit >/dev/null || { log "brew install vfkit"; brew install vfkit; }
   command -v talosctl >/dev/null || { log "brew install siderolabs/talos/talosctl"; brew install siderolabs/talos/talosctl || brew install talosctl; }
   command -v kubectl  >/dev/null || { log "brew install kubernetes-cli"; brew install kubernetes-cli; }
+  VFKIT="$(command -v vfkit 2>/dev/null || echo "$VFKIT")"
   ok "host deps present"
   cmd_check
 }
@@ -102,56 +111,112 @@ ensure_image() {
   mkdir -p "$WORKDIR"
   local raw="$WORKDIR/talos-${TALOS_VERSION}-arm64.raw"
   if [ -f "$raw" ]; then echo "$raw"; return; fi
-  log "Fetching Talos arm64 image (Image Factory, Kata-baked schematic)" >&2
+  log "Fetching Talos arm64 metal raw image (Image Factory, Kata-baked schematic)" >&2
   curl -fSL "$(image_url)" -o "$raw.xz" >&2
   xz -d -f "$raw.xz" >&2
   echo "$raw"
 }
 
-# Generate a UTM apple-vz .utm bundle for one node. Args: name cpus ram_mib disk_gb raw_image
-make_utm_bundle() {
-  local name="$1" cpus="$2" ram_mib="$3" disk_gb="$4" raw="$5"
-  local bundle="$UTM_DOCS/${name}.utm"
-  mkdir -p "$bundle/Data"
-  # Convert the raw Talos image into the VM's boot disk (qcow/raw copy).
-  local disk="$bundle/Data/disk0.img"
+# Deterministic, locally-administered unicast MAC for a node name. Locally-
+# administered + unicast => second-least-significant bit of byte0 set, LSB clear
+# (0x52 satisfies both). Bytes 1-2 are a fixed vendor-ish tag; bytes 3-5 derive
+# from the node name's hash so the same name always gets the same MAC (lets
+# down/status find the VM by recomputing it). Lowercase, colon-separated.
+node_mac() {
+  local name="$1" h
+  h="$(printf '%s' "$name" | shasum | cut -c1-6)"   # 6 hex chars = 3 octets
+  printf '52:54:00:%s:%s:%s' "${h:0:2}" "${h:2:2}" "${h:4:2}"
+}
+
+# Normalize a MAC for comparison against /var/db/dhcpd_leases: lowercase, drop any
+# leading "N," hardware-type prefix, then strip leading zeros from each octet
+# (bootpd prints "0c" as "c"). Yields e.g. 52:54:0:6a:0:1 from 52:54:00:6a:00:01.
+normalize_mac() {
+  printf '%s' "$1" \
+    | tr 'A-Z' 'a-z' \
+    | sed -E 's/^[0-9]+,//' \
+    | awk -F: '{ for (i=1;i<=NF;i++){ o=$i; sub(/^0+/,"",o); if(o=="")o="0"; printf "%s%s", (i>1?":":""), o } }'
+}
+
+# Look up the IP that bootpd handed a given MAC, scanning /var/db/dhcpd_leases.
+# The file is log-structured (last block for a MAC wins) and groups fields in
+# `{ … }` blocks. Prints the IP on success, nothing on miss.
+ip_for_mac() {
+  local mac want; mac="$1"; want="$(normalize_mac "$mac")"
+  [ -r "$DHCPD_LEASES" ] || return 0
+  awk -v want="$want" '
+    function norm(m,  i,n,o,parts,out){
+      gsub(/^[0-9]+,/, "", m); m=tolower(m);
+      n=split(m,parts,":"); out="";
+      for(i=1;i<=n;i++){ o=parts[i]; sub(/^0+/,"",o); if(o=="")o="0"; out=out (i>1?":":"") o }
+      return out
+    }
+    /\{/   { ip=""; hw="" }
+    /ip_address[ \t]*=/ { v=$0; sub(/.*ip_address[ \t]*=[ \t]*/,"",v); gsub(/[ \t]/,"",v); ip=v }
+    /hw_address[ \t]*=/ { v=$0; sub(/.*hw_address[ \t]*=[ \t]*/,"",v); gsub(/[ \t]/,"",v); hw=norm(v) }
+    /\}/   { if (hw==want && ip!="") found=ip }
+    END    { if (found!="") print found }
+  ' "$DHCPD_LEASES"
+}
+
+# Copy the cached raw image into a per-VM boot disk and grow it to disk_gb.
+# Args: disk_path disk_gb raw_image
+make_disk() {
+  local disk="$1" disk_gb="$2" raw="$3"
   if [ ! -f "$disk" ]; then
     cp "$raw" "$disk"
-    # Grow the boot disk to the requested size; Talos resizes its partition to
-    # fill it on first boot. macOS base has no `truncate`, so use BSD `dd` with
-    # an empty input (extends the file to seek*bs without rewriting data).
+    # Grow the boot disk; Talos resizes its partition to fill it on first boot.
+    # macOS base has no `truncate`, so use BSD `dd` with an empty input (extends
+    # the file to seek*bs without rewriting data). Keep the floor guard so we
+    # never "shrink" below the image.
     local raw_mib; raw_mib=$(( $(stat -f %z "$disk") / 1048576 ))
     [ "$(( disk_gb * 1024 ))" -gt "$raw_mib" ] \
       || die "--disk-gb ${disk_gb} is smaller than the Talos image (${raw_mib} MiB); raise it"
     dd if=/dev/null of="$disk" bs=1m seek="$(( disk_gb * 1024 ))" 2>/dev/null
   fi
-  # Minimal config.plist for the Apple Virtualization (vz) backend. Schema is
-  # UTM-version-sensitive; see README for the golden-VM fallback if this drifts.
-  cat > "$bundle/config.plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Backend</key><string>apple</string>
-  <key>ConfigurationVersion</key><integer>4</integer>
-  <key>Information</key><dict><key>Name</key><string>${name}</string></dict>
-  <key>System</key><dict>
-    <key>Architecture</key><string>aarch64</string>
-    <key>CPUCount</key><integer>${cpus}</integer>
-    <key>MemorySize</key><integer>${ram_mib}</integer>
-    <key>Boot</key><dict><key>OperatingSystem</key><string>Linux</string></dict>
-  </dict>
-  <key>Drive</key><array><dict>
-    <key>Identifier</key><string>disk0</string>
-    <key>ImageName</key><string>disk0.img</string>
-    <key>ImageType</key><string>Disk</string>
-  </dict></array>
-  <key>Network</key><array><dict>
-    <key>Mode</key><string>Shared</string>
-    <key>Hardware</key><string>virtio-net-device</string>
-  </dict></array>
-</dict></plist>
-PLIST
-  echo "$bundle"
+}
+
+# Launch one vfkit VM headless in the background. Args: name cpus ram_mib disk mac
+# Writes pid to $WORKDIR/<name>.pid and serial console to $WORKDIR/<name>.log.
+# Sets VM_IP (global) to the discovered guest IP, or dies on timeout.
+boot_vfkit() {
+  local name="$1" cpus="$2" ram_mib="$3" disk="$4" mac="$5"
+  local efi="$WORKDIR/${name}.efistore"
+  local pidf="$WORKDIR/${name}.pid" logf="$WORKDIR/${name}.log"
+
+  # Already running? (pid file + live process) — reuse it.
+  if [ -f "$pidf" ] && kill -0 "$(cat "$pidf" 2>/dev/null)" 2>/dev/null; then
+    ok "vfkit already running for $name (pid $(cat "$pidf"))"
+  else
+    log "Launching vfkit headless: $name (${cpus} vCPU, $(( ram_mib / 1024 )) GB, MAC $mac)"
+    # EFI bootloader (creates the variable store on first boot), the per-VM boot
+    # disk, a NAT NIC with the fixed MAC, an RNG source, and the serial console
+    # piped to a log file. No --gui => headless. Backgrounded; pid captured.
+    "$VFKIT" \
+      --cpus "$cpus" \
+      --memory "$ram_mib" \
+      --bootloader "efi,variable-store=${efi},create" \
+      --device "virtio-blk,path=${disk}" \
+      --device "virtio-net,nat,mac=${mac}" \
+      --device "virtio-rng" \
+      --device "virtio-serial,logFilePath=${logf}" \
+      >>"$logf" 2>&1 &
+    echo $! > "$pidf"
+    ok "vfkit pid $(cat "$pidf")  log: $logf"
+  fi
+
+  log "Waiting for the VM IP via DHCP lease for $mac (Talos boots to maintenance mode)…"
+  VM_IP=""; local tries=0
+  while [ -z "$VM_IP" ] && [ "$tries" -lt "$IP_WAIT_TRIES" ]; do
+    # Guard: if the vfkit process died, surface the log instead of polling blind.
+    if [ -f "$pidf" ] && ! kill -0 "$(cat "$pidf" 2>/dev/null)" 2>/dev/null; then
+      die "vfkit for $name exited during boot — inspect $logf"
+    fi
+    VM_IP="$(ip_for_mac "$mac")"
+    [ -z "$VM_IP" ] && { sleep 5; tries=$((tries+1)); }
+  done
+  [ -n "$VM_IP" ] || die "no DHCP lease for $mac after $(( IP_WAIT_TRIES * 5 ))s — check $logf for boot errors, or see the socket_vmnet bridged fallback in README"
+  ok "VM IP: $VM_IP"
 }
 
 # ── up ───────────────────────────────────────────────────────────────────────
@@ -167,22 +232,16 @@ cmd_up() {
   [ -n "$ram_gb" ] || ram_gb=8
 
   cmd_check >/dev/null || die "preflight failed — run \`$0 check\`"
-  [ -x "$UTMCTL" ] || die "utmctl not found"
+  [ -x "$VFKIT" ] || die "vfkit not found — run \`$0 setup\`"
 
-  local raw bundle ram_mib; raw="$(ensure_image)"; ram_mib=$(( ram_gb * 1024 ))
-  log "Creating UTM vz VM: $name (role=$role, ${cpus} vCPU, ${ram_gb} GB, ${disk_gb} GB disk)"
-  bundle="$(make_utm_bundle "$name" "$cpus" "$ram_mib" "$disk_gb" "$raw")"
-  ok "bundle: $bundle"
+  local raw ram_mib mac disk; raw="$(ensure_image)"; ram_mib=$(( ram_gb * 1024 ))
+  mac="$(node_mac "$name")"; disk="$WORKDIR/${name}.img"
+  log "Creating vfkit vz VM: $name (role=$role, ${cpus} vCPU, ${ram_gb} GB, ${disk_gb} GB disk)"
+  make_disk "$disk" "$disk_gb" "$raw"
+  ok "disk: $disk"
 
-  log "Starting VM (utmctl)"
-  "$UTMCTL" start "$name" || die "utmctl start failed — open UTM once to register the bundle, then re-run, or use the golden-VM clone path (README)."
-  log "Waiting for the VM IP (Talos boots to maintenance mode)…"
-  local ip="" tries=0
-  while [ -z "$ip" ] && [ "$tries" -lt 60 ]; do
-    ip="$("$UTMCTL" ip-address "$name" 2>/dev/null | awk 'NR==1{print}')"; [ -z "$ip" ] && { sleep 5; tries=$((tries+1)); }
-  done
-  [ -n "$ip" ] || die "no VM IP after 5 min — check UTM console for boot errors"
-  ok "VM IP: $ip"
+  boot_vfkit "$name" "$cpus" "$ram_mib" "$disk" "$mac"   # sets VM_IP
+  local ip="$VM_IP"
 
   mkdir -p "$WORKDIR"
   if [ "$role" = "worker" ]; then
@@ -218,29 +277,61 @@ cmd_up() {
 }
 
 # ── down ─────────────────────────────────────────────────────────────────────
+# Stop the vfkit process for a node and remove its per-VM disk, EFI store, pid,
+# and log. Args: node name.
+teardown_node() {
+  local t="$1"
+  local pidf="$WORKDIR/${t}.pid"
+  log "Stopping + deleting $t"
+  if [ -f "$pidf" ]; then
+    local pid; pid="$(cat "$pidf" 2>/dev/null || true)"
+    [ -n "$pid" ] && kill "$pid" 2>/dev/null || true
+    # Give vz a moment to release the disk, then hard-kill if still alive.
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then sleep 2; kill -9 "$pid" 2>/dev/null || true; fi
+  fi
+  rm -f "$WORKDIR/${t}.pid" "$WORKDIR/${t}.log" "$WORKDIR/${t}.img"
+  rm -rf "$WORKDIR/${t}.efistore"
+  ok "removed $t"
+}
+
 cmd_down() {
   local name="" all=0
   while [ $# -gt 0 ]; do case "$1" in --name) name="$2"; shift 2;; --all) all=1; shift;; *) die "unknown down arg: $1";; esac; done
-  [ -x "$UTMCTL" ] || die "utmctl not found"
   local targets=()
   if [ "$all" -eq 1 ]; then
-    while IFS= read -r v; do case "$v" in ${CLUSTER}-*) targets+=("$v");; esac; done < <("$UTMCTL" list 2>/dev/null | awk 'NR>1{print $NF}')
+    # Every node we ever booted leaves a <name>.pid in WORKDIR.
+    if [ -d "$WORKDIR" ]; then
+      while IFS= read -r p; do
+        [ -n "$p" ] || continue
+        local base; base="$(basename "$p" .pid)"; targets+=("$base")
+      done < <(find "$WORKDIR" -maxdepth 1 -name '*.pid' 2>/dev/null)
+    fi
+    [ "${#targets[@]}" -gt 0 ] || warn "no tracked VMs in $WORKDIR"
   else
     [ -n "$name" ] || name="${CLUSTER}-single"; targets=("$name")
   fi
-  for t in "${targets[@]}"; do
-    log "Stopping + deleting $t"
-    "$UTMCTL" stop "$t" 2>/dev/null || true
-    "$UTMCTL" delete "$t" 2>/dev/null || true
-    rm -rf "$UTM_DOCS/${t}.utm"
-    ok "removed $t"
-  done
-  [ "$all" -eq 1 ] && { rm -rf "$WORKDIR"; ok "cleared $WORKDIR (cluster secrets + kubeconfig)"; }
+  for t in "${targets[@]}"; do teardown_node "$t"; done
+  if [ "$all" -eq 1 ]; then
+    rm -f "$WORKDIR"/talosconfig "$WORKDIR"/kubeconfig "$WORKDIR"/controlplane.yaml \
+          "$WORKDIR"/worker.yaml "$WORKDIR"/allow-scheduling.json
+    ok "cleared cluster secrets + kubeconfig in $WORKDIR (cached image retained)"
+  fi
 }
 
 # ── status ───────────────────────────────────────────────────────────────────
 cmd_status() {
-  log "UTM VMs ($CLUSTER-*)"; "$UTMCTL" list 2>/dev/null | awk "NR==1 || /${CLUSTER}-/" || warn "utmctl unavailable"
+  log "vfkit VMs ($CLUSTER-* and tracked nodes)"
+  local any=0
+  if [ -d "$WORKDIR" ]; then
+    while IFS= read -r pidf; do
+      [ -n "$pidf" ] || continue
+      any=1
+      local base pid state; base="$(basename "$pidf" .pid)"; pid="$(cat "$pidf" 2>/dev/null || true)"
+      if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then state="running (pid $pid)"; else state="stopped"; fi
+      printf '  %-28s %s  ip=%s\n' "$base" "$state" "$(ip_for_mac "$(node_mac "$base")" || true)"
+    done < <(find "$WORKDIR" -maxdepth 1 -name '*.pid' 2>/dev/null)
+  fi
+  [ "$any" -eq 1 ] || warn "no tracked vfkit VMs (run \`$0 up\`)"
   [ -f "$WORKDIR/kubeconfig" ] && { log "Nodes"; KUBECONFIG="$WORKDIR/kubeconfig" kubectl get nodes 2>/dev/null || warn "cluster unreachable"; }
 }
 
