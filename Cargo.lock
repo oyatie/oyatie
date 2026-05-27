@@ -4666,6 +4666,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-intelligence-attribution-app"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "oya-intelligence-attribution-adapter",
+ "oya-intelligence-attribution-domain",
+ "oya-intelligence-attribution-kernel",
+ "oya-intelligence-attribution-usecase",
+ "oya-intelligence-attribution-worker",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "oya-intelligence-attribution-domain"
 version = "0.1.0"
 dependencies = [
@@ -4928,6 +4945,23 @@ name = "oya-intelligence-eval-adapter"
 version = "0.1.0"
 dependencies = [
  "oya-intelligence-eval-usecase",
+]
+
+[[package]]
+name = "oya-intelligence-eval-app"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "oya-intelligence-eval-adapter",
+ "oya-intelligence-eval-domain",
+ "oya-intelligence-eval-kernel",
+ "oya-intelligence-eval-usecase",
+ "oya-intelligence-eval-worker",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

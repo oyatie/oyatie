@@ -769,3 +769,95 @@ follow_ups:
       dispatch evidence, OR a compliance review that demands a
       Bedrock-shape audit record from the provider-pool app.
     status: pending
+
+  - id: adr-0374-attribution-app-openbao-credential-resolution
+    intent: |
+      Wire the `oya-intelligence-attribution-app` production
+      `HyperCitationRendererTransport` to an OpenBao-backed credential
+      resolver so the renderer audience access token is exchanged for
+      the citation renderer's live OAuth material via `secretref://...`
+      → OpenBao `secret/data/...`. Today the transport returns a typed
+      `RendererTransportError::NonRetryable` referencing
+      `Unimplemented::OpenBaoCredentialResolution` so the dispatch
+      pipeline is exercised end-to-end against the in-memory transport
+      while the production path is honestly absent (no silent fake
+      success). When the OpenBao client adapter lands the production
+      path activates without caller change.
+    driver_docs:
+      - microservices/intelligence/PRD.md
+      - microservices/intelligence/crates/oya-intelligence-attribution-app/src/lib.rs
+    owner: council-intelligence + ops-security
+    trigger: |
+      First cell-deploy of the attribution composition root against a
+      real OpenBao instance, OR a tenant onboarding that requires the
+      attribution app to dispatch through OAuth-secured citation
+      renderer audience credentials.
+    status: pending
+
+  - id: adr-0374-attribution-app-bedrock-audit-emission
+    intent: |
+      Emit a Bedrock-shaped `attribution.audit.v1` immutable invocation
+      record for every `dispatch_attribution` outcome (usecase receipt
+      idempotency_key + tenant_id + citation_count + renderer
+      `dispatch_status` + attempts + evidence_refs), hash-chained into
+      `evidence/audit-chain.jsonl`. The composition root currently
+      surfaces a typed `Unimplemented::BedrockAuditEmission` boundary;
+      the in-memory audit sink fan-out is structured to feed the
+      (eventual) emitter verbatim. No stubbed `Ok(())` for the audit
+      path while it is absent — callers can rely on the boundary
+      surface today.
+    driver_docs:
+      - microservices/intelligence/PRD.md
+      - microservices/intelligence/crates/oya-intelligence-attribution-app/src/lib.rs
+    owner: council-intelligence + axis-audit
+    trigger: |
+      First production tenant requiring auditable attribution dispatch
+      evidence, OR a compliance review that demands a Bedrock-shape
+      audit record from the attribution app.
+    status: pending
+  - id: adr-0374-intelligence-eval-app-hosted-runner-dispatch
+    intent: |
+      Wire the `oya-intelligence-eval-app` production
+      `HyperEvalRunnerStatusSource` to a hosted-eval-runner HTTP/gRPC
+      client so each queued `EvalWorkerJob` is translated into a real
+      `EvalRunnerStatus::Accepted` / `EvalRunnerStatus::Queued` /
+      `EvalRunnerStatus::Completed`. Today the source returns a typed
+      `RunnerStatusError` referencing
+      `Unimplemented::HostedEvalRunnerDispatch` so the worker's
+      deterministic retry/backoff progression is exercised end-to-end
+      against the in-memory scripted source while the production path is
+      honestly absent (no silent fake success). When the hosted-runner
+      client adapter lands the production path activates without caller
+      change.
+    driver_docs:
+      - microservices/intelligence/PRD.md
+      - microservices/intelligence/crates/oya-intelligence-eval-app/src/lib.rs
+    owner: council-foundry + ops-security
+    trigger: |
+      First cell-deploy of the intelligence-eval composition root against
+      a real hosted-eval-runner instance, OR a tenant onboarding that
+      requires the eval-app to dispatch through the production runner
+      rather than the in-memory test source.
+    status: pending
+
+  - id: adr-0374-intelligence-eval-app-audit-chain-emission
+    intent: |
+      Emit an immutable `intel.eval.v1` audit-chain record for every
+      `dispatch_eval_job` outcome (`EvalWorkerReceipt.status`,
+      `runner_status`, `denial_kind`, `evidence_refs`, `idempotency_key`,
+      `tenant_id`, `eval_surface`, `suite_id`), hash-chained into
+      `evidence/audit-chain.jsonl`. The composition root currently
+      surfaces a typed `Unimplemented::EvalAuditChainEmission` boundary;
+      the dispatch pipeline is structured to feed the (eventual) emitter
+      verbatim through the `EvalAuditEventSink`. No stubbed `Ok(())` for
+      the audit path while it is absent — callers can rely on the
+      boundary surface today.
+    driver_docs:
+      - microservices/intelligence/PRD.md
+      - microservices/intelligence/crates/oya-intelligence-eval-app/src/lib.rs
+    owner: council-foundry + axis-audit
+    trigger: |
+      First production tenant requiring auditable intelligence-eval
+      dispatch evidence, OR a compliance review that demands an
+      immutable `intel.eval.v1` audit record from the eval-app.
+    status: pending
