@@ -104,10 +104,7 @@ fn parse_args(args: Vec<String>) -> Result<PlanArgs, String> {
     Ok(parsed)
 }
 
-fn next_path(
-    iter: &mut impl Iterator<Item = String>,
-    flag: &str,
-) -> Result<PathBuf, String> {
+fn next_path(iter: &mut impl Iterator<Item = String>, flag: &str) -> Result<PathBuf, String> {
     Ok(PathBuf::from(next_value(iter, flag)?))
 }
 
@@ -139,7 +136,12 @@ fn run_parsed(args: &PlanArgs) -> Result<ClaimProjection, String> {
         labels: exclusive_labels(&deliverable.id, &args.claimant),
     };
     if args.action == Action::Claim && !args.dry_run {
-        acquire_claim(&args.repo_root, &deliverable, &args.claimant, &projection.claim_ref)?;
+        acquire_claim(
+            &args.repo_root,
+            &deliverable,
+            &args.claimant,
+            &projection.claim_ref,
+        )?;
     }
     Ok(projection)
 }
@@ -332,7 +334,10 @@ fn git(repo_root: &Path) -> Command {
 }
 
 fn claim_ref(deliverable_id: &str) -> String {
-    format!("{CLAIM_REF_PREFIX}/{}", sanitize_ref_segment(deliverable_id))
+    format!(
+        "{CLAIM_REF_PREFIX}/{}",
+        sanitize_ref_segment(deliverable_id)
+    )
 }
 
 fn exclusive_labels(deliverable_id: &str, claimant: &str) -> Vec<String> {

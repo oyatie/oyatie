@@ -40,9 +40,17 @@ fn plan_claim_next_acquires_git_ref_and_projects_exclusive_labels() {
     assert!(stdout.contains("deliverable/adr-0377-d2"));
 
     assert!(
-        git(&temp, ["show-ref", "--verify", "--quiet", "refs/heads/claims/ADR-0377-D2"])
-            .status
-            .success()
+        git(
+            &temp,
+            [
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/claims/ADR-0377-D2"
+            ]
+        )
+        .status
+        .success()
     );
 
     fs::remove_dir_all(temp).ok();
@@ -117,9 +125,12 @@ fn plan_next_skips_existing_claim_without_mutating_next_ref() {
     );
     let commit = String::from_utf8(commit.stdout).expect("utf8 commit");
     assert!(
-        git(&temp, ["update-ref", "refs/heads/claims/ADR-0377-D2", commit.trim()])
-            .status
-            .success()
+        git(
+            &temp,
+            ["update-ref", "refs/heads/claims/ADR-0377-D2", commit.trim()]
+        )
+        .status
+        .success()
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -147,9 +158,17 @@ fn plan_next_skips_existing_claim_without_mutating_next_ref() {
     assert!(!stdout.contains("oya git"));
     assert!(!stdout.contains("oya vcs"));
     assert!(
-        !git(&temp, ["show-ref", "--verify", "--quiet", "refs/heads/claims/ADR-0377-D3"])
-            .status
-            .success(),
+        !git(
+            &temp,
+            [
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/claims/ADR-0377-D3"
+            ]
+        )
+        .status
+        .success(),
         "next must not acquire the returned deliverable"
     );
 
