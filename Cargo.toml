@@ -636,6 +636,11 @@ members = [
   "crates/oya-enterprise-suite-storage-adapter-inmemory",
   "crates/oya-enterprise-suite-workflow-adapter-inmemory",
   "crates/oya-enterprise-suite-workflow-runtime-evidence",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-kernel",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-api",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-adapter-cedar",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-adapter-inmemory",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-app",
 ]
 resolver = "2"
 

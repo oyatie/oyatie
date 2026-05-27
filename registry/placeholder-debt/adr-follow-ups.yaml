@@ -22,6 +22,32 @@
 version: 1
 
 follow_ups:
+  - id: adr-0376-billing-emission
+    intent: |
+      Wire billing emission events when a tenant quota record is set or changed.
+      The managed-K8s tenant quota service declares Unimplemented::BillingEmission
+      in oya-managed-k8s-tenant-quota-app. This follow-up implements the typed
+      emission once the billing event bus is available (wave follow-on).
+    driver_docs:
+      - microservices/managed/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs
+    owner: axis-cloud-k8s + axis-billing
+    trigger: Billing event bus reaches GA or managed-K8s tenant quota promotes past dev.
+    status: pending
+    adr_when_landed: ""
+
+  - id: adr-0376-audit-chain-emission
+    intent: |
+      Wire audit-chain seal events on quota decision check calls.
+      The managed-K8s tenant quota service declares Unimplemented::AuditChainEmission
+      in oya-managed-k8s-tenant-quota-app. This follow-up emits a typed audit event
+      per ADR-0376 threat model when the audit chain substrate is wired.
+    driver_docs:
+      - microservices/managed/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs
+    owner: axis-cloud-k8s + axis-audit-chain
+    trigger: Audit chain emission substrate available for the managed-K8s domain.
+    status: pending
+    adr_when_landed: ""
+
   - id: adr-0247-bootstrap-repo-source-cutover
     intent: |
       The fleet GitOps bootstrap source (`repoURL`) is currently hardcoded as
