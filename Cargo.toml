@@ -643,6 +643,20 @@ members = [
   "microservices/analytics/crates/oya-analytics-api",
   "microservices/analytics/crates/oya-analytics-app",
   "microservices/analytics/crates/oya-analytics-tenant-bootstrap-app",
+  # Managed-Kubernetes product crates (ADR-0376) — one product, two bounded-contexts
+  # under microservices/managed/ (architecture-boundaries infers <ms>=managed from
+  # the oya-managed-* prefix). tenant-quota (QuotaDecision port) + control-plane-host
+  # (ControlPlaneProvisioning port). Supersedes the divergent #222 + #224 layouts.
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-kernel",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-api",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-adapter-cedar",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-adapter-inmemory",
+  "microservices/managed/crates/oya-managed-k8s-tenant-quota-app",
+  "microservices/managed/crates/oya-managed-k8s-control-plane-host-kernel",
+  "microservices/managed/crates/oya-managed-k8s-control-plane-host-api",
+  "microservices/managed/crates/oya-managed-k8s-control-plane-host-adapter-capi",
+  "microservices/managed/crates/oya-managed-k8s-control-plane-host-adapter-inmemory",
+  "microservices/managed/crates/oya-managed-k8s-control-plane-host-app",
 ]
 resolver = "2"
 
@@ -920,6 +934,17 @@ cedar-policy = "4.11"
 # Version pin matches manifest.json lts_pins.clickhouse = "26.3.10.60-lts".
 # See registry/dependency-blessed-allowlist.json and registry/dependency-rationales.json.
 clickhouse = { version = "0.13", default-features = false, features = ["lz4"] }
+
+# Kubernetes client + controller-runtime + API types (ADR-0376 managed-k8s
+# control-plane-host adapter seam; policy_ref ADR-0092 layer_seam adapter-only).
+# Isolated to oya-managed-k8s-control-plane-host-adapter-capi ONLY — the live
+# Kamaji TenantControlPlane / Talos control-plane CRD reconciliation is
+# honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration),
+# so the adapter references kube-rs's dynamic API surface and returns a typed
+# Unimplemented rather than faking reconciliation. See registry/dependency-rationales.json.
+kube = { version = "3.1", default-features = false, features = ["client", "runtime", "rustls-tls"] }
+kube-runtime = { version = "3.1", default-features = false }
+k8s-openapi = { version = "0.27", default-features = false, features = ["latest"] }
 
 # Workspace lints — DENY since 2026-05-15. Phase E1 promotion fully landed:
 # 128-warning cleanup arc + Tier 1 refactors at 7 production `.expect()` sites
