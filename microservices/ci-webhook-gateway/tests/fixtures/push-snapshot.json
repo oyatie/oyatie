@@ -1,5 +1,5 @@
 {
-  "ref": "refs/heads/dev",
+  "ref": "refs/heads/claims/ADR-0377-D2",
   "before": "abc123",
   "after": "def456",
   "commits": [{ "id": "def456" }],

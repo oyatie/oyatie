@@ -162,7 +162,9 @@ fn collect_live_implementation_ids(index: &Value) -> Result<BTreeSet<String>, St
                     .ok_or_else(|| {
                         "masterplan implementation plan missing non-empty id".to_string()
                     })?;
-                ids.insert(id.to_string());
+                if !ids.insert(id.to_string()) {
+                    return Err(format!("duplicate masterplan deliverable id: {id}"));
+                }
             }
         }
     }
@@ -185,7 +187,9 @@ fn collect_generated_deliverable_ids(
                         .ok_or_else(|| {
                             "generated masterplan deliverable missing non-empty id".to_string()
                         })?;
-                    ids.insert(id.to_string());
+                    if !ids.insert(id.to_string()) {
+                        return Err(format!("duplicate masterplan deliverable id: {id}"));
+                    }
                 }
             }
             for child in object.values() {
@@ -217,7 +221,11 @@ fn collect_board_deliverable_ids(snapshot: &Value) -> Result<BTreeSet<String>, S
                 "board snapshot item #{index} missing deliverable id (expected direct field or label prefix masterplan:/deliverable:/ip:)"
             )
         })?;
-        ids.insert(extracted);
+        if !ids.insert(extracted.clone()) {
+            return Err(format!(
+                "duplicate board snapshot deliverable id: {extracted}"
+            ));
+        }
     }
     Ok(ids)
 }
@@ -395,5 +403,37 @@ mod tests {
         let error = validate_board_masterplan_consistency_strings(PLAN, board).expect_err("orphan");
         assert!(error.contains("board snapshot deliverables missing from masterplan"));
         assert!(error.contains("IP-999"));
+    }
+
+    #[test]
+    fn rejects_duplicate_board_deliverables() {
+        let board = r#"{
+          "issues": [
+            {"number": 1, "deliverable_id": "IP-001"},
+            {"number": 2, "labels": [{"name":"masterplan:IP-001"}]},
+            {"number": 3, "deliverable_id": "IP-002"}
+          ]
+        }"#;
+        let error =
+            validate_board_masterplan_consistency_strings(PLAN, board).expect_err("duplicate");
+        assert!(error.contains("duplicate board snapshot deliverable id: IP-001"));
+    }
+
+    #[test]
+    fn rejects_duplicate_masterplan_deliverables() {
+        let plan = r#"{
+          "milestones": [{
+            "adrs": [{
+              "deliverables": [
+                {"id":"IP-001"},
+                {"id":"IP-001"}
+              ]
+            }]
+          }]
+        }"#;
+        let board = r#"{"issues":[{"number":1,"deliverable_id":"IP-001"}]}"#;
+        let error =
+            validate_board_masterplan_consistency_strings(plan, board).expect_err("duplicate");
+        assert!(error.contains("duplicate masterplan deliverable id: IP-001"));
     }
 }

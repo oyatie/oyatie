@@ -2,11 +2,14 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::{Value, json};
 
 const DEFAULT_MASTER_PLAN: &str = "docs/machine-readable/masterplan.generated.json";
 const CLAIM_REF_PREFIX: &str = "refs/heads/claims";
+const DEFAULT_REMOTE: &str = "origin";
+const DEFAULT_LEASE_SECONDS: u64 = 24 * 60 * 60;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Action {
@@ -25,10 +28,14 @@ struct PlanArgs {
     action: Action,
     master_plan: PathBuf,
     repo_root: PathBuf,
+    remote: String,
     deliverable: Option<String>,
     claimant: String,
     dry_run: bool,
     format: Format,
+    lease_seconds: u64,
+    recover_stale: bool,
+    recovery_reason: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -79,18 +86,32 @@ fn parse_args(args: Vec<String>) -> Result<PlanArgs, String> {
         action,
         master_plan: PathBuf::from(DEFAULT_MASTER_PLAN),
         repo_root: PathBuf::from("."),
+        remote: DEFAULT_REMOTE.to_owned(),
         deliverable: None,
         claimant: default_claimant(),
         dry_run: false,
         format: Format::Text,
+        lease_seconds: DEFAULT_LEASE_SECONDS,
+        recover_stale: false,
+        recovery_reason: None,
     };
     while let Some(flag) = iter.next() {
         match flag.as_str() {
             "--master-plan" => parsed.master_plan = next_path(&mut iter, "--master-plan")?,
             "--repo-root" => parsed.repo_root = next_path(&mut iter, "--repo-root")?,
+            "--remote" => parsed.remote = next_value(&mut iter, "--remote")?,
             "--deliverable" => parsed.deliverable = Some(next_value(&mut iter, "--deliverable")?),
             "--claimant" => parsed.claimant = next_value(&mut iter, "--claimant")?,
             "--dry-run" => parsed.dry_run = true,
+            "--lease-seconds" => {
+                parsed.lease_seconds = next_value(&mut iter, "--lease-seconds")?
+                    .parse::<u64>()
+                    .map_err(|error| format!("oya plan: --lease-seconds must be u64: {error}"))?;
+            }
+            "--recover-stale" => parsed.recover_stale = true,
+            "--recovery-reason" => {
+                parsed.recovery_reason = Some(next_value(&mut iter, "--recovery-reason")?)
+            }
             "--format" => {
                 parsed.format = match next_value(&mut iter, "--format")?.as_str() {
                     "text" => Format::Text,
@@ -127,7 +148,7 @@ fn run_parsed(args: &PlanArgs) -> Result<ClaimProjection, String> {
             .find(|deliverable| deliverable.id == *id)
             .ok_or_else(|| format!("deliverable not found in master plan: {id}"))?
     } else {
-        next_unclaimed(&args.repo_root, deliverables)?
+        next_unclaimed(&args.repo_root, &args.remote, deliverables)?
     };
     let projection = ClaimProjection {
         deliverable_id: deliverable.id.clone(),
@@ -136,12 +157,7 @@ fn run_parsed(args: &PlanArgs) -> Result<ClaimProjection, String> {
         labels: exclusive_labels(&deliverable.id, &args.claimant),
     };
     if args.action == Action::Claim && !args.dry_run {
-        acquire_claim(
-            &args.repo_root,
-            &deliverable,
-            &args.claimant,
-            &projection.claim_ref,
-        )?;
+        acquire_claim(&args.repo_root, &deliverable, args, &projection.claim_ref)?;
     }
     Ok(projection)
 }
@@ -196,9 +212,13 @@ fn parse_deliverable(value: &Value) -> Option<Deliverable> {
     Some(Deliverable { id, description })
 }
 
-fn next_unclaimed(repo_root: &Path, deliverables: Vec<Deliverable>) -> Result<Deliverable, String> {
+fn next_unclaimed(
+    repo_root: &Path,
+    remote: &str,
+    deliverables: Vec<Deliverable>,
+) -> Result<Deliverable, String> {
     for deliverable in deliverables {
-        if !claim_exists(repo_root, &claim_ref(&deliverable.id))? {
+        if remote_claim_oid(repo_root, remote, &claim_ref(&deliverable.id))?.is_none() {
             return Ok(deliverable);
         }
     }
@@ -208,42 +228,132 @@ fn next_unclaimed(repo_root: &Path, deliverables: Vec<Deliverable>) -> Result<De
 fn acquire_claim(
     repo_root: &Path,
     deliverable: &Deliverable,
-    claimant: &str,
+    args: &PlanArgs,
     claim_ref: &str,
 ) -> Result<(), String> {
-    if claim_exists(repo_root, claim_ref)? {
-        return Err(format!(
-            "deliverable {} is already claimed at {claim_ref}",
-            deliverable.id
-        ));
+    let observed = remote_claim_oid(repo_root, &args.remote, claim_ref)?;
+    let now = unix_now()?;
+    let push_mode = match observed {
+        None => ClaimPushMode::Create,
+        Some(existing_oid) if args.recover_stale => {
+            fetch_claim_ref(repo_root, &args.remote, claim_ref)?;
+            let metadata = read_claim_metadata(repo_root, &existing_oid)?;
+            let expires_at = metadata
+                .lease_expires_at
+                .ok_or_else(|| format!("existing claim {claim_ref} has no Lease-expires-at"))?;
+            if expires_at > now {
+                return Err(format!(
+                    "deliverable {} is already claimed at {claim_ref}; lease active until {expires_at}",
+                    deliverable.id
+                ));
+            }
+            ClaimPushMode::Recover {
+                expected_old_oid: existing_oid,
+            }
+        }
+        Some(_) => {
+            return Err(format!(
+                "deliverable {} is already claimed at {claim_ref}",
+                deliverable.id
+            ));
+        }
+    };
+    let source_commit = current_source_commit(repo_root)?;
+    let commit = create_claim_commit(
+        repo_root,
+        ClaimCommitInput {
+            deliverable,
+            claimant: &args.claimant,
+            claim_ref,
+            source_commit: &source_commit,
+            lease_started_at: now,
+            lease_seconds: args.lease_seconds,
+            recovery_reason: args.recovery_reason.as_deref(),
+        },
+    )?;
+    push_claim(repo_root, &args.remote, claim_ref, commit.trim(), push_mode)?;
+    mirror_claim_ref(repo_root, claim_ref, commit.trim())?;
+    Ok(())
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum ClaimPushMode {
+    Create,
+    Recover { expected_old_oid: String },
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct ClaimMetadata {
+    lease_expires_at: Option<u64>,
+}
+
+fn push_claim(
+    repo_root: &Path,
+    remote: &str,
+    claim_ref: &str,
+    commit: &str,
+    mode: ClaimPushMode,
+) -> Result<(), String> {
+    let mut command = git(repo_root);
+    command.arg("push");
+    match mode {
+        ClaimPushMode::Create => {}
+        ClaimPushMode::Recover { expected_old_oid } => {
+            command.arg(format!("--force-with-lease={claim_ref}:{expected_old_oid}"));
+        }
     }
-    let zero_oid = zero_oid(repo_root)?;
-    let commit = create_claim_commit(repo_root, deliverable, claimant, claim_ref)?;
-    let output = git(repo_root)
-        .args(["update-ref", claim_ref, commit.trim(), &zero_oid])
+    command.arg(remote).arg(format!("{commit}:{claim_ref}"));
+    let output = command
         .output()
-        .map_err(|error| format!("git update-ref failed to spawn: {error}"))?;
+        .map_err(|error| format!("git push failed to spawn: {error}"))?;
     if output.status.success() {
-        Ok(())
+        return Ok(());
+    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if stderr.contains("fetch first")
+        || stderr.contains("stale info")
+        || stderr.contains("already exists")
+        || stderr.contains("non-fast-forward")
+        || stderr.contains("failed to push some refs")
+    {
+        Err(format!(
+            "remote claim CAS lost for {claim_ref}: {}",
+            stderr.trim()
+        ))
     } else {
         Err(format!(
-            "git update-ref CAS failed for {claim_ref}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
+            "git push failed for {claim_ref}: {}",
+            stderr.trim()
         ))
     }
 }
 
-fn create_claim_commit(
-    repo_root: &Path,
-    deliverable: &Deliverable,
-    claimant: &str,
-    claim_ref: &str,
-) -> Result<String, String> {
+struct ClaimCommitInput<'a> {
+    deliverable: &'a Deliverable,
+    claimant: &'a str,
+    claim_ref: &'a str,
+    source_commit: &'a str,
+    lease_started_at: u64,
+    lease_seconds: u64,
+    recovery_reason: Option<&'a str>,
+}
+
+fn create_claim_commit(repo_root: &Path, input: ClaimCommitInput<'_>) -> Result<String, String> {
     let tree = git_with_stdin(repo_root, ["mktree"], "")?;
+    let lease_expires_at = input.lease_started_at.saturating_add(input.lease_seconds);
+    let recovery = input
+        .recovery_reason
+        .filter(|reason| !reason.trim().is_empty())
+        .map(|reason| format!("Recovery-reason: {}\n", reason.trim()))
+        .unwrap_or_default();
     let message = format!(
-        "Claim {id}\n\nDeliverable: {id}\nClaimant: {claimant}\nClaim-ref: {claim_ref}\nDescription: {description}\n",
-        id = deliverable.id,
-        description = deliverable.description
+        "Claim {id}\n\nDeliverable: {id}\nClaimant: {claimant}\nClaim-ref: {claim_ref}\nSource-commit: {source_commit}\nLease-started-at: {lease_started_at}\nLease-expires-at: {lease_expires_at}\n{recovery}Description: {description}\n",
+        id = input.deliverable.id,
+        claimant = input.claimant,
+        claim_ref = input.claim_ref,
+        source_commit = input.source_commit,
+        lease_started_at = input.lease_started_at,
+        description = input.deliverable.description
     );
     let output = git(repo_root)
         .env("GIT_AUTHOR_NAME", "oya-plan")
@@ -259,6 +369,112 @@ fn create_claim_commit(
     } else {
         Err(format!(
             "git commit-tree failed: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ))
+    }
+}
+
+fn remote_claim_oid(
+    repo_root: &Path,
+    remote: &str,
+    claim_ref: &str,
+) -> Result<Option<String>, String> {
+    let output = git(repo_root)
+        .args(["ls-remote", "--exit-code", remote, claim_ref])
+        .output()
+        .map_err(|error| format!("git ls-remote failed to spawn: {error}"))?;
+    match output.status.code() {
+        Some(0) => {
+            let stdout = String::from_utf8(output.stdout)
+                .map_err(|error| format!("git ls-remote output not UTF-8: {error}"))?;
+            let oid = stdout
+                .split_whitespace()
+                .next()
+                .filter(|value| !value.is_empty())
+                .ok_or_else(|| format!("git ls-remote returned no oid for {claim_ref}"))?;
+            Ok(Some(oid.to_owned()))
+        }
+        // `git ls-remote --exit-code` returns 2 when the remote is reachable
+        // but the ref pattern matched nothing.
+        Some(2) => Ok(None),
+        _ => Err(format!(
+            "git ls-remote failed for {remote} {claim_ref}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        )),
+    }
+}
+
+fn fetch_claim_ref(repo_root: &Path, remote: &str, claim_ref: &str) -> Result<(), String> {
+    let output = git(repo_root)
+        .args(["fetch", "--quiet", remote, claim_ref])
+        .output()
+        .map_err(|error| format!("git fetch failed to spawn: {error}"))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "git fetch failed for {remote} {claim_ref}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ))
+    }
+}
+
+fn read_claim_metadata(repo_root: &Path, oid: &str) -> Result<ClaimMetadata, String> {
+    let output = git(repo_root)
+        .args(["cat-file", "-p", oid])
+        .output()
+        .map_err(|error| format!("git cat-file failed to spawn: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "git cat-file failed for {oid}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let text = String::from_utf8(output.stdout)
+        .map_err(|error| format!("git cat-file output not UTF-8: {error}"))?;
+    let mut metadata = ClaimMetadata::default();
+    for line in text.lines() {
+        if let Some(value) = line.strip_prefix("Lease-expires-at: ") {
+            metadata.lease_expires_at = value.trim().parse::<u64>().ok();
+        }
+    }
+    Ok(metadata)
+}
+
+fn current_source_commit(repo_root: &Path) -> Result<String, String> {
+    let output = git(repo_root)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .map_err(|error| format!("git rev-parse HEAD failed to spawn: {error}"))?;
+    if output.status.success() {
+        String::from_utf8(output.stdout)
+            .map(|value| value.trim().to_owned())
+            .map_err(|error| format!("git rev-parse HEAD output not UTF-8: {error}"))
+    } else {
+        Err(format!(
+            "git rev-parse HEAD failed: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ))
+    }
+}
+
+fn unix_now() -> Result<u64, String> {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .map_err(|error| format!("system clock before epoch: {error}"))
+}
+
+fn mirror_claim_ref(repo_root: &Path, claim_ref: &str, commit: &str) -> Result<(), String> {
+    let output = git(repo_root)
+        .args(["update-ref", claim_ref, commit])
+        .output()
+        .map_err(|error| format!("git update-ref failed to spawn: {error}"))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "git update-ref failed for local mirror {claim_ref}: {}",
             String::from_utf8_lossy(&output.stderr).trim()
         ))
     }
@@ -293,38 +509,6 @@ fn git_with_stdin<const N: usize>(
             String::from_utf8_lossy(&output.stderr).trim()
         ))
     }
-}
-
-fn claim_exists(repo_root: &Path, claim_ref: &str) -> Result<bool, String> {
-    let output = git(repo_root)
-        .args(["show-ref", "--verify", "--quiet", claim_ref])
-        .output()
-        .map_err(|error| format!("git show-ref failed to spawn: {error}"))?;
-    match output.status.code() {
-        Some(0) => Ok(true),
-        Some(1) => Ok(false),
-        _ => Err(format!(
-            "git show-ref failed for {claim_ref}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        )),
-    }
-}
-
-fn zero_oid(repo_root: &Path) -> Result<String, String> {
-    let output = git(repo_root)
-        .args(["rev-parse", "--show-object-format"])
-        .output()
-        .map_err(|error| format!("git rev-parse failed to spawn: {error}"))?;
-    if !output.status.success() {
-        return Err(format!(
-            "git rev-parse failed: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        ));
-    }
-    let format = String::from_utf8(output.stdout)
-        .map_err(|error| format!("git rev-parse output not UTF-8: {error}"))?;
-    let width = if format.trim() == "sha256" { 64 } else { 40 };
-    Ok("0".repeat(width))
 }
 
 fn git(repo_root: &Path) -> Command {

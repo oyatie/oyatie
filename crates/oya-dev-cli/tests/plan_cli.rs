@@ -43,6 +43,20 @@ fn plan_claim_next_acquires_git_ref_and_projects_exclusive_labels() {
         git(
             &temp,
             [
+                "ls-remote",
+                "--exit-code",
+                "origin",
+                "refs/heads/claims/ADR-0377-D2"
+            ]
+        )
+        .status
+        .success(),
+        "claim must exist on the remote authority"
+    );
+    assert!(
+        git(
+            &temp,
+            [
                 "show-ref",
                 "--verify",
                 "--quiet",
@@ -50,8 +64,134 @@ fn plan_claim_next_acquires_git_ref_and_projects_exclusive_labels() {
             ]
         )
         .status
-        .success()
+        .success(),
+        "local claim ref mirror should be updated after remote CAS wins"
     );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn plan_claim_cas_rejects_remote_only_claim_ref() {
+    let temp = temp_repo("plan-claim-remote-only");
+    let master_plan = write_master_plan(&temp);
+
+    let first = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "claim",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--deliverable",
+            "ADR-0377-D2",
+            "--claimant",
+            "worker-a",
+        ])
+        .output()
+        .expect("first plan claim runs");
+    assert!(
+        first.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&first.stdout),
+        String::from_utf8_lossy(&first.stderr)
+    );
+    assert!(
+        git(&temp, ["update-ref", "-d", "refs/heads/claims/ADR-0377-D2"])
+            .status
+            .success()
+    );
+
+    let second = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "claim",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--deliverable",
+            "ADR-0377-D2",
+            "--claimant",
+            "worker-b",
+        ])
+        .output()
+        .expect("second plan claim runs");
+
+    assert!(!second.status.success());
+    let stderr = String::from_utf8_lossy(&second.stderr);
+    assert!(
+        stderr.contains("already claimed"),
+        "stderr should explain remote-only CAS conflict: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn plan_claim_can_recover_expired_remote_claim_with_lease() {
+    let temp = temp_repo("plan-claim-recover-stale");
+    let master_plan = write_master_plan(&temp);
+
+    let first = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "claim",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--deliverable",
+            "ADR-0377-D2",
+            "--claimant",
+            "worker-a",
+            "--lease-seconds",
+            "0",
+        ])
+        .output()
+        .expect("first stale plan claim runs");
+    assert!(
+        first.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&first.stdout),
+        String::from_utf8_lossy(&first.stderr)
+    );
+    let before = remote_oid(&temp, "refs/heads/claims/ADR-0377-D2");
+
+    let second = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "plan",
+            "claim",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--deliverable",
+            "ADR-0377-D2",
+            "--claimant",
+            "worker-b",
+            "--recover-stale",
+            "--recovery-reason",
+            "worker-a lease expired",
+        ])
+        .output()
+        .expect("stale plan claim recovery runs");
+
+    assert!(
+        second.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&second.stdout),
+        String::from_utf8_lossy(&second.stderr)
+    );
+    let after = remote_oid(&temp, "refs/heads/claims/ADR-0377-D2");
+    assert_ne!(before, after, "stale recovery must advance the remote ref");
+    let commit = git(&temp, ["cat-file", "-p", &after]);
+    let commit_text = String::from_utf8(commit.stdout).expect("commit utf8");
+    assert!(commit_text.contains("Claimant: worker-b"));
+    assert!(commit_text.contains("Recovery-reason: worker-a lease expired"));
+    assert!(commit_text.contains("Source-commit:"));
+    assert!(commit_text.contains("Lease-expires-at:"));
 
     fs::remove_dir_all(temp).ok();
 }
@@ -127,11 +267,18 @@ fn plan_next_skips_existing_claim_without_mutating_next_ref() {
     assert!(
         git(
             &temp,
-            ["update-ref", "refs/heads/claims/ADR-0377-D2", commit.trim()]
+            [
+                "push",
+                "origin",
+                &format!("{}:refs/heads/claims/ADR-0377-D2", commit.trim())
+            ]
         )
         .status
         .success()
     );
+    let _ = git(&temp, ["update-ref", "-d", "refs/heads/claims/ADR-0377-D2"])
+        .status
+        .success();
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -177,8 +324,38 @@ fn plan_next_skips_existing_claim_without_mutating_next_ref() {
 
 fn temp_repo(label: &str) -> PathBuf {
     let path = temp_dir(label);
+    let remote = temp_dir(&format!("{label}-remote"));
     fs::create_dir_all(&path).expect("temp repo dir created");
+    fs::create_dir_all(&remote).expect("remote repo dir created");
+    assert!(
+        Command::new("git")
+            .arg("init")
+            .arg("--bare")
+            .arg(&remote)
+            .output()
+            .expect("git init --bare runs")
+            .status
+            .success()
+    );
     assert!(git(&path, ["init"]).status.success());
+    assert!(
+        git(
+            &path,
+            [
+                "remote",
+                "add",
+                "origin",
+                remote.to_str().expect("utf8 remote")
+            ]
+        )
+        .status
+        .success()
+    );
+    assert!(
+        git_with_env(&path, ["commit", "--allow-empty", "-m", "initial"])
+            .status
+            .success()
+    );
     path
 }
 
@@ -222,6 +399,21 @@ fn git_with_env<const N: usize>(repo: &Path, args: [&str; N]) -> std::process::O
         .args(args)
         .output()
         .expect("git command runs")
+}
+
+fn remote_oid(repo: &Path, claim_ref: &str) -> String {
+    let output = git(repo, ["ls-remote", "--exit-code", "origin", claim_ref]);
+    assert!(
+        output.status.success(),
+        "ls-remote failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout)
+        .expect("ls-remote utf8")
+        .split_whitespace()
+        .next()
+        .expect("remote oid")
+        .to_owned()
 }
 
 fn temp_dir(label: &str) -> PathBuf {

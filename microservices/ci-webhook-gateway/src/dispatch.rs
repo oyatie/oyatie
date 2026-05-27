@@ -1,7 +1,7 @@
 //! Event → pipeline dispatch.
 //!
 //! Per ADR-0366 (self-enforcing pipeline) + ADR-0367 (trustless gateway), a
-//! routable PR/board-snapshot event drives the gated pipeline in this order:
+//! routable PR event drives the gated pipeline in this order:
 //!
 //! - Stage 1, admission: repo-entry governance check (`oya-vcs-admission`).
 //! - Stage 2, `oya gate run-all`: the ~50 oyatie governance lanes. Jenkins is
@@ -14,7 +14,10 @@
 //! - Stage 4, merge-queue admit: ADR-0111 speculative rebase, parked per
 //!   ADR-0363 §3 until concurrent-PR volume justifies it. Also the boundary.
 //!
-//! The gateway's job is the FIRST hop: verify + parse + route + dispatch the
+//! Board snapshot events are deliberately narrower: they return an observable
+//! board-projection receipt and must not kick `oya gate run-all`.
+//!
+//! The gateway's PR job is the FIRST hop: verify + parse + route + dispatch the
 //! pipeline kickoff. Stages 3 and 4 are not yet stood up in the substrate, so
 //! they are expressed as the typed `Unimplemented` boundary (HTTP 501) and
 //! tracked in `registry/placeholder-debt/`. Stages 1 and 2 dispatch by kicking
@@ -54,6 +57,7 @@ pub enum PipelineKickoff {
     },
     PushSnapshot {
         reference: String,
+        deliverable_id: String,
         before_sha: String,
         after_sha: String,
         repository_full_name: String,
@@ -81,6 +85,7 @@ impl PipelineKickoff {
             },
             CiEvent::PushSnapshot(event) => PipelineKickoff::PushSnapshot {
                 reference: event.reference.clone(),
+                deliverable_id: event.deliverable_id.clone(),
                 before_sha: event.before_sha.clone(),
                 after_sha: event.after_sha.clone(),
                 repository_full_name: event.repository_full_name.clone(),
@@ -176,6 +181,10 @@ where
             let kickoff = PipelineKickoff::from_event(event);
             let receipt = receipt_for(event);
 
+            if !matches!(event, CiEvent::PullRequest(_)) {
+                return Ok(receipt);
+            }
+
             // Stage 1 + 2: the Jenkins `oyaCiLane` pipeline runs admission then
             // the gate suite (the trusted-runner re-execution per ADR-0367).
             let Some(url) = self.dispatch_url.clone() else {
@@ -212,8 +221,8 @@ fn receipt_for(event: &CiEvent) -> DispatchReceipt {
             },
             head_sha: event.snapshot_id.clone(),
             snapshot_id: Some(event.snapshot_id.clone()),
-            kicked_through: PipelineStage::GateRunAll,
-            boundary: Some(PipelineStage::ReviewerGate),
+            kicked_through: PipelineStage::BoardProjection,
+            boundary: None,
         },
         CiEvent::PushSnapshot(event) => DispatchReceipt {
             subject: DispatchSubject::Push {
@@ -221,8 +230,8 @@ fn receipt_for(event: &CiEvent) -> DispatchReceipt {
             },
             head_sha: event.after_sha.clone(),
             snapshot_id: Some(event.snapshot_id.clone()),
-            kicked_through: PipelineStage::GateRunAll,
-            boundary: Some(PipelineStage::ReviewerGate),
+            kicked_through: PipelineStage::BoardProjection,
+            boundary: None,
         },
     }
 }
@@ -235,7 +244,9 @@ pub fn unimplemented(stage: PipelineStage) -> GatewayError {
         PipelineStage::MergeQueue => DEBT_MERGE_QUEUE,
         // Admission + gate-run-all ARE built (the Jenkins lane); reaching here
         // for them is a programming error, but we still return a typed value.
-        PipelineStage::Admission | PipelineStage::GateRunAll => DEBT_REVIEWER_GATE,
+        PipelineStage::Admission | PipelineStage::GateRunAll | PipelineStage::BoardProjection => {
+            DEBT_REVIEWER_GATE
+        }
     };
     GatewayError::Unimplemented { stage, debt_token }
 }
@@ -276,7 +287,8 @@ mod tests {
 
     fn push_event() -> CiEvent {
         CiEvent::PushSnapshot(PushSnapshotEvent {
-            reference: "refs/heads/dev".to_owned(),
+            reference: "refs/heads/claims/ADR-0377-D2".to_owned(),
+            deliverable_id: "ADR-0377-D2".to_owned(),
             before_sha: "abc".to_owned(),
             after_sha: "def".to_owned(),
             repository_full_name: "owner/repo".to_owned(),
@@ -347,10 +359,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn issue_snapshot_kicks_jenkins_with_snapshot_metadata() {
+    async fn issue_snapshot_returns_board_projection_receipt_without_jenkins() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let calls2 = calls.clone();
         let dispatcher = JenkinsDispatcher::new(
             Some("http://jenkins/job/oya/build".to_owned()),
-            |_url, kickoff| {
+            move |_url, kickoff| {
+                calls2.fetch_add(1, Ordering::SeqCst);
                 match kickoff {
                     PipelineKickoff::IssueSnapshot {
                         issue_number,
@@ -371,6 +386,7 @@ mod tests {
             },
         );
         let receipt = dispatcher.dispatch(&issue_event()).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
         assert_eq!(
             receipt.subject,
             DispatchSubject::Issue { issue_number: 108 }
@@ -382,13 +398,18 @@ mod tests {
                     .to_owned()
             )
         );
+        assert_eq!(receipt.kicked_through, PipelineStage::BoardProjection);
+        assert_eq!(receipt.boundary, None);
     }
 
     #[tokio::test]
-    async fn push_snapshot_kicks_jenkins_with_snapshot_metadata() {
+    async fn push_snapshot_returns_board_projection_receipt_without_jenkins() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let calls2 = calls.clone();
         let dispatcher = JenkinsDispatcher::new(
             Some("http://jenkins/job/oya/build".to_owned()),
-            |_url, kickoff| {
+            move |_url, kickoff| {
+                calls2.fetch_add(1, Ordering::SeqCst);
                 match kickoff {
                     PipelineKickoff::PushSnapshot {
                         reference,
@@ -396,7 +417,7 @@ mod tests {
                         snapshot_id,
                         ..
                     } => {
-                        assert_eq!(reference, "refs/heads/dev");
+                        assert_eq!(reference, "refs/heads/claims/ADR-0377-D2");
                         assert_eq!(after_sha, "def");
                         assert_eq!(
                             snapshot_id,
@@ -409,10 +430,11 @@ mod tests {
             },
         );
         let receipt = dispatcher.dispatch(&push_event()).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
         assert_eq!(
             receipt.subject,
             DispatchSubject::Push {
-                reference: "refs/heads/dev".to_owned()
+                reference: "refs/heads/claims/ADR-0377-D2".to_owned()
             }
         );
         assert_eq!(
@@ -422,6 +444,8 @@ mod tests {
                     .to_owned()
             )
         );
+        assert_eq!(receipt.kicked_through, PipelineStage::BoardProjection);
+        assert_eq!(receipt.boundary, None);
     }
 
     #[tokio::test]

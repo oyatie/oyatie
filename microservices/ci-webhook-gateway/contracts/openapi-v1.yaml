@@ -5,9 +5,11 @@ info:
   description: >
     HTTP webhook receiver for the gated change-coordination pipeline
     (ADR-0363/0366/0367/0374). Verifies the Forgejo webhook HMAC, parses
-    pull_request events against the gated branch plus issue/push board-snapshot
-    refresh events, and dispatches the Jenkins oyaCiLane pipeline. Inbound
-    surface only — outbound dispatch is a Jenkins kick, not a published API.
+    pull_request events against the gated branch plus issue/claim-ref push
+    board-snapshot refresh events. Pull requests dispatch the Jenkins
+    oyaCiLane pipeline; board snapshots emit the narrow board-projection
+    receipt and do not run global gates. Inbound surface only — outbound
+    dispatch is not a published API.
   license:
     name: Apache-2.0
 servers:
@@ -22,8 +24,9 @@ paths:
         The body is the raw webhook payload. The HMAC signature header is
         verified on the raw bytes BEFORE parsing (fail-closed). Only
         pull_request events against the gated branch dispatch the pipeline.
-        Issue and push events dispatch snapshot refresh intents without adding
-        a second long-running board service.
+        Issue and claim-ref push events dispatch snapshot refresh intents
+        without adding a second long-running board service or triggering
+        `oya gate run-all`.
       parameters:
         - name: X-Hub-Signature-256
           in: header
@@ -107,8 +110,8 @@ components:
         head_sha: { type: string }
         snapshot_id:
           type: [string, "null"]
-          description: Present for issue/push board snapshot refresh dispatches.
-        kicked_through: { type: string, example: "oya-gate-run-all" }
+          description: Present for issue/claim-ref push board snapshot refresh dispatches.
+        kicked_through: { type: string, example: "oya-board-projection" }
         trusted_runner_owns_from:
           type: [string, "null"]
           example: "oya-pr-review"

@@ -215,8 +215,8 @@ mod tests {
                         },
                         head_sha: event.snapshot_id.clone(),
                         snapshot_id: Some(event.snapshot_id.clone()),
-                        kicked_through: PipelineStage::GateRunAll,
-                        boundary,
+                        kicked_through: PipelineStage::BoardProjection,
+                        boundary: None,
                     }),
                     CiEvent::PushSnapshot(event) => Ok(DispatchReceipt {
                         subject: DispatchSubject::Push {
@@ -224,8 +224,8 @@ mod tests {
                         },
                         head_sha: event.after_sha.clone(),
                         snapshot_id: Some(event.snapshot_id.clone()),
-                        kicked_through: PipelineStage::GateRunAll,
-                        boundary,
+                        kicked_through: PipelineStage::BoardProjection,
+                        boundary: None,
                     }),
                 }
             })
@@ -323,8 +323,9 @@ mod tests {
         let (status, text) = send(test_state(), req).await;
         assert_eq!(status, StatusCode::ACCEPTED);
         assert!(text.contains("\"subject_kind\":\"push\""));
-        assert!(text.contains("\"reference\":\"refs/heads/dev\""));
+        assert!(text.contains("\"reference\":\"refs/heads/claims/ADR-0377-D2\""));
         assert!(text.contains("\"snapshot_id\":\"push:sha256:"));
+        assert!(text.contains("\"kicked_through\":\"oya-board-projection\""));
     }
 
     #[tokio::test]
