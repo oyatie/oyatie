@@ -279,6 +279,8 @@ members = [
   "crates/oya-identity-workload-authz-cedar-adapter",
   "crates/oya-identity-workload-oidc-adapter",
   "crates/oya-identity-workload-app",
+  "crates/oya-identity-workload-api",
+  "crates/oya-identity-workload-rest",
   "crates/oya-http-tenant-middleware-infrastructure",
   "crates/oya-http-latency-budget-middleware-infrastructure",
   "crates/oya-http-telemetry-middleware-infrastructure",

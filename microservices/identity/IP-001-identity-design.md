@@ -87,7 +87,7 @@ the sole source of the verification algorithm; the token header `alg` is parsed
 only to be checked against the binding (mismatch → `AlgorithmMismatch`), never to
 select the algorithm.
 
-Tests (≥12, one per threat in `design/threat-model.md`): well-formed ES256 ok;
+Tests (≥12, one per threat in `threat-model.md#workload-identity-threat-model`): well-formed ES256 ok;
 well-formed RS256 ok; `alg:none` rejected; RS256→HS256 confusion rejected;
 unknown `kid`; wrong issuer; key-not-belongs-to-issuer; wrong audience; expired
 (outside skew); nbf in future; skew boundary (exactly 60s ok, 61s not);
@@ -152,4 +152,4 @@ Maps to PRD §6 (AC-W-01 … AC-W-18). The slice is complete when:
 
 Unit + contract + integration strategy mirrors the existing identity test-plans
 (`microservices/identity/test-plans/`); the threat matrix in
-`design/threat-model.md` is the source of the verifier test cases.
+`threat-model.md#workload-identity-threat-model` is the source of the verifier test cases.
