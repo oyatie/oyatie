@@ -18,17 +18,17 @@ affected_surfaces:
   specs: [/specs/deployment-ops-contract.json]
 deliverables:
   - id: ADR-0375-D1
-    description: "Bare-metal Talos USB zero-touch installer generator (infra/talos/usb): a `hub` preset with the machine config baked offline via the imager `--embedded-config-path`, and a `node` preset (Kata extension + `talos.config` fetch) built via the Image Factory. Substrate (on-prem/colo) does not split the media; cloud nodes use no USB (CAPI cloud images)."
-    exit_criteria: "gen-usb.sh hub and node each produce a bootable ISO9660 image; the hub image embeds the controlplane config; talosctl gen config applies the cni:none + proxy.disabled + schedulable-CP patches."
-    verified_by: "infra/talos/usb/gen-usb.sh hub (ISO is bootable; config baked)"
+    description: "Bare-metal Talos installation-media zero-touch installer generator (infra/talos/installation-media): a `control-plane` preset with the machine config baked offline via the imager `--embedded-config-path`, and a `node` preset (Kata extension + `talos.config` fetch) built via the Image Factory. Substrate (on-prem/colo) does not split the media; cloud nodes use no installation media (CAPI cloud images)."
+    exit_criteria: "gen-media.sh control-plane and node each produce a bootable ISO9660 image; the control plane image embeds the controlplane config; talosctl gen config applies the cni:none + proxy.disabled + schedulable-CP patches."
+    verified_by: "infra/talos/installation-media/gen-media.sh control-plane (ISO is bootable; config baked)"
   - id: ADR-0375-D2
-    description: "Cluster API control plane (infra/capi): clusterctl provider pins (Talos CABPT/CACPPT + OCI/AWS/Metal3), init.sh (clusterctl init onto the USB-formed hub, no kind), and a ClusterResourceSet (crs/) that bootstraps Cilium + Argo CD onto each cluster at provision time."
-    exit_criteria: "clusterctl init installs the Talos + OCI/AWS/Metal3 providers on the hub; the CRS applies Cilium + Argo CD to clusters labelled oya.io/bootstrap=true."
-    verified_by: "KUBECONFIG=<hub> infra/capi/init.sh (providers Ready) + clusterctl describe"
+    description: "Cluster API control plane (infra/capi): clusterctl provider pins (Talos CABPT/CACPPT + OCI/AWS/Metal3), init.sh (clusterctl init onto the installation-media-formed control plane, no kind), and a ClusterResourceSet (crs/) that bootstraps Cilium + Argo CD onto each cluster at provision time."
+    exit_criteria: "clusterctl init installs the Talos + OCI/AWS/Metal3 providers on the control plane; the CRS applies Cilium + Argo CD to clusters labelled oya.io/bootstrap=true."
+    verified_by: "KUBECONFIG=<control-plane> infra/capi/init.sh (providers Ready) + clusterctl describe"
   - id: ADR-0375-D3
-    description: "Per-substrate spoke Cluster CR templates (infra/capi/clusters/{oci,aws,metal3}): one Talos cell each, cni:none + Cilium-via-CRS, dedicated CP + Kata worker pools (ADR-0147/0338). Each cell is an independent failure domain (INV-CELL-ISOLATION)."
-    exit_criteria: "a filled spoke template validates with kubectl --dry-run=server post-init and provisions a 3-CP HA Talos cluster; worker pool carries katacontainers.io/kata-runtime."
-    verified_by: "kubectl --dry-run=server -f infra/capi/clusters/<substrate>/cluster.yaml"
+    description: "Parameterized spoke-cell Helm chart (infra/capi/clusters): a cell is a values entry (substrate oci|aws|metal3), not a copied file. Renders the Talos Cluster CR set per cell — cni:none + Cilium-via-CRS, dedicated CP + Kata worker pools (ADR-0147/0338). Each cell is an independent failure domain (INV-CELL-ISOLATION)."
+    exit_criteria: "helm lint + helm template (values-example.yaml) render valid CR sets for all three substrates; a rendered cell validates with kubectl --dry-run=server post-init and provisions a 3-CP HA Talos cluster; worker pool carries katacontainers.io/kata-runtime."
+    verified_by: "helm lint infra/capi/clusters && helm template oya-spokes infra/capi/clusters -f infra/capi/clusters/values-example.yaml"
   - id: ADR-0375-D4
     description: "Per-cell Argo CD app-of-apps Helm chart (infra/gitops), pull model: delivers Forgejo, Jenkins, OpenBao, observability, Kyverno, Istio Ambient. Cilium L3/L4 + Istio Ambient L7 zero-overlap (ADR-0148). Source = GitHub at bootstrap, flips to Forgejo post-cutover (ADR-0247)."
     exit_criteria: "helm lint + helm template render valid Argo CD Applications; per-cell `cell` value override works."
@@ -66,15 +66,15 @@ cross-region cells (ADR-0009, per-region packs). Three approaches were evaluated
 
 ## Decision
 - **Node OS:** Talos (immutable, API-managed). Bare-metal nodes auto-install zero-touch from a
-  **USB** image (config baked for the hub; fetched for spoke nodes). Cloud nodes use CAPI cloud images.
+  **USB** image (config baked for the control plane; fetched for spoke nodes). Cloud nodes use CAPI cloud images.
 - **Cluster lifecycle:** **Cluster API** — declarative `Cluster`/`MachineDeployment` CRs in git,
-  reconciled by controllers. The management/hub cluster runs CAPI core + Talos providers
+  reconciled by controllers. The management/control-plane cluster runs CAPI core + Talos providers
   (CABPT/CACPPT) + infra providers (CAPOCI / CAPA / Metal3). Provisioned out-of-band (no maintained
-  libvirt CAPI provider); `clusterctl init` runs directly onto the USB-formed Talos hub (no kind).
+  libvirt CAPI provider); `clusterctl init` runs directly onto the installation-media-formed Talos control plane (no kind).
 - **Day-1 bootstrap:** a **CAPI ClusterResourceSet** installs Cilium (CNI) + Argo CD onto every
   cluster at provision time.
 - **App delivery:** **per-cell Argo CD (pull model)**, Helm-first app-of-apps. Each cell
-  self-reconciles from git, independent of the hub (INV-CELL-ISOLATION; ADR-0306 disaster-mode).
+  self-reconciles from git, independent of the control plane (INV-CELL-ISOLATION; ADR-0306 disaster-mode).
 - **Mesh:** Cilium L3/L4 + Istio Ambient L7, zero overlap (ADR-0148, Cilium 1.19.x).
 - **Runtime tiers:** Kata + Cloud Hypervisor worker pools for tenant-untrusted workloads (ADR-0147/0338).
 - **Deployment authority:** OpenTofu owns only the Cloudflare edge (`infra/cloudflare`); the cluster
@@ -88,8 +88,8 @@ cross-region cells (ADR-0009, per-region packs). Three approaches were evaluated
 - **App-layer concerns stay layered on top** (own ADRs): cell-routing/shuffle-sharding
   (ADR-0009/0248/0351), global LB/anycast/multi-region (ADR-0158/0171/0253; anycast = Cloudflare),
   capacity placement/autoscaling (ADR-0198 Karpenter, ADR-0340).
-- **Known gap (not a pattern flaw):** the CAPI management hub is single-site (SPOF) until run HA
-  across hosts/regions — tracked as hub-HA hardening.
+- **Known gap (not a pattern flaw):** the CAPI management control plane is single-site (SPOF) until run HA
+  across hosts/regions — tracked as control-plane-HA hardening.
 
 ## Door
 Two-way: CAPI/Talos/Argo CD are replaceable OSS layers; clusters are declarative and re-provisionable.

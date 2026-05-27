@@ -3,7 +3,7 @@
 # and apply them + the CRS to the MANAGEMENT cluster. CAPI then copies them into every cluster
 # labelled oya.io/bootstrap=true at provision time.
 #
-# Needs: helm, kubectl, KUBECONFIG=<hub>. Run once on the hub (or in CI) after `clusterctl init`.
+# Needs: helm, kubectl, KUBECONFIG=<control-plane>. Run once on the control plane (or in CI) after `clusterctl init`.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
@@ -31,7 +31,7 @@ helm template argocd argo/argo-cd --version "$ARGOCD_VERSION" \
 mk_cm() { kubectl create configmap "$1" -n "$NS" --from-file="$2=$3" \
             --dry-run=client -o yaml; }
 
-echo ">> build + apply bootstrap ConfigMaps + CRS to the hub"
+echo ">> build + apply bootstrap ConfigMaps + CRS to the control plane"
 {
   mk_cm cilium-bootstrap cilium.yaml  "$OUT/cilium.yaml";  echo '---'
   mk_cm argocd-bootstrap argocd.yaml  "$OUT/argocd.yaml";  echo '---'

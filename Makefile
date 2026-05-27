@@ -4,8 +4,8 @@ SHELL := /bin/sh
 TOFU ?= tofu
 CARGO ?= cargo
 # OpenTofu now owns only the Cloudflare edge. The cluster fleet is provisioned by
-# Cluster API + Talos (USB zero-touch) + per-cell Argo CD — see infra/capi, infra/talos/usb,
-# infra/gitops (ADR-0374, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
+# Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD — see infra/capi, infra/talos/installation-media,
+# infra/gitops (ADR-0375, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
 CLOUDFLARE_DIR := infra/cloudflare
 
 .PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops fleet check-tofu
@@ -44,10 +44,10 @@ verify-deploy-contract:
 
 # Cluster fleet is declarative + git-driven (CAPI/Talos/Argo CD), not a Makefile concern.
 fleet:
-	@printf '%s\n' 'Talos + Cluster API + Argo CD fleet (ADR-0374):'
-	@printf '%s\n' '  USB hub image : HUB_ENDPOINT=https://<hub-ip>:6443 infra/talos/usb/gen-usb.sh hub'
-	@printf '%s\n' '  USB node image: CONFIG_URL=https://join.oyatie.dev/config infra/talos/usb/gen-usb.sh node'
-	@printf '%s\n' '  CAPI install  : KUBECONFIG=<hub> infra/capi/init.sh   (then infra/capi/crs/render.sh)'
+	@printf '%s\n' 'Talos + Cluster API + Argo CD fleet (ADR-0375):'
+	@printf '%s\n' '  Control-plane media : CONTROLPLANE_ENDPOINT=https://<cp-ip>:6443 infra/talos/installation-media/gen-media.sh control-plane'
+	@printf '%s\n' '  Node media    : CONFIG_URL=https://join.oyatie.dev/config infra/talos/installation-media/gen-media.sh node'
+	@printf '%s\n' '  CAPI install  : KUBECONFIG=<control-plane> infra/capi/init.sh   (then infra/capi/crs/render.sh)'
 	@printf '%s\n' '  Spokes        : commit a filled infra/capi/clusters/<substrate>/cluster.yaml; CAPI reconciles'
 
 ops:

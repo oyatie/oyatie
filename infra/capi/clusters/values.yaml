@@ -1,0 +1,26 @@
+# Spoke-cell catalog. One CAPI Talos cluster per cell (ADR-0009 cell-per-region). A cell is an
+# entry in `cells` below — NOT a copied file. Fill the substrate block for the provider you pick.
+#
+#   helm template oya-spokes infra/capi/clusters -f my-cells.yaml | kubectl apply -f -
+#
+# Provider CRDs (OCICluster/AWSCluster/Metal3Cluster/TalosControlPlane) exist only after
+# `clusterctl init` (infra/capi/init.sh). Validate a render with `kubectl --dry-run=server` post-init.
+# See values-example.yaml for one worked cell per substrate.
+
+defaults:
+  namespace: default
+  talosVersion: v1.36.1                 # Talos + k8s line (ADR-0375)
+  controlPlane:
+    replicas: 3                         # HA etcd quorum
+  workers:
+    replicas: 2
+  clusterNetwork:
+    pods: ["10.244.0.0/16"]
+    services: ["10.96.0.0/12"]
+
+# Each entry renders the full CR set: Cluster -> <Infra>Cluster + TalosControlPlane
+# (+ <Infra>MachineTemplate) + MachineDeployment (+ TalosConfigTemplate + <Infra>MachineTemplate).
+# All set cni:none + proxy.disabled (Cilium via CRS); workers carry katacontainers.io/kata-runtime
+# + vhost modules (Kata pool, ADR-0147/0338). Every Cluster is oya.io/bootstrap=true (triggers CRS).
+# substrate is one of: oci | aws | metal3.
+cells: []
