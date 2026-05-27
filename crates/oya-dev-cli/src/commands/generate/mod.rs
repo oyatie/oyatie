@@ -7,11 +7,13 @@
 
 use std::process::ExitCode;
 
+pub(crate) mod board_sync;
 pub(crate) mod masterplan;
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     let mut args = args.into_iter();
     match args.next().as_deref() {
+        Some("board-sync") => board_sync::run(args.collect(), usage),
         Some("masterplan") => masterplan::run(args.collect(), usage),
         _ => {
             eprintln!("{usage}");
