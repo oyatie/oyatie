@@ -98,11 +98,17 @@
   },
   "install_contract": {
     "entrypoint": "make install",
+    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure until the Jenkins fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-jenkins-fleet-bootstrap-pipeline).",
     "normal_flow": [
       "run Rust deployment contract gate",
-      "run tofu apply for infra/cloudflare",
-      "provision the cluster fleet via CAPI/Talos (make fleet) — git-declared, controller-reconciled",
-      "leave day-2 changes to ops-managed controllers + Argo CD"
+      "run tofu apply for infra/cloudflare (this is the entire `make install`)"
+    ],
+    "fleet_bring_up_separate": [
+      "hardware-gated, NOT part of `make install`:",
+      "build Talos installation-media (infra/talos/installation-media/gen-media.sh) and boot it on the control-plane + node hardware",
+      "clusterctl init onto the formed control plane (infra/capi/init.sh)",
+      "render + apply the CRS bootstrap (infra/capi/crs/render.sh)",
+      "add cells to infra/capi/clusters/values.yaml and helm template | kubectl apply — CAPI reconciles; per-cell Argo CD then owns app delivery"
     ],
     "confirmation_policy": "OpenTofu apply prompts by default; do not use hidden auto-approve in the Makefile."
   },

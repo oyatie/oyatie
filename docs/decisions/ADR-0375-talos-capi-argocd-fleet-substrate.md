@@ -51,13 +51,41 @@ Accepted (2026-05-27). Supersedes ADR-0120 (rust-first on-prem tooling) and ADR-
 (on-prem k8s stack: kubeadm + containerd + istio-envoy). Amends the deployment-ops-contract
 (`specs/deployment-ops-contract.json` v2.0.0) accordingly.
 
+## Product framing — Oyatie's own OKE/GKE/EKS
+
+This substrate is not only how Oyatie runs its OWN services — it is the foundation
+of a **managed-Kubernetes product**: Oyatie's equivalent of OKE / GKE / EKS. The
+architecture is deliberately the same shape the hyperscalers use for managed k8s:
+
+- A **management (control-plane) cluster** runs Cluster API + the Talos
+  bootstrap/control-plane providers + infra providers (CAPOCI/CAPA/Metal3). This is
+  the managed-control-plane plane — the thing a customer never SSHes into.
+- **Tenant clusters are CAPI spokes**: each `cells[]` entry in
+  `infra/capi/clusters` is a fully-isolated Talos cluster (its own CP + Kata worker
+  pools, `cni:none` + Cilium, per-cell Argo CD). Provisioning a customer cluster is
+  adding a cell — declarative, git-driven, controller-reconciled — exactly the
+  OKE/GKE/EKS "create cluster" primitive, vendor-neutral across OCI/AWS/bare-metal.
+- **Oyatie's own platform is tenant zero** (`oyatie-dogfood-tenancy`): the same
+  provisioning path that will serve external tenants runs Oyatie's microservices
+  first, so the product is proven by self-use before it is sold. No internal bypass.
+- **Per-cell Argo CD (pull model) + INV-CELL-ISOLATION** give each tenant cluster
+  an independent failure domain and disaster-mode survival (ADR-0306) — the
+  blast-radius isolation a managed-k8s SLA requires.
+
+What this ADR lands is the substrate primitive (provision/lifecycle/delivery). The
+customer-facing managed-k8s surface on top of it — the cluster-CRUD API, per-tenant
+quota/billing/RBAC, control-plane multi-tenancy hardening, and the SLA/observability
+contract — is the **product layer** that builds on this primitive and is tracked
+separately (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-managed-k8s-product-surface).
+
 ## Context
 The local substrate needed a production-fidelity, hyperscaler-shaped foundation for ~8
-cross-region cells (ADR-0009, per-region packs). Three approaches were evaluated this cycle:
+cross-region cells (ADR-0009, per-region packs) AND to BE the managed-Kubernetes
+product surface (see Product framing above). Three approaches were evaluated this cycle:
 
 1. **Sidero Omni** — a proprietary fleet manager. Rejected: not how hyperscalers provision,
    proprietary/commercial, and operationally fiddly (SideroLink networking, join-token flow,
-   API behind CF Access, omnictl-only).
+   API behind Cloudflare Access, omnictl-only).
 2. **libvirt VMs on a Debian host (kubeadm/k3s-style)** — the prior on-prem model (ADR-0120/0121).
    Rejected: hand-provisioning tax (qemu perms, Docker↔libvirt iptables, mutable host), and a
    single Debian host can't be a multi-node fleet without nested-virt complexity.

@@ -450,10 +450,7 @@ fn validate_packages(
             Some(rel) => {
                 rel == &crates_parent
                     || rel == &tools_parent
-                    || ms_nested_parent
-                        .as_ref()
-                        .map(|p| rel == p)
-                        .unwrap_or(false)
+                    || ms_nested_parent.as_ref().map(|p| rel == p).unwrap_or(false)
             }
             None => false,
         };

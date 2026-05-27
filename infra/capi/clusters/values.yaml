@@ -9,7 +9,27 @@
 
 defaults:
   namespace: default
-  talosVersion: v1.36.1                 # Talos + k8s line (ADR-0375)
+  # The KUBERNETES version. In CAPI-Talos this flows into TalosControlPlane.spec.version
+  # and MachineDeployment.spec.template.spec.version — both are the k8s version, NOT the
+  # Talos OS version. (The Talos OS version is the `:v1.13.x` tag on kataInstallerImage
+  # below + the installation-media build.) Named `kubernetesVersion` to remove the trap.
+  kubernetesVersion: v1.36.1
+  # Argo CD CRDs that must land on each spoke via Talos `cluster.extraManifests`
+  # (URL-fetched at bootstrap). They CANNOT travel through the CRS ConfigMap — the
+  # applicationsets CRD alone is ~1.32 MiB, over the 1 MiB etcd cap (see
+  # infra/capi/crs/render.sh). These URLs MUST reference the Argo CD app version
+  # behind the `argo-cd` chart pinned in render.sh (ARGOCD_VERSION); render.sh echoes
+  # that appVersion so drift is caught. VERIFY the version tag below matches it.
+  argocdCrdManifests:
+    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/crds/application-crd.yaml"
+    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/crds/applicationset-crd.yaml"
+    - "https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.0/manifests/crds/appproject-crd.yaml"
+  # Talos installer image with the Kata Containers system extension baked in.
+  # On-disk Talos uses this as its install source; without it the disk is vanilla
+  # and the `katacontainers.io/kata-runtime` worker label has no runtime to bind to.
+  # The schematic ID must match the local installation-media gen-media.sh build for
+  # cell-to-cell parity. Pin via Image Factory schematic at factory.talos.dev.
+  kataInstallerImage: "factory.talos.dev/installer/3da7f440f279f4814fa73bdf83c84710a8e93c40a4a3cbba4d969f14afb96298:v1.13.3"
   controlPlane:
     replicas: 3                         # HA etcd quorum
   workers:
