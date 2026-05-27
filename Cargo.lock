@@ -4358,11 +4358,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-identity-oidc-issuer-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-identity-usecase"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
  "oya-identity-domain",
+]
+
+[[package]]
+name = "oya-identity-workload-app"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "oya-identity-workload-authz-cedar-adapter",
+ "oya-identity-workload-domain",
+ "oya-identity-workload-oidc-adapter",
+ "ring",
 ]
 
 [[package]]

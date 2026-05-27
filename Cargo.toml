@@ -23,6 +23,7 @@ members = [
   "crates/oya-identity-domain",
   "crates/oya-identity-usecase",
   "crates/oya-identity-api",
+  "crates/oya-identity-oidc-issuer-kernel",
   "crates/oya-tenancy-kernel",
   "crates/oya-tenancy-domain",
   "crates/oya-tenancy-api",

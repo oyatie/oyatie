@@ -1,0 +1,10 @@
+context: identity
+role: kernel
+capability: identity-oidc-issuer-kernel
+plane: control
+slo: preview-control-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, PII_IDENTIFYING]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
