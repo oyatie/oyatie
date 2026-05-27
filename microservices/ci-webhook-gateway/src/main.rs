@@ -193,6 +193,7 @@ fn kickoff_json(kickoff: &PipelineKickoff) -> serde_json::Value {
         }),
         PipelineKickoff::PushSnapshot {
             reference,
+            deliverable_id,
             before_sha,
             after_sha,
             repository_full_name,
@@ -201,6 +202,7 @@ fn kickoff_json(kickoff: &PipelineKickoff) -> serde_json::Value {
         } => serde_json::json!({
             "kind": kickoff.kind(),
             "reference": reference,
+            "deliverable_id": deliverable_id,
             "before_sha": before_sha,
             "after_sha": after_sha,
             "repository_full_name": repository_full_name,

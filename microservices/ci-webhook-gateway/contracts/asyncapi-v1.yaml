@@ -58,6 +58,7 @@ components:
           repository: { type: object }
     PushDelivery:
       name: pushDelivery
+      summary: Claim-ref push delivery (`refs/heads/claims/<deliverable-id>`) for board projection.
       payload:
         type: object
         properties:

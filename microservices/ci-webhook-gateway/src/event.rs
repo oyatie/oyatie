@@ -2,7 +2,9 @@
 //!
 //! The gateway acts on `pull_request` events whose base branch is the gated
 //! target (default `dev`) and on issue/push events that need to snapshot board
-//! metadata without standing up a second long-running service. Forgejo's
+//! metadata without standing up a second long-running service. Board push
+//! snapshots are restricted to `refs/heads/claims/*`; ordinary branch pushes do
+//! not drive board projection. Forgejo's
 //! `pull_request` payload mirrors Gitea's:
 //!   { "action": "opened|synchronized|...",
 //!     "number": 42,
@@ -133,6 +135,7 @@ pub struct IssueSnapshotEvent {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PushSnapshotEvent {
     pub reference: String,
+    pub deliverable_id: String,
     pub before_sha: String,
     pub after_sha: String,
     pub repository_full_name: String,
@@ -315,12 +318,14 @@ fn route_issue(body: &[u8]) -> Result<RouteOutcome> {
         .repository
         .map(|repo| repo.full_name)
         .unwrap_or_else(|| "unknown".to_owned());
-    let labels = raw
+    let mut labels = raw
         .issue
         .labels
         .into_iter()
         .map(|label| label.name)
         .collect::<Vec<_>>();
+    labels.sort();
+    labels.dedup();
     let snapshot_id = content_addressed_snapshot_id(
         "issue",
         &serde_json::json!({
@@ -349,18 +354,15 @@ fn route_issue(body: &[u8]) -> Result<RouteOutcome> {
     )))
 }
 
-fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
+fn route_push(body: &[u8], _target_branch: &str) -> Result<RouteOutcome> {
     let raw: RawPushPayload = serde_json::from_slice(body)
         .map_err(|e| GatewayError::MalformedPayload(format!("push: {e}")))?;
 
-    if !matches_target_ref(&raw.reference, target_branch) {
+    let Some(deliverable_id) = claim_ref_deliverable_id(&raw.reference) else {
         return Ok(RouteOutcome::Ignored {
-            reason: format!(
-                "push ref {:?} != gated target {:?}",
-                raw.reference, target_branch
-            ),
+            reason: format!("push ref {:?} is not a claim ref", raw.reference),
         });
-    }
+    };
 
     if raw.deleted {
         return Ok(RouteOutcome::Ignored {
@@ -384,6 +386,7 @@ fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
             "after_sha": raw.after,
             "before_sha": raw.before,
             "commits": raw.commits.len(),
+            "deliverable_id": deliverable_id,
             "reference": raw.reference,
             "repository_full_name": repository_full_name,
         }),
@@ -392,6 +395,7 @@ fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
     Ok(RouteOutcome::Dispatch(CiEvent::PushSnapshot(
         PushSnapshotEvent {
             reference: raw.reference,
+            deliverable_id,
             before_sha: raw.before,
             after_sha: raw.after,
             repository_full_name,
@@ -402,8 +406,10 @@ fn route_push(body: &[u8], target_branch: &str) -> Result<RouteOutcome> {
     )))
 }
 
-fn matches_target_ref(reference: &str, target_branch: &str) -> bool {
-    reference == target_branch || reference == format!("refs/heads/{target_branch}")
+fn claim_ref_deliverable_id(reference: &str) -> Option<String> {
+    let suffix = reference.strip_prefix("refs/heads/claims/")?;
+    let deliverable_id = suffix.trim();
+    (!deliverable_id.is_empty()).then(|| deliverable_id.to_owned())
 }
 
 fn content_addressed_snapshot_id(kind: &str, canonical: &Value) -> String {
@@ -545,6 +551,31 @@ mod tests {
     }
 
     #[test]
+    fn issue_snapshot_content_address_is_label_order_stable() {
+        let first = route(
+            "issues",
+            br#"{"action":"edited",
+                "issue":{"number":108,"title":"Board sync labels","state":"open",
+                  "updated_at":"2026-05-27T19:00:00Z",
+                  "labels":[{"name":"sync-state:ready"},{"name":"masterplan:IP-108"}]},
+                "repository":{"full_name":"owner/repo"}}"#,
+            "dev",
+        )
+        .unwrap();
+        let second = route(
+            "issues",
+            br#"{"action":"edited",
+                "issue":{"number":108,"title":"Board sync labels","state":"open",
+                  "updated_at":"2026-05-27T19:00:00Z",
+                  "labels":[{"name":"masterplan:IP-108"},{"name":"sync-state:ready"},{"name":"sync-state:ready"}]},
+                "repository":{"full_name":"owner/repo"}}"#,
+            "dev",
+        )
+        .unwrap();
+        assert_eq!(first, second);
+    }
+
+    #[test]
     fn unsupported_issue_action_is_ignored() {
         let body = br#"{"action":"pinned",
             "issue":{"number":108,"title":"board sync","state":"open"},
@@ -554,12 +585,13 @@ mod tests {
     }
 
     #[test]
-    fn push_to_target_branch_dispatches_snapshot() {
+    fn push_to_claim_ref_dispatches_snapshot() {
         let body = include_bytes!("../tests/fixtures/push-snapshot.json");
         let outcome = route("push", body, "dev").unwrap();
         match outcome {
             RouteOutcome::Dispatch(CiEvent::PushSnapshot(ev)) => {
-                assert_eq!(ev.reference, "refs/heads/dev");
+                assert_eq!(ev.reference, "refs/heads/claims/ADR-0377-D2");
+                assert_eq!(ev.deliverable_id, "ADR-0377-D2");
                 assert_eq!(ev.after_sha, "def456");
                 assert_eq!(ev.commits, 1);
                 assert!(ev.snapshot_id.starts_with("push:sha256:"));
@@ -580,6 +612,14 @@ mod tests {
     #[test]
     fn push_to_other_branch_is_ignored() {
         let body = br#"{"ref":"refs/heads/main","before":"abc","after":"def",
+            "repository":{"full_name":"owner/repo"}}"#;
+        let outcome = route("push", body, "dev").unwrap();
+        assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
+    }
+
+    #[test]
+    fn push_to_dev_branch_is_ignored_for_board_projection() {
+        let body = br#"{"ref":"refs/heads/dev","before":"abc","after":"def",
             "repository":{"full_name":"owner/repo"}}"#;
         let outcome = route("push", body, "dev").unwrap();
         assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
