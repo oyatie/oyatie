@@ -1,0 +1,17 @@
+context: llm-gateway
+role: kernel
+capability: llm-oauth-subscription-pool-state-machine
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
+  source_adrs: [ADR-0105, ADR-0131, ADR-0384]
+non_claims:
+  - pure OAuth subscription-pool state machine (selection strategies + per-seat cooldown/blacklist) plus value-object identifiers and the AuthzGate/EventSink seams for D7/D6 only
+  - no HTTP listener, network I/O, async runtime, OpenBao client, Cedar engine, ClickHouse client, Valkey client, randomness source, prompt/response handling, or refresh-token exchange claim
+  - parallels the legacy static-API-key kernel at registry/catalog/oya-llm-gateway-kernel.yaml until OAuth pool reaches parity; a follow-up cleanup PR retires the legacy crates and promotes this crate to the canonical name

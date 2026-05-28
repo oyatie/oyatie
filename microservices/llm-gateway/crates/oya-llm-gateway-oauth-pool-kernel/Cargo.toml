@@ -1,0 +1,20 @@
+[package]
+name = "oya-llm-gateway-oauth-pool-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# OAuth subscription-pool kernel (ADR-0384 Path B). Parallels the legacy
+# static-API-key kernel at crates/oya-llm-gateway-kernel/ until the OAuth pool
+# reaches parity; a follow-up cleanup PR retires the legacy crates and
+# promotes this crate to the canonical name.
+
+[lib]
+name = "oya_llm_gateway_oauth_pool_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

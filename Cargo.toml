@@ -665,6 +665,11 @@ members = [
   "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api",
   "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory",
   "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app",
+  # llm-gateway µservice OAuth subscription-pool kernel (ADR-0384 Path B). Stage-4
+  # RED: scaffold + failing tests. Parallels the legacy static-API-key kernel at
+  # crates/oya-llm-gateway-kernel until the OAuth pool reaches parity; a follow-up
+  # cleanup PR retires the legacy crates and promotes this to the canonical name.
+  "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel",
 ]
 resolver = "2"
 
