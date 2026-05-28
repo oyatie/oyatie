@@ -16,6 +16,23 @@ terraform {
 
 variable "tenant_id" { type = string }
 variable "compartment_ocid" { type = string }
+variable "pharmacy_oltp_admin_password" {
+  type        = string
+  sensitive   = true
+  description = "Autonomous Database admin password supplied from OCI Vault/OpenBao or an operator secret store; never derive it from tenant metadata."
+
+  validation {
+    condition = (
+      length(var.pharmacy_oltp_admin_password) >= 12 &&
+      length(var.pharmacy_oltp_admin_password) <= 30 &&
+      can(regex("[[:upper:]]", var.pharmacy_oltp_admin_password)) &&
+      can(regex("[[:lower:]]", var.pharmacy_oltp_admin_password)) &&
+      can(regex("[[:digit:]]", var.pharmacy_oltp_admin_password)) &&
+      can(regex("[^[:alnum:]]", var.pharmacy_oltp_admin_password))
+    )
+    error_message = "pharmacy_oltp_admin_password must be 12-30 characters and include upper, lower, digit, and special characters."
+  }
+}
 
 resource "oci_core_instance" "pharmacy_arm_node" {
   count               = 2
@@ -42,7 +59,7 @@ resource "oci_database_autonomous_database" "pharmacy_oltp" {
   db_workload              = "OLTP"
   cpu_core_count           = 1
   data_storage_size_in_tbs = 1
-  admin_password           = "ALwaysFree#${var.tenant_id}"
+  admin_password           = var.pharmacy_oltp_admin_password
 }
 
 resource "oci_streaming_stream" "pharmacy_events" {
@@ -54,11 +71,11 @@ resource "oci_streaming_stream" "pharmacy_events" {
 
 output "always_free_summary" {
   value = {
-    arm_nodes  = oci_core_instance.pharmacy_arm_node[*].display_name
-    oltp_db    = oci_database_autonomous_database.pharmacy_oltp.display_name
-    stream     = oci_streaming_stream.pharmacy_events.name
-    tier       = "always-free"
-    tenant     = var.tenant_id
-    note       = "Maximizes OCI Always Free for demo/sandbox/trial/dev tenants per feedback_oci_always_free_maximization_2026_05_20"
+    arm_nodes = oci_core_instance.pharmacy_arm_node[*].display_name
+    oltp_db   = oci_database_autonomous_database.pharmacy_oltp.display_name
+    stream    = oci_streaming_stream.pharmacy_events.name
+    tier      = "always-free"
+    tenant    = var.tenant_id
+    note      = "Maximizes OCI Always Free for demo/sandbox/trial/dev tenants per feedback_oci_always_free_maximization_2026_05_20"
   }
 }

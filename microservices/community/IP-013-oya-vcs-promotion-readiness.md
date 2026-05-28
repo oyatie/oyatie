@@ -13,11 +13,11 @@ doc_status: published
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-013 — oya-vcs promotion-readiness wiring
+# IP-013 — oya-governance promotion-readiness wiring
 
 ## Intent
 
-Wire the community µservice's release pointers (`release/community/<region>/{dev,staging,production}`) to the oya-vcs promotion-readiness lane. Community-specific gate criteria reference observability's eligibility verdict.
+Wire the community µservice's release pointers (`release/community/<region>/{dev,staging,production}`) to the oya-governance promotion-readiness lane. Community-specific gate criteria reference observability's eligibility verdict.
 
 ## Scope
 

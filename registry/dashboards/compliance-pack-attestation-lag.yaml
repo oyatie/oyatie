@@ -256,7 +256,7 @@ alerts:
     condition: "max(oya:compliance-pack:attestation:lag_seconds:gauge{environment=\"$environment\"}) > 300"
     for: 5m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: regulator_export_success_low
     title: "Regulator evidence export success below 99 percent"

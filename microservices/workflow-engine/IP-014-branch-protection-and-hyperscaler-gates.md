@@ -12,7 +12,7 @@ owner: axis-workflow
 co_owners: [ops-sre-reliability, axis-governance]
 date: 2026-05-18
 related_adrs: [ADR-0123, ADR-0139, ADR-0131]
-acceptance_lanes: [oya-governance-per-microservice-layout, oya-governance-authority-cohesion, hyperscaler-maturity-claims, oya-vcs-promotion-readiness]
+acceptance_lanes: [oya-governance-per-microservice-layout, oya-governance-authority-cohesion, hyperscaler-maturity-claims, oya-governance-promotion-readiness]
 depends_on: [IP-013]
 ---
 
@@ -107,7 +107,7 @@ Wire the workflow-engine µservice into the platform's governance + hyperscaler-
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
 cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice workflow-engine
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-engine
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-engine
 ```
 
 ## Halt conditions
@@ -119,7 +119,7 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microser
 ## Exit criteria
 
 1. All 6 tests green.
-2. `authority-cohesion`, `hyperscaler-maturity-claims`, `per-microservice-layout`, `oya-vcs-promotion-readiness` lanes green for workflow-engine.
+2. `authority-cohesion`, `hyperscaler-maturity-claims`, `per-microservice-layout`, `oya-governance-promotion-readiness` lanes green for workflow-engine.
 3. Synthetic PR to dev blocked when any required check missing.
 4. Release-pointer pattern protection active and verified.
 5. Evidence ledger sealed.

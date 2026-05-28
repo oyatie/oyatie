@@ -174,8 +174,8 @@
       "file": "microservices/observability/IP-011-per-component-release-pointers.md"
     },
     {
-      "id": "IP-012-oya-vcs-promotion-readiness-lane",
-      "title": "IP-012: oya-vcs-promotion-readiness CI lane (BLOCKER)",
+      "id": "IP-012-governance-promotion-readiness-lane",
+      "title": "IP-012: oya-governance-promotion-readiness CI lane (BLOCKER)",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md"
     },

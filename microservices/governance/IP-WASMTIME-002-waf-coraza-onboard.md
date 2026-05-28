@@ -10,7 +10,7 @@ owner: oya-governance
 co_owners: [axis-security, axis-platform-edge]
 date: 2026-05-18
 related_adrs: [ADR-0200, ADR-0182, ADR-0064]
-acceptance_lanes: [waf-correctness, perf-edge-p99, oya-vcs-promotion-readiness]
+acceptance_lanes: [waf-correctness, perf-edge-p99, oya-governance-promotion-readiness]
 depends_on: [IP-WASMTIME-001]
 ---
 
@@ -103,7 +103,7 @@ Minimum 4 required; 8 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate waf-correctness --target coraza
 cargo run -p oya-dev-cli -- gate validate perf-edge-p99 --component waf-coraza
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice governance
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice governance
 cargo test -p oya-governance-waf-coraza --tests
 ```
 
@@ -116,7 +116,7 @@ cargo test -p oya-governance-waf-coraza --tests
 ## Exit criteria
 
 1. All 8 tests green.
-2. `waf-correctness`, `perf-edge-p99`, `oya-vcs-promotion-readiness` lanes green.
+2. `waf-correctness`, `perf-edge-p99`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. EnvoyFilter live in dev cluster; WAF hit-rate visible in governance dashboard.
 5. Runbook published.

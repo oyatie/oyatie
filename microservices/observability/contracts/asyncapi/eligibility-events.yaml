@@ -8,8 +8,8 @@ info:
     Per ADR-0139 and `/specs/agentic-slo-gated-promotion.json` §`events`.
 
     Consumers:
-    - `.github/workflows/promote-dev-to-staging.yml` (repository_dispatch)
-    - `.github/workflows/promote-staging-to-production.yml`
+    - Jenkins promotion job: dev → staging
+    - Jenkins promotion job: staging → production
     - `audit-chain` µservice (Ed25519 seal of every event per Bominal ADR-0028)
     - `grafana-oncall` (incident paging on held/rejected/rollback)
   contact:
@@ -18,12 +18,11 @@ info:
 defaultContentType: application/json
 
 servers:
-  github-actions:
-    host: api.github.com
+  promotion-pipeline:
+    host: jenkins.oyatie.internal
     protocol: https
     description: |
-      GitHub repository_dispatch endpoint.
-      Workflows in `.github/workflows/` consume these via `on.repository_dispatch.types`.
+      Jenkins promotion endpoint. Promotion jobs consume signed `eligibility-changed` events.
   workflow-events-bus:
     host: workflow-events.observability.svc.cluster.local
     protocol: amqp
@@ -32,7 +31,7 @@ servers:
 
 channels:
   eligibility-changed:
-    address: repository_dispatch/eligibility-changed
+    address: workflow-events/eligibility.changed
     messages:
       EligibilityChangedMessage:
         $ref: '#/components/messages/EligibilityChanged'

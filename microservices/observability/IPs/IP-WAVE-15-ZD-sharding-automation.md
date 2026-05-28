@@ -81,15 +81,15 @@ ADR348-ENFORCED-BY-006: oya-governance-tenant-migration-reversibility (new lane;
 
 ## 6. Canonical ADR-0349 Wording
 ADR349-PURPOSE-001: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-ADR349-PURPOSE-002: Jenkins augments rather than replaces GitHub Actions; GitHub Actions remains the hosted PR review CI surface.
+ADR349-PURPOSE-002: Jenkins is the sole CI orchestrator; GitHub Actions is retired as a hosted PR review CI surface.
 ADR349-PURPOSE-003: ArgoCD is the canonical GitOps CD orchestrator and replaces manual kubectl apply and manual Helm CLI deploys across all contexts.
 ADR349-PURPOSE-004: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/`.
 ADR349-PURPOSE-005: Cosign verification, tenant namespace isolation, JCasC-only Jenkins state, and audit-chain deploy emission are enforced by governance lanes.
-ADR349-ENFORCED-BY-001: oya-governance-jenkins-github-actions-parity (new lane; refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-002: oya-governance-argocd-application-cosign-verified (new lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-003: oya-governance-argocd-tenant-namespace-isolation (new lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-004: oya-governance-jenkins-jcasc-only (new lane; refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-005: oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
+ADR349-ENFORCED-BY-001: oya-governance-jenkins-canonical-no-gha-residue (new lane; refuses newly introduced GitHub Actions CI definitions and requires Jenkinsfile/JCasC coverage for the per-microservice CI contract; promoted to BLOCKER per ADR-0359/ADR-0361 Jenkins-sole-CI doctrine)
+ADR349-ENFORCED-BY-002: oya-governance-argocd-application-cosign-verified (new lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER per ADR-0359/ADR-0361 Jenkins-sole-CI doctrine)
+ADR349-ENFORCED-BY-003: oya-governance-argocd-tenant-namespace-isolation (new lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER per ADR-0359/ADR-0361 Jenkins-sole-CI doctrine)
+ADR349-ENFORCED-BY-004: oya-governance-jenkins-jcasc-only (new lane; refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER per ADR-0359/ADR-0361 Jenkins-sole-CI doctrine)
+ADR349-ENFORCED-BY-005: oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class; promoted to BLOCKER per ADR-0359/ADR-0361 Jenkins-sole-CI doctrine)
 
 ## 7. Downstream Implementation Plan
 PLAN-001: Read the manifest sharding_automation block before creating code or workflow changes.

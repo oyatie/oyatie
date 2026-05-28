@@ -21,14 +21,14 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `oya gate run-all --ci-required`, `oya doc adr-index --write`, and `oya lint adr-shape`.
 3. ADR-0346: The verifier MUST block on exit-0 of EACH step before returning success to the caller.
 4. ADR-0347: Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
-5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `governance_lanes` arrays.
+5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, required-check policies, and per-microservice manifest `governance_lanes` arrays.
 6. ADR-0347: Governance is the actual owning team per ADR-0132 + axis-governance, and the bulk rename collapses 34 per-lane migration IPs into one Wave 15-ZB codex-bucket fan-out PR.
 7. ADR-0348: Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
 11. ADR-0349: Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: Jenkins augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
+12. ADR-0349: Jenkins is the sole CI orchestrator, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
 13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/` per ADR-0339.
 
 ## ADR-0346 enforcement lanes
@@ -56,7 +56,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## ADR-0349 enforcement lanes
 
-- `oya-governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
+- `oya-governance-jenkins-canonical-no-gha-residue` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
 - `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
 - `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
 - `oya-governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
@@ -98,11 +98,11 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 4 - ADR-0349 self-hostable CI/CD migration
 
-1. Treat Jenkins LTS as the self-hostable CI substrate for `observability` when GitHub Actions runners are unavailable.
-2. Keep GitHub Actions as the hosted PR review surface; Jenkins augments rather than replaces it.
+1. Treat Jenkins LTS as the self-hostable CI substrate for `observability` when Jenkins CI agents are unavailable.
+2. Jenkins is the sole PR review and merge CI surface; GitHub Actions is retired.
 3. Treat ArgoCD as the GitOps CD orchestrator for this microservice once deployment artifacts exist.
 4. Do not author manual `kubectl apply` or Helm CLI deployment paths as canonical deployment procedure.
-5. Future Jenkinsfile parity must mirror the GitHub Actions CI steps for `observability`.
+5. Jenkinsfile coverage must remain the canonical CI step inventory for `observability`.
 6. Future ArgoCD Application sources must attach cosign verification policy and preserve tenant namespace isolation.
 7. Every ArgoCD sync transition must emit an audit-chain deploy event.
 
@@ -125,7 +125,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 ## Phase 7 - Rollback and reversibility
 
 1. Verification migration rollback: restore prior verifier behavior only through an ADR-backed amendment; do not bypass the full mirror with ad-hoc scripts.
-2. Governance rename rollback: reverse through the rename inventory and branch-protection status checks, preserving lane semantics.
+2. Governance rename rollback: reverse through the rename inventory and required-check statuses, preserving lane semantics.
 3. Sharding automation rollback: use the `rollback_path` from the implementation IP and audit-chain trail for tenant movement reversal.
 4. CI/CD rollback: pause ArgoCD sync, preserve signed artifact provenance, and return to the last verified Git revision rather than manual cluster mutation.
 5. Any rollback that changes tenant placement must preserve residency, compliance packs, and Cedar authorization.

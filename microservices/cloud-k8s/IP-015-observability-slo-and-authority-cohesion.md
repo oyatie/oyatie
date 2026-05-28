@@ -6,7 +6,7 @@ impl_plan_id: IP-015-observability-slo-and-authority-cohesion
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud + axis-observability
-acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-vcs-promotion-readiness]
+acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-governance-promotion-readiness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->

@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-a11y]
 date: 2026-05-18
 related_adrs: [ADR-0185, ADR-0204, ADR-0207]
-acceptance_lanes: [perf-canvas-60fps, a11y-axe-zero-violations, oya-vcs-promotion-readiness]
+acceptance_lanes: [perf-canvas-60fps, a11y-axe-zero-violations, oya-governance-promotion-readiness]
 depends_on: []
 ---
 
@@ -147,7 +147,7 @@ Minimum 8 required; 12 specified.
 cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps \
   --evidence evidence/microservices/workflow-studio/svelte-flow-correctness-*.json
 cargo run -p oya-dev-cli -- gate validate a11y-axe-zero-violations --target svelte-flow
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 pnpm --filter web-sveltekit test:integration canvas
 ```
 
@@ -160,7 +160,7 @@ pnpm --filter web-sveltekit test:integration canvas
 ## Exit criteria
 
 1. All 12 tests green on CI.
-2. `perf-canvas-60fps`, `a11y-axe-zero-violations`, `oya-vcs-promotion-readiness` lanes green.
+2. `perf-canvas-60fps`, `a11y-axe-zero-violations`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Runbook published.
 5. ADR-0204 Phase 1 section updated.

@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-data, axis-platform-shared]
 date: 2026-05-18
 related_adrs: [ADR-0145, ADR-0204, ADR-0208]
-acceptance_lanes: [crdt-correctness-no-silent-loss, perf-loro-merge-latency, oya-vcs-promotion-readiness]
+acceptance_lanes: [crdt-correctness-no-silent-loss, perf-loro-merge-latency, oya-governance-promotion-readiness]
 depends_on: [IP-016]
 ---
 
@@ -116,7 +116,7 @@ Minimum 6 required; 8 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate crdt-correctness-no-silent-loss --crate oya-collab-loro
 cargo run -p oya-dev-cli -- gate validate perf-loro-merge-latency --crate oya-collab-loro
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-collab-loro --tests
 ```
 
@@ -129,7 +129,7 @@ cargo test -p oya-collab-loro --tests
 ## Exit criteria
 
 1. All 8 tests green on Linux + macOS + Windows CI runners.
-2. `crdt-correctness-no-silent-loss`, `perf-loro-merge-latency`, `oya-vcs-promotion-readiness` lanes green.
+2. `crdt-correctness-no-silent-loss`, `perf-loro-merge-latency`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Uniffi bindings cross-compile cleanly for swift / kotlin / cs targets.
 5. Wasm bundle ≤ 800KiB gzipped (CDN budget).

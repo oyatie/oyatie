@@ -12,7 +12,7 @@ owner: axis-foundry
 co_owners: [axis-data]
 date: 2026-05-18
 related_adrs: [ADR-0131, ADR-0064, ADR-0145]
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a1, layer-correctness, oya-vcs-promotion-readiness]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a1, layer-correctness, oya-governance-promotion-readiness]
 depends_on: [IP-035, IP-036]
 ---
 
@@ -120,7 +120,7 @@ Minimum 8 required; 14 specified.
 cargo nextest run -p oya-foundry-eval-eval-runner-adapter
 cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-foundry-eval-eval-runner-adapter
 cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-foundry-eval-eval-runner-adapter
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice foundry
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice foundry
 ```
 
 ## Halt conditions
@@ -133,7 +133,7 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microser
 
 1. All 14 tests green.
 2. ≥ 85% line coverage emitted to evidence.
-3. `lean-a1`, `layer-correctness`, `oya-vcs-promotion-readiness` lanes green.
+3. `lean-a1`, `layer-correctness`, `oya-governance-promotion-readiness` lanes green.
 4. Catalog entry registered.
 5. Runbook published.
 

@@ -240,7 +240,7 @@ alerts:
     condition: "sum(increase(oya:tenancy:isolation:access_attempts_total:counter{environment=\"$environment\"}[5m])) > 0"
     for: 1m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: rejected
   - alert_id: tenant_quota_utilization_high
     title: "Tenant quota utilization above 90 percent"

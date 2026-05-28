@@ -134,7 +134,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Freeze policy promotion: `oya vcs hold --microservice cloud-iam --reason $INCIDENT_ID`.
+1. Freeze policy promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 2. Disable automated provider writes: `oya flags set oya.cloud_iam.translation.auto_apply=false --cell $CELL --reason $INCIDENT_ID`.
 3. Keep Cedar evaluation online: `oya flags set oya.cloud_iam.cedar_authority_only=true --cell $CELL --reason $INCIDENT_ID`.
 4. Open translation breaker: `oya ops breaker open cloud-iam-translation --cell $CELL --ttl 30m --reason $INCIDENT_ID`.
@@ -169,7 +169,7 @@ doc_status: published
 11. Re-enable auto apply for one tenant: `oya flags set oya.cloud_iam.translation.auto_apply=true --tenant $TENANT --cell $CELL`.
 12. Re-run digest comparison: `oya iam target digest --tenant $TENANT --provider all --cell $CELL --expect cedar-current`.
 13. Close breaker: `oya ops breaker close cloud-iam-translation --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold promotion: `oya vcs unhold --microservice cloud-iam --reason resolved-$INCIDENT_ID`.
+14. Unhold promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_TRANSLATION_FAILURE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

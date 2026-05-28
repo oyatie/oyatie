@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-workflow + axis-observability
-acceptance_lanes: [openslo-validate, oya-vcs-promotion-readiness]
+acceptance_lanes: [openslo-validate, oya-governance-promotion-readiness]
 depends_on: [IP-012]
 ---
 
@@ -87,7 +87,7 @@ spec:
 ```bash
 oya gate validate openslo-validate \
   --manifests 'microservices/workflow-studio/slos/*.openslo.yaml'
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness \
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness \
   --microservice workflow-studio
 ```
 

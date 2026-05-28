@@ -112,10 +112,9 @@ If backend logs show ETag computation errors → backend regression.
 
 1. Roll back the calendar µservice to the prior LTS pin:
    ```bash
-   cargo run -p oya-dev-cli -- vcs rollback \
-     --microservice calendar \
-     --component oya-calendar-ics-import-export-adapter-caldav-radicale \
-     --target-version <prior-LTS>
+   git switch -c rollback/calendar-caldav-$INCIDENT_ID dev
+   # Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
+   # and require Jenkins + `oya gate run-all --ci-required` before merge.
    ```
 2. Page council-architecture; the regression is in our strong-ETag
    computation (per ADR-CAL-0001 — backend-qualified adapter must

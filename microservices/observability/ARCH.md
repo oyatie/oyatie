@@ -51,7 +51,7 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 
 ### ADR-0349 Jenkins And ArgoCD CI/CD Context
 - Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
+- Jenkins is the sole PR/merge CI surface with JCasC-only controller state enforced by `oya-governance-jenkins-canonical-no-gha-residue`.
 - ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
 - CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
 

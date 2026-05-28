@@ -108,7 +108,7 @@ Tail Sampling Buffer Saturated incident decision tree
 4. Enable circuit breaker: `oya ops breaker open observability-tail-sampling-buffer-saturated-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n observability scale deploy/observability-tail-sampling-buffer-saturated-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason observability-tail-sampling-buffer-saturated --ttl 60m`.
-7. Pause promotion: `oya vcs hold --microservice observability --reason $INCIDENT_ID --runbook tail-sampling-buffer-saturated`.
+7. Pause promotion: keep the incident rollback/fix PR unmerged and require Jenkins promotion checks to remain held/failing for `$INCIDENT_ID` (runbook: tail-sampling-buffer-saturated).
 8. Drain queue safely: `oya ops observability tail-sampling-buffer-saturated drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops observability tail-sampling-buffer-saturated drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT-OBSERVABILITY-TAIL_SAMPLING_BUFFER_SATURATED-INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -158,7 +158,7 @@ Tail Sampling Buffer Saturated incident decision tree
 14. Watch burn rate: `oya ops watch --metric oya_observability_tail_sampling_buffer_saturated_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close observability-tail-sampling-buffer-saturated-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.observability.tail_sampling_buffer_saturated.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: `oya vcs unhold --microservice observability --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: merge only after reviewer approval plus green Jenkins CI and `oya gate run-all --ci-required`; record `resolved-$INCIDENT_ID` in the incident evidence.
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT-OBSERVABILITY-TAIL_SAMPLING_BUFFER_SATURATED-INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=tail-sampling-buffer-saturated`.
 19. Verify seal: `oya audit-chain verify --event-class EVT-OBSERVABILITY-TAIL_SAMPLING_BUFFER_SATURATED-INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.

@@ -39,7 +39,7 @@ Tempo + Mimir + Loki are independently resilient. ClickHouse is the rollup + cor
 
 ## Q8: My CFO wants to know why we're not on Datadog. What's the answer?
 
-Three reasons: (1) cost — Datadog at 100 k events/sec sustained + 1 PiB cold-retention envelope runs ~ 2.3 M USD/yr at list price; oyatie paid baseline runs ~ 510 k USD/yr. Even at a 50 % Datadog discount we save 700 k USD/yr per cell. (2) sovereignty — Datadog cannot host KR-PIPA or EU-AI-Act-resident telemetry without crossing pack boundaries; oyatie paid sovereign-pack posture is air-gap-resident per pack. (3) substrate-fit — the promotion-gate evidence that ADR-0130 requires has to be queryable by other oyatie µservices (`oya-vcs` for merge admission, `audit-chain` for cryptographic anchoring); Datadog's API is rate-limited (~ 300 qps) and lacks the cross-signal correlation our substrate depends on.
+Three reasons: (1) cost — Datadog at 100 k events/sec sustained + 1 PiB cold-retention envelope runs ~ 2.3 M USD/yr at list price; oyatie paid baseline runs ~ 510 k USD/yr. Even at a 50 % Datadog discount we save 700 k USD/yr per cell. (2) sovereignty — Datadog cannot host KR-PIPA or EU-AI-Act-resident telemetry without crossing pack boundaries; oyatie paid sovereign-pack posture is air-gap-resident per pack. (3) substrate-fit — the promotion-gate evidence that ADR-0130 requires has to be queryable by other oyatie µservices (`oya gate` for merge admission, `audit-chain` for cryptographic anchoring); Datadog's API is rate-limited (~ 300 qps) and lacks the cross-signal correlation our substrate depends on.
 
 ## Q9: How do I know if my SLO objectives are too tight or too loose?
 

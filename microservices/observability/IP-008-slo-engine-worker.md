@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, statelessness, shardabil
 
 ## Intent
 
-Long-lived continuous burn-rate evaluator. 60s cadence. HA via Kubernetes Lease leadership election. Emits `EligibilityChanged` via repository_dispatch GitHub Actions event. Stateless beyond evaluator window. Fail-closed during cold-start (≥3 cycles of clean data before emitting `eligible`).
+Long-lived continuous burn-rate evaluator. 60s cadence. HA via Kubernetes Lease leadership election. Emits signed `EligibilityChanged` events for the Jenkins promotion pipeline. Stateless beyond evaluator window. Fail-closed during cold-start (≥3 cycles of clean data before emitting `eligible`).
 
 ## Concrete File Targets
 
@@ -79,7 +79,7 @@ Per PHASE-01 worker class: 1 test per orchestration arm + ≥ 1 long-lived loop 
 |---|---|
 | `test_worker_leader_election` | HA replicas → exactly one leader |
 | `test_worker_fail_closed_bootstrap` | < 3 clean cycles → no Eligible emission |
-| `test_worker_dispatches_event` | Verdict change → repository_dispatch fires |
+| `test_worker_dispatches_event` | Verdict change → signed eligibility event emitted |
 | `integration_60s_cycle` | inject synthetic burn-rate → verdict transitions held within ≤ 60s |
 
 ## Halt Conditions

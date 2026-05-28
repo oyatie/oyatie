@@ -56,7 +56,7 @@ branches:
   staging:
     required_status_checks:
       - oya-governance-workflow-spec-roundtrip
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/workflow-studio/staging
   :
@@ -66,7 +66,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/workflow-studio/production
   :
@@ -76,7 +76,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 ```
 
 `/specs/hyperscaler-gates.json` (append):

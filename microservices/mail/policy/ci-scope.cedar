@@ -1,7 +1,7 @@
 // mail µservice — CI-scope policy fragment
 // Cedar v4 schema
 //
-// Purpose: grant CI runners + the oya-vcs-promotion-readiness lane + LEAN gates
+// Purpose: grant CI runners + the oya-governance-promotion-readiness lane + LEAN gates
 //          minimal-necessary read access to mail-specific metrics, lane outputs,
 //          and OpenSLO manifests. No mailbox content access.
 // Owner:   ops-security + axis-mail
