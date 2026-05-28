@@ -1,14 +1,38 @@
-# Oyatie CI farm — Jenkins controller (LOCAL k3s / colima profile)
-# Realizes EXE-CI-FARM-SUBSTRATE-CANONICAL (ADR-0349) for a single-node local
-# cluster. JCasC-only; numExecutors=0 on the controller; ephemeral Kubernetes
+# Oyatie CI farm — Jenkins controller (Talos local; ADR-0380 D1+D2 redesign)
+# Realizes EXE-CI-FARM-SUBSTRATE-CANONICAL (ADR-0349) for the Talos local substrate
+# (ADR-0378). JCasC-only; numExecutors=0 on the controller; ephemeral Kubernetes
 # agents in the oya-ci-jenkins namespace.
 #
-# LOCAL-vs-PRODUCTION deltas (intentionally simplified here — see README.md):
-#   - runtimeClass kata-cloud-hypervisor (ADR-0338)  -> omitted; k3s default runc
-#   - Karpenter elastic node autoscaling (ADR-0198)  -> omitted; single colima node
+# 2026-05-28 — ADR-0380 D1+D2 cutover: this file was redesigned away from the
+# colima-era topology (SeaweedFS sccache + hostPath /Users/jasonlee mount, both
+# structurally broken on Talos VMs). Concretely:
+#   - D1 plugins: added generic-webhook-trigger + build-token-root + http_request
+#     so the gated job (D3) can accept token-authed webhook dispatches from the
+#     ci-webhook-gateway (ADR-0374) and post Forgejo commit-status via the
+#     statuses API. The gitea plugin is intentionally NOT installed — Forgejo
+#     is canonical (ADR-0363) and the gateway already does webhook discovery.
+#   - D2 agent template: collapsed three colima-era templates (rust-ci /
+#     rust-build / rust-parallel) into a single self-contained `rust-ci`; stripped
+#     all sccache wiring (RUSTC_WRAPPER, SCCACHE_*, AWS_*); dropped the hostPath
+#     /Users/jasonlee/Developer/source mount (a Talos VM cannot see the macOS
+#     host filesystem). The Jenkinsfile in D3 will clone the PR ref into the
+#     workspace using the GH_TOKEN env (projected from the gateway-build-git
+#     Secret), then run `oya gate run-all`, then post the status.
+#
+# Remote build cache is honest-deferred to ADR-0381 D4 (SeaweedFS-on-Talos
+# restored onto the storage specialty pool); BuildKit's `s3` cache and Jenkins
+# agent sccache will share the same SeaweedFS once D4 lands. Until then the gate
+# runs against a cold cargo cache (correct but slow — discipline beats speed).
+#
+# LOCAL-vs-PRODUCTION deltas (intentionally simplified — see README.md):
+#   - runtimeClass kata-cloud-hypervisor (ADR-0338)  -> omitted; Talos default runc
+#   - Karpenter elastic node autoscaling (ADR-0198)  -> omitted; single Talos node
+#                                                      (multi-node CP/Worker/Specialty
+#                                                      pools land in ADR-0381 D2)
 #   - cosign-required digest-pinned agent image      -> public rust image (local only)
-#   - sccache -> SeaweedFS S3 remote cache           -> wired as env, backend deployed separately
-#   - OpenBao-bound S3 credentials                   -> local k8s Secret placeholder
+#   - SeaweedFS sccache + AWS_* creds                -> deferred to ADR-0381 D4
+#   - hostPath /Users/jasonlee/Developer/source      -> retired; pipeline clones
+#                                                      from GitHub via GH_TOKEN
 # None of these deltas change the controller/agent/JCasC contract; they are the
 # capacity/hardening layer that only the real multi-node farm provides.
 
@@ -24,6 +48,10 @@ controller:
     - credentials-binding
     - cloudbees-folder
     - pipeline-stage-view
+    # ADR-0380 D1: gating-pipeline plugins.
+    - generic-webhook-trigger    # token-authed inbound dispatch from ci-webhook-gateway (ADR-0374)
+    - build-token-root           # per-job build tokens; the gateway uses these to authorize triggers
+    - http_request               # POST to Forgejo statuses API for commit-status (no `gitea` plugin — ADR-0363 Forgejo canonical)
   resources:
     requests:
       cpu: "500m"
@@ -47,7 +75,7 @@ controller:
                 # websocket: agents tunnel inbound over the 8080 HTTP service, so no
                 # separate JNLP TCP:50000 endpoint resolution is required.
                 webSocket: true
-                containerCapStr: "20"           # spec container_cap: safety ceiling, not a fixed pool
+                containerCapStr: "20"           # safety ceiling, not a fixed pool
                 connectTimeout: 60
                 readTimeout: 60
                 templates:
@@ -55,16 +83,17 @@ controller:
                     namespace: "oya-ci-jenkins"
                     label: "oya-rust-ci"
                     yamlMergeStrategy: "override"
-                    # sccache -> SeaweedFS remote cache env (spec remote_build_cache.agent_env).
-                    # Credentials are NOT inlined: bound from the seaweedfs-s3 Secret.
+                    # ADR-0380 D2 (Talos redesign): one self-contained template.
+                    # NO sccache substrate (no SeaweedFS on Talos yet — ADR-0381
+                    # D4 restores it). NO hostPath mount (Talos VM cannot see
+                    # the macOS host filesystem). The Jenkinsfile (D3) clones the
+                    # PR ref into /workspace using GH_TOKEN, then runs the gate.
                     yaml: |
                       apiVersion: v1
                       kind: Pod
                       spec:
-                        # Run as UID 1000 (the jenkins workspace owner) so the durable
-                        # task can write the workspace. Numeric UID satisfies non-root,
-                        # and dropping ALL caps is safe because we own the workspace
-                        # (root + drop-ALL strips CAP_DAC_OVERRIDE -> cannot write).
+                        # Run as UID 1000 (the jenkins workspace owner) so the
+                        # durable task can write the workspace.
                         securityContext:
                           runAsNonRoot: true
                           runAsUser: 1000
@@ -79,148 +108,29 @@ controller:
                               capabilities:
                                 drop: ["ALL"]
                             env:
-                              - name: RUSTC_WRAPPER
-                                value: "sccache"
-                              - name: SCCACHE_BUCKET
-                                value: "oya-ci-sccache-shared-prod"
-                              - name: SCCACHE_ENDPOINT
-                                value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
-                              - name: SCCACHE_S3_USE_SSL
-                                value: "false"
-                              - name: SCCACHE_REGION
-                                value: "oya-local"
+                              # No sccache; no AWS_*. Cargo runs cold until ADR-0381 D4.
                               - name: CARGO_INCREMENTAL
                                 value: "0"
-                            resources:
-                              requests:
-                                cpu: "500m"
-                                memory: "1Gi"
-                              limits:
-                                cpu: "2"
-                                memory: "4Gi"
-                  - name: "rust-build"
-                    namespace: "oya-ci-jenkins"
-                    label: "oya-rust-build"
-                    yamlMergeStrategy: "override"
-                    # Real build lane: hostPath-mounts the repo (RO) so the agent
-                    # clones a clean tree, and binds SeaweedFS S3 creds so sccache
-                    # uses the real remote cache. Bigger resources for cargo.
-                    yaml: |
-                      apiVersion: v1
-                      kind: Pod
-                      spec:
-                        securityContext:
-                          runAsNonRoot: true
-                          runAsUser: 1000
-                          fsGroup: 1000
-                        containers:
-                          - name: rust
-                            image: rust:1-bookworm
-                            command: ["sleep"]
-                            args: ["infinity"]
-                            securityContext:
-                              allowPrivilegeEscalation: false
-                              capabilities:
-                                drop: ["ALL"]
-                            env:
-                              - name: RUSTC_WRAPPER
-                                value: "sccache"
-                              - name: SCCACHE_BUCKET
-                                value: "oya-ci-sccache-shared-prod"
-                              - name: SCCACHE_ENDPOINT
-                                value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
-                              - name: SCCACHE_S3_USE_SSL
-                                value: "false"
-                              - name: SCCACHE_REGION
-                                value: "oya-local"
-                              - name: CARGO_INCREMENTAL
-                                value: "0"
-                              # S3 creds for sccache (local Secret; prod: OpenBao-bound)
-                              - name: AWS_ACCESS_KEY_ID
+                              # gh token for the pipeline's first-stage `git clone`
+                              # of the PR ref. The gateway-build-git Secret already
+                              # exists in oya-ci-jenkins (it was minted for the
+                              # retired Kaniko Job; ADR-0381 D1 keeps it).
+                              - name: GH_TOKEN
                                 valueFrom:
-                                  secretKeyRef: { name: seaweedfs-s3, key: access_key }
-                              - name: AWS_SECRET_ACCESS_KEY
-                                valueFrom:
-                                  secretKeyRef: { name: seaweedfs-s3, key: secret_key }
-                            volumeMounts:
-                              - name: repo-src
-                                mountPath: /workspace-src
-                                readOnly: true
+                                  secretKeyRef:
+                                    name: gateway-build-git
+                                    key: token
                             resources:
                               requests:
                                 cpu: "2"
                                 memory: "4Gi"
                               limits:
-                                cpu: "5"
-                                memory: "12Gi"
-                        volumes:
-                          - name: repo-src
-                            hostPath:
-                              path: /Users/jasonlee/Developer/source
-                              type: Directory
-                  - name: "rust-parallel"
-                    namespace: "oya-ci-jenkins"
-                    label: "oya-rust-parallel"
-                    yamlMergeStrategy: "override"
-                    # Same as rust-build but a 1-CPU request so multiple lanes
-                    # co-schedule on the single local node (concurrency demo).
-                    # Production scales lanes with Karpenter (cap, not fixed pool).
-                    yaml: |
-                      apiVersion: v1
-                      kind: Pod
-                      spec:
-                        securityContext:
-                          runAsNonRoot: true
-                          runAsUser: 1000
-                          fsGroup: 1000
-                        containers:
-                          - name: rust
-                            image: rust:1-bookworm
-                            command: ["sleep"]
-                            args: ["infinity"]
-                            securityContext:
-                              allowPrivilegeEscalation: false
-                              capabilities:
-                                drop: ["ALL"]
-                            env:
-                              - name: RUSTC_WRAPPER
-                                value: "sccache"
-                              - name: SCCACHE_BUCKET
-                                value: "oya-ci-sccache-shared-prod"
-                              - name: SCCACHE_ENDPOINT
-                                value: "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333"
-                              - name: SCCACHE_S3_USE_SSL
-                                value: "false"
-                              - name: SCCACHE_REGION
-                                value: "oya-local"
-                              - name: CARGO_INCREMENTAL
-                                value: "0"
-                              - name: AWS_ACCESS_KEY_ID
-                                valueFrom:
-                                  secretKeyRef: { name: seaweedfs-s3, key: access_key }
-                              - name: AWS_SECRET_ACCESS_KEY
-                                valueFrom:
-                                  secretKeyRef: { name: seaweedfs-s3, key: secret_key }
-                            volumeMounts:
-                              - name: repo-src
-                                mountPath: /workspace-src
-                                readOnly: true
-                            resources:
-                              requests:
-                                cpu: "1"
-                                memory: "2Gi"
-                              limits:
-                                cpu: "3"
-                                memory: "6Gi"
-                        volumes:
-                          - name: repo-src
-                            hostPath:
-                              path: /Users/jasonlee/Developer/source
-                              type: Directory
+                                cpu: "4"
+                                memory: "8Gi"
 
 persistence:
   enabled: true
-  storageClass: "local-path"   # k3s default provisioner
+  storageClass: "local-path"   # k3s default provisioner (Talos: replaced by storage specialty pool in ADR-0381 D2)
   size: "8Gi"
 
 agent:
