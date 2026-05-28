@@ -386,6 +386,53 @@ mod tests {
     }
 
     #[test]
+    fn from_json_accepts_all_provider_channels_for_group_selection() {
+        let json = r#"
+        {
+          "listen_addr": "127.0.0.1:0",
+          "openbao": { "address": "http://bao:8200" },
+          "groups": [
+            {
+              "name": "openai",
+              "channel": "openai",
+              "upstream_base_url": "https://api.openai.com",
+              "bao_key_path": "agent-gateway/openai"
+            },
+            {
+              "name": "anthropic",
+              "channel": "anthropic",
+              "upstream_base_url": "https://api.anthropic.com",
+              "bao_key_path": "agent-gateway/anthropic",
+              "anthropic_version": "2023-06-01"
+            },
+            {
+              "name": "gemini",
+              "channel": "gemini",
+              "upstream_base_url": "https://generativelanguage.googleapis.com",
+              "bao_key_path": "agent-gateway/gemini"
+            }
+          ]
+        }
+        "#;
+
+        let cfg = GatewayConfig::from_json(json).expect("all provider channels are valid");
+        let selected: Vec<_> = cfg
+            .groups
+            .iter()
+            .map(|group| (group.name.as_str(), group.parsed_channel()))
+            .collect();
+
+        assert_eq!(
+            selected,
+            vec![
+                ("openai", Some(ProviderChannel::OpenAi)),
+                ("anthropic", Some(ProviderChannel::Anthropic)),
+                ("gemini", Some(ProviderChannel::Gemini)),
+            ]
+        );
+    }
+
+    #[test]
     fn from_json_rejects_invalid_after_parse() {
         let json = r#"
         {

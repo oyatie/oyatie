@@ -275,6 +275,7 @@ members = [
   "crates/oya-llm-gateway-kernel",
   "crates/oya-llm-gateway-rest",
   "crates/oya-llm-gateway-app",
+  # ADR-0376 managed-Kubernetes control-plane-host (hosted-Kamaji + dedicated-Talos-spoke tiers).
   "crates/oya-identity-workload-domain",
   "crates/oya-identity-workload-authz-cedar-adapter",
   "crates/oya-identity-workload-oidc-adapter",

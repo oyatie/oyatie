@@ -32,6 +32,7 @@ use std::fmt;
 pub const KERNEL_SCHEMA_VERSION: u32 = 1;
 pub const TENANT_ID_MAX_LEN: usize = 128;
 pub const TABLE_NAME_MAX_LEN: usize = 96;
+pub const COLUMN_NAME_MAX_LEN: usize = 96;
 
 /// Validated tenant id — locally defined to keep this kernel zero-dep.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -110,6 +111,30 @@ impl fmt::Display for TableName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.0)
     }
+}
+
+/// Validate a ClickHouse column or alias identifier accepted by the kernel.
+///
+/// Identifiers are intentionally narrower than ClickHouse's full grammar so
+/// adapter renderers can quote them mechanically without accepting SQL syntax.
+pub fn validate_column_name(column: &str) -> Result<(), KernelError> {
+    if column.is_empty() {
+        return Err(KernelError::ColumnNameEmpty);
+    }
+    if column.len() > COLUMN_NAME_MAX_LEN {
+        return Err(KernelError::ColumnNameTooLong {
+            actual: column.len(),
+        });
+    }
+    if !column
+        .bytes()
+        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_')
+    {
+        return Err(KernelError::ColumnNameInvalidChar {
+            column: column.to_string(),
+        });
+    }
+    Ok(())
 }
 
 /// A fully-qualified table identifier: `(TenantId, TableName)`.
@@ -363,6 +388,68 @@ pub struct QuotaProfile {
     pub max_insert_rows_per_hour: u64,
 }
 
+impl ColumnDef {
+    pub fn validate(&self) -> Result<(), KernelError> {
+        validate_column_name(&self.name)
+    }
+}
+
+impl TableSchema {
+    /// Validate table DDL before adapter rendering.
+    pub fn validate(&self) -> Result<(), KernelError> {
+        if self.columns.is_empty() {
+            return Err(KernelError::EmptyTableColumns);
+        }
+        if self.order_by.is_empty() {
+            return Err(KernelError::EmptyOrderBy);
+        }
+        let mut seen = BTreeMap::<&str, ()>::new();
+        for col in &self.columns {
+            col.validate()?;
+            if seen.insert(col.name.as_str(), ()).is_some() {
+                return Err(KernelError::DuplicateColumn {
+                    column: col.name.clone(),
+                });
+            }
+        }
+        for order_col in &self.order_by {
+            validate_column_name(order_col)?;
+            if !seen.contains_key(order_col.as_str()) {
+                return Err(KernelError::UnknownColumn {
+                    column: order_col.clone(),
+                });
+            }
+        }
+        Ok(())
+    }
+}
+
+impl InsertBatch {
+    pub fn validate_shape(&self) -> Result<(), KernelError> {
+        if self.columns.is_empty() {
+            return Err(KernelError::EmptyTableColumns);
+        }
+        let mut seen = BTreeMap::<&str, ()>::new();
+        for col in &self.columns {
+            validate_column_name(col)?;
+            if seen.insert(col.as_str(), ()).is_some() {
+                return Err(KernelError::DuplicateColumn {
+                    column: col.clone(),
+                });
+            }
+        }
+        for row in &self.rows {
+            if row.len() != self.columns.len() {
+                return Err(KernelError::MismatchedInsertColumns {
+                    expected: self.columns.len(),
+                    actual: row.len(),
+                });
+            }
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum KernelError {
     TenantIdEmpty,
@@ -371,6 +458,12 @@ pub enum KernelError {
     TableNameEmpty,
     TableNameTooLong { actual: usize },
     TableNameInvalidChar,
+    ColumnNameEmpty,
+    ColumnNameTooLong { actual: usize },
+    ColumnNameInvalidChar { column: String },
+    DuplicateColumn { column: String },
+    EmptyTableColumns,
+    EmptyOrderBy,
     EmptyProjection,
     UnknownColumn { column: String },
     MismatchedInsertColumns { expected: usize, actual: usize },
@@ -391,6 +484,19 @@ impl fmt::Display for KernelError {
                 write!(f, "table name length {actual} exceeds {TABLE_NAME_MAX_LEN}")
             }
             Self::TableNameInvalidChar => write!(f, "table name contains invalid character"),
+            Self::ColumnNameEmpty => write!(f, "column name is empty"),
+            Self::ColumnNameTooLong { actual } => {
+                write!(
+                    f,
+                    "column name length {actual} exceeds {COLUMN_NAME_MAX_LEN}"
+                )
+            }
+            Self::ColumnNameInvalidChar { column } => {
+                write!(f, "column name {column} contains invalid character")
+            }
+            Self::DuplicateColumn { column } => write!(f, "duplicate column {column}"),
+            Self::EmptyTableColumns => write!(f, "table schema has no columns"),
+            Self::EmptyOrderBy => write!(f, "table schema has no ORDER BY columns"),
             Self::EmptyProjection => write!(f, "query has empty projection"),
             Self::UnknownColumn { column } => write!(f, "unknown column {column}"),
             Self::MismatchedInsertColumns { expected, actual } => {
@@ -441,12 +547,234 @@ pub fn assert_same_tenant(caller: &TenantId, table: &QualifiedTable) -> Result<(
     }
 }
 
-/// Validate that a query has at least one projection (column or aggregate).
+/// Validate that a query has a projection and only kernel-safe identifiers.
 pub fn validate_query(query: &Query) -> Result<(), KernelError> {
     if query.columns.is_empty() && query.aggregates.is_empty() {
         return Err(KernelError::EmptyProjection);
     }
+    for col in &query.columns {
+        validate_column_name(col)?;
+    }
+    for (agg, alias) in &query.aggregates {
+        validate_aggregate(agg)?;
+        validate_column_name(alias)?;
+    }
+    if let Some(filter) = &query.filter {
+        validate_filter(filter)?;
+    }
+    for col in &query.group_by {
+        validate_column_name(col)?;
+    }
+    for order in &query.order_by {
+        validate_column_name(&order.column)?;
+    }
     Ok(())
+}
+
+fn validate_filter(filter: &Filter) -> Result<(), KernelError> {
+    match filter {
+        Filter::Eq { column, .. }
+        | Filter::Ne { column, .. }
+        | Filter::Lt { column, .. }
+        | Filter::Le { column, .. }
+        | Filter::Gt { column, .. }
+        | Filter::Ge { column, .. } => validate_column_name(column),
+        Filter::And(filters) | Filter::Or(filters) => {
+            for filter in filters {
+                validate_filter(filter)?;
+            }
+            Ok(())
+        }
+    }
+}
+
+fn validate_aggregate(aggregate: &Aggregate) -> Result<(), KernelError> {
+    match aggregate {
+        Aggregate::Count => Ok(()),
+        Aggregate::CountDistinct { column }
+        | Aggregate::Sum { column }
+        | Aggregate::Avg { column }
+        | Aggregate::Min { column }
+        | Aggregate::Max { column }
+        | Aggregate::Quantile { column, .. }
+        | Aggregate::TopK { column, .. } => validate_column_name(column),
+    }
+}
+
+/// ClickHouse SQL and bound parameters emitted from the typed query DSL.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RenderedQuery {
+    pub sql: String,
+    pub params: BTreeMap<String, Value>,
+}
+
+/// Render a typed query to ClickHouse SQL using `{name:Type}` placeholders.
+///
+/// The renderer is intentionally small and deterministic so the future
+/// ClickHouse adapter crate can bind values without raw SQL interpolation.
+pub fn render_clickhouse_query(
+    caller: &TenantId,
+    query: &Query,
+) -> Result<RenderedQuery, KernelError> {
+    assert_same_tenant(caller, &query.source)?;
+    validate_query(query)?;
+
+    let mut projection = Vec::new();
+    for col in &query.columns {
+        projection.push(quote_identifier(col));
+    }
+    for (agg, alias) in &query.aggregates {
+        projection.push(format!(
+            "{} AS {}",
+            render_aggregate(agg),
+            quote_identifier(alias)
+        ));
+    }
+
+    let mut params = BTreeMap::new();
+    let mut next_param = 0usize;
+    let mut sql = format!(
+        "SELECT {} FROM {}",
+        projection.join(", "),
+        quote_qualified_table(&query.source)
+    );
+    if let Some(filter) = &query.filter {
+        sql.push_str(" WHERE ");
+        sql.push_str(&render_filter(filter, &mut params, &mut next_param)?);
+    }
+    if !query.group_by.is_empty() {
+        let cols = query
+            .group_by
+            .iter()
+            .map(|c| quote_identifier(c))
+            .collect::<Vec<_>>()
+            .join(", ");
+        sql.push_str(" GROUP BY ");
+        sql.push_str(&cols);
+    }
+    if !query.order_by.is_empty() {
+        let cols = query
+            .order_by
+            .iter()
+            .map(|o| {
+                format!(
+                    "{} {}",
+                    quote_identifier(&o.column),
+                    match o.dir {
+                        OrderDir::Asc => "ASC",
+                        OrderDir::Desc => "DESC",
+                    }
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        sql.push_str(" ORDER BY ");
+        sql.push_str(&cols);
+    }
+    if let Some(limit) = query.limit {
+        sql.push_str(" LIMIT ");
+        sql.push_str(&limit.to_string());
+    }
+    Ok(RenderedQuery { sql, params })
+}
+
+fn render_aggregate(aggregate: &Aggregate) -> String {
+    match aggregate {
+        Aggregate::Count => "count()".to_string(),
+        Aggregate::CountDistinct { column } => format!("uniqExact({})", quote_identifier(column)),
+        Aggregate::Sum { column } => format!("sum({})", quote_identifier(column)),
+        Aggregate::Avg { column } => format!("avg({})", quote_identifier(column)),
+        Aggregate::Min { column } => format!("min({})", quote_identifier(column)),
+        Aggregate::Max { column } => format!("max({})", quote_identifier(column)),
+        Aggregate::Quantile { column, q } => {
+            format!("quantile({q})({})", quote_identifier(column))
+        }
+        Aggregate::TopK { column, k } => format!("topK({k})({})", quote_identifier(column)),
+    }
+}
+
+fn render_filter(
+    filter: &Filter,
+    params: &mut BTreeMap<String, Value>,
+    next_param: &mut usize,
+) -> Result<String, KernelError> {
+    match filter {
+        Filter::Eq { column, value } => {
+            render_binary_filter(column, "=", value, params, next_param)
+        }
+        Filter::Ne { column, value } => {
+            render_binary_filter(column, "!=", value, params, next_param)
+        }
+        Filter::Lt { column, value } => {
+            render_binary_filter(column, "<", value, params, next_param)
+        }
+        Filter::Le { column, value } => {
+            render_binary_filter(column, "<=", value, params, next_param)
+        }
+        Filter::Gt { column, value } => {
+            render_binary_filter(column, ">", value, params, next_param)
+        }
+        Filter::Ge { column, value } => {
+            render_binary_filter(column, ">=", value, params, next_param)
+        }
+        Filter::And(filters) => render_filter_group("AND", filters, params, next_param),
+        Filter::Or(filters) => render_filter_group("OR", filters, params, next_param),
+    }
+}
+
+fn render_filter_group(
+    op: &str,
+    filters: &[Filter],
+    params: &mut BTreeMap<String, Value>,
+    next_param: &mut usize,
+) -> Result<String, KernelError> {
+    let rendered = filters
+        .iter()
+        .map(|f| render_filter(f, params, next_param))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(format!("({})", rendered.join(&format!(" {op} "))))
+}
+
+fn render_binary_filter(
+    column: &str,
+    op: &str,
+    value: &Value,
+    params: &mut BTreeMap<String, Value>,
+    next_param: &mut usize,
+) -> Result<String, KernelError> {
+    validate_column_name(column)?;
+    let name = format!("p{next_param}");
+    *next_param += 1;
+    params.insert(name.clone(), value.clone());
+    Ok(format!(
+        "{} {op} {{{}:{}}}",
+        quote_identifier(column),
+        name,
+        clickhouse_param_type(value)
+    ))
+}
+
+fn clickhouse_param_type(value: &Value) -> &'static str {
+    match value {
+        Value::UInt(_) => "UInt64",
+        Value::Int(_) => "Int64",
+        Value::Float(_) => "Float64",
+        Value::String(_) => "String",
+        Value::DateTime(_) => "DateTime",
+        Value::Bool(_) => "Bool",
+    }
+}
+
+fn quote_qualified_table(table: &QualifiedTable) -> String {
+    format!(
+        "{}.{}",
+        quote_identifier(&table.tenant_id().database_name()),
+        quote_identifier(table.table().as_str())
+    )
+}
+
+fn quote_identifier(identifier: &str) -> String {
+    format!("`{identifier}`")
 }
 
 /// In-process reference adapter — pure-Rust in-memory OLAP for tests.
@@ -507,6 +835,7 @@ pub mod memory_adapter {
         }
 
         fn ensure_table(&mut self, schema: &TableSchema) -> Result<(), KernelError> {
+            schema.validate()?;
             let tenant = schema.table.tenant_id().clone();
             self.ensure_tenant_database(&tenant)?;
             let db = self.db_mut(&tenant)?;
@@ -550,6 +879,7 @@ pub mod memory_adapter {
         }
 
         fn insert(&mut self, batch: &InsertBatch) -> Result<u64, KernelError> {
+            batch.validate_shape()?;
             let tenant = batch.target.tenant_id().clone();
             let table_key = batch.target.table().as_str().to_string();
             let db = self.db_mut(&tenant)?;
@@ -956,6 +1286,84 @@ mod tests {
             max_insert_rows_per_hour: 100_000,
         })
         .unwrap();
+    }
+
+    #[test]
+    fn table_schema_validation_rejects_unknown_order_column() {
+        let err = TableSchema {
+            table: QualifiedTable::new(tid("ten_acme"), tbl("events")),
+            columns: vec![ColumnDef::new("id", ColumnType::UInt64, false)],
+            engine: TableEngine::MergeTree,
+            order_by: vec!["missing".into()],
+            partition_by: None,
+            ttl: None,
+        }
+        .validate()
+        .unwrap_err();
+        assert_eq!(
+            err,
+            KernelError::UnknownColumn {
+                column: "missing".into()
+            }
+        );
+    }
+
+    #[test]
+    fn render_clickhouse_query_uses_bound_parameters_and_qualified_table() {
+        let acme = tid("ten_acme");
+        let rendered = render_clickhouse_query(
+            &acme,
+            &Query {
+                source: QualifiedTable::new(acme.clone(), tbl("events")),
+                columns: vec!["status".into()],
+                aggregates: vec![(Aggregate::Count, "event_count".into())],
+                filter: Some(Filter::And(vec![
+                    Filter::Eq {
+                        column: "status".into(),
+                        value: Value::String("ok".into()),
+                    },
+                    Filter::Ge {
+                        column: "emitted_at".into(),
+                        value: Value::DateTime(1_776_000_000),
+                    },
+                ])),
+                group_by: vec!["status".into()],
+                order_by: vec![OrderBy {
+                    column: "event_count".into(),
+                    dir: OrderDir::Desc,
+                }],
+                limit: Some(10),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            rendered.sql,
+            "SELECT `status`, count() AS `event_count` FROM `tenant_ten_acme`.`events` WHERE (`status` = {p0:String} AND `emitted_at` >= {p1:DateTime}) GROUP BY `status` ORDER BY `event_count` DESC LIMIT 10"
+        );
+        assert_eq!(rendered.params.get("p0"), Some(&Value::String("ok".into())));
+        assert_eq!(
+            rendered.params.get("p1"),
+            Some(&Value::DateTime(1_776_000_000))
+        );
+    }
+
+    #[test]
+    fn render_clickhouse_query_blocks_cross_tenant_source() {
+        let err = render_clickhouse_query(
+            &tid("ten_acme"),
+            &Query {
+                source: QualifiedTable::new(tid("ten_other"), tbl("events")),
+                columns: vec!["id".into()],
+                aggregates: vec![],
+                filter: None,
+                group_by: vec![],
+                order_by: vec![],
+                limit: None,
+            },
+        )
+        .unwrap_err();
+        assert_eq!(err, KernelError::CrossTenantAccessDenied);
     }
 
     #[test]

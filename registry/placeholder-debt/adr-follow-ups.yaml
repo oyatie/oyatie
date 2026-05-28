@@ -1036,10 +1036,10 @@ follow_ups:
       fallback control-plane provider is k0smotron (ADR-0376 Door).
     driver_docs:
       - docs/decisions/ADR-0376-managed-kubernetes-product-surface.md
-      - microservices/managed/control-plane-host/PRD.md
-      - microservices/managed/control-plane-host/threat-model.md
-      - microservices/managed/crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
-      - microservices/managed/crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
+      - microservices/managed-k8s-control-plane-host/PRD.md
+      - microservices/managed-k8s-control-plane-host/threat-model.md
+      - crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
+      - crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
     owner: council-architecture + ops-platform
     trigger: |
       The dogfood tenant-zero milestone where Oyatie provisions its OWN clusters
@@ -1132,5 +1132,22 @@ follow_ups:
       - microservices/observability/IP-001-layer-a-grafana-stack-iac.md
     owner: ops-platform + axis-observability
     trigger: First on-call rotation requires Grafana OnCall routing.
+    status: pending
+    adr_when_landed: ""
+
+  - id: llm-gateway-internaldogfood-bypass-removal
+    intent: |
+      Document the removal of the implicit InternalDogfood escape clause from
+      the llm-gateway Cedar policy (LANE-1 hardening 2026-05-28). The previous
+      bypass shorted forbid rules for any principal in Role::"InternalDogfood";
+      that is incompatible with default-deny forbid-wins semantics required by
+      ADR-0183. Existing dogfood principals must be migrated to explicit Role
+      bindings (admin / ingress_proxy / audit). If a dogfood principal still
+      hits Forbidden after this PR, that surfaces as a typed auth failure
+      rather than a silent allow.
+    driver_docs:
+      - microservices/llm-gateway/policy/llm-gateway.cedar
+    owner: council-architecture + axis-llm-gateway
+    trigger: First dogfood principal hits a Forbidden response on a route that previously worked.
     status: pending
     adr_when_landed: ""
