@@ -149,11 +149,12 @@ exists as their managed offering):
   and the multi-pool topology is what GKE / EKS / AKS themselves run.
 
 Both decisions are substrate-canonical; they belong in a dedicated ADR rather
-than further-bloating this one. **ADR-0381 (next, separate branch) captures
-"Kaniko→BuildKit migration + multi-node Talos cell topology" formally**, with
-the hyperscaler-lens applied explicitly per choice. ADR-0380 ships D1-D5
-(CI-loop closure MVP) + D6 (max-parallelism path) as originally scoped; these
-substrate corrections are honest-deferred to ADR-0381 to keep this ADR focused.
+than further-bloating this one. **ADR-0381 (this same commit; Proposed status)
+captures "Kaniko→BuildKit migration + multi-node Talos cell topology" formally**,
+with the hyperscaler-lens applied explicitly per choice (D1-D4 in that ADR).
+ADR-0380 ships D1-D5 (CI-loop closure MVP) + D6 (max-parallelism path) as
+originally scoped; these substrate corrections are deferred to ADR-0381's
+implementation IPs to keep ADR-0380 focused on the gating MVP.
 
 The rest of the ADR (status posting flow, webhook registration, cutover) is unchanged.
 
