@@ -31,7 +31,7 @@ bytes.workspace = true
 # blessed-allowlist. Add to workspace in a follow-up consolidation PR.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 # blocking feature removed (Item 1: migrated to async reqwest::Client).
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
@@ -43,7 +43,7 @@ tower = { version = "0.5", features = ["util"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 http-body-util = "0.1"
 bytes.workspace = true
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 
 [lints]
 workspace = true

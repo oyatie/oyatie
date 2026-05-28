@@ -29,7 +29,7 @@ oya-llm-gateway-oauth-pool-rest = { path = "../oya-llm-gateway-oauth-pool-rest" 
 oya-llm-gateway-oauth-pool-authz-cedar-adapter = { path = "../oya-llm-gateway-oauth-pool-authz-cedar-adapter" }
 tokio.workspace = true
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 serde.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
