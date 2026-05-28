@@ -104,5 +104,6 @@ is a gate violation.
 ## Notes
 
 Follow-up: promote `docs/ideas/cloud-intelligence-v1-pipeline-2026-05-28.md`
-(and any sibling idea-pagers) to formal ADRs (ADR-0389+) before the 14-day
-timer expires on 2026-06-11.
+(and any sibling idea-pagers) to formal ADRs (using the next available
+ADR id minted at promotion time) before the 14-day timer expires on
+2026-06-11.
