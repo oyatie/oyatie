@@ -1,470 +1,469 @@
-//! Analytics µservice domain surface per ADR-0193.
+//! Analytics domain — pure business logic, no I/O, no async (ADR-0083 Tier-3).
 //!
-//! This crate owns tenant-facing analytics query shapes before any REST/gRPC or
-//! ClickHouse adapter wiring. It translates PRD surfaces (workflow dashboards,
-//! audit-log search, and billing rollups) into the zero-I/O OLAP kernel DSL so
-//! adapters can render and bind SQL without accepting raw query strings.
-// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
-// `panic!()` to assert invariants under the `cfg(test)` exemption.
-#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+//! ## Bounded contexts
+//!
+//! - **tenant-dashboard-query** — [`TenantDashboardQuery`] aggregate root.
+//! - **billing-rollup** — [`BillingRollup`] aggregate root.
+//! - **audit-log-search** — [`AuditLogSearch`] aggregate root.
+//! - **data-export** — [`DataExport`] aggregate root.
+//!
+//! ## Tenancy
+//!
+//! Every aggregate carries a [`TenantId`] (re-exported from the kernel). Domain
+//! operations that produce [`Query`] values for the OLAP port always embed the
+//! owning tenant's ID so the adapter can enforce per-tenant isolation via
+//! `assert_same_tenant`.
+//!
+//! ## Honest-claims note
+//!
+//! Status is "planned". Aggregate query-building is functional; full
+//! event-sourcing / command/event wiring is deferred per manifest status.
+//!
+//! non_claim: no persistence, no event-bus wiring, no live Cedar authorization
+//! call in this scaffolding.
 
-use oya_shared_olap_client_kernel::{
-    Aggregate, Filter, KernelError, OrderBy, OrderDir, QualifiedTable, Query, RenderedQuery,
-    TableName, TenantId, Value, render_clickhouse_query, validate_column_name,
+// ADR-0083 Tier 3: production code stays panic-free; tests use unwrap/expect.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+#![forbid(unsafe_code)]
+
+use std::fmt;
+
+use serde::{Deserialize, Serialize};
+
+pub use oya_shared_olap_client_kernel::{
+    Aggregate, Filter, KernelError, OrderBy, OrderDir, QualifiedTable, Query, Row, TableName,
+    TenantId, Value,
 };
 
-pub const ANALYTICS_DOMAIN_SCHEMA_VERSION: u32 = 1;
-pub const DEFAULT_PAGE_SIZE: u64 = 100;
-pub const MAX_PAGE_SIZE: u64 = 10_000;
-pub const MAX_INTERACTIVE_WINDOW_SECONDS: u64 = 366 * 24 * 60 * 60;
-pub const WORKFLOW_ROLLUP_TABLE: &str = "workflow_hour_rollup";
-pub const AUDIT_EVENTS_TABLE: &str = "audit_events";
-pub const BILLING_ROLLUP_TABLE: &str = "billing_day_rollup";
+// =====================================================================
+// Shared value types
+// =====================================================================
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum AnalyticsError {
-    EmptyAxis,
-    InvalidCursor,
-    InvalidTimeWindow,
-    WindowTooLarge {
-        actual_seconds: u64,
-        max_seconds: u64,
-    },
-    PageSizeTooLarge {
-        actual: u64,
-        max: u64,
-    },
-    Olap(KernelError),
+/// Time range for analytic queries (inclusive on both ends, epoch seconds).
+///
+/// data_class: INTERNAL_ONLY
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct TimeRange {
+    /// Epoch seconds, start (inclusive).
+    pub from_secs: u64,
+    /// Epoch seconds, end (inclusive).
+    pub to_secs: u64,
 }
 
-impl From<KernelError> for AnalyticsError {
-    fn from(value: KernelError) -> Self {
-        Self::Olap(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum AnalyticsSurface {
-    WorkflowExecutionDashboard,
-    AuditLogSearch,
-    BillingRollup,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct TimeWindow {
-    pub start_epoch_seconds: u64,
-    pub end_epoch_seconds: u64,
-}
-
-impl TimeWindow {
-    pub fn try_new(
-        start_epoch_seconds: u64,
-        end_epoch_seconds: u64,
-    ) -> Result<Self, AnalyticsError> {
-        if start_epoch_seconds >= end_epoch_seconds {
-            return Err(AnalyticsError::InvalidTimeWindow);
+impl TimeRange {
+    /// Validate that `from_secs < to_secs`.
+    ///
+    /// # Errors
+    /// Returns [`DomainError::InvalidTimeRange`] if `from_secs >= to_secs`.
+    pub fn validate(&self) -> Result<(), DomainError> {
+        if self.from_secs >= self.to_secs {
+            Err(DomainError::InvalidTimeRange)
+        } else {
+            Ok(())
         }
-        let actual_seconds = end_epoch_seconds - start_epoch_seconds;
-        if actual_seconds > MAX_INTERACTIVE_WINDOW_SECONDS {
-            return Err(AnalyticsError::WindowTooLarge {
-                actual_seconds,
-                max_seconds: MAX_INTERACTIVE_WINDOW_SECONDS,
-            });
-        }
-        Ok(Self {
-            start_epoch_seconds,
-            end_epoch_seconds,
-        })
-    }
-
-    fn emitted_at_filter(self) -> Filter {
-        Filter::And(vec![
-            Filter::Ge {
-                column: "emitted_at".to_string(),
-                value: Value::DateTime(self.start_epoch_seconds),
-            },
-            Filter::Lt {
-                column: "emitted_at".to_string(),
-                value: Value::DateTime(self.end_epoch_seconds),
-            },
-        ])
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AuditCursor(String);
-
-impl AuditCursor {
-    pub fn try_new(value: impl Into<String>) -> Result<Self, AnalyticsError> {
-        let value = value.into();
-        if value.is_empty() || value.len() > 256 || value.contains('\n') || value.contains('\r') {
-            return Err(AnalyticsError::InvalidCursor);
-        }
-        Ok(Self(value))
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct WorkflowExecutionDashboardRequest {
-    pub tenant_id: TenantId,
-    pub window: TimeWindow,
+/// Cursor-based pagination parameters.
+///
+/// data_class: INTERNAL_ONLY
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Pagination {
     pub limit: u64,
 }
 
-impl WorkflowExecutionDashboardRequest {
-    pub fn try_new(
-        tenant_id: TenantId,
-        window: TimeWindow,
-        limit: Option<u64>,
-    ) -> Result<Self, AnalyticsError> {
-        let limit = bounded_page_size(limit.unwrap_or(DEFAULT_PAGE_SIZE))?;
-        Ok(Self {
-            tenant_id,
-            window,
-            limit,
+impl Pagination {
+    /// Default page size used when no limit is specified.
+    pub const DEFAULT_LIMIT: u64 = 100;
+
+    #[must_use]
+    pub fn new(limit: u64) -> Self {
+        Self { limit }
+    }
+}
+
+// =====================================================================
+// Domain error
+// =====================================================================
+
+/// Domain-layer errors (not engine errors; those surface via [`KernelError`]).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum DomainError {
+    /// A dashboard query was submitted with zero metrics.
+    EmptyMetrics,
+    /// Time range is invalid (`from_secs >= to_secs`).
+    InvalidTimeRange,
+    /// The tenant ID is syntactically invalid.
+    InvalidTenantId(KernelError),
+    /// The table name is syntactically invalid.
+    InvalidTableName(KernelError),
+}
+
+impl fmt::Display for DomainError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::EmptyMetrics => write!(f, "at least one metric must be requested"),
+            Self::InvalidTimeRange => write!(f, "time range 'from' must precede 'to'"),
+            Self::InvalidTenantId(e) => write!(f, "invalid tenant id: {e}"),
+            Self::InvalidTableName(e) => write!(f, "invalid table name: {e}"),
+        }
+    }
+}
+
+impl std::error::Error for DomainError {}
+
+// =====================================================================
+// Tenant-dashboard-query bounded context
+// =====================================================================
+
+/// Metric key requested by a tenant dashboard.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum DashboardMetric {
+    WorkflowExecutionCount,
+    ApiCallCount,
+    ErrorRate,
+    P99LatencyMs,
+    ActiveUsers,
+    StorageUsedBytes,
+}
+
+impl DashboardMetric {
+    /// The ClickHouse column name for this metric.
+    #[must_use]
+    pub fn column_name(&self) -> &'static str {
+        match self {
+            Self::WorkflowExecutionCount => "workflow_execution_count",
+            Self::ApiCallCount => "api_call_count",
+            Self::ErrorRate => "error_rate",
+            Self::P99LatencyMs => "p99_latency_ms",
+            Self::ActiveUsers => "active_users",
+            Self::StorageUsedBytes => "storage_used_bytes",
+        }
+    }
+}
+
+/// Aggregate root for a tenant dashboard query request.
+///
+/// data_class: TENANT_PUBLIC
+#[derive(Clone, Debug)]
+pub struct TenantDashboardQuery {
+    pub tenant_id: TenantId,
+    pub metrics: Vec<DashboardMetric>,
+    pub time_range: TimeRange,
+    pub pagination: Pagination,
+}
+
+impl TenantDashboardQuery {
+    /// Build a [`Query`] scoped to this tenant for the OLAP port.
+    ///
+    /// # Errors
+    /// Returns [`DomainError::EmptyMetrics`] if no metrics are requested, or
+    /// [`DomainError::InvalidTimeRange`] / [`DomainError::InvalidTableName`]
+    /// on invalid inputs.
+    pub fn to_olap_query(&self) -> Result<Query, DomainError> {
+        if self.metrics.is_empty() {
+            return Err(DomainError::EmptyMetrics);
+        }
+        self.time_range.validate()?;
+        let table_name =
+            TableName::try_new("tenant_metrics").map_err(DomainError::InvalidTableName)?;
+        let table = QualifiedTable::new(self.tenant_id.clone(), table_name);
+        let columns: Vec<String> = self
+            .metrics
+            .iter()
+            .map(|m| m.column_name().to_string())
+            .collect();
+        Ok(Query {
+            source: table,
+            columns,
+            aggregates: vec![],
+            filter: Some(Filter::And(vec![
+                Filter::Ge {
+                    column: "ts".to_string(),
+                    value: Value::DateTime(self.time_range.from_secs),
+                },
+                Filter::Le {
+                    column: "ts".to_string(),
+                    value: Value::DateTime(self.time_range.to_secs),
+                },
+            ])),
+            group_by: vec![],
+            order_by: vec![OrderBy {
+                column: "ts".to_string(),
+                dir: OrderDir::Desc,
+            }],
+            limit: Some(self.pagination.limit),
         })
     }
+}
 
-    pub fn surface(&self) -> AnalyticsSurface {
-        AnalyticsSurface::WorkflowExecutionDashboard
+// =====================================================================
+// Billing-rollup bounded context
+// =====================================================================
+
+/// Granularity of a billing rollup aggregation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum RollupGranularity {
+    Hourly,
+    Daily,
+    Monthly,
+}
+
+impl fmt::Display for RollupGranularity {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Hourly => write!(f, "hourly"),
+            Self::Daily => write!(f, "daily"),
+            Self::Monthly => write!(f, "monthly"),
+        }
     }
+}
 
-    pub fn to_olap_query(&self) -> Result<Query, AnalyticsError> {
+/// Aggregate root for a billing rollup request (IP-009).
+///
+/// data_class: FINANCIAL
+#[derive(Clone, Debug)]
+pub struct BillingRollup {
+    pub tenant_id: TenantId,
+    pub granularity: RollupGranularity,
+    pub time_range: TimeRange,
+}
+
+impl BillingRollup {
+    /// Build a [`Query`] for the billing rollup.
+    ///
+    /// # Errors
+    /// Returns [`DomainError::InvalidTimeRange`] if `from_secs >= to_secs`.
+    pub fn to_olap_query(&self) -> Result<Query, DomainError> {
+        self.time_range.validate()?;
+        let table_name =
+            TableName::try_new("billing_events").map_err(DomainError::InvalidTableName)?;
+        let table = QualifiedTable::new(self.tenant_id.clone(), table_name);
         Ok(Query {
-            source: analytics_table(&self.tenant_id, WORKFLOW_ROLLUP_TABLE)?,
-            columns: vec!["hour_bucket".to_string(), "status".to_string()],
-            aggregates: vec![
-                (
-                    Aggregate::Sum {
-                        column: "execution_count".to_string(),
-                    },
-                    "execution_count".to_string(),
-                ),
-                (
-                    Aggregate::Avg {
-                        column: "duration_ms_p99".to_string(),
-                    },
-                    "duration_ms_p99".to_string(),
-                ),
-            ],
-            filter: Some(self.window.emitted_at_filter()),
-            group_by: vec!["hour_bucket".to_string(), "status".to_string()],
+            source: table,
+            columns: vec![],
+            aggregates: vec![(
+                Aggregate::Sum {
+                    column: "amount".to_string(),
+                },
+                "total".to_string(),
+            )],
+            filter: Some(Filter::And(vec![
+                Filter::Ge {
+                    column: "ts".to_string(),
+                    value: Value::DateTime(self.time_range.from_secs),
+                },
+                Filter::Le {
+                    column: "ts".to_string(),
+                    value: Value::DateTime(self.time_range.to_secs),
+                },
+            ])),
+            group_by: vec!["period".to_string()],
             order_by: vec![OrderBy {
-                column: "hour_bucket".to_string(),
+                column: "period".to_string(),
                 dir: OrderDir::Asc,
             }],
-            limit: Some(self.limit),
+            limit: None,
         })
-    }
-
-    pub fn render_clickhouse(&self) -> Result<RenderedQuery, AnalyticsError> {
-        let query = self.to_olap_query()?;
-        render_clickhouse_query(&self.tenant_id, &query).map_err(AnalyticsError::from)
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AuditLogSearchRequest {
+// =====================================================================
+// Audit-log-search bounded context
+// =====================================================================
+
+/// Filter axes for audit log search (IP-008).
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct AuditLogFilter {
+    pub actor_id: Option<String>,
+    pub resource_type: Option<String>,
+    pub action: Option<String>,
+    pub time_range: Option<TimeRange>,
+}
+
+/// Aggregate root for an audit log search request.
+///
+/// data_class: AUDIT_INTERNAL, TENANT_AUDIT
+#[derive(Clone, Debug)]
+pub struct AuditLogSearch {
     pub tenant_id: TenantId,
-    pub axis: String,
-    pub window: TimeWindow,
-    pub page_size: u64,
-    pub cursor: Option<AuditCursor>,
+    pub filter: AuditLogFilter,
+    pub pagination: Pagination,
 }
 
-impl AuditLogSearchRequest {
-    pub fn try_new(
-        tenant_id: TenantId,
-        axis: impl Into<String>,
-        window: TimeWindow,
-        page_size: Option<u64>,
-        cursor: Option<AuditCursor>,
-    ) -> Result<Self, AnalyticsError> {
-        let axis = axis.into();
-        if axis.is_empty() {
-            return Err(AnalyticsError::EmptyAxis);
-        }
-        validate_column_name(&axis).map_err(AnalyticsError::from)?;
-        Ok(Self {
-            tenant_id,
-            axis,
-            window,
-            page_size: bounded_page_size(page_size.unwrap_or(DEFAULT_PAGE_SIZE))?,
-            cursor,
-        })
-    }
+impl AuditLogSearch {
+    /// Build a [`Query`] for audit log search.
+    ///
+    /// # Errors
+    /// Returns [`DomainError::InvalidTableName`] if the table name is invalid.
+    pub fn to_olap_query(&self) -> Result<Query, DomainError> {
+        let table_name = TableName::try_new("audit_log").map_err(DomainError::InvalidTableName)?;
+        let table = QualifiedTable::new(self.tenant_id.clone(), table_name);
 
-    pub fn surface(&self) -> AnalyticsSurface {
-        AnalyticsSurface::AuditLogSearch
-    }
-
-    pub fn to_olap_query(&self) -> Result<Query, AnalyticsError> {
-        let mut filters = vec![
-            self.window.emitted_at_filter(),
-            Filter::Eq {
-                column: "axis".to_string(),
-                value: Value::String(self.axis.clone()),
-            },
-        ];
-        if let Some(cursor) = &self.cursor {
-            filters.push(Filter::Lt {
-                column: "cursor_key".to_string(),
-                value: Value::String(cursor.as_str().to_string()),
+        let mut filters: Vec<Filter> = Vec::new();
+        if let Some(actor_id) = &self.filter.actor_id {
+            filters.push(Filter::Eq {
+                column: "actor_id".to_string(),
+                value: Value::String(actor_id.clone()),
             });
         }
+        if let Some(action) = &self.filter.action {
+            filters.push(Filter::Eq {
+                column: "action".to_string(),
+                value: Value::String(action.clone()),
+            });
+        }
+        if let Some(tr) = &self.filter.time_range {
+            filters.push(Filter::Ge {
+                column: "ts".to_string(),
+                value: Value::DateTime(tr.from_secs),
+            });
+            filters.push(Filter::Le {
+                column: "ts".to_string(),
+                value: Value::DateTime(tr.to_secs),
+            });
+        }
+
+        let filter = if filters.is_empty() {
+            None
+        } else {
+            Some(Filter::And(filters))
+        };
+
         Ok(Query {
-            source: analytics_table(&self.tenant_id, AUDIT_EVENTS_TABLE)?,
+            source: table,
             columns: vec![
-                "event_id".to_string(),
-                "axis".to_string(),
-                "actor_ref".to_string(),
+                "ts".to_string(),
+                "actor_id".to_string(),
                 "action".to_string(),
-                "outcome".to_string(),
-                "emitted_at".to_string(),
-                "cursor_key".to_string(),
+                "resource_id".to_string(),
             ],
             aggregates: vec![],
-            filter: Some(Filter::And(filters)),
+            filter,
             group_by: vec![],
-            order_by: vec![
-                OrderBy {
-                    column: "emitted_at".to_string(),
-                    dir: OrderDir::Desc,
-                },
-                OrderBy {
-                    column: "cursor_key".to_string(),
-                    dir: OrderDir::Desc,
-                },
-            ],
-            limit: Some(self.page_size),
-        })
-    }
-
-    pub fn render_clickhouse(&self) -> Result<RenderedQuery, AnalyticsError> {
-        let query = self.to_olap_query()?;
-        render_clickhouse_query(&self.tenant_id, &query).map_err(AnalyticsError::from)
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BillingRollupRequest {
-    pub tenant_id: TenantId,
-    pub window: TimeWindow,
-    pub resource_kind: Option<String>,
-    pub limit: u64,
-}
-
-impl BillingRollupRequest {
-    pub fn try_new(
-        tenant_id: TenantId,
-        window: TimeWindow,
-        resource_kind: Option<String>,
-        limit: Option<u64>,
-    ) -> Result<Self, AnalyticsError> {
-        if let Some(resource_kind) = &resource_kind {
-            validate_column_name(resource_kind).map_err(AnalyticsError::from)?;
-        }
-        Ok(Self {
-            tenant_id,
-            window,
-            resource_kind,
-            limit: bounded_page_size(limit.unwrap_or(DEFAULT_PAGE_SIZE))?,
-        })
-    }
-
-    pub fn surface(&self) -> AnalyticsSurface {
-        AnalyticsSurface::BillingRollup
-    }
-
-    pub fn to_olap_query(&self) -> Result<Query, AnalyticsError> {
-        let filter = match &self.resource_kind {
-            Some(resource_kind) => Filter::And(vec![
-                self.window.emitted_at_filter(),
-                Filter::Eq {
-                    column: "resource_kind".to_string(),
-                    value: Value::String(resource_kind.clone()),
-                },
-            ]),
-            None => self.window.emitted_at_filter(),
-        };
-        Ok(Query {
-            source: analytics_table(&self.tenant_id, BILLING_ROLLUP_TABLE)?,
-            columns: vec!["day_bucket".to_string(), "resource_kind".to_string()],
-            aggregates: vec![
-                (
-                    Aggregate::Sum {
-                        column: "usage_units".to_string(),
-                    },
-                    "usage_units".to_string(),
-                ),
-                (
-                    Aggregate::Sum {
-                        column: "cost_usd_minor_units".to_string(),
-                    },
-                    "cost_usd_minor_units".to_string(),
-                ),
-            ],
-            filter: Some(filter),
-            group_by: vec!["day_bucket".to_string(), "resource_kind".to_string()],
             order_by: vec![OrderBy {
-                column: "day_bucket".to_string(),
-                dir: OrderDir::Asc,
+                column: "ts".to_string(),
+                dir: OrderDir::Desc,
             }],
-            limit: Some(self.limit),
+            limit: Some(self.pagination.limit),
         })
     }
-
-    pub fn render_clickhouse(&self) -> Result<RenderedQuery, AnalyticsError> {
-        let query = self.to_olap_query()?;
-        render_clickhouse_query(&self.tenant_id, &query).map_err(AnalyticsError::from)
-    }
 }
 
-fn analytics_table(tenant_id: &TenantId, table: &str) -> Result<QualifiedTable, AnalyticsError> {
-    Ok(QualifiedTable::new(
-        tenant_id.clone(),
-        TableName::try_new(table).map_err(AnalyticsError::from)?,
-    ))
+// =====================================================================
+// Data-export bounded context
+// =====================================================================
+
+/// Export format for regulator or tenant-initiated data exports (IP-013).
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ExportFormat {
+    JsonLines,
+    Parquet,
+    Csv,
 }
 
-fn bounded_page_size(value: u64) -> Result<u64, AnalyticsError> {
-    if value == 0 || value > MAX_PAGE_SIZE {
-        return Err(AnalyticsError::PageSizeTooLarge {
-            actual: value,
-            max: MAX_PAGE_SIZE,
-        });
-    }
-    Ok(value)
+/// Export scope — which dataset to export.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ExportScope {
+    AuditLog { time_range: TimeRange },
+    BillingHistory { time_range: TimeRange },
+    WorkflowExecutions { time_range: TimeRange },
 }
+
+/// Aggregate root for a data export request.
+///
+/// data_class: TENANT_PRIVATE, FINANCIAL, PII_IDENTIFYING (depends on scope)
+#[derive(Clone, Debug)]
+pub struct DataExport {
+    pub tenant_id: TenantId,
+    pub scope: ExportScope,
+    pub format: ExportFormat,
+}
+
+// =====================================================================
+// Tests
+// =====================================================================
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn tid() -> TenantId {
-        TenantId::try_new("ten_acme").unwrap()
+    fn tid(s: &str) -> TenantId {
+        TenantId::try_new(s).unwrap()
     }
 
-    fn window() -> TimeWindow {
-        TimeWindow::try_new(1_776_000_000, 1_776_086_400).unwrap()
-    }
-
-    #[test]
-    fn workflow_dashboard_renders_tenant_scoped_rollup_query() {
-        let req = WorkflowExecutionDashboardRequest::try_new(tid(), window(), Some(50)).unwrap();
-        let rendered = req.render_clickhouse().unwrap();
-
-        assert!(
-            rendered
-                .sql
-                .contains("FROM `tenant_ten_acme`.`workflow_hour_rollup`")
-        );
-        assert!(
-            rendered
-                .sql
-                .contains("sum(`execution_count`) AS `execution_count`")
-        );
-        assert!(rendered.sql.contains("GROUP BY `hour_bucket`, `status`"));
-        assert_eq!(
-            rendered.params.get("p0"),
-            Some(&Value::DateTime(1_776_000_000))
-        );
-        assert_eq!(
-            rendered.params.get("p1"),
-            Some(&Value::DateTime(1_776_086_400))
-        );
+    fn range() -> TimeRange {
+        TimeRange {
+            from_secs: 1_735_689_600, // 2026-01-01
+            to_secs: 1_738_368_000,   // 2026-02-01
+        }
     }
 
     #[test]
-    fn audit_search_renders_cursor_paginated_query() {
-        let req = AuditLogSearchRequest::try_new(
-            tid(),
-            "identity",
-            window(),
-            Some(25),
-            Some(AuditCursor::try_new("cur/abc").unwrap()),
-        )
-        .unwrap();
-        let rendered = req.render_clickhouse().unwrap();
+    fn dashboard_query_to_olap_query_scoped_to_tenant() {
+        let dq = TenantDashboardQuery {
+            tenant_id: tid("t1"),
+            metrics: vec![DashboardMetric::WorkflowExecutionCount],
+            time_range: range(),
+            pagination: Pagination::new(50),
+        };
+        let oq = dq.to_olap_query().unwrap();
+        assert_eq!(oq.source.tenant_id().as_str(), "t1");
+        assert_eq!(oq.limit, Some(50));
+        assert!(oq.columns.contains(&"workflow_execution_count".to_string()));
+    }
 
-        assert!(
-            rendered
-                .sql
-                .contains("FROM `tenant_ten_acme`.`audit_events`")
-        );
-        assert!(rendered.sql.contains("`axis` = {p2:String}"));
-        assert!(rendered.sql.contains("`cursor_key` < {p3:String}"));
-        assert!(
-            rendered
-                .sql
-                .ends_with("ORDER BY `emitted_at` DESC, `cursor_key` DESC LIMIT 25")
-        );
+    #[test]
+    fn dashboard_query_empty_metrics_is_error() {
+        let dq = TenantDashboardQuery {
+            tenant_id: tid("t1"),
+            metrics: vec![],
+            time_range: range(),
+            pagination: Pagination::new(10),
+        };
+        assert_eq!(dq.to_olap_query().unwrap_err(), DomainError::EmptyMetrics);
+    }
+
+    #[test]
+    fn billing_rollup_invalid_time_range() {
+        let br = BillingRollup {
+            tenant_id: tid("t1"),
+            granularity: RollupGranularity::Daily,
+            time_range: TimeRange {
+                from_secs: 1_738_368_000,
+                to_secs: 1_735_689_600, // from > to
+            },
+        };
         assert_eq!(
-            rendered.params.get("p2"),
-            Some(&Value::String("identity".into()))
-        );
-        assert_eq!(
-            rendered.params.get("p3"),
-            Some(&Value::String("cur/abc".into()))
+            br.to_olap_query().unwrap_err(),
+            DomainError::InvalidTimeRange
         );
     }
 
     #[test]
-    fn billing_rollup_renders_cost_and_usage_aggregates() {
-        let req =
-            BillingRollupRequest::try_new(tid(), window(), Some("compute".to_string()), Some(365))
-                .unwrap();
-        let rendered = req.render_clickhouse().unwrap();
-
-        assert!(
-            rendered
-                .sql
-                .contains("FROM `tenant_ten_acme`.`billing_day_rollup`")
-        );
-        assert!(rendered.sql.contains("sum(`usage_units`) AS `usage_units`"));
-        assert!(
-            rendered
-                .sql
-                .contains("sum(`cost_usd_minor_units`) AS `cost_usd_minor_units`")
-        );
-        assert!(rendered.sql.contains("`resource_kind` = {p2:String}"));
+    fn billing_rollup_valid_query_has_sum_aggregate() {
+        let br = BillingRollup {
+            tenant_id: tid("t1"),
+            granularity: RollupGranularity::Daily,
+            time_range: range(),
+        };
+        let q = br.to_olap_query().unwrap();
+        assert_eq!(q.source.tenant_id().as_str(), "t1");
+        assert!(!q.aggregates.is_empty());
     }
 
     #[test]
-    fn rejects_oversized_interactive_window() {
-        let err = TimeWindow::try_new(0, MAX_INTERACTIVE_WINDOW_SECONDS + 1).unwrap_err();
-        assert_eq!(
-            err,
-            AnalyticsError::WindowTooLarge {
-                actual_seconds: MAX_INTERACTIVE_WINDOW_SECONDS + 1,
-                max_seconds: MAX_INTERACTIVE_WINDOW_SECONDS,
-            }
-        );
-    }
-
-    #[test]
-    fn rejects_raw_axis_syntax_before_rendering() {
-        let err = AuditLogSearchRequest::try_new(tid(), "identity;drop", window(), None, None)
-            .unwrap_err();
-        assert!(matches!(
-            err,
-            AnalyticsError::Olap(KernelError::ColumnNameInvalidChar { .. })
-        ));
-    }
-
-    #[test]
-    fn rejects_zero_page_size() {
-        let err = WorkflowExecutionDashboardRequest::try_new(tid(), window(), Some(0)).unwrap_err();
-        assert_eq!(
-            err,
-            AnalyticsError::PageSizeTooLarge {
-                actual: 0,
-                max: MAX_PAGE_SIZE,
-            }
-        );
+    fn audit_log_search_produces_scoped_query() {
+        let s = AuditLogSearch {
+            tenant_id: tid("t1"),
+            filter: AuditLogFilter {
+                actor_id: Some("user-42".to_string()),
+                ..Default::default()
+            },
+            pagination: Pagination::new(25),
+        };
+        let q = s.to_olap_query().unwrap();
+        assert_eq!(q.source.tenant_id().as_str(), "t1");
+        assert_eq!(q.limit, Some(25));
     }
 }

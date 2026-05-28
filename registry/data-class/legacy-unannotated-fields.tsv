@@ -285,3 +285,5 @@ crates/oya-shared-webauthn-server-kernel/src/lib.rs	RegistrationResponse	attesta
 crates/oya-shared-webauthn-server-kernel/src/lib.rs	RegistrationResponse	challenge_id	MFL-0008 bootstrap debt discovered during task-35..40 handoff validation; annotate semantically in the owning crate before deleting this allowance
 crates/oya-shared-webauthn-server-kernel/src/lib.rs	RegistrationResponse	client_data_json_b64url	MFL-0008 bootstrap debt discovered during task-35..40 handoff validation; annotate semantically in the owning crate before deleting this allowance
 crates/oya-shared-webauthn-server-kernel/src/lib.rs	RegistrationResponse	transports	MFL-0008 bootstrap debt discovered during task-35..40 handoff validation; annotate semantically in the owning crate before deleting this allowance
+crates/oya-shared-olap-client-kernel/src/lib.rs	RenderedQuery	sql	MFL-0008 bootstrap debt: SQL string is opaque bound-parameter wire form, no semantic data-class
+crates/oya-shared-olap-client-kernel/src/lib.rs	RenderedQuery	params	MFL-0008 bootstrap debt: SQL bound-parameter values opaque at kernel layer, classified by caller domain
