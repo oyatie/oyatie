@@ -1,0 +1,32 @@
+[package]
+name = "oya-llm-gateway-oauth-pool-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# OAuth subscription-pool REST adapter (ADR-0384 Path B, Stage-4 RED scaffold).
+# Owns:
+#   D2 — axum reverse-proxy (placeholder, wired in Stage-5 GREEN)
+#   D3 — Anthropic provider adapter + OAuth refresh state machine
+#   D6 — EventSink fan-out to ClickHouse + Valkey Stream (trait mock here)
+#   D8 — OpenBao envelope-encrypted refresh-token storage (trait mock here)
+#
+# Stage-5 GREEN adds axum, reqwest, and the concrete adapter wiring.
+# Codex provider adapter is deferred to a follow-up PR (see TODO in lib.rs).
+
+[lib]
+name = "oya_llm_gateway_oauth_pool_rest"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
+serde.workspace = true
+
+[dev-dependencies]
+oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
+
+[lints]
+workspace = true

@@ -5787,6 +5787,14 @@ name = "oya-llm-gateway-oauth-pool-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-llm-gateway-oauth-pool-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-llm-gateway-oauth-pool-kernel",
+ "serde",
+]
+
+[[package]]
 name = "oya-llm-gateway-rest"
 version = "0.1.0"
 dependencies = [
