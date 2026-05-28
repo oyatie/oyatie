@@ -436,22 +436,35 @@ fn validate_packages(
         // Derive the microservices nested path: microservices/<ms>/crates/<name>
         // where <ms> is inferred as the first segment of the crate name after "oya-" prefix.
         // e.g. oya-intelligence-api -> microservices/intelligence/crates/oya-intelligence-api
-        let ms_nested_parent = package
-            .name
-            .strip_prefix("oya-")
-            .and_then(|rest| rest.split('-').next())
-            .map(|ms| {
-                PathBuf::from("microservices")
-                    .join(ms)
-                    .join("crates")
-                    .join(&package.name)
-            });
-        let parent_matches = match &relative_parent {
-            Some(rel) => {
-                rel == &crates_parent
-                    || rel == &tools_parent
-                    || ms_nested_parent.as_ref().map(|p| rel == p).unwrap_or(false)
+        // Accept microservices/<X>/crates/<name> where <X> followed by '-' is a
+        // hyphen-prefix of the crate name (after "oya-"). Supports BOTH single-
+        // segment microservice names (e.g. "intelligence" for oya-intelligence-api)
+        // AND multi-segment names (e.g. "managed-k8s-tenant-quota" for
+        // oya-managed-k8s-tenant-quota-api) per the flat single-concern doctrine
+        // (ADR-0131/0132). The manifest's `microservice` field is the canonical
+        // identity; this gate just enforces the dir name is a hyphen-prefix of
+        // the crate name. Backward-compatible: existing single-segment layouts
+        // (microservices/intelligence/, microservices/managed/) still pass.
+        let ms_nested_valid = (|| -> Option<bool> {
+            let rest = package.name.strip_prefix("oya-")?;
+            let rel = relative_parent.as_ref()?;
+            let segments: Vec<&str> = rel
+                .iter()
+                .map(|s| s.to_str())
+                .collect::<Option<Vec<_>>>()?;
+            if segments.len() != 4
+                || segments[0] != "microservices"
+                || segments[2] != "crates"
+                || segments[3] != package.name
+            {
+                return None;
             }
+            let with_dash = format!("{}-", segments[1]);
+            Some(rest.starts_with(&with_dash))
+        })()
+        .unwrap_or(false);
+        let parent_matches = match &relative_parent {
+            Some(rel) => rel == &crates_parent || rel == &tools_parent || ms_nested_valid,
             None => false,
         };
         if !parent_matches {
@@ -1161,6 +1174,54 @@ mod tests {
         assert!(
             errors.is_empty(),
             "microservices/intelligence/crates/oya-intelligence-api should pass: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn microservices_nested_multi_segment_ms_path_passes() {
+        // Multi-segment microservice names (e.g. managed-k8s-tenant-quota) for
+        // flat single-concern microservices (ADR-0131/0132, ADR-0376-D4) are
+        // valid: microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-
+        // tenant-quota-api passes because "managed-k8s-tenant-quota-" is a
+        // hyphen-prefix of the crate name after "oya-". Unblocks the managed-k8s
+        // 4-µservice split without forcing the prior single-segment ms-name rule.
+        let (mut pkg, rec) =
+            fixture_package("oya-managed-k8s-tenant-quota-api", "api", &[], "crates");
+        pkg.manifest_path = fixture_repo_root()
+            .join("microservices")
+            .join("managed-k8s-tenant-quota")
+            .join("crates")
+            .join("oya-managed-k8s-tenant-quota-api")
+            .join("Cargo.toml");
+        let packages = vec![pkg];
+        let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            errors.is_empty(),
+            "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api should pass: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn microservices_nested_wrong_ms_dir_rejected() {
+        // Crate misplaced under a dir whose name is NOT a hyphen-prefix of the
+        // crate name should be rejected (the new logic must still enforce the
+        // hyphen-prefix invariant — it's not "any nested location is fine").
+        let (mut pkg, rec) = fixture_package("oya-intelligence-api", "api", &[], "crates");
+        pkg.manifest_path = fixture_repo_root()
+            .join("microservices")
+            .join("managed-k8s-tenant-quota") // wrong ms dir for an intelligence crate
+            .join("crates")
+            .join("oya-intelligence-api")
+            .join("Cargo.toml");
+        let packages = vec![pkg];
+        let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            !errors.is_empty(),
+            "oya-intelligence-api under microservices/managed-k8s-tenant-quota/crates/ should be rejected"
         );
     }
 }
