@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 317
-- **Numbering:** ADR-0001..ADR-0380 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0381
-- **Status counts:** Accepted 142, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 35
+- **Total ADRs:** 318
+- **Numbering:** ADR-0001..ADR-0381 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0382
+- **Status counts:** Accepted 141, Accepted (amendment) 2, Amended 1, Proposed 88, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 35
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -337,12 +337,13 @@ doc_status: published
 | ADR-0377 | Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) | Forgejo board projection with git-ref CAS fallback | council-architecture | [`ADR-0377-forgejo-board-git-ref-cas-fallback.md`](decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md) |
 | ADR-0378 | Accepted | Canonical local substrate: vfkit + Talos Linux (retire colima) | ops-platform | [`ADR-0378-canonical-local-substrate-vfkit-talos.md`](decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md) |
 | ADR-0379 | Accepted | Kubewarden as the default Kubernetes admission/policy substrate (supersedes ADR-0183) | council-architecture | [`ADR-0379-kubewarden-default-admission-substrate.md`](decisions/ADR-0379-kubewarden-default-admission-substrate.md) |
-| ADR-0380 | Accepted | CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating | ops-platform | [`ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md`](decisions/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md) |
+| ADR-0380 | Accepted (amendment) | CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating | ops-platform | [`ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md`](decisions/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md) |
+| ADR-0381 | Proposed | Kaniko → BuildKit migration + multi-node Talos cell topology | ops-platform | [`ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md`](decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0381), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0382), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -369,6 +370,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 317 ADR files (sorted ascending)
+- `decisions/` directory listing — 318 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
