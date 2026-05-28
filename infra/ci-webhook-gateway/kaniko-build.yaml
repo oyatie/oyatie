@@ -1,0 +1,34 @@
+# Kaniko build Job — builds the CI webhook gateway image in-cluster (no host docker,
+# ADR-0378) from the private GitHub repo (git context, sub-path the gateway crate) and
+# pushes to the in-cluster registry over plain HTTP (--insecure). Re-run by deleting +
+# re-applying (or bumping the image tag). Git creds: secret `gateway-build-git` (gh token).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ci-webhook-gateway-build
+  namespace: oya-ci
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:v1.23.2
+          args:
+            - "--context=git://github.com/jason931225/oyatie.git#refs/heads/dev"
+            - "--context-sub-path=microservices/ci-webhook-gateway"
+            - "--dockerfile=Dockerfile"
+            - "--destination=registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev"
+            - "--insecure"
+            - "--skip-tls-verify"
+            - "--cache=false"
+          env:
+            - name: GIT_USERNAME
+              valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }
+            - name: GIT_PASSWORD
+              valueFrom: { secretKeyRef: { name: gateway-build-git, key: token } }
+          resources:
+            requests: { cpu: "1", memory: 2Gi }
+            limits: { memory: 4Gi }
