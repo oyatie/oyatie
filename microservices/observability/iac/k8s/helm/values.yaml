@@ -47,14 +47,20 @@ resources:
     cpu: 1000m
     memory: 512Mi
 
+namespaceCreate: true
+namespaceName: observability
+
 # Grafana OSS observability stack subcharts. Versions are pinned in Chart.yaml/Chart.lock.
 loki:
   enabled: true
   deploymentMode: SingleBinary
   loki:
-    useTestSchema: true
     storage:
       type: filesystem
+    # NOTE: filesystem storage + useTestSchema=true is dev-only.
+    # Production wires SeaweedFS-bucket-api per ADR-0349; tracked at
+    # registry/placeholder-debt/adr-follow-ups.yaml#observability-loki-prod-storage.
+    useTestSchema: true
   singleBinary:
     replicas: 1
   read:
@@ -71,33 +77,77 @@ loki:
     enabled: false
   gateway:
     enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+    readOnlyRootFilesystem: true
 
 tempo:
   enabled: true
   storage:
     trace:
       backend: local
+      # NOTE: local backend is dev-only.
+      # Production wires SeaweedFS-bucket-api per ADR-0349; tracked at
+      # registry/placeholder-debt/adr-follow-ups.yaml#observability-tempo-prod-storage.
   minio:
     enabled: false
   gateway:
     enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+    readOnlyRootFilesystem: true
 
 mimir:
   enabled: true
   minio:
-    enabled: true
+    enabled: false   # SeaweedFS-on-Talos canonical per ADR-0349; do NOT ship MinIO transitive
+  # TODO: point mimir.blocks_storage.backend at SeaweedFS-bucket-api per ADR-0349
   metaMonitoring:
     grafanaAgent:
       installOperator: false
   rollout_operator:
     enabled: false
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+    readOnlyRootFilesystem: true
 
 grafana:
   enabled: true
   admin:
-    existingSecret: ""
+    # MUST be projected via ExternalSecret from sref://openbao/oya/observability/grafana-admin
+    # before bring-up; the ExternalSecret manifest is the operator's responsibility.
+    existingSecret: "grafana-admin"
+    userKey: admin-user
+    passwordKey: admin-password
   persistence:
-    enabled: false
+    enabled: true
+    type: pvc
+    size: 5Gi
+    storageClassName: local-path  # or appropriate per cell
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -105,12 +155,32 @@ grafana:
         - name: Loki
           type: loki
           access: proxy
-          url: http://{{ .Release.Name }}-loki-gateway
+          url: http://observability-loki-gateway
         - name: Tempo
           type: tempo
           access: proxy
-          url: http://{{ .Release.Name }}-tempo-gateway
+          url: http://observability-tempo-gateway
         - name: Mimir
           type: prometheus
           access: proxy
-          url: http://{{ .Release.Name }}-mimir-nginx/prometheus
+          url: http://observability-mimir-nginx/prometheus
+  # Grafana official non-root UID is 472
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 472
+    fsGroup: 472
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+    readOnlyRootFilesystem: true
+
+# DEFERRED per IP-001 (microservices/observability/IP-001-layer-a-grafana-stack-iac.md):
+#   - alertmanager: deferred until first SLO alert is authored
+#   - prometheus: deferred — Mimir is the long-retention layer, scrape via Alloy
+#   - pyroscope: deferred — profile-based observability is post-MVP
+#   - alloy: deferred — replace ad-hoc Prom scrape config when promoted
+#   - oncall: deferred — Grafana OnCall is a separate microservice surface
+# Each tracked at registry/placeholder-debt/adr-follow-ups.yaml#observability-<component>.

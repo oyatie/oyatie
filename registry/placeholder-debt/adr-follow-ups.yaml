@@ -1048,3 +1048,89 @@ follow_ups:
       rather than the in-memory reference adapter.
     status: pending
     adr_when_landed: a follow-on ADR owns the live CRD wiring (builds on ADR-0376; names the Kamaji/CAPI-provider version pin)
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Observability stack deferrals (PR #260, 2026-05-28)
+  # ─────────────────────────────────────────────────────────────────────
+
+  - id: observability-loki-prod-storage
+    intent: |
+      Wire Loki to SeaweedFS-bucket-api (ADR-0349) for production; remove
+      useTestSchema=true + storage.type=filesystem. Current state is dev-only.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+    owner: ops-platform + axis-observability
+    trigger: First observability promotion past dev cell.
+    status: pending
+    adr_when_landed: ""
+
+  - id: observability-tempo-prod-storage
+    intent: |
+      Wire Tempo to SeaweedFS-bucket-api (ADR-0349) for production; remove
+      storage.trace.backend=local. Current state is dev-only.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+    owner: ops-platform + axis-observability
+    trigger: First observability promotion past dev cell.
+    status: pending
+    adr_when_landed: ""
+
+  - id: observability-alertmanager
+    intent: |
+      Add Alertmanager subchart to the observability Helm stack once the first
+      SLO alert is authored. Deferred per IP-001 layer-A scope.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+      - microservices/observability/IP-001-layer-a-grafana-stack-iac.md
+    owner: ops-platform + axis-observability
+    trigger: First SLO alert is authored and requires routing to an on-call channel.
+    status: pending
+    adr_when_landed: ""
+
+  - id: observability-prometheus
+    intent: |
+      Add Prometheus subchart for short-term scrape; Mimir is the long-retention
+      layer, scrape via Alloy once promoted. Deferred per IP-001 layer-A scope.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+      - microservices/observability/IP-001-layer-a-grafana-stack-iac.md
+    owner: ops-platform + axis-observability
+    trigger: Alloy scrape config promotion or first µservice requiring dedicated Prom scrape.
+    status: pending
+    adr_when_landed: ""
+
+  - id: observability-pyroscope
+    intent: |
+      Add Pyroscope subchart for profile-based observability. Post-MVP; deferred
+      per IP-001 layer-A scope.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+      - microservices/observability/IP-001-layer-a-grafana-stack-iac.md
+    owner: ops-platform + axis-observability
+    trigger: First µservice profiling requirement raised post-MVP.
+    status: pending
+    adr_when_landed: ""
+
+  - id: observability-alloy
+    intent: |
+      Replace ad-hoc Prometheus scrape config with Grafana Alloy subchart when
+      promoted. Deferred per IP-001 layer-A scope.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+      - microservices/observability/IP-001-layer-a-grafana-stack-iac.md
+    owner: ops-platform + axis-observability
+    trigger: Observability stack promotes past dev cell and Alloy reaches LTS pin.
+    status: pending
+    adr_when_landed: ""
+
+  - id: observability-oncall
+    intent: |
+      Grafana OnCall is a separate microservice surface; not bundled in this
+      Helm umbrella. Deferred per IP-001 layer-A scope.
+    driver_docs:
+      - microservices/observability/iac/k8s/helm/values.yaml
+      - microservices/observability/IP-001-layer-a-grafana-stack-iac.md
+    owner: ops-platform + axis-observability
+    trigger: First on-call rotation requires Grafana OnCall routing.
+    status: pending
+    adr_when_landed: ""

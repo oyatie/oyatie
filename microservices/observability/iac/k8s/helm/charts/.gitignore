@@ -1,0 +1,4 @@
+# Vendored helm dependency tarballs are NOT committed.
+# Chart.lock is the canonical pinning; operators run `helm dependency update` to pull tarballs.
+*.tgz
+*.tgz.prov
