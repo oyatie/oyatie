@@ -277,9 +277,6 @@ pub enum SubscriptionPoolError {
     InvalidSubscriptionId,
     NoEligibleSeat,
     ForbiddenByPolicy,
-    /// Returned from kernel methods that have not yet been implemented.
-    /// Stage-4 RED: the GREEN step replaces this with real logic.
-    NotYetImplemented,
 }
 
 /// The kernel pool. One pool per (tenant, provider).
@@ -331,35 +328,131 @@ impl SubscriptionPool {
         self.seats.len()
     }
 
-    /// Select the next eligible seat for an inbound request.
+    /// Select the next eligible seat for an inbound request (D1).
     ///
-    /// Stage-4 RED: returns [`SubscriptionPoolError::NotYetImplemented`].
-    /// Stage-5 GREEN implements the selection state machine per D1.
+    /// D7 contract: the [`AuthzGate`] is consulted exactly once per call,
+    /// before any seat is returned. Forbid wins regardless of pool capacity.
     pub fn select(
         &mut self,
-        _agent_id: &AgentId,
-        _gate: &dyn AuthzGate,
-        _now: Instant,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        let _ = self.round_robin_cursor;
-        let _ = self.cooldown_duration_429;
-        let _ = &self.strategy;
-        Err(SubscriptionPoolError::NotYetImplemented)
+        let request = AuthzRequest {
+            principal_tenant: &self.tenant_id,
+            principal_agent: agent_id,
+            action: AuthzAction::SelectSeat,
+            resource_tenant: &self.tenant_id,
+            resource_provider: self.provider,
+        };
+        if gate.decide(&request) == AuthzDecision::Forbid {
+            return Err(SubscriptionPoolError::ForbiddenByPolicy);
+        }
+
+        if self.seats.is_empty() {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        }
+
+        let seat_ids: Vec<SeatId> = self.seats.keys().cloned().collect();
+        let n = seat_ids.len();
+
+        match self.strategy {
+            SelectionStrategy::FillFirst => {
+                for sid in &seat_ids {
+                    let seat = &self.seats[sid];
+                    if Self::is_eligible(&seat.state, now) {
+                        return Ok(sid.clone());
+                    }
+                }
+                Err(SubscriptionPoolError::NoEligibleSeat)
+            }
+            SelectionStrategy::RoundRobin => {
+                for offset in 0..n {
+                    let idx = (self.round_robin_cursor + offset) % n;
+                    let sid = &seat_ids[idx];
+                    let seat = &self.seats[sid];
+                    if Self::is_eligible(&seat.state, now) {
+                        self.round_robin_cursor = (idx + 1) % n;
+                        return Ok(sid.clone());
+                    }
+                }
+                Err(SubscriptionPoolError::NoEligibleSeat)
+            }
+        }
     }
 
     /// Record an upstream outcome against a seat so the state machine can
     /// transition (e.g. 429 -> Cooldown, repeated failures -> Blacklisted).
-    ///
-    /// Stage-4 RED: returns [`SubscriptionPoolError::NotYetImplemented`].
     pub fn record_outcome(
         &mut self,
-        _seat_id: &SeatId,
-        _outcome: SeatOutcome,
-        _now: Instant,
+        seat_id: &SeatId,
+        outcome: SeatOutcome,
+        now: Instant,
     ) -> Result<(), SubscriptionPoolError> {
-        Err(SubscriptionPoolError::NotYetImplemented)
+        let cooldown = self.cooldown_duration_429;
+        let Some(seat) = self.seats.get_mut(seat_id) else {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        };
+
+        match outcome {
+            SeatOutcome::Ok => {
+                seat.failure_count = 0;
+                seat.state = SubscriptionState::Active;
+            }
+            SeatOutcome::RateLimited429 => {
+                seat.failure_count = seat.failure_count.saturating_add(1);
+                if seat.failure_count > BLACKLIST_THRESHOLD {
+                    seat.state = SubscriptionState::Blacklisted {
+                        reason: BlacklistReason::RepeatedFailuresExceededThreshold {
+                            failure_count: seat.failure_count,
+                        },
+                    };
+                } else {
+                    seat.state = SubscriptionState::Cooldown {
+                        until: now + cooldown,
+                        reason: CooldownReason::UpstreamRateLimit429,
+                    };
+                }
+            }
+            SeatOutcome::ServerError5xx => {
+                seat.failure_count = seat.failure_count.saturating_add(1);
+                if seat.failure_count > BLACKLIST_THRESHOLD {
+                    seat.state = SubscriptionState::Blacklisted {
+                        reason: BlacklistReason::RepeatedFailuresExceededThreshold {
+                            failure_count: seat.failure_count,
+                        },
+                    };
+                } else {
+                    seat.state = SubscriptionState::Cooldown {
+                        until: now + cooldown,
+                        reason: CooldownReason::UpstreamServerError5xx,
+                    };
+                }
+            }
+            SeatOutcome::RefreshTokenRevoked => {
+                seat.state = SubscriptionState::Blacklisted {
+                    reason: BlacklistReason::RefreshTokenRevoked,
+                };
+            }
+        }
+        Ok(())
+    }
+
+    fn is_eligible(state: &SubscriptionState, now: Instant) -> bool {
+        match state {
+            SubscriptionState::Active => true,
+            SubscriptionState::ActiveUntilExpiry { expires_at } => *expires_at > now,
+            SubscriptionState::Cooldown { until, .. } => *until <= now,
+            SubscriptionState::Authorized
+            | SubscriptionState::RefreshingToken { .. }
+            | SubscriptionState::Blacklisted { .. } => false,
+        }
     }
 }
+
+/// Failure-count threshold above which a seat is blacklisted rather than being
+/// put in repeated cooldown. Once crossed, only operator action re-enables it.
+const BLACKLIST_THRESHOLD: u32 = 5;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SeatOutcome {
