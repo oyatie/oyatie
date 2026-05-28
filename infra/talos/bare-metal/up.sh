@@ -66,9 +66,9 @@ cmd_bootstrap_mgmt() {
   need clusterctl
   # Reuse the repo's canonical CAPI provider pins/config where possible.
   if [ -f "$ROOT/infra/capi/clusterctl.yaml" ]; then
-    run clusterctl init --config "$ROOT/infra/capi/clusterctl.yaml" --infrastructure metal3
+    run clusterctl init --config "$ROOT/infra/capi/clusterctl.yaml" --infrastructure sidero --bootstrap talos --control-plane talos
   else
-    run clusterctl init --infrastructure metal3
+    run clusterctl init --infrastructure sidero --bootstrap talos --control-plane talos
   fi
   ok "CAPI/Talos/Sidero-compatible provider bootstrap requested"
 }
@@ -76,7 +76,11 @@ cmd_bootstrap_mgmt() {
 cmd_enroll() {
   log "Install Sidero Metal enrollment stubs"
   need kubectl
-  run kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | run kubectl apply -f -
+  if [ "$DRY_RUN" = "1" ]; then
+    echo "DRY-RUN: kubectl create+apply namespace/$NAMESPACE"
+  else
+    kubectl create ns "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+  fi
   if command -v helm >/dev/null 2>&1; then
     run helm upgrade --install "$HELM_RELEASE" "$HELM_CHART" --namespace "$NAMESPACE" --values "$SIDERO_DIR/values.yaml"
   else

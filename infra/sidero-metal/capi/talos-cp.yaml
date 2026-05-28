@@ -1,4 +1,4 @@
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
 kind: TalosControlPlane
 metadata:
   name: oya-sidero-metal-cp
@@ -7,7 +7,7 @@ spec:
   replicas: 3
   version: v1.36.1
   infrastructureTemplate:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
     kind: MetalMachineTemplate
     name: oya-sidero-metal-cp
   controlPlaneConfig:

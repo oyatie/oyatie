@@ -9,6 +9,8 @@ sidero:
   image:
     repository: ghcr.io/siderolabs/sidero-controller-manager
     tag: v0.6.0
+    # image digest TBD: ghcr.io/siderolabs/sidero-controller-manager@sha256:<fill-on-deploy>
+    # helm chart version is pinned at install time via: helm install --version <X.Y.Z>
     pullPolicy: IfNotPresent
 
 server:
@@ -56,7 +58,6 @@ observability:
       oya.io/component: sidero-metal
 
 security:
-  podSecurityStandards:
-    enforce: restricted
+  # PSA enforcement: applied via Namespace label, not via helm value. See infra/sidero-metal/namespace.yaml (TODO).
   admission:
     requireSignedImages: true

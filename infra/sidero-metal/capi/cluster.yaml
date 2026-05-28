@@ -16,15 +16,15 @@ spec:
       cidrBlocks:
         - 10.96.0.0/12
   controlPlaneRef:
-    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
     kind: TalosControlPlane
     name: oya-sidero-metal-cp
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
     kind: MetalCluster
     name: oya-sidero-metal
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
 kind: MetalCluster
 metadata:
   name: oya-sidero-metal

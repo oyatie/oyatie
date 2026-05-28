@@ -1,4 +1,4 @@
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
 kind: MetalMachineTemplate
 metadata:
   name: oya-sidero-metal-cp
@@ -34,11 +34,11 @@ spec:
           kind: TalosConfigTemplate
           name: oya-sidero-metal-workers
       infrastructureRef:
-        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
         kind: MetalMachineTemplate
         name: oya-sidero-metal-workers
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
 kind: MetalMachineTemplate
 metadata:
   name: oya-sidero-metal-workers

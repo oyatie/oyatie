@@ -30,10 +30,10 @@ data:
     root: /var/lib/sidero/tftp
     files:
       ipxe/sidero-metal.efi:
-        source: ghcr.io/siderolabs/ipxe:latest
+        source: ghcr.io/siderolabs/ipxe:v0.6.0  # digest TBD: @sha256:<fill-on-deploy>
       ipxe/sidero-metal.ipxe:
         inline: |
           #!ipxe
           dhcp
           set base-url https://factory.talos.dev
-          chain ${base-url}/metal-installer || shell
+          chain ${base-url}/metal-installer || shell  # NOTE: lab default — production must mirror Image Factory in-cluster
