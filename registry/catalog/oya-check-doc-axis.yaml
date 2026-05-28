@@ -1,0 +1,11 @@
+context: governance
+role: gate
+capability: doc-axis-enforcement
+plane: control
+slo: preview-control-plane
+data_classes_owned: []
+operational_classes_owned: [GOVERNANCE]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+source_adrs: [ADR-0364, ADR-0377, ADR-0388]
