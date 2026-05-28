@@ -79,3 +79,77 @@ Per `README.md` "Live fanout" section: set `ANTHROPIC_BASE_URL` / `OPENAI_BASE_U
 ## Rotation
 
 90-day rotation: re-run step 1 with new values; ESO refreshes within 5 min; Deployment pods pick up via env (restart pods to force-refresh: `kubectl -n oya-llm-gateway rollout restart deploy/llm-gateway`).
+
+---
+
+## Production deploy on Talos
+
+This section covers deploying `cloud-intelligence` (the canonical production name of the
+gateway binary) on the founder's Talos cluster via ArgoCD GitOps.
+
+### Helm chart
+
+The chart lives at `microservices/llm-gateway/iac/k8s/helm/`. It packages:
+
+- `Chart.yaml` — chart named `cloud-intelligence`, version `0.1.0`.
+- `values.yaml` — image pinned by digest, `kata-cloud-hypervisor` runtime class (Tier-2
+  isolation), service account `oya-cloud-intelligence`, ClusterIP on port 8080.
+- `templates/deployment.yaml` — injects `OYA_CLOUD_INTEL_LISTEN_ADDR`,
+  `OYA_CLOUD_INTEL_TENANT_ID`, and `OYA_CLOUD_INTEL_OPENBAO_TOKEN` (from the ESO-managed
+  secret).
+- `templates/externalsecret.yaml` — ESO `SecretStore` + `ExternalSecret` pulling from
+  OpenBao at `secret/oya/cloud-intelligence`.
+- `templates/networkpolicy.yaml` — cell-boundary policy: inbound from `istio-ingress`
+  only; egress to OpenBao (`cloud-secrets:8200`), upstream AI providers (`:443`), DNS,
+  and the OTel collector.
+- `templates/httproute.yaml` — Gateway API `HTTPRoute` matching `/anthropic/*`,
+  `/openai/*`, `/gemini/*` to the `cloud-intelligence` Service.
+
+To lint and render locally:
+
+```sh
+helm lint microservices/llm-gateway/iac/k8s/helm
+
+helm template microservices/llm-gateway/iac/k8s/helm \
+  --set image.digest=sha256:1111111111111111111111111111111111111111111111111111111111111111 \
+  > /tmp/helm-rendered.yaml
+```
+
+### ArgoCD ApplicationSet
+
+`microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/cloud-intelligence-applicationset.yaml`
+generates one ArgoCD Application per environment (dev / staging / prod), syncing the
+Helm chart with environment-specific value overrides. Sync policy: automated + selfHeal
++ prune. Namespace `cloud-intelligence` is created and labelled automatically.
+
+Apply (once the cluster is reachable):
+
+```sh
+kubectl apply -f \
+  microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/cloud-intelligence-applicationset.yaml
+
+argocd app list | grep cloud-intelligence
+# expect: cloud-intelligence-dev   Synced  Healthy
+```
+
+### Enroll the first subscription
+
+See `microservices/llm-gateway/runbooks/enroll-first-subscription.md` for the
+step-by-step OAuth enrollment flow, OpenBao provisioning, ESO sync verification, and
+smoke-test commands.
+
+### What still requires founder action before first traffic
+
+1. **Publish the container image** — build `bin/cloud-intelligence` and push a
+   cosign-signed image to `registry.oyatie.dev/oya-cloud-intelligence:0.1.0` with the
+   production digest. Update `image.digest` in `values.yaml` (or via the ApplicationSet
+   parameter) to the real digest.
+2. **OpenBao role** — create the `cloud-intelligence-service-role` Kubernetes auth role
+   in OpenBao with a policy granting `read` on `secret/oya/cloud-intelligence`.
+3. **Istio Gateway** — confirm `oyatie-ingress-gateway` in namespace `istio-ingress`
+   exists and has a TLS listener on `intelligence.oya.cloud`.
+4. **OAuth callback registration** — register
+   `https://intelligence.oya.cloud/anthropic/oauth/callback` as an allowed redirect URI
+   with Anthropic if using Authorization Code flow.
+5. **Cosign signature** — sign the published image with the project cosign key so the
+   Kyverno `verify-image-signatures` policy passes on admission.
