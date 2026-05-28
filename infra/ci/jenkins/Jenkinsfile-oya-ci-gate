@@ -1,0 +1,97 @@
+// ADR-0380 D3: oya-ci-gate pipeline body.
+//
+// Loaded via cpsScm from this repo (path: infra/ci/jenkins/Jenkinsfile-oya-ci-gate),
+// referenced by the pipelineJob('oya-ci-gate') declared in JCasC
+// (infra/ci/jenkins/values-local.yaml configScripts.oya-ci-gate-job).
+//
+// Trigger: the ci-webhook-gateway (ADR-0374) POSTs a Forgejo pull_request payload
+// to Jenkins' Generic Webhook Trigger endpoint with token=oya-ci-gate. The
+// trigger extracts PR_NUMBER / PR_SHA / REPO_OWNER / REPO_NAME from the JSON
+// body and exposes them as env vars to this pipeline.
+//
+// Status posting uses the Forgejo statuses API
+// (POST /repos/{owner}/{repo}/statuses/{sha}) authed by the forgejo-ci-token
+// credential (declared in JCasC oya-ci-credentials; minted in ADR-0380 D4).
+// The forgejo-ci-token Secret may not exist before D4 ships; until then the
+// withCredentials block will fail at the credential-not-found step and Jenkins
+// will mark the build FAILED — that's the honest failure mode (we shouldn't
+// silently skip status posting once the gate exists).
+
+pipeline {
+  agent {
+    kubernetes {
+      cloud 'oya-ci-kubernetes'
+      label 'oya-rust-ci'
+      defaultContainer 'rust'
+    }
+  }
+  options {
+    timeout(time: 60, unit: 'MINUTES')
+    timestamps()
+    ansiColor('xterm')
+    buildDiscarder(logRotator(numToKeepStr: '50'))
+  }
+  stages {
+    stage('Checkout PR ref') {
+      steps {
+        sh '''
+          set -euo pipefail
+          cd "${WORKSPACE}"
+          # The cpsScm definition already cloned the dev branch into WORKSPACE.
+          # Fetch the PR ref and check out the PR sha for a deterministic gate.
+          git fetch --depth 1 origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr-${PR_NUMBER}"
+          git checkout "${PR_SHA}"
+          git --no-pager log --oneline -1
+        '''
+      }
+    }
+    stage('Post pending status') {
+      steps {
+        withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
+          script { postForgejoStatus('pending', 'oya gate run-all running') }
+        }
+      }
+    }
+    stage('oya gate run-all') {
+      steps {
+        sh '''
+          set -euo pipefail
+          cd "${WORKSPACE}"
+          cargo build -p oya-dev-cli --release
+          # Run the full gate. Stage failure is detected by post.failure below
+          # and reported as the failure commit-status.
+          ./target/release/oya gate run-all
+        '''
+      }
+    }
+  }
+  post {
+    success {
+      withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
+        script { postForgejoStatus('success', 'oya gate run-all passed') }
+      }
+    }
+    failure {
+      withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
+        script { postForgejoStatus('failure', 'oya gate run-all failed') }
+      }
+    }
+  }
+}
+
+// Post a commit-status to Forgejo. Uses cluster-internal Forgejo service URL
+// (ADR-0363 Forgejo canonical; ADR-0378 Talos substrate).
+def postForgejoStatus(String state, String description) {
+  httpRequest(
+    url: "http://forgejo.oya-ci-jenkins.svc.cluster.local:3000/api/v1/repos/${env.REPO_OWNER}/${env.REPO_NAME}/statuses/${env.PR_SHA}",
+    httpMode: 'POST',
+    customHeaders: [
+      [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
+      [name: 'Content-Type',  value: 'application/json']
+    ],
+    requestBody: """{"state":"${state}","context":"oya-ci-gate","description":"${description}"}""",
+    validResponseCodes: '200,201',
+    consoleLogResponseBody: true,
+    ignoreSslErrors: true
+  )
+}
