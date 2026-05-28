@@ -1,3 +1,8 @@
+---
+status: superseded
+superseded_by: ADR-0390
+---
+
 # cloud-intelligence v1 — the request pipeline
 
 **Status**: ideation artifact (2026-05-28).
