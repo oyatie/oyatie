@@ -675,6 +675,9 @@ members = [
   # reqwest, Anthropic OAuth refresh, EventSink fan-out, and OpenBao envelope
   # encryption.
   "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest",
+  # Cedar adapter implementing the kernel's AuthzGate trait (ADR-0384 D7 +
+  # ADR-0183 inheritance). Consumes the bundled .cedar policy file.
+  "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-authz-cedar-adapter",
 ]
 resolver = "2"
 
