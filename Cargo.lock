@@ -1241,6 +1241,7 @@ checksum = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
+ "rand_core 0.6.4",
  "serde",
  "sha2",
  "subtle",
@@ -3578,6 +3579,65 @@ version = "0.1.0"
 [[package]]
 name = "oya-check-wasm-runtime-discipline"
 version = "0.1.0"
+
+[[package]]
+name = "oya-ci-webhook-gateway-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "bytes",
+ "ed25519-dalek",
+ "oya-ci-webhook-gateway-authz-cedar-adapter",
+ "oya-ci-webhook-gateway-ed25519-adapter",
+ "oya-ci-webhook-gateway-github-adapter",
+ "oya-ci-webhook-gateway-jenkins-adapter",
+ "oya-ci-webhook-gateway-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-ci-webhook-gateway-authz-cedar-adapter"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "oya-ci-webhook-gateway-kernel",
+]
+
+[[package]]
+name = "oya-ci-webhook-gateway-ed25519-adapter"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "oya-ci-webhook-gateway-kernel",
+ "rand_core 0.6.4",
+]
+
+[[package]]
+name = "oya-ci-webhook-gateway-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "httpmock",
+ "oya-ci-webhook-gateway-kernel",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-ci-webhook-gateway-jenkins-adapter"
+version = "0.1.0"
+dependencies = [
+ "httpmock",
+ "oya-ci-webhook-gateway-kernel",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "oya-ci-webhook-gateway-kernel"
