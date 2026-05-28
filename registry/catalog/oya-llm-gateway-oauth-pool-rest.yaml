@@ -18,4 +18,9 @@ non_claims:
   - no ClickHouse or Valkey Stream concrete adapter (trait-only mocks; real adapter crates ship separately)
   - no real OpenBao transit client (trait-only mock; oya-llm-gateway-openbao-adapter ships in a follow-up PR)
   - no app composition crate (separate PR per ADR-0384)
+  - no async reqwest migration (current hot-path uses hyper 1.x directly per blessed-dep doctrine; reqwest migration deferred to Stage-6)
+  - no retry/backoff tower ConcurrencyLimit wiring (tower::ConcurrencyLimit deferred; per-key kernel blacklist acts as circuit breaker)
+  - no token TTL cache (access-token refresh coalescing via singleflight HashMap is Stage-6 work when OAuth refresh tokens are introduced)
+  - no wiremock/httpmock integration coverage beyond the d3 adapter integration test added in Stage-5 multispectrum fix
+  - no production wiring for bin/main + Cedar/Valkey/ClickHouse adapters (composition root deferred to Stage-6 app crate per ADR-0384)
   - parallels the legacy static-API-key kernel at registry/catalog/oya-llm-gateway-kernel.yaml until the OAuth pool REST adapter reaches parity; a follow-up cleanup PR retires the legacy crates and promotes this to the canonical name
