@@ -107,7 +107,6 @@ members = [
   "crates/oya-check-olap-tier-discipline",
   "crates/oya-shared-vector-store-kernel",
   "crates/oya-shared-olap-client-kernel",
-  "crates/oya-analytics-domain",
   "crates/oya-shared-timeseries-kernel",
   "crates/oya-check-perf-budget",
   "crates/oya-check-benchmark",
