@@ -1,7 +1,8 @@
 # SeaweedFS-on-Talos — Oyatie's cluster-internal object-bucket substrate
 # (ADR-0349 canonical; restored on Talos per ADR-0381 D4 after colima retirement).
-# Speaks the industry-standard S3 wire protocol for tool interop (sccache,
-# BuildKit, etc. consume it unchanged); the substrate is NOT AWS — we ship it.
+# Speaks the industry-standard bucket-api wire protocol for tool interop
+# (sccache, BuildKit, etc. consume it unchanged); the substrate is NOT AWS —
+# we ship it.
 #
 # Hyperscaler-lens validation (per memory hyperscaler-lens-architectural-filter):
 #   (a) Active upstream: chrislusf/seaweedfs ships frequent releases, large
@@ -22,7 +23,7 @@
 #   nodeSelector: { oya.cell/storage: "true" }
 #   tolerations: [{ key: dedicated, operator: Equal, value: storage, effect: NoSchedule }]
 #
-# Cluster-internal only (no Ingress / LoadBalancer); S3 anonymous-access MVP.
+# Cluster-internal only (no Ingress / LoadBalancer); anonymous-access MVP.
 # Auth (identities.json with explicit credentials per consumer — BuildKit cache,
 # sccache, registry overlay) is a hardening follow-on once Cilium L3/L4 cell
 # boundaries (ADR-0381 D3) are also live.
@@ -182,11 +183,11 @@ spec:
 # Primary consumer surface: the object-bucket API for BuildKit cache, sccache,
 # artifact storage. Address:
 #   seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333
-# The wire protocol is the industry-standard S3-API (consumed unchanged by
-# sccache + BuildKit). We name OUR Service for the substrate role it plays
-# (bucket API on SeaweedFS), not for the AWS product the protocol originates
-# from — Oyatie does not consume AWS (ADR-0381 amendment 3,
-# hyperscaler-lens-architectural-filter).
+# The wire protocol is the industry-standard object-bucket API (consumed
+# unchanged by sccache + BuildKit). We name OUR Service for the substrate
+# role it plays (bucket-api on SeaweedFS), not for the AWS product whose name
+# the protocol is often shorthand for — Oyatie does not consume AWS
+# (ADR-0381 amendment 3, hyperscaler-lens-architectural-filter).
 apiVersion: v1
 kind: Service
 metadata:
