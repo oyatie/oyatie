@@ -30,7 +30,7 @@ use std::time::{Duration, Instant};
 /// Opaque tenant identifier. Per oyatie-dogfood-tenancy, Oyatie itself runs as
 /// a tenant of its own llm-gateway; there is no internal bypass.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct TenantId(String);
+pub struct TenantId(String); // data_class: INTERNAL_ONLY
 
 impl TenantId {
     pub fn new(value: impl Into<String>) -> Result<Self, SubscriptionPoolError> {
@@ -49,7 +49,7 @@ impl TenantId {
 /// Per-tenant agent identity — usually maps to a single human or automated
 /// caller within the tenant.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct AgentId(String);
+pub struct AgentId(String); // data_class: INTERNAL_ONLY
 
 impl AgentId {
     pub fn new(value: impl Into<String>) -> Result<Self, SubscriptionPoolError> {
@@ -68,7 +68,7 @@ impl AgentId {
 /// A seat is one OAuth subscription credential (one paid plan slot) belonging
 /// to a tenant. SeatIds are stable across token refreshes.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct SeatId(String);
+pub struct SeatId(String); // data_class: INTERNAL_ONLY
 
 impl SeatId {
     pub fn new(value: impl Into<String>) -> Result<Self, SubscriptionPoolError> {
@@ -86,7 +86,7 @@ impl SeatId {
 
 /// Per-token subscription instance — rotates on every refresh.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct SubscriptionId(String);
+pub struct SubscriptionId(String); // data_class: INTERNAL_ONLY
 
 impl SubscriptionId {
     pub fn new(value: impl Into<String>) -> Result<Self, SubscriptionPoolError> {
@@ -171,15 +171,15 @@ pub enum BlacklistReason {
 /// A single OAuth subscription (one tenant seat for one provider).
 #[derive(Clone, Debug)]
 pub struct OAuthSubscription {
-    pub tenant_id: TenantId,
-    pub seat_id: SeatId,
-    pub subscription_id: SubscriptionId,
-    pub provider: Provider,
-    pub state: SubscriptionState,
+    pub tenant_id: TenantId,             // data_class: INTERNAL_ONLY
+    pub seat_id: SeatId,                 // data_class: INTERNAL_ONLY
+    pub subscription_id: SubscriptionId, // data_class: INTERNAL_ONLY
+    pub provider: Provider,              // data_class: INTERNAL_ONLY
+    pub state: SubscriptionState,        // data_class: INTERNAL_ONLY
     /// Opaque handle. The actual refresh token is stored envelope-encrypted in
     /// OpenBao (D8) and never enters the kernel.
-    pub refresh_token_handle: String,
-    pub failure_count: u32,
+    pub refresh_token_handle: String, // data_class: INTERNAL_ONLY
+    pub failure_count: u32,              // data_class: INTERNAL_ONLY
 }
 
 // ---------------------------------------------------------------------------
@@ -190,11 +190,11 @@ pub struct OAuthSubscription {
 /// subscription). Cedar adapter consumes this and returns [`AuthzDecision`].
 #[derive(Clone, Debug)]
 pub struct AuthzRequest<'a> {
-    pub principal_tenant: &'a TenantId,
-    pub principal_agent: &'a AgentId,
-    pub action: AuthzAction,
-    pub resource_tenant: &'a TenantId,
-    pub resource_provider: Provider,
+    pub principal_tenant: &'a TenantId, // data_class: INTERNAL_ONLY
+    pub principal_agent: &'a AgentId,   // data_class: INTERNAL_ONLY
+    pub action: AuthzAction,            // data_class: INTERNAL_ONLY
+    pub resource_tenant: &'a TenantId,  // data_class: INTERNAL_ONLY
+    pub resource_provider: Provider,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -228,17 +228,17 @@ pub trait AuthzGate {
 /// same shape via separate adapter crates.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LlmGatewayEvent {
-    pub request_id: String,
-    pub tenant_id: TenantId,
-    pub agent_id: AgentId,
-    pub seat_id: SeatId,
-    pub provider: Provider,
-    pub model: String,
-    pub prompt_tokens: u64,
-    pub completion_tokens: u64,
-    pub ms_latency: u64,
-    pub status: EventStatus,
-    pub timestamp_unix_ms: u64,
+    pub request_id: String,     // data_class: INTERNAL_ONLY
+    pub tenant_id: TenantId,    // data_class: INTERNAL_ONLY
+    pub agent_id: AgentId,      // data_class: INTERNAL_ONLY
+    pub seat_id: SeatId,        // data_class: INTERNAL_ONLY
+    pub provider: Provider,     // data_class: INTERNAL_ONLY
+    pub model: String,          // data_class: INTERNAL_ONLY
+    pub prompt_tokens: u64,     // data_class: INTERNAL_ONLY
+    pub completion_tokens: u64, // data_class: INTERNAL_ONLY
+    pub ms_latency: u64,        // data_class: INTERNAL_ONLY
+    pub status: EventStatus,    // data_class: INTERNAL_ONLY
+    pub timestamp_unix_ms: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
