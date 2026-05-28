@@ -3826,7 +3826,7 @@
       "path": "decisions/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0374", "ADR-0378", "ADR-0379", "ADR-0363", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0148"]
+      "related": ["ADR-0374", "ADR-0378", "ADR-0379", "ADR-0363", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0148", "ADR-0360", "ADR-0111"]
     }
   ]
 }
