@@ -5,7 +5,7 @@
 - `cloud-intelligence-bedrock-on-talos-2026-05-28.md` — positioning + phased delivery
 - `n-lane-parallel-safety-and-unified-devops-console-2026-05-28.md` — proof + visibility surfaces
 
-**This doc is the v1 PIPELINE.** Eight stages. Each stage names: (a) what it does, (b) its concurrency primitive, (c) its proof property, (d) its metric. Together they constitute the smallest cloud-intelligence runtime that meets the hyperscaler bar.
+**This doc is the v1 pipeline.** Eight stages. Each stage names: (a) what it does, (b) its concurrency primitive, (c) its proof property, (d) its metric. Together they constitute the smallest cloud-intelligence runtime that meets the hyperscaler bar.
 
 ## Problem Statement
 
@@ -44,7 +44,7 @@ A request enters P0, flows P0→P1→P2→P3, response flows back P3→P4→P5�
 - **Metric**: `oya_cloud_intelligence_p0_requests_total{provider, status_code}` counter; `oya_cloud_intelligence_p0_body_bytes` histogram.
 
 ### P1 — Authorization
-- **Does**: extracts `(tenant_id, agent_id, action)` from request (header or signed JWT — v1 is header-based with TODO for JWT); builds `AuthzRequest`; calls `Arc<dyn AuthzGate>`; on `Forbid` returns 403 + emits a P4 receipt with `EventStatus::Forbidden`.
+- **Does**: extracts `(tenant_id, agent_id, action)` from request (header or signed JWT — v1 is header-based; JWT extraction lands in v2); builds `AuthzRequest`; calls `Arc<dyn AuthzGate>`; on `Forbid` returns 403 + emits a P4 receipt with `EventStatus::Forbidden`.
 - **Concurrency**: stateless (Cedar `Authorizer::new()` + immutable `PolicySet` shared via `Arc`).
 - **Proof property** (proptest): for any (principal_tenant ≠ resource_tenant), Cedar decision MUST be `Forbid`. Already covered by 10 adversarial tests in PR #273 + Loom-free since stateless.
 - **Metric**: `oya_cloud_intelligence_p1_decisions_total{decision}` counter; `oya_cloud_intelligence_p1_latency_ms` histogram.
@@ -69,7 +69,7 @@ A request enters P0, flows P0→P1→P2→P3, response flows back P3→P4→P5�
 ### P4 — Receipt (three-tier)
 - **Does**: emits a `CloudIntelligenceReceipt` to ALL THREE sinks:
   1. **Structured event** → ClickHouse `cloud_intelligence_receipts` table + Valkey Stream `cloud-intelligence-receipts` (per-tenant prefix).
-  2. **Idempotency key** → Valkey SETNX `cloud-intelligence-idem:<tenant>:<key>` with the request_id, TTL 24h. Duplicate `Idempotency-Key` headers return the prior receipt + cached response without re-invoking P2-P3.
+  2. **Idempotency key** → Valkey `setnx`-style atomic write to `cloud-intelligence-idem:<tenant>:<key>` with the request_id, TTL 24h. Duplicate `Idempotency-Key` headers return the prior receipt + cached response without re-invoking P2-P3.
   3. **Invocation log** (optional per tenant config flag) → S3-compatible sink writes the full prompt + response body for tenants who require audit-grade prompt logging (regulated industries).
 - **Concurrency**: tokio mpsc channel + spawned receipt-writer task; the request path blocks for at most 1ms (write to channel) — sinks emit asynchronously.
 - **Proof property** (proptest): every successful P3 produces exactly one receipt in the structured-event sink; receipts are append-only (no updates).
@@ -102,13 +102,13 @@ A request enters P0, flows P0→P1→P2→P3, response flows back P3→P4→P5�
 ## Key Assumptions to Validate
 
 - [ ] **Pure provider passthrough is enough for first 3 tenants.** Validate: oyatie-dogfood + 2 prospective users.
-- [ ] **Stripe-style idempotency overhead < 1ms per request.** Validate: benchmark Valkey SETNX with 100 concurrent clients.
+- [ ] **Stripe-style idempotency overhead < 1ms per request.** Validate: benchmark Valkey `setnx`-style atomic writes with 100 concurrent clients.
 - [ ] **Loom can exhaustively check `SubscriptionPool::lease` interleavings in < 30s on M1.** Validate: write the test, time it.
 - [ ] **Anthropic does not penalize a 60s-cached access_token vs fresh-per-request.** Validate: enroll dogfood subscription, hit gateway 100x with cache, observe Anthropic billing.
 - [ ] **ClickHouse `INSERT VALUES` batched at 1Hz keeps p99 receipt-visibility < 2s.** Validate: load test with synthetic 500 RPS.
 - [ ] **Sigstore-signed evidence bundles are < 10KB each.** Validate: emit one.
 
-## v1 MVP Scope
+## v1 Scope
 
 In (the pipeline as drawn above):
 - Pipeline stages P0–P7 implemented end-to-end against the OAuth-pool kernel + Cedar adapter that already exist.
@@ -144,8 +144,8 @@ Out (v2+):
 
 ## Forward-pointers
 
-- This pipeline doc → **ADR-0386: cloud-intelligence v1 — request pipeline + proof layer + receipts** (planning impact).
-- Each stage P0-P7 becomes a deliverable Dx in ADR-0386 with its concurrency primitive + proof property + metric spec.
+- This pipeline doc → the in-flight cloud-intelligence v1 planning ADR (request pipeline + proof layer + receipts; ADR id minted when the ADR file lands).
+- Each stage P0-P7 becomes a deliverable Dx in that planning ADR with its concurrency primitive + proof property + metric spec.
 - Implementation lanes (parallel agent fanout, with absolute-path constraints):
   - **Lane K** — kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) — `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel/`.
   - **Lane R** — REST adapter (P0/P3/P6 + the AnthropicAdapter async migration) — `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/`.
