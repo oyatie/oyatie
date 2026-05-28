@@ -41,7 +41,7 @@ use bytes::Bytes;
 use futures_util::Stream;
 use serde::{Deserialize, Serialize};
 
-use oya_llm_gateway_kernel::{KeyId, ProviderChannel};
+use oya_llm_gateway_kernel::{KeyId, ProviderChannel, SeatOutcome};
 
 use crate::logging::DispatchLog;
 use crate::state::{ChosenKey, GatewayState, KeyChoice};
@@ -442,7 +442,7 @@ async fn handle_openai(
 
                 if !retryable {
                     // Terminal response — stream/buffer through.
-                    group.record_success(chosen.id);
+                    group.complete_lease(chosen.lease, SeatOutcome::Success);
                     state
                         .state
                         .metrics()
@@ -458,11 +458,26 @@ async fn handle_openai(
                 // Retryable status: penalize the key (which also propagates an
                 // upstream `Retry-After` into the kernel cooldown via
                 // `record_failure_with_retry_after`).
-                state.state.record_failure_with_retry_after(
-                    &state.default_group,
-                    chosen.id,
-                    retry_after,
+                let now_ms = now_unix_millis_openai();
+                let jitter = jitter_now();
+                // Complete the lease first (releases Reserved), then apply
+                // Retry-After override via the existing helper.
+                group.complete_lease(
+                    chosen.lease,
+                    SeatOutcome::Failure {
+                        now_unix_millis: now_ms,
+                        jitter_seed: jitter,
+                    },
                 );
+                // Also propagate upstream Retry-After override.
+                if let Some(secs) = retry_after {
+                    state.state.record_retry_after_override(
+                        &state.default_group,
+                        chosen.id,
+                        secs,
+                        now_ms,
+                    );
+                }
                 state
                     .state
                     .metrics()
@@ -498,9 +513,15 @@ async fn handle_openai(
                     outcome: "transport_err",
                 }
                 .emit();
-                state
-                    .state
-                    .record_failure_with_retry_after(&state.default_group, chosen.id, None);
+                let now_ms = now_unix_millis_openai();
+                let jitter = jitter_now();
+                group.complete_lease(
+                    chosen.lease,
+                    SeatOutcome::Failure {
+                        now_unix_millis: now_ms,
+                        jitter_seed: jitter,
+                    },
+                );
                 state
                     .state
                     .metrics()
@@ -524,7 +545,15 @@ async fn handle_openai(
                 // Malformed request build — non-retryable; treat as a key
                 // failure to surface it in metrics but do not loop forever.
                 let _ignored: KeyId = chosen.id;
-                group.record_failure(chosen.id);
+                let now_ms = now_unix_millis_openai();
+                let jitter = jitter_now();
+                group.complete_lease(
+                    chosen.lease,
+                    SeatOutcome::Failure {
+                        now_unix_millis: now_ms,
+                        jitter_seed: jitter,
+                    },
+                );
                 state
                     .state
                     .metrics()
@@ -546,12 +575,31 @@ async fn handle_openai(
 
 /// Translate an [`UpstreamResponse`] into an axum response, preserving SSE
 /// chunk boundaries via [`Body::from_stream`] when streaming.
+/// Strips static hop-by-hop headers AND any headers named in the upstream's
+/// `Connection:` value (RFC 7230 §6.1).
 fn finish_upstream(resp: UpstreamResponse) -> Response {
+    // Collect Connection tokens from the upstream response headers.
+    let resp_connection_tokens: Vec<String> = resp
+        .headers
+        .iter()
+        .filter(|(n, _)| n.eq_ignore_ascii_case("connection"))
+        .flat_map(|(_, v)| {
+            v.split(',')
+                .map(|t| t.trim().to_ascii_lowercase())
+                .filter(|t| !t.is_empty())
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
     let mut response = Response::builder().status(resp.status);
     if let Some(headers) = response.headers_mut() {
         for (name, value) in &resp.headers {
             let lname = name.to_ascii_lowercase();
             if STRIP_RESPONSE_HEADERS.contains(&lname.as_str()) {
+                continue;
+            }
+            // RFC 7230 §6.1: drop headers named in upstream's Connection:.
+            if resp_connection_tokens.iter().any(|t| t == &lname) {
                 continue;
             }
             if let (Ok(hn), Ok(hv)) = (
@@ -597,13 +645,22 @@ fn give_up_with_retry_after(
 }
 
 /// Build the forwarded request headers: copy the inbound headers minus the
-/// strip-list and minus any header the channel will overwrite with pooled
-/// auth. Matches [`crate::proxy::build_upstream_headers`] in semantics.
+/// static strip-list, minus any header named in the `Connection:` value
+/// (RFC 7230 §6.1 hop-by-hop), and minus any header the channel will
+/// overwrite with pooled auth. Matches [`crate::proxy::build_upstream_headers`]
+/// in semantics.
 fn build_forwarded_headers(inbound: &HeaderMap, managed: &[&str]) -> Vec<(String, String)> {
+    // Collect tokens the client listed in its Connection: header.
+    let connection_tokens = collect_connection_tokens_openai(inbound);
+
     let mut out = Vec::new();
     for (name, value) in inbound {
         let lname = name.as_str().to_ascii_lowercase();
         if STRIP_REQUEST_HEADERS.contains(&lname.as_str()) {
+            continue;
+        }
+        // RFC 7230 §6.1: drop headers named in Connection:.
+        if connection_tokens.iter().any(|t| t == &lname) {
             continue;
         }
         if managed.iter().any(|m| m.eq_ignore_ascii_case(&lname)) {
@@ -614,6 +671,23 @@ fn build_forwarded_headers(inbound: &HeaderMap, managed: &[&str]) -> Vec<(String
         }
     }
     out
+}
+
+/// Parse the `Connection:` header value from a [`HeaderMap`] and return the
+/// lowercase token names it contains (RFC 7230 §6.1).
+fn collect_connection_tokens_openai(headers: &HeaderMap) -> Vec<String> {
+    let mut tokens = Vec::new();
+    for value in headers.get_all("connection") {
+        if let Ok(s) = value.to_str() {
+            for token in s.split(',') {
+                let t = token.trim().to_ascii_lowercase();
+                if !t.is_empty() {
+                    tokens.push(t);
+                }
+            }
+        }
+    }
+    tokens
 }
 
 /// Headers that must never be forwarded upstream (hop-by-hop + client auth we
@@ -648,6 +722,14 @@ fn jitter_now() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.subsec_nanos() as u64)
+        .unwrap_or(0)
+}
+
+fn now_unix_millis_openai() -> u64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
         .unwrap_or(0)
 }
 
