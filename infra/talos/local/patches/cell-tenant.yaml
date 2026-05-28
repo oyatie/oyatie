@@ -1,0 +1,18 @@
+# ADR-0381 D2 — tenant worker cell patch.
+#
+# Applied to the 2 worker VMs (worker-0/worker-1) so kubelet registers them with
+# `oya.cell/tenant=true`. These workers host tenant workloads under PSA-restricted
+# (the namespaces themselves carry the PSA labels; the cell label is the scheduler-
+# side selector).
+#
+# No taint — these are the default landing zone for tier-1/tier-2 pods.
+#
+# Apply with:
+#   talosctl apply-config --insecure --nodes $IP \
+#     --file $WORKDIR/worker.yaml \
+#     --config-patch @infra/talos/local/patches/cell-tenant.yaml
+machine:
+  kubelet:
+    nodeLabels:
+      oya.cell/tenant: "true"
+      oya.cell/role: "worker"
