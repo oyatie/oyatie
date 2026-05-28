@@ -168,8 +168,13 @@ Per the ADR-0112 90-day rotation guidance (carried forward):
 - [ ] Webhook secret in OpenBao + Forgejo (match).
 - [ ] Forgejo `pull_request` webhook registered + Test Delivery green.
 - [ ] Gateway deployed; `/healthz` green; `OYA_JENKINS_DISPATCH_URL` set.
-- [ ] A real test PR against `dev` → gateway 202 → Jenkins runs → all 14
-      contexts posted to Forgejo + `oya-pr-review` from the reviewer.
+- [ ] A real test PR against `dev` → gateway 202 → Jenkins runs the
+      `oya-ci-gate` job (ADR-0380 D3; declared in JCasC per PR #242) → a single
+      `oya-ci-gate` status context posted to Forgejo (`pending` → `success` /
+      `failure`) + `oya-pr-review` from the reviewer. (The older
+      14-status-context design from ADR-0359 colima-era is superseded by the
+      single-overarching-context Talos design — see ADR-0380 amendment (5) and
+      `infra/ci/jenkins/Jenkinsfile-oya-ci-gate`.)
 - [ ] Every committer's Ed25519 signing key registered in Forgejo (commits show
       Verified).
 - [ ] Forgejo **auto-merge** ("merge when checks succeed") enabled on the repo.
@@ -182,3 +187,117 @@ Per the ADR-0112 90-day rotation guidance (carried forward):
 > (`adr-0374-reviewer-gate-dispatch`, `adr-0374-merge-queue-admit`). Until the
 > reviewer stage exists, `oya-pr-review` is posted by the current reviewer agent
 > as it is today; the gateway does not regress that.
+
+---
+
+## 7. ADR-0380 D4 — mint and project the `forgejo-ci-token`  **[HUMAN-AUTH]**
+
+The `oya-ci-gate` Jenkinsfile (ADR-0380 D3; `infra/ci/jenkins/Jenkinsfile-oya-ci-gate`)
+posts commit-status via `httpRequest` against the Forgejo statuses API, authed
+by a Jenkins credential `forgejo-ci-token` (declared in JCasC `oya-ci-credentials`
+configScript, PR #242). The credential's value is materialized from the
+controller pod's `FORGEJO_CI_TOKEN` env, which is projected from a Kubernetes
+Secret `forgejo-ci-token` in `oya-ci-jenkins`. **That Secret does not exist
+yet** — D4 mints it.
+
+### 7a. Mint the token in-pod  **[HUMAN-AUTH]**
+
+```sh
+# Exec into the Forgejo pod and mint a per-CI access token. `oya-admin` is the
+# repo-admin identity already used by the existing `gateway-build-git` credential.
+kubectl -n oya-forge exec -it deploy/forgejo -- \
+  forgejo admin user generate-access-token \
+    --username oya-admin \
+    --scopes write:repository \
+    --token-name oya-ci-gate-status-poster
+```
+
+Forgejo prints the token to stdout — **once**. Capture it; it is not retrievable
+later (Forgejo only stores a hash). If lost, regenerate.
+
+### 7b. Project it as a Kubernetes Secret  **[HUMAN-AUTH]**
+
+```sh
+kubectl -n oya-ci-jenkins create secret generic forgejo-ci-token \
+  --from-literal=token='<TOKEN_FROM_STEP_7a>'
+```
+
+Once the Secret exists, the Jenkins controller pod must restart so the
+`containerEnv` projection (PR #242, `infra/ci/jenkins/values-local.yaml`) re-
+binds `FORGEJO_CI_TOKEN` to the new Secret value. JCasC then re-materializes the
+`forgejo-ci-token` Jenkins credential at boot:
+
+```sh
+kubectl -n oya-ci-jenkins rollout restart statefulset/oya-jenkins
+kubectl -n oya-ci-jenkins rollout status  statefulset/oya-jenkins --timeout=300s
+```
+
+### 7c. Verify  **[HUMAN-AUTH]**
+
+```sh
+# In the Jenkins UI: Manage Jenkins → Credentials → System → Global. Confirm
+# `forgejo-ci-token` shows as a String credential (not the literal placeholder).
+# Then: trigger a build manually:
+JENKINS_URL=http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080
+curl -fsS "$JENKINS_URL/generic-webhook-trigger/invoke?token=oya-ci-gate" \
+  -H 'Content-Type: application/json' \
+  -d '{"pull_request":{"number":1,"head":{"sha":"<TEST_SHA>","ref":"refs/heads/test"}},"repository":{"name":"oyatie","owner":{"login":"oya-admin"}}}'
+# The Jenkinsfile's `Post pending status` stage should succeed (not fail at
+# withCredentials). Confirm the test status appears on the SHA in Forgejo.
+```
+
+If the `Post pending status` stage fails with `CredentialNotFoundException`,
+the Secret projection or JCasC binding didn't take effect — verify the Secret
+exists, that the controller pod's `env` shows `FORGEJO_CI_TOKEN`, and that
+the credential is materialized in Jenkins UI.
+
+---
+
+## 8. ADR-0380 D5 — cutover (retiring the admin-merge seam)  **[HUMAN-AUTH]**
+
+After §1–§7 are green AND a real test PR completes one full cycle:
+gateway → Jenkins → `oya-ci-gate` posts `success` → reviewer-agent posts
+`oya-pr-review` → Forgejo auto-merges on green.
+
+### 8a. Verify the loop end-to-end (before cutting over)
+
+- [ ] Open a trivial test PR against `dev` (e.g., comment-only change in a
+      docs file).
+- [ ] Forgejo webhook delivery shows 202 in the Forgejo UI.
+- [ ] The CI webhook gateway pod logs `signature: verified` (HMAC §1 match).
+- [ ] Jenkins shows `oya-ci-gate` build #N triggered with the PR_NUMBER /
+      PR_SHA / REPO_OWNER / REPO_NAME variables.
+- [ ] The build runs `cargo build -p oya-dev-cli --release` then
+      `./target/release/oya gate run-all`.
+- [ ] On a green gate, Forgejo shows the `oya-ci-gate` status as **success**
+      on the PR's SHA.
+- [ ] Forgejo auto-merge (enabled in §6) merges the PR on green without
+      `--admin` override.
+
+### 8b. Flip the dev-branch protection back to strict  **[HUMAN-AUTH]**
+
+The current relax (per memory `oya-dev-branch-protection-merge`) tolerates a
+no-CI-status state on `dev` by allowing admin-merge. Once §8a passes:
+
+- Re-enable any temporarily-relaxed required status checks on `dev` that the
+  oya-ci-gate context now satisfies (`infra/branch-protection/dev.json` is the
+  source of truth; add `oya-ci-gate` to `required_status_checks.contexts`).
+- Stop using the admin-merge path. Document this transition in a follow-up
+  commit that updates the `oya-dev-branch-protection-merge` memory from
+  "ACTIVE seam" to "RETIRED on <date>".
+
+### 8c. Update the memory record  **[HUMAN-AUTH]**
+
+```sh
+# Update ~/.claude/projects/-Users-jasonlee-Developer-source/memory/oya-dev-branch-protection-merge.md
+# Add a section header "Retired: YYYY-MM-DD" with the date of the green-merge
+# verification PR. Keep the prior content for audit; do not delete.
+```
+
+The memory's `description:` field can be updated to reflect post-cutover
+state (e.g., "RETIRED YYYY-MM-DD — dev merges now gate on `oya-ci-gate` green
+status; admin-merge no longer used"). Memory index in `MEMORY.md` may also
+need a description tweak.
+
+> Until §8a and §8b are done, the relax-merge memory remains ACTIVE — this
+> runbook section documents the planned transition, not its completion.
