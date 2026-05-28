@@ -20,7 +20,12 @@ image:
   digest: ""
   pullPolicy: IfNotPresent
   cosign:
-    required: true
+    # Dev-cell: cosign enforcement is off until BuildKit produces a signed image
+    # (ADR-0181 + ADR-0381 D1). Setting true here causes `helm template` to fail
+    # with a missing-digest error, which blocks ArgoCD manifest generation entirely
+    # (observability App shows Unknown/Degraded). Production promotion flips this
+    # to true via the release pipeline.
+    required: false
     policy: ADR-0181
 
 service:
@@ -160,9 +165,20 @@ mimir:
   enabled: true
   minio:
     enabled: false   # SeaweedFS-on-Talos canonical per ADR-0349; do NOT ship MinIO transitive
+  # mimir-distributed 6.x enables Kafka + ingest-storage by default. On this dev-cell
+  # Kafka is Pending (no storage pool yet), so every stateful Mimir component crashes at
+  # startup trying to create the mimir-ingest topic. Disable Kafka and revert to the
+  # classic push path until the storage specialty pool (ADR-0381 D2) lands.
+  kafka:
+    enabled: false
   mimir:
     structuredConfig:
       multitenancy_enabled: true
+      # Disable ingest-storage (Kafka-backed write path introduced in mimir-distributed 6.x).
+      # Must be explicitly set to false when kafka.enabled=false to avoid the distributor
+      # failing with "unable to create topic mimir-ingest: connection refused".
+      ingest_storage:
+        enabled: false
       # Dev-cell storage only. Production must override to SeaweedFS object
       # storage before config.environment=production can render. Tracked at
       # registry/placeholder-debt/adr-follow-ups.yaml#observability-mimir-prod-storage.
@@ -170,6 +186,11 @@ mimir:
         backend: filesystem
         filesystem:
           dir: /data/tsdb
+      # Compactor data dir MUST NOT overlap with blocks_storage.filesystem.dir (/data/tsdb).
+      # Default compactor data_dir is /data which is a parent of /data/tsdb — Mimir rejects
+      # this at startup. Set an explicit non-overlapping path.
+      compactor:
+        data_dir: /data/compactor
       limits:
         max_global_series_per_user: 1000000
         ingestion_rate: 100000
@@ -211,6 +232,14 @@ grafana:
     existingSecret: "grafana-admin"
     userKey: admin-user
     passwordKey: admin-password
+  # Dev-cell bootstrap Secret. Enabled only on dev-cell so Grafana can start
+  # while OpenBao is sealed / ClusterSecretStore not yet registered.
+  # The ExternalSecret adopts this Secret once OpenBao is unsealed (creationPolicy=Owner).
+  # NEVER enable in production (production-guard.yaml enforces environment != production).
+  devBootstrapSecret:
+    enabled: true
+    adminUser: "admin"
+    adminPassword: "oya-dev-bootstrap-changeme"
   persistence:
     enabled: true
     type: pvc

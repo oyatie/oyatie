@@ -42,6 +42,16 @@ hubble:
   enabled: true
   relay:
     enabled: true
+    # The default startupProbe timeoutSeconds=1 is too short on this single-node Talos
+    # cluster: the gRPC health server on :4222 starts but the probe's 1s TCP+gRPC
+    # handshake times out before the server accepts connections under node load,
+    # causing 450+ restart-loop (exit 137 = OOMKill/SIGKILL from kubelet after probe
+    # failure). Raise timeout to 5s and extend the failure window to 120s total
+    # (failureThreshold=24 * period=5s) to survive transient startup contention.
+    startupProbe:
+      timeoutSeconds: 5
+      failureThreshold: 24
+      periodSeconds: 5
   metrics:
     enableOpenMetrics: true
     # Bootstrap runs before the observability stack installs the
