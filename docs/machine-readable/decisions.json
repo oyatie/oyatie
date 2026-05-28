@@ -6,10 +6,10 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 315,
-    "numbering": "ADR-0001..ADR-0378 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 316,
+    "numbering": "ADR-0001..ADR-0379 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0379",
+    "next_adr": "ADR-0380",
     "status_counts": {
       "Accepted": 141,
       "Accepted (amendment)": 1,
@@ -17,7 +17,7 @@
       "Proposed": 87,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
-      "Superseded": 10,
+      "Superseded": 11,
       "accepted": 37,
       "deprecated": 1,
       "proposed": 35
@@ -1912,12 +1912,12 @@
       "adr": "ADR-0183",
       "number": 183,
       "title": "Kubernetes policy engine separation: Cedar (app authz) vs Kyverno (admission)",
-      "status": "Accepted",
+      "status": "Superseded",
       "owner": "council-architecture",
       "date": "2026-05-18",
       "path": "decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0379"],
       "related": ["ADR-0121", "ADR-0145", "ADR-0146", "ADR-0148", "ADR-0182", "ADR-0184", "ADR-0185", "ADR-0186"]
     },
     {
@@ -3803,6 +3803,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0375", "ADR-0376", "ADR-0363", "ADR-0349", "ADR-0130", "ADR-0131", "ADR-0132"]
+    },
+    {
+      "adr": "ADR-0379",
+      "number": 379,
+      "title": "Kubewarden as the default Kubernetes admission/policy substrate (supersedes ADR-0183)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-27",
+      "path": "decisions/ADR-0379-kubewarden-default-admission-substrate.md",
+      "supersedes": ["ADR-0183"],
+      "superseded_by": [],
+      "related": ["ADR-0183", "ADR-0148", "ADR-0181", "ADR-0023", "ADR-0039", "ADR-0378"]
     }
   ]
 }

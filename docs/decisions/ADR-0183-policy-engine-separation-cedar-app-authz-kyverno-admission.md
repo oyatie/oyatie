@@ -1,11 +1,11 @@
 ---
 id: ADR-0183
-status: Accepted
+status: Superseded
 deciders: council-architecture, ops-security, council-privacy, axis-cloud-k8s
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0379]
 related: [ADR-0121, ADR-0145, ADR-0146, ADR-0148, ADR-0182, ADR-0184, ADR-0185, ADR-0186]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

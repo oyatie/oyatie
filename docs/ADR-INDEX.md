@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 315
-- **Numbering:** ADR-0001..ADR-0378 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0379
-- **Status counts:** Accepted 141, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 10, accepted 37, deprecated 1, proposed 35
+- **Total ADRs:** 316
+- **Numbering:** ADR-0001..ADR-0379 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0380
+- **Status counts:** Accepted 141, Accepted (amendment) 1, Amended 1, Proposed 87, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 35
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -178,7 +178,7 @@ doc_status: published
 | ADR-0180 | Accepted | SLO composition + inheritance arithmetic | council-architecture | [`ADR-0180-slo-composition-inheritance-arithmetic.md`](decisions/ADR-0180-slo-composition-inheritance-arithmetic.md) |
 | ADR-0181 | Accepted | Container image promotion pipeline: dev → staging → prod (cosign-signed tier promotion) | council-architecture | [`ADR-0181-container-image-promotion-pipeline.md`](decisions/ADR-0181-container-image-promotion-pipeline.md) |
 | ADR-0182 | Accepted | API Gateway (north-south) vs Service Mesh (east-west) separation; zero overlap | council-architecture | [`ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md`](decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md) |
-| ADR-0183 | Accepted | Kubernetes policy engine separation: Cedar (app authz) vs Kyverno (admission) | council-architecture | [`ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md`](decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md) |
+| ADR-0183 | Superseded | Kubernetes policy engine separation: Cedar (app authz) vs Kyverno (admission) | council-architecture | [`ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md`](decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md) |
 | ADR-0184 | Accepted | Storage tier layering: OLTP / read-replica / cache / search; each tier owns one access pattern | council-architecture | [`ADR-0184-storage-tier-layering.md`](decisions/ADR-0184-storage-tier-layering.md) |
 | ADR-0185 | Accepted | Workflow Studio client stack: per-surface native rendering; OpenAPI contract is the cross-ecosystem unifier | council-architecture | [`ADR-0185-workflow-studio-client-stack.md`](decisions/ADR-0185-workflow-studio-client-stack.md) |
 | ADR-0186 | Accepted | Observability backplane layering: collection / storage / query / alert / SLO authoring; zero overlap | council-architecture | [`ADR-0186-observability-backplane-layering.md`](decisions/ADR-0186-observability-backplane-layering.md) |
@@ -336,11 +336,12 @@ doc_status: published
 | ADR-0376 | Accepted | Oyatie managed-Kubernetes product surface (two-tier: hosted-default + dedicated-premium) | council-architecture | [`ADR-0376-managed-kubernetes-product-surface.md`](decisions/ADR-0376-managed-kubernetes-product-surface.md) |
 | ADR-0377 | Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) | Forgejo board projection with git-ref CAS fallback | council-architecture | [`ADR-0377-forgejo-board-git-ref-cas-fallback.md`](decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md) |
 | ADR-0378 | Accepted | Canonical local substrate: vfkit + Talos Linux (retire colima) | ops-platform | [`ADR-0378-canonical-local-substrate-vfkit-talos.md`](decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md) |
+| ADR-0379 | Accepted | Kubewarden as the default Kubernetes admission/policy substrate (supersedes ADR-0183) | council-architecture | [`ADR-0379-kubewarden-default-admission-substrate.md`](decisions/ADR-0379-kubewarden-default-admission-substrate.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0379), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0380), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -367,6 +368,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 315 ADR files (sorted ascending)
+- `decisions/` directory listing — 316 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

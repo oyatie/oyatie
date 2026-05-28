@@ -20,13 +20,32 @@ apps:
     valueFiles: [infra/talos/cilium-values.yaml]
     syncWave: "0"
 
-  - name: kyverno
+  # Kubewarden — the DEFAULT Kubernetes admission/policy substrate (specs +
+  # ADR-0379 superseding ADR-0183). Policies are Rust->WASM modules, aligning with
+  # ADR-0023 (Wasmtime server-side WASM) + the Rust-everywhere stack. Kyverno
+  # (infra/kyverno/) remains a first-class adapter, NOT base-deployed.
+  # crds (wave 0) -> controller (1) -> defaults: policy-server + recommended policies (2).
+  - name: kubewarden-crds
     type: chart
-    repoURL: https://kyverno.github.io/kyverno
-    chart: kyverno
-    targetRevision: 3.8.1
-    namespace: kyverno
+    repoURL: https://charts.kubewarden.io
+    chart: kubewarden-crds
+    targetRevision: 1.27.0
+    namespace: kubewarden
     syncWave: "0"
+  - name: kubewarden-controller
+    type: chart
+    repoURL: https://charts.kubewarden.io
+    chart: kubewarden-controller
+    targetRevision: 5.13.0
+    namespace: kubewarden
+    syncWave: "1"
+  - name: kubewarden-defaults
+    type: chart
+    repoURL: https://charts.kubewarden.io
+    chart: kubewarden-defaults
+    targetRevision: 3.13.0
+    namespace: kubewarden
+    syncWave: "2"
 
   # Istio Ambient L7 (ADR-0148) — the full 4-chart set, not a stub. ztunnel/waypoints land on
   # workload pools; istiod on the system pool. syncWave 0 (base CRDs) -> 1 (istiod) -> 2 (cni/ztunnel).
@@ -75,14 +94,30 @@ apps:
     namespace: oya-kms
     syncWave: "1"
 
-  - name: jenkins
+  # External Secrets Operator — projects OpenBao secrets (sref://openbao/...) into
+  # workload namespaces (e.g. the CI webhook gateway's HMAC secret, ADR-0043/0374).
+  - name: external-secrets
     type: chart
-    repoURL: https://charts.jenkins.io
-    chart: jenkins
-    targetRevision: 5.9.22
-    namespace: oya-ci
-    valueFiles: [infra/ci/jenkins/values-local.yaml]
-    syncWave: "2"
+    repoURL: https://charts.external-secrets.io
+    chart: external-secrets
+    targetRevision: 2.5.0
+    namespace: external-secrets
+    values: { installCRDs: true }
+    syncWave: "1"
+
+  # In-cluster OCI registry (registry:2) — image target for in-cluster builds
+  # (gateway + future microservice images); host docker is retired (ADR-0378).
+  - name: registry
+    type: path
+    path: infra/registry
+    include: registry.k8s.yaml
+    namespace: oya-registry
+    syncWave: "1"
+
+  # jenkins: bootstrap-managed by infra/talos/local/bring-up.sh in namespace
+  # oya-ci-jenkins (NOT ArgoCD-managed here — avoids a duplicate heavy install +
+  # helm-release-ownership conflict). The CI substrate (cilium/forgejo/jenkins) is
+  # bring-up-managed; ArgoCD owns the platform overlay above it.
 
   - name: observability
     type: path
