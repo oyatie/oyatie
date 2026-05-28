@@ -9,119 +9,64 @@
   "tier": "external-facing",
   "doctrine": {
     "canonical_authority": "ADR-0213",
-    "naming_reservation_note": "The substring 'marketplace' in oyatie µservice names is reserved for the future B2C commerce µservice (Amazon/Shopify class), per ADR-0213 §Disambiguation. This µservice (plugin/app distribution + vetting + per-plugin permissioning) is named plugin-app-store, NOT marketplace.",
+    "naming_reservation_note": "The substring 'marketplace' in oyatie \u00b5service names is reserved for the future B2C commerce \u00b5service (Amazon/Shopify class), per ADR-0213 \u00a7Disambiguation. This \u00b5service (plugin/app distribution + vetting + per-plugin permissioning) is named plugin-app-store, NOT marketplace.",
     "in_house_roadmap_phase": "phase-1-target",
     "inheritance": [
-      "Apple App Store — vetting + per-app permissions + sandbox + signature verification",
-      "VS Code Marketplace — extension catalog + per-extension permissions + signed artifacts",
-      "Shopify App Store — per-install model + scopes + subscription management",
-      "AWS Marketplace (SaaS + AMI) — vetted catalog + per-account procurement + billing aggregation",
-      "Salesforce AppExchange — enterprise vetting (security review)",
-      "JetBrains Marketplace — paid plugins + revenue share + per-plugin signing"
+      "Apple App Store \u2014 vetting + per-app permissions + sandbox + signature verification",
+      "VS Code Marketplace \u2014 extension catalog + per-extension permissions + signed artifacts",
+      "Shopify App Store \u2014 per-install model + scopes + subscription management",
+      "AWS Marketplace (SaaS + AMI) \u2014 vetted catalog + per-account procurement + billing aggregation",
+      "Salesforce AppExchange \u2014 enterprise vetting (security review)",
+      "JetBrains Marketplace \u2014 paid plugins + revenue share + per-plugin signing"
     ]
   },
   "bounded_contexts": [
     {
       "name": "plugin-catalog",
       "description": "Public catalog of published plugins/apps; browse + search + category tree + ratings.",
-      "crates": [
-        "oya-plugin-app-store-plugin-catalog-kernel",
-        "oya-plugin-app-store-plugin-catalog-domain",
-        "oya-plugin-app-store-plugin-catalog-usecase",
-        "oya-plugin-app-store-plugin-catalog-api",
-        "oya-plugin-app-store-plugin-catalog-adapter",
-        "oya-plugin-app-store-plugin-catalog-adapter-postgres",
-        "oya-plugin-app-store-plugin-catalog-rest",
-        "oya-plugin-app-store-plugin-catalog-sdk",
-        "oya-plugin-app-store-plugin-catalog-app"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "plugin-install",
       "description": "Tenant-scoped install + uninstall + per-plugin permission grant; produces plugin installation records.",
-      "crates": [
-        "oya-plugin-app-store-plugin-install-kernel",
-        "oya-plugin-app-store-plugin-install-domain",
-        "oya-plugin-app-store-plugin-install-usecase",
-        "oya-plugin-app-store-plugin-install-api",
-        "oya-plugin-app-store-plugin-install-adapter",
-        "oya-plugin-app-store-plugin-install-adapter-postgres",
-        "oya-plugin-app-store-plugin-install-rest",
-        "oya-plugin-app-store-plugin-install-sdk",
-        "oya-plugin-app-store-plugin-install-app"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "plugin-lifecycle",
-      "description": "Version state machine: draft → submitted → vetting → published → deprecated → retired (+ revoked kill-switch).",
-      "crates": [
-        "oya-plugin-app-store-plugin-lifecycle-kernel",
-        "oya-plugin-app-store-plugin-lifecycle-domain",
-        "oya-plugin-app-store-plugin-lifecycle-usecase",
-        "oya-plugin-app-store-plugin-lifecycle-api",
-        "oya-plugin-app-store-plugin-lifecycle-adapter-postgres",
-        "oya-plugin-app-store-plugin-lifecycle-worker"
-      ],
+      "description": "Version state machine: draft \u2192 submitted \u2192 vetting \u2192 published \u2192 deprecated \u2192 retired (+ revoked kill-switch).",
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "vetting-pipeline",
       "description": "Cosign verification + Trivy + Wasmtime-isolation validator + capability-scope + data-use-boundary + WCAG + AI-Act class + perf budget.",
-      "crates": [
-        "oya-plugin-app-store-vetting-pipeline-kernel",
-        "oya-plugin-app-store-vetting-pipeline-domain",
-        "oya-plugin-app-store-vetting-pipeline-usecase",
-        "oya-plugin-app-store-vetting-pipeline-adapter",
-        "oya-plugin-app-store-vetting-pipeline-adapter-cosign",
-        "oya-plugin-app-store-vetting-pipeline-adapter-trivy",
-        "oya-plugin-app-store-vetting-pipeline-worker"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "per-plugin-permissions",
       "description": "Per-plugin Cedar policy fragment generation + tenant install-time permission grant capture.",
-      "crates": [
-        "oya-plugin-app-store-per-plugin-permissions-kernel",
-        "oya-plugin-app-store-per-plugin-permissions-domain",
-        "oya-plugin-app-store-per-plugin-permissions-usecase",
-        "oya-plugin-app-store-per-plugin-permissions-adapter-cedar"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "per-plugin-rate-limit",
       "description": "Per-installation rate-limit enforcement (default 100 req/s; per-plugin override with admin approval).",
-      "crates": [
-        "oya-plugin-app-store-per-plugin-rate-limit-kernel",
-        "oya-plugin-app-store-per-plugin-rate-limit-domain",
-        "oya-plugin-app-store-per-plugin-rate-limit-usecase",
-        "oya-plugin-app-store-per-plugin-rate-limit-adapter-valkey"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "subscription-billing",
       "description": "Per-plugin subscription state machine + tenant billing aggregation feeding finops-portal; one-time + recurring.",
-      "crates": [
-        "oya-plugin-app-store-subscription-billing-kernel",
-        "oya-plugin-app-store-subscription-billing-domain",
-        "oya-plugin-app-store-subscription-billing-usecase",
-        "oya-plugin-app-store-subscription-billing-adapter-postgres",
-        "oya-plugin-app-store-subscription-billing-worker"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "audit-stream",
-      "description": "Per-plugin action audit trail; every action seals via audit-chain µservice (ADR-0003).",
-      "crates": [
-        "oya-plugin-app-store-audit-stream-kernel",
-        "oya-plugin-app-store-audit-stream-domain",
-        "oya-plugin-app-store-audit-stream-adapter"
-      ],
+      "description": "Per-plugin action audit trail; every action seals via audit-chain \u00b5service (ADR-0003).",
+      "crates": [],
       "status": "planned"
     }
   ],
@@ -249,7 +194,7 @@
     },
     {
       "id": "IP-004-plugin-lifecycle-state-machine",
-      "title": "IP-004: plugin-lifecycle state machine (draft→submitted→vetting→published→deprecated→retired + revoked)",
+      "title": "IP-004: plugin-lifecycle state machine (draft\u2192submitted\u2192vetting\u2192published\u2192deprecated\u2192retired + revoked)",
       "acceptance_status": "pending",
       "file": "microservices/plugin-app-store/implementation-plans/IP-004-plugin-lifecycle-state-machine.md"
     },
@@ -297,7 +242,7 @@
     },
     {
       "id": "IP-012-audit-stream-per-plugin-action",
-      "title": "IP-012: per-plugin action audit trail seal via audit-chain µservice",
+      "title": "IP-012: per-plugin action audit trail seal via audit-chain \u00b5service",
       "acceptance_status": "pending",
       "file": "microservices/plugin-app-store/implementation-plans/IP-012-audit-stream-per-plugin-action.md"
     },
@@ -340,7 +285,7 @@
   "adrs": [
     {
       "id": "ADR-0001",
-      "title": "Cohesion thesis — one product, seven axes",
+      "title": "Cohesion thesis \u2014 one product, seven axes",
       "scope": "repo",
       "file": "docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md"
     },
@@ -418,16 +363,16 @@
     },
     {
       "id": "ADR-0213",
-      "title": "Ecosystem-as-a-Service architecture — Plugin/App Store substrate",
+      "title": "Ecosystem-as-a-Service architecture \u2014 Plugin/App Store substrate",
       "scope": "repo",
       "file": "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaPluginCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaPluginTenantShardSaturation",
-    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaPluginCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaPluginTenantShardSaturation",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "depends_on": [
     {
@@ -555,7 +500,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaPluginCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaPluginTenantShardSaturation; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaPluginCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaPluginTenantShardSaturation; canonical_signals: INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-ecosystem",
   "tier_classification": "external-facing",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",

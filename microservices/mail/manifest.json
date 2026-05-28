@@ -7,41 +7,29 @@
     {
       "name": "dual-context-isolation",
       "description": "Bounded context 'dual-context-isolation' within mail (control plane)",
-      "crates": [
-        "oya-mail-dual-context-isolation-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "imap-frontend",
       "description": "Bounded context 'imap-frontend' within mail (ingress plane)",
-      "crates": [
-        "oya-mail-imap-frontend-rest"
-      ]
+      "crates": []
     },
     {
       "name": "inbound-smtp",
       "description": "Bounded context 'inbound-smtp' within mail (ingress plane)",
-      "crates": [
-        "oya-mail-inbound-smtp-adapter-smtp",
-        "oya-mail-inbound-smtp-app"
-      ]
+      "crates": []
     },
     {
       "name": "legal-hold",
       "description": "Bounded context 'legal-hold' within mail (control plane)",
-      "crates": [
-        "oya-mail-legal-hold-app"
-      ]
+      "crates": []
     },
     {
       "name": "mailbox-store",
       "description": "Bounded context 'mailbox-store' within mail (data plane)",
       "crates": [
         "oya-mail-mailbox-store-adapter-postgres",
-        "oya-mail-mailbox-store-adapter-s3",
         "oya-mail-mailbox-store-app",
-        "oya-mail-mailbox-store-domain",
-        "oya-mail-mailbox-store-kernel",
         "oya-mail-mailbox-store-api",
         "oya-mail-mailbox-store-usecase",
         "oya-mail-mailbox-store-rest"
@@ -50,23 +38,17 @@
     {
       "name": "outbound-smtp",
       "description": "Bounded context 'outbound-smtp' within mail (egress plane)",
-      "crates": [
-        "oya-mail-outbound-smtp-adapter-smtp"
-      ]
+      "crates": []
     },
     {
       "name": "retention-policy",
       "description": "Bounded context 'retention-policy' within mail (control plane)",
-      "crates": [
-        "oya-mail-retention-policy-worker"
-      ]
+      "crates": []
     },
     {
       "name": "search-index",
       "description": "Bounded context 'search-index' within mail (data plane)",
-      "crates": [
-        "oya-mail-search-index-adapter-tantivy"
-      ]
+      "crates": []
     }
   ],
   "layers": [

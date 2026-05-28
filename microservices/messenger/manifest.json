@@ -9,23 +9,10 @@
       "description": "Bounded context 'messenger' within messenger (data plane)",
       "crates": [
         "oya-messenger-app",
-        "oya-messenger-channel-store-adapter-postgres",
-        "oya-messenger-channel-store-domain",
-        "oya-messenger-channel-store-kernel",
-        "oya-messenger-channel-store-rest",
-        "oya-messenger-channel-store-usecase",
-        "oya-messenger-file-attachment-adapter-opswat",
-        "oya-messenger-file-attachment-adapter-s3",
-        "oya-messenger-message-stream-adapter-meilisearch",
         "oya-messenger-message-stream-adapter-postgres",
-        "oya-messenger-message-stream-adapter-valkey-streams",
-        "oya-messenger-message-stream-kernel",
         "oya-messenger-message-stream-api",
         "oya-messenger-message-stream-usecase",
-        "oya-messenger-message-stream-rest",
-        "oya-messenger-presence-adapter-livekit",
-        "oya-messenger-presence-adapter-valkey",
-        "oya-messenger-presence-adapter-websocket"
+        "oya-messenger-message-stream-rest"
       ]
     }
   ],
