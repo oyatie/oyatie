@@ -114,6 +114,19 @@ apps:
     namespace: oya-registry
     syncWave: "1"
 
+  # SeaweedFS (Apache 2; ADR-0349 canonical) — Oyatie's cluster-internal
+  # S3-API-compatible object store, restored on Talos per ADR-0381 D4. Serves:
+  # BuildKit cache (ADR-0381 D1 — s3 backend wires here once Deployed); Jenkins
+  # agent sccache (the deferred half of ADR-0380 D6); registry/artifact overlay.
+  # Single-pod all-in-one MVP; splits into 4 Deployments onto the storage
+  # specialty pool when ADR-0381 D2 lands.
+  - name: seaweedfs
+    type: path
+    path: infra/seaweedfs
+    include: seaweedfs.k8s.yaml
+    namespace: oya-storage
+    syncWave: "1"
+
   # jenkins: bootstrap-managed by infra/talos/local/bring-up.sh in namespace
   # oya-ci-jenkins (NOT ArgoCD-managed here — avoids a duplicate heavy install +
   # helm-release-ownership conflict). The CI substrate (cilium/forgejo/jenkins) is
