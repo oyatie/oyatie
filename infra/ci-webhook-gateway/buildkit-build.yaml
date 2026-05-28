@@ -9,9 +9,14 @@
 #      microservices/ci-webhook-gateway from the git context and push to the in-cluster
 #      registry.
 #
-# Cache backend: the `s3` cache backend will be wired to SeaweedFS-on-Talos once
-# ADR-0381 D4 lands (the storage specialty pool). Until then, `--export-cache` /
-# `--import-cache` are intentionally omitted (no remote cache, but no Kaniko either).
+# Cache backend: the `s3` cache backend is wired to SeaweedFS-on-Talos
+# (ADR-0381 D4; service seaweedfs-s3.oya-storage.svc.cluster.local:8333). Both
+# `--import-cache` (read) and `--export-cache type=s3,mode=max` (write) point at
+# the `oya-ci-buildkit-cache` bucket, which SeaweedFS auto-creates on first PUT.
+# First build: cache miss, BuildKit skips import gracefully and exports at end.
+# Subsequent builds: import hits + reuses layers. Anonymous-mode S3 (cluster-
+# internal only); auth-mode is a hardening follow-on alongside ADR-0381 D3
+# cell-boundary enforcement.
 #
 # Re-run a build: delete + re-apply the Job (or bump the image tag in `--output`).
 # Git creds: secret `gateway-build-git` (gh token), same as the retired Kaniko Job.
@@ -114,13 +119,16 @@ spec:
             - |
               set -euo pipefail
               CONTEXT_URL="https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/jason931225/oyatie.git#refs/heads/dev"
+              CACHE_PARAMS="type=s3,region=oya-local,bucket=oya-ci-buildkit-cache,endpoint_url=http://seaweedfs-s3.oya-storage.svc.cluster.local:8333,access_key_id=oya-ci-anon,secret_access_key=oya-ci-anon,use_path_style=true"
               buildctl --addr "tcp://buildkitd.oya-ci.svc.cluster.local:1234" \
                 build \
                 --frontend dockerfile.v0 \
                 --opt "context=${CONTEXT_URL}" \
                 --opt "context-sub-path=microservices/ci-webhook-gateway" \
                 --opt "filename=Dockerfile" \
-                --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev,push=true,registry.insecure=true"
+                --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev,push=true,registry.insecure=true" \
+                --import-cache "${CACHE_PARAMS}" \
+                --export-cache "${CACHE_PARAMS},mode=max"
           env:
             - name: GIT_USERNAME
               valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }
