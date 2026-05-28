@@ -50,8 +50,10 @@ storage and visualization layer, subject to all three of the following gates:
 
 1. **Fully self-hosted in oya-cells.** Every Grafana Labs component runs inside an oyatie-operated
    cell. No traffic is routed to Grafana Cloud SaaS. No managed-service dependency on Grafana Labs
-   infrastructure is introduced. The Helm charts in `microservices/observability/iac/helm/` are
-   the sole deployment surface.
+   infrastructure is introduced. The ArgoCD/dev-cell entrypoint is the umbrella chart at
+   `microservices/observability/iac/k8s/helm/`; component chart modules and production value
+   fragments remain under `microservices/observability/iac/helm/`. No Grafana Cloud or external
+   SaaS deployment surface is permitted.
 
 2. **Network clause satisfied by self-host posture (per ADR-0211 §35).** The AGPL-3 "network
    clause" (§13) requires that modified source be made available to users who interact with the
@@ -78,17 +80,22 @@ five-stage backplane.
   storage-tier choices. ADR-0186 is the canonical backplane architecture; ADR-0383 is the canonical
   license-reconciliation record.
 - **PR #260 (observability AGPL-3 Helm stack) is unblocked.** The license contradiction that
-  would have prevented its merge is resolved.
+  would have prevented its merge is resolved, provided the umbrella chart stays self-hosted,
+  carries tenant controls, and fails closed for production while any dev-only storage backend is
+  configured.
 - **License-class annotation in PR #260's Chart.yaml** must read `mixed-internal+agpl3-self-hosted`
   (not `internal`). This reflects the accurate license posture: the chart wraps AGPL-3 upstream
   components deployed under the self-hosted exception.
+- **Production promotion is separate from dev-cell rendering.** Dev-cell values may use local
+  filesystem storage only when `config.environment != production`; production renders must refuse
+  Loki test schema/filesystem storage, Tempo local backend, and Mimir filesystem blocks storage.
 
 ## Deliverables
 
 - **D1** — Annotate the observability Helm chart(s) under
-  `microservices/observability/iac/helm/` with references to ADR-0186 and ADR-0383 in a
-  `annotations:` block or chart `NOTES.txt`. Exit criteria: at least one chart carries both ADR
-  references post-merge.
+  `microservices/observability/iac/{k8s/helm,helm/}` with references to ADR-0186 and ADR-0383 in a
+  `annotations:` block or chart `NOTES.txt`. Exit criteria: the ArgoCD umbrella chart carries both
+  ADR references post-merge.
 - **D2** — Correct the license-class annotation in PR #260's `Chart.yaml` from `internal` to
   `mixed-internal+agpl3-self-hosted`. Exit criteria: `grep license-class` in the chart returns
   `mixed-internal+agpl3-self-hosted`.
