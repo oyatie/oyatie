@@ -120,6 +120,23 @@ controller:
                           runAsNonRoot: true
                           runAsUser: 1000
                           fsGroup: 1000
+                        # ADR-0381 D2 cell affinity: prefer the CI specialty pool
+                        # when it exists. Soft preference; single-node Talos
+                        # continues to schedule rust-ci on the only node.
+                        affinity:
+                          nodeAffinity:
+                            preferredDuringSchedulingIgnoredDuringExecution:
+                              - weight: 100
+                                preference:
+                                  matchExpressions:
+                                    - key: oya.cell/ci
+                                      operator: In
+                                      values: ["true"]
+                        tolerations:
+                          - key: dedicated
+                            operator: Equal
+                            value: ci
+                            effect: NoSchedule
                         containers:
                           - name: rust
                             image: rust:1-bookworm

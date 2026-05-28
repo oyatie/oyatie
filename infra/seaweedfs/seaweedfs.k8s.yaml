@@ -68,6 +68,24 @@ spec:
       labels:
         app: seaweedfs
     spec:
+      # ADR-0381 D2 cell affinity: prefer the storage specialty pool when it
+      # exists; soft preference (preferred… not required…) so single-node Talos
+      # still schedules SeaweedFS. Toleration is no-op until the storage pool's
+      # NoSchedule taint is applied (see infra/talos/local/patches/cell-storage.yaml).
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: oya.cell/storage
+                    operator: In
+                    values: ["true"]
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: storage
+          effect: NoSchedule
       containers:
         - name: seaweedfs
           image: chrislusf/seaweedfs:3.79
