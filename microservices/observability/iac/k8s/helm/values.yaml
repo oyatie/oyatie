@@ -27,7 +27,12 @@ service:
   targetPort: 8080
 
 config:
-  environment: production
+  # This umbrella is the ArgoCD/dev-cell entrypoint. Production promotion is
+  # fail-closed by templates/production-guard.yaml until object storage and
+  # tenant-scoped datasource policy are explicitly wired.
+  environment: development
+  deploymentProfile: dev-single-node
+  defaultTenant: oyatie-dev
   auditChainEnabled: true
   imagePromotionPolicy: cosign-required
 
@@ -61,6 +66,21 @@ loki:
     # Production wires SeaweedFS-bucket-api per ADR-0349; tracked at
     # registry/placeholder-debt/adr-follow-ups.yaml#observability-loki-prod-storage.
     useTestSchema: true
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 10001
+      runAsGroup: 10001
+      fsGroup: 10001
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: [ALL]
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
   singleBinary:
     replicas: 1
   read:
@@ -77,20 +97,52 @@ loki:
     enabled: false
   gateway:
     enabled: true
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 10001
-    fsGroup: 10001
-    seccompProfile:
-      type: RuntimeDefault
-  containerSecurityContext:
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop: [ALL]
-    readOnlyRootFilesystem: true
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 101
+      runAsGroup: 101
+      fsGroup: 101
+      seccompProfile:
+        type: RuntimeDefault
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: [ALL]
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
+  sidecar:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: [ALL]
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
+  test:
+    enabled: false
 
 tempo:
   enabled: true
+  multitenancyEnabled: true
+  tempo:
+    podSecurityContext:
+      fsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: [ALL]
+      readOnlyRootFilesystem: true
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+      seccompProfile:
+        type: RuntimeDefault
   storage:
     trace:
       backend: local
@@ -101,23 +153,25 @@ tempo:
     enabled: false
   gateway:
     enabled: true
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 10001
-    fsGroup: 10001
-    seccompProfile:
-      type: RuntimeDefault
-  containerSecurityContext:
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop: [ALL]
-    readOnlyRootFilesystem: true
 
 mimir:
   enabled: true
   minio:
     enabled: false   # SeaweedFS-on-Talos canonical per ADR-0349; do NOT ship MinIO transitive
-  # TODO: point mimir.blocks_storage.backend at SeaweedFS-bucket-api per ADR-0349
+  mimir:
+    structuredConfig:
+      multitenancy_enabled: true
+      # Dev-cell storage only. Production must override to SeaweedFS object
+      # storage before config.environment=production can render. Tracked at
+      # registry/placeholder-debt/adr-follow-ups.yaml#observability-mimir-prod-storage.
+      blocks_storage:
+        backend: filesystem
+        filesystem:
+          dir: /data/tsdb
+      limits:
+        max_global_series_per_user: 1000000
+        ingestion_rate: 100000
+        cardinality_analysis_enabled: true
   metaMonitoring:
     grafanaAgent:
       installOperator: false
@@ -135,6 +189,18 @@ mimir:
       drop: [ALL]
     readOnlyRootFilesystem: true
 
+externalSecrets:
+  grafanaAdmin:
+    enabled: true
+    refreshInterval: 5m
+    secretStoreRef:
+      name: openbao
+      kind: ClusterSecretStore
+    targetName: grafana-admin
+    remoteKey: oya/observability/grafana-admin
+    userProperty: admin-user
+    passwordProperty: admin-password
+
 grafana:
   enabled: true
   admin:
@@ -148,6 +214,12 @@ grafana:
     type: pvc
     size: 5Gi
     storageClassName: local-path  # or appropriate per cell
+  initChownData:
+    # Restricted PSA forbids the chart default root+CHOWN init container.
+    # fsGroup handles writable PVC ownership for the non-root Grafana pod.
+    enabled: false
+  testFramework:
+    enabled: false
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -156,14 +228,32 @@ grafana:
           type: loki
           access: proxy
           url: http://observability-loki-gateway
+          jsonData:
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            # Dev-cell tenant marker. Production renders fail until this is
+            # replaced by tenant-scoped datasource provisioning.
+            httpHeaderValue1: oyatie-dev
         - name: Tempo
           type: tempo
           access: proxy
           url: http://observability-tempo-gateway
+          jsonData:
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            # Dev-cell tenant marker. Production renders fail until this is
+            # replaced by tenant-scoped datasource provisioning.
+            httpHeaderValue1: oyatie-dev
         - name: Mimir
           type: prometheus
           access: proxy
-          url: http://observability-mimir-nginx/prometheus
+          url: http://observability-mimir-gateway/prometheus
+          jsonData:
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            # Dev-cell tenant marker. Production renders fail until this is
+            # replaced by tenant-scoped datasource provisioning.
+            httpHeaderValue1: oyatie-dev
   # Grafana official non-root UID is 472
   podSecurityContext:
     runAsNonRoot: true

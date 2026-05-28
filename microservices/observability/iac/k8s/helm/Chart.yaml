@@ -1,6 +1,6 @@
 apiVersion: v2
 name: oya-observability
-description: Oyatie observability microservice Kubernetes chart.
+description: Oyatie observability ArgoCD/dev-cell umbrella chart; production fails closed until storage and tenant policy are overridden.
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
@@ -11,6 +11,9 @@ annotations:
   oyatie.com/adr-0186: "keeps Grafana Loki/Tempo/Mimir/Grafana stack under AGPL-3 self-hosted"
   oyatie.com/adr-0383: "reconciles supersession of ADR-0042; AGPL-3 stack allowed when self-hosted"
   oyatie.com/license-class: "mixed-internal+agpl3-self-hosted"
+  oyatie.com/deployment-surface: "dev-cell-umbrella; production guarded by templates/production-guard.yaml"
+  oyatie.com/component-values-root: "microservices/observability/iac/helm"
+  oyatie.com/dependency-resolution: "Chart.lock pinned; mirror before air-gap promotion"
 dependencies:
   - name: loki
     version: 7.0.0
