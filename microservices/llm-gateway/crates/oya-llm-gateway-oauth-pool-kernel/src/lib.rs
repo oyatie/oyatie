@@ -8,6 +8,7 @@
 //!   (Authorized -> ActiveUntilExpiry -> RefreshingToken ->
 //!   Active | Cooldown | Blacklisted).
 //! - [`SubscriptionPool`] + [`SelectionStrategy`] (RoundRobin, FillFirst).
+//! - [`SeatLease`] — RAII guard preventing same-seat double-allocation.
 //! - [`AuthzGate`] trait — kernel-level seam for the Cedar adapter
 //!   (D7 per-tenant forbid-wins isolation).
 //! - [`EventSink`] trait + [`LlmGatewayEvent`] — D6 event-emission contract;
@@ -19,8 +20,9 @@
 //! encryption (D8) is enforced in the REST/secret adapter, not here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 // ---------------------------------------------------------------------------
@@ -169,7 +171,7 @@ pub enum BlacklistReason {
 }
 
 /// A single OAuth subscription (one tenant seat for one provider).
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct OAuthSubscription {
     pub tenant_id: TenantId,             // data_class: INTERNAL_ONLY
     pub seat_id: SeatId,                 // data_class: INTERNAL_ONLY
@@ -180,6 +182,20 @@ pub struct OAuthSubscription {
     /// OpenBao (D8) and never enters the kernel.
     pub refresh_token_handle: String, // data_class: INTERNAL_ONLY
     pub failure_count: u32,              // data_class: INTERNAL_ONLY
+}
+
+impl fmt::Debug for OAuthSubscription {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("OAuthSubscription")
+            .field("tenant_id", &self.tenant_id)
+            .field("seat_id", &self.seat_id)
+            .field("subscription_id", &self.subscription_id)
+            .field("provider", &self.provider)
+            .field("state", &self.state)
+            .field("refresh_token_handle", &"<REDACTED>")
+            .field("failure_count", &self.failure_count)
+            .finish()
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -279,6 +295,51 @@ pub enum SubscriptionPoolError {
     ForbiddenByPolicy,
 }
 
+/// RAII lease on a single seat. Prevents double-allocation of the same seat
+/// to two concurrent requests. Call [`SeatLease::complete`] to record the
+/// outcome and release the seat. If dropped without calling `complete`, the
+/// seat is released with [`SeatOutcome::ServerError5xx`] (safe fallback).
+pub struct SeatLease {
+    seat_id: SeatId,                    // data_class: INTERNAL_ONLY
+    pool: Arc<Mutex<SubscriptionPool>>, // data_class: INTERNAL_ONLY
+    completed: bool,
+}
+
+impl SeatLease {
+    /// Record the upstream outcome and release this lease.
+    pub fn complete(
+        mut self,
+        outcome: SeatOutcome,
+        now: Instant,
+    ) -> Result<(), SubscriptionPoolError> {
+        self.completed = true;
+        let mut pool = self
+            .pool
+            .lock()
+            .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
+        pool.release_lease(&self.seat_id);
+        pool.record_outcome(&self.seat_id, outcome, now)
+    }
+
+    pub fn seat_id(&self) -> &SeatId {
+        &self.seat_id
+    }
+}
+
+impl Drop for SeatLease {
+    fn drop(&mut self) {
+        if !self.completed
+            && let Ok(mut pool) = self.pool.lock()
+        {
+            pool.release_lease(&self.seat_id);
+            // Best-effort: record server error so repeated drops don't silently
+            // leave a seat in Active after a failed request.
+            let now = Instant::now();
+            let _ = pool.record_outcome(&self.seat_id, SeatOutcome::ServerError5xx, now);
+        }
+    }
+}
+
 /// The kernel pool. One pool per (tenant, provider).
 pub struct SubscriptionPool {
     tenant_id: TenantId,
@@ -287,6 +348,9 @@ pub struct SubscriptionPool {
     seats: BTreeMap<SeatId, OAuthSubscription>,
     round_robin_cursor: usize,
     cooldown_duration_429: Duration,
+    /// Seats currently held by an active [`SeatLease`]. These are excluded
+    /// from selection to prevent double-allocation.
+    leased_seats: HashSet<SeatId>,
 }
 
 impl SubscriptionPool {
@@ -298,6 +362,7 @@ impl SubscriptionPool {
             seats: BTreeMap::new(),
             round_robin_cursor: 0,
             cooldown_duration_429: Duration::from_secs(60),
+            leased_seats: HashSet::new(),
         }
     }
 
@@ -326,6 +391,38 @@ impl SubscriptionPool {
 
     pub fn seat_count(&self) -> usize {
         self.seats.len()
+    }
+
+    /// Acquire a [`SeatLease`] for the next eligible seat. The leased seat is
+    /// marked as reserved and excluded from concurrent `lease` calls until
+    /// [`SeatLease::complete`] is called (or the lease is dropped).
+    ///
+    /// The pool must be wrapped in an `Arc<Mutex<SubscriptionPool>>` so the
+    /// lease can release itself. Pass the same `Arc` as `pool_ref`.
+    pub fn lease(
+        pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+    ) -> Result<SeatLease, SubscriptionPoolError> {
+        let seat_id = {
+            let mut pool = pool_ref
+                .lock()
+                .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
+            let sid = pool.select_excluding_leased(agent_id, gate, now)?;
+            pool.leased_seats.insert(sid.clone());
+            sid
+        };
+        Ok(SeatLease {
+            seat_id,
+            pool: Arc::clone(pool_ref),
+            completed: false,
+        })
+    }
+
+    /// Internal: release a seat from the leased set.
+    pub(crate) fn release_lease(&mut self, seat_id: &SeatId) {
+        self.leased_seats.remove(seat_id);
     }
 
     /// Select the next eligible seat for an inbound request (D1).
@@ -434,8 +531,79 @@ impl SubscriptionPool {
                     reason: BlacklistReason::RefreshTokenRevoked,
                 };
             }
+            SeatOutcome::RefreshFailed => {
+                seat.failure_count = seat.failure_count.saturating_add(1);
+                if seat.failure_count > BLACKLIST_THRESHOLD {
+                    seat.state = SubscriptionState::Blacklisted {
+                        reason: BlacklistReason::RepeatedFailuresExceededThreshold {
+                            failure_count: seat.failure_count,
+                        },
+                    };
+                } else {
+                    seat.state = SubscriptionState::Cooldown {
+                        until: now + cooldown,
+                        reason: CooldownReason::RefreshTokenTransientFailure,
+                    };
+                }
+            }
         }
         Ok(())
+    }
+
+    /// Like [`select`] but also excludes currently-leased seats.
+    fn select_excluding_leased(
+        &mut self,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+    ) -> Result<SeatId, SubscriptionPoolError> {
+        let request = AuthzRequest {
+            principal_tenant: &self.tenant_id,
+            principal_agent: agent_id,
+            action: AuthzAction::SelectSeat,
+            resource_tenant: &self.tenant_id,
+            resource_provider: self.provider,
+        };
+        if gate.decide(&request) == AuthzDecision::Forbid {
+            return Err(SubscriptionPoolError::ForbiddenByPolicy);
+        }
+
+        if self.seats.is_empty() {
+            return Err(SubscriptionPoolError::NoEligibleSeat);
+        }
+
+        let seat_ids: Vec<SeatId> = self.seats.keys().cloned().collect();
+        let n = seat_ids.len();
+
+        match self.strategy {
+            SelectionStrategy::FillFirst => {
+                for sid in &seat_ids {
+                    if self.leased_seats.contains(sid) {
+                        continue;
+                    }
+                    let seat = &self.seats[sid];
+                    if Self::is_eligible(&seat.state, now) {
+                        return Ok(sid.clone());
+                    }
+                }
+                Err(SubscriptionPoolError::NoEligibleSeat)
+            }
+            SelectionStrategy::RoundRobin => {
+                for offset in 0..n {
+                    let idx = (self.round_robin_cursor + offset) % n;
+                    let sid = &seat_ids[idx];
+                    if self.leased_seats.contains(sid) {
+                        continue;
+                    }
+                    let seat = &self.seats[sid];
+                    if Self::is_eligible(&seat.state, now) {
+                        self.round_robin_cursor = (idx + 1) % n;
+                        return Ok(sid.clone());
+                    }
+                }
+                Err(SubscriptionPoolError::NoEligibleSeat)
+            }
+        }
     }
 
     fn is_eligible(state: &SubscriptionState, now: Instant) -> bool {
@@ -460,4 +628,7 @@ pub enum SeatOutcome {
     RateLimited429,
     ServerError5xx,
     RefreshTokenRevoked,
+    /// Vault or transient OAuth refresh failure (not a permanent revocation).
+    /// Seat enters Cooldown with `RefreshTokenTransientFailure` reason.
+    RefreshFailed,
 }

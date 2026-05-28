@@ -1,8 +1,8 @@
-//! D2 axum reverse-proxy contract tests (Stage-4 RED).
+//! D2 axum reverse-proxy contract tests (Stage-5 GREEN).
 //!
-//! These tests define the contract that Stage-5 GREEN must satisfy when wiring
-//! the full axum router. All tests FAIL at runtime because the implementation
-//! bodies are `todo!()`. They MUST compile.
+//! Tests verify the proxy wire types, pool seat selection, tenant isolation,
+//! and that the adapter methods return proper error types (no longer todo!()).
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_llm_gateway_oauth_pool_kernel::{
     AgentId, AuthzDecision, AuthzRequest, OAuthSubscription, Provider, SeatId, SelectionStrategy,
@@ -77,15 +77,26 @@ fn d2_proxy_response_fields_preserved() {
     assert_eq!(resp.body, b"{}");
 }
 
-/// D2-3: AnthropicAdapter::proxy returns an error on a todo!() stub (panics
-/// at runtime — this is the expected RED behaviour).
+/// D2-3: AnthropicAdapter::proxy returns a network error when no real server
+/// is reachable (Stage-5 GREEN replaces the todo!() stub with reqwest).
 #[test]
-#[should_panic(expected = "Stage-5 GREEN")]
-fn d2_proxy_panics_on_stub() {
-    let adapter = AnthropicAdapter::new(StubSecretStore);
+fn d2_proxy_returns_error_without_server() {
+    // Point at a guaranteed-unreachable address so reqwest fails fast.
+    let adapter =
+        AnthropicAdapter::with_base_url(StubSecretStore, "http://127.0.0.1:1".to_string());
     let tenant = TenantId::new("tenant-acme").unwrap();
     let req = make_proxy_request(tenant);
-    let _ = adapter.proxy(&req, "handle-1");
+    let result = adapter.proxy(&req, "handle-1");
+    // Must be an error — either OAuthRefreshFailed (token endpoint unreachable)
+    // or UpstreamError (messages endpoint unreachable).
+    assert!(
+        result.is_err(),
+        "expected proxy to fail without a real server, got Ok"
+    );
+    match result.unwrap_err() {
+        RestAdapterError::OAuthRefreshFailed(_) | RestAdapterError::UpstreamError { .. } => {}
+        other => panic!("unexpected error variant: {other:?}"),
+    }
 }
 
 /// D2-4: Pool selects a seat before the proxy path is entered.
@@ -177,12 +188,21 @@ fn d2_proxy_requests_are_tenant_scoped() {
     assert_eq!(r2.tenant_id, t2);
 }
 
-/// D2-8: exchange_authorization_code panics on stub (expected RED behaviour).
+/// D2-8: exchange_authorization_code returns a network error without a real
+/// server (Stage-5 GREEN replaces the todo!() stub with reqwest).
 #[test]
-#[should_panic(expected = "Stage-5 GREEN")]
-fn d2_exchange_auth_code_panics_on_stub() {
-    let adapter = AnthropicAdapter::new(StubSecretStore);
+fn d2_exchange_auth_code_returns_error_without_server() {
+    let adapter =
+        AnthropicAdapter::with_base_url(StubSecretStore, "http://127.0.0.1:1".to_string());
     let tenant = TenantId::new("tenant-acme").unwrap();
     let seat = SeatId::new("seat-001").unwrap();
-    let _ = adapter.exchange_authorization_code(&tenant, &seat, "auth-code-xyz");
+    let result = adapter.exchange_authorization_code(&tenant, &seat, "auth-code-xyz");
+    assert!(
+        result.is_err(),
+        "expected exchange_authorization_code to fail without a real server"
+    );
+    assert!(
+        matches!(result.unwrap_err(), RestAdapterError::OAuthRefreshFailed(_)),
+        "expected OAuthRefreshFailed"
+    );
 }

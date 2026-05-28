@@ -160,14 +160,17 @@ fn d6_default_produces_empty_fanout() {
     assert_eq!(fanout.sink_count(), 0);
 }
 
-/// D6-8: PanickingSink panics when emit is called (Stage-5 GREEN must wrap
-/// in catch_unwind to prevent proxy-path failures).
+/// D6-8: PanickingSink panic is caught by the fanout catch_unwind boundary
+/// (Stage-5 GREEN: broadcast wraps each sink call so proxy-path failures are
+/// prevented). The broadcast returns 0 delivered (the panicking sink did not
+/// successfully deliver), and the caller does NOT see a panic.
 #[test]
-#[should_panic(expected = "PanickingSink always panics")]
-fn d6_panicking_sink_panics_on_emit() {
+fn d6_panicking_sink_panic_is_caught_by_fanout() {
     let mut fanout = EventSinkFanout::new();
     fanout.add_sink(Box::new(PanickingSink));
     let tenant = TenantId::new("tenant-acme").unwrap();
     let seat = SeatId::new("seat-001").unwrap();
-    fanout.broadcast(sample_event(tenant, seat));
+    // Must NOT panic — catch_unwind swallows the PanickingSink panic.
+    let delivered = fanout.broadcast(sample_event(tenant, seat));
+    assert_eq!(delivered, 0, "panicking sink should not count as delivered");
 }

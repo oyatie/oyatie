@@ -16,5 +16,8 @@ name = "oya_llm_gateway_oauth_pool_kernel"
 path = "src/lib.rs"
 doctest = false
 
+[dev-dependencies]
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
+
 [lints]
 workspace = true
