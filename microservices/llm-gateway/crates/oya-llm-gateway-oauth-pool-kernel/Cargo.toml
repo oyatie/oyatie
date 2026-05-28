@@ -18,6 +18,7 @@ doctest = false
 
 [dev-dependencies]
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
+proptest = "1.5"
 
 [lints]
 workspace = true

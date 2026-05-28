@@ -14,4 +14,9 @@ traceability:
 non_claims:
   - pure OAuth subscription-pool state machine (selection strategies + per-seat cooldown/blacklist) plus value-object identifiers and the AuthzGate/EventSink seams for D7/D6 only
   - no HTTP listener, network I/O, async runtime, OpenBao client, Cedar engine, ClickHouse client, Valkey client, randomness source, prompt/response handling, or refresh-token exchange claim
+<<<<<<< HEAD
   - supersedes the retired static-API-key kernel/REST/app crates (deleted in chore/retire-legacy-llm-gateway-crates-2026-05-28); promoted to canonical OAuth subscription-pool kernel per ADR-0384
+=======
+  - parallels the legacy static-API-key kernel at registry/catalog/oya-llm-gateway-kernel.yaml until OAuth pool reaches parity; a follow-up cleanup PR retires the legacy crates and promotes this crate to the canonical name
+  - proof harness shipped — proptest covers state-machine invariants; loom plumbing scaffolded (full interleaving coverage Stage-7 when kernel exposes loom-aware cell wrappers)
+>>>>>>> ea28cb8d9 (Add kernel concurrency-proof harness: proptest invariants + loom scaffold + chaos storm)
