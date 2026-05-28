@@ -1,0 +1,29 @@
+[package]
+name = "oya-identity-kernel"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = false
+description = "Pure-Rust no-I/O kernel: OIDC provider state machine, OAuth grants, token issuance."
+
+[package.metadata.oya]
+microservice = "oya-identity"
+bounded_context = "identity-substrate"
+layer = "kernel"
+wave = "wave-c"
+owner_team = "axis-identity"
+binding_adrs = ["ADR-0476"]
+data_classification = "PII_USER_DATA"
+criticality_tier = "platform-critical"
+
+[lib]
+name = "oya_identity_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+
+[lints]
+workspace = true
