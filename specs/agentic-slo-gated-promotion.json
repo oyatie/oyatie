@@ -10,7 +10,7 @@
     "owner_team": "council-architecture",
     "adr": "ADR-0139",
     "related_adrs": ["ADR-0041", "ADR-0111", "ADR-0114", "ADR-0116", "ADR-0123", "ADR-0131"],
-    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-vcs-promotion-readiness CI lane, and the promote-dev-to-staging.yml + promote-staging-to-production.yml workflows."
+    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the Jenkins promotion jobs."
   },
 
   "industry_baseline": {
@@ -110,7 +110,7 @@
       {"name": "oya_promotion_release_pointer_prior", "type": "gauge", "labels": ["microservice", "environment", "sha"], "value": "1 for prior pointer (used by rollback primitive)"}
     ],
     "recording_rules_summary": [
-      {"rule": "oya:current_verdict:by_microservice_env", "expr": "max by (microservice, target_env, verdict) (oya_promotion_eligibility_verdict == 1)", "purpose": "the latest verdict per (microservice, target_env); consumed by oya-vcs-promotion-readiness lane"},
+      {"rule": "oya:current_verdict:by_microservice_env", "expr": "max by (microservice, target_env, verdict) (oya_promotion_eligibility_verdict == 1)", "purpose": "the latest verdict per (microservice, target_env); consumed by oya-governance-promotion-readiness lane"},
       {"rule": "oya:all_eligible:by_sha", "expr": "min by (source_sha, target_env) (count by (microservice, source_sha, target_env, verdict) (oya_promotion_eligibility_verdict{verdict=\"eligible\"}))", "purpose": "1 iff every microservice touched by the SHA is eligible"}
     ],
     "query_api": "PromQL via Mimir HTTP /prometheus/api/v1/query and /api/v1/query_range endpoints; auth via Mimir multi-tenant API key for the CI tenant.",
@@ -129,8 +129,8 @@
       "disallow_force_push": true,
       "require_signed_commits": true,
       "require_signed_tags": true,
-      "required_status_checks_staging": ["oya-vcs-promotion-readiness"],
-      "required_status_checks_production": ["oya-vcs-promotion-readiness"]
+      "required_status_checks_staging": ["oya-governance-promotion-readiness"],
+      "required_status_checks_production": ["oya-governance-promotion-readiness"]
     },
     "deprecated_refs": ["refs/heads/staging", "refs/heads/production"],
     "deprecation_note": "tree-wide single staging/production refs deprecated by ADR-0139; retained read-only for legacy compatibility until all microservices migrate."
@@ -170,7 +170,7 @@
         "evaluator_version": "string"
       },
       "github_dispatch_type": "eligibility-changed",
-      "consumed_by": ["promote-dev-to-staging.yml", "promote-staging-to-production.yml", "grafana-oncall (for held|rejected|rollback verdicts)"]
+      "consumed_by": ["Jenkins dev-to-staging promotion job", "Jenkins staging-to-production promotion job", "grafana-oncall (for held|rejected|rollback verdicts)"]
     },
     "PromotionExecuted": {
       "payload_schema": {
@@ -178,7 +178,7 @@
         "target_env": "string",
         "sha": "string",
         "executed_at": "ISO8601",
-        "actor": "github-actions"
+        "actor": "jenkins"
       },
       "consumed_by": ["audit-chain", "per-component release-pointer ledger"]
     },
@@ -197,29 +197,29 @@
   },
 
   "promote_workflow_contract": {
-    "primary_trigger": "repository_dispatch type=eligibility-changed",
+    "primary_trigger": "signed eligibility-changed event consumed by Jenkins promotion job",
     "reconciliation_heartbeat_cron": {
       "staging": "*/30 * * * *",
       "production": "17 * * * *"
     },
     "preconditions": [
-      "oya-vcs-promotion-readiness CI check green for source SHA on target environment",
+      "oya-governance-promotion-readiness CI check green for source SHA on target environment",
       "burn-rate evaluator has emitted at least one record for (microservice, source_sha, target_env) and the latest verdict is 'eligible'",
-      "source ref's commits are signed (existing branch-protection invariant)"
+      "source ref's commits are signed (existing required-check invariant)"
     ],
     "actions": [
       "fetch source ref's HEAD SHA",
       "fetch release/<microservice>/<environment>'s HEAD SHA",
       "if same — no-op exit 0",
-      "if eligible verdict — PATCH ref to source HEAD (signed fast-forward)",
+      "if eligible verdict — advance release ref to source HEAD (signed fast-forward)",
       "append PromotionExecuted event to audit-chain"
     ],
-    "downstream_trigger": "advancing release/<microservice>/staging fires repository_dispatch eligibility-changed for the production tier"
+    "downstream_trigger": "advancing release/<microservice>/staging emits signed eligibility-changed event for the production tier"
   },
 
   "rollback_primitive": {
     "trigger": "production-tier fast-burn alert fires within 1h post-promotion AND verdict transitions eligible → rollback",
-    "action": "PATCH release/<microservice>/production back to prior ledger pointer for that microservice",
+    "action": "advance release/<microservice>/production back to prior ledger pointer for that microservice",
     "signed": true,
     "linear_history_preserved": true,
     "ledger_record": "append a rollback verdict to promotion-eligibility.jsonl with from_sha and to_sha",
@@ -239,16 +239,16 @@
   },
 
   "ci_lane_contract": {
-    "name": "oya-vcs-promotion-readiness",
+    "name": "oya-governance-promotion-readiness",
     "severity": "BLOCKER",
-    "added_to": ".github/branch-protection.yaml required_status_checks on dev and staging",
+    "added_to": "Jenkins/Forgejo required checks on dev and staging",
     "behaviour": [
       "enumerate every microservice touched by the source SHA (via path-based ownership: a change to microservices/<ms>/** is owned by <ms>)",
       "for each microservice, read the latest record in registry/promotion-eligibility.jsonl for (microservice, source_sha, target_env)",
       "exit 0 only when every microservice has an 'eligible' verdict",
       "exit non-zero with structured JSON listing which microservices are held|rejected|rollback and the burn-rate snapshot"
     ],
-    "implementation": "cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --sha <sha> --env <env>"
+    "implementation": "cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <sha> --env <env>"
   },
 
   "bootstrap_order_decision": {

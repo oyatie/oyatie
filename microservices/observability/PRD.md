@@ -336,7 +336,7 @@ Sharding:
 | AC-01 | OpenSLO manifest at `microservices/<ms>/slos/<sli>.openslo.yaml` validates against OpenSLO v1.0 schema | `cargo run -p oya-observability-slo-engine-rest -- validate <path>` exit 0 |
 | AC-02 | Eligibility verdict for known-good SHA on green burn-rate window is `eligible` | end-to-end test under `microservices/observability/tests/e2e/eligibility-happy-path.rs` |
 | AC-03 | Eligibility verdict transitions `eligible → held` within ≤60s of fast-burn alert firing | timed e2e drill |
-| AC-04 | `oya-vcs-promotion-readiness` CI lane refuses fast-forward when verdict is `held` | branch-protection emulation test |
+| AC-04 | `oya-governance-promotion-readiness` CI lane refuses release-pointer advancement when verdict is `held` | required-check emulation test |
 | AC-05 | Rollback primitive reverts `release/<ms>/production` within ≤60s of post-promotion fast-burn fire | timed e2e rollback drill |
 | AC-06 | Grafana OnCall raises incident on `held → page` transition | webhook integration test |
 | AC-07 | Canary cohort ramp follows 1 % → 10 % → 50 % → 100 % schedule with abort-on-burn | service-mesh integration test |
@@ -364,14 +364,14 @@ Sharding:
 | ADR-0139 | Agentic SLO-gated promotion | the design this PRD scaffolds |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-OBS registers here |
-| ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives used throughout |
+| ADR-0116 / ADR-0363 | Retire external agent-coordination tooling | plain `git` worktree branch + PR to `dev` + Jenkins CI + `oya gate` / `oya verify` |
 
 ## Doctrine refs (ADR-0346..0349)
 
 - ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 (amended by ADR-0359/ADR-0361) — Jenkins (LTS) is the sole CI orchestrator and ArgoCD is the canonical GitOps deploy substrate; GitHub Actions is retired, ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, and enforcement rides `oya-governance-jenkins-canonical-no-gha-residue`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `observability` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

@@ -356,7 +356,7 @@ fn require_values_yaml(text: Option<&str>, issues: &mut Vec<String>) -> usize {
         }
         Some(digest) => {
             issues.push(format!(
-                "values.yaml image.digest must be sha256:<64 lowercase hex>, found {digest:?}"
+                "values.yaml image.digest must be sha256:<64 lowercase non-zero hex>, found {digest:?}"
             ));
         }
         None => issues.push("values.yaml must declare image.digest".to_string()),
@@ -386,6 +386,7 @@ fn valid_sha256_digest(value: &str) -> bool {
         && hex
             .chars()
             .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase())
+        && hex.chars().any(|ch| ch != '0')
 }
 
 fn require_lines(text: Option<&str>, required: &[(&str, &str)], issues: &mut Vec<String>) -> usize {
@@ -508,6 +509,21 @@ mod tests {
     }
 
     #[test]
+    fn cloud_iac_helm_chart_gate_rejects_zero_digest_placeholder() {
+        let temp = valid_temp_repo("cloud-iac-helm-chart-zero-digest");
+        temp.write(
+            "microservices/cloud-iac/iac/k8s/helm/values.yaml",
+            &valid_values().replace(
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            ),
+        );
+
+        let error = validate_cloud_iac_helm_chart_gate(temp.args()).expect_err("zero rejected");
+        assert!(error.contains("values.yaml image.digest"));
+    }
+
+    #[test]
     fn cloud_iac_helm_chart_gate_rejects_missing_manifest_scope() {
         let temp = valid_temp_repo("cloud-iac-helm-chart-manifest-drift");
         temp.write(
@@ -597,7 +613,7 @@ annotations:
   registry: registry.oyatie.dev
   repository: oya-cloud-iac
   tag: "0.1.0"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   cosign:
     required: true
     policy: ADR-0181

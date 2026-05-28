@@ -21,7 +21,7 @@ acceptance_lanes:
   - cargo-nextest
   - oya-governance-audit-chain-emission
   - audit-chain-tamper-detect
-  - oya-vcs-promotion-readiness
+  - oya-governance-promotion-readiness
 related_artifacts:
   - microservices/ontology/src/crates/oya-ontology-audit-chain-{kernel,domain,usecase,adapter,worker}/
 doc_status: published
@@ -126,7 +126,7 @@ Minimum 6 required; 11 specified.
 cargo nextest run -p oya-ontology-audit-chain-worker --test merkle_verify
 cargo run -p oya-dev-cli -- gate validate audit-chain-emission --microservice ontology
 cargo run -p oya-dev-cli -- gate validate audit-chain-tamper-detect --microservice ontology
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice ontology
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice ontology
 ```
 
 ## Halt conditions
@@ -138,7 +138,7 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microser
 ## Exit criteria
 
 1. All 11 tests green on CI.
-2. `audit-chain-emission`, `audit-chain-tamper-detect`, `oya-vcs-promotion-readiness` lanes green.
+2. `audit-chain-emission`, `audit-chain-tamper-detect`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Postgres append-only trigger live in dev cluster.
 5. Worker daemon deployed; emission rate matches expected event volume (verified via metric).

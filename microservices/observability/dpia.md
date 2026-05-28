@@ -60,7 +60,7 @@ Therefore: a DPIA is mandatory pre-deployment. This document is the canonical DP
 
 **What:** observability ingests telemetry (metrics, logs, traces, profiles) emitted by every workload µservice; computes per-tenant SLI signal against tenant-authored OpenSLO targets; emits per-(microservice, sha, target_env) eligibility verdicts that gate dev→staging→production promotion; auto-rolls-back production on burn-rate breach; pages on-call.
 
-**How:** OpenTelemetry SDK → Grafana Alloy collector (per workload µservice; mTLS + per-µservice OTel API key) → Prometheus + Mimir / Loki / Tempo / Pyroscope (multi-tenant TSDB / log / trace / profile stores) → SLO engine worker (continuous PromQL queries) → eligibility verdict metrics into Mimir → GitHub `repository_dispatch` event → promote workflow consumes + advances `release/<microservice>/<environment>` ref → optional automated rollback.
+**How:** OpenTelemetry SDK → Grafana Alloy collector (per workload µservice; mTLS + per-µservice OTel API key) → Prometheus + Mimir / Loki / Tempo / Pyroscope (multi-tenant TSDB / log / trace / profile stores) → SLO engine worker (continuous PromQL queries) → eligibility verdict metrics into Mimir → signed `eligibility-changed` event → Jenkins promotion job consumes + advances `release/<microservice>/<environment>` ref → optional automated rollback.
 
 **Where:** Per-pack region-pinned Mimir clusters (pack-kr → KR / pack-eu → EU / pack-us → US / pack-jp → JP / etc.) running in dedicated observability Kubernetes clusters on oyatie's `cloud-k8s` substrate. Pack-pinning enforces residency per ADR-0117.
 

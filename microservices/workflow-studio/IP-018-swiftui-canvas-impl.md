@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-platform-apple]
 date: 2026-05-18
 related_adrs: [ADR-0185, ADR-0204, ADR-0207]
-acceptance_lanes: [a11y-uikit-traits, perf-canvas-60fps, oya-vcs-promotion-readiness]
+acceptance_lanes: [a11y-uikit-traits, perf-canvas-60fps, oya-governance-promotion-readiness]
 depends_on: [IP-016, IP-022, IP-023]
 ---
 
@@ -107,7 +107,7 @@ Minimum 5 required; 8 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate a11y-uikit-traits --shell swiftui --pkg clients/apple/WorkflowStudio
 cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps --shell swiftui --window 30s
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 xcodebuild test -scheme WorkflowStudioTests
 ```
 
@@ -120,7 +120,7 @@ xcodebuild test -scheme WorkflowStudioTests
 ## Exit criteria
 
 1. All 8 tests pass on macOS arm64 + iPadOS simulator CI runners.
-2. `a11y-uikit-traits`, `perf-canvas-60fps`, `oya-vcs-promotion-readiness` lanes green.
+2. `a11y-uikit-traits`, `perf-canvas-60fps`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. PRD §"Supported shells" lists SwiftUI shell.
 5. Runbook published.

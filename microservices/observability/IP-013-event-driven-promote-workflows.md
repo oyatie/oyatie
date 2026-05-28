@@ -17,50 +17,43 @@ acceptance_lanes: [oya-governance-protection-context-match]
 
 ## Intent
 
-Rewrite `.github/workflows/promote-dev-to-staging.yml` and `.github/workflows/promote-staging-to-production.yml` to consume `repository_dispatch` event `eligibility-changed`. Retain crons as reconciliation heartbeat only. Decommission FUTURE-marked stubs (`oya-governance-canary-cohort-observability` + `oya-governance-full-rollout-observability` references).
+Rewrite promotion pipeline jobs to consume signed `eligibility-changed` events. Retain crons as reconciliation heartbeat only. Decommission FUTURE-marked stubs (`oya-governance-canary-cohort-observability` + `oya-governance-full-rollout-observability` references).
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `.github/workflows/promote-dev-to-staging.yml` | update — `on.repository_dispatch.types: [eligibility-changed]`; retain `schedule` as fallback; remove FUTURE notes |
-| `.github/workflows/promote-staging-to-production.yml` | update — analogous |
-| `.github/workflows/oya-vcs-promotion-readiness.yml` | already created by IP-012 |
+| Jenkins promotion job: dev → staging | update — consume signed `eligibility-changed` events; retain `schedule` as fallback; remove FUTURE notes |
+| Jenkins promotion job: staging → production | update — analogous |
+| Jenkins/Forgejo required check `oya-governance-promotion-readiness` | already created by IP-012 |
 
 ## Code Shape
 
-```yaml
-# promote-dev-to-staging.yml (excerpt of new shape)
-name: promote-dev-to-staging
-
-on:
-  repository_dispatch:
-    types: [eligibility-changed]
-  workflow_dispatch:
-  schedule:
-    - cron: '*/30 * * * *'  # reconciliation heartbeat
-
-permissions:
-  contents: write
-
-jobs:
-  promote-per-microservice:
-    if: ${{ github.event.action == 'eligibility-changed' && github.event.client_payload.target_env == 'staging' && github.event.client_payload.verdict == 'eligible' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify promotion readiness lane green
-        run: cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --sha ${{ github.event.client_payload.source_sha }} --env staging
-      - name: Fast-forward release pointer
-        run: |
-          MS="${{ github.event.client_payload.microservice }}"
-          SHA="${{ github.event.client_payload.source_sha }}"
-          gh api -X PATCH repos/${{ github.repository }}/git/refs/heads/release/${MS}/staging -F sha="$SHA" -F force=false
+```groovy
+stage('Promote eligible microservice') {
+  when {
+    expression {
+      return env.PROMOTION_EVENT_TYPE == 'eligibility-changed' &&
+             env.TARGET_ENV == 'staging' &&
+             env.PROMOTION_VERDICT == 'eligible'
+    }
+  }
+  steps {
+    sh 'cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha "$SOURCE_SHA" --env "$TARGET_ENV"'
+    sh '''
+set -eu
+git fetch origin "refs/heads/release/${MICROSERVICE}/${TARGET_ENV}:refs/remotes/origin/release/${MICROSERVICE}/${TARGET_ENV}" || true
+git update-ref "refs/heads/release/${MICROSERVICE}/${TARGET_ENV}" "$SOURCE_SHA"
+git push origin "refs/heads/release/${MICROSERVICE}/${TARGET_ENV}"
+'''
+  }
+}
 ```
 
 ## Acceptance Gates
 
 ```bash
-gh workflow run promote-dev-to-staging.yml --field client_payload='...' --ref dev
+jenkins build promote-dev-to-staging SOURCE_SHA=<sha> TARGET_ENV=staging
 # Verify ref advanced + audit-chain event emitted
 ```
 
@@ -68,9 +61,9 @@ gh workflow run promote-dev-to-staging.yml --field client_payload='...' --ref de
 
 | Test | Verifies |
 |---|---|
-| Workflow integration: synthetic eligibility-changed event → ref advances |
-| Cron heartbeat reconciles missed events |
-| Stale FUTURE-marked stub references removed (grep returns empty) |
+| Promotion job integration | synthetic eligibility-changed event → ref advances |
+| Cron heartbeat | reconciles missed events |
+| Stub cleanup | stale FUTURE-marked stub references removed (grep returns empty) |
 
 ## Halt Conditions
 

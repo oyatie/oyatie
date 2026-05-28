@@ -45,7 +45,7 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
       - oya-governance-rls-no-superuser-bypass
       - oya-governance-rls-force-on-tenant-tables
 

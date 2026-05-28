@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-agentic-slo-gated-promotion
-impl_plan_id: IP-012-oya-vcs-promotion-readiness-lane
+impl_plan_id: IP-012-governance-promotion-readiness-lane
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -13,24 +13,24 @@ acceptance_lanes: [cargo-nextest, lean-a1]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-012: oya-vcs-promotion-readiness CI lane (BLOCKER)
+# IP-012: oya-governance-promotion-readiness CI lane (BLOCKER)
 
 ## Intent
 
-New CI lane that reads Mimir recording-rule `oya:all_eligible:by_sha` and refuses fast-forward unless every microservice touched by the SHA is eligible. Implemented as a `oya-dev-cli` subcommand callable from GitHub Actions.
+New Jenkins/`oya gate` CI lane that reads Mimir recording-rule `oya:all_eligible:by_sha` and refuses release-pointer advancement unless every microservice touched by the SHA is eligible. Implemented as a `oya-dev-cli` subcommand callable from the governance CI pipeline.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `crates/oya-dev-cli/src/commands/gate/vcs_promotion_readiness.rs` | create — new subcommand |
-| `.github/workflows/oya-vcs-promotion-readiness.yml` | create — workflow that invokes the subcommand |
+| `crates/oya-dev-cli/src/commands/gate/governance_promotion_readiness.rs` | create — new subcommand |
+| Jenkins/Forgejo required-check configuration | create — required check that invokes the subcommand |
 | `microservices/observability/tests/integration/promotion_readiness_lane.rs` | create |
 
 ## Code Shape
 
 ```rust
-// crates/oya-dev-cli/src/commands/gate/vcs_promotion_readiness.rs
+// crates/oya-dev-cli/src/commands/gate/governance_promotion_readiness.rs
 pub async fn run(args: Args) -> anyhow::Result<()> {
     let mimir = MimirClient::new(...);
     let result = mimir.instant_query(
@@ -52,8 +52,8 @@ pub async fn run(args: Args) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --sha <test-sha> --env staging
-cargo nextest run -p oya-dev-cli --test gate_cli vcs_promotion_readiness
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <test-sha> --env staging
+cargo nextest run -p oya-dev-cli --test gate_cli governance_promotion_readiness
 ```
 
 ## Test Plan
@@ -75,4 +75,4 @@ cargo nextest run -p oya-dev-cli --test gate_cli vcs_promotion_readiness
 ## References
 
 - `/specs/agentic-slo-gated-promotion.json` §"ci_lane_contract"
-- PHASE-01 §"branch-protection.yaml diff preview"
+- PHASE-01 §"Required-checks diff preview"

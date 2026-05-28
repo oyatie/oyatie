@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-a11y]
 date: 2026-05-18
 related_adrs: [ADR-0205, ADR-0207]
-acceptance_lanes: [a11y-axe-zero-violations, code-editor-correctness, oya-vcs-promotion-readiness]
+acceptance_lanes: [a11y-axe-zero-violations, code-editor-correctness, oya-governance-promotion-readiness]
 depends_on: [IP-016]
 ---
 
@@ -105,7 +105,7 @@ Minimum 5 required; 8 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate a11y-axe-zero-violations --target cm6
 cargo run -p oya-dev-cli -- gate validate code-editor-correctness --target cm6
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 pnpm --filter web-sveltekit test:integration editor-cm6
 ```
 
@@ -118,7 +118,7 @@ pnpm --filter web-sveltekit test:integration editor-cm6
 ## Exit criteria
 
 1. All 8 tests green on CI.
-2. `a11y-axe-zero-violations` + `code-editor-correctness` + `oya-vcs-promotion-readiness` lanes green.
+2. `a11y-axe-zero-violations` + `code-editor-correctness` + `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Runbook published.
 5. ADR-0205 status updated.

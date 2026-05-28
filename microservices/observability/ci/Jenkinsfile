@@ -92,7 +92,7 @@ spec:
       }
     }
 
-    stage('Oya VCS admission evidence') {
+    stage('Governance admission evidence') {
       steps {
         container('rust') {
           sh 'cargo run -q -p oya-vcs-admission-gate-app'

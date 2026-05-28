@@ -17,13 +17,13 @@ acceptance_lanes: [cargo-nextest]
 
 ## Intent
 
-When a production-tier fast-burn alert fires within 1h post-promotion, `slo-engine-worker` invokes `vcs rollback` against the affected `release/<ms>/production` ref, reverting to the prior pointer. Signed; audit-chain-sealed; emits `RollbackExecuted` event.
+When a production-tier fast-burn alert fires within 1h post-promotion, `slo-engine-worker` opens a rollback pull request against `dev` that pins the affected service back to the prior signed image digest/release pointer. Jenkins promotion checks and ArgoCD rollout health gate the rollback; the action is signed, audit-chain-sealed, and emits `RollbackExecuted`.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `crates/oya-dev-cli/src/commands/vcs/rollback.rs` | create — `oya vcs rollback` subcommand |
+| `microservices/observability/src/crates/oya-observability-slo-engine-worker/src/rollback_pr.rs` | create — rollback PR builder using plain `git` + Jenkins promotion checks |
 | `microservices/observability/src/crates/oya-observability-slo-engine-worker/src/rollback_watcher.rs` | create — 1h post-promotion watcher loop |
 | `microservices/observability/runbooks/rollback.md` | already authored Slice B |
 | `microservices/observability/tests/e2e/rollback_drill.rs` | create — induce burn-rate → assert ref reverted |
@@ -48,7 +48,8 @@ pub async fn watch(deps: WatcherDeps) -> anyhow::Result<()> {
 
 ```bash
 cargo nextest run -p oya-observability-slo-engine-worker --test rollback_watcher
-cargo run -p oya-dev-cli -- vcs rollback --microservice observability --env production --to-sha <prior-sha> --reason "fast-burn breach drill"
+git switch -c rollback/observability-<incident-id> dev
+cargo run -p oya-dev-cli -- gate run-all --ci-required
 ```
 
 ## Test Plan

@@ -30,7 +30,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 
 | TSC | Control objective | Implementation | Evidence artifact |
 |---|---|---|---|
-| CC1.1 | COSO Principle 1: Integrity and ethical values | Code-of-conduct + signed-commit policy; CODEOWNERS reviewed quarterly | `docs/standards/code-review.md` + branch-protection.yaml |
+| CC1.1 | COSO Principle 1: Integrity and ethical values | Code-of-conduct + signed-commit policy; CODEOWNERS reviewed quarterly | `docs/standards/code-review.md` + Jenkins/Forgejo required-check policy |
 | CC1.2 | COSO Principle 2: Board oversight | Council-architecture quarterly review of this µservice | `docs/teams/council-architecture.md` |
 | CC1.3 | Organizational structure | RACI matrix per µservice | `microservices/observability/CODEOWNERS` (Slice C) |
 | CC1.4 | Commitment to competence | Onboarding + training programs | `docs/standards/onboarding.md` |
@@ -41,7 +41,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 | CC3.1 | Risk identification + assessment | Annual threat-model + DPIA + risk register | `threat-model.md` + `dpia.md` |
 | CC3.2 | Risk to entity objectives | Multi-spectrum review per ADR + per IP | `evidence/multispectrum/` per µservice |
 | CC3.3 | Risk of fraud | Audit-chain Ed25519 seals; 2-person rule for sensitive ops | `tenant-isolation.md` §"Audit Trail" |
-| CC3.4 | Significant change risk | Change-management via PR review + LEAN lanes | Slice D `branch-protection.yaml` |
+| CC3.4 | Significant change risk | Change-management via PR review + LEAN lanes | Slice D required-check policy |
 | CC4.1 | Internal monitoring | LEAN CI lanes + per-µservice SLOs | `/specs/quality/lanes.yaml` |
 | CC4.2 | Deficiency communication | Audit-chain emission on every state transition | ADR-0028 + audit-chain µservice |
 | CC5.1 | Control activities | LEAN lanes (50+ checks across governance µservice) | `microservices/governance/` |
@@ -97,7 +97,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 | A.5.34 | Privacy and protection of PII | DPIA + DSR cascade + Cedar policy | `dpia.md` + `policy/*.cedar` |
 | A.8.2 | Privileged access rights | JIT elevation via OpenBao; 2-person rule for sensitive ops | OpenBao audit |
 | A.8.3 | Information access restriction | Mimir multi-tenancy + Cedar | `tenant-isolation.md` |
-| A.8.4 | Access to source code | CODEOWNERS + branch-protection | `branch-protection.yaml` |
+| A.8.4 | Access to source code | CODEOWNERS + required-check policy | required-check policy |
 | A.8.5 | Secure authentication | OIDC + MFA + per-tenant SPIFFE identity | `tenant-isolation.md` |
 | A.8.7 | Protection against malware | Trivy + Grype container scanning + signed images (Cosign) | `.github/workflows/cosign.yml` |
 | A.8.11 | Data masking | OTel SDK PII redactor | OTel redaction processor |
@@ -113,7 +113,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 | A.8.26 | Application security requirements | OpenAPI schema enforcement + Cedar policy + LEAN | `contracts/openapi/*.yaml` (Slice C) |
 | A.8.27 | Secure system architecture | Clean architecture (ADR-0056 + ADR-0105) | ADR-0056 + ADR-0105 |
 | A.8.28 | Secure coding | Cedar fuzz-testing + `cargo clippy` + `cargo deny` | LEAN lanes |
-| A.8.32 | Change management | PR review + LEAN gates | `branch-protection.yaml` |
+| A.8.32 | Change management | PR review + LEAN gates | required-check policy |
 | A.8.33 | Test information | Synthetic test data only in dev/staging; no prod-data in non-prod | `docs/standards/testing.md` |
 | A.8.34 | Protection of information systems during audit testing | Auditor JIT tokens + scoped reads | `policy/auditor-scope.cedar` |
 

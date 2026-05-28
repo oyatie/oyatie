@@ -239,7 +239,7 @@ alerts:
     condition: "max(oya:audit-chain:merkle:attestation_lag_seconds:gauge{environment=\"$environment\"}) > 300"
     for: 5m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: audit_dead_letter_nonzero
     title: "Audit dead-letter queue is nonzero"

@@ -4,6 +4,17 @@
 .DS_Store
 **/.DS_Store
 
+# Local secrets and credentials (never committed).
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.kubeconfig
+
 .grit
 /bominal/
 

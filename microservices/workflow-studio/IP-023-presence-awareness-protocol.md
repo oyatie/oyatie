@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-platform-shared]
 date: 2026-05-18
 related_adrs: [ADR-0145, ADR-0204]
-acceptance_lanes: [presence-correctness, presence-isolation, oya-vcs-promotion-readiness]
+acceptance_lanes: [presence-correctness, presence-isolation, oya-governance-promotion-readiness]
 depends_on: [IP-022]
 ---
 
@@ -103,7 +103,7 @@ Minimum 5 required; 7 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate presence-correctness
 cargo run -p oya-dev-cli -- gate validate presence-isolation
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-collab-presence --tests
 ```
 
@@ -116,7 +116,7 @@ cargo test -p oya-collab-presence --tests
 ## Exit criteria
 
 1. All 7 tests green.
-2. `presence-correctness`, `presence-isolation`, `oya-vcs-promotion-readiness` lanes green.
+2. `presence-correctness`, `presence-isolation`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Runbook published.
 5. ADR-0145 awareness section updated.

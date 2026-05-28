@@ -245,7 +245,7 @@ branches:
     required_status_checks:
       - oya-governance-sheets-crdt-no-silent-loss
       - oya-governance-sheets-formula-engine-correctness
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/sheets/staging
   :
@@ -255,7 +255,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/sheets/production
   :
@@ -265,7 +265,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 ```
 
 ## Oya VCS Symbol Locks

@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-platform-shared, axis-security]
 date: 2026-05-18
 related_adrs: [ADR-0205, ADR-0208]
-acceptance_lanes: [lsp-bridge-correctness, lsp-tenant-isolation, oya-vcs-promotion-readiness]
+acceptance_lanes: [lsp-bridge-correctness, lsp-tenant-isolation, oya-governance-promotion-readiness]
 depends_on: [IP-025]
 ---
 
@@ -106,7 +106,7 @@ Minimum 5 required; 9 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate lsp-bridge-correctness --crate oya-workflow-studio-lsp-bridge
 cargo run -p oya-dev-cli -- gate validate lsp-tenant-isolation --crate oya-workflow-studio-lsp-bridge
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-workflow-studio-lsp-bridge --tests
 ```
 
@@ -119,7 +119,7 @@ cargo test -p oya-workflow-studio-lsp-bridge --tests
 ## Exit criteria
 
 1. All 9 tests green.
-2. `lsp-bridge-correctness`, `lsp-tenant-isolation`, `oya-vcs-promotion-readiness` lanes green.
+2. `lsp-bridge-correctness`, `lsp-tenant-isolation`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Pod pool manifests validated in dev cluster.
 5. Runbook published.

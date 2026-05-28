@@ -257,7 +257,7 @@ alerts:
     condition: "histogram_quantile(0.99, sum by (le, tenant_id, group_id) (rate(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\"}[5m]))) > 10"
     for: 10m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: mls_rotation_overdue
     title: "MLS key rotation cadence overdue"

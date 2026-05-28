@@ -448,10 +448,7 @@ fn validate_packages(
         let ms_nested_valid = (|| -> Option<bool> {
             let rest = package.name.strip_prefix("oya-")?;
             let rel = relative_parent.as_ref()?;
-            let segments: Vec<&str> = rel
-                .iter()
-                .map(|s| s.to_str())
-                .collect::<Option<Vec<_>>>()?;
+            let segments: Vec<&str> = rel.iter().map(|s| s.to_str()).collect::<Option<Vec<_>>>()?;
             if segments.len() != 4
                 || segments[0] != "microservices"
                 || segments[2] != "crates"

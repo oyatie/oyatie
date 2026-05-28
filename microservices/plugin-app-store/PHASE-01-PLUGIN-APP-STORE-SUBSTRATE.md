@@ -194,7 +194,7 @@ branches:
   staging:
     required_status_checks:
       - oya-governance-vetting-pipeline-correctness
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
   ? release/plugin-app-store/staging
   :
     require_pull_request: false
@@ -203,7 +203,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
   ? release/plugin-app-store/production
   :
     require_pull_request: false
@@ -212,7 +212,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 ```
 
 ## Oya VCS Symbol Locks

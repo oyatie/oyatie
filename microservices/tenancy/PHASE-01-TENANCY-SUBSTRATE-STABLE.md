@@ -270,7 +270,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
       - oya-governance-rls-no-superuser-bypass
       - oya-governance-rls-force-on-tenant-tables
 
@@ -282,7 +282,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
       - oya-governance-rls-no-superuser-bypass
       - oya-governance-rls-force-on-tenant-tables
 ```

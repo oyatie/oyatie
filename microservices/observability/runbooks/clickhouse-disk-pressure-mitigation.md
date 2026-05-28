@@ -108,7 +108,7 @@ ClickHouse Disk Pressure Mitigation incident decision tree
 4. Enable circuit breaker: `oya ops breaker open observability-clickhouse-disk-pressure-mitigation-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n observability scale deploy/observability-clickhouse-disk-pressure-mitigation-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason observability-clickhouse-disk-pressure-mitigation --ttl 60m`.
-7. Pause promotion: `oya vcs hold --microservice observability --reason $INCIDENT_ID --runbook clickhouse-disk-pressure-mitigation`.
+7. Pause promotion: keep the incident rollback/fix PR unmerged and require Jenkins promotion checks to remain held/failing for `$INCIDENT_ID` (runbook: clickhouse-disk-pressure-mitigation).
 8. Drain queue safely: `oya ops observability clickhouse-disk-pressure-mitigation drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops observability clickhouse-disk-pressure-mitigation drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT-OBSERVABILITY-CLICKHOUSE_DISK_PRESSURE_MITIGATION-INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -158,7 +158,7 @@ ClickHouse Disk Pressure Mitigation incident decision tree
 14. Watch burn rate: `oya ops watch --metric oya_observability_clickhouse_disk_pressure_mitigation_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close observability-clickhouse-disk-pressure-mitigation-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.observability.clickhouse_disk_pressure_mitigation.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: `oya vcs unhold --microservice observability --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: merge only after reviewer approval plus green Jenkins CI and `oya gate run-all --ci-required`; record `resolved-$INCIDENT_ID` in the incident evidence.
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT-OBSERVABILITY-CLICKHOUSE_DISK_PRESSURE_MITIGATION-INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=clickhouse-disk-pressure-mitigation`.
 19. Verify seal: `oya audit-chain verify --event-class EVT-OBSERVABILITY-CLICKHOUSE_DISK_PRESSURE_MITIGATION-INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.

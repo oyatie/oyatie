@@ -147,7 +147,7 @@ doc_status: published
 10. Enable session recording hold: `oya iam session recording hold --tenant $TENANT --principal $PRINCIPAL --incident $INCIDENT_ID`.
 11. Quarantine workload principal: `oya iam workload quarantine --tenant $TENANT --principal $PRINCIPAL --ttl 60m --reason $INCIDENT_ID`.
 12. Pause Foundry principal if implicated: `oya foundry principal pause --principal $PRINCIPAL --reason $INCIDENT_ID`.
-13. Hold cloud-iam promotions: `oya vcs hold --microservice cloud-iam --reason $INCIDENT_ID --scope elevation`.
+13. Hold cloud-iam promotions: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 14. Notify affected service owners: `oya notify service-owner --incident $INCIDENT_ID --microservice cloud-iam`.
 15. Notify tenant admin through security copy: `oya notify tenant-admin --tenant $TENANT --incident $INCIDENT_ID --template jit-elevation-contained`.
 16. Preserve evidence: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID.json`.

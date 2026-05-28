@@ -244,7 +244,7 @@ alerts:
     condition: "histogram_quantile(0.99, sum by (le, policy_id) (rate(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",policy_id=~\"$policy_id\"}[5m]))) > 0.05"
     for: 10m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: cedar_cache_hit_rate_low
     title: "Cedar policy cache hit rate low"

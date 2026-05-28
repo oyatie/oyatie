@@ -48,7 +48,7 @@ All components introduced by ADR-0139 (agentic SLO-gated promotion) and ADR-0131
 | Grafana Loki (logs) | OpenSLO manifests at `microservices/<ms>/slos/*.openslo.yaml` |
 | Grafana Tempo (traces) | Promotion-eligibility metrics in Mimir |
 | Grafana Pyroscope (profiles) | Per-component release pointer Git refs |
-| Grafana (UI + dashboards) | `oya-vcs-promotion-readiness` CI lane |
+| Grafana (UI + dashboards) | `oya-governance-promotion-readiness` Jenkins/`oya gate` CI lane |
 | Prometheus Alertmanager (routing) | Rollback primitive (signed force-fast-forward) |
 | Grafana OnCall (paging) | Canary cohort weighting (service-mesh integration) |
 
@@ -57,7 +57,7 @@ All components introduced by ADR-0139 (agentic SLO-gated promotion) and ADR-0131
 - Threats to the underlying Kubernetes cluster, container runtime, or hyperscaler IaaS layer — owned by the `cloud-k8s` µservice's threat model.
 - Threats to the workload µservices themselves (tenancy, ontology, workflow, mail, etc.) — each owns its own threat-model.md.
 - Threats to OpenBao secret-manager itself — owned by the `cloud-secrets` µservice's threat model. This document inherits OpenBao threats as upstream and references them.
-- Threats to GitHub Actions runners — owned by the `governance` µservice (CI substrate) threat model.
+- Threats to Jenkins CI agents and Forgejo required-check plumbing — owned by the `governance` µservice (CI substrate) threat model.
 - Threats to Bominal-side observability counterparts — separate Bominal threat-model; oyatie inherits decisions where applicable per `feedback_bominal_inheritance_precedence.md`.
 
 ## Trust Boundaries
@@ -110,7 +110,7 @@ All components introduced by ADR-0139 (agentic SLO-gated promotion) and ADR-0131
 │  ┌─ slo-engine-worker (long-lived service) ──────────────────────────┐     │
 │  │  - Reads Mimir as tenant 'oya-self' for own SLOs                  │     │
 │  │  - Writes eligibility verdict metrics as tenant 'oya-ci' (CI tenant) │  │
-│  │  - Emits repository_dispatch events to GitHub Actions             │     │
+│  │  - Emits signed eligibility-changed events to the governance promotion pipeline             │     │
 │  └───────────────────────────────────────────────────────────────────┘     │
 │                                                                            │
 │  Trust boundary 5: Rollback primitive → Git refs API                       │
@@ -159,7 +159,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | External tenant operator (human) | Untrusted external | OIDC + MFA via Application Shell | Read own tenant's SLOs, dashboards, OnCall incidents; author OpenSLO manifests via PR review |
 | Customer application (machine) | Untrusted external | Per-tenant OTel API key (rotated 30d) | Send OTel signal with own tenant header |
 | Workload µservice (in same trust domain) | Semi-trusted internal | mTLS + per-µservice OTel key (rotated 30d) | Send OTel signal as own µservice |
-| oyatie CI runner (GitHub Actions) | Semi-trusted internal | `WORKFLOW_PAT` + reserved Mimir tenant `oya-ci` API key | Read promotion-eligibility metrics; emit `repository_dispatch eligibility-changed` |
+| oyatie CI agent (Jenkins) | Semi-trusted internal | OIDC-bound Jenkins identity + reserved Mimir tenant `oya-ci` read-only API key | Read promotion-eligibility metrics; consume signed `eligibility-changed` promotion events |
 | slo-engine-worker (long-lived service) | Trusted internal | OpenBao-issued service-account token | Query Mimir as `oya-self`; write verdicts as `oya-ci`; emit dispatch events |
 | Reviewer agent (oya-pr-review lane) | Trusted internal | OIDC-bound CI identity | Read dashboards; refuse merges that violate gate |
 | Council-architecture / ops-security operators (human) | Trusted internal | OIDC + MFA + JIT elevation via OpenBao | Admin-level Grafana access (read all tenants); RW on OpenSLO manifests via PR review |
@@ -190,7 +190,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: `oya-ci` tenant write path
 - Likelihood: M / Impact: H (could permit bad-code promotion or block good-code) / Risk: **H**
 - Mitigations:
-  - `oya-ci` Mimir API key issued only to the in-cluster `slo-engine-worker` ServiceAccount; not exposed to GitHub Actions runners (runners READ via separate read-only key).
+  - `oya-ci` Mimir API key issued only to the in-cluster `slo-engine-worker` ServiceAccount; not exposed to Jenkins CI agents (runners READ via separate read-only key).
   - Mimir ingester validates: only the `oya-self` and `oya-ci` reserved tenants accept writes for `oya_promotion_*` metric families; other tenants emitting these metric names get rejected and audit-emitted.
   - Recording rules in Mimir cross-check verdict-write signatures against the worker's known SPIFFE identity.
 - Owner: axis-observability
@@ -296,9 +296,9 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: PromotionExecuted event chain
 - Likelihood: L / Impact: M / Risk: **L-M**
 - Mitigations:
-  - Every PromotionExecuted event includes `actor=<GitHub-actions-run-id>` + worker SPIFFE-identity + Ed25519 audit-chain seal per Bominal ADR-0028.
+  - Every PromotionExecuted event includes `actor=<jenkins-build-id>` + worker SPIFFE-identity + Ed25519 audit-chain seal per Bominal ADR-0028.
   - audit-chain seal carries Merkle proof; tamper-evident.
-  - Per-changeset evidence at `microservices/<ms>/evidence/multispectrum/<change_id>-<unix_ts>.json` is git-committed; commit signed by author per branch-protection.
+  - Per-changeset evidence at `microservices/<ms>/evidence/multispectrum/<change_id>-<unix_ts>.json` is git-committed; commit signed by author per required-check/PR policy.
 - Owner: axis-observability + audit-chain
 - Residual: L
 - Frameworks: SOC 2 CC4.1, CC8.1; ISO 27001 A.5.27, A.5.28, A.8.15; GDPR Art. 5(2) (accountability), Art. 30 (records of processing); pack-eu eIDAS 910/2014 (qualified signature when applicable)
@@ -307,7 +307,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: OpenSLO manifest commits
 - Likelihood: L / Impact: M / Risk: **L**
 - Mitigations:
-  - Commits to `microservices/*/slos/*.openslo.yaml` require signed commits per branch-protection.yaml (already enforced on `dev`).
+  - Commits to `microservices/*/slos/*.openslo.yaml` require signed commits plus green Jenkins required checks on `dev`.
   - PR review record + commit signature provide non-repudiation.
 - Owner: ops-security
 - Residual: L
@@ -420,7 +420,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Worker is stateless beyond the evaluator window; restart-tolerant.
   - Mimir + Alertmanager monitor the worker's own SLOs (self-observability per PRD OQ#4); breach triggers OnCall page within 5min.
   - **Bootstrap fail-closed**: per 2026-05-17 user pick, during cold-start (< 3 evaluator cycles of clean data), the worker emits `verdict=held` for all (microservice, sha, target_env) tuples. CI lane respects this fail-closed default.
-  - Manual override: `oya vcs verify --override-eligibility --reason "<rfc>"` can bypass with full audit-chain emission + ops-security pre-approval; requires 2-person rule.
+  - Manual override: no retired CLI bypass exists. Override requires an incident PR against `dev`, ops-security pre-approval, reviewer APPROVE, green Jenkins CI, and audit-chain evidence; requires 2-person rule.
 - Owner: axis-observability
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.14; GDPR Art. 32(1)(c)
@@ -544,7 +544,7 @@ Cross-cuts STRIDE + LINDDUN. Each mitigation appears in at least one threat row 
 | Span / metric `data_class` annotations | Preventive | each workload µservice | `oya-check-data-class` lane |
 | Ed25519 audit-chain seal on every gate decision + ref change | Detective + Non-repudiation | audit-chain | Audit-chain regression tests |
 | Per-tenant rate limits + cardinality limits | Preventive (DoS) | axis-observability | Mimir distributor metrics |
-| Signed commits on OpenSLO manifests | Preventive (tampering) | ops-security | branch-protection.yaml enforces |
+| Signed commits on OpenSLO manifests | Preventive (tampering) | ops-security | required-check policy enforces |
 | 2-person rule for Mimir admin ops + manual gate overrides | Preventive (insider) | ops-security | OpenBao JIT elevation logs |
 | Network policy: worker → Mimir write API only | Preventive | ops-sre-reliability | Kubernetes NetworkPolicy review |
 | Differential privacy on cross-tenant aggregations | Preventive | axis-observability | DP analysis published in `policy/dp-analysis.md` |

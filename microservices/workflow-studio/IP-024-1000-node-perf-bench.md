@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-perf]
 date: 2026-05-18
 related_adrs: [ADR-0204]
-acceptance_lanes: [perf-canvas-60fps, perf-budget-no-regression, oya-vcs-promotion-readiness]
+acceptance_lanes: [perf-canvas-60fps, perf-budget-no-regression, oya-governance-promotion-readiness]
 depends_on: [IP-016]
 ---
 
@@ -97,7 +97,7 @@ cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps \
 cargo run -p oya-dev-cli -- gate validate perf-budget-no-regression \
   --history evidence/microservices/workflow-studio/canvas-perf-1000-node-*.json \
   --tolerance 5%
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 pnpm --filter web-sveltekit test:bench
 ```
 

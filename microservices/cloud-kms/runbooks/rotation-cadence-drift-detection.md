@@ -134,7 +134,7 @@ doc_status: published
 
 ## Mitigation
 1. Pause cryptoshred when expired grace is present: `oya flags set oya.cloud_kms.cryptoshred.pause=true --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
-2. Hold new cadence policy deploys: `oya vcs hold --microservice cloud-kms --reason $INCIDENT_ID --scope rotation`.
+2. Hold new cadence policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 3. Freeze evidence export: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID-drift.json`.
 4. Correct invalid cadence dry-run: `oya kms rotation policy set --tenant $TENANT --cmk $CMK --cadence annual --dry-run`.
 5. Correct invalid cadence confirmed: `oya kms rotation policy set --tenant $TENANT --cmk $CMK --cadence annual --confirm $INCIDENT_ID`.
@@ -168,7 +168,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-kms-rotation --production-snapshot --cell $CELL`.
 12. Verify cadence scan: `oya kms rotation drift scan --tenant $TENANT --cell $CELL --expect none`.
 13. Verify evidence export: `oya kms evidence export --tenant $TENANT --surface rotation --expect complete`.
-14. Unhold promotions: `oya vcs unhold --microservice cloud-kms --reason resolved-$INCIDENT_ID`.
+14. Unhold promotions: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_KMS_ROTATION_DRIFT_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

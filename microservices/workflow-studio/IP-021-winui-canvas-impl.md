@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-platform-windows]
 date: 2026-05-18
 related_adrs: [ADR-0185, ADR-0204, ADR-0207]
-acceptance_lanes: [a11y-uia-conformance, perf-canvas-60fps, oya-vcs-promotion-readiness]
+acceptance_lanes: [a11y-uia-conformance, perf-canvas-60fps, oya-governance-promotion-readiness]
 depends_on: [IP-016, IP-022, IP-023]
 ---
 
@@ -115,7 +115,7 @@ Minimum 5 required; 8 specified.
 ```bash
 cargo run -p oya-dev-cli -- gate validate a11y-uia-conformance --shell winui3 --proj clients/winui3/WorkflowStudio
 cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps --shell winui3 --window 30s
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 dotnet test clients/winui3/WorkflowStudio/Tests
 ```
 
@@ -128,7 +128,7 @@ dotnet test clients/winui3/WorkflowStudio/Tests
 ## Exit criteria
 
 1. 8 tests pass on Windows 10 + Windows 11 CI runners (x64 + arm64).
-2. `a11y-uia-conformance`, `perf-canvas-60fps`, `oya-vcs-promotion-readiness` lanes green.
+2. `a11y-uia-conformance`, `perf-canvas-60fps`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. PRD updated.
 5. Runbook published.

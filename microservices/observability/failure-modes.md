@@ -158,8 +158,8 @@ Each failure carries:
 
 | Field | Value |
 |---|---|
-| Trigger | Force-push attempt blocked by branch-protection; OR signed-commit verification fails |
-| Detection | GitHub branch-protection rejects PATCH; emit `oya_release_pointer_rejected_total > 0` |
+| Trigger | Force-push attempt blocked by required-check policy; OR signed-commit verification fails |
+| Detection | required-check policy rejects ref update; emit `oya_release_pointer_rejected_total > 0` |
 | Tenant impact | Promotion stuck; manual rollback path via PR review required |
 | Severity | Sev-2 (operational delay) |
 | Immediate mitigation | Verify SPIFFE identity of writer; re-sign with rotated key; escalate to ops-security if pattern suggests compromise |
