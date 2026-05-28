@@ -164,6 +164,9 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     // #6b: ADR supersession back-link integrity — fails on any one-directional
     // supersedes/superseded_by pair (ADR-0083 Tier-3 panic-free).
     "adr-supersession-consistency",
+    // ADR-0388: doc-axis convention enforcement — status casing, shadow ideas,
+    // docs proliferation, catalog/manifest drift.
+    "doc-axis",
 ];
 
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =

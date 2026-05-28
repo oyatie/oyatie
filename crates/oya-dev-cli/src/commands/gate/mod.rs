@@ -2305,6 +2305,57 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // ADR-0388: doc-axis convention enforcement. Validates ADR status
+        // casing, shadow ideas older than 14 days, docs/ proliferation, and
+        // catalog/manifest crate-claim consistency. Status-casing findings
+        // are warnings (not errors) in default mode; pass --strict to
+        // promote them to blocking errors.
+        (Some("validate"), Some("doc-axis")) => {
+            let rest: Vec<String> = args.collect();
+            let strict = rest.iter().any(|a| a == "--strict");
+            let repo_root = std::path::Path::new(".");
+            match oya_check_doc_axis::validate(repo_root, strict) {
+                Ok(report) => {
+                    if report.warnings > 0 {
+                        println!(
+                            "doc-axis validation passed with {} warning(s): {} ADRs, {} ideas, {} docs entries, {} manifests checked",
+                            report.warnings,
+                            report.adrs_checked,
+                            report.ideas_checked,
+                            report.docs_files_checked,
+                            report.manifests_checked,
+                        );
+                    } else {
+                        println!(
+                            "doc-axis validation passed: {} ADRs, {} ideas, {} docs entries, {} manifests checked",
+                            report.adrs_checked,
+                            report.ideas_checked,
+                            report.docs_files_checked,
+                            report.manifests_checked,
+                        );
+                    }
+                    ExitCode::SUCCESS
+                }
+                Err(findings) => {
+                    for f in &findings {
+                        eprintln!(
+                            "doc-axis violation [{}:{}]: {:?} — {}",
+                            f.path,
+                            f.line
+                                .map(|l| l.to_string())
+                                .unwrap_or_else(|| "-".to_string()),
+                            f.rule_violated,
+                            f.suggested_fix,
+                        );
+                    }
+                    eprintln!(
+                        "doc-axis validation failed: {} blocking finding(s)",
+                        findings.len()
+                    );
+                    ExitCode::FAILURE
+                }
+            }
+        }
         _ => {
             eprintln!("{usage}");
             ExitCode::from(2)
