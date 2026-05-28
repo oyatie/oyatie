@@ -34,7 +34,13 @@ tokio.workspace = true
 
 [dev-dependencies]
 oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
-tokio = { workspace = true, features = ["rt", "macros"] }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
+httpmock = "0.7"
+serde_json.workspace = true
+tower = { version = "0.5", features = ["util"] }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+http-body-util = "0.1"
+bytes.workspace = true
 
 [lints]
 workspace = true

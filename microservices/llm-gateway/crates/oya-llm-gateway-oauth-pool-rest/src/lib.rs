@@ -13,13 +13,13 @@
 //! PR per ADR-0384 §v1-scope.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
+use std::collections::{BTreeMap, HashMap};
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use axum::Router;
 use axum::body::Body;
-use axum::extract::State;
+use axum::extract::{DefaultBodyLimit, State};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
@@ -28,8 +28,8 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 
 pub use oya_llm_gateway_oauth_pool_kernel::{
-    AgentId, AuthzGate, EventSink, LlmGatewayEvent, Provider, SeatId, SubscriptionPool,
-    SubscriptionPoolError, TenantId,
+    AgentId, AuthzGate, EventSink, LlmGatewayEvent, Provider, SeatId, SeatLease, SeatOutcome,
+    SubscriptionPool, SubscriptionPoolError, TenantId,
 };
 
 // ---------------------------------------------------------------------------
@@ -353,13 +353,43 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
             .header("anthropic-beta", ANTHROPIC_BETA_OAUTH)
             .body(request.body.clone());
 
+        // RFC 7230 §6.1 hop-by-hop headers that must never be forwarded upstream
+        // or propagated back to the caller. Also parse the incoming Connection:
+        // header value tokens and drop those header names too.
+        let hop_by_hop: std::collections::HashSet<&str> = [
+            "connection",
+            "keep-alive",
+            "proxy-authenticate",
+            "proxy-authorization",
+            "te",
+            "trailers",
+            "transfer-encoding",
+            "upgrade",
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        // Collect connection-header-nominated tokens from the request.
+        let connection_tokens: std::collections::HashSet<String> = request
+            .headers
+            .get("connection")
+            .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
+            .unwrap_or_default();
+
         // Forward caller headers, skipping hop-by-hop and auth headers.
         for (k, v) in &request.headers {
             let key_lower = k.to_lowercase();
             if matches!(
                 key_lower.as_str(),
-                "authorization" | "host" | "content-length" | "transfer-encoding"
+                "authorization" | "host" | "content-length"
             ) {
+                continue;
+            }
+            if hop_by_hop.contains(key_lower.as_str()) {
+                continue;
+            }
+            if connection_tokens.contains(&key_lower) {
                 continue;
             }
             req_builder = req_builder.header(k.as_str(), v.as_str());
@@ -373,8 +403,24 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
             })?;
 
         let status = resp.status().as_u16();
+
+        // Filter hop-by-hop headers from the upstream response before returning.
+        let response_connection_tokens: std::collections::HashSet<String> = resp
+            .headers()
+            .get("connection")
+            .and_then(|v| v.to_str().ok())
+            .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
+            .unwrap_or_default();
+
         let mut headers = BTreeMap::new();
         for (k, v) in resp.headers() {
+            let key_lower = k.as_str().to_lowercase();
+            if hop_by_hop.contains(key_lower.as_str()) {
+                continue;
+            }
+            if response_connection_tokens.contains(&key_lower) {
+                continue;
+            }
             if let Ok(val) = v.to_str() {
                 headers.insert(k.as_str().to_string(), val.to_string());
             }
@@ -399,15 +445,122 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
 // D2 — axum router
 // ---------------------------------------------------------------------------
 
+/// Cached access token with its expiry wall-clock time.
+#[derive(Clone, Debug)]
+pub struct CachedToken {
+    pub access_token: String, // data_class: INTERNAL_ONLY
+    pub expires_at: Instant,  // data_class: INTERNAL_ONLY
+}
+
+/// In-flight refresh state for a single token handle.
+enum RefreshState {
+    /// Refresh is in progress; waiters block on the [`Condvar`].
+    InFlight,
+    /// Refresh completed successfully.
+    Done(CachedToken),
+    /// Refresh failed with this error message.
+    Failed(String),
+}
+
+/// Shared state slot for a single in-flight token refresh.
+type FlightSlot = Arc<(Mutex<RefreshState>, Condvar)>; // data_class: INTERNAL_ONLY
+
+/// Singleflight coalescer for token refreshes. Ensures at most one in-flight
+/// token exchange per handle at any time. Concurrent callers wait on the same
+/// result rather than issuing N parallel calls to the OAuth endpoint.
+pub struct TokenRefreshSingleflight {
+    /// Each entry is an Arc around (state mutex, condvar). Presence in the map
+    /// means a refresh is in flight. Entry is removed once the flight completes
+    /// so the next request starts a new flight.
+    flights: Mutex<HashMap<String, FlightSlot>>, // data_class: INTERNAL_ONLY
+}
+
+impl TokenRefreshSingleflight {
+    pub fn new() -> Self {
+        Self {
+            flights: Mutex::new(HashMap::new()),
+        }
+    }
+
+    /// Refresh (or wait for an in-flight refresh) for `handle`.
+    ///
+    /// `do_refresh` is called exactly once per handle per flight. All other
+    /// concurrent callers for the same handle block until that call returns and
+    /// then receive the same result.
+    pub fn refresh_or_wait<F>(&self, handle: &str, do_refresh: F) -> Result<CachedToken, String>
+    where
+        F: FnOnce() -> Result<CachedToken, String>,
+    {
+        let (slot, is_leader) = {
+            let mut map = self.flights.lock().unwrap();
+            if let Some(existing) = map.get(handle) {
+                // A flight is already in progress — we are a waiter.
+                (Arc::clone(existing), false)
+            } else {
+                // No flight in progress — we are the leader.
+                let slot: Arc<(Mutex<RefreshState>, Condvar)> =
+                    Arc::new((Mutex::new(RefreshState::InFlight), Condvar::new()));
+                map.insert(handle.to_string(), Arc::clone(&slot));
+                (slot, true)
+            }
+        };
+
+        let (state_lock, cvar) = slot.as_ref();
+
+        if is_leader {
+            // Perform the actual refresh outside any lock.
+            let result = do_refresh();
+            {
+                let mut state = state_lock.lock().unwrap();
+                *state = match &result {
+                    Ok(tok) => RefreshState::Done(tok.clone()),
+                    Err(e) => RefreshState::Failed(e.clone()),
+                };
+            }
+            cvar.notify_all();
+            // Remove from map so the next caller starts a fresh flight.
+            self.flights.lock().unwrap().remove(handle);
+            result
+        } else {
+            // Wait until the leader finishes.
+            let state = cvar
+                .wait_while(state_lock.lock().unwrap(), |s| {
+                    matches!(s, RefreshState::InFlight)
+                })
+                .unwrap();
+            match &*state {
+                RefreshState::Done(tok) => Ok(tok.clone()),
+                RefreshState::Failed(e) => Err(e.clone()),
+                RefreshState::InFlight => {
+                    Err("singleflight: unexpected InFlight after wait".to_string())
+                }
+            }
+        }
+    }
+}
+
+impl Default for TokenRefreshSingleflight {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Shared application state threaded through the axum router handlers.
 pub struct AppState {
-    pub pool: Mutex<SubscriptionPool>, // data_class: INTERNAL_ONLY
+    /// Pool is Arc<Mutex<...>> so SeatLease can hold a weak back-reference.
+    pub pool: Arc<Mutex<SubscriptionPool>>, // data_class: INTERNAL_ONLY
     pub gate: Arc<dyn AuthzGate + Send + Sync>, // data_class: INTERNAL_ONLY
     pub sink: Arc<dyn EventSink + Send + Sync>, // data_class: INTERNAL_ONLY
     pub secret_store: Arc<dyn OpenBaoSecretStore>, // data_class: INTERNAL_ONLY
-    pub anthropic_base_url: String,    // data_class: INTERNAL_ONLY
-    pub tenant_id: TenantId,           // data_class: INTERNAL_ONLY
+    pub anthropic_base_url: String,             // data_class: INTERNAL_ONLY
+    pub tenant_id: TenantId,                    // data_class: INTERNAL_ONLY
+    /// D3 singleflight coalescer — at most one token-exchange call per handle. // data_class: INTERNAL_ONLY
+    pub token_singleflight: Arc<TokenRefreshSingleflight>, // data_class: INTERNAL_ONLY
 }
+
+/// Maximum request body size: 1 MiB. Requests exceeding this limit receive
+/// HTTP 413 Payload Too Large (enforced by axum [`DefaultBodyLimit`]).
+const MAX_BODY_BYTES: usize = 1024 * 1024; // 1 MiB
 
 /// Build the axum [`Router`] for the llm-gateway REST adapter.
 ///
@@ -420,6 +573,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/v1/messages", post(handle_proxy))
         .route("/healthz", get(handle_healthz))
         .route("/metrics", get(handle_metrics))
+        .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .with_state(state)
 }
 
@@ -443,14 +597,14 @@ async fn handle_proxy(
         }
     };
 
-    // Select a seat from the pool.
-    let seat_result = {
-        let mut pool = state.pool.lock().unwrap();
-        pool.select(&agent_id, state.gate.as_ref(), Instant::now())
-    };
-
-    let seat_id = match seat_result {
-        Ok(id) => id,
+    // Acquire a SeatLease (Fix-1: prevents same-seat double-allocation).
+    let lease = match SubscriptionPool::lease(
+        &state.pool,
+        &agent_id,
+        state.gate.as_ref(),
+        Instant::now(),
+    ) {
+        Ok(l) => l,
         Err(SubscriptionPoolError::ForbiddenByPolicy) => {
             debug!(agent = %agent_id.as_str(), "seat selection forbidden by policy");
             return StatusCode::FORBIDDEN.into_response();
@@ -460,10 +614,11 @@ async fn handle_proxy(
             return StatusCode::SERVICE_UNAVAILABLE.into_response();
         }
         Err(e) => {
-            warn!(error = ?e, "pool select error");
+            warn!(error = ?e, "pool lease error");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
+    let seat_id = lease.seat_id().clone();
 
     // Build a ProxyRequest from the incoming axum request.
     let mut proxy_headers = BTreeMap::new();
@@ -480,125 +635,123 @@ async fn handle_proxy(
         tenant_id: state.tenant_id.clone(),
     };
 
-    // Fetch refresh token handle from pool seat.
-    // Convention: handle = "<tenant_id>/<seat_id>" (set at registration time).
-    // Pool doesn't expose seat internals; we reconstruct the handle by convention.
+    // Convention: handle = "<tenant_id>/<seat_id>".
     let refresh_handle = format!("{}/{}", state.tenant_id.as_str(), seat_id.as_str());
 
-    // Fetch the refresh token from the secret store and proxy.
-    let refresh_token = match state.secret_store.fetch_refresh_token(&refresh_handle) {
-        Ok(t) => t,
+    // Fix-2: coalesce concurrent refresh calls for the same handle.
+    let singleflight = Arc::clone(&state.token_singleflight);
+    let secret_store_ref = Arc::clone(&state.secret_store);
+    let handle_for_sf = refresh_handle.clone();
+    let refresh_token_result = tokio::task::spawn_blocking(move || {
+        singleflight.refresh_or_wait(&handle_for_sf, || {
+            secret_store_ref
+                .fetch_refresh_token(&handle_for_sf)
+                .map(|token| CachedToken {
+                    access_token: token,
+                    expires_at: Instant::now() + Duration::from_secs(3600),
+                })
+                .map_err(|e| format!("{e:?}"))
+        })
+    })
+    .await;
+
+    let cached_token = match refresh_token_result {
+        Ok(Ok(tok)) => tok,
+        Ok(Err(e)) => {
+            warn!(handle = %refresh_handle, error = %e, "singleflight token refresh failed");
+            // Fix-6: record RefreshFailed on vault/refresh errors.
+            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
         Err(e) => {
-            warn!(error = ?e, handle = %refresh_handle, "failed to fetch refresh token");
+            warn!(error = %e, "spawn_blocking join error during singleflight");
+            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
 
-    // Build an in-memory AnthropicAdapter for this request using the secret store.
-    // We use a one-shot wrapper that already has the token.
-    let outcome_to_record;
-    let response = {
-        // Use a PreloadedSecretStore so we don't need to hold state.secret_store
-        // across an await boundary (reqwest blocking runs on a thread).
-        let handle_clone = refresh_handle.clone();
-        let token_clone = refresh_token.clone();
-        let secret_store_ref = Arc::clone(&state.secret_store);
-        let base_url = state.anthropic_base_url.clone();
+    // Run the blocking reqwest proxy call on a blocking thread.
+    let secret_store_ref2 = Arc::clone(&state.secret_store);
+    let handle_clone = refresh_handle.clone();
+    let token_clone = cached_token.access_token.clone();
+    let base_url = state.anthropic_base_url.clone();
+    let result = tokio::task::spawn_blocking(move || {
+        let adapter = AnthropicAdapter::with_base_url(
+            ArcSecretStore {
+                inner: secret_store_ref2,
+                prefetched: Some((handle_clone, token_clone)),
+            },
+            base_url,
+        );
+        adapter.proxy(&proxy_request, &refresh_handle)
+    })
+    .await;
 
-        // Run the blocking reqwest call on a blocking thread.
-        let result = tokio::task::spawn_blocking(move || {
-            let adapter = AnthropicAdapter::with_base_url(
-                ArcSecretStore {
-                    inner: secret_store_ref,
-                    prefetched: Some((handle_clone, token_clone)),
-                },
-                base_url,
-            );
-            adapter.proxy(&proxy_request, &refresh_handle)
-        })
-        .await;
+    match result {
+        Ok(Ok(resp)) => {
+            // Success — complete lease with Ok outcome.
+            let _ = lease.complete(SeatOutcome::Ok, Instant::now());
 
-        match result {
-            Ok(Ok(resp)) => {
-                outcome_to_record = oya_llm_gateway_oauth_pool_kernel::SeatOutcome::Ok;
-                resp
+            // Emit event (non-fatal).
+            let now_ms = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64;
+            let event = LlmGatewayEvent {
+                request_id: format!("req-{now_ms}"),
+                tenant_id: state.tenant_id.clone(),
+                agent_id,
+                seat_id: seat_id.clone(),
+                provider: Provider::Anthropic,
+                model: String::new(),
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                ms_latency: 0,
+                status: oya_llm_gateway_oauth_pool_kernel::EventStatus::Ok,
+                timestamp_unix_ms: now_ms,
+            };
+            state.sink.emit(event);
+
+            // Build axum response.
+            let mut builder = axum::response::Response::builder().status(resp.status);
+            for (k, v) in &resp.headers {
+                if let (Ok(name), Ok(value)) = (
+                    HeaderName::from_bytes(k.as_bytes()),
+                    HeaderValue::from_str(v),
+                ) {
+                    builder = builder.header(name, value);
+                }
             }
-            Ok(Err(RestAdapterError::UpstreamError { status: 429, .. })) => {
-                let _ = {
-                    let mut pool = state.pool.lock().unwrap();
-                    pool.record_outcome(
-                        &seat_id,
-                        oya_llm_gateway_oauth_pool_kernel::SeatOutcome::RateLimited429,
-                        Instant::now(),
-                    )
-                };
-                return StatusCode::TOO_MANY_REQUESTS.into_response();
-            }
-            Ok(Err(RestAdapterError::UpstreamError {
-                status,
-                body: err_body,
-            })) => {
-                outcome_to_record = oya_llm_gateway_oauth_pool_kernel::SeatOutcome::ServerError5xx;
-                let _ = {
-                    let mut pool = state.pool.lock().unwrap();
-                    pool.record_outcome(&seat_id, outcome_to_record, Instant::now())
-                };
-                return (
-                    StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
-                    err_body,
-                )
-                    .into_response();
-            }
-            Ok(Err(e)) => {
-                warn!(error = ?e, "proxy error");
-                return StatusCode::BAD_GATEWAY.into_response();
-            }
-            Err(e) => {
-                warn!(error = %e, "spawn_blocking join error");
-                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-            }
+            builder
+                .body(Body::from(resp.body))
+                .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
         }
-    };
-
-    // Record outcome.
-    {
-        let mut pool = state.pool.lock().unwrap();
-        let _ = pool.record_outcome(&seat_id, outcome_to_record, Instant::now());
-    }
-
-    // Emit event (non-fatal).
-    let now_ms = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64;
-    let event = LlmGatewayEvent {
-        request_id: format!("req-{now_ms}"),
-        tenant_id: state.tenant_id.clone(),
-        agent_id,
-        seat_id: seat_id.clone(),
-        provider: Provider::Anthropic,
-        model: String::new(),
-        prompt_tokens: 0,
-        completion_tokens: 0,
-        ms_latency: 0,
-        status: oya_llm_gateway_oauth_pool_kernel::EventStatus::Ok,
-        timestamp_unix_ms: now_ms,
-    };
-    state.sink.emit(event);
-
-    // Build axum response from ProxyResponse.
-    let mut builder = axum::response::Response::builder().status(response.status);
-    for (k, v) in &response.headers {
-        if let (Ok(name), Ok(value)) = (
-            HeaderName::from_bytes(k.as_bytes()),
-            HeaderValue::from_str(v),
-        ) {
-            builder = builder.header(name, value);
+        Ok(Err(RestAdapterError::UpstreamError { status: 429, .. })) => {
+            let _ = lease.complete(SeatOutcome::RateLimited429, Instant::now());
+            StatusCode::TOO_MANY_REQUESTS.into_response()
+        }
+        Ok(Err(RestAdapterError::UpstreamError {
+            status,
+            body: err_body,
+        })) => {
+            let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
+            (
+                StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
+                err_body,
+            )
+                .into_response()
+        }
+        Ok(Err(e)) => {
+            warn!(error = ?e, "proxy error");
+            let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
+            StatusCode::BAD_GATEWAY.into_response()
+        }
+        Err(e) => {
+            warn!(error = %e, "spawn_blocking join error");
+            let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
-    builder
-        .body(Body::from(response.body))
-        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }
 
 /// GET /healthz handler — liveness probe.
