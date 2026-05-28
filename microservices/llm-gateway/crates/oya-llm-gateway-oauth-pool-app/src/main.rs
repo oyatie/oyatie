@@ -1,15 +1,23 @@
-//! cloud-intelligence binary entry-point (ADR-0384 Path B, Stage-6).
+//! cloud-intelligence binary entry-point (ADR-0384 Path B, Stage-7).
 //!
 //! Reads config from environment variables, calls [`build_app`] to wire all
-//! components, then serves the axum router. No panics on the start-up path:
-//! all errors are surfaced as non-zero exit codes with a structured log
-//! message (ADR-0083 Tier-3 panic-free).
+//! production components (real OpenBao Transit + ClickHouse + Valkey sinks),
+//! then serves the axum router. No panics on the start-up path: all errors are
+//! surfaced as non-zero exit codes with a structured log message
+//! (ADR-0083 Tier-3 panic-free).
 //!
 //! Environment variables (see [`AppConfig::from_env`]):
-//! - `OYA_CLOUD_INTEL_LISTEN_ADDR`   — bind address (default: 0.0.0.0:8080)
-//! - `OYA_CLOUD_INTEL_TENANT_ID`     — tenant ID (required)
-//! - `OYA_CLOUD_INTEL_ANTHROPIC_URL` — Anthropic base URL (default: production)
-//! - `OYA_CLOUD_INTEL_INITIAL_SEATS` — comma-separated seat_id:handle pairs
+//! - `OYA_CLOUD_INTEL_LISTEN_ADDR`         — bind address (default: 0.0.0.0:8080)
+//! - `OYA_CLOUD_INTEL_TENANT_ID`           — tenant ID (required)
+//! - `OYA_CLOUD_INTEL_ANTHROPIC_URL`       — Anthropic base URL (default: production)
+//! - `OYA_CLOUD_INTEL_INITIAL_SEATS`       — comma-separated seat_id:handle pairs
+//! - `OYA_CLOUD_INTEL_OPENBAO_URL`         — OpenBao base URL (required)
+//! - `OYA_CLOUD_INTEL_OPENBAO_TOKEN`       — OpenBao vault token (required)
+//! - `OYA_CLOUD_INTEL_TRANSIT_KEY_NAME`    — Transit key name (default: llm-gateway-rt)
+//! - `OYA_CLOUD_INTEL_CLICKHOUSE_URL`      — ClickHouse HTTP URL (default: analytics svc)
+//! - `OYA_CLOUD_INTEL_CLICKHOUSE_USER`     — ClickHouse user (default: default)
+//! - `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD` — ClickHouse password (required)
+//! - `OYA_CLOUD_INTEL_VALKEY_URL`          — Valkey URL (default: redis://valkey.infra.svc:6379)
 
 use oya_llm_gateway_oauth_pool_app::{AppConfig, build_app};
 use oya_llm_gateway_oauth_pool_rest::build_router;
