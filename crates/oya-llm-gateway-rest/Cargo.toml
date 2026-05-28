@@ -67,9 +67,6 @@ hyper = { version = "1", default-features = false, features = ["client", "http1"
 hyper-util = { version = "0.1", default-features = false, features = ["client-legacy", "http1", "tokio"] }
 http-body-util = { version = "0.1", default-features = false }
 bytes = { version = "1", default-features = false }
-# Integration test mock HTTP server (Fix #8 — d3 adapter integration test).
-# Acceptable as dev-dependency per review instructions.
-httpmock = { version = "0.7", default-features = false }
 
 [lib]
 name = "oya_llm_gateway_rest"
