@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "microservice": "managed-k8s-control-plane-host",
+  "version": "0.1.0",
+  "owner": "axis-cloud-k8s",
+  "bounded_contexts": [
+    {
+      "name": "managed-k8s-control-plane-host",
+      "description": "Hosted-tier (Kamaji TenantControlPlane) + dedicated-tier (Talos spoke) tenant control-plane provisioning + management-cluster multi-tenancy hardening (ADR-0376). Provides the ControlPlaneProvisioning PORT (oya-managed-k8s-control-plane-host-api) that cluster-lifecycle + sla-observability consume. Control plane (provision/observe/teardown); never runs tenant workloads.",
+      "crates": [
+        "oya-managed-k8s-control-plane-host-kernel",
+        "oya-managed-k8s-control-plane-host-api",
+        "oya-managed-k8s-control-plane-host-adapter-capi",
+        "oya-managed-k8s-control-plane-host-adapter-inmemory",
+        "oya-managed-k8s-control-plane-host-app"
+      ]
+    }
+  ],
+  "layers": ["adapter", "api", "app", "kernel"],
+  "contracts": {
+    "openapi": ["microservices/managed/control-plane-host/contracts/openapi.yaml"],
+    "asyncapi": ["microservices/managed/control-plane-host/contracts/asyncapi.yaml"],
+    "proto": ["microservices/managed/control-plane-host/contracts/control_plane_host.proto"]
+  },
+  "capabilities": [
+    {"tier": "T3", "name": "control-plane-provision", "file": "microservices/managed/control-plane-host/capabilities/control-plane-provision.yaml", "risk_class": "high"},
+    {"tier": "T3", "name": "control-plane-teardown", "file": "microservices/managed/control-plane-host/capabilities/control-plane-teardown.yaml", "risk_class": "high"},
+    {"tier": "T1", "name": "control-plane-status", "file": "microservices/managed/control-plane-host/capabilities/control-plane-status.yaml", "risk_class": "minimal"}
+  ],
+  "slos": [
+    {"name": "control-plane-provisioning-latency", "target": "0.95", "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_control_plane_provision_duration_seconds_bucket[5m])) by (le))", "file": "microservices/managed/control-plane-host/slos/provisioning-latency.openslo.yaml"},
+    {"name": "control-plane-availability", "target": "0.999", "sli": "sum(rate(oya_managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))", "file": "microservices/managed/control-plane-host/slos/availability.openslo.yaml"}
+  ],
+  "ips": [
+    {"id": "ADR-0376", "title": "Oyatie managed-Kubernetes product surface", "acceptance_status": "accepted", "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"},
+    {"id": "IP-001-control-plane-host-kernel-api-adapters-app", "title": "IP-001: control-plane-host kernel + ControlPlaneProvisioning port + CAPI/in-memory adapters + composition root", "acceptance_status": "ga", "file": "microservices/managed/control-plane-host/IPs/IP-001-control-plane-host-foundation.md"}
+  ],
+  "regulatory_packs": ["kr","eu","us","jp","sg","au","in","br","ae","ksa"],
+  "lts_pins": {"rust": "1.83", "kube": "3.1 (pin lands when kamaji-provider-live-integration wires the live reconcile)", "kamaji": "version-agnostic at ADR-0376"},
+  "adrs": [
+    {"id": "ADR-0376", "title": "Oyatie managed-Kubernetes product surface", "scope": "microservice", "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"},
+    {"id": "ADR-0375", "title": "Talos + Cluster API + Argo CD fleet substrate", "scope": "repo", "file": "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"},
+    {"id": "ADR-0155", "title": "Port and Adapter Pattern", "scope": "repo", "file": "docs/decisions/ADR-0155-port-and-adapter-pattern.md"},
+    {"id": "ADR-0148", "title": "Service mesh: Cilium L3/L4 + Istio Ambient L7", "scope": "repo", "file": "docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md"},
+    {"id": "ADR-0092", "title": "Workspace dependency-seam policy", "scope": "repo", "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"},
+    {"id": "ADR-0083", "title": "Pod Runtime Tier Panic Policy", "scope": "repo", "file": "docs/decisions/ADR-0083-pod-runtime-tier-panic-policy.md"}
+  ],
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.managed-k8s.control-plane.tier-selected",
+      "oya.managed-k8s.control-plane.datastore-bound",
+      "oya.managed-k8s.control-plane.provisioned",
+      "oya.managed-k8s.control-plane.torn-down"
+    ]
+  },
+  "secrets_substrate": {"provider": "openbao", "format": "${openbao:secret/<path>}"},
+  "ontology_projections": [],
+  "mesh_layering": {"cilium_l4": true, "ambient_ztunnel": true, "ambient_waypoint": false, "north_south_only": false},
+  "capacity_model": {"baseline_cpu_per_tenant": 0.01, "baseline_ram_per_tenant": 32, "storage_per_tenant": 0, "connections_per_tenant": {"valkey": 0, "postgres": 0, "outbound_http": 0}, "scaling_dimension": "per_request", "cell_placement_class": "Tier-3"},
+  "pod_runtime_tier": 3,
+  "pod_runtime_tier_justification": "Management-cluster control plane that never runs tenant workloads; the live CAPI reconcile is honest-deferred behind the ControlPlaneProvisioning port. ADR-0083 Tier-3.",
+  "pod_runtime_tier_surface_evidence": ["microservices/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel/src/lib.rs"],
+  "tenant_version_pinning": {"declared_versions": [], "default_version": null, "supported_window_size": 1, "supported_window_minimum_days": 0, "supports_per_tenant_pinning": false, "deprecation_calendar": [], "public_surface_files": {}},
+  "consumes_upstream_oss": ["axum", "tokio", "kube", "kube-runtime", "k8s-openapi"],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [],
+  "data_classes_processed": ["INTERNAL_ONLY", "AUDIT", "TENANT_SCOPED"],
+  "threat_model": {
+    "tenant_control_plane_escape": "design-mitigated (live wiring honest-deferred): per-tenant NetworkPolicy / Cilium L3-L4 deny + Istio Ambient ztunnel so a tenant control plane can never reach the management cluster or a sibling tenant; the CAPI adapter returns Unimplemented until kamaji-provider-live-integration lands."
+  }
+}
