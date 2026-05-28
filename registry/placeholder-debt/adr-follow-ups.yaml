@@ -1036,10 +1036,10 @@ follow_ups:
       fallback control-plane provider is k0smotron (ADR-0376 Door).
     driver_docs:
       - docs/decisions/ADR-0376-managed-kubernetes-product-surface.md
-      - microservices/managed/control-plane-host/PRD.md
-      - microservices/managed/control-plane-host/threat-model.md
-      - microservices/managed/crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
-      - microservices/managed/crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
+      - microservices/managed-k8s-control-plane-host/PRD.md
+      - microservices/managed-k8s-control-plane-host/threat-model.md
+      - crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
+      - crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
     owner: council-architecture + ops-platform
     trigger: |
       The dogfood tenant-zero milestone where Oyatie provisions its OWN clusters
