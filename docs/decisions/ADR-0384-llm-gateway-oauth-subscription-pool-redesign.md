@@ -23,17 +23,29 @@ deliverables:
     exit_criteria: "SubscriptionStore reads refresh-tokens from OpenBao at startup; per-seat Mutex serializes concurrent refresh attempts; write-through persists rotated refresh-tokens back to OpenBao; SSE streaming and non-streaming forwarding both pass integration tests."
     verified_by: "cargo nextest -p oya-llm-gateway-rest + oya gate validate honest-claims"
   - id: D3
-    description: "Provider adapters: Claude Code (api.anthropic.com OAuth), OpenAI Codex (auth.openai.com OAuth), Gemini CLI (Google identity OAuth). Each implements ProviderAdapter trait with refresh_token, forward_request, parse_rate_headers. Claude adapter uses browser-compatible TLS fingerprint (rquest/boring-tls or equivalent per OQ-7)."
-    exit_criteria: "All three ProviderAdapter impls compile; ClaudeCodeAdapter::refresh_token() succeeds against api.anthropic.com/v1/oauth/token in a spike test (OQ-7 resolved); parse_rate_headers() covers Anthropic + OpenAI + Gemini header schemas."
-    verified_by: "cargo nextest -p oya-llm-gateway-rest (adapter unit tests) + OQ-7 TLS spike result documented in D3 PR"
+    description: "Provider adapters — v1 scope: Anthropic (Claude Code OAuth via claude.ai/oauth/authorize + api.anthropic.com/v1/oauth/token) + OpenAI Codex (Sign-in-with-ChatGPT OAuth, callback port 1455, data endpoint chatgpt.com/backend-api/codex/responses). Each implements ProviderAdapter trait with refresh_token, forward_request, parse_rate_headers. Stock reqwest (rustls/ring) for OAuth refresh per OQ-7 downgrade — auth2api evidence shows no TLS-fingerprint impersonation needed for the refresh leg. Gemini adapter (v2) and Cursor adapter (v3) authored in their own amendments. Total provider set ever supported: 4 (Anthropic, Codex, Gemini, Cursor); see memory llm-gateway-reference-repo-audit."
+    exit_criteria: "AnthropicAdapter + CodexAdapter compile; each refresh_token() succeeds against its provider's OAuth endpoint in a spike test; parse_rate_headers() covers Anthropic + OpenAI header schemas; cross-adapter trait surface remains stable for v2 Gemini + v3 Cursor extension."
+    verified_by: "cargo nextest -p oya-llm-gateway-rest (per-adapter integration tests for Anthropic + Codex)"
   - id: D4
     description: "Config schema migration: microservices/llm-gateway/k8s/llm-gateway.yaml ConfigMap.data.config.json moves from .groups[].keys[] to .providers[].subscriptions[].openbao_refresh_token_path. Backward-compat: existing static-key path stays under providers[].auth_mode: 'static_key'; new code uses auth_mode: 'oauth_subscription'."
     exit_criteria: "llm-gateway.yaml ConfigMap updated to new schema; gateway boots with both auth_mode: static_key and auth_mode: oauth_subscription groups present; oya gate validate honest-claims green."
     verified_by: "cargo test -p oya-llm-gateway-rest (config deserialization tests) + kubectl apply --dry-run=client on llm-gateway.yaml"
   - id: D5
-    description: "SETUP-RUNBOOK rewrite: operator runs claude login / codex login / gemini login on a host with the respective CLI installed, extracts refresh_token from each CLI's local credential store, stores at 'bao kv put secret/oya/llm-gateway/<provider>/seats/<seat-name> refresh_token=<token>'. Gateway reads via ExternalSecret and refreshes access tokens on demand."
-    exit_criteria: "microservices/llm-gateway/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions; credential file paths verified empirically (OQ-5 resolved); runbook covers all three providers (Claude, Codex, Gemini) with exact bao kv put commands."
+    description: "SETUP-RUNBOOK rewrite: operator runs claude login / codex login on a host with the respective CLI installed (v1 providers only); extracts refresh_token from each CLI's local credential store; stores at 'bao kv put secret/oya/llm-gateway/<provider>/seats/<seat-name> refresh_token=<token>'. Gateway reads via ExternalSecret and refreshes access tokens on demand. Gemini login (v2) and Cursor login (v3) added in their respective amendments."
+    exit_criteria: "microservices/llm-gateway/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions for v1 providers (Anthropic + Codex); credential file paths verified empirically (OQ-5 resolved); runbook covers both v1 providers with exact bao kv put commands."
     verified_by: "Manual review: runbook credential paths match actual CLI output on a test host; oya gate validate honest-claims green on SETUP-RUNBOOK.md"
+  - id: D6
+    description: "Event-emission to configurable sink — every llm-gateway request emits a structured event to (a) ClickHouse OLAP (per ADR-0193) for analytics rollup + (b) Valkey Stream (per canonical primitives) for audit-chain consumption. Pluggable wire-format: {tenant_id, agent_id, seat_id, provider, model, prompt_tokens, completion_tokens, ms_latency, status, request_id}. Sinks subscribe independently (no coupling between analytics + audit + billing consumers). Direction C from idea-refine; informed by CLIProxyAPI's CPA Usage Keeper decoupling pattern."
+    exit_criteria: "kernel emits per-request events to a EventSink trait; integration test asserts a synthetic request produces the expected event shape on both ClickHouse insert + Valkey Stream XADD."
+    verified_by: "cargo nextest -p oya-llm-gateway-kernel + cargo nextest -p oya-llm-gateway-rest (sink integration tests)"
+  - id: D7
+    description: "Per-tenant Cedar isolation contract — every request's principal includes a tenant attribute; Cedar policy at microservices/llm-gateway/policy/llm-gateway.cedar adds explicit forbid rules: forbid (principal, action, resource) when principal.tenant != resource.tenant. Adversarial test set: at least 50 Cedar test cases including cross-tenant access attempts, seat-id mismatch, admin-realm cross-tenant impersonation. Cross-tenant access always forbids-wins per ADR-0183 and ADR-0193."
+    exit_criteria: "microservices/llm-gateway/policy/llm-gateway.cedar contains the per-tenant forbid rule; cargo nextest -p oya-llm-gateway-kernel passes at least 50 adversarial cedar_per_tenant_isolation test cases."
+    verified_by: "cargo nextest -p oya-llm-gateway-kernel cedar_per_tenant_isolation"
+  - id: D8
+    description: "Envelope encryption for refresh tokens at rest in OpenBao. Per-tenant Data Encryption Key (DEK) lives in OpenBao Transit; refresh tokens stored encrypted under that DEK. Gateway decrypts on token-load; never logs decrypted form. Operator rotation of the Transit Key Encryption Key (KEK) re-wraps DEKs without rewriting refresh tokens. Aligns with ADR-0043 sref://openbao/... and the canonical OpenBao Transit pattern."
+    exit_criteria: "crates/oya-llm-gateway-rest's KeyStore implementation reads refresh tokens via OpenBao Transit decrypt-on-read; integration test asserts the on-disk OpenBao secret is ciphertext, not plaintext."
+    verified_by: "cargo nextest -p oya-llm-gateway-rest transit_envelope_decrypt_roundtrip"
 ---
 
 # ADR-0384 — LLM gateway Path B redesign: OAuth subscription-pool replacing static API-key pool
@@ -91,6 +103,15 @@ Four reference repositories inform this redesign:
 - **`quotio` (nguyenphutrong/quotio, MIT)** — macOS Swift GUI for CLIProxyAPI. Informs quota
   display UX (per-seat quota remaining, cooldown countdowns, round-robin vs fill-first toggle)
   and confirms the two selection strategies are the right UX-visible knobs.
+
+- **`auth2api` (AmazingAng/auth2api, MIT, TypeScript/Node)** — multi-account OAuth proxy
+  proving stock HTTP-client TLS (Node fetch / undici / OpenSSL) successfully calls
+  api.anthropic.com/v1/oauth/token without uTLS / Chrome fingerprint impersonation. See
+  src/auth/oauth.ts lines 74-99 for the literal stock fetch refresh implementation. This is
+  **counter-evidence to CLIProxyAPI's uTLS necessity claim** for the OAuth-refresh leg and is
+  the basis for downgrading OQ-7 from BLOCKING to NON-BLOCKING. auth2api also documents the
+  refresh-token-exhausted error taxonomy (expired / reused / invalidated / revoked) at
+  src/auth/refresh-errors.ts which we adopt as the canonical typed-failure set.
 
 ### Relation to ADR-0193
 
@@ -477,7 +498,29 @@ CLI releases (paths may differ across CLI versions or OS):
 the credential file. CLIProxyAPI source is the primary reference; actual CLI output is ground truth.
 This is BLOCKING for the D5 runbook but not for D1/D2 kernel/rest implementation.
 
-### OQ-7: TLS fingerprint compatibility for Claude OAuth token refresh [BLOCKING]
+### OQ-7: TLS fingerprint compatibility for Claude OAuth token refresh [NON-BLOCKING since 2026-05-28 amendment 1]
+
+**Original concern**: CLIProxyAPI uses uTLS Chrome impersonation to bypass Cloudflare on
+api.anthropic.com/v1/oauth/token. Standard Rust rustls/ring would be 403'd.
+
+**New evidence (2026-05-28)**: auth2api (https://github.com/AmazingAng/auth2api, TypeScript/Node)
+implements the same Anthropic OAuth refresh flow against the same endpoint with stock Node
+fetch (undici, OpenSSL-based TLS), no User-Agent spoofing on the OAuth call, no Chrome
+impersonation. See src/auth/oauth.ts lines 74-99. The literal call is
+`fetch("https://api.anthropic.com/v1/oauth/token", { method: "POST", headers: {"Content-Type": "application/json"}, body: ... })`.
+
+**Inference**: Cloudflare bot-detection on api.anthropic.com/v1/oauth/token is NOT JA3/JA4
+fingerprint-based. CLIProxyAPI's uTLS dependency is either over-engineered defensive code
+for this endpoint OR is required for the **data path** (api.anthropic.com/v1/messages) not
+the OAuth refresh leg.
+
+**Resolution**: D3 ClaudeCodeAdapter uses stock reqwest (rustls/ring) for OAuth refresh —
+no rquest / no boring-tls dependency. A confirmation spike runs as part of D3
+implementation; if it shows stock reqwest is 403'd (against current expectation), OQ-7
+re-escalates and D3 adds rquest. Sidecar fallback to CLIProxyAPI is dropped from
+"Alternatives Considered" as it's no longer load-bearing.
+
+**Original [BLOCKING] description retained for audit trail**:
 
 **Problem**: Anthropic's OAuth token endpoint (`api.anthropic.com/v1/oauth/token`) is served
 behind Cloudflare, which performs TLS `ClientHello` fingerprinting to detect non-browser HTTP
