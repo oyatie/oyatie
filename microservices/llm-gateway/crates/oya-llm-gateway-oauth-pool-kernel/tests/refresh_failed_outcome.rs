@@ -17,15 +17,15 @@ impl AuthzGate for AllowAll {
 }
 
 fn make_sub(tenant: &str, seat: &str) -> OAuthSubscription {
-    OAuthSubscription {
-        tenant_id: TenantId::new(tenant).unwrap(),
-        seat_id: SeatId::new(seat).unwrap(),
-        subscription_id: SubscriptionId::new(format!("{seat}-sub")).unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: format!("openbao://{tenant}/{seat}/refresh"),
-        failure_count: 0,
-    }
+    OAuthSubscription::new(
+        TenantId::new(tenant).unwrap(),
+        SeatId::new(seat).unwrap(),
+        SubscriptionId::new(format!("{seat}-sub")).unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        format!("openbao://{tenant}/{seat}/refresh"),
+        0,
+    )
 }
 
 #[test]

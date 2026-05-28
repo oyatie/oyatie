@@ -1,12 +1,22 @@
 //! llm-gateway REST adapter — OAuth subscription pool (ADR-0384 Path B).
 //!
-//! Stage-5 GREEN. Implements:
+//! Stage-6 GREEN. Implements:
 //! - [`OpenBaoSecretStore`] trait — D8 envelope-encrypted refresh-token storage seam.
 //! - [`EventSinkFanout`] — D6 fan-out broadcaster.
-//! - [`AnthropicAdapter`] — D3 Anthropic OAuth refresh + reqwest proxy.
+//! - [`AnthropicAdapter`] — D3 Anthropic OAuth refresh + async reqwest proxy.
 //! - [`ProxyRequest`] / [`ProxyResponse`] — D2 axum reverse-proxy wire types.
 //! - [`build_router`] — axum router wiring POST /v1/messages, GET /healthz,
 //!   GET /metrics.
+//!
+//! Stage-6 changes (Item 1 + Item 2):
+//! - `AnthropicAdapter` migrated from `reqwest::blocking` to async `reqwest::Client`.
+//!   The adapter borrows `&reqwest::Client` — it does NOT own one. `AppState` holds
+//!   the shared `Arc<reqwest::Client>` so TLS handshakes and keep-alive connections
+//!   are pooled across requests.
+//! - Singleflight moved INSIDE `AnthropicAdapter::refresh_token` via
+//!   `tokio::sync::Mutex<HashMap<String, broadcast::Sender<...>>>`. Concurrent callers
+//!   on the same handle now coalesce exactly ONE upstream OAuth call (Item 2).
+//! - `handle_proxy` no longer uses `spawn_blocking`.
 //!
 //! TODO(codex-adapter): add `CodexAdapter` mirroring `AnthropicAdapter` once
 //! the Codex OAuth refresh flow is documented. Tracked as a separate follow-up
@@ -14,7 +24,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, HashMap};
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use axum::Router;
@@ -25,6 +35,7 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
+use tokio::sync::broadcast;
 use tracing::{debug, warn};
 
 pub use oya_llm_gateway_oauth_pool_kernel::{
@@ -210,19 +221,100 @@ pub struct AnthropicTokens {
     pub expires_at: u64,       // data_class: INTERNAL_ONLY (unix seconds)
 }
 
+// ---------------------------------------------------------------------------
+// Item 2 — upstream OAuth singleflight
+// ---------------------------------------------------------------------------
+
+/// Result type broadcast across concurrent waiters for a single token handle.
+/// `Ok` carries the new access token string; `Err` carries the error message.
+type RefreshResult = Result<String, String>; // data_class: INTERNAL_ONLY
+
+/// D3 upstream OAuth singleflight. Coalesces concurrent `refresh_token` calls
+/// for the same handle into exactly ONE upstream call. All concurrent callers
+/// receive the same result via a `broadcast::Sender`.
+///
+/// Pattern: `tokio::sync::Mutex<HashMap<handle, broadcast::Sender<RefreshResult>>>`.
+/// When a flight completes the entry is removed so the next caller starts fresh.
+pub struct UpstreamOAuthSingleflight {
+    /// In-flight map: present = flight in progress. Absence = no flight.
+    flights: tokio::sync::Mutex<HashMap<String, broadcast::Sender<RefreshResult>>>, // data_class: INTERNAL_ONLY
+}
+
+impl UpstreamOAuthSingleflight {
+    pub fn new() -> Self {
+        Self {
+            flights: tokio::sync::Mutex::new(HashMap::new()),
+        }
+    }
+
+    /// Call `do_refresh` exactly once per in-flight window for `handle`.
+    /// All concurrent callers for the same handle wait on the broadcast channel
+    /// and receive the leader's result.
+    ///
+    /// `do_refresh` is an async closure/future that performs the actual upstream
+    /// OAuth call. It is awaited only by the leader task.
+    pub async fn refresh_or_wait<F, Fut>(
+        &self,
+        handle: &str,
+        do_refresh: F,
+    ) -> Result<String, String>
+    where
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = Result<String, String>>,
+    {
+        let mut rx = {
+            let mut map = self.flights.lock().await;
+            if let Some(tx) = map.get(handle) {
+                // A flight is in progress — subscribe and wait below.
+                tx.subscribe()
+            } else {
+                // We are the leader. Create the broadcast channel (capacity 64 is
+                // ample; all subscribers will receive the single message sent).
+                let (tx, _rx) = broadcast::channel(64);
+                map.insert(handle.to_string(), tx.clone());
+                drop(map); // release lock before awaiting upstream
+
+                let result = do_refresh().await;
+                // Notify all waiters (ignore send errors: no active receivers is ok).
+                let _ = tx.send(result.clone());
+
+                // Remove flight so the next caller starts fresh.
+                self.flights.lock().await.remove(handle);
+
+                return result;
+            }
+        };
+
+        // Waiter path: await the broadcast result.
+        rx.recv()
+            .await
+            .unwrap_or_else(|_| Err("singleflight: leader channel closed unexpectedly".to_string()))
+    }
+}
+
+impl Default for UpstreamOAuthSingleflight {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// D3 Anthropic provider adapter. Responsible for:
 /// 1. Refreshing tokens before expiry (or on 401) via the Anthropic OAuth
-///    endpoint.
+///    endpoint (coalesced via per-adapter [`UpstreamOAuthSingleflight`]).
 /// 2. Routing proxied requests to `https://api.anthropic.com` with the
 ///    bearer token fetched from [`OpenBaoSecretStore`].
+///
+/// The adapter borrows `&reqwest::Client` — it does NOT own one. The shared
+/// client lives in [`AppState`] so TLS sessions and keep-alive connections are
+/// amortized across the full request lifetime of the process.
 ///
 /// TODO(codex-adapter): `CodexAdapter` will mirror this struct for the OpenAI
 /// Codex OAuth flow. Deferred to a follow-up PR per ADR-0384 §v1-scope.
 pub struct AnthropicAdapter<S: OpenBaoSecretStore> {
-    secret_store: S,                   // data_class: INTERNAL_ONLY
-    client: reqwest::blocking::Client, // data_class: INTERNAL_ONLY
-    base_url: String,                  // data_class: INTERNAL_ONLY
-    client_id: String,                 // data_class: INTERNAL_ONLY
+    secret_store: S,                              // data_class: INTERNAL_ONLY
+    singleflight: Arc<UpstreamOAuthSingleflight>, // data_class: INTERNAL_ONLY
+    base_url: String,                             // data_class: INTERNAL_ONLY
+    client_id: String,                            // data_class: INTERNAL_ONLY
 }
 
 impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
@@ -234,13 +326,9 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
 
     /// Construct with a custom base URL (for testing against a local mock server).
     pub fn with_base_url(secret_store: S, base_url: String) -> Self {
-        let client = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .expect("reqwest blocking client construction is infallible on supported platforms");
         Self {
             secret_store,
-            client,
+            singleflight: Arc::new(UpstreamOAuthSingleflight::new()),
             base_url,
             client_id: ANTHROPIC_CLIENT_ID.to_string(),
         }
@@ -252,8 +340,9 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
     ///
     /// The handle is `<tenant_id>/<seat_id>` by convention so the caller can
     /// reconstruct it without extra state.
-    pub fn exchange_authorization_code(
+    pub async fn exchange_authorization_code(
         &self,
+        http_client: &reqwest::Client,
         tenant_id: &TenantId,
         seat_id: &SeatId,
         authorization_code: &str,
@@ -271,21 +360,22 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
             code: authorization_code,
         };
         debug!(tenant = %tenant_id.as_str(), seat = %seat_id.as_str(), "exchanging authorization code");
-        let resp = self
-            .client
+        let resp = http_client
             .post(&url)
             .json(&body)
             .send()
+            .await
             .map_err(|e| RestAdapterError::OAuthRefreshFailed(e.to_string()))?;
         let status = resp.status().as_u16();
         if !resp.status().is_success() {
-            let text = resp.text().unwrap_or_default();
+            let text = resp.text().await.unwrap_or_default();
             return Err(RestAdapterError::OAuthRefreshFailed(format!(
                 "code exchange failed: HTTP {status}: {text}"
             )));
         }
         let token_resp: OAuthTokenResponse = resp
             .json()
+            .await
             .map_err(|e| RestAdapterError::OAuthRefreshFailed(e.to_string()))?;
         let handle = format!("{}/{}", tenant_id.as_str(), seat_id.as_str());
         self.secret_store
@@ -295,42 +385,75 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
 
     /// Refresh the token identified by `refresh_token_handle`. Fetches the
     /// current refresh token from the secret store, exchanges it with
-    /// Anthropic, stores the new refresh token, and returns the bearer access
-    /// token to use for this request.
-    pub fn refresh_token(&self, refresh_token_handle: &str) -> Result<String, RestAdapterError> {
+    /// Anthropic via the upstream singleflight coalescer, stores the new
+    /// refresh token, and returns the bearer access token to use for this
+    /// request.
+    ///
+    /// Concurrent callers on the same handle see exactly ONE upstream call;
+    /// followers wait on the broadcast channel (Item 2).
+    pub async fn refresh_token(
+        &self,
+        http_client: &reqwest::Client,
+        refresh_token_handle: &str,
+    ) -> Result<String, RestAdapterError> {
         let current_refresh = self
             .secret_store
             .fetch_refresh_token(refresh_token_handle)?;
+
         let url = format!("{}/v1/oauth/token", self.base_url);
-        let body = OAuthRefreshRequest {
-            client_id: &self.client_id,
-            grant_type: "refresh_token",
-            refresh_token: &current_refresh,
-        };
+        let client_id = self.client_id.clone();
+        let handle = refresh_token_handle.to_string();
+        let secret_store_ref: &S = &self.secret_store;
+
         debug!(
             handle = refresh_token_handle,
-            "refreshing Anthropic OAuth token"
+            "refreshing Anthropic OAuth token via singleflight"
         );
-        let resp = self
-            .client
-            .post(&url)
-            .json(&body)
-            .send()
-            .map_err(|e| RestAdapterError::OAuthRefreshFailed(e.to_string()))?;
-        let status = resp.status().as_u16();
-        if !resp.status().is_success() {
-            let text = resp.text().unwrap_or_default();
-            return Err(RestAdapterError::OAuthRefreshFailed(format!(
-                "token refresh failed: HTTP {status}: {text}"
-            )));
+
+        let result = self
+            .singleflight
+            .refresh_or_wait(refresh_token_handle, || {
+                let url = url.clone();
+                let client_id = client_id.clone();
+                let current_refresh = current_refresh.clone();
+                let http_client = http_client.clone();
+                async move {
+                    let body = OAuthRefreshRequest {
+                        client_id: &client_id,
+                        grant_type: "refresh_token",
+                        refresh_token: &current_refresh,
+                    };
+                    let resp = http_client
+                        .post(&url)
+                        .json(&body)
+                        .send()
+                        .await
+                        .map_err(|e| e.to_string())?;
+                    let status = resp.status().as_u16();
+                    if !resp.status().is_success() {
+                        let text = resp.text().await.unwrap_or_default();
+                        return Err(format!("token refresh failed: HTTP {status}: {text}"));
+                    }
+                    let token_resp: OAuthTokenResponse =
+                        resp.json().await.map_err(|e| e.to_string())?;
+                    Ok(token_resp.access_token + "\x00" + &token_resp.refresh_token)
+                }
+            })
+            .await
+            .map_err(RestAdapterError::OAuthRefreshFailed)?;
+
+        // Result is encoded as "access_token\x00new_refresh_token".
+        let mut parts = result.splitn(2, '\x00');
+        let access_token = parts.next().unwrap_or("").to_string();
+        let new_refresh = parts.next().unwrap_or("");
+
+        if !new_refresh.is_empty() {
+            // Rotate refresh token in secret store (best-effort for followers — leader
+            // already stored it; followers store again which is idempotent).
+            let _ = secret_store_ref.store_refresh_token(&handle, new_refresh);
         }
-        let token_resp: OAuthTokenResponse = resp
-            .json()
-            .map_err(|e| RestAdapterError::OAuthRefreshFailed(e.to_string()))?;
-        // Rotate refresh token in secret store.
-        self.secret_store
-            .store_refresh_token(refresh_token_handle, &token_resp.refresh_token)?;
-        Ok(token_resp.access_token)
+
+        Ok(access_token)
     }
 
     /// Forward `request` to the Anthropic API using the bearer token obtained
@@ -338,24 +461,19 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
     ///
     /// Headers forwarded: all except `authorization`, `host`, `content-length`
     /// (those are set or managed by reqwest).
-    pub fn proxy(
+    pub async fn proxy(
         &self,
+        http_client: &reqwest::Client,
         request: &ProxyRequest,
         refresh_token_handle: &str,
     ) -> Result<ProxyResponse, RestAdapterError> {
-        let access_token = self.refresh_token(refresh_token_handle)?;
+        let access_token = self
+            .refresh_token(http_client, refresh_token_handle)
+            .await?;
         let url = format!("{}{}", self.base_url, request.path);
-        let mut req_builder = self
-            .client
-            .post(&url)
-            .header("Authorization", format!("Bearer {access_token}"))
-            .header("anthropic-version", ANTHROPIC_VERSION)
-            .header("anthropic-beta", ANTHROPIC_BETA_OAUTH)
-            .body(request.body.clone());
 
         // RFC 7230 §6.1 hop-by-hop headers that must never be forwarded upstream
-        // or propagated back to the caller. Also parse the incoming Connection:
-        // header value tokens and drop those header names too.
+        // or propagated back to the caller.
         let hop_by_hop: std::collections::HashSet<&str> = [
             "connection",
             "keep-alive",
@@ -377,6 +495,13 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
             .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
             .unwrap_or_default();
 
+        let mut req_builder = http_client
+            .post(&url)
+            .header("Authorization", format!("Bearer {access_token}"))
+            .header("anthropic-version", ANTHROPIC_VERSION)
+            .header("anthropic-beta", ANTHROPIC_BETA_OAUTH)
+            .body(request.body.clone());
+
         // Forward caller headers, skipping hop-by-hop and auth headers.
         for (k, v) in &request.headers {
             let key_lower = k.to_lowercase();
@@ -397,6 +522,7 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
 
         let resp = req_builder
             .send()
+            .await
             .map_err(|e| RestAdapterError::UpstreamError {
                 status: 502,
                 body: e.to_string(),
@@ -427,6 +553,7 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
         }
         let body = resp
             .bytes()
+            .await
             .map_err(|e| RestAdapterError::UpstreamError {
                 status: 502,
                 body: e.to_string(),
@@ -452,9 +579,13 @@ pub struct CachedToken {
     pub expires_at: Instant,  // data_class: INTERNAL_ONLY
 }
 
+/// Singleflight coalescer (legacy sync version, kept for backward compat with
+/// existing tests in d3_refresh_singleflight.rs). New code uses
+/// [`UpstreamOAuthSingleflight`] which is fully async.
+///
 /// In-flight refresh state for a single token handle.
 enum RefreshState {
-    /// Refresh is in progress; waiters block on the [`Condvar`].
+    /// Refresh is in progress; waiters block on the [`std::sync::Condvar`].
     InFlight,
     /// Refresh completed successfully.
     Done(CachedToken),
@@ -463,15 +594,12 @@ enum RefreshState {
 }
 
 /// Shared state slot for a single in-flight token refresh.
-type FlightSlot = Arc<(Mutex<RefreshState>, Condvar)>; // data_class: INTERNAL_ONLY
+type FlightSlot = Arc<(Mutex<RefreshState>, std::sync::Condvar)>; // data_class: INTERNAL_ONLY
 
-/// Singleflight coalescer for token refreshes. Ensures at most one in-flight
-/// token exchange per handle at any time. Concurrent callers wait on the same
-/// result rather than issuing N parallel calls to the OAuth endpoint.
+/// Singleflight coalescer for token refreshes (sync, blocking). Ensures at
+/// most one in-flight token exchange per handle at any time. Kept for
+/// backward-compatibility with the Stage-5 singleflight tests.
 pub struct TokenRefreshSingleflight {
-    /// Each entry is an Arc around (state mutex, condvar). Presence in the map
-    /// means a refresh is in flight. Entry is removed once the flight completes
-    /// so the next request starts a new flight.
     flights: Mutex<HashMap<String, FlightSlot>>, // data_class: INTERNAL_ONLY
 }
 
@@ -494,12 +622,12 @@ impl TokenRefreshSingleflight {
         let (slot, is_leader) = {
             let mut map = self.flights.lock().unwrap();
             if let Some(existing) = map.get(handle) {
-                // A flight is already in progress — we are a waiter.
                 (Arc::clone(existing), false)
             } else {
-                // No flight in progress — we are the leader.
-                let slot: Arc<(Mutex<RefreshState>, Condvar)> =
-                    Arc::new((Mutex::new(RefreshState::InFlight), Condvar::new()));
+                let slot: Arc<(Mutex<RefreshState>, std::sync::Condvar)> = Arc::new((
+                    Mutex::new(RefreshState::InFlight),
+                    std::sync::Condvar::new(),
+                ));
                 map.insert(handle.to_string(), Arc::clone(&slot));
                 (slot, true)
             }
@@ -508,7 +636,6 @@ impl TokenRefreshSingleflight {
         let (state_lock, cvar) = slot.as_ref();
 
         if is_leader {
-            // Perform the actual refresh outside any lock.
             let result = do_refresh();
             {
                 let mut state = state_lock.lock().unwrap();
@@ -518,11 +645,9 @@ impl TokenRefreshSingleflight {
                 };
             }
             cvar.notify_all();
-            // Remove from map so the next caller starts a fresh flight.
             self.flights.lock().unwrap().remove(handle);
             result
         } else {
-            // Wait until the leader finishes.
             let state = cvar
                 .wait_while(state_lock.lock().unwrap(), |s| {
                     matches!(s, RefreshState::InFlight)
@@ -554,8 +679,39 @@ pub struct AppState {
     pub secret_store: Arc<dyn OpenBaoSecretStore>, // data_class: INTERNAL_ONLY
     pub anthropic_base_url: String,             // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,                    // data_class: INTERNAL_ONLY
-    /// D3 singleflight coalescer — at most one token-exchange call per handle. // data_class: INTERNAL_ONLY
+    /// D3 singleflight coalescer (sync, legacy). Kept for test compat.
     pub token_singleflight: Arc<TokenRefreshSingleflight>, // data_class: INTERNAL_ONLY
+    /// Shared async reqwest::Client — amortizes TLS handshakes + keep-alive
+    /// across all proxy requests (Item 1). ADR-0090 blessed HTTP backbone.
+    pub http_client: Arc<reqwest::Client>, // data_class: INTERNAL_ONLY
+}
+
+impl AppState {
+    /// Build an `AppState` with a freshly constructed shared `reqwest::Client`.
+    pub fn new(
+        pool: Arc<Mutex<SubscriptionPool>>,
+        gate: Arc<dyn AuthzGate + Send + Sync>,
+        sink: Arc<dyn EventSink + Send + Sync>,
+        secret_store: Arc<dyn OpenBaoSecretStore>,
+        anthropic_base_url: String,
+        tenant_id: TenantId,
+    ) -> Result<Self, reqwest::Error> {
+        let http_client = Arc::new(
+            reqwest::Client::builder()
+                .timeout(Duration::from_secs(30))
+                .build()?,
+        );
+        Ok(Self {
+            pool,
+            gate,
+            sink,
+            secret_store,
+            anthropic_base_url,
+            tenant_id,
+            token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
+            http_client,
+        })
+    }
 }
 
 /// Maximum request body size: 1 MiB. Requests exceeding this limit receive
@@ -638,57 +794,20 @@ async fn handle_proxy(
     // Convention: handle = "<tenant_id>/<seat_id>".
     let refresh_handle = format!("{}/{}", state.tenant_id.as_str(), seat_id.as_str());
 
-    // Fix-2: coalesce concurrent refresh calls for the same handle.
-    let singleflight = Arc::clone(&state.token_singleflight);
-    let secret_store_ref = Arc::clone(&state.secret_store);
-    let handle_for_sf = refresh_handle.clone();
-    let refresh_token_result = tokio::task::spawn_blocking(move || {
-        singleflight.refresh_or_wait(&handle_for_sf, || {
-            secret_store_ref
-                .fetch_refresh_token(&handle_for_sf)
-                .map(|token| CachedToken {
-                    access_token: token,
-                    expires_at: Instant::now() + Duration::from_secs(3600),
-                })
-                .map_err(|e| format!("{e:?}"))
-        })
-    })
-    .await;
+    // Build the async adapter and proxy (no spawn_blocking — Item 1).
+    let adapter = AnthropicAdapter::with_base_url(
+        ArcSecretStore {
+            inner: Arc::clone(&state.secret_store),
+        },
+        state.anthropic_base_url.clone(),
+    );
 
-    let cached_token = match refresh_token_result {
-        Ok(Ok(tok)) => tok,
-        Ok(Err(e)) => {
-            warn!(handle = %refresh_handle, error = %e, "singleflight token refresh failed");
-            // Fix-6: record RefreshFailed on vault/refresh errors.
-            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-        Err(e) => {
-            warn!(error = %e, "spawn_blocking join error during singleflight");
-            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-    };
-
-    // Run the blocking reqwest proxy call on a blocking thread.
-    let secret_store_ref2 = Arc::clone(&state.secret_store);
-    let handle_clone = refresh_handle.clone();
-    let token_clone = cached_token.access_token.clone();
-    let base_url = state.anthropic_base_url.clone();
-    let result = tokio::task::spawn_blocking(move || {
-        let adapter = AnthropicAdapter::with_base_url(
-            ArcSecretStore {
-                inner: secret_store_ref2,
-                prefetched: Some((handle_clone, token_clone)),
-            },
-            base_url,
-        );
-        adapter.proxy(&proxy_request, &refresh_handle)
-    })
-    .await;
+    let result = adapter
+        .proxy(&state.http_client, &proxy_request, &refresh_handle)
+        .await;
 
     match result {
-        Ok(Ok(resp)) => {
+        Ok(resp) => {
             // Success — complete lease with Ok outcome.
             let _ = lease.complete(SeatOutcome::Ok, Instant::now());
 
@@ -726,14 +845,18 @@ async fn handle_proxy(
                 .body(Body::from(resp.body))
                 .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
         }
-        Ok(Err(RestAdapterError::UpstreamError { status: 429, .. })) => {
+        Err(RestAdapterError::OAuthRefreshFailed(_)) => {
+            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+        Err(RestAdapterError::UpstreamError { status: 429, .. }) => {
             let _ = lease.complete(SeatOutcome::RateLimited429, Instant::now());
             StatusCode::TOO_MANY_REQUESTS.into_response()
         }
-        Ok(Err(RestAdapterError::UpstreamError {
+        Err(RestAdapterError::UpstreamError {
             status,
             body: err_body,
-        })) => {
+        }) => {
             let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
             (
                 StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
@@ -741,15 +864,10 @@ async fn handle_proxy(
             )
                 .into_response()
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             warn!(error = ?e, "proxy error");
             let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
             StatusCode::BAD_GATEWAY.into_response()
-        }
-        Err(e) => {
-            warn!(error = %e, "spawn_blocking join error");
-            let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
@@ -773,24 +891,16 @@ oya_llm_gateway_up 1\n";
 }
 
 // ---------------------------------------------------------------------------
-// Internal: ArcSecretStore adaptor for spawn_blocking
+// Internal: ArcSecretStore adaptor
 // ---------------------------------------------------------------------------
 // Wraps an Arc<dyn OpenBaoSecretStore> so AnthropicAdapter can own it.
-// The `prefetched` field holds a pre-fetched (handle, plaintext) pair so the
-// blocking adapter can skip the vault fetch and use the already-fetched token.
 
 struct ArcSecretStore {
-    inner: Arc<dyn OpenBaoSecretStore>,   // data_class: INTERNAL_ONLY
-    prefetched: Option<(String, String)>, // data_class: INTERNAL_ONLY
+    inner: Arc<dyn OpenBaoSecretStore>, // data_class: INTERNAL_ONLY
 }
 
 impl OpenBaoSecretStore for ArcSecretStore {
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
-        if let Some((ref h, ref t)) = self.prefetched
-            && h == handle
-        {
-            return Ok(t.clone());
-        }
         self.inner.fetch_refresh_token(handle)
     }
 

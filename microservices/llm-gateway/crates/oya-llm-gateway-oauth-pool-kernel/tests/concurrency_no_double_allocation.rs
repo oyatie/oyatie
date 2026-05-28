@@ -28,15 +28,15 @@ fn make_pool(n_seats: usize) -> Arc<Mutex<SubscriptionPool>> {
         SelectionStrategy::RoundRobin,
     );
     for i in 0..n_seats {
-        pool.add_seat(OAuthSubscription {
-            tenant_id: tenant.clone(),
-            seat_id: SeatId::new(format!("seat-{i}")).unwrap(),
-            subscription_id: SubscriptionId::new(format!("sub-{i}")).unwrap(),
-            provider: Provider::Anthropic,
-            state: SubscriptionState::Active,
-            refresh_token_handle: format!("openbao://t-concurrent/seat-{i}/refresh"),
-            failure_count: 0,
-        })
+        pool.add_seat(OAuthSubscription::new(
+            tenant.clone(),
+            SeatId::new(format!("seat-{i}")).unwrap(),
+            SubscriptionId::new(format!("sub-{i}")).unwrap(),
+            Provider::Anthropic,
+            SubscriptionState::Active,
+            format!("openbao://t-concurrent/seat-{i}/refresh"),
+            0,
+        ))
         .unwrap();
     }
     Arc::new(Mutex::new(pool))
@@ -120,25 +120,19 @@ async fn lease_drop_without_complete_releases_seat() {
     // Short sleep to let Drop's record_outcome flush.
     tokio::time::sleep(tokio::time::Duration::from_millis(5)).await;
 
-    // The seat is now in Cooldown (Drop records ServerError5xx). Drive time forward.
-    // We can't manipulate Instant, so just verify the lease mechanism doesn't
-    // permanently block the seat from ever being leasable again after cooldown.
-    // For this test, simply verify the leased_seats set is empty.
+    // Drop records Released (no-op outcome) — seat has NO penalty, stays Active.
     let pool = pool_ref.lock().unwrap();
-    // If the seat were still in leased_seats, a new lease call would skip it.
-    // We verify indirectly: seat_count() is still 1 (not removed from seats map).
+    // seat_count() is still 1 (not removed from seats map).
     assert_eq!(pool.seat_count(), 1);
     drop(pool);
 
-    // Verify seat was returned (leased set empty) by trying to lease a second time.
-    // The seat is in Cooldown from the Drop's ServerError5xx, so NoEligibleSeat is
-    // expected — but NOT because it's still leased.
+    // Verify seat was returned without penalty: leasing again at `now` must succeed
+    // because Released applies no cooldown/blacklist to the seat.
     let result = SubscriptionPool::lease(&pool_ref, &agent, &gate, now);
-    // It returns NoEligibleSeat (cooldown), not a panic or deadlock.
-    assert!(matches!(
-        result,
-        Err(SubscriptionPoolError::NoEligibleSeat) | Ok(_)
-    ));
+    assert!(
+        result.is_ok(),
+        "seat must be leasable again after drop-without-complete (Released = no penalty)"
+    );
     drop(seat);
 }
 

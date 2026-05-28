@@ -180,8 +180,37 @@ pub struct OAuthSubscription {
     pub state: SubscriptionState,        // data_class: INTERNAL_ONLY
     /// Opaque handle. The actual refresh token is stored envelope-encrypted in
     /// OpenBao (D8) and never enters the kernel.
-    pub refresh_token_handle: String, // data_class: INTERNAL_ONLY
+    refresh_token_handle: String, // data_class: INTERNAL_ONLY
     pub failure_count: u32,              // data_class: INTERNAL_ONLY
+}
+
+impl OAuthSubscription {
+    /// Construct a new [`OAuthSubscription`].
+    pub fn new(
+        tenant_id: TenantId,
+        seat_id: SeatId,
+        subscription_id: SubscriptionId,
+        provider: Provider,
+        state: SubscriptionState,
+        refresh_token_handle: impl Into<String>,
+        failure_count: u32,
+    ) -> Self {
+        Self {
+            tenant_id,
+            seat_id,
+            subscription_id,
+            provider,
+            state,
+            refresh_token_handle: refresh_token_handle.into(),
+            failure_count,
+        }
+    }
+
+    /// Return the opaque refresh-token handle (non-plaintext; actual token
+    /// lives in OpenBao envelope-encrypted storage).
+    pub fn refresh_token_handle(&self) -> &str {
+        &self.refresh_token_handle
+    }
 }
 
 impl fmt::Debug for OAuthSubscription {
@@ -332,10 +361,11 @@ impl Drop for SeatLease {
             && let Ok(mut pool) = self.pool.lock()
         {
             pool.release_lease(&self.seat_id);
-            // Best-effort: record server error so repeated drops don't silently
-            // leave a seat in Active after a failed request.
+            // Record Released (no-op outcome) — the seat is returned to the
+            // pool without any penalty. Callers that want to record a failure
+            // must call complete() explicitly before the lease is dropped.
             let now = Instant::now();
-            let _ = pool.record_outcome(&self.seat_id, SeatOutcome::ServerError5xx, now);
+            let _ = pool.record_outcome(&self.seat_id, SeatOutcome::Released, now);
         }
     }
 }
@@ -492,6 +522,10 @@ impl SubscriptionPool {
         };
 
         match outcome {
+            SeatOutcome::Released => {
+                // No-op: dropped without explicit complete; no penalty applied.
+                return Ok(());
+            }
             SeatOutcome::Ok => {
                 seat.failure_count = 0;
                 seat.state = SubscriptionState::Active;
@@ -631,4 +665,8 @@ pub enum SeatOutcome {
     /// Vault or transient OAuth refresh failure (not a permanent revocation).
     /// Seat enters Cooldown with `RefreshTokenTransientFailure` reason.
     RefreshFailed,
+    /// Lease was dropped without an explicit [`SeatLease::complete`] call
+    /// (e.g. a future was cancelled). Treated as a no-op by the pool —
+    /// no penalty is applied and failure_count is not incremented.
+    Released,
 }

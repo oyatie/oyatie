@@ -11,6 +11,7 @@ use oya_llm_gateway_oauth_pool_kernel::{
 use oya_llm_gateway_oauth_pool_rest::{
     AnthropicAdapter, OpenBaoSecretStore, ProxyRequest, ProxyResponse, RestAdapterError,
 };
+use reqwest;
 use std::collections::BTreeMap;
 
 // ---------------------------------------------------------------------------
@@ -78,15 +79,16 @@ fn d2_proxy_response_fields_preserved() {
 }
 
 /// D2-3: AnthropicAdapter::proxy returns a network error when no real server
-/// is reachable (Stage-5 GREEN replaces the todo!() stub with reqwest).
-#[test]
-fn d2_proxy_returns_error_without_server() {
+/// is reachable (Stage-6 GREEN: async, uses &reqwest::Client).
+#[tokio::test]
+async fn d2_proxy_returns_error_without_server() {
     // Point at a guaranteed-unreachable address so reqwest fails fast.
     let adapter =
         AnthropicAdapter::with_base_url(StubSecretStore, "http://127.0.0.1:1".to_string());
+    let client = reqwest::Client::new();
     let tenant = TenantId::new("tenant-acme").unwrap();
     let req = make_proxy_request(tenant);
-    let result = adapter.proxy(&req, "handle-1");
+    let result = adapter.proxy(&client, &req, "handle-1").await;
     // Must be an error — either OAuthRefreshFailed (token endpoint unreachable)
     // or UpstreamError (messages endpoint unreachable).
     assert!(
@@ -110,15 +112,15 @@ fn d2_pool_select_before_proxy() {
         SelectionStrategy::RoundRobin,
     );
     let seat_id = SeatId::new("seat-001").unwrap();
-    pool.add_seat(OAuthSubscription {
-        tenant_id: tenant.clone(),
-        seat_id: seat_id.clone(),
-        subscription_id: SubscriptionId::new("sub-001").unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: "handle-1".to_string(),
-        failure_count: 0,
-    })
+    pool.add_seat(OAuthSubscription::new(
+        tenant.clone(),
+        seat_id.clone(),
+        SubscriptionId::new("sub-001").unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        "handle-1".to_string(),
+        0,
+    ))
     .unwrap();
     let agent = AgentId::new("agent-bot").unwrap();
     let gate = AlwaysAllowGate;
@@ -138,15 +140,15 @@ fn d2_cross_tenant_request_forbidden() {
         Provider::Anthropic,
         SelectionStrategy::FillFirst,
     );
-    pool.add_seat(OAuthSubscription {
-        tenant_id: tenant_a.clone(),
-        seat_id: SeatId::new("seat-a1").unwrap(),
-        subscription_id: SubscriptionId::new("sub-a1").unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: "handle-a1".to_string(),
-        failure_count: 0,
-    })
+    pool.add_seat(OAuthSubscription::new(
+        tenant_a.clone(),
+        SeatId::new("seat-a1").unwrap(),
+        SubscriptionId::new("sub-a1").unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        "handle-a1".to_string(),
+        0,
+    ))
     .unwrap();
 
     struct ForbidGate;
@@ -189,14 +191,17 @@ fn d2_proxy_requests_are_tenant_scoped() {
 }
 
 /// D2-8: exchange_authorization_code returns a network error without a real
-/// server (Stage-5 GREEN replaces the todo!() stub with reqwest).
-#[test]
-fn d2_exchange_auth_code_returns_error_without_server() {
+/// server (Stage-6 GREEN: async, uses &reqwest::Client).
+#[tokio::test]
+async fn d2_exchange_auth_code_returns_error_without_server() {
     let adapter =
         AnthropicAdapter::with_base_url(StubSecretStore, "http://127.0.0.1:1".to_string());
+    let client = reqwest::Client::new();
     let tenant = TenantId::new("tenant-acme").unwrap();
     let seat = SeatId::new("seat-001").unwrap();
-    let result = adapter.exchange_authorization_code(&tenant, &seat, "auth-code-xyz");
+    let result = adapter
+        .exchange_authorization_code(&client, &tenant, &seat, "auth-code-xyz")
+        .await;
     assert!(
         result.is_err(),
         "expected exchange_authorization_code to fail without a real server"

@@ -64,15 +64,15 @@ fn sub(s: &str) -> SubscriptionId {
 }
 
 fn make_sub(tenant_str: &str, seat_str: &str) -> OAuthSubscription {
-    OAuthSubscription {
-        tenant_id: tenant(tenant_str),
-        seat_id: seat(seat_str),
-        subscription_id: sub(&format!("{seat_str}-sub-1")),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: format!("openbao://{tenant_str}/{seat_str}/refresh"),
-        failure_count: 0,
-    }
+    OAuthSubscription::new(
+        tenant(tenant_str),
+        seat(seat_str),
+        sub(&format!("{seat_str}-sub-1")),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        format!("openbao://{tenant_str}/{seat_str}/refresh"),
+        0,
+    )
 }
 
 #[test]

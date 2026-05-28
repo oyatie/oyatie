@@ -6,11 +6,12 @@
   "bounded_contexts": [
     {
       "name": "llm-gateway",
-      "description": "OAuth subscription pool REST adapter: a clean-room agent-dispatch gateway that multiplexes the AI-agent fleet over OAuth-subscription-backed pooled provider keys. The kernel crate owns the pure key-pool state machine with seat-lease isolation (reserved-slot concurrency safety, round-robin selection, per-key failure-count blacklist threshold, jittered cooldown timestamps, success-reset/restore, RefreshFailed outcome variant, provider-channel enum). The rest crate owns the axum reverse proxy with true SSE streaming passthrough, per-provider channel adapters, hop-by-hop header enforcement (static list + dynamic Connection: parsing), 1 MiB body-size limit via DefaultBodyLimit, configurable failover/retry with next-key rotation and jittered backoff, two constant-time auth realms (admin + ingress proxy-key), OTel-aligned metrics, hash-only structured logging, and OpenBao-sourced pooled keys. The app crate is the composition and usecase layer wiring kernel + rest into the end-to-end pipeline.",
+      "description": "OAuth subscription-pool gateway (ADR-0384 Path B): multiplexes the AI-agent fleet over OAuth-subscription-backed pooled provider credentials. The kernel crate owns the pure seat-pool state machine (round-robin / fill-first selection, RAII SeatLease concurrency guard, per-seat failure-count blacklist threshold, Released / RefreshFailed / RateLimited429 outcomes, Cedar AuthzGate seam). The rest crate owns the axum reverse proxy, async reqwest::Client (shared, TLS-amortised), upstream OAuth singleflight per handle (broadcast-channel coalescer), hop-by-hop header enforcement, 1 MiB body-size limit, EventSink fan-out trait. The authz-cedar-adapter crate wires the bundled llm-gateway.cedar policy to the kernel AuthzGate seam. The app crate is the composition root: wires kernel + Cedar adapter + in-process stubs + shared reqwest::Client into build_app() -> Arc<AppState>, and serves the axum router via the cloud-intelligence binary.",
       "crates": [
-        "oya-llm-gateway-kernel",
-        "oya-llm-gateway-rest",
-        "oya-llm-gateway-app"
+        "oya-llm-gateway-oauth-pool-kernel",
+        "oya-llm-gateway-oauth-pool-rest",
+        "oya-llm-gateway-oauth-pool-authz-cedar-adapter",
+        "oya-llm-gateway-oauth-pool-app"
       ]
     }
   ],
@@ -33,38 +34,38 @@
   "capabilities": [
     {
       "tier": "T2",
-      "name": "llm-key-pool-state-machine-round-robin-blacklist-cooldown-restore",
-      "file": "crates/oya-llm-gateway-kernel/src/lib.rs",
+      "name": "oauth-subscription-pool-state-machine-round-robin-seat-lease-blacklist-cooldown-restore",
+      "file": "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "sse-streaming-passthrough-reverse-proxy-with-failover-retry",
-      "file": "crates/oya-llm-gateway-rest/src/proxy.rs",
+      "name": "async-reqwest-reverse-proxy-shared-client-tls-amortised",
+      "file": "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "per-provider-channel-auth-header-injection-openai-anthropic-gemini",
-      "file": "crates/oya-llm-gateway-rest/src/channel.rs",
+      "name": "upstream-oauth-singleflight-broadcast-coalescer-per-handle",
+      "file": "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "openbao-sourced-key-store-with-periodic-refresh-no-plaintext-key-from-file-or-env",
-      "file": "crates/oya-llm-gateway-rest/src/keystore.rs",
+      "name": "cedar-authz-gate-per-tenant-forbid-wins-isolation",
+      "file": "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-authz-cedar-adapter/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "two-realm-constant-time-auth-admin-and-ingress-proxy-key",
-      "file": "crates/oya-llm-gateway-rest/src/auth.rs",
+      "name": "openbao-envelope-encrypted-refresh-token-storage-seam",
+      "file": "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "otel-aligned-metrics-and-hash-only-structured-logging",
-      "file": "crates/oya-llm-gateway-rest/src/metrics.rs",
+      "name": "app-composition-root-cloud-intelligence-binary",
+      "file": "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-app/src/lib.rs",
       "risk_class": "limited"
     }
   ],
@@ -176,10 +177,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "The agent-dispatch gateway brokers pooled provider credentials and is intended Tier-2 isolation (first-party application microservice, runc). No runtime pod deployment is claimed for the local-foundation phase; tier is retained as the intended isolation class.",
   "pod_runtime_tier_surface_evidence": [
-    "crates/oya-llm-gateway-kernel/src/lib.rs",
-    "crates/oya-llm-gateway-rest/src/proxy.rs",
-    "crates/oya-llm-gateway-rest/src/keystore.rs",
-    "crates/oya-llm-gateway-rest/src/auth.rs"
+    "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel/src/lib.rs",
+    "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/src/lib.rs",
+    "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-authz-cedar-adapter/src/lib.rs",
+    "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-app/src/lib.rs"
   ],
   "capacity_model": {
     "baseline_cpu_per_tenant": 0.1,

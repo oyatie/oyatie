@@ -7,6 +7,7 @@
 //! - 429 + Retry-After maps to kernel Cooldown via complete_lease
 //! - 401 invalid_grant maps to RefreshTokenRevoked / RefreshFailed outcome
 //!
+//! Stage-6: AnthropicAdapter::proxy is now async and takes `&reqwest::Client`.
 //! httpmock 0.7 binds to a random 127.0.0.1 port per `MockServer::start()`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
@@ -44,15 +45,15 @@ fn make_pool(tenant: &str, seat: &str) -> Arc<Mutex<SubscriptionPool>> {
     let t = TenantId::new(tenant).unwrap();
     let mut pool =
         SubscriptionPool::new(t.clone(), Provider::Anthropic, SelectionStrategy::FillFirst);
-    pool.add_seat(OAuthSubscription {
-        tenant_id: t,
-        seat_id: SeatId::new(seat).unwrap(),
-        subscription_id: SubscriptionId::new(format!("{seat}-sub")).unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: format!("{tenant}/{seat}"),
-        failure_count: 0,
-    })
+    pool.add_seat(OAuthSubscription::new(
+        t,
+        SeatId::new(seat).unwrap(),
+        SubscriptionId::new(format!("{seat}-sub")).unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        format!("{tenant}/{seat}"),
+        0,
+    ))
     .unwrap();
     Arc::new(Mutex::new(pool))
 }
@@ -69,20 +70,26 @@ fn proxy_req(base_path: &str, tenant: &str) -> ProxyRequest {
     }
 }
 
+fn make_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .unwrap()
+}
+
 // ---------------------------------------------------------------------------
 // Fix-8 Integration tests
 // ---------------------------------------------------------------------------
 
 /// Token refresh uses correct OAuth body shape: grant_type=refresh_token and
 /// client_id matching ANTHROPIC_CLIENT_ID.
-#[test]
-fn refresh_sends_correct_oauth_body_shape() {
+#[tokio::test]
+async fn refresh_sends_correct_oauth_body_shape() {
     let server = MockServer::start();
 
     let token_mock = server.mock(|when, then| {
         when.method(POST)
             .path("/v1/oauth/token")
-            // Body is JSON — check for key substrings present in the serialized form.
             .body_contains("refresh_token")
             .body_contains("9d1c250a-e61b-44d9-88ed-5944d1962f5e")
             .body_contains("my-refresh-tok");
@@ -93,8 +100,6 @@ fn refresh_sends_correct_oauth_body_shape() {
             );
     });
 
-    // Messages endpoint (will fail after successful token refresh since we don't
-    // need to test the proxy body here — just the token exchange).
     let _msg_mock = server.mock(|when, then| {
         when.method(POST).path("/v1/messages");
         then.status(200)
@@ -109,14 +114,18 @@ fn refresh_sends_correct_oauth_body_shape() {
         server.base_url(),
     );
 
+    let client = make_client();
     let req = proxy_req("/v1/messages", "t-shape");
-    adapter.proxy(&req, "t-shape/seat-shape").unwrap();
+    adapter
+        .proxy(&client, &req, "t-shape/seat-shape")
+        .await
+        .unwrap();
     token_mock.assert_hits(1);
 }
 
 /// Bearer Authorization header and anthropic-version header are set correctly.
-#[test]
-fn proxy_sets_correct_bearer_and_version_headers() {
+#[tokio::test]
+async fn proxy_sets_correct_bearer_and_version_headers() {
     let server = MockServer::start();
 
     let _token_mock = server.mock(|when, then| {
@@ -145,16 +154,17 @@ fn proxy_sets_correct_bearer_and_version_headers() {
         server.base_url(),
     );
 
+    let client = make_client();
     let req = proxy_req("/v1/messages", "t-headers");
-    let result = adapter.proxy(&req, "t-headers/seat-hdr");
+    let result = adapter.proxy(&client, &req, "t-headers/seat-hdr").await;
     assert!(result.is_ok(), "expected success: {result:?}");
     messages_mock.assert_hits(1);
 }
 
 /// 429 response from upstream maps to `SubscriptionPoolError` via
 /// `SeatOutcome::RateLimited429` so the kernel puts the seat in Cooldown.
-#[test]
-fn upstream_429_maps_to_rate_limited_outcome() {
+#[tokio::test]
+async fn upstream_429_maps_to_rate_limited_outcome() {
     let server = MockServer::start();
 
     let _token_mock = server.mock(|when, then| {
@@ -179,11 +189,10 @@ fn upstream_429_maps_to_rate_limited_outcome() {
         server.base_url(),
     );
 
+    let client = make_client();
     let req = proxy_req("/v1/messages", "t-429");
-    let result = adapter.proxy(&req, "t-429/seat-429");
+    let result = adapter.proxy(&client, &req, "t-429/seat-429").await;
 
-    // AnthropicAdapter::proxy returns Ok(ProxyResponse{status:429}) for 429;
-    // the REST handler converts this to RateLimited429 outcome in the pool.
     let resp = result.expect("proxy should succeed (returning 429 response)");
     assert_eq!(
         resp.status, 429,
@@ -200,7 +209,6 @@ fn upstream_429_maps_to_rate_limited_outcome() {
         .complete(SeatOutcome::RateLimited429, Instant::now())
         .unwrap();
 
-    // Seat should now be in cooldown — next lease should fail.
     let result2 = SubscriptionPool::lease(&pool_ref, &agent, &gate, Instant::now());
     assert!(
         result2.is_err(),
@@ -209,12 +217,10 @@ fn upstream_429_maps_to_rate_limited_outcome() {
 }
 
 /// 401 with invalid_grant error body maps to RefreshTokenRevoked.
-/// The adapter returns OAuthRefreshFailed; the REST layer records RefreshFailed.
-#[test]
-fn upstream_401_invalid_grant_causes_refresh_error() {
+#[tokio::test]
+async fn upstream_401_invalid_grant_causes_refresh_error() {
     let server = MockServer::start();
 
-    // Token endpoint returns 401 with invalid_grant.
     let _token_mock = server.mock(|when, then| {
         when.method(POST).path("/v1/oauth/token");
         then.status(401)
@@ -229,8 +235,9 @@ fn upstream_401_invalid_grant_causes_refresh_error() {
         server.base_url(),
     );
 
+    let client = make_client();
     let req = proxy_req("/v1/messages", "t-401");
-    let result = adapter.proxy(&req, "t-401/seat-401");
+    let result = adapter.proxy(&client, &req, "t-401/seat-401").await;
 
     assert!(result.is_err());
     match result.unwrap_err() {
@@ -260,8 +267,8 @@ fn upstream_401_invalid_grant_causes_refresh_error() {
 }
 
 /// Successful 200 response carries the body through intact.
-#[test]
-fn successful_200_returns_body_intact() {
+#[tokio::test]
+async fn successful_200_returns_body_intact() {
     let server = MockServer::start();
 
     let _token_mock = server.mock(|when, then| {
@@ -286,8 +293,9 @@ fn successful_200_returns_body_intact() {
         server.base_url(),
     );
 
+    let client = make_client();
     let req = proxy_req("/v1/messages", "t-ok");
-    let resp = adapter.proxy(&req, "t-ok/seat-ok").unwrap();
+    let resp = adapter.proxy(&client, &req, "t-ok/seat-ok").await.unwrap();
     assert_eq!(resp.status, 200);
     assert_eq!(resp.body, expected_body.as_bytes());
 }

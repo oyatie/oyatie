@@ -1,0 +1,21 @@
+context: llm-gateway
+role: app
+capability: llm-oauth-subscription-pool-composition-root
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
+  source_adrs: [ADR-0105, ADR-0131, ADR-0384]
+non_claims:
+  - composition root for the OAuth subscription-pool µservice — wires kernel + Cedar adapter + REST adapter + EventSink + OpenBaoSecretStore into a runnable axum binary
+  - bin/cloud-intelligence main reads config from env (OYA_CLOUD_INTEL_LISTEN_ADDR, OYA_CLOUD_INTEL_TENANT_ID, etc.); production wiring on Talos lands in Stage-7 alongside Helm + ArgoCD
+  - in-process EventSink + in-process OpenBaoSecretStore only — real Valkey Stream + ClickHouse OLAP + OpenBao Transit adapters land as separate crates per ADR-0384 §v1-scope
+  - no SSE streaming (Stage-6 follow-up per ADR-0384 §v1-scope; current path is one-shot JSON request/response)
+  - no Codex provider adapter (Stage-6 follow-up; current path is Anthropic-only)
+  - no production Helm chart / ArgoCD ApplicationSet (Stage-7)
+  - no automated subscription enrollment CLI (Stage-7 admin API µservice)
