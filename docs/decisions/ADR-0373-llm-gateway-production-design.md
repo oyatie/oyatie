@@ -18,7 +18,7 @@ affected_surfaces:
 deliverables:
   - id: ADR-0373-D1
     description: "Provider-abstraction adapter layer behind a canonical OpenAI-compatible REST surface (OpenAPI 3.2.0: /v1/chat/completions incl. stream:true SSE with the data:[DONE] sentinel, /v1/embeddings, /v1/models, plus a separate admin realm), OpenAI error envelope {error:{message,type,param,code}}, and byte-passthrough SSE — grounded in the hyperscaler brief (Kong AI Proxy, Azure APIM AI gateway, OpenAI error codes)."
-    exit_criteria: "the gateway contracts (OpenAPI 3.2.0 + the per-provider adapter design) are authored under microservices/llm-gateway and the design-spec-maturity gate is green for the service."
+    exit_criteria: "the gateway contracts (OpenAPI 3.2.0 + the per-provider adapter design) are authored under microservices/cloud-intelligence and the design-spec-maturity gate is green for the service."
     verified_by: "oya gate validate design-spec-maturity-claims + oya gate validate supply-chain (catalog)"
   - id: ADR-0373-D2
     description: "Key-pool resilience: the failure→blacklist→jittered-cooldown→restore state machine (oya-llm-gateway-kernel) extended with a per-provider circuit breaker honoring upstream Retry-After, a bounded idempotent-retry failure ladder (in-key retry → key rotation → provider fallback → graceful 503), per-tenant key pools, and concurrent token budgets — grounded in the brief (LiteLLM cooldown/fallbacks, Azure dynamic circuit breaker)."
@@ -30,9 +30,9 @@ deliverables:
     verified_by: "oya gate validate design-spec-maturity-claims + oya gate validate honest-claims"
   - id: ADR-0373-D4
     description: "OpenSLO SLI set for the gateway: availability, time-to-first-token (TTFT, headline streaming SLI), end-to-end latency (non-stream), error-rate, and stream-completeness — with targets labeled provisional starting hypotheses (no official vendor SLO exists per the brief) to be replaced by measured baselines once live."
-    exit_criteria: "one *.openslo.yaml per SLI exists under microservices/llm-gateway/slos with provisional targets + non-claim labeling."
+    exit_criteria: "one *.openslo.yaml per SLI exists under microservices/cloud-intelligence/slos with provisional targets + non-claim labeling."
     verified_by: "oya gate validate design-spec-maturity-claims"
-purpose: Record the production design of the LLM agent-dispatch gateway (microservices/llm-gateway; the oya-llm-gateway-kernel + oya-llm-gateway-rest crates) — a multi-provider key-pool reverse proxy — at a hyperscaler-grade design-maturity bar, grounded in cross-vendor best-practice research (Azure APIM AI gateway, AWS Bedrock, Cloudflare AI Gateway, Kong AI Proxy, LiteLLM, OWASP LLM Top 10 2025). This ADR is the decision record the design dossier (microservices/llm-gateway/{PRD.md, design/*, contracts/*, slos/*}) implements; it makes no runtime/deployment claim (the service is a code-backed local foundation per its manifest non-claims).
+purpose: Record the production design of the LLM agent-dispatch gateway (microservices/cloud-intelligence; the oya-llm-gateway-kernel + oya-llm-gateway-rest crates) — a multi-provider key-pool reverse proxy — at a hyperscaler-grade design-maturity bar, grounded in cross-vendor best-practice research (Azure APIM AI gateway, AWS Bedrock, Cloudflare AI Gateway, Kong AI Proxy, LiteLLM, OWASP LLM Top 10 2025). This ADR is the decision record the design dossier (microservices/cloud-intelligence/{PRD.md, design/*, contracts/*, slos/*}) implements; it makes no runtime/deployment claim (the service is a code-backed local foundation per its manifest non-claims).
 ---
 
 # ADR-0373: LLM gateway production design (provider-abstraction, key-pool resilience, audit)
@@ -41,7 +41,7 @@ purpose: Record the production design of the LLM agent-dispatch gateway (microse
 Accepted — 2026-05-26.
 
 ## Context
-`microservices/llm-gateway` (crates `oya-llm-gateway-kernel` + `oya-llm-gateway-rest`, introduced in PR #196) is a clean-room multi-provider LLM/AI gateway: a key-pool reverse proxy fronting OpenAI/Anthropic/Gemini with SSE streaming, a failure→blacklist→jittered-cooldown→restore key-rotation state machine, admin + ingress constant-time auth realms, OpenBao-sourced pooled keys, and OTel/Prometheus metrics. PR #196 shipped the code without a design-spec package, failing the `design-spec-maturity-claims` gate. The founder directed bringing it to the production-100 design bar with decisions grounded in current hyperscaler best practice (`/best-practice-research`) and converged via `/idea-refine`, not invented. The full cited evidence is `microservices/llm-gateway/design/hyperscaler-best-practice-brief.md`.
+`microservices/cloud-intelligence` (crates `oya-llm-gateway-kernel` + `oya-llm-gateway-rest`, introduced in PR #196) is a clean-room multi-provider LLM/AI gateway: a key-pool reverse proxy fronting OpenAI/Anthropic/Gemini with SSE streaming, a failure→blacklist→jittered-cooldown→restore key-rotation state machine, admin + ingress constant-time auth realms, OpenBao-sourced pooled keys, and OTel/Prometheus metrics. PR #196 shipped the code without a design-spec package, failing the `design-spec-maturity-claims` gate. The founder directed bringing it to the production-100 design bar with decisions grounded in current hyperscaler best practice (`/best-practice-research`) and converged via `/idea-refine`, not invented. The full cited evidence is `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md`.
 
 ## Decision
 Adopt the design recorded in the gateway design dossier, summarized as four decisions:
@@ -64,7 +64,7 @@ Tenancy follows the dogfood-tenancy model (Oyatie is a tenant of its own gateway
 - Neutral: this ADR documents an existing code foundation + its forward design; it introduces no new runtime claim.
 
 ## Verification
-Per-deliverable `verified_by`. The decision is met when the gateway design dossier exists, the `design-spec-maturity-claims` gate is green for `microservices/llm-gateway`, the kernel tests pass, and the manifest's design-stage non-claims are intact (honest-claims green).
+Per-deliverable `verified_by`. The decision is met when the gateway design dossier exists, the `design-spec-maturity-claims` gate is green for `microservices/cloud-intelligence`, the kernel tests pass, and the manifest's design-stage non-claims are intact (honest-claims green).
 
 ## References
-ADR-0090 (hyper canonical HTTP backbone), ADR-0105 (layer enum — kernel/rest), ADR-0131 (per-microservice flat layout), ADR-0007 (Cedar authorization), ADR-0003 (audit chain + evidence emission), ADR-0145 (inter-microservice communication), ADR-0092 (dependency-seam). Research + sources: `microservices/llm-gateway/design/hyperscaler-best-practice-brief.md`. Canonical contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenSLO.
+ADR-0090 (hyper canonical HTTP backbone), ADR-0105 (layer enum — kernel/rest), ADR-0131 (per-microservice flat layout), ADR-0007 (Cedar authorization), ADR-0003 (audit chain + evidence emission), ADR-0145 (inter-microservice communication), ADR-0092 (dependency-seam). Research + sources: `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md`. Canonical contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenSLO.

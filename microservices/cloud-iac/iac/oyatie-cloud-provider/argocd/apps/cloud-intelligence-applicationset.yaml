@@ -74,7 +74,7 @@ spec:
       source:
         repoURL: https://git.oyatie.internal/oyatie/oyatie.git
         targetRevision: '{{ .targetRevision }}'
-        path: microservices/llm-gateway/iac/k8s/helm
+        path: microservices/cloud-intelligence/iac/k8s/helm
         helm:
           releaseName: cloud-intelligence
           valueFiles:

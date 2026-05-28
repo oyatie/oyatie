@@ -853,17 +853,17 @@
           "deliverables": [
             {
               "description": "Provider-abstraction adapter layer behind a canonical OpenAI-compatible REST surface (OpenAPI 3.2.0: /v1/chat/completions incl. stream:true SSE with the data:[DONE] sentinel, /v1/embeddings, /v1/models, plus a separate admin realm), OpenAI error envelope {error:{message,type,param,code}}, and byte-passthrough SSE — grounded in the hyperscaler brief (Kong AI Proxy, Azure APIM AI gateway, OpenAI error codes).",
-              "exit_criteria": "the gateway contracts (OpenAPI 3.2.0 + the per-provider adapter design) are authored under microservices/llm-gateway and the design-spec-maturity gate is green for the service.",
+              "exit_criteria": "the gateway contracts (OpenAPI 3.2.0 + the per-provider adapter design) are authored under microservices/cloud-intelligence and the design-spec-maturity gate is green for the service.",
               "id": "ADR-0373-D1",
               "status": "declared",
               "verified_by": "oya gate validate design-spec-maturity-claims + oya gate validate supply-chain (catalog)"
             },
             {
-              "description": "Key-pool resilience: the failure→blacklist→jittered-cooldown→restore state machine (oya-llm-gateway-kernel) extended with a per-provider circuit breaker honoring upstream Retry-After, a bounded idempotent-retry failure ladder (in-key retry → key rotation → provider fallback → graceful 503), per-tenant key pools, and concurrent token budgets — grounded in the brief (LiteLLM cooldown/fallbacks, Azure dynamic circuit breaker).",
+              "description": "Key-pool resilience: the failure→blacklist→jittered-cooldown→restore state machine (oya-cloud-intelligence-kernel) extended with a per-provider circuit breaker honoring upstream Retry-After, a bounded idempotent-retry failure ladder (in-key retry → key rotation → provider fallback → graceful 503), per-tenant key pools, and concurrent token budgets — grounded in the brief (LiteLLM cooldown/fallbacks, Azure dynamic circuit breaker).",
               "exit_criteria": "the kernel key-pool state machine is implemented + unit-tested and the resilience/failure-modes design docs are authored.",
               "id": "ADR-0373-D2",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-kernel + oya gate validate design-spec-maturity-claims"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel + oya gate validate design-spec-maturity-claims"
             },
             {
               "description": "Audit + residency: a Bedrock-ModelInvocationLog-shaped immutable per-invocation audit record (extended with tenant + hashed key-pool/ingress refs) appended to the evidence/audit-chain substrate, with default-OFF prompt/completion body logging and residency-pinned body-spill (AsyncAPI 3.1.0 llm.usage.v1 + llm.audit.v1 channels) — grounded in the brief (Bedrock model-invocation-logging, Cloudflare DLP).",
@@ -874,7 +874,7 @@
             },
             {
               "description": "OpenSLO SLI set for the gateway: availability, time-to-first-token (TTFT, headline streaming SLI), end-to-end latency (non-stream), error-rate, and stream-completeness — with targets labeled provisional starting hypotheses (no official vendor SLO exists per the brief) to be replaced by measured baselines once live.",
-              "exit_criteria": "one *.openslo.yaml per SLI exists under microservices/llm-gateway/slos with provisional targets + non-claim labeling.",
+              "exit_criteria": "one *.openslo.yaml per SLI exists under microservices/cloud-intelligence/slos with provisional targets + non-claim labeling.",
               "id": "ADR-0373-D4",
               "status": "declared",
               "verified_by": "oya gate validate design-spec-maturity-claims"
@@ -887,60 +887,60 @@
         {
           "deliverables": [
             {
-              "description": "oya-llm-gateway-kernel rewrite: SubscriptionPool<OAuthSubscription> state machine. Pure (no I/O, no HTTP, no async). Test exhaustively.",
-              "exit_criteria": "SubscriptionPool compiles as a pure crate (no tokio, no hyper, no reqwest deps); cargo nextest -p oya-llm-gateway-kernel passes with coverage of round-robin, fill-first, cooldown, quota-tracking, and pool-exhausted paths.",
+              "description": "oya-cloud-intelligence-kernel rewrite: SubscriptionPool<OAuthSubscription> state machine. Pure (no I/O, no HTTP, no async). Test exhaustively.",
+              "exit_criteria": "SubscriptionPool compiles as a pure crate (no tokio, no hyper, no reqwest deps); cargo nextest -p oya-cloud-intelligence-kernel passes with coverage of round-robin, fill-first, cooldown, quota-tracking, and pool-exhausted paths.",
               "id": "D1",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-kernel + cargo clippy -p oya-llm-gateway-kernel -- -D warnings"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel + cargo clippy -p oya-cloud-intelligence-kernel -- -D warnings"
             },
             {
-              "description": "oya-llm-gateway-rest adapter rewrite: SubscriptionStore (OpenBao-bound; reads refresh-tokens). Token-refresh logic per provider. Forward streaming + non-streaming responses.",
+              "description": "oya-cloud-intelligence-rest adapter rewrite: SubscriptionStore (OpenBao-bound; reads refresh-tokens). Token-refresh logic per provider. Forward streaming + non-streaming responses.",
               "exit_criteria": "SubscriptionStore reads refresh-tokens from OpenBao at startup; per-seat Mutex serializes concurrent refresh attempts; write-through persists rotated refresh-tokens back to OpenBao; SSE streaming and non-streaming forwarding both pass integration tests.",
               "id": "D2",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-rest + oya gate validate honest-claims"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-rest + oya gate validate honest-claims"
             },
             {
-              "description": "Provider adapters — v1 scope: Anthropic (Claude Code OAuth via claude.ai/oauth/authorize + api.anthropic.com/v1/oauth/token) + OpenAI Codex (Sign-in-with-ChatGPT OAuth, callback port 1455, data endpoint chatgpt.com/backend-api/codex/responses). Each implements ProviderAdapter trait with refresh_token, forward_request, parse_rate_headers. Stock reqwest (rustls/ring) for OAuth refresh per OQ-7 downgrade — auth2api evidence shows no TLS-fingerprint impersonation needed for the refresh leg. Gemini adapter (v2) and Cursor adapter (v3) authored in their own amendments. Total provider set ever supported: 4 (Anthropic, Codex, Gemini, Cursor); see memory llm-gateway-reference-repo-audit.",
+              "description": "Provider adapters — v1 scope: Anthropic (Claude Code OAuth via claude.ai/oauth/authorize + api.anthropic.com/v1/oauth/token) + OpenAI Codex (Sign-in-with-ChatGPT OAuth, callback port 1455, data endpoint chatgpt.com/backend-api/codex/responses). Each implements ProviderAdapter trait with refresh_token, forward_request, parse_rate_headers. Stock reqwest (rustls/ring) for OAuth refresh per OQ-7 downgrade — auth2api evidence shows no TLS-fingerprint impersonation needed for the refresh leg. Gemini adapter (v2) and Cursor adapter (v3) authored in their own amendments. Total provider set ever supported: 4 (Anthropic, Codex, Gemini, Cursor); see memory cloud-intelligence-reference-repo-audit.",
               "exit_criteria": "AnthropicAdapter + CodexAdapter compile; each refresh_token() succeeds against its provider's OAuth endpoint in a spike test; parse_rate_headers() covers Anthropic + OpenAI header schemas; cross-adapter trait surface remains stable for v2 Gemini + v3 Cursor extension.",
               "id": "D3",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-rest (per-adapter integration tests for Anthropic + Codex)"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-rest (per-adapter integration tests for Anthropic + Codex)"
             },
             {
-              "description": "Config schema migration: microservices/llm-gateway/k8s/llm-gateway.yaml ConfigMap.data.config.json moves from .groups[].keys[] to .providers[].subscriptions[].openbao_refresh_token_path. Backward-compat: existing static-key path stays under providers[].auth_mode: 'static_key'; new code uses auth_mode: 'oauth_subscription'.",
-              "exit_criteria": "llm-gateway.yaml ConfigMap updated to new schema; gateway boots with both auth_mode: static_key and auth_mode: oauth_subscription groups present; oya gate validate honest-claims green.",
+              "description": "Config schema migration: microservices/cloud-intelligence/k8s/cloud-intelligence.yaml ConfigMap.data.config.json moves from .groups[].keys[] to .providers[].subscriptions[].openbao_refresh_token_path. Backward-compat: existing static-key path stays under providers[].auth_mode: 'static_key'; new code uses auth_mode: 'oauth_subscription'.",
+              "exit_criteria": "cloud-intelligence.yaml ConfigMap updated to new schema; gateway boots with both auth_mode: static_key and auth_mode: oauth_subscription groups present; oya gate validate honest-claims green.",
               "id": "D4",
               "status": "declared",
-              "verified_by": "cargo test -p oya-llm-gateway-rest (config deserialization tests) + kubectl apply --dry-run=client on llm-gateway.yaml"
+              "verified_by": "cargo test -p oya-cloud-intelligence-rest (config deserialization tests) + kubectl apply --dry-run=client on cloud-intelligence.yaml"
             },
             {
-              "description": "SETUP-RUNBOOK rewrite: operator runs claude login / codex login on a host with the respective CLI installed (v1 providers only); extracts refresh_token from each CLI's local credential store; stores at 'bao kv put secret/oya/llm-gateway/<provider>/seats/<seat-name> refresh_token=<token>'. Gateway reads via ExternalSecret and refreshes access tokens on demand. Gemini login (v2) and Cursor login (v3) added in their respective amendments.",
-              "exit_criteria": "microservices/llm-gateway/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions for v1 providers (Anthropic + Codex); credential file paths verified empirically (OQ-5 resolved); runbook covers both v1 providers with exact bao kv put commands.",
+              "description": "SETUP-RUNBOOK rewrite: operator runs claude login / codex login on a host with the respective CLI installed (v1 providers only); extracts refresh_token from each CLI's local credential store; stores at 'bao kv put secret/oya/cloud-intelligence/<provider>/seats/<seat-name> refresh_token=<token>'. Gateway reads via ExternalSecret and refreshes access tokens on demand. Gemini login (v2) and Cursor login (v3) added in their respective amendments.",
+              "exit_criteria": "microservices/cloud-intelligence/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions for v1 providers (Anthropic + Codex); credential file paths verified empirically (OQ-5 resolved); runbook covers both v1 providers with exact bao kv put commands.",
               "id": "D5",
               "status": "declared",
               "verified_by": "Manual review: runbook credential paths match actual CLI output on a test host; oya gate validate honest-claims green on SETUP-RUNBOOK.md"
             },
             {
-              "description": "Event-emission to configurable sink — every llm-gateway request emits a structured event to (a) ClickHouse OLAP (per ADR-0193) for analytics rollup + (b) Valkey Stream (per canonical primitives) for audit-chain consumption. Pluggable wire-format: {tenant_id, agent_id, seat_id, provider, model, prompt_tokens, completion_tokens, ms_latency, status, request_id}. Sinks subscribe independently (no coupling between analytics + audit + billing consumers). Direction C from idea-refine; informed by CLIProxyAPI's CPA Usage Keeper decoupling pattern.",
+              "description": "Event-emission to configurable sink — every cloud-intelligence request emits a structured event to (a) ClickHouse OLAP (per ADR-0193) for analytics rollup + (b) Valkey Stream (per canonical primitives) for audit-chain consumption. Pluggable wire-format: {tenant_id, agent_id, seat_id, provider, model, prompt_tokens, completion_tokens, ms_latency, status, request_id}. Sinks subscribe independently (no coupling between analytics + audit + billing consumers). Direction C from idea-refine; informed by CLIProxyAPI's CPA Usage Keeper decoupling pattern.",
               "exit_criteria": "kernel emits per-request events to a EventSink trait; integration test asserts a synthetic request produces the expected event shape on both ClickHouse insert + Valkey Stream XADD.",
               "id": "D6",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-kernel + cargo nextest -p oya-llm-gateway-rest (sink integration tests)"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel + cargo nextest -p oya-cloud-intelligence-rest (sink integration tests)"
             },
             {
-              "description": "Per-tenant Cedar isolation contract — every request's principal includes a tenant attribute; Cedar policy at microservices/llm-gateway/policy/llm-gateway.cedar adds explicit forbid rules: forbid (principal, action, resource) when principal.tenant != resource.tenant. Adversarial test set: at least 50 Cedar test cases including cross-tenant access attempts, seat-id mismatch, admin-realm cross-tenant impersonation. Cross-tenant access always forbids-wins per ADR-0183 and ADR-0193.",
-              "exit_criteria": "microservices/llm-gateway/policy/llm-gateway.cedar contains the per-tenant forbid rule; cargo nextest -p oya-llm-gateway-kernel passes at least 50 adversarial cedar_per_tenant_isolation test cases.",
+              "description": "Per-tenant Cedar isolation contract — every request's principal includes a tenant attribute; Cedar policy at microservices/cloud-intelligence/policy/cloud-intelligence.cedar adds explicit forbid rules: forbid (principal, action, resource) when principal.tenant != resource.tenant. Adversarial test set: at least 50 Cedar test cases including cross-tenant access attempts, seat-id mismatch, admin-realm cross-tenant impersonation. Cross-tenant access always forbids-wins per ADR-0183 and ADR-0193.",
+              "exit_criteria": "microservices/cloud-intelligence/policy/cloud-intelligence.cedar contains the per-tenant forbid rule; cargo nextest -p oya-cloud-intelligence-kernel passes at least 50 adversarial cedar_per_tenant_isolation test cases.",
               "id": "D7",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-kernel cedar_per_tenant_isolation"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-kernel cedar_per_tenant_isolation"
             },
             {
               "description": "Envelope encryption for refresh tokens at rest in OpenBao. Per-tenant Data Encryption Key (DEK) lives in OpenBao Transit; refresh tokens stored encrypted under that DEK. Gateway decrypts on token-load; never logs decrypted form. Operator rotation of the Transit Key Encryption Key (KEK) re-wraps DEKs without rewriting refresh tokens. Aligns with ADR-0043 sref://openbao/... and the canonical OpenBao Transit pattern.",
-              "exit_criteria": "crates/oya-llm-gateway-rest's KeyStore implementation reads refresh tokens via OpenBao Transit decrypt-on-read; integration test asserts the on-disk OpenBao secret is ciphertext, not plaintext.",
+              "exit_criteria": "crates/oya-cloud-intelligence-rest's KeyStore implementation reads refresh tokens via OpenBao Transit decrypt-on-read; integration test asserts the on-disk OpenBao secret is ciphertext, not plaintext.",
               "id": "D8",
               "status": "declared",
-              "verified_by": "cargo nextest -p oya-llm-gateway-rest transit_envelope_decrypt_roundtrip"
+              "verified_by": "cargo nextest -p oya-cloud-intelligence-rest transit_envelope_decrypt_roundtrip"
             }
           ],
           "depends_on": [],
