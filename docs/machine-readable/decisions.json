@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 314,
-    "numbering": "ADR-0001..ADR-0377 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 315,
+    "numbering": "ADR-0001..ADR-0378 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0378",
+    "next_adr": "ADR-0379",
     "status_counts": {
-      "Accepted": 140,
+      "Accepted": 141,
       "Accepted (amendment)": 1,
       "Amended": 1,
       "Proposed": 87,
@@ -3791,6 +3791,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374"]
+    },
+    {
+      "adr": "ADR-0378",
+      "number": 378,
+      "title": "Canonical local substrate: vfkit + Talos Linux (retire colima)",
+      "status": "Accepted",
+      "owner": "ops-platform",
+      "date": "2026-05-27",
+      "path": "decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0375", "ADR-0376", "ADR-0363", "ADR-0349", "ADR-0130", "ADR-0131", "ADR-0132"]
     }
   ]
 }
