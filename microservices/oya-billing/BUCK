@@ -1,0 +1,53 @@
+# Buck2 build targets for oya-billing µservice (ADR-0478 scaffold).
+#
+# non_claim: targets are placeholders pending D1-D5 implementation.
+# Actual rustc rules will be wired once crate logic lands.
+
+rust_library(
+    name = "oya-billing-kernel",
+    srcs = glob(["crates/oya-billing-kernel/src/**/*.rs"]),
+    crate_root = "crates/oya-billing-kernel/src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-billing-rest",
+    srcs = glob(["crates/oya-billing-rest/src/**/*.rs"]),
+    crate_root = "crates/oya-billing-rest/src/lib.rs",
+    deps = [":oya-billing-kernel"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-billing-app-lib",
+    srcs = glob(["crates/oya-billing-app/src/**/*.rs"]),
+    crate_root = "crates/oya-billing-app/src/lib.rs",
+    deps = [
+        ":oya-billing-kernel",
+        ":oya-billing-rest",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "oya-billing-app",
+    srcs = ["crates/oya-billing-app/src/main.rs"],
+    deps = [":oya-billing-app-lib"],
+    visibility = ["PUBLIC"],
+)
+
+# Convenience aliases
+alias(
+    name = "check",
+    actual = ":oya-billing-app-lib",
+)
+
+alias(
+    name = "test",
+    actual = ":oya-billing-app-lib",
+)
+
+alias(
+    name = "image",
+    actual = ":oya-billing-app",
+)
