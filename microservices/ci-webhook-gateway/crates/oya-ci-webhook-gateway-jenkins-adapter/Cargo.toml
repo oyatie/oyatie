@@ -1,0 +1,30 @@
+[package]
+name = "oya-ci-webhook-gateway-jenkins-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Jenkins REST client adapter for the CI webhook gateway (ADR-0387 D4).
+# Implements the kernel JenkinsClient trait via reqwest blocking HTTP.
+# Triggers parameterized builds and polls build status until completion.
+# Stage-5 GREEN: real HTTP implementation backed by reqwest.
+
+[lib]
+name = "oya_ci_webhook_gateway_jenkins_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-ci-webhook-gateway-kernel = { path = "../oya-ci-webhook-gateway-kernel" }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+httpmock = "0.7"
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

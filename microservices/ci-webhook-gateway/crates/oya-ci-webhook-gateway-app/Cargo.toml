@@ -1,0 +1,47 @@
+[package]
+name = "oya-ci-webhook-gateway-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# CI webhook gateway axum app binary (ADR-0387).
+# POST /webhook/forgejo — full pipeline: parse → ed25519 verify → Cedar authz →
+#   route_forgejo_event → Jenkins dispatch → GitHub status post.
+# GET /healthz + GET /metrics.
+# Stage-5 GREEN: real adapters wired; no OpenBao client yet (Stage-7 deferred).
+
+[[bin]]
+name = "ci-webhook-gateway"
+path = "src/bin/ci-webhook-gateway.rs"
+
+[lib]
+name = "oya_ci_webhook_gateway_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-ci-webhook-gateway-kernel = { path = "../oya-ci-webhook-gateway-kernel" }
+oya-ci-webhook-gateway-ed25519-adapter = { path = "../oya-ci-webhook-gateway-ed25519-adapter" }
+oya-ci-webhook-gateway-jenkins-adapter = { path = "../oya-ci-webhook-gateway-jenkins-adapter" }
+oya-ci-webhook-gateway-github-adapter = { path = "../oya-ci-webhook-gateway-github-adapter" }
+oya-ci-webhook-gateway-authz-cedar-adapter = { path = "../oya-ci-webhook-gateway-authz-cedar-adapter" }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+bytes = { workspace = true }
+ed25519-dalek = { version = "2", features = ["std"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+serde_json = { workspace = true }
+bytes = { workspace = true }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tower = { version = "0.5", features = ["util"] }
+
+[lints]
+workspace = true
