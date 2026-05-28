@@ -33,7 +33,7 @@ use std::time::Duration;
 
 use axum::Router;
 use axum::body::Body;
-use axum::extract::{DefaultBodyLimit, Request, State};
+use axum::extract::{Request, State};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{any, get};
@@ -43,8 +43,6 @@ use hyper::body::Incoming;
 use hyper_util::client::legacy::Client;
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::rt::TokioExecutor;
-
-use oya_llm_gateway_kernel::SeatOutcome;
 
 use crate::config::RetryPolicyConfig;
 use crate::logging::DispatchLog;
@@ -190,17 +188,11 @@ const STRIP_REQUEST_HEADERS: &[&str] = &[
 /// - `GET /healthz` — liveness.
 /// - `GET /metrics` — Prometheus exposition.
 /// - `ANY /proxy/{group}/{*rest}` — the reverse proxy.
-///
-/// A [`DefaultBodyLimit`] of [`MAX_REQUEST_BODY`] bytes is applied at the
-/// axum layer so oversized bodies are rejected with 413 before any handler
-/// logic runs (in addition to the per-handler `to_bytes` limit that guards
-/// the failover-replay buffer).
 pub fn build_router(state: SharedState) -> Router {
     Router::new()
         .route("/healthz", get(healthz))
         .route("/metrics", get(metrics_handler))
         .route("/proxy/{group}/{*rest}", any(proxy_handler))
-        .layer(DefaultBodyLimit::max(MAX_REQUEST_BODY))
         .with_state(state)
 }
 
@@ -327,15 +319,7 @@ async fn proxy_handler(
                 // A malformed upstream URI/header is not a transport failure we
                 // should retry forever; surface it as a terminal 502-class
                 // error after recording the attempt against the key.
-                let now = now_unix_millis_proxy();
-                let jitter = jitter_now();
-                group.complete_lease(
-                    chosen.lease,
-                    SeatOutcome::Failure {
-                        now_unix_millis: now,
-                        jitter_seed: jitter,
-                    },
-                );
+                group.record_failure(chosen.id);
                 state
                     .metrics()
                     .record_key_failure(&group_name, &chosen.fingerprint);
@@ -377,7 +361,7 @@ async fn proxy_handler(
                         // Any received HTTP response counts as the key
                         // "working" for selection purposes (auth/quota errors
                         // that are retryable were already branched above).
-                        group.complete_lease(chosen.lease, SeatOutcome::Success);
+                        group.record_success(chosen.id);
                         state
                             .metrics()
                             .record_key_success(&group_name, &chosen.fingerprint);
@@ -392,22 +376,13 @@ async fn proxy_handler(
                         // had_response was false but decision said return only
                         // when not retryable; transport errors are always
                         // retryable, so this arm is unreachable in practice.
-                        group.complete_lease(chosen.lease, SeatOutcome::Success);
                         return ProxyError::RetriesExhausted.into_response();
                     }
                 }
             }
             RetryDecision::Retry | RetryDecision::GiveUp => {
                 // Retryable status or transport error: penalize the key.
-                let now = now_unix_millis_proxy();
-                let jitter = jitter_now();
-                group.complete_lease(
-                    chosen.lease,
-                    SeatOutcome::Failure {
-                        now_unix_millis: now,
-                        jitter_seed: jitter,
-                    },
-                );
+                group.record_failure(chosen.id);
                 state
                     .metrics()
                     .record_key_failure(&group_name, &chosen.fingerprint);
@@ -442,18 +417,11 @@ fn stream_response(upstream: hyper::Response<Incoming>) -> Response {
     let status =
         StatusCode::from_u16(upstream.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
 
-    // Collect Connection-token headers from the upstream response (RFC 7230 §6.1).
-    let resp_connection_tokens = collect_connection_tokens(upstream.headers());
-
-    // Copy response headers verbatim except static and dynamic hop-by-hop ones.
+    // Copy response headers verbatim except hop-by-hop ones.
     let mut headers = HeaderMap::new();
     for (name, value) in upstream.headers() {
         let lname = name.as_str().to_ascii_lowercase();
         if STRIP_RESPONSE_HEADERS.contains(&lname.as_str()) {
-            continue;
-        }
-        // RFC 7230 §6.1: drop headers named in upstream's Connection: value.
-        if resp_connection_tokens.iter().any(|t| t == &lname) {
             continue;
         }
         if let (Ok(hn), Ok(hv)) = (
@@ -505,21 +473,13 @@ const STRIP_RESPONSE_HEADERS: &[&str] = &[
 ];
 
 /// Build the forwarded request headers: copy the inbound headers minus the
-/// static strip-list, minus headers named in the `Connection:` header value
-/// (RFC 7230 §6.1 — hop-by-hop headers named by the sender), and minus any
-/// header the channel will overwrite with pooled auth.
+/// strip-list and minus any header the channel will overwrite with pooled
+/// auth.
 fn build_upstream_headers(inbound: &HeaderMap, managed: &[&str]) -> Vec<(String, String)> {
-    // Collect any header names the sender listed in its Connection: header.
-    let connection_tokens = collect_connection_tokens(inbound);
-
     let mut out = Vec::new();
     for (name, value) in inbound {
         let lname = name.as_str().to_ascii_lowercase();
         if STRIP_REQUEST_HEADERS.contains(&lname.as_str()) {
-            continue;
-        }
-        // RFC 7230 §6.1: drop headers named in Connection: (hop-by-hop).
-        if connection_tokens.iter().any(|t| t == &lname) {
             continue;
         }
         if managed.iter().any(|m| m.eq_ignore_ascii_case(&lname)) {
@@ -530,24 +490,6 @@ fn build_upstream_headers(inbound: &HeaderMap, managed: &[&str]) -> Vec<(String,
         }
     }
     out
-}
-
-/// Parse the `Connection:` header value and return the list of lowercase
-/// token names it contains. Per RFC 7230 §6.1 these names themselves must be
-/// removed when forwarding the request (they are hop-by-hop per the sender).
-fn collect_connection_tokens(headers: &HeaderMap) -> Vec<String> {
-    let mut tokens = Vec::new();
-    for value in headers.get_all("connection") {
-        if let Ok(s) = value.to_str() {
-            for token in s.split(',') {
-                let t = token.trim().to_ascii_lowercase();
-                if !t.is_empty() {
-                    tokens.push(t);
-                }
-            }
-        }
-    }
-    tokens
 }
 
 /// The upstream client type: hyper-util legacy client over a rustls HTTPS
@@ -617,14 +559,6 @@ fn jitter_now() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.subsec_nanos() as u64)
-        .unwrap_or(0)
-}
-
-fn now_unix_millis_proxy() -> u64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
         .unwrap_or(0)
 }
 
