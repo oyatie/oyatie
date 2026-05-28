@@ -8,9 +8,13 @@
 #   check                 preflight ONLY (read-only): arch, macOS, chip, RAM,
 #                         nested-virt, vfkit/talosctl/kubectl. Exit 0 = ready.
 #   setup                 install missing host deps (vfkit, talosctl, kubectl) via brew. Idempotent.
-#   up   [--role R] [--name N] [--cpus N] [--ram-gb N] [--disk-gb N]
+#   up   [--role R] [--name N] [--cpus N] [--ram-gb N] [--disk-gb N] [--config-patch F]
 #                         create + boot the VM(s), apply Talos config, (for cp/single)
 #                         bootstrap etcd, fetch kubeconfig + talosconfig. Idempotent-ish.
+#                         --config-patch F (optional) layers a YAML patch file onto the
+#                         base config at apply-config time. Used for ADR-0381 D2 per-node
+#                         cell labels (infra/talos/local/patches/cell-*.yaml). Currently
+#                         wired for the worker role only; control-plane support follows.
 #   down [--name N] [--all]   stop + delete the VM(s) and the local config bundle.
 #   status                show VM (vfkit pids) + node state.
 #
@@ -221,11 +225,15 @@ boot_vfkit() {
 
 # ── up ───────────────────────────────────────────────────────────────────────
 cmd_up() {
-  local role="single" name="" cpus="" ram_gb="" disk_gb="20"
+  local role="single" name="" cpus="" ram_gb="" disk_gb="20" config_patch=""
   while [ $# -gt 0 ]; do case "$1" in
     --role) role="$2"; shift 2;; --name) name="$2"; shift 2;;
     --cpus) cpus="$2"; shift 2;; --ram-gb) ram_gb="$2"; shift 2;; --disk-gb) disk_gb="$2"; shift 2;;
+    --config-patch) config_patch="$2"; shift 2;;
     *) die "unknown up arg: $1";; esac; done
+  if [ -n "$config_patch" ] && [ ! -r "$config_patch" ]; then
+    die "--config-patch file not readable: $config_patch"
+  fi
   case "$role" in control-plane|worker|single) ;; *) die "--role must be control-plane|worker|single";; esac
   [ -n "$name" ] || name="${CLUSTER}-${role}"
   [ -n "$cpus" ] || cpus=4
@@ -247,7 +255,11 @@ cmd_up() {
   if [ "$role" = "worker" ]; then
     [ -f "$WORKDIR/controlplane.yaml" ] || die "worker join needs an existing control plane (run --role control-plane first; reusing $WORKDIR secrets)"
     log "Applying worker config"
-    talosctl apply-config --insecure --nodes "$ip" --file "$WORKDIR/worker.yaml"
+    if [ -n "$config_patch" ]; then
+      talosctl apply-config --insecure --nodes "$ip" --file "$WORKDIR/worker.yaml" --config-patch "@$config_patch"
+    else
+      talosctl apply-config --insecure --nodes "$ip" --file "$WORKDIR/worker.yaml"
+    fi
     ok "worker $name joined (kubelet registers once the CP admits it)"
     return
   fi
