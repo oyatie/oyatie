@@ -1,6 +1,6 @@
 ---
 id: ADR-0380
-status: Accepted
+status: Accepted (amendment)
 planning_impact: true
 deciders: founder, ops-platform, council-architecture
 date: 2026-05-28
@@ -18,8 +18,8 @@ affected_surfaces:
   specs: []
 deliverables:
   - id: ADR-0380-D1
-    description: "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + gitea + build-token-root) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed."
-    exit_criteria: "Jenkins on Talos has generic-webhook-trigger + gitea + build-token-root + git installed and visible in /pluginManager/api; helm upgrade completes; Jenkins restart leaves the existing CasC oya-ci-farm cloud config valid (no boot failure)."
+    description: "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — Forgejo-canonical brand correctness + the gateway already does webhook discovery."
+    exit_criteria: "Jenkins on Talos has generic-webhook-trigger + build-token-root + http_request + git installed and visible in /pluginManager/api; helm upgrade completes; Jenkins restart leaves the existing CasC oya-ci-farm cloud config valid (no boot failure)."
     verified_by: "kubectl -n oya-ci-jenkins exec oya-jenkins-0 -c jenkins -- sh -c 'curl -sf -u admin:$PASS http://localhost:8080/pluginManager/api/json?depth=1 | grep -c generic-webhook-trigger'"
   - id: ADR-0380-D2
     description: "Redesign the Jenkins agent pod templates for Talos: drop the SeaweedFS sccache substrate (retired with colima) and the hostPath /Users/jasonlee/Developer/source mount (a Talos VM cannot see the macOS host filesystem). Replace with a self-contained git-clone-on-demand agent: a rust:1-bookworm container that clones the repo (via the gateway-build-git Secret's gh token, ESO-projected) and runs `oya gate run-all` against the cloned tree. Caching is honest-deferred (no sccache) until an in-cluster S3 (registry-coupled or future SeaweedFS-on-Talos) is stood up."
@@ -51,10 +51,48 @@ purpose: >
 # ADR-0380 — CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating
 
 ## Status
-Accepted (2026-05-28). Builds on ADR-0374 (CI webhook gateway, deployed PR #233),
-ADR-0378 (vfkit + Talos canonical substrate), ADR-0379 (Kubewarden default), and
-ADR-0363 (git + Jenkins + Forgejo substrate doctrine). Sequences the remaining
-work to retire the admin-merge seam.
+Accepted (2026-05-28), Amended (2026-05-28). Builds on ADR-0374 (CI webhook gateway,
+deployed PR #233), ADR-0378 (vfkit + Talos canonical substrate), ADR-0379 (Kubewarden
+default), and ADR-0363 (git + Jenkins + Forgejo substrate doctrine). Sequences the
+remaining work to retire the admin-merge seam.
+
+## Amendment (2026-05-28)
+Two corrections to the plugin set + agent-redesign detail; the 5-deliverable structure
+and end goal stand.
+
+**(1) Drop the `gitea` Jenkins plugin from D1.** It was a carryover from the ADR-0359
+plugin manifest (authored when the original upstream was Gitea, before Forgejo became
+canonical per ADR-0363). The plugin works against Forgejo via API compatibility, but
+(a) reintroduces the `gitea` brand into a Forgejo-canonical stack, and (b) is
+unnecessary: the CI webhook gateway (ADR-0374) is the front door (so multibranch /
+webhook-discovery features add nothing), and commit-status posting to Forgejo is done
+via the `http_request` plugin (or an explicit `curl` pipeline step) against
+`POST /repos/{owner}/{repo}/statuses/{sha}` authenticated by the `forgejo-ci-token`
+credential.
+**Revised D1 plugin set:** `generic-webhook-trigger + build-token-root + http_request + git`.
+**Revised D3 status posting:** `http_request` plugin OR `curl` step + Forgejo statuses
+API + `forgejo-ci-token`. No gitea plugin involvement.
+
+**(2) Sharpen D2 agent redesign.** The concrete changes to `infra/ci/jenkins/values-local.yaml`:
+- Collapse the three colima-era templates (`rust-ci` + `rust-build` + `rust-parallel`)
+  into ONE `rust-ci` template. The split only existed for sccache-cached throughput
+  experiments under ADR-0349 (now superseded for Talos).
+- Strip all sccache wiring (`RUSTC_WRAPPER`, `SCCACHE_*`, `AWS_*` envs, the
+  `seaweedfs-s3` Secret reference). Remote build cache is honest-deferred to a follow-on
+  when an in-cluster S3 lands.
+- Remove the `hostPath: /Users/jasonlee/Developer/source` mount (structurally broken on
+  Talos — the VM cannot see the macOS host filesystem).
+- The new template is `rust:1-bookworm` + `git` installed, with the
+  `oya-ci/gateway-build-git` Secret's gh token projected as `GH_TOKEN` for
+  pipeline-step clone. PSA-restricted securityContext unchanged.
+- D3's Jenkinsfile FIRST stage clones the PR ref into the workspace
+  (`git clone --depth 1 --branch $PR_REF https://oya-admin:$GH_TOKEN@github.com/...`),
+  then runs `./bin/oya gate run-all`, then posts the status. No bind-mounted source.
+- Stage-2 hardening (deferred): flip the clone source from GitHub to the in-cluster
+  Forgejo (dogfood-correct, no external creds needed) when Forgejo dev becomes the
+  upstream mirror.
+
+The rest of the ADR (status posting flow, webhook registration, cutover) is unchanged.
 
 ## Context
 The CI webhook gateway is **live** on Talos (oya-ci namespace; `/healthz` ok;
@@ -80,11 +118,13 @@ re-establishes the Jenkins farm on Talos with a Talos-appropriate agent design.
 
 ## Decision
 Sequence the re-establishment into five deliverables (D1–D5):
-1. **D1**: Install the gating plugins (generic-webhook-trigger + gitea +
-   build-token-root + git) via `helm upgrade` of the bring-up-managed Jenkins
+1. **D1**: Install the gating plugins (generic-webhook-trigger + build-token-root
+   + http_request + git) via `helm upgrade` of the bring-up-managed Jenkins
    with `installPlugins` extensions in `values-local.yaml`. Reboot once; CasC
    error-on-conflict means the existing oya-ci-farm cloud config must not be
-   re-declared in any new configScript block.
+   re-declared in any new configScript block. (Amendment 2026-05-28: gitea plugin
+   intentionally NOT installed — brand-correct + unnecessary given the gateway-
+   front-door design; status posting uses http_request + Forgejo API directly.)
 2. **D2**: Redesign agent pods for Talos — **drop SeaweedFS sccache** (no
    cache substrate until an in-cluster S3 lands), **drop the hostPath mount**
    (use `git clone` from inside the pod with the existing `gateway-build-git`
