@@ -7,23 +7,7 @@
     {
       "name": "observability",
       "description": "Bounded context 'observability' within observability (data plane)",
-      "crates": [
-        "oya-observability-otel-ingest-adapter",
-        "oya-observability-otel-ingest-api",
-        "oya-observability-otel-ingest-app",
-        "oya-observability-otel-ingest-kernel",
-        "oya-observability-otel-ingest-usecase",
-        "oya-observability-slo-engine-adapter",
-        "oya-observability-slo-engine-adapter-mimir",
-        "oya-observability-slo-engine-api",
-        "oya-observability-slo-engine-app",
-        "oya-observability-slo-engine-domain",
-        "oya-observability-slo-engine-kernel",
-        "oya-observability-slo-engine-rest",
-        "oya-observability-slo-engine-sdk",
-        "oya-observability-slo-engine-usecase",
-        "oya-observability-slo-engine-worker"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -163,7 +147,7 @@
     },
     {
       "id": "IP-010-promotion-eligibility-ledger",
-      "title": "IP-010: Promotion-eligibility ledger — Mimir-native recording rules",
+      "title": "IP-010: Promotion-eligibility ledger \u2014 Mimir-native recording rules",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-010-promotion-eligibility-ledger.md"
     },
@@ -265,10 +249,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -282,9 +266,7 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [
-
-  ],
+  "ontology_projections": [],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,
@@ -296,9 +278,7 @@
     "demo_trial",
     "paid"
   ],
-  "paid_billing_components_emitted": [
-
-  ],
+  "paid_billing_components_emitted": [],
   "packs": [
     "kr",
     "eu",
@@ -324,7 +304,7 @@
     "il5",
     "DORA"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
   "owner_team": "axis-observability",
   "data_classification": "AUDIT, INTERNAL_ONLY, PII_QUASI",
   "compliance_packs_applicable": [
@@ -467,9 +447,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "oci-guest",

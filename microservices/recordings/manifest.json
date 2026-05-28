@@ -7,24 +7,7 @@
     {
       "name": "recordings",
       "description": "Bounded context 'recordings' within recordings (data plane)",
-      "crates": [
-        "oya-recordings-app",
-        "oya-recordings-export-adapter-pandoc",
-        "oya-recordings-legal-hold-kernel",
-        "oya-recordings-media-segment-adapter-cdn-cloudfront-stub-or-self",
-        "oya-recordings-media-segment-adapter-ffmpeg",
-        "oya-recordings-recording-adapter-postgres",
-        "oya-recordings-recording-adapter-s3",
-        "oya-recordings-recording-ingest-adapter-clamav",
-        "oya-recordings-recording-kernel",
-        "oya-recordings-retention-policy-kernel",
-        "oya-recordings-search-adapter-meilisearch",
-        "oya-recordings-share-link-adapter-valkey",
-        "oya-recordings-transcript-adapter-postgres",
-        "oya-recordings-transcript-adapter-pyannote",
-        "oya-recordings-transcript-adapter-whisper",
-        "oya-recordings-transcript-kernel"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -140,37 +123,37 @@
     },
     {
       "id": "IP-003-recording-ingest-bc",
-      "title": "IP-003: Recording-Ingest BC — kernel + domain + usecase + ingest contract",
+      "title": "IP-003: Recording-Ingest BC \u2014 kernel + domain + usecase + ingest contract",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-003-recording-ingest-bc.md"
     },
     {
       "id": "IP-004-recording-bc",
-      "title": "IP-004: Recording BC — kernel + domain + usecase + REST (read-side)",
+      "title": "IP-004: Recording BC \u2014 kernel + domain + usecase + REST (read-side)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-004-recording-bc.md"
     },
     {
       "id": "IP-005-media-segment-bc",
-      "title": "IP-005: Media-segment BC — HLS multi-bitrate + CMAF segmentation (ffmpeg gVisor)",
+      "title": "IP-005: Media-segment BC \u2014 HLS multi-bitrate + CMAF segmentation (ffmpeg gVisor)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-005-media-segment-bc.md"
     },
     {
       "id": "IP-006-transcript-bc",
-      "title": "IP-006: Transcript BC — Whisper + pyannote adapter",
+      "title": "IP-006: Transcript BC \u2014 Whisper + pyannote adapter",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-006-transcript-bc.md"
     },
     {
       "id": "IP-007-search-bc",
-      "title": "IP-007: Search BC — Meilisearch adapter + transcript indexing",
+      "title": "IP-007: Search BC \u2014 Meilisearch adapter + transcript indexing",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-007-search-bc.md"
     },
     {
       "id": "IP-008-redaction-bc",
-      "title": "IP-008: Redaction BC — overlay model (no source mutation)",
+      "title": "IP-008: Redaction BC \u2014 overlay model (no source mutation)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-008-redaction-bc.md"
     },
@@ -200,13 +183,13 @@
     },
     {
       "id": "IP-013-translation-bc",
-      "title": "IP-013: Translation BC — cross-µservice handoff to `translate` µservice",
+      "title": "IP-013: Translation BC \u2014 cross-\u00b5service handoff to `translate` \u00b5service",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-013-translation-bc.md"
     },
     {
       "id": "IP-014-strangler-migration-adapter",
-      "title": "IP-014: Strangler migration adapter (oya-connect-recordings-* → oya-recordings-*)",
+      "title": "IP-014: Strangler migration adapter (oya-connect-recordings-* \u2192 oya-recordings-*)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-014-strangler-migration-adapter.md"
     },
@@ -267,10 +250,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "baseline_signals": "INV-FOUR-baseline-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "baseline_signals": "INV-FOUR-baseline-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -353,7 +336,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; baseline_signals: INV-FOUR-baseline-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; baseline_signals: INV-FOUR-baseline-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-recordings",
   "tier_classification": "hero-product",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",

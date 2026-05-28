@@ -8,22 +8,10 @@
       "name": "workflow-studio",
       "description": "Bounded context 'workflow-studio' within workflow-studio (data plane)",
       "crates": [
-        "oya-workflow-studio-collab-crdt-adapter-valkey",
-        "oya-workflow-studio-collab-crdt-domain",
-        "oya-workflow-studio-collab-crdt-worker",
         "oya-workflow-studio-dsl-emitter-domain",
         "oya-workflow-studio-dsl-loader-domain",
         "oya-workflow-studio-policy-preview-domain",
-        "oya-workflow-studio-jurisdiction-overlay-renderer-domain",
-        "oya-workflow-studio-license-gate-cedar-adapter-postgres",
-        "oya-workflow-studio-license-gate-cedar-domain",
-        "oya-workflow-studio-node-library-registry-adapter-cdn",
-        "oya-workflow-studio-node-library-registry-domain",
-        "oya-workflow-studio-replay-debugger-frontend-domain",
-        "oya-workflow-studio-visual-canvas-adapter-leptos-wasm",
-        "oya-workflow-studio-visual-canvas-domain",
-        "oya-workflow-studio-visual-canvas-kernel",
-        "oya-workflow-studio-visual-canvas-rest"
+        "oya-workflow-studio-visual-canvas-kernel"
       ]
     }
   ],

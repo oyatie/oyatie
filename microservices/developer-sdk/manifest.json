@@ -11,106 +11,59 @@
     "canonical_authority": "ADR-0213",
     "in_house_roadmap_phase": "phase-3-target",
     "inheritance": [
-      "Stripe Connect — third-party developer onboarding + KYC/AML + revenue share + payout",
-      "Apple Developer Program — signing keys + sandbox + dev portal",
-      "Backstage — developer portal substrate (per ADR-0170)",
-      "OpenAPI 3.2 codegen — SDK families per ADR-0185"
+      "Stripe Connect \u2014 third-party developer onboarding + KYC/AML + revenue share + payout",
+      "Apple Developer Program \u2014 signing keys + sandbox + dev portal",
+      "Backstage \u2014 developer portal substrate (per ADR-0170)",
+      "OpenAPI 3.2 codegen \u2014 SDK families per ADR-0185"
     ]
   },
   "bounded_contexts": [
     {
       "name": "developer-onboarding",
       "description": "Stripe-Connect-style developer onboarding; KYC + AML + tax form capture + payout account verification.",
-      "crates": [
-        "oya-developer-sdk-developer-onboarding-kernel",
-        "oya-developer-sdk-developer-onboarding-domain",
-        "oya-developer-sdk-developer-onboarding-usecase",
-        "oya-developer-sdk-developer-onboarding-api",
-        "oya-developer-sdk-developer-onboarding-adapter-postgres",
-        "oya-developer-sdk-developer-onboarding-rest",
-        "oya-developer-sdk-developer-onboarding-app"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "signing-key-issuance",
       "description": "Per-developer ED25519 signing key issuance via OpenBao; key rotation; revocation.",
-      "crates": [
-        "oya-developer-sdk-signing-key-issuance-kernel",
-        "oya-developer-sdk-signing-key-issuance-domain",
-        "oya-developer-sdk-signing-key-issuance-usecase",
-        "oya-developer-sdk-signing-key-issuance-adapter-openbao"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "api-contracts-registry",
       "description": "OpenAPI 3.2 + AsyncAPI 3.1 + proto3 canonical contracts; version-locked; consumed by codegen + portal.",
-      "crates": [
-        "oya-developer-sdk-api-contracts-registry-kernel",
-        "oya-developer-sdk-api-contracts-registry-domain",
-        "oya-developer-sdk-api-contracts-registry-usecase",
-        "oya-developer-sdk-api-contracts-registry-adapter"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "sdk-codegen",
       "description": "Codegen pipeline emitting six SDK family clients (TS/Rust/Swift/Kotlin/C#/Python) from OpenAPI/AsyncAPI/proto.",
-      "crates": [
-        "oya-developer-sdk-sdk-codegen-kernel",
-        "oya-developer-sdk-sdk-codegen-domain",
-        "oya-developer-sdk-sdk-codegen-usecase",
-        "oya-developer-sdk-sdk-codegen-worker"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "sandbox-provisioner",
       "description": "Per-developer sandbox tenant provisioning; reset-on-demand within 30s; synthetic data seeding.",
-      "crates": [
-        "oya-developer-sdk-sandbox-provisioner-kernel",
-        "oya-developer-sdk-sandbox-provisioner-domain",
-        "oya-developer-sdk-sandbox-provisioner-usecase",
-        "oya-developer-sdk-sandbox-provisioner-adapter-tenancy",
-        "oya-developer-sdk-sandbox-provisioner-worker"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "dev-portal",
       "description": "Backstage-extension developer portal: API browser, try-in-sandbox, app submission, app metrics + revenue.",
-      "crates": [
-        "oya-developer-sdk-dev-portal-kernel",
-        "oya-developer-sdk-dev-portal-domain",
-        "oya-developer-sdk-dev-portal-usecase",
-        "oya-developer-sdk-dev-portal-rest",
-        "oya-developer-sdk-dev-portal-app"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "payout",
       "description": "Daily settlement payout ledger; ACH (US) + SEPA (EU) + KFTC (KR) + FedWire integrations; in-house.",
-      "crates": [
-        "oya-developer-sdk-payout-kernel",
-        "oya-developer-sdk-payout-domain",
-        "oya-developer-sdk-payout-usecase",
-        "oya-developer-sdk-payout-adapter-ach",
-        "oya-developer-sdk-payout-adapter-sepa",
-        "oya-developer-sdk-payout-adapter-kftc",
-        "oya-developer-sdk-payout-worker"
-      ],
+      "crates": [],
       "status": "planned"
     },
     {
       "name": "tax-form",
       "description": "1099-MISC (US) + EU VAT MOSS + KR VAT + tax-form generation + storage.",
-      "crates": [
-        "oya-developer-sdk-tax-form-kernel",
-        "oya-developer-sdk-tax-form-domain",
-        "oya-developer-sdk-tax-form-usecase"
-      ],
+      "crates": [],
       "status": "planned"
     }
   ],
@@ -305,7 +258,7 @@
     },
     {
       "id": "IP-015-stripe-connect-parity-end-to-end-drill",
-      "title": "IP-015: end-to-end Stripe-Connect-parity drill (onboarding → app publish → install → payout)",
+      "title": "IP-015: end-to-end Stripe-Connect-parity drill (onboarding \u2192 app publish \u2192 install \u2192 payout)",
       "acceptance_status": "pending",
       "file": "microservices/developer-sdk/implementation-plans/IP-015-stripe-connect-parity-end-to-end-drill.md"
     }
@@ -398,10 +351,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaDeveloperRateLimitCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaDeveloperSandboxCellSaturation",
-    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaDeveloperRateLimitCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaDeveloperSandboxCellSaturation",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "depends_on": [
     {
@@ -524,7 +477,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaDeveloperRateLimitCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaDeveloperSandboxCellSaturation; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaDeveloperRateLimitCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaDeveloperSandboxCellSaturation; canonical_signals: INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-ecosystem",
   "tier_classification": "external-facing",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",

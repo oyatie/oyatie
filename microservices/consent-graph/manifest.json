@@ -11,86 +11,32 @@
     {
       "name": "agreement",
       "description": "DataSharingAgreement CRUD + lifecycle state machine (Drafted/Offered/Accepted/Active/Suspended/Revoked/Expired)",
-      "crates": [
-        "oya-consent-graph-agreement-adapter",
-        "oya-consent-graph-agreement-api",
-        "oya-consent-graph-agreement-app",
-        "oya-consent-graph-agreement-domain",
-        "oya-consent-graph-agreement-kernel",
-        "oya-consent-graph-agreement-rest",
-        "oya-consent-graph-agreement-sdk",
-        "oya-consent-graph-agreement-usecase",
-        "oya-consent-graph-agreement-worker"
-      ]
+      "crates": []
     },
     {
       "name": "enforcement",
-      "description": "Cedar policy evaluation gate for every cross-tenant hop. Deny-by-default. p99 ≤10ms.",
-      "crates": [
-        "oya-consent-graph-enforcement-adapter",
-        "oya-consent-graph-enforcement-adapter-cedar",
-        "oya-consent-graph-enforcement-api",
-        "oya-consent-graph-enforcement-app",
-        "oya-consent-graph-enforcement-domain",
-        "oya-consent-graph-enforcement-kernel",
-        "oya-consent-graph-enforcement-sdk",
-        "oya-consent-graph-enforcement-usecase"
-      ]
+      "description": "Cedar policy evaluation gate for every cross-tenant hop. Deny-by-default. p99 \u226410ms.",
+      "crates": []
     },
     {
       "name": "revocation",
-      "description": "Real-time revocation propagation (p99 ≤1s) via Pulsar fan-out to all projection subscribers.",
-      "crates": [
-        "oya-consent-graph-revocation-adapter",
-        "oya-consent-graph-revocation-adapter-pulsar",
-        "oya-consent-graph-revocation-api",
-        "oya-consent-graph-revocation-app",
-        "oya-consent-graph-revocation-domain",
-        "oya-consent-graph-revocation-kernel",
-        "oya-consent-graph-revocation-usecase",
-        "oya-consent-graph-revocation-worker"
-      ]
+      "description": "Real-time revocation propagation (p99 \u22641s) via Pulsar fan-out to all projection subscribers.",
+      "crates": []
     },
     {
       "name": "projection-gateway",
       "description": "Mints per-(grantor,grantee,entity) Pulsar topics in grantor cluster; tenant-aware ACL; scope-narrowing + aggregate-mode emission.",
-      "crates": [
-        "oya-consent-graph-projection-gateway-adapter",
-        "oya-consent-graph-projection-gateway-adapter-pulsar",
-        "oya-consent-graph-projection-gateway-api",
-        "oya-consent-graph-projection-gateway-app",
-        "oya-consent-graph-projection-gateway-domain",
-        "oya-consent-graph-projection-gateway-kernel",
-        "oya-consent-graph-projection-gateway-sdk",
-        "oya-consent-graph-projection-gateway-usecase",
-        "oya-consent-graph-projection-gateway-worker"
-      ]
+      "crates": []
     },
     {
       "name": "audit-bridge",
-      "description": "Bilateral audit-chain event emission with cross-pointer linking (grantor-seq ↔ grantee-seq).",
-      "crates": [
-        "oya-consent-graph-audit-bridge-adapter",
-        "oya-consent-graph-audit-bridge-api",
-        "oya-consent-graph-audit-bridge-app",
-        "oya-consent-graph-audit-bridge-domain",
-        "oya-consent-graph-audit-bridge-kernel",
-        "oya-consent-graph-audit-bridge-usecase",
-        "oya-consent-graph-audit-bridge-worker"
-      ]
+      "description": "Bilateral audit-chain event emission with cross-pointer linking (grantor-seq \u2194 grantee-seq).",
+      "crates": []
     },
     {
       "name": "partner-directory",
       "description": "Peer-tenant handshake, trust anchor registration, peer audit-chain Merkle root verification.",
-      "crates": [
-        "oya-consent-graph-partner-directory-adapter",
-        "oya-consent-graph-partner-directory-api",
-        "oya-consent-graph-partner-directory-app",
-        "oya-consent-graph-partner-directory-domain",
-        "oya-consent-graph-partner-directory-kernel",
-        "oya-consent-graph-partner-directory-rest",
-        "oya-consent-graph-partner-directory-usecase"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -196,13 +142,13 @@
   "ips": [
     {
       "id": "IP-001-agreement-kernel",
-      "title": "IP-001: agreement-kernel — DataSharingAgreement type + state machine",
+      "title": "IP-001: agreement-kernel \u2014 DataSharingAgreement type + state machine",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-001-agreement-kernel.md"
     },
     {
       "id": "IP-002-agreement-domain",
-      "title": "IP-002: agreement-domain — lifecycle invariants + scope/terms model",
+      "title": "IP-002: agreement-domain \u2014 lifecycle invariants + scope/terms model",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-002-agreement-domain.md"
     },
@@ -214,13 +160,13 @@
     },
     {
       "id": "IP-004-enforcement-kernel",
-      "title": "IP-004: enforcement-kernel — Cedar evaluation port + cache contract",
+      "title": "IP-004: enforcement-kernel \u2014 Cedar evaluation port + cache contract",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-004-enforcement-kernel.md"
     },
     {
       "id": "IP-005-enforcement-domain-cedar",
-      "title": "IP-005: enforcement-domain — Cedar policy compilation + scope/predicate evaluator",
+      "title": "IP-005: enforcement-domain \u2014 Cedar policy compilation + scope/predicate evaluator",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-005-enforcement-domain-cedar.md"
     },
@@ -232,49 +178,49 @@
     },
     {
       "id": "IP-007-revocation-kernel-worker",
-      "title": "IP-007: revocation-kernel + revocation-worker — propagation pipeline scaffolding",
+      "title": "IP-007: revocation-kernel + revocation-worker \u2014 propagation pipeline scaffolding",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-007-revocation-kernel-worker.md"
     },
     {
       "id": "IP-008-revocation-pulsar-fanout",
-      "title": "IP-008: revocation-adapter-pulsar — high-priority partitioned fan-out",
+      "title": "IP-008: revocation-adapter-pulsar \u2014 high-priority partitioned fan-out",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-008-revocation-pulsar-fanout.md"
     },
     {
       "id": "IP-009-projection-gateway-kernel",
-      "title": "IP-009: projection-gateway-kernel — zero-copy projection contract + sovereignty pin",
+      "title": "IP-009: projection-gateway-kernel \u2014 zero-copy projection contract + sovereignty pin",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-009-projection-gateway-kernel.md"
     },
     {
       "id": "IP-010-projection-gateway-mint-acl",
-      "title": "IP-010: projection-gateway-adapter-pulsar — topic minting + tenant-aware ACL",
+      "title": "IP-010: projection-gateway-adapter-pulsar \u2014 topic minting + tenant-aware ACL",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-010-projection-gateway-mint-acl.md"
     },
     {
       "id": "IP-011-projection-scope-narrowing-aggregate",
-      "title": "IP-011: projection-gateway-usecase — scope narrowing + aggregate-mode k-anonymity emission",
+      "title": "IP-011: projection-gateway-usecase \u2014 scope narrowing + aggregate-mode k-anonymity emission",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-011-projection-scope-narrowing-aggregate.md"
     },
     {
       "id": "IP-012-audit-bridge-bilateral-emitter",
-      "title": "IP-012: audit-bridge — bilateral audit-chain emitter (grantor + grantee chains)",
+      "title": "IP-012: audit-bridge \u2014 bilateral audit-chain emitter (grantor + grantee chains)",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-012-audit-bridge-bilateral-emitter.md"
     },
     {
       "id": "IP-013-audit-bridge-cross-pointer-integrity",
-      "title": "IP-013: audit-bridge cross-pointer integrity — nightly reconciliation + divergence alert",
+      "title": "IP-013: audit-bridge cross-pointer integrity \u2014 nightly reconciliation + divergence alert",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-013-audit-bridge-cross-pointer-integrity.md"
     },
     {
       "id": "IP-014-partner-directory-handshake",
-      "title": "IP-014: partner-directory — peer handshake + trust anchor verification + audit-chain root proof",
+      "title": "IP-014: partner-directory \u2014 peer handshake + trust anchor verification + audit-chain root proof",
       "acceptance_status": "ga",
       "file": "microservices/consent-graph/IP-014-partner-directory-handshake.md"
     },
@@ -381,7 +327,7 @@
     },
     {
       "id": "ADR-SVC-CG-003",
-      "title": "Three sharing modes — Projection / Aggregate / AttestedQuery",
+      "title": "Three sharing modes \u2014 Projection / Aggregate / AttestedQuery",
       "scope": "service",
       "file": "microservices/consent-graph/decisions/ADR-SVC-CG-003-three-sharing-modes.md"
     },
@@ -399,10 +345,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -480,7 +426,7 @@
     {
       "depends_on": "api-gateway",
       "via": "north-south enforcement hook",
-      "reason": "Public-facing cross-tenant reads pass through api-gateway → consent-graph."
+      "reason": "Public-facing cross-tenant reads pass through api-gateway \u2192 consent-graph."
     }
   ],
   "mesh_layering": {
@@ -499,9 +445,7 @@
     "demo_trial",
     "paid"
   ],
-  "paid_billing_components_emitted": [
-
-  ],
+  "paid_billing_components_emitted": [],
   "packs": [
     "kr",
     "eu",
@@ -523,7 +467,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-consent-graph",
   "tier_classification": "microservice-manifested",
   "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
@@ -663,9 +607,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "oci-guest",

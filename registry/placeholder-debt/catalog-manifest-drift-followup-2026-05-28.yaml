@@ -1,0 +1,47 @@
+schema_version: "1.0"
+tracker: catalog-manifest-drift-followup
+created: "2026-05-28"
+created_by: "chore/catalog-manifest-drift-sweep-2026-05-28"
+gate: doc-axis / CatalogManifestDrift
+
+summary:
+  stage_1_completed: "2026-05-28"
+  stage_1_crates_removed: 934
+  stage_1_manifests_modified: 32
+  stage_1_catalog_yamls_created: 0
+  stage_1_final_catalog_manifest_drift_count: 0
+  stage_1_method: >
+    All 934 drifted crates were MISSING on disk (no microservices/<ms>/crates/<crate>/
+    directory existed for any of them). Decision: remove all from manifest.json rather
+    than add catalog stubs for non-existent crates. 32 manifest.json files were modified
+    across all affected microservices. Only microservices/cloud-intelligence/ and
+    microservices/intelligence/ have real crates/ directories; the other ~30 microservices
+    had aspirational crate lists in manifest.json with no corresponding Rust code.
+
+stage_2_followups: []
+
+gate_logic_observations:
+  - id: OBS-001
+    kind: pre-existing-unrelated-violations
+    description: >
+      76 doc-axis blocking findings remain after stage-1, all are DocsProliferation
+      violations in docs/ root (files and directories not under canonical axes:
+      decisions, ideas, conventions, machine-readable, products, site). Examples:
+      docs/runbooks, docs/agents, docs/wiki, docs/research, docs/CHANGELOG.md, etc.
+      These are pre-existing and outside the allowed-paths scope of this sweep lane.
+    action: separate lane or docs-consolidation PR against dev
+    adrs_relevant: [ADR-0388]
+
+  - id: OBS-002
+    kind: gate-strictness-note
+    description: >
+      The CatalogManifestDrift gate correctly identified aspirational crates in
+      manifest.json that had no on-disk implementation. The gate logic is accurate —
+      not over-strict. The root cause was manifest.json files being authored ahead of
+      Rust crate scaffolding for ~30 design-only microservices.
+    recommendation: >
+      Going forward, authors of manifest.json bounded_contexts[].crates[] entries
+      should only list crate names that have a corresponding crates/ directory (or
+      register a catalog YAML simultaneously). Consider gating manifest.json PRs on
+      crate-directory existence at PR time.
+    action: Stage-2 gate-improvement ADR amendment (ADR-0388 or new ADR)

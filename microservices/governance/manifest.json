@@ -7,32 +7,18 @@
     "demo_trial",
     "paid"
   ],
-  "paid_billing_components_emitted": [
-
-  ],
+  "paid_billing_components_emitted": [],
   "bounded_contexts": [
     {
       "name": "aggregation-indexer",
       "description": "Bounded context 'aggregation-indexer'",
-      "crates": [
-        "oya-governance-aggregation-indexer-adapter",
-        "oya-governance-aggregation-indexer-api",
-        "oya-governance-aggregation-indexer-app",
-        "oya-governance-aggregation-indexer-domain",
-        "oya-governance-aggregation-indexer-kernel",
-        "oya-governance-aggregation-indexer-rest",
-        "oya-governance-aggregation-indexer-sdk",
-        "oya-governance-aggregation-indexer-usecase",
-        "oya-governance-aggregation-indexer-worker"
-      ]
+      "crates": []
     },
     {
       "name": "bundled-check-crate",
       "description": "Bounded context 'bundled-check-crate'",
       "crates": [
         "oya-check-data-class",
-        "oya-check-lean-a1",
-        "oya-check-lean-a2",
         "oya-check-license-policy",
         "oya-check-supply-chain"
       ]
@@ -40,47 +26,17 @@
     {
       "name": "evidence-emitter",
       "description": "Bounded context 'evidence-emitter'",
-      "crates": [
-        "oya-governance-evidence-emitter-adapter",
-        "oya-governance-evidence-emitter-api",
-        "oya-governance-evidence-emitter-app",
-        "oya-governance-evidence-emitter-domain",
-        "oya-governance-evidence-emitter-kernel",
-        "oya-governance-evidence-emitter-rest",
-        "oya-governance-evidence-emitter-sdk",
-        "oya-governance-evidence-emitter-usecase",
-        "oya-governance-evidence-emitter-worker"
-      ]
+      "crates": []
     },
     {
       "name": "lane-runtime",
       "description": "Bounded context 'lane-runtime'",
-      "crates": [
-        "oya-governance-lane-runtime-adapter",
-        "oya-governance-lane-runtime-api",
-        "oya-governance-lane-runtime-app",
-        "oya-governance-lane-runtime-domain",
-        "oya-governance-lane-runtime-kernel",
-        "oya-governance-lane-runtime-rest",
-        "oya-governance-lane-runtime-sdk",
-        "oya-governance-lane-runtime-usecase",
-        "oya-governance-lane-runtime-worker"
-      ]
+      "crates": []
     },
     {
       "name": "policy-engine",
       "description": "Bounded context 'policy-engine'",
-      "crates": [
-        "oya-governance-policy-engine-adapter",
-        "oya-governance-policy-engine-api",
-        "oya-governance-policy-engine-app",
-        "oya-governance-policy-engine-domain",
-        "oya-governance-policy-engine-kernel",
-        "oya-governance-policy-engine-rest",
-        "oya-governance-policy-engine-sdk",
-        "oya-governance-policy-engine-usecase",
-        "oya-governance-policy-engine-worker"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -162,7 +118,7 @@
   "ips": [
     {
       "id": "IP-001-scaffold-umbrella-bcs",
-      "title": "IP-001: Scaffold governance umbrella BCs (4 BCs × 9 layers = 36 crates)",
+      "title": "IP-001: Scaffold governance umbrella BCs (4 BCs \u00d7 9 layers = 36 crates)",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-001-scaffold-umbrella-bcs.md"
     },
@@ -344,10 +300,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -405,7 +361,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-governance",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [
@@ -550,9 +506,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "oci-guest",
