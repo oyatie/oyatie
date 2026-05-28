@@ -3,7 +3,7 @@ role: gate
 capability: doc-axis-enforcement
 plane: control
 slo: preview-control-plane
-data_classes_owned: []
+data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: [GOVERNANCE]
 api_stability: preview
 security_review: unreviewed
