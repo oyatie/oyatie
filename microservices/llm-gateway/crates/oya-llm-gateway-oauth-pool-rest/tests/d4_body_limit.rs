@@ -49,15 +49,15 @@ fn make_state() -> Arc<AppState> {
         Provider::Anthropic,
         SelectionStrategy::RoundRobin,
     );
-    pool.add_seat(OAuthSubscription {
-        tenant_id: tenant.clone(),
-        seat_id: SeatId::new("seat-bl-1").unwrap(),
-        subscription_id: SubscriptionId::new("sub-bl-1").unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: "t-body-limit/seat-bl-1".to_string(),
-        failure_count: 0,
-    })
+    pool.add_seat(OAuthSubscription::new(
+        tenant.clone(),
+        SeatId::new("seat-bl-1").unwrap(),
+        SubscriptionId::new("sub-bl-1").unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        "t-body-limit/seat-bl-1".to_string(),
+        0,
+    ))
     .unwrap();
     Arc::new(AppState {
         pool: Arc::new(Mutex::new(pool)),
@@ -67,6 +67,7 @@ fn make_state() -> Arc<AppState> {
         anthropic_base_url: "http://127.0.0.1:1".to_string(),
         tenant_id: tenant,
         token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
+        http_client: Arc::new(reqwest::Client::new()),
     })
 }
 

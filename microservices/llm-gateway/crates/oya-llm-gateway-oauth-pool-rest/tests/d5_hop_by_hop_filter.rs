@@ -1,7 +1,8 @@
 //! Fix-5: Hop-by-hop header filter — RFC 7230 §6.1 headers must not be
 //! forwarded upstream and must not be returned to the caller.
 //!
-//! Uses httpmock to intercept upstream calls and verify header behaviour.
+//! Stage-6: AnthropicAdapter::proxy is now async and takes `&reqwest::Client`.
+//! Tests updated to use `#[tokio::test]` and `.await`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
@@ -47,23 +48,24 @@ fn token_mock(server: &MockServer) -> httpmock::Mock<'_> {
     })
 }
 
+fn make_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .unwrap()
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 /// Upstream must NOT receive any RFC 7230 hop-by-hop headers that were
 /// present in the inbound client request.
-///
-/// Strategy: for each hop-by-hop header, register a mock that matches ONLY
-/// when that header exists on the request and assert it was hit 0 times.
-/// The real messages mock only requires the safe header to be present.
-#[test]
-fn hop_by_hop_headers_not_forwarded_to_upstream() {
+#[tokio::test]
+async fn hop_by_hop_headers_not_forwarded_to_upstream() {
     let server = MockServer::start();
     let _tk = token_mock(&server);
 
-    // For each hop-by-hop header: a canary mock that fires only if the header
-    // reaches the upstream. We assert each fires 0 times.
     let canaries: Vec<_> = HOP_BY_HOP
         .iter()
         .map(|h| {
@@ -74,8 +76,6 @@ fn hop_by_hop_headers_not_forwarded_to_upstream() {
         })
         .collect();
 
-    // The "should succeed" mock: matches when x-custom-app is present.
-    // This also returns hop-by-hop headers in the response to test stripping.
     let messages_mock = server.mock(|when, then| {
         when.method(POST)
             .path("/v1/messages")
@@ -89,15 +89,13 @@ fn hop_by_hop_headers_not_forwarded_to_upstream() {
     });
 
     let adapter = AnthropicAdapter::with_base_url(StubStore, server.base_url());
+    let client = make_client();
 
     let mut headers = BTreeMap::new();
-    // Safe header — must be forwarded.
     headers.insert("x-custom-app".to_string(), "test-suite".to_string());
-    // Hop-by-hop headers — must be stripped.
     for h in HOP_BY_HOP {
         headers.insert(h.to_string(), "should-be-dropped".to_string());
     }
-    // Connection-nominated extra header — must also be stripped.
     headers.insert(
         "connection".to_string(),
         "keep-alive, x-nominated".to_string(),
@@ -112,12 +110,13 @@ fn hop_by_hop_headers_not_forwarded_to_upstream() {
         tenant_id: TenantId::new("t-hop").unwrap(),
     };
 
-    let resp = adapter.proxy(&req, "t-hop/seat-hop").unwrap();
+    let resp = adapter
+        .proxy(&client, &req, "t-hop/seat-hop")
+        .await
+        .unwrap();
 
-    // The main messages mock must have been hit exactly once.
     messages_mock.assert_hits(1);
 
-    // None of the canary mocks must have fired.
     for (canary, header_name) in canaries.iter().zip(HOP_BY_HOP.iter()) {
         assert_eq!(
             canary.hits(),
@@ -126,7 +125,6 @@ fn hop_by_hop_headers_not_forwarded_to_upstream() {
         );
     }
 
-    // Hop-by-hop headers must also be stripped from the RESPONSE.
     for h in HOP_BY_HOP {
         assert!(
             !resp.headers.contains_key(*h),
@@ -134,7 +132,6 @@ fn hop_by_hop_headers_not_forwarded_to_upstream() {
         );
     }
 
-    // Safe header (content-type) must still be present in the response.
     assert!(
         resp.headers.contains_key("content-type"),
         "content-type should pass through the response filter"
@@ -142,12 +139,11 @@ fn hop_by_hop_headers_not_forwarded_to_upstream() {
 }
 
 /// Connection-header-nominated tokens must also be stripped.
-#[test]
-fn connection_nominated_header_stripped() {
+#[tokio::test]
+async fn connection_nominated_header_stripped() {
     let server = MockServer::start();
     let _tk = token_mock(&server);
 
-    // Canary fires if "x-nominated" reaches upstream.
     let canary = server.mock(|when, then| {
         when.method(POST)
             .path("/v1/messages")
@@ -163,6 +159,7 @@ fn connection_nominated_header_stripped() {
     });
 
     let adapter = AnthropicAdapter::with_base_url(StubStore, server.base_url());
+    let client = make_client();
     let mut headers = BTreeMap::new();
     headers.insert("connection".to_string(), "x-nominated".to_string());
     headers.insert("x-nominated".to_string(), "strip-me-too".to_string());
@@ -176,7 +173,7 @@ fn connection_nominated_header_stripped() {
         tenant_id: TenantId::new("t-nominated").unwrap(),
     };
 
-    let result = adapter.proxy(&req, "t-nominated/seat-1");
+    let result = adapter.proxy(&client, &req, "t-nominated/seat-1").await;
     assert!(result.is_ok());
     assert_eq!(
         canary.hits(),
@@ -186,8 +183,8 @@ fn connection_nominated_header_stripped() {
 }
 
 /// Safe headers (non-hop-by-hop) must pass through to upstream.
-#[test]
-fn safe_headers_are_forwarded() {
+#[tokio::test]
+async fn safe_headers_are_forwarded() {
     let server = MockServer::start();
     let _tk = token_mock(&server);
 
@@ -201,6 +198,7 @@ fn safe_headers_are_forwarded() {
     });
 
     let adapter = AnthropicAdapter::with_base_url(StubStore, server.base_url());
+    let client = make_client();
     let mut headers = BTreeMap::new();
     headers.insert("x-safe-header".to_string(), "present".to_string());
     headers.insert("content-type".to_string(), "application/json".to_string());
@@ -213,7 +211,7 @@ fn safe_headers_are_forwarded() {
         tenant_id: TenantId::new("t-safe").unwrap(),
     };
 
-    let result = adapter.proxy(&req, "t-safe/seat-safe");
+    let result = adapter.proxy(&client, &req, "t-safe/seat-safe").await;
     messages_mock.assert();
     assert!(result.is_ok());
 }

@@ -8,15 +8,15 @@ use oya_llm_gateway_oauth_pool_kernel::{
 #[test]
 fn debug_does_not_contain_handle_string() {
     let secret_handle = "openbao://t-1/seat-a/refresh-VERY-SECRET";
-    let sub = OAuthSubscription {
-        tenant_id: TenantId::new("t-1").unwrap(),
-        seat_id: SeatId::new("seat-a").unwrap(),
-        subscription_id: SubscriptionId::new("sub-1").unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: secret_handle.to_string(),
-        failure_count: 0,
-    };
+    let sub = OAuthSubscription::new(
+        TenantId::new("t-1").unwrap(),
+        SeatId::new("seat-a").unwrap(),
+        SubscriptionId::new("sub-1").unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        secret_handle.to_string(),
+        0,
+    );
     let debug_output = format!("{sub:?}");
     assert!(
         !debug_output.contains(secret_handle),
@@ -30,15 +30,15 @@ fn debug_does_not_contain_handle_string() {
 
 #[test]
 fn debug_contains_non_secret_fields() {
-    let sub = OAuthSubscription {
-        tenant_id: TenantId::new("tenant-xyz").unwrap(),
-        seat_id: SeatId::new("seat-42").unwrap(),
-        subscription_id: SubscriptionId::new("sub-99").unwrap(),
-        provider: Provider::Anthropic,
-        state: SubscriptionState::Active,
-        refresh_token_handle: "handle-should-be-hidden".to_string(),
-        failure_count: 3,
-    };
+    let sub = OAuthSubscription::new(
+        TenantId::new("tenant-xyz").unwrap(),
+        SeatId::new("seat-42").unwrap(),
+        SubscriptionId::new("sub-99").unwrap(),
+        Provider::Anthropic,
+        SubscriptionState::Active,
+        "handle-should-be-hidden".to_string(),
+        3,
+    );
     let debug_output = format!("{sub:?}");
     // Non-secret fields must still appear.
     assert!(

@@ -6273,6 +6273,21 @@ name = "oya-llm-gateway-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-llm-gateway-oauth-pool-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "oya-llm-gateway-oauth-pool-authz-cedar-adapter",
+ "oya-llm-gateway-oauth-pool-kernel",
+ "oya-llm-gateway-oauth-pool-rest",
+ "reqwest 0.12.28",
+ "serde",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oya-llm-gateway-oauth-pool-authz-cedar-adapter"
 version = "0.1.0"
 dependencies = [
@@ -8760,9 +8775,7 @@ checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
 dependencies = [
  "base64 0.22.1",
  "bytes",
- "futures-channel",
  "futures-core",
- "futures-util",
  "http 1.4.0",
  "http-body 1.0.1",
  "http-body-util",

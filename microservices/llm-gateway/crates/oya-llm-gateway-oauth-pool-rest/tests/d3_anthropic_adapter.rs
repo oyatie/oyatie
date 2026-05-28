@@ -1,8 +1,11 @@
-//! D3 Anthropic provider adapter contract tests (Stage-5 GREEN).
+//! D3 Anthropic provider adapter contract tests (Stage-6 GREEN).
 //!
 //! Tests verify the OAuth refresh state machine: secret store round-trips,
 //! error propagation, and that adapter methods return proper errors when no
 //! real Anthropic server is reachable (no more todo!() panics).
+//!
+//! Stage-6 changes: AnthropicAdapter methods are now async and take
+//! `&reqwest::Client`. Tests use `#[tokio::test]` and a shared client.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_llm_gateway_oauth_pool_kernel::{SeatId, TenantId};
@@ -71,6 +74,13 @@ impl OpenBaoSecretStore for FailingSecretStore {
     }
 }
 
+fn make_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .unwrap()
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -84,12 +94,13 @@ fn d3_adapter_constructs_with_secret_store() {
 }
 
 /// D3-2: refresh_token returns OAuthRefreshFailed when no Anthropic server is
-/// reachable (Stage-5 GREEN: no longer panics, returns a real error).
-#[test]
-fn d3_refresh_token_returns_network_error_without_server() {
+/// reachable (Stage-6 GREEN: async, returns a real error).
+#[tokio::test]
+async fn d3_refresh_token_returns_network_error_without_server() {
     let store = StubSecretStore::with_entry("handle-1", "rt-value");
     let adapter = AnthropicAdapter::with_base_url(store, "http://127.0.0.1:1".to_string());
-    let result = adapter.refresh_token("handle-1");
+    let client = make_client();
+    let result = adapter.refresh_token(&client, "handle-1").await;
     assert!(
         result.is_err(),
         "expected refresh_token to fail without a real server"
@@ -101,14 +112,17 @@ fn d3_refresh_token_returns_network_error_without_server() {
 }
 
 /// D3-3: exchange_authorization_code returns OAuthRefreshFailed when no
-/// Anthropic server is reachable (Stage-5 GREEN: no longer panics).
-#[test]
-fn d3_exchange_authorization_code_returns_network_error_without_server() {
+/// Anthropic server is reachable (Stage-6 GREEN: async).
+#[tokio::test]
+async fn d3_exchange_authorization_code_returns_network_error_without_server() {
     let store = StubSecretStore::new();
     let adapter = AnthropicAdapter::with_base_url(store, "http://127.0.0.1:1".to_string());
+    let client = make_client();
     let tenant = TenantId::new("tenant-acme").unwrap();
     let seat = SeatId::new("seat-001").unwrap();
-    let result = adapter.exchange_authorization_code(&tenant, &seat, "auth-code");
+    let result = adapter
+        .exchange_authorization_code(&client, &tenant, &seat, "auth-code")
+        .await;
     assert!(
         result.is_err(),
         "expected exchange_authorization_code to fail without a real server"
@@ -172,20 +186,22 @@ fn d3_rest_adapter_error_wraps_pool_error() {
 
 /// D3-9: refresh_token propagates SecretNotFound from the secret store without
 /// making any network call.
-#[test]
-fn d3_refresh_token_propagates_secret_not_found() {
+#[tokio::test]
+async fn d3_refresh_token_propagates_secret_not_found() {
     let store = StubSecretStore::new(); // empty — handle-missing will return SecretNotFound
     // Use real base URL — it should never be reached because the store lookup fails first.
     let adapter = AnthropicAdapter::new(store);
-    let result = adapter.refresh_token("nonexistent-handle");
+    let client = make_client();
+    let result = adapter.refresh_token(&client, "nonexistent-handle").await;
     assert_eq!(result.unwrap_err(), RestAdapterError::SecretNotFound);
 }
 
 /// D3-10: refresh_token propagates SecretStoreUnavailable from the secret store.
-#[test]
-fn d3_refresh_token_propagates_store_unavailable() {
+#[tokio::test]
+async fn d3_refresh_token_propagates_store_unavailable() {
     let adapter = AnthropicAdapter::new(FailingSecretStore);
-    let result = adapter.refresh_token("any-handle");
+    let client = make_client();
+    let result = adapter.refresh_token(&client, "any-handle").await;
     assert!(
         matches!(
             result.unwrap_err(),
