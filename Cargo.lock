@@ -6392,6 +6392,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-llm-gateway-oauth-pool-openbao-adapter"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "httpmock",
+ "oya-llm-gateway-oauth-pool-kernel",
+ "oya-llm-gateway-oauth-pool-rest",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "oya-llm-gateway-oauth-pool-rest"
 version = "0.1.0"
 dependencies = [
