@@ -3488,6 +3488,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-check-doc-axis"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "oya-check-doc-catalog"
 version = "0.1.0"
 
@@ -4566,6 +4573,7 @@ dependencies = [
  "oya-check-cursor-pagination-coverage",
  "oya-check-data-class",
  "oya-check-dependency-seam",
+ "oya-check-doc-axis",
  "oya-check-doc-catalog",
  "oya-check-documentation-system",
  "oya-check-event-schema-versioning",

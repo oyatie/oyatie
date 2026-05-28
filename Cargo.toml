@@ -79,6 +79,7 @@ members = [
   "crates/oya-check-codeowners-mirror",
   "crates/oya-check-cost-budget",
   "crates/oya-check-data-class",
+  "crates/oya-check-doc-axis",
   "crates/oya-check-doc-catalog",
   "crates/oya-check-documentation-system",
   "crates/oya-check-glossary-coverage",
