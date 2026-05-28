@@ -177,23 +177,8 @@
       "fd001_material": false
     },
     {
-      "name": "managed-k8s-cluster-lifecycle",
-      "manifest": "microservices/managed-k8s-cluster-lifecycle/manifest.json",
-      "fd001_material": false
-    },
-    {
-      "name": "managed-k8s-control-plane-host",
-      "manifest": "microservices/managed-k8s-control-plane-host/manifest.json",
-      "fd001_material": false
-    },
-    {
-      "name": "managed-k8s-sla-observability",
-      "manifest": "microservices/managed-k8s-sla-observability/manifest.json",
-      "fd001_material": false
-    },
-    {
-      "name": "managed-k8s-tenant-quota",
-      "manifest": "microservices/managed-k8s-tenant-quota/manifest.json",
+      "name": "managed",
+      "manifest": "microservices/managed/manifest.json",
       "fd001_material": false
     }
   ]
