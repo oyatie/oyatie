@@ -102,6 +102,57 @@ Environment (all injected from k8s Secrets at deploy; never plaintext files):
 | `GET /healthz` | Liveness. |
 | `GET /metrics` | Prometheus exposition. |
 
+## Live fanout: how parallel agents use this gateway
+
+After the operator-runtime steps in [SETUP-RUNBOOK.md](./SETUP-RUNBOOK.md) are complete (OpenBao secrets minted, image built, Deployment Ready, HPA active), parallel agents (Claude Code / Codex / Anthropic SDK / OpenAI SDK / Gemini SDK callers) can route through the gateway instead of each agent calling provider APIs directly.
+
+### Agent-side env vars
+
+Each agent sets these BEFORE invoking its provider SDK:
+
+```sh
+# Anthropic SDK (Claude Code, claude-cli)
+export ANTHROPIC_BASE_URL="http://llm-gateway.oya-llm-gateway.svc.cluster.local:8080/v1/anthropic"
+export ANTHROPIC_API_KEY="$INGRESS_PROXY_KEY"   # one of the ingress proxy keys from sref://openbao/oya/llm-gateway/ingress-proxy-keys
+
+# OpenAI SDK (Codex, openai-cli)
+export OPENAI_BASE_URL="http://llm-gateway.oya-llm-gateway.svc.cluster.local:8080/v1/openai"
+export OPENAI_API_KEY="$INGRESS_PROXY_KEY"
+
+# Gemini SDK
+export GEMINI_BASE_URL="http://llm-gateway.oya-llm-gateway.svc.cluster.local:8080/v1/gemini"
+export GEMINI_API_KEY="$INGRESS_PROXY_KEY"
+```
+
+### Namespace opt-in (cell-boundary)
+
+The Cilium L3/L4 NetworkPolicy at `infra/cilium/cell-boundaries/oya-llm-gateway-ingress.netpol.yaml` only allows traffic from namespaces labelled `oya.gateway-client=true`. For each agent-hosting namespace:
+
+```sh
+kubectl label namespace <my-agent-ns> oya.gateway-client=true
+```
+
+### What the gateway does for the agent
+
+1. Strips the agent's `Authorization` header.
+2. Looks up the next available key from the per-provider key pool (round-robin with cooldown on 429/5xx per ADR-0193 + ADR-0381 D1).
+3. Re-signs the upstream request with the provider's expected header (`Authorization: Bearer ...` for OpenAI, `x-api-key + anthropic-version` for Anthropic, `X-Goog-Api-Key` for Gemini).
+4. Forwards SSE / streaming responses back to the agent unchanged.
+
+### Horizontal scaling
+
+- Deployment baseline: `replicas: 3`.
+- HPA: 3 → 20 replicas, target 60% CPU + 75% memory utilization.
+- Each replica is stateless; key-pool state is per-replica (no cross-replica coordination — the per-provider key set is small enough that independent round-robin tolerates skew).
+- For N concurrent agents, the gateway scales horizontally without coordination overhead.
+
+### Observability
+
+Once observability lands (PR #260 + ADR-0383), the gateway emits OTel metrics on:
+- request rate per provider + per group
+- key-pool occupancy / blacklist count / cooldown remaining
+- upstream latency (p50/p95/p99 per provider)
+
 ## Status / non-claims
 
 `CS-LLM-GATEWAY-AGENT-DISPATCH-001` is a **code-backed local foundation**: the
