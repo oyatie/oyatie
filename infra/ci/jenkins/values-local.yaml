@@ -20,9 +20,10 @@
 #     Secret), then run `oya gate run-all`, then post the status.
 #
 # Remote build cache is honest-deferred to ADR-0381 D4 (SeaweedFS-on-Talos
-# restored onto the storage specialty pool); BuildKit's `s3` cache and Jenkins
-# agent sccache will share the same SeaweedFS once D4 lands. Until then the gate
-# runs against a cold cargo cache (correct but slow — discipline beats speed).
+# restored onto the storage specialty pool); BuildKit's cache + Jenkins agent
+# sccache will share the same SeaweedFS bucket-api once D4 lands. Until then
+# the gate runs against a cold cargo cache (correct but slow — discipline
+# beats speed).
 #
 # LOCAL-vs-PRODUCTION deltas (intentionally simplified — see README.md):
 #   - runtimeClass kata-cloud-hypervisor (ADR-0338)  -> omitted; Talos default runc
@@ -139,7 +140,13 @@ controller:
                             effect: NoSchedule
                         containers:
                           - name: rust
-                            image: rust:1-bookworm
+                            # ADR-0380 D6: custom rust-ci image (rust:1-bookworm
+                            # + sccache 0.8). Built by the rust-ci-image-build
+                            # Job at infra/ci/jenkins/agent-image/buildkit-build.yaml.
+                            # If absent (first bring-up), apply the Job first or
+                            # temporarily revert image to rust:1-bookworm.
+                            image: registry.oya-registry.svc.cluster.local:5000/rust-ci:dev
+                            imagePullPolicy: Always
                             command: ["sleep"]
                             args: ["infinity"]
                             securityContext:
@@ -147,7 +154,32 @@ controller:
                               capabilities:
                                 drop: ["ALL"]
                             env:
-                              # No sccache; no AWS_*. Cargo runs cold until ADR-0381 D4.
+                              # ADR-0380 D6 sccache restoration — points at
+                              # SeaweedFS-on-Talos (ADR-0381 D4). Bucket auto-
+                              # creates on first PUT.
+                              - name: RUSTC_WRAPPER
+                                value: "sccache"
+                              - name: SCCACHE_BUCKET
+                                value: "oya-ci-sccache"
+                              - name: SCCACHE_ENDPOINT
+                                value: "seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333"
+                              - name: SCCACHE_S3_USE_SSL
+                                value: "false"
+                              - name: SCCACHE_REGION
+                                value: "oya-local"
+                              - name: SCCACHE_S3_KEY_PREFIX
+                                value: "oya-ci/dev/"
+                              # SeaweedFS-on-Talos runs in anonymous mode for the
+                              # cluster-internal CI cache (auth is a hardening
+                              # follow-on alongside ADR-0381 D3 cell boundaries).
+                              # sccache's SCCACHE_S3_NO_CREDENTIALS=true uses an
+                              # unsigned client — no AWS_* env vars, no AWS SDK
+                              # credential chain (Oyatie does not consume AWS;
+                              # ADR-0381 amendment 3, hyperscaler-lens-architectural-filter).
+                              - name: SCCACHE_S3_NO_CREDENTIALS
+                                value: "true"
+                              # sccache + cargo incremental conflict; disable
+                              # incremental so sccache owns the layer caching.
                               - name: CARGO_INCREMENTAL
                                 value: "0"
                               # gh token for the pipeline's first-stage `git clone`

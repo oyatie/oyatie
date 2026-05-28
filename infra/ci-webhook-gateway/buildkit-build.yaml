@@ -9,14 +9,21 @@
 #      microservices/ci-webhook-gateway from the git context and push to the in-cluster
 #      registry.
 #
-# Cache backend: the `s3` cache backend is wired to SeaweedFS-on-Talos
-# (ADR-0381 D4; service seaweedfs-s3.oya-storage.svc.cluster.local:8333). Both
-# `--import-cache` (read) and `--export-cache type=s3,mode=max` (write) point at
+# Cache backend: BuildKit's bucket-API cache backend (Moby's library names it
+# `type=s3` — that's the wire-protocol identifier, not a brand) is wired to
+# SeaweedFS-on-Talos (ADR-0381 D4; service
+# seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333). Both
+# `--import-cache` (read) and `--export-cache ...,mode=max` (write) point at
 # the `oya-ci-buildkit-cache` bucket, which SeaweedFS auto-creates on first PUT.
 # First build: cache miss, BuildKit skips import gracefully and exports at end.
-# Subsequent builds: import hits + reuses layers. Anonymous-mode S3 (cluster-
-# internal only); auth-mode is a hardening follow-on alongside ADR-0381 D3
-# cell-boundary enforcement.
+# Subsequent builds: import hits + reuses layers. Anonymous-mode bucket access
+# (cluster-internal only); auth is a hardening follow-on alongside ADR-0381 D3.
+# Note: the inline `type=s3` / `access_key_id` / `secret_access_key` strings
+# are Moby's library namespace + wire-protocol parameters — we don't control
+# them. The substrate is SeaweedFS; Oyatie does not consume AWS (ADR-0381
+# amendment 3, hyperscaler-lens-architectural-filter). The placeholders
+# (`oya-ci-anon`) are intentionally non-AWS-branded; SeaweedFS anonymous mode
+# ignores them. BuildKit has no equivalent of sccache's *_NO_CREDENTIALS flag.
 #
 # Re-run a build: delete + re-apply the Job (or bump the image tag in `--output`).
 # Git creds: secret `gateway-build-git` (gh token), same as the retired Kaniko Job.
@@ -150,7 +157,7 @@ spec:
             - |
               set -euo pipefail
               CONTEXT_URL="https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/jason931225/oyatie.git#refs/heads/dev"
-              CACHE_PARAMS="type=s3,region=oya-local,bucket=oya-ci-buildkit-cache,endpoint_url=http://seaweedfs-s3.oya-storage.svc.cluster.local:8333,access_key_id=oya-ci-anon,secret_access_key=oya-ci-anon,use_path_style=true"
+              CACHE_PARAMS="type=s3,region=oya-local,bucket=oya-ci-buildkit-cache,endpoint_url=http://seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333,access_key_id=oya-ci-anon,secret_access_key=oya-ci-anon,use_path_style=true"
               buildctl --addr "tcp://buildkitd.oya-ci.svc.cluster.local:1234" \
                 build \
                 --frontend dockerfile.v0 \
