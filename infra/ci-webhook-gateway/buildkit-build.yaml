@@ -43,9 +43,24 @@ spec:
         # namespace (the container itself runs as non-root via user namespaces).
         container.apparmor.security.beta.kubernetes.io/buildkitd: unconfined
     spec:
-      # When ADR-0381 D2 lands, schedule onto the CI specialty pool:
-      #   nodeSelector: { oya.cell/ci: "true" }
-      #   tolerations: [{ key: dedicated, operator: Equal, value: ci, effect: NoSchedule }]
+      # ADR-0381 D2 cell affinity: prefer the CI specialty pool when it exists.
+      # Soft preference (preferred… not required…) so single-node Talos still
+      # schedules buildkitd. Toleration is no-op until the CI pool's NoSchedule
+      # taint lands (see infra/talos/local/patches/cell-ci.yaml).
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: oya.cell/ci
+                    operator: In
+                    values: ["true"]
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: ci
+          effect: NoSchedule
       containers:
         - name: buildkitd
           image: moby/buildkit:v0.18.2-rootless
@@ -110,6 +125,22 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      # ADR-0381 D2 cell affinity: prefer the CI specialty pool (mirrors the
+      # buildkitd Deployment above so the client lands near its server).
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: oya.cell/ci
+                    operator: In
+                    values: ["true"]
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: ci
+          effect: NoSchedule
       containers:
         - name: buildctl
           # Same image as buildkitd — contains both daemon + client binaries.
