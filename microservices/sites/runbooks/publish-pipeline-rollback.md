@@ -122,10 +122,9 @@ cargo run -p oya-dev-cli -- vcs site-revert \
 
 ```bash
 # Roll back the sites µservice to prior LTS pin
-cargo run -p oya-dev-cli -- vcs rollback \
-  --microservice sites \
-  --component oya-sites-cdn-delivery-worker \
-  --target-version <prior-LTS>
+git switch -c rollback/sites-publish-pipeline-$INCIDENT_ID dev
+# Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
+# and require Jenkins + `oya gate run-all --ci-required` before merge.
 ```
 
 Page council-architecture; the regression is in the publish-pipeline

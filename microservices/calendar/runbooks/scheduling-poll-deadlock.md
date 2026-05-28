@@ -157,10 +157,9 @@ kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
 Suggests a backend regression. Roll back to prior LTS:
 
 ```bash
-cargo run -p oya-dev-cli -- vcs rollback \
-  --microservice calendar \
-  --component oya-calendar-invitation-flow-worker \
-  --target-version <prior-LTS>
+git switch -c rollback/calendar-invitation-flow-$INCIDENT_ID dev
+# Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
+# and require Jenkins + `oya gate run-all --ci-required` before merge.
 ```
 
 Then file an investigation; the recurrence engine + scheduling

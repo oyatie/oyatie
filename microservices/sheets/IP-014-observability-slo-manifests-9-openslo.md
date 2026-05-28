@@ -6,7 +6,7 @@ phase: P01-sheets-foundation
 impl_plan_id: IP-014-observability-slo-manifests-9-openslo
 status: pending
 owner: axis-sheets + axis-observability
-acceptance_lanes: [openslo-validate, oya-vcs-promotion-readiness]
+acceptance_lanes: [openslo-validate, oya-governance-promotion-readiness]
 depends_on: [IP-013]
 ---
 
@@ -37,7 +37,7 @@ All authored in `microservices/sheets/slos/` per IP-014.
 
 ```bash
 oya gate validate openslo-validate --manifests 'microservices/sheets/slos/*.openslo.yaml'
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice sheets
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice sheets
 ```
 
 ## Test Plan

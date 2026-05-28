@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-workflow + axis-observability
-acceptance_lanes: [oya-governance-openslo-conformance, oya-vcs-promotion-readiness]
+acceptance_lanes: [oya-governance-openslo-conformance, oya-governance-promotion-readiness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->

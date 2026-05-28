@@ -21,7 +21,7 @@ forbid (
 // PERMIT 1 — CI principal reads schema registry only
 // =============================================================================
 //
-// The oya-vcs-promotion-readiness CI lane (running as principal Service::"oya-ci")
+// The oya-governance-promotion-readiness CI lane (running as principal Service::"oya-ci")
 // may read Object Type / Link Type / Action Type / Function Type schemas
 // (not instances) for governance + cohesion validation.
 

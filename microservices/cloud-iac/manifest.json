@@ -824,7 +824,7 @@
     ],
     "enforced_invariants": [
       "Chart.yaml must keep application chart metadata and ADR-0181/ADR-0349 annotations",
-      "values.yaml must keep image.digest as sha256:<64 lowercase hex>, image.cosign.required=true, image.cosign.policy=ADR-0181, and config.imagePromotionPolicy=cosign-required",
+      "values.yaml must keep image.digest as sha256:<64 lowercase non-zero hex>, image.cosign.required=true, image.cosign.policy=ADR-0181, and config.imagePromotionPolicy=cosign-required",
       "deployment.yaml must use .Values.image.digest in the image reference as @{{ .Values.image.digest }} when a digest is present",
       "deployment.yaml must expose cosign-required, image-digest, and image-promotion-policy annotations from chart values",
       "deployment.yaml must preserve non-root hardening markers: allowPrivilegeEscalation=false, readOnlyRootFilesystem=true, seccompProfile, and drop ALL capabilities",

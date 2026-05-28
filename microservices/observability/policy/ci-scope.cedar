@@ -21,7 +21,7 @@ forbid (
 // PERMIT 1 — CI lane reads promotion-eligibility verdicts only
 // =============================================================================
 //
-// The oya-vcs-promotion-readiness CI lane (running as principal Service::"oya-ci")
+// The oya-governance-promotion-readiness CI lane (running as principal Service::"oya-ci")
 // may read the aggregated verdict metrics from the oya-aggregate or oya-ci
 // reserved tenants. It MAY NOT read customer-tenant per-series data.
 

@@ -6,8 +6,8 @@
 // ADR-0347 enforced_by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
 // ADR-0348 enforced_by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal; oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
-// ADR-0349 purpose: Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider contexts where GitHub Actions runners are not available; ArgoCD is the canonical GitOps CD orchestrator; ArgoCD REPLACES manual kubectl apply and Helm CLI deploys across all contexts.
-// ADR-0349 enforced_by: oya-governance-jenkins-github-actions-parity; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-jenkins-jcasc-only; oya-governance-deploy-audit-chain-emit.
+// ADR-0349 purpose: Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider contexts across air-gap, on-prem, colo, and oyatie-as-cloud-provider contexts; ArgoCD is the canonical GitOps CD orchestrator; ArgoCD REPLACES manual kubectl apply and Helm CLI deploys across all contexts.
+// ADR-0349 enforced_by: oya-governance-jenkins-canonical-no-gha-residue; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-jenkins-jcasc-only; oya-governance-deploy-audit-chain-emit.
 
 permit(
   principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",

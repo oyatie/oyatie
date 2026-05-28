@@ -137,7 +137,7 @@ doc_status: published
 
 ## Mitigation
 1. Disable plaintext bypass: `oya flags set oya.cloud_network.mtls.plaintext_bypass=false --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
-2. Hold mTLS policy deploys: `oya vcs hold --microservice cloud-network --reason $INCIDENT_ID --scope mtls`.
+2. Hold mTLS policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 3. Freeze cert rollout automation: `oya flags set oya.cloud_network.cert_rollout.auto=false --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
 4. Refresh SVID dry-run: `oya network spiffe svid rotate --tenant $TENANT --service $SERVICE --cell $CELL --dry-run`.
 5. Refresh SVID confirmed: `oya network spiffe svid rotate --tenant $TENANT --service $SERVICE --cell $CELL --confirm $INCIDENT_ID`.
@@ -171,7 +171,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-mtls --production-snapshot --cell $CELL`.
 12. Verify mTLS canary: `oya ops probe cloud-network mtls --tenant $TENANT --service $SERVICE --cell $CELL --expect healthy`.
 13. Re-enable cert automation: `oya flags set oya.cloud_network.cert_rollout.auto=true --tenant $TENANT --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: `oya vcs unhold --microservice cloud-network --reason resolved-$INCIDENT_ID`.
+14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_MTLS_HANDSHAKE_CASCADE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

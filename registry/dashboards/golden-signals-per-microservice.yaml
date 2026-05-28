@@ -87,7 +87,7 @@ annotations:
     query: "{event_class=\"DeploymentCompleted\",environment=\"$environment\",microservice=~\"$microservice\"} | json | line_format \"{{.microservice}} {{.version}} {{.changeset_id}}\""
     tags:
       - deploy
-      - oya-vcs
+      - governance
   - name: incident_markers
     datasource: Loki
     enable: true
@@ -253,7 +253,7 @@ alerts:
     condition: "oya_promotion_burn_rate_fast_1h{microservice=~\"$microservice\",target_env=\"$environment\"} > 14.4"
     for: 5m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: golden_signals_p99_latency
     title: "Microservice p99 exceeds baseline"

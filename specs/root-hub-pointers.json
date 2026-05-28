@@ -753,7 +753,7 @@
       "kind": "spec",
       "current_path": "/specs/agentic-slo-gated-promotion.json",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-vcs-promotion-readiness CI lane, and the promote-dev-to-staging.yml + promote-staging-to-production.yml workflows."
+      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the Jenkins promotion jobs."
     },
     "spec_api_surface_separation": {
       "kind": "spec",

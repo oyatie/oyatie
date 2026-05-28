@@ -7,11 +7,11 @@ status: Active
 entry_gate: |
   ADR-0139 + ADR-0131 accepted; /specs/agentic-slo-gated-promotion.json + /specs/per-microservice-flat-layout.json published; cargo workspace ready to accept the 14 new crates under microservices/observability/crates/.
 exit_gate: |
-  All 15 IPs merged; oya-vcs-promotion-readiness CI lane present in .github/branch-protection.yaml required_status_checks on dev and staging; release/<ms>/{staging,production} pattern protection rules live; rollback primitive verified via end-to-end drill; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice observability exits 0; oya gate validate authority-cohesion exits 0; HG-OBS gate in /specs/hyperscaler-gates.json registers green.
+  All 15 IPs merged; oya-governance-promotion-readiness CI lane present in Jenkins/Forgejo required checks on dev and staging; release/<ms>/{staging,production} required-check rules live; rollback primitive verified via end-to-end drill; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice observability exits 0; oya gate validate authority-cohesion exits 0; HG-OBS gate in /specs/hyperscaler-gates.json registers green.
 depends_on:
   - milestone: M01-foundation
     phase: prior phases per master-plan-sequencing
-    reason: workspace + branch-protection + Cargo metadata authority must precede gate authoring
+    reason: workspace + Jenkins/Forgejo required-check + Cargo metadata authority must precede gate authoring
 owner_team: axis-observability
 related_adrs: [ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
@@ -40,9 +40,9 @@ This phase advances master-plan principles:
 | `observability` | `slo-engine`, `otel-ingest` | All under `microservices/observability/` per ADR-0131 | `oya-observability-slo-engine-{kernel,domain,application,adapter,rest,worker,app}` and `oya-observability-otel-ingest-{kernel,domain,application,adapter,worker,app}` |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
-- `.github/branch-protection.yaml` — add `oya-vcs-promotion-readiness` to required_status_checks on `dev` and `staging`; add pattern protection rules for `release/*/staging` and `release/*/production`.
-- `.github/workflows/promote-dev-to-staging.yml` — switch primary trigger to `repository_dispatch: eligibility-changed`; retain cron as heartbeat; remove FUTURE-marked stub references.
-- `.github/workflows/promote-staging-to-production.yml` — analogous.
+- Jenkins/Forgejo required-check configuration — add `oya-governance-promotion-readiness` to required checks on `dev` and `staging`; add required-check rules for `release/*/staging` and `release/*/production`.
+- Promotion pipeline jobs — switch primary trigger to signed `eligibility-changed` events; retain cron as heartbeat; remove FUTURE-marked stub references.
+- Production promotion pipeline jobs — analogous.
 - `docs/standards/observability-slo.md` (NEW) — cross-cutting OpenSLO authoring rules; SLI catalog; burn-rate threshold convention.
 - `registry/promotion-eligibility.jsonl` (NEW) — append-only ledger.
 - `Cargo.toml` (workspace) — register the 13 new crates under `microservices/observability/crates/`.
@@ -70,12 +70,12 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-005-slo-engine-application.md`](IP-005-slo-engine-application.md) | `oya-observability-slo-engine-application` crate: orchestrator that reads OpenSLO + Prometheus and writes ledger via ports | pending | axis-observability | IP-004 |
 | [`IP-006-slo-engine-adapter.md`](IP-006-slo-engine-adapter.md) | `oya-observability-slo-engine-adapter` crate: OpenSLO YAML reader, Mimir PromQL HTTP client, JSONL ledger writer | pending | axis-observability | IP-003 |
 | [`IP-007-slo-engine-rest.md`](IP-007-slo-engine-rest.md) | `oya-observability-slo-engine-rest` crate: OpenAPI-defined REST surface for human/agent ledger + SLO queries (`microservices/observability/contracts/openapi/slo-engine.yaml`) | pending | axis-observability | IP-005, IP-006 |
-| [`IP-008-slo-engine-worker.md`](IP-008-slo-engine-worker.md) | `oya-observability-slo-engine-worker` crate: continuous burn-rate evaluator, 60s cadence, emits `EligibilityChanged` via repository_dispatch | pending | axis-observability | IP-005, IP-006 |
+| [`IP-008-slo-engine-worker.md`](IP-008-slo-engine-worker.md) | `oya-observability-slo-engine-worker` crate: continuous burn-rate evaluator, 60s cadence, emits signed `EligibilityChanged` events | pending | axis-observability | IP-005, IP-006 |
 | [`IP-009-slo-engine-app.md`](IP-009-slo-engine-app.md) | `oya-observability-slo-engine-app` composition root binary wiring worker + rest + adapters | pending | axis-observability | IP-007, IP-008 |
 | [`IP-010-promotion-eligibility-ledger.md`](IP-010-promotion-eligibility-ledger.md) | `registry/promotion-eligibility.jsonl` schema, union-merge driver assertion, append-only writer crate hook | pending | axis-observability | IP-005 |
-| [`IP-011-per-component-release-pointers.md`](IP-011-per-component-release-pointers.md) | `release/<ms>/<env>` ref naming, pattern-based branch-protection rules in `.github/branch-protection.yaml`, fast-forward primitive on top of GH refs API | pending | ops-sre-reliability | IP-010 |
-| [`IP-012-oya-vcs-promotion-readiness-lane.md`](IP-012-oya-vcs-promotion-readiness-lane.md) | New BLOCKER CI lane `oya-vcs-promotion-readiness`; reads ledger; refuses fast-forward unless verdicts green | pending | axis-foundry | IP-010, IP-011 |
-| [`IP-013-event-driven-promote-workflows.md`](IP-013-event-driven-promote-workflows.md) | Rewrite `promote-dev-to-staging.yml` and `promote-staging-to-production.yml` to consume `eligibility-changed` event; decommission FUTURE stubs | pending | ops-sre-reliability | IP-012 |
+| [`IP-011-per-component-release-pointers.md`](IP-011-per-component-release-pointers.md) | `release/<ms>/<env>` ref naming, required-check rules, fast-forward primitive on top of signed Git refs | pending | ops-sre-reliability | IP-010 |
+| [`IP-012-oya-vcs-promotion-readiness-lane.md`](IP-012-oya-vcs-promotion-readiness-lane.md) | New BLOCKER CI lane `oya-governance-promotion-readiness`; reads ledger; refuses release-pointer advancement unless verdicts green | pending | axis-foundry | IP-010, IP-011 |
+| [`IP-013-event-driven-promote-workflows.md`](IP-013-event-driven-promote-workflows.md) | Rewrite promotion jobs to consume signed `eligibility-changed` events; decommission FUTURE stubs | pending | ops-sre-reliability | IP-012 |
 | [`IP-014-automated-rollback-primitive.md`](IP-014-automated-rollback-primitive.md) | Production-tier fast-burn → ref revert; signed; ledger `rollback` verdict; Grafana OnCall incident | pending | axis-observability | IP-011, IP-013 |
 | [`IP-015-canary-cohort-weighting.md`](IP-015-canary-cohort-weighting.md) | Service-mesh traffic-split ramp 1 → 10 → 50 → 100 %; abort-on-burn; otel-ingest BC integration | pending | ops-sre-reliability | IP-001, IP-008 |
 
@@ -113,8 +113,8 @@ oya gate validate hyperscaler-maturity-claims                 # ADR-0123
 ### Substrate gates introduced by this phase
 
 ```bash
-oya gate validate vcs-promotion-readiness --sha <head-sha> --env staging
-oya gate validate vcs-promotion-readiness --sha <head-sha> --env production
+oya gate validate oya-governance-promotion-readiness --sha <head-sha> --env staging
+oya gate validate oya-governance-promotion-readiness --sha <head-sha> --env production
 oya gate validate aggregation-index-generation                 # ADR-0131 sibling lane
 ```
 
@@ -124,7 +124,7 @@ oya gate validate aggregation-index-generation                 # ADR-0131 siblin
 |---|---|---|
 | Eligibility happy path | `cargo nextest run -p oya-observability-slo-engine-application --test eligibility_happy_path` | verdict `eligible`; ledger record appended; event emitted |
 | Fast-burn hold | `cargo nextest run -p oya-observability-slo-engine-application --test fast_burn_hold` | verdict transitions `eligible → held` within ≤60 s of synthetic burn injection |
-| Promotion gating | `cargo nextest run -p oya-dev-cli --test vcs_promotion_readiness_refusal` | lane exits non-zero with structured JSON listing held microservices |
+| Promotion gating | `cargo nextest run -p oya-dev-cli --test governance_promotion_readiness_refusal` | lane exits non-zero with structured JSON listing held microservices |
 | Rollback drill | scripted e2e: inject burn → assert ref reverted | production ref at prior pointer within ≤60 s; `rollback` verdict appended; Grafana OnCall incident raised |
 | Canary ramp | scripted e2e: ramp 1 → 10 → 50 → 100 % | each step honours its `min_duration_seconds` and `exit_criterion` |
 
@@ -158,7 +158,7 @@ CI lanes that must green before phase exit gate (same as §"Fitness lane gates" 
 
 ## ChangeSet Contract per IP
 
-Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). The minimum ChangeSet payload per IP, written at `microservices/observability/evidence/multispectrum/<change_id>-<unix_ts>.json` on `oya vcs done`:
+Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). The minimum ChangeSet payload per IP is written at `microservices/observability/evidence/multispectrum/<change_id>-<unix_ts>.json` before opening the pull request against `dev`:
 
 ```json
 {
@@ -200,9 +200,9 @@ Enforced by:
 - `cargo llvm-cov --workspace --fail-under-lines <threshold>` exits 0 (coverage).
 - Per-IP CI workflow specifies the per-IP thresholds in its `[acceptance_lanes]` frontmatter.
 
-## branch-protection.yaml diff preview
+## Required-checks diff preview
 
-IP-013 (event-driven promote workflows) updates `.github/branch-protection.yaml` with the diff below. Surfaced here so reviewers can preview the change at phase-start, not at IP-merge time.
+IP-013 (event-driven promote workflows) updates the Jenkins/Forgejo required-check configuration with the diff below. Surfaced here so reviewers can preview the change at phase-start, not at IP-merge time.
 
 ```yaml
 branches:
@@ -213,15 +213,15 @@ branches:
       - cargo-check
       - cargo-clippy
       - cargo-nextest
-      - oya-vcs-admission
-      - oya-vcs-provider-execution
+      - oya-governance-admission
+      - oya-governance-provider-execution
       - oya-governance-supply-chain
       - oya-governance-cohesion
       - oya-governance-api-semver
       - oya-governance-protection-context-match
       - oya-pr-review
       # ADDED by this phase (IP-012 + IP-013):
-      - oya-vcs-promotion-readiness            # NEW; reads Mimir eligibility verdicts
+      - oya-governance-promotion-readiness            # NEW; reads Mimir eligibility verdicts
       - oya-governance-openslo-conformance   # NEW; from docs/standards/observability-slo.md
       - oya-governance-mimir-tenancy-enforced # NEW; from /specs/agentic-slo-gated-promotion.json §mimir_multi_tenancy
       - oya-governance-per-microservice-layout   # NEW; from ADR-0131
@@ -233,7 +233,7 @@ branches:
   staging:
     required_status_checks:
       # ADDED by this phase:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   # ADDED — pattern-based protection for per-component release pointers
   ? release/*/staging
@@ -244,7 +244,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/*/production
   :
@@ -254,30 +254,27 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 ```
 
 IP-011 (per-component release pointers) creates the initial set of `release/<microservice>/{staging,production}` refs (one per active µservice); the pattern protection covers all current + future refs.
 
-## Oya VCS Symbol Locks
+## Git/Jenkins governance handoff
 
-Per ADR-0116, this phase uses `oya vcs` primitives exclusively. Grit and ICM are explicitly NOT used.
+Per ADR-0363 and the current repo AGENTS contract, this phase uses one isolated branch/worktree per implementation lane, a pull request against `dev`, Jenkins CI, `oya gate`, and `oya verify`. Grit, ICM, and retired `oya vcs` primitives are explicitly NOT used.
 
 ```bash
-# Claim before beginning each IP
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/observability/crates/<crate>/**"
+# Create an isolated branch/worktree before beginning each IP.
+git worktree add ../oyatie-observability-<ip-id> -b feature/observability-<ip-id> dev
 
-# Verify after each IP's acceptance gates pass
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
+# Verify after each IP's acceptance gates pass.
+cargo run -p oya-dev-cli -- gate run-all --ci-required
+cargo run -p oya-dev-cli -- verify --ci-required
 
-# Done — triggers rebase/merge/release primitive per CLAUDE.md
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
+# Open a PR against dev; Jenkins CI and reviewer APPROVE provide merge readiness.
+git push -u origin feature/observability-<ip-id>
 
-# Promote — fast-forward release pointer through the gate
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
+# Promotion is Jenkins/ArgoCD-governed after merge, using signed image digests.
 ```
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/observability/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.

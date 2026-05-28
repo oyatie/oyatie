@@ -301,7 +301,7 @@ alerts:
     condition: "min(oya:capability-tier:sla:availability_ratio:gauge{environment=\"$environment\"} - oya:capability-tier:sla:availability_target_ratio:gauge{environment=\"$environment\"}) < 0"
     for: 10m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: capability_tier_latency_breach
     title: "Capability tier p99 latency exceeds target"

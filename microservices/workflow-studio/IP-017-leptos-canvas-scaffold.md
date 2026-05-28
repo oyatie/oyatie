@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-perf]
 date: 2026-05-18
 related_adrs: [ADR-0185, ADR-0204]
-acceptance_lanes: [perf-canvas-60fps-leptos, a11y-axe-zero-violations, oya-vcs-promotion-readiness]
+acceptance_lanes: [perf-canvas-60fps-leptos, a11y-axe-zero-violations, oya-governance-promotion-readiness]
 depends_on: [IP-016]
 ---
 
@@ -108,7 +108,7 @@ ADR-0204 fixes Phase 2 trigger at "Leptos web ships per ADR-0185" **AND** ">5k n
 ```bash
 cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps-leptos
 cargo run -p oya-dev-cli -- gate validate a11y-axe-zero-violations --target canvas-leptos
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-workflow-studio-canvas-leptos --tests
 ```
 
@@ -122,7 +122,7 @@ cargo test -p oya-workflow-studio-canvas-leptos --tests
 
 1. All 10 tests green on CI (Linux x86_64 + arm64).
 2. WASM bundle ≤ 600KiB gzipped (CDN budget; smaller than svelte-flow path).
-3. `perf-canvas-60fps-leptos`, `a11y-axe-zero-violations`, `oya-vcs-promotion-readiness` lanes green.
+3. `perf-canvas-60fps-leptos`, `a11y-axe-zero-violations`, `oya-governance-promotion-readiness` lanes green.
 4. Evidence ledger sealed.
 5. Runbook published.
 6. ADR-0204 Phase 2 substrate section updated.

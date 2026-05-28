@@ -28,6 +28,17 @@ unused-allowed-license = "allow"
 # bumps or broader license use re-open policy review.
 exceptions = [
   { allow = ["Zlib"], crate = "foldhash@0.1.5" },
+  # 2026-05-28 hyperscaler review: exact transitive license exceptions.
+  # Keep these per-crate instead of broad global allows so new uses re-open review.
+  { allow = ["Apache-2.0 WITH LLVM-exception"], crate = "ar_archive_writer@0.5.1" },
+  { allow = ["CC0-1.0"], crate = "base16@0.2.1" },
+  { allow = ["Zlib"], crate = "const_format@0.2.36" },
+  { allow = ["Zlib"], crate = "const_format_proc_macros@0.2.34" },
+  { allow = ["Zlib"], crate = "foldhash@0.2.0" },
+  { allow = ["Zlib"], crate = "konst@0.2.20" },
+  { allow = ["Zlib"], crate = "konst_macro_rules@0.2.19" },
+  { allow = ["Zlib"], crate = "slotmap@1.1.1" },
+  { allow = ["BSL-1.0"], crate = "xxhash-rust@0.8.15" },
   { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@0.26.11" },
   { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@1.0.7" },
 ]
@@ -35,9 +46,11 @@ exceptions = [
 [advisories]
 version = 2
 # RustSec database advisories: fail on any unfixed vulnerability that
-# does not have an explicit ignore. Notice/Unmaintained crates surface
-# as warnings so they are visible but not blocking.
+# does not have an explicit ignore. Unmaintained advisories block
+# workspace crates; transitive unmaintained debt is reviewed through
+# direct dependency upgrade lanes instead of blanket ignores.
 yanked = "deny"
+unmaintained = "workspace"
 ignore = []
 
 [bans]

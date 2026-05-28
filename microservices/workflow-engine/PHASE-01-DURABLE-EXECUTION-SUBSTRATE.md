@@ -227,7 +227,7 @@ branches:
     required_status_checks:
       # ADDED by this phase:
       - oya-governance-deterministic-replay
-      - oya-vcs-promotion-readiness                       # already added by observability phase; engine respects it
+      - oya-governance-promotion-readiness                       # already added by observability phase; engine respects it
 
   # ADDED — pattern-based protection for workflow-engine release pointers
   ? release/workflow-engine/staging
@@ -238,7 +238,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/workflow-engine/production
   :
@@ -248,7 +248,7 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 ```
 
 ## Oya VCS Symbol Locks

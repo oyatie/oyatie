@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-platform-linux]
 date: 2026-05-18
 related_adrs: [ADR-0185, ADR-0204, ADR-0207]
-acceptance_lanes: [a11y-at-spi, perf-canvas-60fps, oya-vcs-promotion-readiness]
+acceptance_lanes: [a11y-at-spi, perf-canvas-60fps, oya-governance-promotion-readiness]
 depends_on: [IP-016, IP-022, IP-023]
 ---
 
@@ -116,7 +116,7 @@ Minimum 5 integration tests required (8 specified above; threshold met with cush
 ```bash
 cargo run -p oya-dev-cli -- gate validate a11y-at-spi --shell gtk4 --crate clients/gtk4/workflow-studio
 cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps --shell gtk4 --window 30s
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 cargo test -p oya-workflow-studio-gtk4 --tests
 ```
 
@@ -129,7 +129,7 @@ cargo test -p oya-workflow-studio-gtk4 --tests
 ## Exit criteria
 
 1. All 8 integration tests pass on Linux x86_64 + arm64 CI runners.
-2. `a11y-at-spi`, `perf-canvas-60fps`, `oya-vcs-promotion-readiness` lanes green.
+2. `a11y-at-spi`, `perf-canvas-60fps`, `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger entries sealed via audit-chain.
 4. PRD §"Supported shells" includes GTK 4 row with link to this IP.
 5. Runbook `gtk4-canvas-debug.md` linked from `microservices/workflow-studio/runbooks/index.md`.

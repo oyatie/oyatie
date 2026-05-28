@@ -45,7 +45,7 @@ Out of scope:
 10. **IP-010 foundry-guardrails moderation bridge adapter** — consumes `PostCreated` events; emits `PostShouldHide`.
 11. **IP-011 cedar policy fragments** — tenant-scope + ci-scope + auditor-scope + public-read.
 12. **IP-012 OpenSLO manifests + Grafana dashboards** — feed-throughput, vote-rate, moderation-queue-depth, search-latency.
-13. **IP-013 oya-vcs promotion-readiness wiring** — community µservice fronts a promotion gate identical to observability.
+13. **IP-013 oya-governance promotion-readiness wiring** — community µservice fronts a promotion gate identical to observability.
 14. **IP-014 hyperscaler maturity gate HG-COMMUNITY** — claim parity matrix vs. Atlassian + Viva + Salesforce + Discourse + Stack Overflow Teams.
 15. **IP-015 capacity + cost + chaos drill** — quarterly load drill at 10× nominal; failure-modes.md coverage.
 

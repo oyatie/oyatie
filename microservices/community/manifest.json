@@ -295,8 +295,8 @@
       "file": "microservices/community/IP-012-openslo-grafana-dashboards.md"
     },
     {
-      "id": "IP-013-oya-vcs-promotion-readiness",
-      "title": "IP-013 — oya-vcs promotion-readiness wiring",
+      "id": "IP-013-oya-governance-promotion-readiness",
+      "title": "IP-013 — oya-governance promotion-readiness wiring",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-013-oya-vcs-promotion-readiness.md"
     },

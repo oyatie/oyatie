@@ -9,7 +9,7 @@ entry_gate: |
   /specs/microservices/mail.json published; existing crates oya-connect-mail-* recognised as a working
   baseline; cargo workspace ready to accept the ~62 new crates under microservices/mail/src/crates/.
 exit_gate: |
-  All 15 IPs merged; oya-vcs-promotion-readiness CI lane present and green; oya-mail-* crate family compiles
+  All 15 IPs merged; oya-governance-promotion-readiness CI lane present and green; oya-mail-* crate family compiles
   + cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice mail exits 0;
   oya gate validate authority-cohesion exits 0; HG-MAIL gate in /specs/hyperscaler-gates.json registers green;
   end-to-end drills pass (SMTP receive + outbound delivery + IMAP fetch + search + legal-hold engage +
@@ -49,7 +49,7 @@ This phase advances master-plan principles:
 | `mail` | 8 BCs (see PRD §"Bounded Contexts") | All under `microservices/mail/` per ADR-0131 | `oya-mail-{mailbox-store, inbound-smtp, outbound-smtp, imap-frontend, search-index, legal-hold, retention-policy, dual-context-isolation}-{kernel,domain,usecase,api,adapter,adapter-X,rest,worker,sdk,app}` |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
-- `.github/branch-protection.yaml` — extend `oya-vcs-promotion-readiness` to cover `release/mail/*` pattern.
+- `.github/branch-protection.yaml` — extend `oya-governance-promotion-readiness` to cover `release/mail/*` pattern.
 - `Cargo.toml` (workspace) — register the ~62 new crates.
 - `/specs/hyperscaler-gates.json` — register HG-MAIL gate per ADR-0123.
 - `/specs/microservices/mail.json` — promote to `mail.json` reference; retain Connect-side pointer for migration window.
@@ -232,7 +232,7 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 
   ? release/mail/production
   :
@@ -241,7 +241,7 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     required_status_checks:
-      - oya-vcs-promotion-readiness
+      - oya-governance-promotion-readiness
 ```
 
 ## Oya VCS Symbol Locks

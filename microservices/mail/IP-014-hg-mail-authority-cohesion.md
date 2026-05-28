@@ -87,7 +87,7 @@ branches:
     require_linear_history: true
     disallow_force_push: true
     require_signed_commits: true
-    required_status_checks: [oya-vcs-promotion-readiness]
+    required_status_checks: [oya-governance-promotion-readiness]
 
   ? release/mail/production
   :
@@ -95,7 +95,7 @@ branches:
     require_linear_history: true
     disallow_force_push: true
     require_signed_commits: true
-    required_status_checks: [oya-vcs-promotion-readiness]
+    required_status_checks: [oya-governance-promotion-readiness]
 ```
 
 ## Acceptance Gates

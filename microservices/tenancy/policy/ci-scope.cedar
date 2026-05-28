@@ -21,7 +21,7 @@ forbid (
 // PERMIT 1 — CI lane reads governance-state for promotion-readiness verdicts
 // =============================================================================
 //
-// The oya-vcs-promotion-readiness CI lane (running as principal Service::"oya-ci")
+// The oya-governance-promotion-readiness CI lane (running as principal Service::"oya-ci")
 // may read the governance state that gates tenancy promotion.
 
 permit (

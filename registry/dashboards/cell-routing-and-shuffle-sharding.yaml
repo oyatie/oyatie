@@ -254,7 +254,7 @@ alerts:
     condition: "100 * max(oya:cell:capacity:allocated_units:gauge{environment=\"$environment\"}) / clamp_min(max(oya:cell:capacity:total_units:gauge{environment=\"$environment\"}), 1) > 90"
     for: 10m
     labels:
-      gate: oya-vcs-promotion-readiness
+      gate: oya-governance-promotion-readiness
       verdict_on_fire: held
   - alert_id: shuffle_shard_unhealthy
     title: "Shuffle shard health below one"

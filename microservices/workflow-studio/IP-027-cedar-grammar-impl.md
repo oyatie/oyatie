@@ -12,7 +12,7 @@ owner: axis-frontend
 co_owners: [axis-security]
 date: 2026-05-18
 related_adrs: [ADR-0183, ADR-0205]
-acceptance_lanes: [grammar-correctness, oya-vcs-promotion-readiness]
+acceptance_lanes: [grammar-correctness, oya-governance-promotion-readiness]
 depends_on: [IP-025]
 ---
 
@@ -105,7 +105,7 @@ Minimum 5 required; 10 specified.
 
 ```bash
 cargo run -p oya-dev-cli -- gate validate grammar-correctness --pkg cedar-cm6-grammar
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice workflow-studio
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
 pnpm --filter @oya/cedar-cm6-grammar test
 ```
 
@@ -118,7 +118,7 @@ pnpm --filter @oya/cedar-cm6-grammar test
 ## Exit criteria
 
 1. All 10 tests green.
-2. `grammar-correctness` + `oya-vcs-promotion-readiness` lanes green.
+2. `grammar-correctness` + `oya-governance-promotion-readiness` lanes green.
 3. Evidence ledger sealed.
 4. Pack published to internal npm registry.
 5. ADR-0183 Cedar surface map updated to reference the grammar pack.

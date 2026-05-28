@@ -16,7 +16,7 @@ exit_gate: |
   tap emits at ≥ 99.99 % to audit-chain; first-token latency p99 < 2.0 s on Anthropic Sonnet 4
   default route; provider-credential BYOK end-to-end proven against Anthropic + OpenAI + Google + Bedrock + vLLM per ADR-0255 §D-4;
   brand-ux-surface SDK renders sparkle + tier badge + streaming text + citation; competitor-parity
-  matrix updated; `oya-vcs-promotion-readiness` lane green for `intelligence`.
+  matrix updated; `oya-governance-promotion-readiness` lane green for `intelligence`.
 depends_on:
   - milestone: M01-foundation
     phase: P01-agentic-slo-gated-promotion (observability)
@@ -75,7 +75,7 @@ oya-intelligence-app
 ```
 
 Plus these repo-wide artifacts:
-- `.github/branch-protection.yaml` — add `oya-vcs-promotion-readiness` for `intelligence`.
+- `.github/branch-protection.yaml` — add `oya-governance-promotion-readiness` for `intelligence`.
 - `Cargo.toml` (workspace) — register the new crates.
 - `/specs/intelligence-two-layer-substrate.json` (NEW) — canonical spec.
 - `microservices/intelligence/manifest.json` — substrate-tier + substrate-dependency declaration.

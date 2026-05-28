@@ -17,13 +17,13 @@ acceptance_lanes: [oya-governance-protection-context-match]
 
 ## Intent
 
-Introduce `release/<microservice>/<environment>` ref naming + pattern-based GitHub branch-protection per `/specs/agentic-slo-gated-promotion.json` §"release_pointer_convention". `slo-engine-adapter` (Git refs store) writes to these refs via signed PATCH.
+Introduce `release/<microservice>/<environment>` ref naming + required-check policy per `/specs/agentic-slo-gated-promotion.json` §"release_pointer_convention". `slo-engine-adapter` (Git refs store) writes to these refs via signed, non-forced Git ref updates.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `.github/branch-protection.yaml` | update — pattern rules for `release/*/staging` and `release/*/production`; PAT scope |
+| Jenkins/Forgejo required-check configuration | update — required-check rules for `release/*/staging` and `release/*/production`; CI identity scope |
 | `microservices/observability/src/crates/oya-observability-slo-engine-adapter/src/git_refs_store.rs` | update — implements `ReleasePointerStore` via GitHub API (Octocrab) |
 | `microservices/observability/tests/integration/release_pointer.rs` | create |
 
@@ -48,17 +48,17 @@ impl ReleasePointerStore for OctocrabGitRefsStore {
 }
 ```
 
-## branch-protection.yaml diff
+## Required-check policy diff
 
-(Per PHASE-01 §"branch-protection.yaml diff preview")
+(Per PHASE-01 §"Required-checks diff preview")
 
 ## Acceptance Gates
 
 ```bash
 cargo nextest run -p oya-observability-slo-engine-adapter --test release_pointer
 cargo run -p oya-dev-cli -- gate validate protection-context-match
-# GitHub-side validation:
-gh api repos/jason931225/oyatie/branches?protected=true | jq '.[].name'
+# Git-provider required-check validation:
+git ls-remote --heads origin "release/*"
 ```
 
 ## Test Plan
@@ -67,13 +67,13 @@ gh api repos/jason931225/oyatie/branches?protected=true | jq '.[].name'
 |---|---|
 | `test_read_release_pointer` | reads existing ref |
 | `test_advance_release_pointer_signed` | advance PATCH; verify signature |
-| `test_advance_force_push_refused` | branch-protection rejects force push |
+| `test_advance_force_push_refused` | required-check policy rejects force push |
 | `integration_full_promotion_cycle` | dev SHA → staging ref advance → production ref advance |
 
 ## Halt Conditions
 
-- GitHub branch-protection rejects pattern rule — fall back to per-µservice explicit rules; document in `multi-region.md`
-- WORKFLOW_PAT scope-creep — refuse; PAT must be tightly bounded
+- Required-check pattern rule is rejected — fall back to per-µservice explicit rules; document in `multi-region.md`
+- CI identity scope-creep — refuse; token/SSH scope must be tightly bounded
 
 
 ## DR posture (per ADR-0343)
