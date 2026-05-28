@@ -35,9 +35,17 @@ spec:
           operator: Equal
           value: ci
           effect: NoSchedule
+      volumes:
+        - name: cosign-key
+          secret:
+            secretName: cosign-key
+            items:
+              - key: cosign-key
+                path: cosign-key
       containers:
         - name: buildctl
           image: moby/buildkit:v0.18.2-rootless
+          workingDir: /workspace
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -52,11 +60,22 @@ spec:
                 --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/llm-gateway:dev,push=true,registry.insecure=true" \
                 --import-cache "${CACHE_PARAMS}" \
                 --export-cache "${CACHE_PARAMS},mode=max"
+              cosign sign --key oya-ci/cosign-key registry.oya-registry.svc.cluster.local:5000/llm-gateway:dev
           env:
             - name: GIT_USERNAME
               valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }
             - name: GIT_PASSWORD
               valueFrom: { secretKeyRef: { name: gateway-build-git, key: token } }
+            - name: COSIGN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cosign-key
+                  key: password
+                  optional: true
+          volumeMounts:
+            - name: cosign-key
+              mountPath: /workspace/oya-ci
+              readOnly: true
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
