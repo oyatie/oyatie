@@ -1,0 +1,70 @@
+# ADR-0380 D6 sccache half (image-build companion to PR #249's Dockerfile).
+# Builds the rust-ci agent image (infra/ci/jenkins/agent-image/Dockerfile)
+# via in-cluster BuildKit (per ADR-0381 D1) from the git context, pushes to
+# the in-cluster registry.
+#
+# Cache backend wires to SeaweedFS-on-Talos (ADR-0381 D4) using the same
+# oya-ci-buildkit-cache bucket as the gateway image build, so layers shared
+# across images deduplicate. Cell-pinned (soft) to oya.cell/ci.
+#
+# Re-run: delete + re-apply the Job (or bump the image tag in --output).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rust-ci-image-build
+  namespace: oya-ci
+  labels:
+    oya.adr/decided-by: ADR-0380-D6
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: oya.cell/ci
+                    operator: In
+                    values: ["true"]
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: ci
+          effect: NoSchedule
+      containers:
+        - name: buildctl
+          image: moby/buildkit:v0.18.2-rootless
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              CONTEXT_URL="https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/jason931225/oyatie.git#refs/heads/dev"
+              CACHE_PARAMS="type=s3,region=oya-local,bucket=oya-ci-buildkit-cache,endpoint_url=http://seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333,access_key_id=oya-ci-anon,secret_access_key=oya-ci-anon,use_path_style=true"
+              buildctl --addr "tcp://buildkitd.oya-ci.svc.cluster.local:1234" \
+                build \
+                --frontend dockerfile.v0 \
+                --opt "context=${CONTEXT_URL}" \
+                --opt "context-sub-path=infra/ci/jenkins/agent-image" \
+                --opt "filename=Dockerfile" \
+                --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/rust-ci:dev,push=true,registry.insecure=true" \
+                --import-cache "${CACHE_PARAMS}" \
+                --export-cache "${CACHE_PARAMS},mode=max"
+          env:
+            - name: GIT_USERNAME
+              valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }
+            - name: GIT_PASSWORD
+              valueFrom: { secretKeyRef: { name: gateway-build-git, key: token } }
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: { cpu: "500m", memory: "512Mi" }
+            limits: { memory: "2Gi" }
