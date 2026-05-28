@@ -50,47 +50,20 @@ data:
           "name": "openai",
           "channel": "openai",
           "upstream_base_url": "https://api.openai.com",
-          "bao_key_path": "agent-gateway/openai",
-          "blacklist_threshold": 5,
-          "cooldown_base_millis": 30000,
-          "cooldown_jitter_millis": 10000,
-          "retry": {
-            "retry_on_statuses": [429, 500, 502, 503, 504],
-            "max_attempts": 3,
-            "backoff_base_millis": 200,
-            "backoff_jitter_millis": 150
-          }
+          "bao_key_path": "agent-gateway/openai"
         },
         {
           "name": "anthropic",
           "channel": "anthropic",
           "upstream_base_url": "https://api.anthropic.com",
           "bao_key_path": "agent-gateway/anthropic",
-          "anthropic_version": "2023-06-01",
-          "blacklist_threshold": 5,
-          "cooldown_base_millis": 30000,
-          "cooldown_jitter_millis": 10000,
-          "retry": {
-            "retry_on_statuses": [429, 500, 502, 503, 504],
-            "max_attempts": 3,
-            "backoff_base_millis": 200,
-            "backoff_jitter_millis": 150
-          }
+          "anthropic_version": "2023-06-01"
         },
         {
           "name": "gemini",
           "channel": "gemini",
           "upstream_base_url": "https://generativelanguage.googleapis.com",
-          "bao_key_path": "agent-gateway/gemini",
-          "blacklist_threshold": 5,
-          "cooldown_base_millis": 30000,
-          "cooldown_jitter_millis": 10000,
-          "retry": {
-            "retry_on_statuses": [429, 500, 502, 503, 504],
-            "max_attempts": 3,
-            "backoff_base_millis": 200,
-            "backoff_jitter_millis": 150
-          }
+          "bao_key_path": "agent-gateway/gemini"
         }
       ]
     }

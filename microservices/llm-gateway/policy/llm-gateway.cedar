@@ -1,3 +1,14 @@
+// LANE-1 hardening (2026-05-28): the previous policy carried an implicit
+// `principal in Role::"InternalDogfood"` escape clause that shorted forbid
+// rules — incompatible with the default-deny forbid-wins semantics required
+// by ADR-0183 (Cedar app-authz + Kyverno admission). That bypass is removed.
+//
+// Operators using dogfood principals MUST now grant them explicit Role
+// bindings (admin / ingress_proxy / audit) — no implicit superuser.
+//
+// Migration path tracked in:
+//   registry/placeholder-debt/adr-follow-ups.yaml#llm-gateway-internaldogfood-bypass-removal
+
 // Cedar policy — llm-gateway µservice realm + tenant authorization.
 //
 // Authority: ADR-0007 Cedar fragment coverage, ADR-0373 (key-pool resilience +
