@@ -88,6 +88,8 @@ fn http_response(status_line: &str, extra_headers: &[(&str, &str)], body: &str) 
 /// A tiny mock upstream. For each accepted connection it reads the request
 /// (capturing the `authorization` header), then replies with `script` — a
 /// closure mapping the request count to a raw HTTP/1.1 response string.
+type CapturedHeaders = Arc<std::sync::Mutex<Vec<BTreeMap<String, String>>>>;
+
 async fn spawn_mock_upstream<F>(
     script: F,
 ) -> (String, Arc<AtomicUsize>, Arc<std::sync::Mutex<Vec<String>>>)
@@ -136,6 +138,56 @@ where
     (format!("http://{addr}"), count, seen_auth)
 }
 
+/// A tiny mock upstream that captures every request header with lowercased
+/// names. This is used by channel-selection tests to prove the selected group
+/// determines the provider-specific auth dialect.
+async fn spawn_mock_upstream_capturing_headers<F>(
+    script: F,
+) -> (String, Arc<AtomicUsize>, CapturedHeaders)
+where
+    F: Fn(usize) -> String + Send + Sync + 'static,
+{
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    let count = Arc::new(AtomicUsize::new(0));
+    let seen_headers = Arc::new(std::sync::Mutex::new(Vec::<BTreeMap<String, String>>::new()));
+    let count2 = Arc::clone(&count);
+    let seen2 = Arc::clone(&seen_headers);
+    let script = Arc::new(script);
+
+    tokio::spawn(async move {
+        loop {
+            let Ok((mut socket, _)) = listener.accept().await else {
+                break;
+            };
+            let n = count2.fetch_add(1, Ordering::SeqCst);
+            let script = Arc::clone(&script);
+            let seen = Arc::clone(&seen2);
+            tokio::spawn(async move {
+                let mut buf = vec![0u8; 8192];
+                let read = socket.read(&mut buf).await.unwrap_or(0);
+                let req = String::from_utf8_lossy(&buf[..read]).to_string();
+                let mut headers = BTreeMap::new();
+                for line in req.lines() {
+                    if line.is_empty() {
+                        break;
+                    }
+                    if let Some(colon) = line.find(':') {
+                        let (name, value) = line.split_at(colon);
+                        headers.insert(name.to_ascii_lowercase(), value[1..].trim().to_string());
+                    }
+                }
+                seen.lock().unwrap().push(headers);
+                let response = script(n);
+                let _ = socket.write_all(response.as_bytes()).await;
+                let _ = socket.flush().await;
+            });
+        }
+    });
+
+    (format!("http://{addr}"), count, seen_headers)
+}
+
 fn build_state(
     upstream: &str,
     keys: &[(&str, &str)],
@@ -151,6 +203,63 @@ fn build_state(
     let group = GroupRuntime::new("codex", adapter, retry, policy, material);
     let mut groups = BTreeMap::new();
     groups.insert("codex".to_string(), group);
+    let auth = AuthVerifier::new("admin-tok", vec!["ingress-secret".to_string()]);
+    let metrics = GatewayMetrics::new().unwrap();
+    Arc::new(GatewayState::new(groups, auth, metrics))
+}
+
+fn material(channel: ProviderChannel, keys: &[(&str, &str)]) -> KeyMaterial {
+    let mut map = BTreeMap::new();
+    for (label, key) in keys {
+        map.insert((*label).to_string(), (*key).to_string());
+    }
+    KeyMaterial::from_map(channel, map)
+}
+
+fn build_multi_channel_state(openai: &str, anthropic: &str, gemini: &str) -> Arc<GatewayState> {
+    let retry = RetryPolicyConfig {
+        retry_on_statuses: vec![429, 500, 502, 503, 504],
+        max_attempts: 1,
+        backoff_base_millis: 0,
+        backoff_jitter_millis: 0,
+    };
+    let policy = PoolPolicy::new(3, 60_000, 0);
+    let mut groups = BTreeMap::new();
+    groups.insert(
+        "openai".to_string(),
+        GroupRuntime::new(
+            "openai",
+            ChannelAdapter::new(ProviderChannel::OpenAi, openai.to_string(), None),
+            retry.clone(),
+            policy,
+            material(ProviderChannel::OpenAi, &[("primary", "sk-openai")]),
+        ),
+    );
+    groups.insert(
+        "anthropic".to_string(),
+        GroupRuntime::new(
+            "anthropic",
+            ChannelAdapter::new(
+                ProviderChannel::Anthropic,
+                anthropic.to_string(),
+                Some("2023-06-01".to_string()),
+            ),
+            retry.clone(),
+            policy,
+            material(ProviderChannel::Anthropic, &[("primary", "ak-anthropic")]),
+        ),
+    );
+    groups.insert(
+        "gemini".to_string(),
+        GroupRuntime::new(
+            "gemini",
+            ChannelAdapter::new(ProviderChannel::Gemini, gemini.to_string(), None),
+            retry,
+            policy,
+            material(ProviderChannel::Gemini, &[("primary", "gk-gemini")]),
+        ),
+    );
+
     let auth = AuthVerifier::new("admin-tok", vec!["ingress-secret".to_string()]);
     let metrics = GatewayMetrics::new().unwrap();
     Arc::new(GatewayState::new(groups, auth, metrics))
@@ -318,6 +427,87 @@ async fn metrics_endpoint_exposes_families() {
     // The active-key gauge for the group is exposed; no secret appears.
     assert!(body.contains("group=\"codex\""));
     assert!(!body.contains("sk-aaa"));
+}
+
+#[tokio::test]
+async fn route_group_selects_matching_provider_channel_headers() {
+    let (openai_upstream, openai_count, openai_headers) =
+        spawn_mock_upstream_capturing_headers(|_| http_response("200 OK", &[], "openai-ok")).await;
+    let (anthropic_upstream, anthropic_count, anthropic_headers) =
+        spawn_mock_upstream_capturing_headers(|_| http_response("200 OK", &[], "anthropic-ok"))
+            .await;
+    let (gemini_upstream, gemini_count, gemini_headers) =
+        spawn_mock_upstream_capturing_headers(|_| http_response("200 OK", &[], "gemini-ok")).await;
+    let state = build_multi_channel_state(&openai_upstream, &anthropic_upstream, &gemini_upstream);
+    let base = spawn_gateway(state).await;
+
+    let (status, body) = post(
+        &format!("{base}/proxy/openai/v1/chat/completions"),
+        &[
+            ("x-oya-proxy-key", "ingress-secret"),
+            ("authorization", "Bearer CLIENT-SHOULD-BE-DROPPED"),
+        ],
+        "{}",
+    )
+    .await;
+    assert_eq!((status, body.as_str()), (200, "openai-ok"));
+
+    let (status, body) = post(
+        &format!("{base}/proxy/anthropic/v1/messages"),
+        &[
+            ("x-oya-proxy-key", "ingress-secret"),
+            ("authorization", "Bearer CLIENT-SHOULD-BE-DROPPED"),
+            ("x-api-key", "CLIENT-SHOULD-BE-DROPPED"),
+            ("anthropic-version", "CLIENT-SHOULD-BE-DROPPED"),
+        ],
+        "{}",
+    )
+    .await;
+    assert_eq!((status, body.as_str()), (200, "anthropic-ok"));
+
+    let (status, body) = post(
+        &format!("{base}/proxy/gemini/v1beta/models/gemini-pro:generateContent"),
+        &[
+            ("x-oya-proxy-key", "ingress-secret"),
+            ("authorization", "Bearer CLIENT-SHOULD-BE-DROPPED"),
+            ("x-goog-api-key", "CLIENT-SHOULD-BE-DROPPED"),
+        ],
+        "{}",
+    )
+    .await;
+    assert_eq!((status, body.as_str()), (200, "gemini-ok"));
+
+    assert_eq!(openai_count.load(Ordering::SeqCst), 1);
+    assert_eq!(anthropic_count.load(Ordering::SeqCst), 1);
+    assert_eq!(gemini_count.load(Ordering::SeqCst), 1);
+
+    let openai = openai_headers.lock().unwrap().clone();
+    let anthropic = anthropic_headers.lock().unwrap().clone();
+    let gemini = gemini_headers.lock().unwrap().clone();
+
+    assert_eq!(
+        openai[0].get("authorization").map(String::as_str),
+        Some("Bearer sk-openai")
+    );
+    assert!(!openai[0].contains_key("x-api-key"));
+    assert!(!openai[0].contains_key("x-goog-api-key"));
+
+    assert_eq!(
+        anthropic[0].get("x-api-key").map(String::as_str),
+        Some("ak-anthropic")
+    );
+    assert_eq!(
+        anthropic[0].get("anthropic-version").map(String::as_str),
+        Some("2023-06-01")
+    );
+    assert!(!anthropic[0].contains_key("authorization"));
+
+    assert_eq!(
+        gemini[0].get("x-goog-api-key").map(String::as_str),
+        Some("gk-gemini")
+    );
+    assert!(!gemini[0].contains_key("authorization"));
+    assert!(!gemini[0].contains_key("x-api-key"));
 }
 
 #[tokio::test]
