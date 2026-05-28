@@ -46,3 +46,71 @@ resources:
   limits:
     cpu: 1000m
     memory: 512Mi
+
+# Grafana OSS observability stack subcharts. Versions are pinned in Chart.yaml/Chart.lock.
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+  loki:
+    useTestSchema: true
+    storage:
+      type: filesystem
+  singleBinary:
+    replicas: 1
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  chunksCache:
+    enabled: false
+  resultsCache:
+    enabled: false
+  minio:
+    enabled: false
+  gateway:
+    enabled: true
+
+tempo:
+  enabled: true
+  storage:
+    trace:
+      backend: local
+  minio:
+    enabled: false
+  gateway:
+    enabled: true
+
+mimir:
+  enabled: true
+  minio:
+    enabled: true
+  metaMonitoring:
+    grafanaAgent:
+      installOperator: false
+  rollout_operator:
+    enabled: false
+
+grafana:
+  enabled: true
+  admin:
+    existingSecret: ""
+  persistence:
+    enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://{{ .Release.Name }}-loki-gateway
+        - name: Tempo
+          type: tempo
+          access: proxy
+          url: http://{{ .Release.Name }}-tempo-gateway
+        - name: Mimir
+          type: prometheus
+          access: proxy
+          url: http://{{ .Release.Name }}-mimir-nginx/prometheus

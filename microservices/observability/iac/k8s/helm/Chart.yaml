@@ -9,3 +9,22 @@ annotations:
   oyatie.com/adr-0254: kubernetes-everywhere
   oyatie.com/adr-0349: argocd-application-source
   oyatie.com/license-class: internal
+dependencies:
+  - name: loki
+    version: 7.0.0
+    repository: https://grafana.github.io/helm-charts
+    condition: loki.enabled
+  - name: tempo-distributed
+    alias: tempo
+    version: 1.61.2
+    repository: https://grafana.github.io/helm-charts
+    condition: tempo.enabled
+  - name: mimir-distributed
+    alias: mimir
+    version: 6.0.6
+    repository: https://grafana.github.io/helm-charts
+    condition: mimir.enabled
+  - name: grafana
+    version: 10.5.14
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled
