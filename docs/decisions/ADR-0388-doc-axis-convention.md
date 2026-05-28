@@ -4,6 +4,7 @@ title: Doc-axis convention to prevent doc sprawl
 status: Accepted
 date: 2026-05-28
 authority: founder
+owner: founder
 planning_impact: true
 supersedes: []
 superseded_by: []
@@ -103,7 +104,7 @@ is a gate violation.
 
 ## Notes
 
-Follow-up: promote `docs/ideas/cloud-intelligence-v1-pipeline-2026-05-28.md`
+Completed in chore/doc-consolidation-2026-05-28 (PR coming): 3 idea-pagers promoted to ADR-0389/0390/0391; originals archived to docs/ideas/archive/; 11 Superseded/Deprecated ADRs archived to docs/decisions/archive/.
 (and any sibling idea-pagers) to formal ADRs (using the next available
 ADR id minted at promotion time) before the 14-day timer expires on
 2026-06-11.
