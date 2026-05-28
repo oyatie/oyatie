@@ -42,10 +42,57 @@ data:
       "listen_addr": "0.0.0.0:8080",
       "openbao": {
         "address": "http://openbao.oya-kms.svc.cluster.local:8200",
-        "mount": "secret",
-        "key_refresh_interval_seconds": 300
+        "kv_mount": "secret"
       },
-      "groups": []
+      "key_refresh_secs": 300,
+      "groups": [
+        {
+          "name": "openai",
+          "channel": "openai",
+          "upstream_base_url": "https://api.openai.com",
+          "bao_key_path": "agent-gateway/openai",
+          "blacklist_threshold": 5,
+          "cooldown_base_millis": 30000,
+          "cooldown_jitter_millis": 10000,
+          "retry": {
+            "retry_on_statuses": [429, 500, 502, 503, 504],
+            "max_attempts": 3,
+            "backoff_base_millis": 200,
+            "backoff_jitter_millis": 150
+          }
+        },
+        {
+          "name": "anthropic",
+          "channel": "anthropic",
+          "upstream_base_url": "https://api.anthropic.com",
+          "bao_key_path": "agent-gateway/anthropic",
+          "anthropic_version": "2023-06-01",
+          "blacklist_threshold": 5,
+          "cooldown_base_millis": 30000,
+          "cooldown_jitter_millis": 10000,
+          "retry": {
+            "retry_on_statuses": [429, 500, 502, 503, 504],
+            "max_attempts": 3,
+            "backoff_base_millis": 200,
+            "backoff_jitter_millis": 150
+          }
+        },
+        {
+          "name": "gemini",
+          "channel": "gemini",
+          "upstream_base_url": "https://generativelanguage.googleapis.com",
+          "bao_key_path": "agent-gateway/gemini",
+          "blacklist_threshold": 5,
+          "cooldown_base_millis": 30000,
+          "cooldown_jitter_millis": 10000,
+          "retry": {
+            "retry_on_statuses": [429, 500, 502, 503, 504],
+            "max_attempts": 3,
+            "backoff_base_millis": 200,
+            "backoff_jitter_millis": 150
+          }
+        }
+      ]
     }
 ---
 # ExternalSecret (per ADR-0043) projecting tokens from OpenBao into a k8s

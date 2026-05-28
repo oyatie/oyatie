@@ -69,10 +69,32 @@ permit (
   resource
 );
 
-// --- Cross-realm default-deny ---
-// An ingress token can NEVER perform an admin/audit action, and vice versa. This is the
-// Cedar expression of the brief's "two securitySchemes, realm marked per-operation"
-// (brief §2) — admin ops are forbidden unless the principal is explicitly in the AdminRealm.
+// --- Cross-realm explicit-deny ---
+// Forbid wins in Cedar, so every action family below has an explicit negative
+// boundary in addition to the narrow permits above. This is the Cedar expression
+// of the brief's "two securitySchemes, realm marked per-operation" (brief §2):
+// ingress tokens cannot operate the control/audit plane, admin tokens cannot
+// invoke tenant inference, and audit-reader tokens are read-only for audit.
+
+@id("llm-gateway-forbid-inference-outside-ingress-realm")
+forbid (
+  principal,
+  action in [Action::"InvokeChatCompletion", Action::"InvokeEmbeddings"],
+  resource
+)
+unless {
+  principal in Role::"IngressRealm"
+};
+
+@id("llm-gateway-forbid-list-models-outside-ingress-realm")
+forbid (
+  principal,
+  action == Action::"ListModels",
+  resource
+)
+unless {
+  principal in Role::"IngressRealm"
+};
 
 @id("llm-gateway-forbid-admin-actions-outside-admin-realm")
 forbid (
@@ -94,9 +116,30 @@ unless {
   principal in Role::"AuditReader"
 };
 
-// --- Cross-tenant default-deny for the data plane (brief §6 isolation unit) ---
+@id("llm-gateway-forbid-audit-authority-non-audit-actions")
+forbid (
+  principal in Role::"AuditReader",
+  action in [
+    Action::"InvokeChatCompletion",
+    Action::"InvokeEmbeddings",
+    Action::"ListModels",
+    Action::"ReadPoolStatus",
+    Action::"RefreshKeyPool"
+  ],
+  resource
+);
+
+@id("llm-gateway-forbid-admin-realm-data-plane-actions")
+forbid (
+  principal in Role::"AdminRealm",
+  action in [Action::"InvokeChatCompletion", Action::"InvokeEmbeddings", Action::"ListModels"],
+  resource
+);
+
+// --- Cross-tenant explicit-deny for the data plane (brief §6 isolation unit) ---
 // Any inference action is forbidden when the principal's tenant does not match the
-// resource's tenant, unless the principal is an internal dogfood/admin principal.
+// resource's tenant. There is no internal bypass: the per-tenant key pool is the
+// isolation unit, and exception paths must be modeled as separate actions/resources.
 
 @id("llm-gateway-forbid-cross-tenant-inference")
 forbid (
@@ -105,6 +148,5 @@ forbid (
   resource
 )
 unless {
-  principal.tenant_id == resource.tenant_id ||
-  principal in Role::"InternalDogfood"
+  principal.tenant_id == resource.tenant_id
 };
