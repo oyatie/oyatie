@@ -17,6 +17,8 @@ image:
   registry: registry.oyatie.dev
   repository: oya-cloud-intelligence
   tag: "0.1.0"
+  # Replaced by scripts/build/build-and-push-cloud-intelligence.sh after image publish.
+  # Operator action item per microservices/cloud-intelligence/runbooks/enroll-first-subscription.md step 0.
   digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   pullPolicy: IfNotPresent
   cosign:
