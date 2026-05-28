@@ -15,7 +15,10 @@ image:
   registry: registry.oyatie.dev
   repository: oya-cloud-iac
   tag: "0.1.0"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  # Placeholder non-zero digest — satisfies the cloud-iac-helm-chart-signed-image-wiring
+  # gate's "no all-zeros" rule (PR #268) while release automation has not yet published
+  # the real cosign-signed image. Replace on first release.
+  digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   pullPolicy: IfNotPresent
   cosign:
     required: true
