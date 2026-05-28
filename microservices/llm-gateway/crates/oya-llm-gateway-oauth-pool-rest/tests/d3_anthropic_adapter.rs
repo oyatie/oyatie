@@ -1,8 +1,9 @@
-//! D3 Anthropic provider adapter contract tests (Stage-4 RED).
+//! D3 Anthropic provider adapter contract tests (Stage-5 GREEN).
 //!
-//! These tests define the OAuth refresh state machine contract that Stage-5
-//! GREEN must satisfy. All tests that exercise `todo!()` code FAIL at runtime
-//! but MUST compile.
+//! Tests verify the OAuth refresh state machine: secret store round-trips,
+//! error propagation, and that adapter methods return proper errors when no
+//! real Anthropic server is reachable (no more todo!() panics).
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_llm_gateway_oauth_pool_kernel::{SeatId, TenantId};
 use oya_llm_gateway_oauth_pool_rest::{AnthropicAdapter, OpenBaoSecretStore, RestAdapterError};
@@ -82,24 +83,40 @@ fn d3_adapter_constructs_with_secret_store() {
     // Construction succeeds; no panic.
 }
 
-/// D3-2: refresh_token panics on stub (expected RED).
+/// D3-2: refresh_token returns OAuthRefreshFailed when no Anthropic server is
+/// reachable (Stage-5 GREEN: no longer panics, returns a real error).
 #[test]
-#[should_panic(expected = "Stage-5 GREEN")]
-fn d3_refresh_token_panics_on_stub() {
+fn d3_refresh_token_returns_network_error_without_server() {
     let store = StubSecretStore::with_entry("handle-1", "rt-value");
-    let adapter = AnthropicAdapter::new(store);
-    let _ = adapter.refresh_token("handle-1");
+    let adapter = AnthropicAdapter::with_base_url(store, "http://127.0.0.1:1".to_string());
+    let result = adapter.refresh_token("handle-1");
+    assert!(
+        result.is_err(),
+        "expected refresh_token to fail without a real server"
+    );
+    assert!(
+        matches!(result.unwrap_err(), RestAdapterError::OAuthRefreshFailed(_)),
+        "expected OAuthRefreshFailed"
+    );
 }
 
-/// D3-3: exchange_authorization_code panics on stub (expected RED).
+/// D3-3: exchange_authorization_code returns OAuthRefreshFailed when no
+/// Anthropic server is reachable (Stage-5 GREEN: no longer panics).
 #[test]
-#[should_panic(expected = "Stage-5 GREEN")]
-fn d3_exchange_authorization_code_panics_on_stub() {
+fn d3_exchange_authorization_code_returns_network_error_without_server() {
     let store = StubSecretStore::new();
-    let adapter = AnthropicAdapter::new(store);
+    let adapter = AnthropicAdapter::with_base_url(store, "http://127.0.0.1:1".to_string());
     let tenant = TenantId::new("tenant-acme").unwrap();
     let seat = SeatId::new("seat-001").unwrap();
-    let _ = adapter.exchange_authorization_code(&tenant, &seat, "auth-code");
+    let result = adapter.exchange_authorization_code(&tenant, &seat, "auth-code");
+    assert!(
+        result.is_err(),
+        "expected exchange_authorization_code to fail without a real server"
+    );
+    assert!(
+        matches!(result.unwrap_err(), RestAdapterError::OAuthRefreshFailed(_)),
+        "expected OAuthRefreshFailed"
+    );
 }
 
 /// D3-4: StubSecretStore returns SecretNotFound for unknown handle.
@@ -130,13 +147,16 @@ fn d3_secret_store_roundtrips_token() {
 }
 
 /// D3-7: FailingSecretStore returns SecretStoreUnavailable (simulates vault
-/// sealed / network-partition scenario that Stage-5 GREEN must handle).
+/// sealed / network-partition scenario).
 #[test]
 fn d3_failing_secret_store_returns_unavailable() {
     let err = FailingSecretStore
         .fetch_refresh_token("any-handle")
         .unwrap_err();
-    matches!(err, RestAdapterError::SecretStoreUnavailable(_));
+    assert!(
+        matches!(err, RestAdapterError::SecretStoreUnavailable(_)),
+        "expected SecretStoreUnavailable, got {err:?}"
+    );
 }
 
 /// D3-8: RestAdapterError::PoolError variant wraps SubscriptionPoolError.
@@ -147,5 +167,30 @@ fn d3_rest_adapter_error_wraps_pool_error() {
     assert_eq!(
         e,
         RestAdapterError::PoolError(SubscriptionPoolError::NoEligibleSeat)
+    );
+}
+
+/// D3-9: refresh_token propagates SecretNotFound from the secret store without
+/// making any network call.
+#[test]
+fn d3_refresh_token_propagates_secret_not_found() {
+    let store = StubSecretStore::new(); // empty — handle-missing will return SecretNotFound
+    // Use real base URL — it should never be reached because the store lookup fails first.
+    let adapter = AnthropicAdapter::new(store);
+    let result = adapter.refresh_token("nonexistent-handle");
+    assert_eq!(result.unwrap_err(), RestAdapterError::SecretNotFound);
+}
+
+/// D3-10: refresh_token propagates SecretStoreUnavailable from the secret store.
+#[test]
+fn d3_refresh_token_propagates_store_unavailable() {
+    let adapter = AnthropicAdapter::new(FailingSecretStore);
+    let result = adapter.refresh_token("any-handle");
+    assert!(
+        matches!(
+            result.unwrap_err(),
+            RestAdapterError::SecretStoreUnavailable(_)
+        ),
+        "expected SecretStoreUnavailable"
     );
 }
