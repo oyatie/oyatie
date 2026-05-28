@@ -13,8 +13,12 @@
 #                         bootstrap etcd, fetch kubeconfig + talosconfig. Idempotent-ish.
 #                         --config-patch F (optional) layers a YAML patch file onto the
 #                         base config at apply-config time. Used for ADR-0381 D2 per-node
-#                         cell labels (infra/talos/local/patches/cell-*.yaml). Currently
-#                         wired for the worker role only; control-plane support follows.
+#                         cell labels (infra/talos/local/patches/cell-*.yaml). Wired for
+#                         worker and control-plane roles.
+#   up-multinode          one-command 7-VM Oyatie topology (ADR-0381 D2): 3 CP HA +
+#                         2 worker (tenant) + 1 CI specialty + 1 storage specialty.
+#                         Each VM gets the matching cell patch from ./patches/.
+#                         See MULTINODE-RUNBOOK.md for host sizing assumptions.
 #   down [--name N] [--all]   stop + delete the VM(s) and the local config bundle.
 #   status                show VM (vfkit pids) + node state.
 #
@@ -274,7 +278,11 @@ cmd_up() {
       --kubernetes-version "$K8S_VERSION" --output-dir "$WORKDIR" --force $patch
   fi
   log "Applying control-plane config to $ip"
-  talosctl apply-config --insecure --nodes "$ip" --file "$WORKDIR/controlplane.yaml"
+  if [ -n "$config_patch" ]; then
+    talosctl apply-config --insecure --nodes "$ip" --file "$WORKDIR/controlplane.yaml" --config-patch "@$config_patch"
+  else
+    talosctl apply-config --insecure --nodes "$ip" --file "$WORKDIR/controlplane.yaml"
+  fi
   export TALOSCONFIG="$WORKDIR/talosconfig"
   talosctl config endpoint "$ip"; talosctl config node "$ip"
   log "Bootstrapping etcd (once per cluster)"
@@ -347,11 +355,69 @@ cmd_status() {
   [ -f "$WORKDIR/kubeconfig" ] && { log "Nodes"; KUBECONFIG="$WORKDIR/kubeconfig" kubectl get nodes 2>/dev/null || warn "cluster unreachable"; }
 }
 
+# ── up-multinode (ADR-0381 D2) ───────────────────────────────────────────────
+# One-command bring-up of the 7-VM Oyatie Talos topology per MULTINODE-RUNBOOK.md.
+# Host sizing: recommended baseline 32-GiB+ macOS host (~22 vCPU + 46 GiB total).
+#
+# Order matters: cp-0 bootstraps etcd and generates the cluster config bundle
+# (controlplane.yaml + worker.yaml). cp-1/cp-2 then join the quorum; workers
+# and specialty pool nodes follow.
+cmd_up_multinode() {
+  local script_dir; script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local patches="$script_dir/patches"
+  [ -d "$patches" ] || die "cell patches dir missing: $patches"
+
+  log "ADR-0381 D2 multinode bring-up — 3 CP HA + 2 worker + 1 CI specialty + 1 storage specialty"
+
+  # 1. cp-0 — bootstraps etcd + generates the cluster config bundle.
+  log "[1/7] cp-0 (control plane, 2 vCPU + 2 GiB)"
+  cmd_up --role control-plane --name "${CLUSTER}-cp-0" --cpus 2 --ram-gb 2 --disk-gb 20 \
+         --config-patch "$patches/cell-foundation.yaml"
+
+  # 2. cp-1 + cp-2 — join the etcd quorum.
+  local i=1
+  local n
+  for n in cp-1 cp-2; do
+    i=$((i+1))
+    log "[$i/7] $n (control plane, 2 vCPU + 2 GiB)"
+    cmd_up --role control-plane --name "${CLUSTER}-$n" --cpus 2 --ram-gb 2 --disk-gb 20 \
+           --config-patch "$patches/cell-foundation.yaml"
+  done
+
+  # 3. Tenant workers (2x).
+  for n in worker-0 worker-1; do
+    i=$((i+1))
+    log "[$i/7] $n (worker / tenant, 4 vCPU + 8 GiB)"
+    cmd_up --role worker --name "${CLUSTER}-$n" --cpus 4 --ram-gb 8 --disk-gb 20 \
+           --config-patch "$patches/cell-tenant.yaml"
+  done
+
+  # 4. CI specialty (1x).
+  i=$((i+1))
+  log "[$i/7] ci-0 (CI specialty, 6 vCPU + 16 GiB)"
+  cmd_up --role worker --name "${CLUSTER}-ci-0" --cpus 6 --ram-gb 16 --disk-gb 40 \
+         --config-patch "$patches/cell-ci.yaml"
+
+  # 5. Storage specialty (1x).
+  i=$((i+1))
+  log "[$i/7] storage-0 (storage specialty, 2 vCPU + 8 GiB + 100 GiB disk)"
+  cmd_up --role worker --name "${CLUSTER}-storage-0" --cpus 2 --ram-gb 8 --disk-gb 100 \
+         --config-patch "$patches/cell-storage.yaml"
+
+  log "Multinode topology up. Verify:"
+  printf '  export KUBECONFIG=%s\n' "$WORKDIR/kubeconfig"
+  printf '  kubectl get nodes -L oya.cell/foundation,oya.cell/tenant,oya.cell/ci,oya.cell/storage\n'
+  printf '  kubectl describe nodes | grep -E "^Name:|oya\\.cell/|Taints:"\n'
+  warn "CNI: cluster is cni:none — install Cilium next:"
+  printf '    helm install cilium cilium/cilium --version 1.19.4 -n kube-system -f %s\n' "$(git rev-parse --show-toplevel 2>/dev/null)/infra/talos/cilium-values.yaml"
+}
+
 case "${1:-}" in
-  check)  shift; cmd_check "$@";;
-  setup)  shift; cmd_setup "$@";;
-  up)     shift; cmd_up "$@";;
-  down)   shift; cmd_down "$@";;
-  status) shift; cmd_status "$@";;
-  *) die "usage: $0 <check|setup|up|down|status> [args]   (see header for flags)";;
+  check)        shift; cmd_check "$@";;
+  setup)        shift; cmd_setup "$@";;
+  up)           shift; cmd_up "$@";;
+  up-multinode) shift; cmd_up_multinode "$@";;
+  down)         shift; cmd_down "$@";;
+  status)       shift; cmd_status "$@";;
+  *) die "usage: $0 <check|setup|up|up-multinode|down|status> [args]   (see header for flags)";;
 esac
