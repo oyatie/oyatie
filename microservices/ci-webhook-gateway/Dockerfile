@@ -1,6 +1,7 @@
 # CI Webhook Gateway — multi-stage build. Standalone crate (own Cargo.lock); build
-# context is this directory. Built in-cluster by kaniko (host docker retired, ADR-0378)
-# and pushed to the in-cluster registry; deployed in namespace oya-ci.
+# context is this directory. Built in-cluster by BuildKit (ADR-0381 D1; Kaniko archived
+# 2024; host docker retired per ADR-0378) and pushed to the in-cluster registry;
+# deployed in namespace oya-ci.
 FROM rust:1.95-bookworm AS builder
 WORKDIR /build
 COPY . .

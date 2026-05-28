@@ -1,0 +1,141 @@
+# BuildKit in-cluster image build (ADR-0381 D1 — Kaniko was archived by Google in 2024).
+# BuildKit (Moby, Apache 2) is what Docker itself uses for `docker buildx`; rootless mode
+# is PSA-baseline-compatible (no CAP_SYS_ADMIN, no privileged container).
+#
+# Two K8s objects:
+#   1. buildkitd Deployment + Service — long-lived daemon (one replica; scale later when
+#      ADR-0381 D2 lands the CI specialty node pool).
+#   2. ci-webhook-gateway-build Job — buildctl client that drives the daemon to build
+#      microservices/ci-webhook-gateway from the git context and push to the in-cluster
+#      registry.
+#
+# Cache backend: the `s3` cache backend will be wired to SeaweedFS-on-Talos once
+# ADR-0381 D4 lands (the storage specialty pool). Until then, `--export-cache` /
+# `--import-cache` are intentionally omitted (no remote cache, but no Kaniko either).
+#
+# Re-run a build: delete + re-apply the Job (or bump the image tag in `--output`).
+# Git creds: secret `gateway-build-git` (gh token), same as the retired Kaniko Job.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buildkitd
+  namespace: oya-ci
+  labels:
+    app: buildkitd
+    oya.adr/decided-by: ADR-0381
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: buildkitd
+  template:
+    metadata:
+      labels:
+        app: buildkitd
+      annotations:
+        # Rootless BuildKit requires unconfined seccomp + apparmor in the pod
+        # namespace (the container itself runs as non-root via user namespaces).
+        container.apparmor.security.beta.kubernetes.io/buildkitd: unconfined
+    spec:
+      # When ADR-0381 D2 lands, schedule onto the CI specialty pool:
+      #   nodeSelector: { oya.cell/ci: "true" }
+      #   tolerations: [{ key: dedicated, operator: Equal, value: ci, effect: NoSchedule }]
+      containers:
+        - name: buildkitd
+          image: moby/buildkit:v0.18.2-rootless
+          args:
+            - --addr=tcp://0.0.0.0:1234
+            - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
+            - --oci-worker-no-process-sandbox
+          ports:
+            - containerPort: 1234
+              name: grpc
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: Unconfined
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            exec:
+              command: ["buildctl", "debug", "workers"]
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          livenessProbe:
+            exec:
+              command: ["buildctl", "debug", "workers"]
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+            limits:
+              memory: 4Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: buildkitd
+  namespace: oya-ci
+spec:
+  selector:
+    app: buildkitd
+  ports:
+    - name: grpc
+      port: 1234
+      targetPort: 1234
+---
+# ci-webhook-gateway-build Job — buildctl client connects to buildkitd Service and
+# drives the build from the git context. Replaces the retired Kaniko Job.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ci-webhook-gateway-build
+  namespace: oya-ci
+  labels:
+    oya.adr/decided-by: ADR-0381
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: buildctl
+          # Same image as buildkitd — contains both daemon + client binaries.
+          image: moby/buildkit:v0.18.2-rootless
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              CONTEXT_URL="https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/jason931225/oyatie.git#refs/heads/dev"
+              buildctl --addr "tcp://buildkitd.oya-ci.svc.cluster.local:1234" \
+                build \
+                --frontend dockerfile.v0 \
+                --opt "context=${CONTEXT_URL}" \
+                --opt "context-sub-path=microservices/ci-webhook-gateway" \
+                --opt "filename=Dockerfile" \
+                --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev,push=true,registry.insecure=true"
+          env:
+            - name: GIT_USERNAME
+              valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }
+            - name: GIT_PASSWORD
+              valueFrom: { secretKeyRef: { name: gateway-build-git, key: token } }
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 512Mi
+            limits:
+              memory: 2Gi
