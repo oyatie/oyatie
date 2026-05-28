@@ -152,10 +152,10 @@ Out (v2+):
 - This pipeline doc → the in-flight cloud-intelligence v1 planning ADR (request pipeline + proof layer + receipts; ADR id minted when the ADR file lands).
 - Each stage P0-P7 becomes a deliverable Dx in that planning ADR with its concurrency primitive + proof property + metric spec.
 - Implementation lanes (parallel agent fanout, with absolute-path constraints):
-  - **Lane K** — kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) — `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel/`.
-  - **Lane R** — REST adapter (P0/P3/P6 + the AnthropicAdapter async migration) — `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/`.
+  - **Lane K** — kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) — `microservices/cloud-intelligence/crates/oya-cloud-intelligence-kernel/`.
+  - **Lane R** — REST adapter (P0/P3/P6 + the AnthropicAdapter async migration) — `microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/`.
   - **Lane Z** — proof harness (loom + proptest + chaos) — same crates, in `tests/`.
-  - **Lane A** — admin API + subscription CRUD + window-tracking endpoints — new crate `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-admin-api/`.
+  - **Lane A** — admin API + subscription CRUD + window-tracking endpoints — new crate `microservices/cloud-intelligence/crates/oya-cloud-intelligence-admin-api/`.
   - **Lane C** — console v0 wiring + cloud-intelligence tab — `microservices/devops-console/` (new µservice).
   - **Lane N** — rename sweep `llm-gateway` → `cloud-intelligence` (cosmetic, runs last after all above land).
 

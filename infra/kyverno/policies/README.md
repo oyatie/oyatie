@@ -17,7 +17,7 @@ registry image signing chain.
 3. Re-run the BuildKit Jobs for:
    - `registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev`
    - `registry.oya-registry.svc.cluster.local:5000/rust-ci:dev`
-   - `registry.oya-registry.svc.cluster.local:5000/llm-gateway:dev`
+   - `registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev`
 4. After all three images have signatures, keep the Kyverno
    `verify-oya-registry-images-signed` `ClusterPolicy` in `Enforce` mode.
 
