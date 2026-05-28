@@ -1472,7 +1472,7 @@ microservices/<name>/
 - RFC 9068 — JWT Profile for OAuth 2.0 Access Tokens.
 - RFC 7009 — OAuth 2.0 Token Revocation.
 - Model Context Protocol (Anthropic) specification 2024.
-- OpenID Connect 1.0.
+- OpenID 1.0.
 - W3C WebAuthn Level 3 (per ADR-0188).
 - SPIFFE SPEC v1.6.0 (distinct from delegated-agent).
 

@@ -392,7 +392,7 @@ CI lanes that must green:
 | AWS Cognito | Cognito User Pools + Identity Center | Multi-tenant JWT; tenant isolation; per-tenant config | `docs.aws.amazon.com/cognito` |
 | Auth0 | Auth0 Organizations | Tenant isolation model; organization-level JWT claims; RBAC | `auth0.com/docs/manage-users/organizations` |
 | WorkOS | WorkOS Organizations / SSO | B2B tenant model; SSO + provisioning | `workos.com/docs` |
-| Stripe Connect | Connect platform model | Tenant (Connect account) lifecycle; isolated data; platform-level oversight | `stripe.com/docs/connect` |
+| Stripe | platform model | Tenant (account) lifecycle; isolated data; platform-level oversight | `stripe.com/docs/connect` |
 | Microsoft Entra (Azure AD External ID) | Multi-tenant directory | Tenant isolation + provisioning + per-tenant policies | `learn.microsoft.com/en-us/entra/external-id/` |
 | Neon | Serverless Postgres with branching | Per-tenant Postgres schema isolation; instant provisioning; RLS | `neon.tech/docs` |
 | Citus Data (Microsoft) | Citus multi-tenant Postgres | Shard-key-based tenant distribution; HA via Patroni | `docs.citusdata.com` |

@@ -9,7 +9,7 @@ description: |
 version: 1.0.0
 appVersion: "4.5.0"
 type: application
-home: https://oyatie.dev/microservices/ontology
+home: https://oyatie.com/microservices/ontology
 keywords:
   - ontology
   - cedar
@@ -17,9 +17,9 @@ keywords:
   - oyatie
 maintainers:
   - name: axis-ontology
-    email: axis-ontology@oyatie.dev
+    email: axis-ontology@oyatie.com
   - name: ops-security
-    email: ops-security@oyatie.dev
+    email: ops-security@oyatie.com
 annotations:
   artifacthub.io/license: Apache-2.0
   oyatie.dev/related-adrs: ADR-0140 (retired per ADR-0145),ADR-0107,ADR-0132

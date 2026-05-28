@@ -172,7 +172,7 @@ This anchor is closed for `cloud-secrets` against ADR-0244 §D-3: tenant_id, aud
 - `cell` and `cloud-iac` enforce the runtime cell, ingress, ECH/PQC, and facility posture for `cloud-secrets`.
 
 ### Hyperscaler precedents
-- Precedent 1: Stripe Connect connected-account isolation is the reference pattern for the control shape described here.
+- Precedent 1: Stripe connected-account isolation is the reference pattern for the control shape described here.
 - Precedent 2: AWS Organizations account-boundary pattern is the second reference pattern used to avoid a single-vendor cargo-cult design.
 - The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.

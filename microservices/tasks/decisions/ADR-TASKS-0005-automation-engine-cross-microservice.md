@@ -157,7 +157,7 @@ and prevents quiet over-fitting of one to the other.
 
 ## References
 
-- ADR-0132 (no-suite policy + cross-product refusal).
+- ADR-0132 (no-grouping policy + cross-product refusal).
 - ADR-TASKS-0001 (data model); ADR-TASKS-0006 (auto-assign + EU AI Act).
 - `feedback_workflow_objectgraph_adapter_layer.md` (adapter rule).
 - Temporal — `temporal.io` (durable-execution comparison).

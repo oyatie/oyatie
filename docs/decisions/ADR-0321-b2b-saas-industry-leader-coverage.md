@@ -47,7 +47,7 @@ A.1. ADR-0315 already covers SAP S/4HANA parity and the first nine ERP microserv
 A.2. ADR-0314 makes marketplace the universal deal-settlement substrate, so procurement, commerce, subscriptions, app entitlements, contract obligations, and data licenses settle through DealSet semantics rather than vendor-specific order models.
 A.3. ADR-0316 makes capability tiers the default representation for B2B product labels. A vendor category creates a service only when it proves a distinct operational concern.
 A.4. The doctrine targets full coverage of B2B industry leaders without copying their suite boundaries. Tenants may see familiar labels, but implementation remains flat, tenant-scoped, Cedar-gated, ontology-projected, and independently deployable.
-A.5. Hyperscaler precedents imported here include Salesforce Platform metadata projection, ServiceNow Now Platform workflow projection, Microsoft Graph cross-product object access, Palantir Foundry ontology actions, Snowflake isolated warehouse compute, and AWS/Azure/GCP cell-aware control planes.
+A.5. Hyperscaler precedents imported here include Salesforce Platform metadata projection, ServiceNow Now Module workflow projection, Microsoft Graph cross-product object access, Palantir Foundry ontology actions, Snowflake isolated warehouse compute, and AWS/Azure/GCP cell-aware control planes.
 
 ## Decision
 
@@ -108,7 +108,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Metadata API: deploy/retrieve XML packages (CustomObject, ValidationRule, Flow, ApexClass, ApexTrigger, WorkflowRule, SharingRules).
   - Tooling API: developer-experience surface for Apex/Flow editing.
   - Composite API: `POST /services/data/v59.0/composite/tree/<sobject>` for nested writes (Account+Contact+Opportunity in one call).
-  - Connect (Chatter) REST API: `/services/data/v59.0/chatter/feeds/...`.
+  - (Chatter) REST API: `/services/data/v59.0/chatter/feeds/...`.
   - GraphQL API (Beta in v59): `POST /services/data/v59.0/graphql`.
   - Einstein Prediction Service: `POST /services/data/v59.0/connect/intelligence/predictions/...`.
 
@@ -205,7 +205,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 ### Section D-002 - Salesforce Service Cloud
 - Vendor name and category: Salesforce Service Cloud / Salesforce ecosystem / B2B + B2C case management, customer support, omnichannel routing.
 - Coverage tier: C (composed across crm + itsm + messenger + community + intelligence + contact-center). Capability-tier mapping per ADR-0316: Service Cloud Professional → Oyatie **Bronze** Customer Support; Enterprise → **Silver**; Unlimited + Einstein 1 Service → **Gold**; Service Cloud + Voice + Field Service → **Platinum** (with contact-center + field-service composition).
-- Oyatie destination: `crm` (Case as customer-anchored object); `itsm` (Case as service-record analog with SLA + entitlement); `messenger` (chat + SMS + WhatsApp deflection via Messaging for In-App and Web); `community` (Experience Cloud self-service portal); `intelligence` (Einstein Bots, Einstein Case Classification, Einstein Article Recommendations, Einstein Reply Recommendations); `contact-center` (Service Cloud Voice = Amazon Connect + Salesforce composition).
+- Oyatie destination: `crm` (Case as customer-anchored object); `itsm` (Case as service-record analog with SLA + entitlement); `messenger` (chat + SMS + WhatsApp deflection via Messaging for In-App and Web); `community` (Experience Cloud self-service portal); `intelligence` (Einstein Bots, Einstein Case Classification, Einstein Article Recommendations, Einstein Reply Recommendations); `contact-center` (Service Cloud Voice = Amazon + Salesforce composition).
 
 - **Vendor data model and top objects** (Salesforce Service Cloud schema, API v59.0):
   - `Case` (Id, CaseNumber, AccountId, ContactId, AssetId, ParentId, Status, Priority, Origin, Reason, Type, Subject, Description, SuppliedName, SuppliedEmail, SuppliedPhone, OwnerId, IsClosed, ClosedDate, IsEscalated, MilestoneStatus, EntitlementId).
@@ -233,7 +233,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Messaging for In-App and Web: `POST /services/data/v59.0/conversations/`.
   - Knowledge REST: `GET /services/data/v59.0/support/knowledgeArticles/{articleId}?channel=App`.
   - Omni-Channel REST: `POST /services/data/v59.0/connect/omni/agent/...`.
-  - Service Cloud Voice (Amazon Connect bridge): Connect Streams API + ContactTraceRecord.
+  - Service Cloud Voice (Amazon bridge): Streams API + ContactTraceRecord.
   - Bulk API 2.0 (per D-001) for high-volume Case migration.
   - Streaming/CDC: `/data/CaseChangeEvent`, `/data/EmailMessageChangeEvent`.
   - Einstein Case Classification: server-side prediction at Case create.
@@ -317,7 +317,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Macro/QuickText merge-field break**: `{!Case.Account.Name}` syntax requires translation to Oyatie templating; per-template golden-test.
   - **Entitlement double-decrement** during parallel-run: per-Entitlement idempotency-key on consume; reservation-token TTL = 60s.
   - **Einstein Bots conversation-state hand-off**: bot conversation context (Slots, Variables) requires explicit projection to `oya-shared-intelligence` agent-state.
-  - **Service Cloud Voice CTR (Contact Trace Record) loss**: Amazon Connect CTR retained 24 months; migration must capture pre-cutover CTRs and re-attach to Oyatie call records.
+  - **Service Cloud Voice CTR (Contact Trace Record) loss**: Amazon CTR retained 24 months; migration must capture pre-cutover CTRs and re-attach to Oyatie call records.
 
 - **Migration playbook outline**:
   - **Extract phase**: Tooling — Bulk API 2.0 + Metadata API + Knowledge Connect; format — CSV + XML; duration — ~6 hours per 5M cases; bandwidth — saturates Salesforce edge.
@@ -359,7 +359,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - SOAP API (legacy but still core): `Create()`, `Retrieve()`, `Update()`, `Delete()`, `Perform()` on objects (Subscriber, DataExtensionObject, TriggeredSendDefinition, Send, ImportDefinition, Automation).
   - Server-Side JavaScript (SSJS) and AMPscript embedded in emails/CloudPages.
   - SQL Query Activity (TSQL-flavor on Data Extensions in Automation Studio).
-  - Marketing Cloud Connect (Salesforce-to-SFMC connector pulling Lead/Contact/Custom-Object data).
+  - Marketing Cloud (Salesforce-to-SFMC connector pulling Lead/Contact/Custom-Object data).
   - OAuth 2.0 client_credentials for server-to-server; subdomain pattern `<MID>.auth.marketingcloudapis.com`.
   - Streaming: Event API for real-time triggers (`/interaction/v1/events`).
   - Transactional Messaging API: `POST /messaging/v1/email/messages/{messageKey}`.
@@ -368,7 +368,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 - **Vendor distinctive UX surfaces**:
   - "Journey Builder canvas" drag-drop graph editor (entry source + activities + goals + exit criteria).
   - "Email Studio" content authoring with Content Blocks + AMPscript preview + responsive-template builder.
-  - "Mobile Studio" MobileConnect SMS short-code + MobilePush + GroupConnect (WhatsApp/Line).
+  - "Mobile Studio" MobileSMS short-code + MobilePush + Group(WhatsApp/Line).
   - "Audience Builder" drag-drop segment builder over Contacts + Data Extensions.
   - "Automation Studio" canvas (SQL Query → Data Extract → File Transfer → Email Send chains).
   - "Content Builder" asset library with version-history + approval-workflow.
@@ -438,13 +438,13 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **GDPR right-to-erasure mid-send**: subscriber erasure request arrives during send-window; per-send erasure-gate with audit-event + erasure-after-send guarantee within 30 days.
   - **AMPscript function gaps**: SFMC AMPscript has 300+ functions (Lookup, AttributeValue, ContentBlockByKey); per-function transform table; un-translatable functions surface in `sfmc-ampscript-gap.md`.
   - **SQL Query Activity dialect drift**: SFMC SQL is TSQL-flavor with non-standard functions (FORMATDATE, NOW); per-query golden-test.
-  - **MobileConnect short-code provisioning**: short-codes are operator-specific and require 8-12 week re-provisioning at Oyatie; mitigation — long-code fallback + per-country re-provisioning runbook.
+  - **Mobileshort-code provisioning**: short-codes are operator-specific and require 8-12 week re-provisioning at Oyatie; mitigation — long-code fallback + per-country re-provisioning runbook.
   - **Triggered Send TPS ceiling**: SFMC's TSD ~2k/sec/BU; cutover plan stages high-volume triggers gradually.
   - **CAN-SPAM commercial vs transactional misclassification**: incorrect classification can void footer/opt-out requirements; per-template classification audit.
   - **Tracking-link domain switch**: SEO + bookmarked-links break; 301 redirect with per-link 410-gone after 90 days.
 
 - **Migration playbook outline**:
-  - **Extract phase**: Tooling — SFMC SOAP + REST API + Marketing Cloud Connect + Datorama exports + IP/Domain Reputation Service exports; format — XML/JSON + CSV + DE schema; duration — ~12 hours for 50M subscribers + 200M engagement events; bandwidth — saturates 100 Mbps from SFMC edge.
+  - **Extract phase**: Tooling — SFMC SOAP + REST API + Marketing Cloud + Datorama exports + IP/Domain Reputation Service exports; format — XML/JSON + CSV + DE schema; duration — ~12 hours for 50M subscribers + 200M engagement events; bandwidth — saturates 100 Mbps from SFMC edge.
   - **Mapping phase**: Known field deltas — AMPscript → Oyatie templating DSL with function-gap report; Lossy fields — Datorama harmonizer custom-mappings require manual port; SFMC tracking-link 36-char base62 IDs translated to Oyatie tracking-link UUIDs with redirect map.
   - **Cutover phase**: User re-auth — marketer passkey enrollment + BU permission re-binding; sending-domain DNS re-cutover (SPF + DKIM + DMARC) with SOA reduce to 300s for fast revert; subscriber-key-domain dual-write window.
   - **Verification phase**: Parallel run — 30-day shadow on 5% audience with engagement-event delta < 1% gate; delta detection — per-send open-rate + click-rate + bounce-rate + spam-complaint reconciliation; sunset — BU deletion with 90-day retention + final IP-reputation transfer.
@@ -710,7 +710,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 ### Section D-006 - MuleSoft Anypoint Platform
 - Vendor name and category: MuleSoft Anypoint Platform / Salesforce ecosystem / iPaaS (integration platform-as-a-service) + API management + DataWeave + Mule runtime + Anypoint Exchange + Anypoint Connectors + Anypoint MQ.
 - Coverage tier: D (new microservice composition: `data-pipeline` for ELT/iPaaS routing; `apigw` for API management). Capability-tier mapping per ADR-0316: Anypoint Platform Starter → **Bronze** iPaaS+API; Gold → **Silver**; Platinum → **Gold**; Titanium → **Platinum**.
-- Oyatie destination: `data-pipeline` (primary; DataWeave + Mule-flow analog); `connect` (source/sink adapter registry); `workflow-engine` (orchestration primitives); `ontology` (schema-projection on the wire); `apigw` (API gateway + API portal + policy enforcement); `messenger` (Anypoint MQ → message-bus tier).
+- Oyatie destination: `data-pipeline` (primary; DataWeave + Mule-flow analog); `connector` (source/sink adapter registry); `workflow-engine` (orchestration primitives); `ontology` (schema-projection on the wire); `apigw` (API gateway + API portal + policy enforcement); `messenger` (Anypoint MQ → message-bus tier).
 
 - **Vendor data model and top objects** (Anypoint Platform API):
   - `Organization` (Anypoint Org with master-org + business-group sub-orgs).
@@ -825,8 +825,8 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-007 - Slack
-- Vendor name and category: Slack Technologies / Salesforce ecosystem / team-messaging + workflow platform + Slack Connect federation + Slack Apps marketplace + Huddles + Canvas + Slack AI.
-- Coverage tier: A (already covered by `messenger` + `community` + `plugin-app-store`). Capability-tier mapping per ADR-0316: Free → **Bronze**; Pro → **Silver**; Business+ → **Gold** (Slack Connect + SAML SSO + retention controls); Enterprise Grid + Slack AI → **Platinum**.
+- Vendor name and category: Slack Technologies / Salesforce ecosystem / team-messaging + workflow platform + Slack federation + Slack Apps marketplace + Huddles + Canvas + Slack AI.
+- Coverage tier: A (already covered by `messenger` + `community` + `plugin-app-store`). Capability-tier mapping per ADR-0316: Free → **Bronze**; Pro → **Silver**; Business+ → **Gold** (Slack + SAML SSO + retention controls); Enterprise Grid + Slack AI → **Platinum**.
 - Oyatie destination: `messenger` (1:1 DM + group DM + channel + thread); `community` (open-membership channel + multi-tenant federation analog of Slack Connect); `plugin-app-store` (Slack-app-class extension model under ADR-0249); `workflow-engine` (Slack Workflow Builder analog); `meetings` (Huddles → audio/video session); `wiki` (Canvas → document surface).
 
 - **Vendor data model and top objects** (Slack Web API + Events API + SCIM):
@@ -914,7 +914,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - `Canvas` → `Oyatie::Canvas::document` (with channel-anchor or standalone).
   - `List` → `Oyatie::List::table` (rows + columns + per-cell type).
   - `Huddle` event → `Oyatie::Meeting::session` (audio/video + screen-share state).
-  - Slack Connect channel + invitation → `Oyatie::CrossTenantFederation::grant` per ADR-0313.
+  - Slack channel + invitation → `Oyatie::CrossTenantFederation::grant` per ADR-0313.
 
 - **Specific workflow steps**:
   1. **Extract**: Slack Enterprise Grid Export (full data export for Plus/Grid plans) OR Standard zip export per workspace; for non-Plus tenants, use `conversations.history` API with pagination + rate-limiting (~50 req/min per workspace).
@@ -923,7 +923,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   4. **User identity mapping**: Slack `U0...` → Oyatie principal-id; per-user passkey enrollment with `email` as bridge; bots tracked as `Oyatie::ServicePrincipal`.
   5. **Channel membership backfill**: per-channel-member projected to Cedar group membership.
   6. **App catalog migration**: per-Slack-App manifest.yaml → `oya-shared-plugin-app-store` listing; bot tokens rotated.
-  7. **Slack Connect federation handoff**: each Slack Connect channel mapped to `Oyatie::CrossTenantFederation::grant` per ADR-0313 sovereign-child boundary.
+  7. **Slack federation handoff**: each Slack channel mapped to `Oyatie::CrossTenantFederation::grant` per ADR-0313 sovereign-child boundary.
   8. **Workflow Builder migration**: per-Workflow JSON → Oyatie workflow definition; un-translatable function-apps surface in `slack-workflow-gap.md`.
   9. **Canvas migration**: per-Canvas content (rich-text JSON) → Oyatie canvas.
   10. **Cutover**: per-channel cut-over with member-notification; Slack channel set to read-only; new posts route to Oyatie.
@@ -955,7 +955,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-008 - Heroku
-- Vendor name and category: Heroku / Salesforce ecosystem / Platform-as-a-Service (PaaS) — build + deploy + run + add-on marketplace + Heroku Connect (Salesforce sync) + Heroku Postgres + Heroku Redis + Heroku Kafka + Heroku Pipelines + Review Apps.
+- Vendor name and category: Heroku / Salesforce ecosystem / Platform-as-a-Service (PaaS) — build + deploy + run + add-on marketplace + Heroku (Salesforce sync) + Heroku Postgres + Heroku Redis + Heroku Kafka + Heroku Pipelines + Review Apps.
 - Coverage tier: C (composed across cloud-iac + foundry + cloud-k8s + developer-sdk). Capability-tier mapping per ADR-0316: Eco/Basic → **Bronze**; Standard → **Silver**; Performance → **Gold**; Private Spaces + Shield → **Platinum**.
 - Oyatie destination: `cloud-iac` (per-tenant IaC + per-environment manifest); `foundry` (build + deploy pipeline + per-app GitOps); `cloud-k8s` (runtime substrate; per-app namespace + per-app pod + Cloud Hypervisor isolation per ADR-0254); `developer-sdk` (per-app developer surface + CLI); `marketplace` (Heroku Add-ons → plugin-app-store entitlement per ADR-0314).
 
@@ -985,7 +985,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Git push deploy: `git push heroku main` (Heroku's git endpoint accepts push + triggers build).
   - GitHub integration: webhook-driven build on PR/push.
   - Heroku CLI (`heroku apps:info`, `heroku releases`, `heroku ps:scale`, `heroku addons:create`).
-  - Heroku Connect (Salesforce bi-directional sync): bespoke REST API.
+  - Heroku (Salesforce bi-directional sync): bespoke REST API.
   - Logplex log-streaming protocol (Syslog over HTTPS).
   - Webhooks: `app/created`, `app/updated`, `app/destroyed`, `release/created`, `dyno/created`, `dyno/restart`, `addon/created`.
   - Container Registry (`registry.heroku.com`): Docker push for container-stack apps.
@@ -996,7 +996,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - "Review Apps" per-PR auto-spawned ephemeral env with comments on PR.
   - "Metrics dashboard" with response-time + throughput + dyno-load tiles.
   - "Heroku Elements Marketplace" (add-on catalog).
-  - "Heroku Connect Dashboard" (Salesforce sync mapping editor).
+  - "Heroku Dashboard" (Salesforce sync mapping editor).
   - "Heroku CLI" with `heroku run bash`, `heroku logs --tail`, `heroku ps`, `heroku releases:rollback`.
   - "Heroku Button" one-click deploy from GitHub README.
   - "Procfile" declares process types in repo root.
@@ -1046,7 +1046,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   2. **Land**: per-app definition + per-release slug + per-config-var + per-addon catalog ingested.
   3. **Project**: per-Procfile process-type → Oyatie deployment manifest; per-buildpack → Oyatie build pipeline step (per-language buildpack registry).
   4. **Secret migration**: per-Config-Var copied to OpenBao with per-tenant + per-env scope; original Heroku Config Vars left intact during parallel-run.
-  5. **Add-on migration**: per-addon class — Heroku Postgres → `oya-cloud-data-postgres` managed instance; Heroku Redis → `oya-cloud-data-redis`; Heroku Kafka → `oya-shared-messaging-kafka`; Heroku Connect → `oya-cloud-data-pipeline` Salesforce-sync pipeline; Other add-ons → `oya-shared-plugin-app-store` re-registration.
+  5. **Add-on migration**: per-addon class — Heroku Postgres → `oya-cloud-data-postgres` managed instance; Heroku Redis → `oya-cloud-data-redis`; Heroku Kafka → `oya-shared-messaging-kafka`; Heroku → `oya-cloud-data-pipeline` Salesforce-sync pipeline; Other add-ons → `oya-shared-plugin-app-store` re-registration.
   6. **Pipeline migration**: per-Heroku Pipeline graph → `oya-shared-foundry` promotion graph; per-Review-App config → ephemeral-environment manifest.
   7. **GitOps re-registration**: each app's repo connected to `oya-shared-foundry` Git GitOps controller; webhook re-bound.
   8. **Parallel-run**: shadow-instance on `oya-cloud-k8s` for each app + per-tenant 14-day shadow window.
@@ -1060,7 +1060,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Add-on failure**: per-addon SLA + per-addon failover; per-addon SLA tier mapped to Oyatie cell.
   - **Cross-region deploy skew**: per-region deploy version monitoring; alert on >2 versions skew.
   - **Dyno eviction loss-of-state**: per-dyno stateless-enforce + ephemeral-fs warning at build-time (Heroku Dyno filesystem is ephemeral; restart purges).
-  - **Heroku Connect mapping drift**: Salesforce schema changes break Heroku-Connect mapping; migration validator checks per-mapping vs current Salesforce metadata.
+  - **Heroku mapping drift**: Salesforce schema changes break Heroku-mapping; migration validator checks per-mapping vs current Salesforce metadata.
   - **Buildpack incompatibility**: custom buildpacks (community + private) may not have Oyatie equivalent; per-buildpack inventory + replacement-mapping.
   - **Dyno tier sleep** (Eco dynos sleep after 30 min idle): per-app wake-on-request preserved or upgraded to non-sleeping tier.
   - **Private Space VPC peering**: per-Space network-config (firewall rules, VPN, peerings) requires per-Space migration.
@@ -1262,7 +1262,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Industries CPQ bundle → `Oyatie::ProductBundle::tree` (with depth ≤ 10 enforced).
 
 - **Specific workflow steps**:
-  1. **Extract**: per-Industry-Cloud package inventory; DataPack export per OmniScript/IntegrationProcedure/DataRaptor/CalculationProcedure/CalculationMatrix; per-vertical-entity export with relationship junctions; per-CME catalog export; per-Insurance EPC (Enterprise Product Catalog) export.
+  1. **Extract**: per-Industry-Cloud package inventory; DataPack export per OmniScript/IntegrationProcedure/DataRaptor/CalculationProcedure/CalculationMatrix; per-vertical-entity export with relationship junctions; per-CME catalog export; per-Insurance EPC (Tenant RBAC Governance Catalog) export.
   2. **Land**: artifact bundles in `oya-cloud-data-pipeline`.
   3. **Project**: per-OmniScript translated to Oyatie GuidedFlow DSL; per-DataRaptor → ontology mapping rules.
   4. **Backfill Cedar**: per-Profile + per-PermissionSet projected; per-licensure state added as context attribute.
@@ -1319,7 +1319,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - FSC-specific REST: `GET /services/data/v59.0/sobjects/FinancialAccount/{Id}`.
   - Action API: `POST /services/data/v59.0/actions/standard/PerformBuilderActions` (for FSC Action Plan execution).
   - Einstein Relationship Insights API for graph traversal.
-  - Salesforce Connect (OData External Object) bridges to custodian feeds (Fidelity/Schwab/Pershing/Envestnet).
+  - Salesforce (OData External Object) bridges to custodian feeds (Fidelity/Schwab/Pershing/Envestnet).
 
 - **Vendor distinctive UX surfaces**:
   - "Household Canvas" relationship-graph view with primary/secondary advisor badges.
@@ -1431,7 +1431,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Standard Salesforce REST/SOAP.
   - Health Cloud FHIR-bridge: `GET /services/data/v59.0/fhir/R4/Patient/{id}`, `POST /fhir/R4/Bundle`.
   - USCDI v3 bundle: per-patient FHIR Bundle conformance.
-  - HL7v2 listener via Salesforce Connect or external MLLP-to-REST gateway.
+  - HL7v2 listener via Salesforce or external MLLP-to-REST gateway.
   - X12 EDI 270/271 (eligibility), 278 (prior-auth), 837 (claim submission), 835 (payment advice), 834 (enrollment).
   - DICOM-Web `/dicom-web/studies` (image reference).
   - Salesforce Health Cloud Einstein Risk Stratification API.
@@ -1664,7 +1664,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 
 - **Vendor primary APIs and endpoint shapes**:
   - REST: `GET /services/data/v59.0/sobjects/Network/{Id}`, `POST .../connect/communities/{communityId}/feed-elements`.
-  - Connect REST API: `/services/data/v59.0/connect/communities/{communityId}/...` (high-level feed, group, file, topic operations).
+  - REST API: `/services/data/v59.0/connect/communities/{communityId}/...` (high-level feed, group, file, topic operations).
   - Experience Cloud Bundles deploy via Metadata API.
   - Site.com deprecated; LWR (Lightning Web Runtime) sites use Aura/LWC components.
   - Embedded Service SDK for in-app community widgets.
@@ -1752,7 +1752,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Self-Registration spam**: per-community CAPTCHA + rate-limit + abuse-detect.
 
 - **Migration playbook outline**:
-  - **Extract phase**: Tooling — Bulk API + Connect REST + Metadata API + ExperienceBundle export; format — JSON + LWC source + CSS; duration — ~4 hours per 10 communities + per-content-volume; bandwidth — saturates 30 Mbps.
+  - **Extract phase**: Tooling — Bulk API + REST + Metadata API + ExperienceBundle export; format — JSON + LWC source + CSS; duration — ~4 hours per 10 communities + per-content-volume; bandwidth — saturates 30 Mbps.
   - **Mapping phase**: Known field deltas — Community URL prefixes preserved as redirect paths; Lossy fields — Reputation history (rebuilt from feed events); per-community Recommendations training-data.
   - **Cutover phase**: Per-community DNS + ACM cert; member-notification window 14 days pre-cutover; per-Profile permission projection.
   - **Verification phase**: Parallel run — 30-day shadow with traffic-mirror; cut-over gate — page-render parity + Knowledge-search-result parity + member-login parity; sunset — license termination + 90-day retention.
@@ -1764,9 +1764,9 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-015 - Salesforce Trailhead
-- Vendor name and category: Salesforce Trailhead / Salesforce ecosystem / learning + skill credentialing + Trailblazer-Community-bridge + Trailmix-playlist + MyTrailhead (private-tenant variant) + Trailhead-Academy (instructor-led) + Trailblazer-Connect (talent-marketplace).
-- Coverage tier: D (microservice: `learning-management`). Capability-tier mapping per ADR-0316: public Trailhead → **Bronze**; MyTrailhead branded → **Silver**; MyTrailhead with custom-content + assessments + cohort-mgmt → **Gold**; MyTrailhead + Trailhead-Academy instructor-led + Trailblazer-Connect hiring → **Platinum**.
-- Oyatie destination: `learning-management` (Course + Module + Unit + Trail + Trailmix + Badge + Superbadge + Certification); `identity` (W3C-VC credential binding + Trailblazer-ID federation); `community` (Trailblazer-Community surfaces tie into `community` per D-014); `intelligence` (skill-graph + next-best-course + adaptive-difficulty); `marketplace` (Trailblazer-Connect job-board + paid-course enrollment + ADR-0249 multi-category marketplace surface).
+- Vendor name and category: Salesforce Trailhead / Salesforce ecosystem / learning + skill credentialing + Trailblazer-Community-bridge + Trailmix-playlist + MyTrailhead (private-tenant variant) + Trailhead-Academy (instructor-led) + Trailblazer-(talent-marketplace).
+- Coverage tier: D (microservice: `learning-management`). Capability-tier mapping per ADR-0316: public Trailhead → **Bronze**; MyTrailhead branded → **Silver**; MyTrailhead with custom-content + assessments + cohort-mgmt → **Gold**; MyTrailhead + Trailhead-Academy instructor-led + Trailblazer-hiring → **Platinum**.
+- Oyatie destination: `learning-management` (Course + Module + Unit + Trail + Trailmix + Badge + Superbadge + Certification); `identity` (W3C-VC credential binding + Trailblazer-ID federation); `community` (Trailblazer-Community surfaces tie into `community` per D-014); `intelligence` (skill-graph + next-best-course + adaptive-difficulty); `marketplace` (Trailblazer-job-board + paid-course enrollment + ADR-0249 multi-category marketplace surface).
 
 - **Vendor data model and top objects** (Trailhead + MyTrailhead):
   - `Trail` (curated learning path; Id, Title, Slug, Level: Beginner/Intermediate/Advanced, Tags[], Audience, Description, EstimatedTimeMinutes).
@@ -1883,7 +1883,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Cutover phase**: Per-tenant credential authority switch; dual-issue window 30 days; verifier endpoint DNS update with 90-day caching honored.
   - **Verification phase**: Parallel run — 30-day shadow cohort with credential dual-issue; cut-over gate — per-credential VC-verification parity + per-item attempt-result parity ≥ 99.5%; sunset — Trailhead/MyTrailhead subscription termination + 7-year credential retention per learner-rights pack.
 
-- **Capability-tier mapping per ADR-0316**: public Trailhead → **Bronze**; MyTrailhead branded → **Silver**; MyTrailhead with custom-content + assessments + cohort-mgmt → **Gold**; MyTrailhead + Trailhead-Academy instructor-led + Trailblazer-Connect hiring → **Platinum**.
+- **Capability-tier mapping per ADR-0316**: public Trailhead → **Bronze**; MyTrailhead branded → **Silver**; MyTrailhead with custom-content + assessments + cohort-mgmt → **Gold**; MyTrailhead + Trailhead-Academy instructor-led + Trailblazer-hiring → **Platinum**.
 
 - Naming justification: `learning-management` is canonical; `salesforce-trailhead` + `mytrailhead` + `trailhead-academy` are benchmark aliases.
 
@@ -2383,7 +2383,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - `sys_app_file` → `Oyatie::PluginApp::asset` (with content-hash + signature).
 
 - **Specific workflow steps**:
-  1. **Extract**: per-scoped-application Update Set XML export with topological-sort manifest + Now Store license inventory + REST/SOAP message registration export + System-Properties export + ATF test suite + UI Builder pages + Performance Analytics indicators + Source Control branch export if Git-integrated.
+  1. **Extract**: per-scoped-application Update Set XML export with topological-sort manifest + Now Store license inventory + REST/SOAP message registration export + System-Properties export + ATF test set + UI Builder pages + Performance Analytics indicators + Source Control branch export if Git-integrated.
   2. **Land**: per-application + per-scope partitioned ingest with supply-chain provenance (SBOM signed).
   3. **Project**: tables → ontology entities; Business Rules → workflow server-hooks with cycle-detection; Flows → workflow-studio flows; UI Builder pages → form-schema policies.
   4. **Backfill Cedar**: ACLs (row + field + operation) projected to Cedar policies with explicit evaluation-order test fixture.
@@ -3594,8 +3594,8 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-028 - Workday Adaptive Planning
-- Vendor name and category: Workday Adaptive Planning (Adaptive Insights lineage; acquired 2018) / Workday ecosystem / FP&A — Budget + Forecast + Driver-Based Planning + Scenario + Rolling-Forecast + Workforce-Planning (cross-link to D-026 HCM) + Capital-Planning + Sales-Planning + Operational-Planning + Long-Range Strategic Planning + Cash-Forecast + Consolidation + Reporting + OfficeConnect (Excel/PowerPoint live-binding).
-- Coverage tier: D (microservice: `financial-planning`). Capability-tier mapping per ADR-0316: Adaptive Core (Sheet + Account + Level + Version + simple-formula) → **Bronze**; Adaptive Pro (with Calculated Accounts + Process Trackers + Scenario-Fork + Actuals-Load) → **Silver**; Adaptive Enterprise (with Multi-Currency + Multi-Entity + Consolidation + OfficeConnect + Workforce-Plan integration + Capital-Plan) → **Gold**; Adaptive Enterprise Plus (with Rolling-Forecast + Long-Range Strategic Plan + AI-Forecast + Driver-AI + Sales-Plan + Operational-Plan) → **Platinum**.
+- Vendor name and category: Workday Adaptive Planning (Adaptive Insights lineage; acquired 2018) / Workday ecosystem / FP&A — Budget + Forecast + Driver-Based Planning + Scenario + Rolling-Forecast + Workforce-Planning (cross-link to D-026 HCM) + Capital-Planning + Sales-Planning + Operational-Planning + Long-Range Strategic Planning + Cash-Forecast + Consolidation + Reporting + Office(Excel/PowerPoint live-binding).
+- Coverage tier: D (microservice: `financial-planning`). Capability-tier mapping per ADR-0316: Adaptive Core (Sheet + Account + Level + Version + simple-formula) → **Bronze**; Adaptive Pro (with Calculated Accounts + Process Trackers + Scenario-Fork + Actuals-Load) → **Silver**; Adaptive Enterprise (with Multi-Currency + Multi-Entity + Consolidation + Office+ Workforce-Plan integration + Capital-Plan) → **Gold**; Adaptive Enterprise Plus (with Rolling-Forecast + Long-Range Strategic Plan + AI-Forecast + Driver-AI + Sales-Plan + Operational-Plan) → **Platinum**.
 - Oyatie destination: `financial-planning` (FP&A primary — Sheet + Cube + Driver + Scenario + Version + Process); `finance-erp` (actuals source — Journal + Worktag from D-027); `hcm` (workforce-plan headcount source from D-026); `data-warehouse` (planning data-mart + actuals-join); `intelligence` (AI-forecast + driver-AI + variance-explanation); `workflow-engine` (planning-cycle Process-Tracker orchestration); `office-connect-bridge` (Excel/PowerPoint live-binding seam).
 
 - **Vendor data model and top objects** (Adaptive Planning cube model):
@@ -3623,7 +3623,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Adaptive Public API (SOAP + REST): `https://api.adaptiveinsights.com/api/v36` (login + getSheets + exportData + importData + executeReport + listVersions + listLevels).
   - Workday-Bridge (post-acquisition): Adaptive ↔ Workday FIN actuals-sync via Workday-Adaptive Connector (WAC).
   - Adaptive Integration Framework: pre-built connectors to Workday FIN + NetSuite + SAP + Oracle + Salesforce + custom DataFile + SFTP.
-  - OfficeConnect API: Excel/PowerPoint add-in with cell-range ↔ Sheet/Account binding; refresh-on-open + drill-through.
+  - OfficeAPI: Excel/PowerPoint add-in with cell-range ↔ Sheet/Account binding; refresh-on-open + drill-through.
   - Adaptive Discovery API: data-discovery + dashboard embed.
   - SAML SSO + SCIM (limited — Adaptive uses Workday Identity post-acquisition).
   - Webhook: planning-cycle event notifications (process-tracker-state-change).
@@ -3700,11 +3700,11 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   5. **Formula AST migration**: per-Calculated-Account dependency-graph build + topological-sort + Oyatie expression-language transformation; per-formula unit-test on representative data.
   6. **Scenario tree migration**: per-Scenario parent-version + fork-date preserved; archived scenarios moved to cold-tier; active scenarios pinned to cap.
   7. **Personnel-sheet binding rebuild**: per-Position cross-link to HCM (per D-026); compensation-driver reference rebound; open-position cost-projection recomputed.
-  8. **OfficeConnect binding migration**: per-Excel/PowerPoint workbook cell-range preserved; refresh-on-open semantics preserved; drill-through endpoint rebound.
+  8. **Officebinding migration**: per-Excel/PowerPoint workbook cell-range preserved; refresh-on-open semantics preserved; drill-through endpoint rebound.
   9. **Actuals-load pipeline rebind**: per-source (Workday FIN / NetSuite / SAP / Oracle / Salesforce / DataFile) connector re-registered; per-period mapping preserved.
   10. **Driver-AI training data export**: historical drivers + actuals → Oyatie intelligence µservice for forecast-prediction retraining.
   11. **Parallel run**: full annual-planning-cycle on shadow tenant with submitter-routing + actuals-load + scenario-fork + write-back parity ≥ 99.9% (number-level reconciliation).
-  12. **Cutover**: per-cycle cut-over at plan-version-boundary; OfficeConnect workbook re-binding window; saved-report URL-redirect.
+  12. **Cutover**: per-cycle cut-over at plan-version-boundary; Officeworkbook re-binding window; saved-report URL-redirect.
   13. **Sunset**: Adaptive tenant termination with archive of 3 prior plan-versions + 7 years of actuals-load history.
 
 - **Vendor-specific failure modes**:
@@ -3713,7 +3713,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Actuals-load period-misalignment** (source period vs target period offset by 1): per-load period-pin at ingest + reconciliation-step + alert-on-drift.
   - **Currency-translation rate-set version drift**: per-rate-set version-pin per scenario + recompute pass + variance-disclosure.
   - **Write-back-to-ERP collision** (concurrent write from two FP&A users): per-write idempotency-key + last-writer-wins with audit-log + manager-conflict-resolve UI.
-  - **OfficeConnect binding break on Sheet-rename**: per-binding historical-redirect with single-hop guarantee + manual-rebind tracker.
+  - **Officebinding break on Sheet-rename**: per-binding historical-redirect with single-hop guarantee + manual-rebind tracker.
   - **Process-Tracker assignee left organization mid-cycle**: per-tracker auto-reassign to manager-of-assignee + delegation-fallback per D-026 HCM.
   - **Level-scope mid-cycle reorg** (level renamed/moved during plan-cycle): per-cycle level-snapshot-at-launch + delta-report.
   - **Allocation-spread seasonality curve drift** (historical-spread basis shifts year-over-year): per-rule curve-version-pin + manual-curve-override.
@@ -3722,13 +3722,13 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Capital-Plan vs Fixed-Asset realization drift** (planned vs actual capex): per-asset variance tracking + retroactive-reclassify gate.
   - **Long-Range Plan formula assumes data that doesn't exist** (10-year horizon references 2-year-history): per-formula horizon-validation + extrapolation-confidence-band.
   - **Calculated_Account formula references archived Version** (computed value becomes undefined): per-formula reference-validation at compute-time + null-handling-policy.
-  - **OfficeConnect drill-through data-leak** (Excel-user drills to data Cedar would block in-app): per-drill-through Cedar-check at refresh + redaction-on-out-of-scope.
+  - **Officedrill-through data-leak** (Excel-user drills to data Cedar would block in-app): per-drill-through Cedar-check at refresh + redaction-on-out-of-scope.
 
 - **Migration playbook outline**:
-  - **Extract phase**: Tooling — Adaptive Public API (SOAP + REST) + Workday-Adaptive Connector (WAC) + Adaptive Integration Framework + OfficeConnect API; format — XML (SOAP) + JSON (REST) + XLSX (OfficeConnect); duration — ~6-12 hours per 500 Sheets + 5k Accounts + 200 Levels + 30 Versions + 10 Scenarios + 100 Calculated_Accounts; bandwidth — moderate (Adaptive is more permissive than Workday core).
-  - **Mapping phase**: Known field deltas — Sheet/Account/Level/Version cube model flattened to per-dimension ontology entities with cross-link; Calculated_Account formulas transformed to Oyatie expression-language with semantic-preservation; Process-Tracker → workflow-studio with dependency-graph preserved; lossy — Adaptive Discovery dashboards rebuilt in Oyatie data-warehouse; OfficeConnect bindings preserved but require re-bind on Sheet-rename.
-  - **Cutover phase**: Per-cycle cut-over at plan-version-boundary (typically Q4 or fiscal-year-start); OfficeConnect workbook re-binding window (2-week dual-access); saved-report URL-redirect for 6 months; write-back-to-ERP cutover aligned with finance-erp cutover from D-027.
-  - **Verification phase**: Parallel run — full annual-planning-cycle with submitter-routing + actuals-load + scenario-fork + write-back parity ≥ 99.9% (number-level) + Calculated_Account result-parity ≥ 99.99% (formula-drift acceptable < 0.01%) + Process-Tracker state-parity 100% + OfficeConnect refresh-parity 100%; sunset — Adaptive tenant termination + archive of 3 prior plan-versions + 7 years of actuals-load history per SOX.
+  - **Extract phase**: Tooling — Adaptive Public API (SOAP + REST) + Workday-Adaptive Connector (WAC) + Adaptive Integration Framework + OfficeAPI; format — XML (SOAP) + JSON (REST) + XLSX (OfficeConnect); duration — ~6-12 hours per 500 Sheets + 5k Accounts + 200 Levels + 30 Versions + 10 Scenarios + 100 Calculated_Accounts; bandwidth — moderate (Adaptive is more permissive than Workday core).
+  - **Mapping phase**: Known field deltas — Sheet/Account/Level/Version cube model flattened to per-dimension ontology entities with cross-link; Calculated_Account formulas transformed to Oyatie expression-language with semantic-preservation; Process-Tracker → workflow-studio with dependency-graph preserved; lossy — Adaptive Discovery dashboards rebuilt in Oyatie data-warehouse; Officebindings preserved but require re-bind on Sheet-rename.
+  - **Cutover phase**: Per-cycle cut-over at plan-version-boundary (typically Q4 or fiscal-year-start); Officeworkbook re-binding window (2-week dual-access); saved-report URL-redirect for 6 months; write-back-to-ERP cutover aligned with finance-erp cutover from D-027.
+  - **Verification phase**: Parallel run — full annual-planning-cycle with submitter-routing + actuals-load + scenario-fork + write-back parity ≥ 99.9% (number-level) + Calculated_Account result-parity ≥ 99.99% (formula-drift acceptable < 0.01%) + Process-Tracker state-parity 100% + Officerefresh-parity 100%; sunset — Adaptive tenant termination + archive of 3 prior plan-versions + 7 years of actuals-load history per SOX.
 
 - **Capability-tier mapping per ADR-0316**: Adaptive Core → **Bronze**; Adaptive Pro → **Silver**; Adaptive Enterprise → **Gold**; Adaptive Enterprise Plus → **Platinum**.
 
@@ -4490,7 +4490,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - JQL: full-text + field-based query language; `assignee = currentUser() AND status != Done ORDER BY priority DESC`.
   - Webhooks: per-event (issue-created / updated / deleted / commented / transitioned / etc.) outbound POST.
   - Forge (Atlassian-hosted apps): manifest-based + sandboxed JS runtime.
-  - Connect (legacy hybrid apps): JWT-authenticated iframe + REST callback.
+  - (legacy hybrid apps): JWT-authenticated iframe + REST callback.
   - Jira Cloud Migration Assistant (JCMA): bulk export/import tool.
   - Atlassian Marketplace API: per-app install / uninstall / licensing.
   - SCIM 2.0 + SAML SSO via Atlassian Access.
@@ -4576,7 +4576,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   6. **Custom-field migration**: per-customfield context preserved; per-customfield options preserved; per-customfield value-history preserved.
   7. **Sprint/Board migration**: per-board column-status-mappings + swimlanes + quick-filters preserved; in-flight active sprints carried-over with state-pin; closed sprints preserved as historical.
   8. **JQL → OQL transformation**: per-saved-filter JQL parsed to AST + transformed to Oyatie-Query-Language; per-filter subscription preserved; per-customfield reference resolved (if customfield deleted, manual-resolve UI).
-  9. **Marketplace-app inventory + replacement**: per-installed-app inventory + per-app replacement-mapping to plugin-app-store; gap-list with feature-loss-disclosure; Forge apps re-deploy on Oyatie runtime; Connect apps OAuth re-grant.
+  9. **Marketplace-app inventory + replacement**: per-installed-app inventory + per-app replacement-mapping to plugin-app-store; gap-list with feature-loss-disclosure; Forge apps re-deploy on Oyatie runtime; apps OAuth re-grant.
   10. **Automation-rule migration**: per-rule trigger-condition-action transformed to workflow-studio rule; smart-values resolved; in-flight runs paused + drained pre-cutover.
   11. **Issue-link + Smart-link rebind**: per-link historical-redirect with single-hop guarantee; per-Smart-Link external-URL → auto-card-render rebound.
   12. **Attachment migration**: per-attachment binary moved to object-store; per-attachment hash-pin + virus-scan re-run.
@@ -4775,7 +4775,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-036 - Confluence
-- Vendor name and category: Atlassian Confluence (Cloud + Data Center) / Atlassian ecosystem / team wiki + documentation + knowledge management — Space + Page hierarchy (Page Tree) + Template + Blueprint + Macros + Inline Comments + Page Restrictions (per-page + inherited from space) + Page Tree + Labels + Spaces (Site / Personal / Team) + Whiteboards + Databases (newer feature, table-with-relations) + Smart-Links + Mentions + Page Watch (subscribe) + Drafts + Auto-Suggest (Atlassian Intelligence) + Confluence Cloud Migration Assistant (CCMA) + Atlassian Marketplace apps + Forge / Connect macro framework.
+- Vendor name and category: Atlassian Confluence (Cloud + Data Center) / Atlassian ecosystem / team wiki + documentation + knowledge management — Space + Page hierarchy (Page Tree) + Template + Blueprint + Macros + Inline Comments + Page Restrictions (per-page + inherited from space) + Page Tree + Labels + Spaces (Site / Personal / Team) + Whiteboards + Databases (newer feature, table-with-relations) + Smart-Links + Mentions + Page Watch (subscribe) + Drafts + Auto-Suggest (Atlassian Intelligence) + Confluence Cloud Migration Assistant (CCMA) + Atlassian Marketplace apps + Forge / macro framework.
 - Coverage tier: A (already covered: `wiki` + `community` + `drive` + capability tier on `learning-management`). Capability-tier mapping per ADR-0316: Wiki Core (Space + Page + Tree + Comment + Attachment + Label) → **Bronze**; Wiki Pro (with Templates + Blueprints + Inline Comments + Macros + Page Restrictions + Page Watch + Mentions) → **Silver**; Wiki Enterprise (with Whiteboards + Databases + Smart-Links + AI-Summary + Cross-Space Search + Archive Cadence) → **Gold**; Wiki Enterprise Plus (with FDA-Part-11 e-sign on SOP + ITAR space-scoping + Audit-Log + Atlassian Intelligence + Knowledge-Graph) → **Platinum**.
 - Oyatie destination: `wiki` (page + space + tree + version-tree + template + blueprint); `drive` (attachments + asset versions + binary storage); `community` (comment + inline-comment + reaction + page-watch + mention); `intelligence` (semantic search + AI-summary + auto-tag + related-page recommend); `plugin-app-store` (macro + Confluence-app analog per ADR-0249); `whiteboard` (Confluence Whiteboards analog — interactive surface); `database` (Confluence Databases analog — when more table-of-records than free-form-page).
 
@@ -4805,7 +4805,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Atlassian Document Format (ADF): JSON-based rich-content schema.
   - Confluence Storage Format (legacy): XML-based content (for older pages and macros).
   - Forge macros (newer): manifest-based with sandboxed JS runtime.
-  - Connect macros (legacy): JWT-authenticated iframe.
+  - macros (legacy): JWT-authenticated iframe.
   - CCMA (Confluence Cloud Migration Assistant): bulk export/import.
   - Webhooks: per-event (page-created / updated / archived / restored / commented / liked / restriction-changed).
   - SCIM 2.0 + SAML SSO via Atlassian Access.
@@ -4889,7 +4889,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   4. **Backfill Cedar**: per-space + per-page + per-restriction + per-role + per-action policy; FDA-Part-11 e-sign on SOP pages; ITAR space-scoping; per-jurisdiction GDPR / KR-PIPA / data-residency packs activated.
   5. **Page-version-tree migration**: per-page version-tier strategy (full / snapshot / delta) with archival for pages > 1000 versions; restoration-allowed preserved.
   6. **Template + Blueprint migration**: per-template mandatory-fields + variable-placeholders preserved; system-blueprints rebuilt natively; custom-blueprints preserved.
-  7. **Macro migration**: per-Marketplace-macro inventory + replacement-mapping to plugin-app-store; gap-list with manual-rewrite tracker; Forge macros re-deploy on Oyatie runtime; Connect macros OAuth re-grant; legacy storage-format macros transformed to ADF.
+  7. **Macro migration**: per-Marketplace-macro inventory + replacement-mapping to plugin-app-store; gap-list with manual-rewrite tracker; Forge macros re-deploy on Oyatie runtime; macros OAuth re-grant; legacy storage-format macros transformed to ADF.
   8. **Inline-comment migration**: per-comment selection-anchor + resolved-flag preserved; anchor-text-hash recomputed against new-body for drift-detect.
   9. **Whiteboard migration**: per-whiteboard content-snapshot exported (where format permits) → whiteboard µservice with format-shim; legacy non-interactive whiteboards rendered as page-attachments.
   10. **Database migration**: per-database schema + rows + views preserved → database µservice; view-types preserved.
@@ -5257,8 +5257,8 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - REST APIs: `https://api.atlassian.com/ex/jira/{cloudid}/...` (Jira); `https://api.bitbucket.org/2.0/...` (Bitbucket); `https://api.atlassian.com/ex/confluence/{cloudid}/...` (Confluence); `https://api.opsgenie.com/v2/...` (Opsgenie); `https://your-domain.atlassian.net/gateway/api/compass/...` (Compass).
   - GraphQL API: `/gateway/api/graphql` — unified cross-product graph (newer surface; covers cross-product references + Compass + Atlassian Analytics).
   - Smart Link Resolver API: per-URL-pattern → card-render JSON.
-  - Forge Platform: manifest.yml + per-module storage + per-tenant rollout + per-app permission grant.
-  - Connect (legacy): JWT-iframe + REST callback.
+  - Forge Platform: manifest.yml + per-tenant RBAC storage + per-tenant rollout + per-app permission grant.
+  - (legacy): JWT-iframe + REST callback.
   - Atlassian Access: SCIM + SAML + Audit Log streaming + IP allowlist + Data-Residency-policy.
   - Atlassian Intelligence API: per-AI-action invocation with source-context + confidence-score.
   - Atlassian Analytics: per-data-lake SQL-query endpoint (read-only, cross-product).
@@ -5325,7 +5325,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - `Cross_Product_Webhook` → `Oyatie::ApiGw::cross_product_webhook`.
 
 - **Specific workflow steps** (Open DevOps displacement journey):
-  1. **Inventory**: per-tenant inventory of Jira projects (D-034) + Bitbucket workspaces (D-037) + Confluence spaces (D-036) + Opsgenie teams + Compass components + JPD projects + installed Forge/Connect apps + Atlassian Analytics dashboards + Atlassian Access org config.
+  1. **Inventory**: per-tenant inventory of Jira projects (D-034) + Bitbucket workspaces (D-037) + Confluence spaces (D-036) + Opsgenie teams + Compass components + JPD projects + installed Forge/apps + Atlassian Analytics dashboards + Atlassian Access org config.
   2. **Cross-product link extraction**: per-Cross_Product_Link export via GraphQL `/gateway/api/graphql`; per-link source + target + link-type + tenant preserved.
   3. **Per-subsystem extraction**: leverage D-034 + D-036 + D-037 + D-085-Opsgenie playbooks; coordinate timing for cross-product consistency window.
   4. **Compass component extraction**: per-component dependency-graph + scorecard + event-history; per-team ownership binding.
@@ -5333,7 +5333,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   6. **Atlassian Intelligence audit-trail**: per-AI-action history retained for compliance; per-action confidence + reviewer + reviewed-at.
   7. **Atlassian Analytics extraction**: per-dashboard + per-chart SQL → Oyatie Analytics query transformation; per-data-lake schema mapped.
   8. **Atlassian Access export**: SAML + SCIM + audit-stream + IP-allowlist + data-residency policy → Oyatie identity config.
-  9. **Forge / Connect app inventory**: per-app manifest + tenant-installs → marketplace; per-app gap-list + replacement-mapping + re-deploy on Oyatie Forge-runtime.
+  9. **Forge / app inventory**: per-app manifest + tenant-installs → marketplace; per-app gap-list + replacement-mapping + re-deploy on Oyatie Forge-runtime.
   10. **Smart-Link provider extraction**: per-URL-pattern auto-card-renderer + auth-method → Oyatie smart-link registry.
   11. **Cross-product permission intersection backfill**: per-link compute effective permission (Jira-view AND Confluence-view AND Bitbucket-view), record in Cedar policy.
   12. **Cross-product webhook re-register**: per-Webhook URL + filter + auth-token → Oyatie cross-product event-bus.
@@ -5373,7 +5373,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-040 - Microsoft Dynamics 365
-- Vendor name and category: Microsoft Dynamics 365 / Microsoft ecosystem / CRM + ERP suite (Sales / Customer Service / Marketing / Field Service / Finance / Supply Chain Management / Commerce / Human Resources / Project Operations / Customer Insights — Data + Journeys / Business Central / Fraud Protection / Customer Voice / Sales Insights / Customer Service Insights / Connected Spaces / Intelligent Order Management / Remote Assist).
+- Vendor name and category: Microsoft Dynamics 365 / Microsoft ecosystem / CRM + ERP platform (Sales / Customer Service / Marketing / Field Service / Finance / Supply Chain Management / Commerce / Human Resources / Project Operations / Customer Insights — Data + Journeys / Business Central / Fraud Protection / Customer Voice / Sales Insights / Customer Service Insights / Connected Spaces / Intelligent Order Management / Remote Assist).
 - Coverage tier: C (composed across `crm` + `finance-erp` (per ADR-0315) + `marketing-automation` + `itsm` + `field-service` + `commerce` (marketplace) + `hcm` + per-app capability tier). Capability-tier mapping per ADR-0316: per-D365-app license tier maps via lookup — D365 Sales Professional → **Bronze**; D365 Sales Enterprise → **Silver**; D365 Sales Premium → **Gold**; D365 Sales Premium + Copilot for Sales → **Platinum** (mirrored for each D365 app).
 - Oyatie destination: per-D365-app routing — Sales → `crm` (Lead + Opportunity + Account + Contact + Quote + Order + Invoice); Customer Service → `itsm` + `crm`; Marketing / Customer Insights → `marketing-automation`; Field Service → `field-service` + `cloud-iot`; Finance + Supply Chain + Project Operations + Business Central → `finance-erp` per ADR-0315; HR → `hcm`; Commerce → `commerce` + `pos`; Customer Voice → `survey`; Sales Insights / Service Insights → `intelligence`; Dataverse → `ontology`; Power Automate → `workflow-engine`; Power Apps → `workflow-studio`; Power BI → `analytics`; Copilot for D365 → `intelligence`; AppSource → `marketplace`.
 
@@ -5636,7 +5636,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   17. **Sunset**: per-environment + per-app Power Apps license sunset; Dataverse retention per D-040 cutover.
 
 - **Vendor-specific failure modes**:
-  - **Power-Fx formula-semantics drift** (formula behavior diverges between source and target): per-formula compatibility-shim + golden-test suite + per-built-in-function mapping registry + lossy-disclosure UI.
+  - **Power-Fx formula-semantics drift** (formula behavior diverges between source and target): per-formula compatibility-shim + golden-test set + per-built-in-function mapping registry + lossy-disclosure UI.
   - **Premium-connector license-bleed** (citizen-dev uses premium connector without license): per-connector license-check at runtime + per-user license-bind audit + UI degraded-mode.
   - **Dataverse-table relationship-cardinality mismatch** (1:N vs N:N drift on import): per-relationship cardinality-pin at import + per-pair validator.
   - **Solution-import dependency-graph break** (managed solution layer ordering wrong): per-solution topological-import with rollback + per-component-version pin.
@@ -5797,7 +5797,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   18. **Sunset**: Power BI capacity + license sunset; per-tenant dataset retention per policy (7 years for SOX-bound financial reports).
 
 - **Vendor-specific failure modes**:
-  - **DAX-measure precision drift** (target SQL semantics ≠ DAX context-transition): per-measure golden-test on per-filter-context test-suite + per-time-intelligence corner-case audit.
+  - **DAX-measure precision drift** (target SQL semantics ≠ DAX context-transition): per-measure golden-test on per-filter-context test-set + per-time-intelligence corner-case audit.
   - **RLS-policy bypass via DirectQuery** (DirectQuery mode different RLS path than Import mode): per-mode RLS-check + per-mode golden-test.
   - **OLS column-leak via cross-table-relationship** (OLS-hidden column referenced via measure from non-OLS table): per-relationship OLS-propagation audit.
   - **Gateway data-source credential leak**: per-gateway credential-pin + OpenBao reference + per-credential audit on use.
@@ -5972,7 +5972,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Cutover phase**: Per-flow cut-over with trigger re-bind; per-RPA-bot re-deploy + machine-group re-provision; per-AI-Builder model re-publish; per-custom-connector re-publish; per-DLP-policy re-apply; per-approval in-flight migration with respond-link rewrite + dual-link window.
   - **Verification phase**: Parallel run — 60-day shadow with per-flow trigger-fire parity + per-action result parity ≥ 99.9% + per-RPA-bot UI-interaction parity (per-step screenshot diff < 1%) + per-AI-Builder invocation parity + per-approval response parity 100% + per-DLP-policy enforcement parity 100%; sunset — Power Automate license sunset; per-tenant flow-run-history retention per policy.
 
-- Workflow template library: `flow.publish-with-test-suite`; `flow.rpa-bot-orchestrate`; `flow.business-process-flow-orchestrate`; `flow.ai-builder-form-processor-bind`; `flow.error-handling-with-retry-and-dead-letter`; `flow.consumption-budget-enforce`; `flow.approval-with-timeout-and-escalation`; `flow.process-mining-recording-redact`; `flow.unattended-rpa-two-person-credential-check`.
+- Workflow template library: `flow.publish-with-test-set`; `flow.rpa-bot-orchestrate`; `flow.business-process-flow-orchestrate`; `flow.ai-builder-form-processor-bind`; `flow.error-handling-with-retry-and-dead-letter`; `flow.consumption-budget-enforce`; `flow.approval-with-timeout-and-escalation`; `flow.process-mining-recording-redact`; `flow.unattended-rpa-two-person-credential-check`.
 - UX shell adaptation: white-collar back-office + citizen-developer; desktop-primary flow-designer with step-graph; per-environment dev/test/prod; mobile run-history monitor + approval-respond.
 - Pack overlay applicable: SOC-2 + ISO-27001 + GDPR + KR-PIPA; per-connector DLP-policy; per-RPA-bot privileged-credential vault (RPA-Vault pack); per-AI-Builder pack-allows-AI-training/processing gate; SOX for finance-bound flows; HIPAA for PHI-bound flows.
 - Naming justification: `workflow-engine` + `workflow-studio` are canonical; `microsoft-power-automate` and `microsoft-flow` are benchmark aliases.
@@ -6376,7 +6376,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - "Pipelines Runs" — pipeline-list with per-run status + logs + artifacts + stages + duration.
   - "Pipelines Editor" — per-pipeline YAML or Classic editor + Variables + Variable Groups + Approvals + Templates.
   - "Releases Definitions" — Classic Release UI with stages + pre/post approvals + gates + retention.
-  - "Test Plans" — per-plan suite-tree + test-cases + per-run results + traceability matrix.
+  - "Test Plans" — per-plan set-tree + test-cases + per-run results + traceability matrix.
   - "Artifacts Feeds" — per-feed package-list + per-package versions + per-version details + Upstream sources.
   - "Project Settings" — Teams + Areas + Iterations + Processes + Permissions + Notifications + Boards configuration.
   - "Organization Settings" — Billing + Users + Groups + OAuth + Audit log + Extensions + Policies.
@@ -7069,7 +7069,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - `Conditional_Access_Signal_Source` (Source_ID, Signal_Type {Device-Compliance / App-Protection-Policy-State / Device-Risk-Score / User-Risk-Score / Sign-In-Risk}, Emit_Frequency, Bound_Conditional_Access_Policies[]).
   - `Filter` (Filter_ID, Display_Name, Platform, Rule_Syntax (KQL-like)).
   - `Group_Assignment` (Assignment_ID, Group_Reference, Target_Type {AllUsers / AllDevices / Group / Exclusion}, Intent {Include / Exclude}, Filter_Reference).
-  - `Remote_Action` (Action_ID, Action_Type {Sync / Lock / Reset-Passcode / Locate / Wipe-Full / Wipe-Protected / Wipe-Corporate-Data-Only / Retire / Remote-Help-Connect / Run-Script-Detection / Rotate-Bitlocker-Recovery-Key / Send-Custom-Notification / Restart / Shutdown / Update-Account / Recover-Passcode}, Device_Reference, Initiated_By, Initiated_DateTime, Status {Pending / Active / Completed / Failed / Cancelled}, Result_Details, Two_Person_Rule_Approved_By).
+  - `Remote_Action` (Action_ID, Action_Type {Sync / Lock / Reset-Passcode / Locate / Wipe-Full / Wipe-Protected / Wipe-Corporate-Data-Only / Retire / Remote-Help-/ Run-Script-Detection / Rotate-Bitlocker-Recovery-Key / Send-Custom-Notification / Restart / Shutdown / Update-Account / Recover-Passcode}, Device_Reference, Initiated_By, Initiated_DateTime, Status {Pending / Active / Completed / Failed / Cancelled}, Result_Details, Two_Person_Rule_Approved_By).
   - `Endpoint_Analytics_Score` (Tenant_Score / Per-Device-Score, Sub-Scores {Startup-Performance / Application-Reliability / Work-From-Anywhere / Battery-Health / Resource-Performance}, Recommendations[]).
   - `Microsoft_Tunnel_Site` (Site_ID, Display_Name, Internal_Network_CIDR_Ranges[], DNS_Servers[], TLS_Certificate_Reference, Connection_Type {Per-App-VPN / Full-Tunnel / Split-Tunnel}, Assigned_Devices[]).
   - `Endpoint_Privilege_Mgmt_Policy` (Policy_ID, Elevation_Rules[Rule_ID → File-Hash + Path + Publisher + Justification-Required + Auto-Approve-Conditions], Assigned_Users[]).
@@ -7256,7 +7256,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - Microsoft Graph PowerShell SDK: `Microsoft.Graph.*` modules (Authentication / Users / Groups / Applications / Identity.SignIns / Identity.Governance / Identity.DirectoryManagement).
   - AzureAD + AzureADPreview PowerShell modules (legacy; deprecated in favor of Graph SDK).
   - Microsoft Authentication Library (MSAL.NET / MSAL.js / MSAL.Python / MSAL.Java / MSAL.Go / MSAL.iOS / MSAL.Android).
-  - OpenID Connect Discovery: `https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration`.
+  - OpenID Discovery: `https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration`.
   - SAML 2.0 Federation Metadata: `https://login.microsoftonline.com/{tenant}/federationmetadata/2007-06/federationmetadata.xml`.
   - OAuth 2.0 device-code, authorization-code, client-credentials, on-behalf-of, refresh-token flows.
   - SCIM 2.0 provisioning endpoint per-application (push from Entra to downstream SaaS).
@@ -7352,7 +7352,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   11. **Entitlement-Package extraction**: per-Package catalog + resource-roles + assignment-policies + pending-requests.
   12. **Identity-Risk-Detection extraction**: per-Detection risk-type + level + state + detection-timing + activity-type + user + IP + location (retained per regulatory mandate).
   13. **Verified-ID extraction**: per-Issuer config + Credential-schema + Holder-Allow-List + Verifier-Allow-List + Revocation-Status-Endpoint.
-  14. **Cross-Tenant-Sync extraction**: per-Partner-Tenant configuration + sync-cycle history + B2B-Direct-Connect config.
+  14. **Cross-Tenant-Sync extraction**: per-Partner-Tenant configuration + sync-cycle history + B2B-Direct-config.
   15. **Per-Federation-Cred re-issuance**: per-FIC re-issue with overlap window (GitHub Actions / AWS / GCP / Kubernetes external identity providers re-register).
   16. **Per-Passkey re-registration plan**: per-User re-prompt with grace-period + fallback-to-MFA-only window + per-device re-attest.
   17. **Per-Application token-issuer rotation**: per-App dual-issuer window (old + new authority URLs) with staged cut-over + sign-out + sign-in trigger.
@@ -7571,7 +7571,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-053 - Adobe Marketo Engage
-- Vendor name and category: Adobe Marketo Engage (formerly Marketo Lead Management, Marketo Engage post-Adobe-acquisition 2018) / Adobe Experience Cloud / B2B + B2B2C marketing-automation + Account-Based Marketing (ABM) + Revenue-Cycle-Analytics + Adobe-Sensei Predictive (Predictive Content + Predictive Audiences + Account-AI) + Marketo Sales Connect + Marketo Measure (formerly Bizible — multi-touch attribution) + Bizible-AI + Adobe-Mix-Modeler.
+- Vendor name and category: Adobe Marketo Engage (formerly Marketo Lead Management, Marketo Engage post-Adobe-acquisition 2018) / Adobe Experience Cloud / B2B + B2B2C marketing-automation + Account-Based Marketing (ABM) + Revenue-Cycle-Analytics + Adobe-Sensei Predictive (Predictive Content + Predictive Audiences + Account-AI) + Marketo Sales + Marketo Measure (formerly Bizible — multi-touch attribution) + Bizible-AI + Adobe-Mix-Modeler.
 - Coverage tier: D (microservice: `marketing-automation` per ADR-0299). Capability-tier mapping per ADR-0316: Marketo Select (basic email + nurture + scoring) → **Bronze**; Marketo Prime (Select + Smart-Lists + Engagement-Programs + Landing-Pages + Forms + basic-CRM-sync) → **Silver**; Marketo Ultimate (Prime + ABM + Predictive-Content + Predictive-Audiences + Revenue-Cycle-Explorer + advanced CRM-sync + Bizible-attribution) → **Gold**; Marketo Ultimate + Bizible-AI + Mix-Modeler + Account-AI + Adobe-Sensei-GenAI → **Platinum**.
 - Oyatie destination: `marketing-automation` (Engagement Programs + Smart Campaigns + Smart Lists + Default Programs + Email Programs + Webinar Programs); `crm` (Lead + Account + Opportunity sync with Salesforce/Dynamics/HubSpot per D-001/D-040/D-062); `intelligence` (Adobe-Sensei Predictive-Content + ABM-scoring + Predictive-Audiences + Account-AI replacements); `data-pipeline` (Revenue-Cycle-Explorer model + Marketo-Measure attribution feed); `comms-email` + `comms-sms` + `comms-push` (delivery rails); `marketplace` (LaunchPoint partner ecosystem ↔ Oyatie plugin marketplace per ADR-0249); `consent-and-privacy` (Marketo Subscription Center + GDPR consent ledger).
 
@@ -8067,7 +8067,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Per-Recipient mass-update race** (workflow updates recipient while delivery is fetching): per-recipient row-lock + serializable isolation + dead-letter retry.
   - **Workflow long-running orphan** (workflow stuck for days, never completes): per-workflow TTL + dead-letter + manual-resume-or-abort.
   - **Direct-mail postal-sortation-error** (CASS / NCOA address-validation gap): per-vendor validation-suite + per-delivery address-error report.
-  - **Personalization-block conditional-render leak** (wrong recipient sees wrong content): per-template conditional-resolution test-suite + per-recipient render-preview.
+  - **Personalization-block conditional-render leak** (wrong recipient sees wrong content): per-template conditional-resolution test-set + per-recipient render-preview.
   - **Tracking-URL signing-key rotation break** (old links 404): per-key dual-sign window + URL-redirect.
   - **Multi-Org-Unit data-scope leak** (OU-A delivery accidentally sends to OU-B recipients): per-OU Cedar default-deny + audit + visibility-test cohort.
   - **Send-Time-Optimization model staleness** (model trained on old data, suggests bad send-time): per-model TTL + retrain cadence + freshness-floor.
@@ -8235,7 +8235,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - **Activity-Map per-region click-overlay drift after design change** (page-layout changed, click coordinates misaligned): per-page coordinate-pin + design-change detection + manual re-align.
   - **Anomaly-Detection false-positive storm** (over-sensitive config alerts hundreds of false-anomalies): per-config sensitivity calibration + suppression-window + alert-fatigue mitigation.
   - **Adobe-Launch rule-extension dependency-break** (extension upgrade breaks rule): per-extension version-pin + per-library-build CI test + rollback.
-  - **Web-SDK datastream identity-map collision** (two visitors merged due to identity-map mis-config): per-identity-map test-suite + cross-device-stitching audit.
+  - **Web-SDK datastream identity-map collision** (two visitors merged due to identity-map mis-config): per-identity-map test-set + cross-device-stitching audit.
   - **DWH export PII leak** (export includes IP / device-ID without scrub): per-export PII-scrub + dual-admin approval + audit.
   - **VRS curation drift** (parent RSID adds new eVar; VRS curation auto-includes it without re-curation): per-VRS curation-pin + change-approval.
   - **Mobile SDK lifecycle event over-fire on app-cold-start** (lifecycle event fires multiple times): per-SDK lifecycle-state-machine + dedup + audit.
@@ -8758,7 +8758,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
 
 ### Section D-060 - Adobe Creative Cloud
 - Vendor name and category: Adobe Creative Cloud — Photoshop + Illustrator + InDesign + Premiere Pro + After Effects + XD + Acrobat Pro + Lightroom + Lightroom Classic + Audition + Animate + Character Animator + Dreamweaver + Substance 3D Suite (Painter / Designer / Sampler / Stager / Modeler / Assets) + Express + Firefly + Frame.io (collaboration) + Behance + Adobe Stock + Adobe Fonts + Creative Cloud Libraries + Creative Cloud Assets + Creative Cloud Marketplace (Adobe Exchange) + Adobe ID for organizations + per-seat License Management / Adobe Creative Cloud / creative production suite for design + photo + video + audio + 3D + web + GenAI.
-- Coverage tier: D (microservice: `design-collaboration` for assets + version + review + brand-system + collaboration; future Wave-3-H may carve out `media-production` for video / audio if scale demands). Capability-tier mapping per ADR-0316: CC Photography (Lightroom + Photoshop) → **Bronze**; CC All-Apps (full suite + 100GB-1TB cloud) → **Silver**; CC for Teams (admin console + per-seat license + asset-library sharing) → **Gold**; CC for Enterprise (Federated-ID + SSO + bulk-license + sandbox-isolation + Frame.io + Substance-3D + Firefly Enterprise + commercial-use rights) → **Platinum**.
+- Coverage tier: D (microservice: `design-collaboration` for assets + version + review + brand-system + collaboration; future Wave-3-H may carve out `media-production` for video / audio if scale demands). Capability-tier mapping per ADR-0316: CC Photography (Lightroom + Photoshop) → **Bronze**; CC All-Apps (full platform + 100GB-1TB cloud) → **Silver**; CC for Teams (admin console + per-seat license + asset-library sharing) → **Gold**; CC for Enterprise (Federated-ID + SSO + bulk-license + sandbox-isolation + Frame.io + Substance-3D + Firefly Enterprise + commercial-use rights) → **Platinum**.
 - Oyatie destination: `design-collaboration` (Asset + Version + Review + Comment + Brand-Asset + Library + Linked-Asset graph); `drive` (file storage with rendition + version + retention); `intelligence` (Firefly generative + Sensei content-aware + auto-tagging + content-credentials); `marketplace` (Creative Cloud Marketplace / Adobe-Exchange third-party plugins ↔ Oyatie plugin marketplace per ADR-0249); `identity` (Adobe-ID + Federated-ID + SSO + per-seat license-management); `community` (Behance public-portfolio + creative-community); `consent-and-privacy` (per-asset rights-attestation + per-Firefly commercial-use-eligibility); `payments` (Adobe Stock licensing + Marketplace plugin purchases).
 
 - **Vendor data model and top objects** (Creative Cloud asset + collaboration model):
@@ -9126,7 +9126,7 @@ D.0. Each dossier below is normative. Tier A means already covered, Tier B means
   - `Deal_Stage` (Stage_ID, Pipeline-Reference, Display-Name, Probability-Auto, Required-Properties[], Stage-Order).
   - `Pipeline` (Pipeline_ID, Display-Name, Object-Type {Deal / Ticket / Custom-Object}, Stages[Deal-Stage-Reference], Default-Owner).
   - `Ticket` (Ticket_ID, Subject, Description, Pipeline-Reference, Ticket-Status-Reference, Priority, Owner-Reference, Source {Email / Form / Chat / Phone / API / Custom}, Associated-Contact / Company / Deal / Conversation, SLA-Reference, Created-DateTime, Closed-DateTime).
-  - `Sequence` (Sequence_ID, Name, Steps[Step-Type {Email / Task / LinkedIn-Connect / LinkedIn-InMail / Call-Task / Manual-Task / Custom}, Delay-After-Previous, Day-of-Week-Constraints], Default-Time-of-Day, Default-Time-Zone, Throttling (per-day-per-rep cap), Branding, Active-Enrollment-Count).
+  - `Sequence` (Sequence_ID, Name, Steps[Step-Type {Email / Task / LinkedIn-/ LinkedIn-InMail / Call-Task / Manual-Task / Custom}, Delay-After-Previous, Day-of-Week-Constraints], Default-Time-of-Day, Default-Time-Zone, Throttling (per-day-per-rep cap), Branding, Active-Enrollment-Count).
   - `Sequence_Enrollment` (Enrollment_ID, Sequence-Reference, Contact-Reference, Enrolled-By, Current-Step, Status {Active / Paused / Completed / Cancelled / Unenrolled-by-Reply / Unenrolled-by-Meeting-Booked / Unenrolled-Manual}, Started-DateTime, Unenrolled-Reason).
   - `Task` (Task_ID, Subject, Type {Email / Call / To-Do / Linked-In / Custom}, Owner-Reference, Associated-Object-Reference, Due-DateTime, Status {Not-Started / In-Progress / Waiting / Completed / Deferred}, Priority, Reminder-Lead-Time, Auto-Created-by-Sequence: bool).
   - `Call` (Call_ID, Direction {Inbound / Outbound}, Status {Connected / No-Answer / Voicemail / Busy / Failed / Canceled / Wrong-Number}, Duration_Seconds, Disposition, From_Number, To_Number, Linked-Object-Reference, Recording-Reference, Transcript-Reference, Notes, Owner-Reference, Created-DateTime).
@@ -10029,7 +10029,7 @@ HIPAA pack adds `phi_redaction_in_view_or_masking_policy_attached`. PCI pack add
 
 **Vendor data model — 24 top objects.** `account` (per-cloud account container); `workspace` (per-region per-cloud Databricks workspace); `metastore` (Unity Catalog root, one per region per account); `catalog` (UC top-level container, three-level namespace: catalog.schema.table); `schema` (within catalog); `delta-table` (managed vs external; Delta-Lake format with transaction-log); `iceberg-table` (UniForm support); `view`; `materialized-view`; `streaming-table`; `external-location` (S3/ADLS/GCS path with credential); `storage-credential`; `volume` (governed file storage, replaces DBFS); `function` (UDF); `model` (registered MLflow model in UC, with versions); `model-serving-endpoint` (REST endpoint with provisioned-throughput or pay-per-token); `mlflow-experiment` (run-tracker container); `mlflow-run` (single training run with params + metrics + artifacts); `cluster` (interactive vs job; Photon-enabled SQL warehouse separate); `sql-warehouse` (DBSQL compute: Classic / Pro / Serverless); `dlt-pipeline` (declarative ETL with @dlt.table decorator); `job` (Databricks Workflows orchestration unit); `notebook` (multi-language: Python + SQL + R + Scala); `repo` (git-backed code repo); `dashboard` (AI/BI Dashboards with auto-chart); `genie-space` (text-to-SQL workspace); `vector-search-index` (Mosaic AI hybrid vector + lexical); `inference-table` (auto-captured request/response of model endpoint); `agent-evaluation` (Mosaic AI Agent Evaluation framework); `lineage-edge` (UC table-to-table or notebook-to-table); `tag` (governance); `secret-scope` + `secret`; `cleanroom`; `app` (Databricks App: data-app hosted in workspace).
 
-**Vendor APIs and named SDKs.** REST API 2.0 / 2.1 (`workspace`, `clusters`, `jobs`, `unity-catalog`, `serving-endpoints`, `mlflow`, `sql-warehouses`, `dbsql/queries`, `permissions`, `secrets`, `repos`, `volumes`, `dashboards`, `pipelines`, `vector-search`). Databricks CLI (`databricks` v0.x with bundle deploy). Databricks SDK for Python, Java, Go, R. Databricks Connect for IDE integration. JDBC/ODBC drivers for DBSQL. Asset Bundles (`databricks.yml`) for IaC. Spark SQL + Spark DataFrame API + Spark Structured Streaming. Delta Sharing (open-protocol for cross-org data share). dbt-databricks adapter. PySpark + Pandas-on-Spark. mlflow.* Python API for experiment + registry + deploy. UC system tables (`system.access.audit`, `system.billing.usage`).
+**Vendor APIs and named SDKs.** REST API 2.0 / 2.1 (`workspace`, `clusters`, `jobs`, `unity-catalog`, `serving-endpoints`, `mlflow`, `sql-warehouses`, `dbsql/queries`, `permissions`, `secrets`, `repos`, `volumes`, `dashboards`, `pipelines`, `vector-search`). Databricks CLI (`databricks` v0.x with bundle deploy). Databricks SDK for Python, Java, Go, R. Databricks for IDE integration. JDBC/ODBC drivers for DBSQL. Asset Bundles (`databricks.yml`) for IaC. Spark SQL + Spark DataFrame API + Spark Structured Streaming. Delta Sharing (open-protocol for cross-org data share). dbt-databricks adapter. PySpark + Pandas-on-Spark. mlflow.* Python API for experiment + registry + deploy. UC system tables (`system.access.audit`, `system.billing.usage`).
 
 **18 distinctive UX surfaces.** Databricks Workspace home; Notebook IDE (Jupyter-shape with cell-execution + magic-commands + visualization-inline); SQL Editor with auto-complete + query-history + saved-queries; Unity Catalog Explorer (catalog → schema → table → column hierarchical browser + lineage-tab + tag-tab); Cluster Manager; SQL Warehouse Manager (with Photon-enabled toggle + Serverless option); Jobs UI (with task-graph + run-history + retry-policy); DLT Pipeline editor; Workflows builder (job-task DAG); MLflow Experiments UI (with run-comparison + parallel-coordinates); Model Registry UI; Mosaic AI Model Serving config; Mosaic AI Vector Search index browser; Mosaic AI Agent Studio; Genie text-to-SQL workspace; AI/BI Dashboards designer; Databricks Apps catalog + deployment; Databricks Marketplace browser; Delta Sharing recipient + provider UI; Cleanrooms config; Account Console + audit-log viewer.
 
@@ -11807,7 +11807,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 
 - **Workflow steps for displacement journey** (22 numbered steps):
   1. Provision Oyatie tenant + `siem` + `observability` + `secops` + `intelligence` + `workflow-engine` + `data-pipeline` + `developer-sdk` + `apigw` + `compliance` µservices with Splunk-feature-parity matrix (Indexes + Sourcetypes + Events + Metrics + Saved-Searches + Dashboards + Lookups + Macros + Eventtypes + Tags + Field-Extractions + Notables + Risk-Objects + SOAR-Playbooks + SOAR-Containers + Adaptive-Response + Correlation-Searches + Clustering + Universal-Forwarders + HEC + Datamodels + Federated-Search + Observability-APM/RUM/Synthetic/Log-Observer/Infra/Network + ML-Toolkit + AI-Assistant).
-  2. Export Splunk deployment via REST API + DB Connect + filesystem snapshot: indexes-list + indexes.conf + inputs.conf + outputs.conf + props.conf + transforms.conf + savedsearches.conf + macros.conf + tags.conf + eventtypes.conf + datamodels + lookups + dashboards + apps + roles + authentication-stanzas + SOAR-playbooks + ES-correlation-searches + ITSI-services + Observability-detectors + RUM-apps + Synthetic-monitors + audit-stream + AI-Assistant-history.
+  2. Export Splunk deployment via REST API + DB + filesystem snapshot: indexes-list + indexes.conf + inputs.conf + outputs.conf + props.conf + transforms.conf + savedsearches.conf + macros.conf + tags.conf + eventtypes.conf + datamodels + lookups + dashboards + apps + roles + authentication-stanzas + SOAR-playbooks + ES-correlation-searches + ITSI-services + Observability-detectors + RUM-apps + Synthetic-monitors + audit-stream + AI-Assistant-history.
   3. Per-Index: re-create in Oyatie `siem` with bucket-policy mapped to Oyatie tiered-storage (hot=SSD, warm=SSD, cold=HDD/S3, frozen=tenant-cold-archive); preserve retention + CMEK.
   4. Per-Sourcetype: import linebreaker + timestamp-rules + KV_MODE + field-extractions; golden-test on representative event sample for parse-fidelity.
   5. Per-Field-Extraction: transpile regex + EXTRACT rules to Oyatie SIEM field-extraction DSL; per-extraction golden-test.
@@ -14055,9 +14055,9 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-100 - Heap (Heap Analytics)
-- Vendor name and category: Heap Inc. (Contentsquare-acquired) — Heap Analytics + Autocapture (Heap's defining feature: codeless retroactive event capture of all user interactions: clicks, form-submits, page-views, taps, swipes) + Virtual Events + Heap Snapshots (saved analyses) + Heap Charts + Funnels + Journeys + Retention + Segmentation + Cohorts + Behavioral Segmentation + Heap CDP-style Sync to BigQuery / Snowflake / Redshift / S3 + Heap IQ (AI insights — recently rebranded under Contentsquare AI) + Session Replay (Contentsquare integration) + Hot Path Analysis + Engagement Score + Conversion Pulse + Anomalies + Heap Connect (warehouse-native) + Heap iOS / Android / Web SDK + Heap Insights + Definitions / Property Renaming / Event Renaming.
-- Coverage tier: B (capability fit on `observability` (product-analytics anchor + autocapture-uniquely + funnels + journeys + retention + cohorts + engagement-score + anomalies anchor — Heap is the autocapture-pioneer category leader) + `intelligence` (Heap IQ + Contentsquare AI + anomaly detection — BYOK per ADR-0255 §D-4) + `workflow-engine` (Alerts + Anomaly notifications) + `developer-sdk` (Heap SDK + REST API + Heap Connect) + `data-pipeline` (Heap Connect warehouse-native sync) + `apigw` (per-project env-ID + API token) + `compliance` (audit + per-region residency US/EU)). Capability-tier mapping per ADR-0316: Free → **Bronze**; Growth → **Silver**; Pro (full Autocapture + Journeys + Anomalies + Heap Connect) → **Gold**; Premier (full + Heap IQ + Contentsquare Session Replay + dedicated-region + EU-residency + HIPAA-eligible + Customer-Managed-Keys + cross-org governance) → **Platinum**.
-- Oyatie destination: `observability` (product-analytics + autocapture + funnels + journeys + retention + cohorts + engagement-score + anomalies anchor); `intelligence` (Heap IQ + Contentsquare AI); `workflow-engine` (Alerts + Anomaly notifications); `developer-sdk` (Heap-SDK-protocol-compat ingest); `data-pipeline` (Heap-Connect warehouse-native sync); `apigw` (env-ID + token); `compliance` (audit + EU/US residency).
+- Vendor name and category: Heap Inc. (Contentsquare-acquired) — Heap Analytics + Autocapture (Heap's defining feature: codeless retroactive event capture of all user interactions: clicks, form-submits, page-views, taps, swipes) + Virtual Events + Heap Snapshots (saved analyses) + Heap Charts + Funnels + Journeys + Retention + Segmentation + Cohorts + Behavioral Segmentation + Heap CDP-style Sync to BigQuery / Snowflake / Redshift / S3 + Heap IQ (AI insights — recently rebranded under Contentsquare AI) + Session Replay (Contentsquare integration) + Hot Path Analysis + Engagement Score + Conversion Pulse + Anomalies + Heap (warehouse-native) + Heap iOS / Android / Web SDK + Heap Insights + Definitions / Property Renaming / Event Renaming.
+- Coverage tier: B (capability fit on `observability` (product-analytics anchor + autocapture-uniquely + funnels + journeys + retention + cohorts + engagement-score + anomalies anchor — Heap is the autocapture-pioneer category leader) + `intelligence` (Heap IQ + Contentsquare AI + anomaly detection — BYOK per ADR-0255 §D-4) + `workflow-engine` (Alerts + Anomaly notifications) + `developer-sdk` (Heap SDK + REST API + Heap Connect) + `data-pipeline` (Heap warehouse-native sync) + `apigw` (per-project env-ID + API token) + `compliance` (audit + per-region residency US/EU)). Capability-tier mapping per ADR-0316: Free → **Bronze**; Growth → **Silver**; Pro (full Autocapture + Journeys + Anomalies + Heap Connect) → **Gold**; Premier (full + Heap IQ + Contentsquare Session Replay + dedicated-region + EU-residency + HIPAA-eligible + Customer-Managed-Keys + cross-org governance) → **Platinum**.
+- Oyatie destination: `observability` (product-analytics + autocapture + funnels + journeys + retention + cohorts + engagement-score + anomalies anchor); `intelligence` (Heap IQ + Contentsquare AI); `workflow-engine` (Alerts + Anomaly notifications); `developer-sdk` (Heap-SDK-protocol-compat ingest); `data-pipeline` (Heap-warehouse-native sync); `apigw` (env-ID + token); `compliance` (audit + EU/US residency).
 
 - **Vendor data model and top objects** (Heap platform model):
   - `Organization` (Org_ID, Plan, Region {US / EU}, SSO-Provider, HIPAA-Eligible).
@@ -14083,7 +14083,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 - **Vendor primary APIs and endpoint shapes**:
   - Heap Ingest endpoint (`https://heapanalytics.com/h?` for browser autocapture; `https://heapanalytics.com/api/track` for server-side API tracking): per-event ingest with env-ID + identity token.
   - Heap Server-Side Identify + Add-User-Properties + Add-Account-Properties APIs.
-  - Heap Connect (warehouse-native): bidirectional sync to Snowflake / BigQuery / Redshift / S3 with schema preserved.
+  - Heap (warehouse-native): bidirectional sync to Snowflake / BigQuery / Redshift / S3 with schema preserved.
   - Heap Definitions API: virtual-event + property + cohort CRUD.
   - Heap Reports API: chart + funnel + retention query.
   - SDKs: Web JS (`heap` snippet), iOS (`Heap-iOS`), Android (`heap-android`), React Native, Flutter; `heap.identify(uid)`, `heap.addUserProperties({})`, `heap.track(eventName, props)`, `heap.addEventProperties({})`, `heap.resetIdentity()`.
@@ -14168,7 +14168,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - `heap.definition_edit_history` → `oya-observability-event-definition-audit-log`.
 
 - **Workflow steps for displacement journey** (13 numbered steps):
-  1. Provision Oyatie tenant + `observability` + `intelligence` + `workflow-engine` + `developer-sdk` + `data-pipeline` + `apigw` + `compliance` µservices with Heap-feature-parity matrix (autocapture + virtual-events + funnels + journeys + retention + cohorts + engagement-score + anomalies + Heap-Connect + Heap-IQ + session-replay).
+  1. Provision Oyatie tenant + `observability` + `intelligence` + `workflow-engine` + `developer-sdk` + `data-pipeline` + `apigw` + `compliance` µservices with Heap-feature-parity matrix (autocapture + virtual-events + funnels + journeys + retention + cohorts + engagement-score + anomalies + Heap-+ Heap-IQ + session-replay).
   2. Export Heap org via REST + Heap Connect: environments + auto-events (last 90d) + virtual-events + event-definitions + users + accounts + sessions + cohorts + funnels + journeys + retention + charts + reports + engagement-scores + anomaly-rules + heap-connect-syncs + heap-iq-insights + definition-edit-history + audit + tokens.
   3. Re-bind Heap SDKs to Oyatie product-analytics ingest (Heap-protocol-compatible with autocapture DOM-selector capture); dual-route 30 days; preserve `heap_anonymous_id` + `identified_user_id`.
   4. Per-Environment: re-create with rotated env-token; preserve autocapture-enabled + privacy-settings.
@@ -14190,7 +14190,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Cohort `did / did not / time-since / count-of` semantic gap: per-cohort transpile fidelity test.
   - Engagement-Score calculation-input drift (different weight per event): per-user score-diff test + reviewer comparison.
   - Anomaly-rule sensitivity calibration drift (false-positive storm post-migration): per-rule first-72h shadow + sensitivity-tune.
-  - Heap-Connect warehouse-native query compatibility (Snowflake-Native-App-vs-Oyatie-Native-App): per-sync mode-pin + cross-validation.
+  - Heap-warehouse-native query compatibility (Snowflake-Native-App-vs-Oyatie-Native-App): per-sync mode-pin + cross-validation.
   - Definitions edit-history audit gap: per-edit dual-write audit during cutover.
   - User-delete (DSAR) async-completion: per-delete completion verification.
   - Autocapture privacy-leak (PII captured in DOM): per-env autocapture-exclusion-rule + Sensitive-Data-Scanner cross-check.
@@ -14203,7 +14203,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   3. Migrate auto-events + virtual-events + event-definitions via historical-load.
   4. Migrate users + accounts + sessions + cohorts + funnels + journeys + retention + charts + reports.
   5. Migrate engagement-scores + anomaly-rules with shadow-eval.
-  6. Migrate Heap-Connect syncs with credential rotation.
+  6. Migrate Heap-syncs with credential rotation.
   7. Re-bind Heap IQ + Contentsquare AI to Oyatie `intelligence` (BYOK per ADR-0255 §D-4); EU-AI-Act ledger.
   8. Parallel-run 30 days; per-env cutover; Heap sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
@@ -14212,9 +14212,9 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-101 - Stripe
-- Vendor name and category: Stripe Inc. — Stripe Payments + Stripe Billing (recurring + usage-based) + Stripe Connect (multi-party / marketplace payouts) + Stripe Invoicing + Stripe Checkout (hosted) + Stripe Elements (embedded UI) + Stripe Payment Links + Stripe Terminal (in-person + Tap-to-Pay) + Stripe Radar (fraud) + Stripe Sigma (SQL over Stripe data) + Stripe Atlas (incorporation) + Stripe Issuing (card-issuing) + Stripe Treasury (BaaS) + Stripe Capital (lending) + Stripe Tax (automated sales-tax / VAT / GST) + Stripe Identity (KYC verification) + Stripe Climate + Stripe Financial Connections + Stripe Revenue Recognition + Stripe Data Pipeline (warehouse sync) + Stripe CLI + Stripe Dashboard + Stripe Workbench (developer tooling).
-- Coverage tier: A (capability fit on `cloud-billing` (payment intent + invoice + subscription + customer balance + dunning + revenue-recognition anchor — Stripe is the developer-payments category leader) + `marketplace` (Stripe Connect multi-party + Issuing + Treasury) + `compliance` (PCI-DSS Level 1 + Strong-Customer-Authentication + 3-D-Secure-2 + PSD2 + SCA + Stripe Tax + Stripe Identity KYC) + `intelligence` (Stripe Radar ML fraud-scoring + Sigma SQL) + `workflow-engine` (webhooks + Workflows + Schedules) + `developer-sdk` (Stripe API + CLI + SDKs across 9+ languages + Elements) + `data-pipeline` (Stripe Data Pipeline → Snowflake / Redshift / BigQuery) + `apigw` (per-account restricted + publishable + secret keys + webhook signing)). Capability-tier mapping per ADR-0316: Standard pay-as-you-go → **Silver**; Plus (volume-pricing + IC+) → **Gold**; Enterprise / Premium (dedicated AM + Premier-Support + 99.999%-SLA + dedicated-account-region + Stripe-Data-Pipeline + Sigma + advanced-Radar + Custom-Connect + Treasury + Issuing + Atlas + EU/UK/JP/SG/AU residency + PCI-Level-1 attestation share) → **Platinum**.
-- Oyatie destination: `cloud-billing` (payments + invoice + subscription + dunning + revenue-recognition anchor); `marketplace` (multi-party Connect + Issuing); `compliance` (PCI + PSD2 + SCA + 3DS2 + Stripe-Tax + Identity-KYC); `intelligence` (Radar fraud + Sigma analytics); `workflow-engine` (webhooks + Schedules); `developer-sdk` (Stripe-API-protocol-compat); `data-pipeline` (Data-Pipeline warehouse sync); `apigw` (key + webhook-signing).
+- Vendor name and category: Stripe Inc. — Stripe Payments + Stripe Billing (recurring + usage-based) + Stripe (multi-party / marketplace payouts) + Stripe Invoicing + Stripe Checkout (hosted) + Stripe Elements (embedded UI) + Stripe Payment Links + Stripe Terminal (in-person + Tap-to-Pay) + Stripe Radar (fraud) + Stripe Sigma (SQL over Stripe data) + Stripe Atlas (incorporation) + Stripe Issuing (card-issuing) + Stripe Treasury (BaaS) + Stripe Capital (lending) + Stripe Tax (automated sales-tax / VAT / GST) + Stripe Identity (KYC verification) + Stripe Climate + Stripe Financial Connections + Stripe Revenue Recognition + Stripe Data Pipeline (warehouse sync) + Stripe CLI + Stripe Dashboard + Stripe Workbench (developer tooling).
+- Coverage tier: A (capability fit on `cloud-billing` (payment intent + invoice + subscription + customer balance + dunning + revenue-recognition anchor — Stripe is the developer-payments category leader) + `marketplace` (Stripe multi-party + Issuing + Treasury) + `compliance` (PCI-DSS Level 1 + Strong-Customer-Authentication + 3-D-Secure-2 + PSD2 + SCA + Stripe Tax + Stripe Identity KYC) + `intelligence` (Stripe Radar ML fraud-scoring + Sigma SQL) + `workflow-engine` (webhooks + Workflows + Schedules) + `developer-sdk` (Stripe API + CLI + SDKs across 9+ languages + Elements) + `data-pipeline` (Stripe Data Pipeline → Snowflake / Redshift / BigQuery) + `apigw` (per-account restricted + publishable + secret keys + webhook signing)). Capability-tier mapping per ADR-0316: Standard pay-as-you-go → **Silver**; Plus (volume-pricing + IC+) → **Gold**; Enterprise / Premium (dedicated AM + Premier-Support + 99.999%-SLA + dedicated-account-region + Stripe-Data-Pipeline + Sigma + advanced-Radar + Custom-+ Treasury + Issuing + Atlas + EU/UK/JP/SG/AU residency + PCI-Level-1 attestation share) → **Platinum**.
+- Oyatie destination: `cloud-billing` (payments + invoice + subscription + dunning + revenue-recognition anchor); `marketplace` (multi-party + Issuing); `compliance` (PCI + PSD2 + SCA + 3DS2 + Stripe-Tax + Identity-KYC); `intelligence` (Radar fraud + Sigma analytics); `workflow-engine` (webhooks + Schedules); `developer-sdk` (Stripe-API-protocol-compat); `data-pipeline` (Data-Pipeline warehouse sync); `apigw` (key + webhook-signing).
 
 - **Vendor data model and top objects** (Stripe canonical model):
   - `Account` (Account_ID, Type {standard / express / custom for Connect}, Country, Default-Currency, Capabilities[], Settings, Charges-Enabled, Payouts-Enabled).
@@ -14250,7 +14250,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Data Pipeline: native Snowflake / Redshift / BigQuery sync.
 
 - **Vendor distinctive UX surfaces**:
-  - "Dashboard" — payments + customers + balance + payouts + disputes + Radar + Connect + Issuing + Treasury home.
+  - "Dashboard" — payments + customers + balance + payouts + disputes + Radar + + Issuing + Treasury home.
   - "Workbench" — embedded developer tooling (event-log + request-log + webhook-debugger + Shell).
   - "Checkout" — hosted payment page with auto-localized payment methods.
   - "Elements" — embedded UI components (Card-Element / Payment-Element / Express-Checkout-Element) with PCI-scope reduction.
@@ -14258,7 +14258,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - "Billing Portal" — customer-facing self-serve subscription management (Stripe-hosted).
   - "Radar Rules Editor" — predicate-based fraud-rule editor with backtesting.
   - "Sigma Workbench" — SQL editor over Stripe data.
-  - "Connect Onboarding" — Stripe-hosted KYC + verification flow for sub-accounts.
+  - "Onboarding" — Stripe-hosted KYC + verification flow for sub-accounts.
   - "Issuing Card Designer" — embossed + virtual card management.
   - "Treasury Dashboard" — BaaS financial-account + outbound-payment console.
   - "Stripe Tax Dashboard" — registration + filing + reverse-charge automation.
@@ -14371,7 +14371,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Webhook delivery-ordering not preserved across providers: per-endpoint Stripe-Signature-equivalent HMAC + replay-window.
   - Stripe-Sigma SQL dialect drift (Stripe uses Presto-subset): per-query SQL-port test.
   - Stripe Tax jurisdiction-rate drift mid-migration: per-jurisdiction snapshot-pinning during cutover window.
-  - Stripe-Connect on-behalf-of vs direct-charge semantic gap: per-charge model-pin during migration.
+  - Stripe-on-behalf-of vs direct-charge semantic gap: per-charge model-pin during migration.
   - Stripe-API-version pinning drift (consumer hardcoded a version Oyatie didn't replicate): per-merchant version-pin audit + shim.
   - Stripe-Data-Pipeline schema-evolution gap: per-table schema-version-pin.
 
@@ -14381,13 +14381,13 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   3. Migrate customers + payment-methods + network-tokens with PCI-Level-1 vault.
   4. Migrate subscriptions + invoices + products + prices; preserve billing-cycle-anchor.
   5. Migrate open disputes + ensure response-window honored.
-  6. Migrate Connect accounts + re-onboard via Oyatie KYC.
+  6. Migrate accounts + re-onboard via Oyatie KYC.
   7. Migrate Issuing + Treasury accounts + re-bind BaaS provider.
   8. Migrate Radar rules + Tax registrations + Webhook endpoints with shadow-eval.
   9. Re-bind Sigma + Data-Pipeline to Oyatie observability + warehouse.
   10. Parallel-run 30 days; per-account cutover; Stripe sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
-- **Naming justification**: `cloud-billing` + `marketplace` + `compliance` + `intelligence` + `workflow-engine` + `developer-sdk` + `data-pipeline` + `apigw` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `stripe` + `connect` + `radar` + `sigma` + `issuing` + `treasury` + `atlas` + `climate` are benchmark alias-only. Stripe-API-protocol compatibility is preserved at the `apigw` ingress as a compat-shim, not a new canonical surface.
+- **Naming justification**: `cloud-billing` + `marketplace` + `compliance` + `intelligence` + `workflow-engine` + `developer-sdk` + `data-pipeline` + `apigw` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `stripe` + `connector` + `radar` + `sigma` + `issuing` + `treasury` + `atlas` + `climate` are benchmark alias-only. Stripe-API-protocol compatibility is preserved at the `apigw` ingress as a compat-shim, not a new canonical surface.
 
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
@@ -15312,8 +15312,8 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-107 - DocuSign
-- Vendor name and category: DocuSign Inc. — DocuSign eSignature + DocuSign CLM (Contract Lifecycle Management — formerly SpringCM) + DocuSign Insight (AI contract analytics) + DocuSign Identify (ID verification) + DocuSign Notary + DocuSign Negotiate (formerly DocuSign for Microsoft Word) + DocuSign Gen (document generation) + DocuSign Click (click-to-agree clickwrap) + DocuSign Monitor (security + telemetry) + DocuSign Admin + DocuSign Web Forms + DocuSign Rooms (real-estate + financial-services collaborative deal rooms) + DocuSign Connect (webhooks) + DocuSign Maestro (workflow orchestration — newer) + DocuSign IAM (Intelligent Agreement Management — newer rebrand).
-- Coverage tier: A (capability fit on `compliance` (eSignature legal-validity + ESIGN + UETA + eIDAS + 21-CFR-Part-11 + HIPAA + FedRAMP + DOD-IL4 — DocuSign is the eSignature + CLM category leader; differentiated by global jurisdiction coverage + CLM + AI contract analytics under one platform) + `workflow-engine` (Maestro + envelope workflows + CLM workflows + Connect webhooks) + `intelligence` (Insight AI + Negotiate AI) + `developer-sdk` (eSignature REST API + CLM REST API + Click API + Connect webhooks + Embedded Signing + SDKs) + `apigw` (per-account + OAuth-JWT + OAuth-Authorization-Code + integration-key) + `cloud-billing` (per-envelope + per-seat + per-add-on billing)). Capability-tier mapping per ADR-0316: Personal → **Bronze**; Standard / Business Pro → **Silver / Gold**; Enhanced Plans / Enterprise (CLM + Insight + Identify + Notary + Rooms + Monitor + Maestro + dedicated CSM + 99.99%-SLA + EU-residency + HIPAA-BAA + FedRAMP + DOD-IL4 + 21-CFR-Part-11 + Customer-Managed-Keys + Customer-IP-Allowlist) → **Platinum**.
+- Vendor name and category: DocuSign Inc. — DocuSign eSignature + DocuSign CLM (Contract Lifecycle Management — formerly SpringCM) + DocuSign Insight (AI contract analytics) + DocuSign Identify (ID verification) + DocuSign Notary + DocuSign Negotiate (formerly DocuSign for Microsoft Word) + DocuSign Gen (document generation) + DocuSign Click (click-to-agree clickwrap) + DocuSign Monitor (security + telemetry) + DocuSign Admin + DocuSign Web Forms + DocuSign Rooms (real-estate + financial-services collaborative deal rooms) + DocuSign (webhooks) + DocuSign Maestro (workflow orchestration — newer) + DocuSign IAM (Intelligent Agreement Management — newer rebrand).
+- Coverage tier: A (capability fit on `compliance` (eSignature legal-validity + ESIGN + UETA + eIDAS + 21-CFR-Part-11 + HIPAA + FedRAMP + DOD-IL4 — DocuSign is the eSignature + CLM category leader; differentiated by global jurisdiction coverage + CLM + AI contract analytics under one platform) + `workflow-engine` (Maestro + envelope workflows + CLM workflows + webhooks) + `intelligence` (Insight AI + Negotiate AI) + `developer-sdk` (eSignature REST API + CLM REST API + Click API + webhooks + Embedded Signing + SDKs) + `apigw` (per-account + OAuth-JWT + OAuth-Authorization-Code + integration-key) + `cloud-billing` (per-envelope + per-seat + per-add-on billing)). Capability-tier mapping per ADR-0316: Personal → **Bronze**; Standard / Business Pro → **Silver / Gold**; Enhanced Plans / Enterprise (CLM + Insight + Identify + Notary + Rooms + Monitor + Maestro + dedicated CSM + 99.99%-SLA + EU-residency + HIPAA-BAA + FedRAMP + DOD-IL4 + 21-CFR-Part-11 + Customer-Managed-Keys + Customer-IP-Allowlist) → **Platinum**.
 - Oyatie destination: `compliance` (eSignature + UETA + ESIGN + eIDAS + 21-CFR-Part-11 + HIPAA + FedRAMP anchor); `workflow-engine` (Maestro + envelope + CLM workflows + Connect); `intelligence` (Insight + Negotiate AI); `developer-sdk` (DocuSign-API-protocol-compat); `apigw` (OAuth-JWT + integration-key); `cloud-billing` (per-envelope + per-seat).
 
 - **Vendor data model and top objects** (DocuSign canonical model):
@@ -15357,7 +15357,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - "DocuSign Template Editor" — reusable templates with anchor-strings + conditional tabs.
   - "DocuSign Signing UI" — recipient signing experience (embedded + email).
   - "DocuSign Recipient Authentication" — phone + SMS + KBA + ID-card + Selfie + DocuSign-ID-Verification.
-  - "DocuSign Connect Console" — webhook-config + retry + replay UI.
+  - "DocuSign Console" — webhook-config + retry + replay UI.
   - "PowerForm Builder" — public template-backed URL form.
   - "Web Form Builder" — field-driven form with identity-verification.
   - "Bulk Send" — CSV-driven mass-send with per-row tab pre-fills.
@@ -15448,9 +15448,9 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - `docusign.certificate_of_completion` → `oya-compliance-certificate-of-completion`.
 
 - **Workflow steps for displacement journey** (15 numbered steps):
-  1. Provision Oyatie tenant + `compliance` + `workflow-engine` + `intelligence` + `developer-sdk` + `apigw` + `cloud-billing` µservices with DocuSign-feature-parity matrix (eSignature + envelopes + tabs + anchor-strings + templates + PowerForm + Web-Form + Bulk-Send + Connect + Maestro + Notary + Identity-Verify + CLM + Insight + Click + Rooms + Brand).
+  1. Provision Oyatie tenant + `compliance` + `workflow-engine` + `intelligence` + `developer-sdk` + `apigw` + `cloud-billing` µservices with DocuSign-feature-parity matrix (eSignature + envelopes + tabs + anchor-strings + templates + PowerForm + Web-Form + Bulk-Send + + Maestro + Notary + Identity-Verify + CLM + Insight + Click + Rooms + Brand).
   2. Export DocuSign account via REST + CLM REST: account + users + permission-profiles + brands + envelopes (last 7yr per retention) + documents + recipients + tabs + templates + PowerForms + Web-Forms + Bulk-Send-Lists + Connect-Configurations + Connect-Events + Notary-Journal-Entries + Identity-Verification-Results + CLM-Documents + CLM-Workflows + Clause-Library + Insight-Extracted-Clauses + Maestro-Workflows + Audit-Trail + Certificates-of-Completion.
-  3. Re-bind merchant integrations: DocuSign-API-protocol-compatible Oyatie endpoint accepting same OAuth-JWT + integration-key + Connect XML/JSON semantics; dual-route 30 days.
+  3. Re-bind merchant integrations: DocuSign-API-protocol-compatible Oyatie endpoint accepting same OAuth-JWT + integration-key + XML/JSON semantics; dual-route 30 days.
   4. Per-User + Permission-Profile: re-provision; per-profile setting-coverage matrix.
   5. Per-Brand: re-provision with logo + email-template + color preserved.
   6. Per-Completed-Envelope (last 7yr): import with Certificate-of-Completion + audit-trail; verify hash + cryptographic integrity at re-store.
@@ -15469,7 +15469,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - 21-CFR-Part-11 signer-meaning-collection prompt drift (FDA inspector test): per-envelope Part-11 prompt + system-validation re-attestation.
   - eIDAS QES (Qualified Electronic Signature) requires Qualified Trust Service Provider linkage which is jurisdictional + non-trivial to re-bind: per-EU-jurisdiction QTSP re-provisioning playbook.
   - Anchor-string positioning drift on re-render (Oyatie's PDF anchor-engine may not match DocuSign's pixel-perfect positioning): per-template golden-render test.
-  - Connect webhook event-ordering not preserved (DocuSign Connect retries can deliver out-of-order): per-config order-tolerant consumer pattern.
+  - webhook event-ordering not preserved (DocuSign retries can deliver out-of-order): per-config order-tolerant consumer pattern.
   - Notary audio-video recording format (DocuSign Notary uses specific encoded MP4 + journal-link): per-entry format + journal-link preservation.
   - Identity-verification provider re-binding (DocuSign uses Mitek + Onfido + IDology + Equifax behind the scenes): per-provider re-contract or Oyatie-IDV-shim.
   - CLM clause-library risk-profile drift on re-import: per-clause risk-score reconciliation.
@@ -15494,7 +15494,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   9. Re-establish 21-CFR-Part-11 + HIPAA-BAA + FedRAMP attestations.
   10. Parallel-run 30 days; per-account cutover via OAuth; DocuSign sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
-- **Naming justification**: `compliance` + `workflow-engine` + `intelligence` + `developer-sdk` + `apigw` + `cloud-billing` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `docusign` + `esignature` + `clm` + `insight` + `identify` + `notary` + `negotiate` + `gen` + `click` + `monitor` + `web-forms` + `rooms` + `connect` + `maestro` + `iam` are benchmark alias-only. Anchor-string-driven tab positioning preserved as `oya-compliance-esignature-anchor-string-projection`.
+- **Naming justification**: `compliance` + `workflow-engine` + `intelligence` + `developer-sdk` + `apigw` + `cloud-billing` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `docusign` + `esignature` + `clm` + `insight` + `identify` + `notary` + `negotiate` + `gen` + `click` + `monitor` + `web-forms` + `rooms` + `connector` + `maestro` + `iam` are benchmark alias-only. Anchor-string-driven tab positioning preserved as `oya-compliance-esignature-anchor-string-projection`.
 
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
@@ -16098,7 +16098,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-111 - Asana
-- Vendor name and category: Asana Inc. — Asana Work Management Platform: Asana Tasks + Projects + Portfolios + Goals (OKR) + Workload (resource mgmt) + Timeline (Gantt) + Boards (Kanban) + Calendar + List + Inbox + My Tasks + Forms + Rules (automation) + Approvals + Proofing + Asana AI (Smart fields + Smart status + Smart summaries + Smart goals) + Asana Flow (workflow builder + Bundles) + Universal Reporting + Custom Fields + Status Updates + Milestones + Dependencies + Subtasks + Sections + Tags + Custom Templates + App Integrations (270+ — Slack + Teams + Zoom + Salesforce + Gmail + Outlook + Drive + OneDrive + Dropbox + Box + Adobe-CC + Figma + GitHub + Jira + Power-BI + Tableau + Looker) + Asana Connect Embedded + Asana for Marketing + Asana for IT + Asana for Operations + Asana for HR + Asana Enterprise + EKM (Enterprise Key Management) + Service Accounts + Audit-Log API.
+- Vendor name and category: Asana Inc. — Asana Work Management Platform: Asana Tasks + Projects + Portfolios + Goals (OKR) + Workload (resource mgmt) + Timeline (Gantt) + Boards (Kanban) + Calendar + List + Inbox + My Tasks + Forms + Rules (automation) + Approvals + Proofing + Asana AI (Smart fields + Smart status + Smart summaries + Smart goals) + Asana Flow (workflow builder + Bundles) + Universal Reporting + Custom Fields + Status Updates + Milestones + Dependencies + Subtasks + Sections + Tags + Custom Templates + App Integrations (270+ — Slack + Teams + Zoom + Salesforce + Gmail + Outlook + Drive + OneDrive + Dropbox + Box + Adobe-CC + Figma + GitHub + Jira + Power-BI + Tableau + Looker) + Asana Embedded + Asana for Marketing + Asana for IT + Asana for Operations + Asana for HR + Asana Enterprise + EKM (Enterprise Key Management) + Service Accounts + Audit-Log API.
 - Coverage tier: A (capability fit on `workflow-engine` (canonical work-management domain — Asana is the work-graph leader; differentiated by goals + portfolios + workload + rules + AI-summaries + flow-builder unified) + `intelligence` (Asana-AI Smart-fields + Smart-status + Smart-summary + Smart-goals + Smart-workflow) + `collaboration` (comments + inbox + status updates + proofing + approvals) + `automation` (Rules + Bundles + Flow + Triggers + Actions) + `apigw` (Asana REST + GraphQL + Webhooks + Asana Connect) + `compliance` (SOC-2 Type II + ISO-27001 + ISO-27017 + ISO-27018 + GDPR + HIPAA-eligible Enterprise + EU-DPF + EU-AI-Act for Asana-AI) + `developer-sdk` (Asana-API-protocol-compat + Forms + Rules-DSL)). Capability-tier mapping per ADR-0316: Personal / Starter → **Silver**; Advanced → **Gold**; Enterprise / Enterprise+ (EKM + audit-log API + SAML-SSO + SCIM + cross-regional residency + HIPAA-BAA + service-accounts) → **Platinum**.
 - Oyatie destination: `workflow-engine` (tasks + projects + portfolios + goals + workload + rules + flow anchor); `intelligence` (Asana-AI Smart-* family); `collaboration` (inbox + comments + status + proofing); `automation` (Rules + Bundles + Flow); `apigw` (REST + GraphQL + Webhooks); `compliance` (SOC-2 + ISO + GDPR + HIPAA + EU-AI-Act); `developer-sdk` (Asana-API-shape).
 
@@ -16133,7 +16133,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - REST: `https://app.asana.com/api/1.0/` resource shapes `workspaces` + `teams` + `projects` + `tasks` + `sections` + `stories` + `attachments` + `portfolios` + `goals` + `time_periods` + `status_updates` + `custom_fields` + `custom_field_settings` + `rules` + `bundles` + `forms` + `workspace_memberships` + `team_memberships` + `project_memberships` + `users` + `audit_log_events` + `service_accounts`; pagination via `offset` + `limit`.
   - Auth: Personal-Access-Token + OAuth-2.0 (Client-ID + Secret + Redirect-URI + scopes `default` / `email` / `openid` / `profile`); Service-Account-Token for Enterprise.
   - Webhooks: `GET / POST /webhooks` with `resource` + `target` URI; signature verification via X-Hook-Signature HMAC-SHA256; events `added` / `changed` / `removed` / `deleted` / `undeleted`.
-  - GraphQL: limited preview surface for query-heavy clients; Asana Connect Embedded uses GraphQL.
+  - GraphQL: limited preview surface for query-heavy clients; Asana Embedded uses GraphQL.
   - SDKs: official Python (`asana`) + Node (`asana-node`) + Java + Ruby + PHP + .NET.
   - CLI: community `asana-cli`.
   - Rate Limits: standard 1500 req/min; Enterprise 3500 req/min.
@@ -17001,9 +17001,9 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-129 - 1Password
-- Vendor name and category: 1Password (AgileBits Inc.) — Enterprise Password Manager + Secrets Management + Developer Tools + Extended Access Management: 1Password Business + 1Password Teams + 1Password Families + 1Password Personal + 1Password CLI (`op`) + 1Password Connect (self-hosted REST API for infrastructure secrets) + 1Password Secrets Automation + 1Password Service Accounts + 1Password SCIM Bridge (provisioning) + 1Password Events API (audit-log streaming) + 1Password Developer Tools (Shell-Plugins / Git-credential-helper / SSH-agent / .env-file-management) + 1Password CLI (op) + 1Password Browser Extension + 1Password Desktop (macOS / Windows / Linux) + 1Password Mobile (iOS / Android) + Watchtower (breach + weak-password + reused-password monitoring) + Travel-Mode (selective vault hiding) + Recovery Codes + Account Password + Secret Key (dual-secret model with 128-bit entropy on top of master password) + End-to-end-encryption with SRP-6a + Two-Factor-Auth (TOTP + Duo + YubiKey + WebAuthn / Passkeys) + Unlock-With-SSO (OIDC SSO unlock) + Trelica-by-1Password (SaaS-discovery + governance — acquired 2024) + Kolide-by-1Password (Device Trust — acquired 2024).
-- Coverage tier: A (capability fit on `secrets-mgmt` (canonical password + secrets vault — 1Password differs from LastPass/Dashlane/Bitwarden by Secret-Key dual-factor + Connect + SCIM Bridge + Events API + Developer Tools depth + Kolide Device Trust integration) + `iam` (SCIM provisioning + Unlock-With-SSO + Service Accounts) + `automation` (Secrets-Automation via Connect + CLI + Service Accounts) + `observability` (Events API streaming to SIEM) + `apigw` (1Password Connect REST API + Service-Account access) + `compliance` (SOC-2 Type II + ISO-27001 / 27017 / 27018 / 27701 + GDPR + PCI-DSS + HIPAA-eligible Business + EU-DPF) + `device-trust` (Kolide endpoint-posture + device-trust enforcement) + `saas-discovery` (Trelica SaaS-discovery + governance + spend) + `developer-tools` (Shell-plugins + Git-credential + SSH-agent + ssh-config + 1Password-Operator for K8s)). Capability-tier mapping per ADR-0316: Families / Personal → **Silver**; Teams / Teams-Starter → **Gold**; Business + Enterprise (SCIM + SSO-unlock + Events-API + Connect + Service-Accounts + Kolide + Trelica + advanced audit + custom-roles + Insights + 99.95%-SLA) → **Platinum**.
-- Oyatie destination: `secrets-mgmt` (Vaults + Items + Secret-Key + Master-Password anchor); `iam` (SCIM + SSO-unlock + Service-Accounts); `automation` (Connect + Secrets-Automation); `observability` (Events API → SIEM); `apigw` (Connect REST + Service-Account); `compliance` (SOC-2 + ISO + HIPAA-eligible); `device-trust` (Kolide); `saas-discovery` (Trelica); `developer-tools` (Shell-plugins + Git + SSH).
+- Vendor name and category: 1Password (AgileBits Inc.) — Enterprise Password Manager + Secrets Management + Developer Tools + Extended Access Management: 1Password Business + 1Password Teams + 1Password Families + 1Password Personal + 1Password CLI (`op`) + 1Password (self-hosted REST API for infrastructure secrets) + 1Password Secrets Automation + 1Password Service Accounts + 1Password SCIM Bridge (provisioning) + 1Password Events API (audit-log streaming) + 1Password Developer Tools (Shell-Plugins / Git-credential-helper / SSH-agent / .env-file-management) + 1Password CLI (op) + 1Password Browser Extension + 1Password Desktop (macOS / Windows / Linux) + 1Password Mobile (iOS / Android) + Watchtower (breach + weak-password + reused-password monitoring) + Travel-Mode (selective vault hiding) + Recovery Codes + Account Password + Secret Key (dual-secret model with 128-bit entropy on top of master password) + End-to-end-encryption with SRP-6a + Two-Factor-Auth (TOTP + Duo + YubiKey + WebAuthn / Passkeys) + Unlock-With-SSO (OIDC SSO unlock) + Trelica-by-1Password (SaaS-discovery + governance — acquired 2024) + Kolide-by-1Password (Device Trust — acquired 2024).
+- Coverage tier: A (capability fit on `secrets-mgmt` (canonical password + secrets vault — 1Password differs from LastPass/Dashlane/Bitwarden by Secret-Key dual-factor + + SCIM Bridge + Events API + Developer Tools depth + Kolide Device Trust integration) + `iam` (SCIM provisioning + Unlock-With-SSO + Service Accounts) + `automation` (Secrets-Automation via + CLI + Service Accounts) + `observability` (Events API streaming to SIEM) + `apigw` (1Password REST API + Service-Account access) + `compliance` (SOC-2 Type II + ISO-27001 / 27017 / 27018 / 27701 + GDPR + PCI-DSS + HIPAA-eligible Business + EU-DPF) + `device-trust` (Kolide endpoint-posture + device-trust enforcement) + `saas-discovery` (Trelica SaaS-discovery + governance + spend) + `developer-tools` (Shell-plugins + Git-credential + SSH-agent + ssh-config + 1Password-Operator for K8s)). Capability-tier mapping per ADR-0316: Families / Personal → **Silver**; Teams / Teams-Starter → **Gold**; Business + Enterprise (SCIM + SSO-unlock + Events-API + + Service-Accounts + Kolide + Trelica + advanced audit + custom-roles + Insights + 99.95%-SLA) → **Platinum**.
+- Oyatie destination: `secrets-mgmt` (Vaults + Items + Secret-Key + Master-Password anchor); `iam` (SCIM + SSO-unlock + Service-Accounts); `automation` (+ Secrets-Automation); `observability` (Events API → SIEM); `apigw` (REST + Service-Account); `compliance` (SOC-2 + ISO + HIPAA-eligible); `device-trust` (Kolide); `saas-discovery` (Trelica); `developer-tools` (Shell-plugins + Git + SSH).
 
 - **Vendor data model and top objects** (1Password canonical):
   - `Account` (Account_ID, Name, Domain, Type {Business / Teams / Families / Individual}, Region, Created-At, Active-Members-Count, Active-Vaults-Count, Active-Items-Count, Subscription-Plan, Public-Key {RSA-2048 user-key}, Encrypted-Account-Key).
@@ -17028,7 +17028,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - `Shell_Plugin` (Plugin_ID, Account-Ref, Name {aws / gcloud / azure / github / circleci / npm / etc. — 100+ plugins}, Config, Active-Users[]).
 
 - **Vendor primary APIs and endpoint shapes**:
-  - 1Password Connect API: `https://<connect-server>:8080/v1/` — `vaults`, `vaults/{id}/items`, `vaults/{id}/items/{item-id}`, `vaults/{id}/items/{item-id}/files`, `activity`, `health`, `heartbeat`, `metrics`.
+  - 1Password API: `https://<connect-server>:8080/v1/` — `vaults`, `vaults/{id}/items`, `vaults/{id}/items/{item-id}`, `vaults/{id}/items/{item-id}/files`, `activity`, `health`, `heartbeat`, `metrics`.
   - 1Password Events API: `https://events.{region}.1password.com/api/v1/` — `signinattempts`, `itemusages`, `auditevents` (streaming with cursor pagination + JWT auth).
   - 1Password SCIM Bridge: `https://<scim-bridge>/scim/v2/` — `Users`, `Groups`, `Schemas`, `ResourceTypes`, `ServiceProviderConfig` (SCIM 2.0).
   - 1Password CLI (`op`): `op signin`, `op vault list`, `op item get <ref>`, `op item create`, `op read "op://vault/item/field"`, `op inject -i template.env -o output.env`, `op run -- <command>`, `op document get`, `op user list`, `op group list`, `op service-account create`, `op connect server create`, `op events list`.
@@ -17050,7 +17050,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - "Recovery Codes Print/Save" — emergency-kit PDF download.
   - "SSO Unlock Flow" — sign-in via OIDC IdP for unlock.
   - "Service Account Token Issuance" — vault-scoped token generation.
-  - "Connect Server Console" — token + vault-access pair management.
+  - "Server Console" — token + vault-access pair management.
   - "SCIM Bridge Console" — IdP-binding + sync-status.
   - "Events API Setup" — token + region + sink-configuration.
   - "Shell-Plugin Initializer" — `op plugin init aws` wizard.
@@ -17116,7 +17116,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - `Shell_Plugin` → `Oyatie::DeveloperTools::credential_helper_plugin`.
 
 - **12-23 specific workflow steps for migrating-off / dual-running 1Password → Oyatie**:
-  1. Inventory accounts + users + groups + vaults + items + service-accounts + connect-servers + SCIM-bridges + SSO-config + audit-events via Connect API + Events API + admin web-UI export + CLI `op item list`.
+  1. Inventory accounts + users + groups + vaults + items + service-accounts + connect-servers + SCIM-bridges + SSO-config + audit-events via API + Events API + admin web-UI export + CLI `op item list`.
   2. Plan 45-day shadow window with dual-vault publishing + dual-event streaming + CLI-rebind.
   3. Export Vaults + Items via `op` CLI with `--format=json` (per-item; concealed fields decrypted client-side then re-encrypted with Oyatie KMS on intake).
   4. Export Documents (item-attached files) with content-decrypt + re-wrap to Oyatie KMS.
@@ -17148,7 +17148,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - **Shell-Plugin re-init required** (Shell-Plugins are per-user-per-machine config; not portable as data): user-side `op plugin init` re-run on Oyatie CLI for each plugin (aws / gcloud / etc.) with migration-runbook checklist.
   - **Browser extension auto-fill database lost** (Extension URL→item mappings are local; migration may break auto-fill): per-user extension re-pair with vault re-index.
   - **Travel-Mode subset-hiding semantic mismatch** (Travel-Mode hides selected vaults from devices; Oyatie may not have direct equivalent): per-vault travel-safe flag preservation + device-side filter.
-  - **Connect-Server token rotation race** (infrastructure clients holding Connect tokens break on cutover): coordinated token rotation with deploy-pipeline notification + 30-day overlap with token-exchange endpoint.
+  - **Connect-Server token rotation race** (infrastructure clients holding tokens break on cutover): coordinated token rotation with deploy-pipeline notification + 30-day overlap with token-exchange endpoint.
   - **SCIM-Bridge IdP-token rotation** (Okta/Azure-AD/OneLogin tokens need refresh): per-IdP coordinated rotation + grace-window.
   - **Events-API cursor-token regeneration** (consumers cache cursor; reset on migration): per-consumer cursor-reset + dual-stream window with deduplication.
   - **Watchtower hygiene model retrain** (Watchtower's reused/weak/breached detection uses opaque model + HIBP integration): Oyatie intelligence retrain with published model-card + bias-audit per ADR-0255.
@@ -17158,11 +17158,11 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - **Account-recovery process change** (1Password's account-recovery via Recovery Group is a specific workflow; Oyatie may differ): per-account-recovery process documentation + user notification.
   - **CLI `op` → Oyatie CLI migration** (developers script against `op read "op://vault/item/field"`; URI scheme migration required): per-script translator + URI-alias `op://` accepted on Oyatie CLI for grace-period.
   - **HIPAA-eligible vault boundary preservation** (1Password Business HIPAA-eligible accounts must preserve HIPAA boundary on Oyatie): per-vault HIPAA-tag + Oyatie compliance pack {hipaa} per [[compliance-pack-primitive]].
-  - **Concurrent write race during 45-day shadow** (item edited on 1Password during shadow needs replication to Oyatie): per-item bidirectional sync via Connect API + Oyatie secrets-mgmt µservice with conflict resolution (last-write-wins with audit trail).
+  - **Concurrent write race during 45-day shadow** (item edited on 1Password during shadow needs replication to Oyatie): per-item bidirectional sync via API + Oyatie secrets-mgmt µservice with conflict resolution (last-write-wins with audit trail).
   - **EU-residency preservation** (1Password EU account data must stay in EU region): per-region exporter + per-region importer + audit trail.
 
 - **Migration playbook outline (1Password → Oyatie secrets-mgmt + iam + automation + observability + device-trust + saas-discovery µservices)**:
-  1. Inventory accounts + users + groups + vaults + items + service-accounts + connect-servers + SCIM-bridges + SSO-config + Trelica SaaS-discovery + Kolide device-trust via Connect API + Events API + CLI export + admin web-UI.
+  1. Inventory accounts + users + groups + vaults + items + service-accounts + connect-servers + SCIM-bridges + SSO-config + Trelica SaaS-discovery + Kolide device-trust via API + Events API + CLI export + admin web-UI.
   2. Plan 45-day shadow window with dual-vault publishing + dual-event streaming + token-issue-overlap.
   3. Export items + documents via user-side CLI (`op`) with concealed-field decrypt + re-wrap to Oyatie KMS.
   4. Migrate vault permission-sets → Oyatie Cedar policy bindings; group memberships preserved.
@@ -17368,7 +17368,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - `Project` (Project_ID, Name, Description, Resource-Scopes[Cloud-Account-Refs + Resource-Tag-Filter + Resource-Type-Filter], Member-Refs[], Slack-Channel, Severity-Threshold).
   - `Workflow` (Workflow_ID, Trigger{Issue-Created / Issue-Resolved / Scan-Completed / etc.}, Conditions[CEL-Filter], Actions[Slack-Message / Jira-Issue / ServiceNow-Ticket / PagerDuty-Alert / Webhook-Post / AutoRemediation-Trigger / etc.], Owner-Ref, Active).
   - `Wiz_Code_Repo_Scan` (Scan_ID, Repo-Ref, Branch, Commit-SHA, Triggered-By {Pull-Request / Pre-Commit / Scheduled / Manual}, Findings[IaC-Misconfig / SCA-Vuln / SAST-Vuln / Secrets / Container-Image-Vuln / SBOM], Started-At, Completed-At).
-  - `Runtime_Event` (Event_ID, Sensor-Ref, Resource-Ref, Type {Process-Exec / Network-Connect / File-Write / Container-Escape / Privilege-Escalation / Suspicious-DNS / etc.}, Severity, Process-Tree{}, Timestamp, MITRE-ATT&CK-Tactics[], MITRE-Techniques[]).
+  - `Runtime_Event` (Event_ID, Sensor-Ref, Resource-Ref, Type {Process-Exec / Network-/ File-Write / Container-Escape / Privilege-Escalation / Suspicious-DNS / etc.}, Severity, Process-Tree{}, Timestamp, MITRE-ATT&CK-Tactics[], MITRE-Techniques[]).
   - `Threat` (Threat_ID, Type {Active-Attack / IoC-Match / Anomalous-Behavior}, Source {Runtime-Sensor / Cloud-Logs / Wiz-Threat-Intel}, Severity, Affected-Resources[], Attack-Chain[Runtime-Event-Refs[]], Status, Hunting-Query).
   - `Data_Finding` (Finding_ID, Resource-Ref, Data-Class {PII / PCI / PHI / Credentials / Source-Code / Customer-Records / etc.}, Confidence-Score, Sample-Count, Data-Volume-Bytes, Compliance-Impact{GDPR / HIPAA / PCI / etc.}).
   - `Identity_Finding` (Finding_ID, Identity-Resource-Ref, Risk {Excessive-Privilege / Inactive-Identity / Toxic-Permission-Combination / Cross-Account-Trust-Anomaly / etc.}, Effective-Permissions[], Recommended-Action).
@@ -18571,8 +18571,8 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-115 - Cisco Webex
-- Vendor name and category: Cisco Webex Suite (Cisco Systems Inc.) — unified UC + collaboration: Webex Meetings (HD video + webinars up to 100K + breakout rooms + closed captioning + transcription + Webex AI Assistant) + Webex Calling (cloud PBX + voicemail + auto-attendant + call queues + hunt groups + analog ATA + DECT) + Webex Webinars (formerly Events) + Webex Messaging (spaces + DM + threads + reactions + whiteboard) + Webex Contact Center (omnichannel CCaaS — voice + email + chat + SMS + WhatsApp + workforce optimization + analytics) + Webex Slido (Q&A + polling + word-cloud + quiz) + Webex Devices (Desk Pro + Board + Room kits + Cisco Headsets) + Webex Control Hub (admin + analytics + IT-tools + workspace-mgmt + device-mgmt) + Webex APIs + Webex Embedded App SDK + Webex Bots + Webex AI Codec + Real-Time Transcription (110+ languages) + Webex Calling for Microsoft Teams + Webex for Government (FedRAMP-Moderate + DOD-IL5) + Webex for Healthcare (HIPAA-BAA) + Webex Hybrid Services + Webex Edge Connect (private peering) + Webex App for desktop + mobile.
-- Coverage tier: A (capability fit on `communications` (UC + meetings + calling + webinars + contact-center anchor — Cisco Webex is the carrier-grade UC leader; differentiated by integrated PBX + hardware devices + government certification) + `intelligence` (Webex AI Assistant + Real-Time Transcription + Vidcast AI + Background-Noise-Removal + Speaker-Identification) + `collaboration` (spaces + messages + whiteboard + Slido + screen-share) + `apigw` (Webex REST API + Bot SDK + Embedded App SDK + Webhooks) + `compliance` (SOC-2 Type II + ISO-27001 / 27017 / 27018 + GDPR + HIPAA-BAA + FedRAMP-Moderate + DOD-IL5 + Common-Criteria + EU-AI-Act for AI features) + `developer-sdk` (Webex API + SDK + Bots) + `marketplace` (Webex App Hub)). Capability-tier mapping per ADR-0316: Webex Free → **Silver**; Webex Business → **Gold**; Webex Enterprise + Webex for Government + Webex for Healthcare + Webex Hybrid (FedRAMP + IL5 + HIPAA + dedicated tenant + 99.99%-SLA + Edge-Connect private peering) → **Platinum**.
+- Vendor name and category: Cisco Webex Suite (Cisco Systems Inc.) — unified UC + collaboration: Webex Meetings (HD video + webinars up to 100K + breakout rooms + closed captioning + transcription + Webex AI Assistant) + Webex Calling (cloud PBX + voicemail + auto-attendant + call queues + hunt groups + analog ATA + DECT) + Webex Webinars (formerly Events) + Webex Messaging (spaces + DM + threads + reactions + whiteboard) + Webex Contact Center (omnichannel CCaaS — voice + email + chat + SMS + WhatsApp + workforce optimization + analytics) + Webex Slido (Q&A + polling + word-cloud + quiz) + Webex Devices (Desk Pro + Board + Room kits + Cisco Headsets) + Webex Control Hub (admin + analytics + IT-tools + workspace-mgmt + device-mgmt) + Webex APIs + Webex Embedded App SDK + Webex Bots + Webex AI Codec + Real-Time Transcription (110+ languages) + Webex Calling for Microsoft Teams + Webex for Government (FedRAMP-Moderate + DOD-IL5) + Webex for Healthcare (HIPAA-BAA) + Webex Hybrid Services + Webex Edge (private peering) + Webex App for desktop + mobile.
+- Coverage tier: A (capability fit on `communications` (UC + meetings + calling + webinars + contact-center anchor — Cisco Webex is the carrier-grade UC leader; differentiated by integrated PBX + hardware devices + government certification) + `intelligence` (Webex AI Assistant + Real-Time Transcription + Vidcast AI + Background-Noise-Removal + Speaker-Identification) + `collaboration` (spaces + messages + whiteboard + Slido + screen-share) + `apigw` (Webex REST API + Bot SDK + Embedded App SDK + Webhooks) + `compliance` (SOC-2 Type II + ISO-27001 / 27017 / 27018 + GDPR + HIPAA-BAA + FedRAMP-Moderate + DOD-IL5 + Common-Criteria + EU-AI-Act for AI features) + `developer-sdk` (Webex API + SDK + Bots) + `marketplace` (Webex App Hub)). Capability-tier mapping per ADR-0316: Webex Free → **Silver**; Webex Business → **Gold**; Webex Enterprise + Webex for Government + Webex for Healthcare + Webex Hybrid (FedRAMP + IL5 + HIPAA + dedicated tenant + 99.99%-SLA + Edge-private peering) → **Platinum**.
 - Oyatie destination: `communications` (meetings + calling + webinars + contact-center anchor); `intelligence` (Webex AI); `collaboration` (spaces + messaging + whiteboard + Slido); `apigw` (Webex REST + Bots + Embedded Apps); `compliance` (SOC-2 + ISO + GDPR + HIPAA + FedRAMP + DOD-IL5 + EU-AI-Act); `developer-sdk` (Webex SDK + Bots); `marketplace` (Webex App Hub).
 
 - **Vendor data model and top objects** (Webex canonical UC model):
@@ -18623,7 +18623,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - "Webex Contact Center Agent Desktop" — omnichannel CCaaS workspace.
   - "Webex Control Hub" — admin + analytics + device-mgmt + license-mgmt console.
   - "Webex App Hub" — third-party app marketplace + Embedded Apps.
-  - "Webex Edge Connect Map" — private-peering topology view.
+  - "Webex Edge Map" — private-peering topology view.
 
 - **Cedar permit shape**:
   ```
@@ -18727,7 +18727,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Meeting recording ARF format conversion drift (proprietary Webex Recording Format): per-recording ARF→MP4 conversion + playback URL alias.
   - Transcript snippet timing-offset drift (per-language model): per-language snippet-confidence preserve.
   - Webex Devices xAPI command-set drift (Cisco Collaboration Endpoint OS): per-device CE-version compat matrix.
-  - Webex Edge Connect private-peering re-establish (BGP + LAG + circuit re-order): per-org Edge-Connect re-provision.
+  - Webex Edge private-peering re-establish (BGP + LAG + circuit re-order): per-org Edge-re-provision.
   - Slido event Q&A + poll archive: per-event archive preserve.
   - Contact-Center skill-based routing + outdial DSL drift: per-queue strategy transpile + agent skill re-bind.
   - FedRAMP-Moderate + DOD-IL5 cleared-personnel re-vetting: per-tenant ATO re-attestation + cleared-staff re-validate.
@@ -19131,7 +19131,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-118 - Egnyte
-- Vendor name and category: Egnyte Inc. — Egnyte Platform (Smart Content Platform): Egnyte Cloud (cloud file-share + collaboration) + Egnyte Connect (hybrid storage — cloud + on-prem) + Egnyte Protect (DLP + ransomware detection + data classification + sensitive content discovery + supervised access) + Egnyte Migrate (large-scale migration tool) + Egnyte Storage Sync (CIFS/NFS on-prem appliance) + Egnyte Mobile + Egnyte Desktop App + Smart Cache (selective sync) + Egnyte for Construction (AEC industry vertical with Procore + Autodesk + AutoCAD + Revit integrations) + Egnyte for Life Sciences (GxP + 21 CFR Part 11) + Egnyte for Financial Services + Egnyte AI (Copilot + Knowledge AI + Document AI + Smart Search) + Document Room (data-room — VDR) + e-Sign + Workflows + Tasks + Comments + Webform + Public Link + Power Link (long-lived link) + Smart Folders (auto-classification) + ACLs (group + user + folder + file) + Audit Reports + Compliance Reports + Egnyte Government (FedRAMP-Moderate).
+- Vendor name and category: Egnyte Inc. — Egnyte Platform (Smart Content Platform): Egnyte Cloud (cloud file-share + collaboration) + Egnyte (hybrid storage — cloud + on-prem) + Egnyte Protect (DLP + ransomware detection + data classification + sensitive content discovery + supervised access) + Egnyte Migrate (large-scale migration tool) + Egnyte Storage Sync (CIFS/NFS on-prem appliance) + Egnyte Mobile + Egnyte Desktop App + Smart Cache (selective sync) + Egnyte for Construction (AEC industry vertical with Procore + Autodesk + AutoCAD + Revit integrations) + Egnyte for Life Sciences (GxP + 21 CFR Part 11) + Egnyte for Financial Services + Egnyte AI (Copilot + Knowledge AI + Document AI + Smart Search) + Document Room (data-room — VDR) + e-Sign + Workflows + Tasks + Comments + Webform + Public Link + Power Link (long-lived link) + Smart Folders (auto-classification) + ACLs (group + user + folder + file) + Audit Reports + Compliance Reports + Egnyte Government (FedRAMP-Moderate).
 - Coverage tier: A (capability fit on `data-store` (hybrid file-share leader — Egnyte differentiated by hybrid cloud + on-prem CIFS/NFS appliance + industry-vertical packs + Protect DLP + Smart Cache) + `intelligence` (Egnyte AI Copilot + Knowledge + Document + Smart Search) + `policy` (Protect — DLP + Smart Classification + Ransomware Detection + Supervised Access) + `automation` (Workflows + Tasks + Webform) + `apigw` (Egnyte Public API v1/v2 + Webhooks + WebDAV + FTP) + `compliance` (SOC-2 Type II + ISO-27001 + GDPR + HIPAA-BAA + 21 CFR Part 11 + GxP + FINRA + SEC-17a-4 + FedRAMP-Moderate + EU-AI-Act for Egnyte-AI) + `developer-sdk` (REST API + WebDAV + FTP + Drive-SDK) + `marketplace` (Egnyte App Gallery)). Capability-tier mapping per ADR-0316: Business / Enterprise → **Silver**; Enterprise Lite / Standard → **Gold**; Enterprise Premium + Egnyte-Government + industry verticals (HIPAA-BAA / GxP / 21 CFR Part 11 / FINRA + FedRAMP + dedicated tenant + Storage Sync appliances + 99.9%-SLA) → **Platinum**.
 - Oyatie destination: `data-store` (cloud + hybrid file-share anchor); `intelligence` (Egnyte AI); `policy` (Protect — DLP + Smart Classification + Ransomware + Supervised Access); `automation` (Workflows + Tasks + Webform); `apigw` (REST + WebDAV + FTP + Webhooks); `compliance` (SOC-2 + ISO + GDPR + HIPAA + 21 CFR + GxP + FINRA + FedRAMP + EU-AI-Act); `developer-sdk` (REST + Drive-SDK); `marketplace` (App Gallery).
 
@@ -20312,10 +20312,10 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   1. Provision Oyatie tenant + `web` + `commerce` + `marketing` + `apigw` + `developer-sdk` + `compliance` + `marketplace` µservices with Ghost-feature-parity (CMS + Members + Newsletters + Themes + Portal + Tips + Comments + Recommendations + Custom Integrations).
   2. Export Ghost Site via Admin API: site + posts + pages + tags + authors + members + tiers + subscriptions + newsletters + emails + tips + comments + recommendations + themes + integrations + webhooks + routes.yaml.
   3. Plan per-site migration cohorts.
-  4. Per-Site: re-create with title + description + logo + brand-color + portal-settings + Stripe-Connect status preserved.
+  4. Per-Site: re-create with title + description + logo + brand-color + portal-settings + Stripe-status preserved.
   5. Per-Post + Page: re-create with Lexical-or-Mobiledoc → Oyatie rich-text transpile; SEO meta + canonical-URL preserved; visibility tier-binding preserved.
   6. Per-Tag + Author: re-create with visibility (public vs internal `#` prefix) preserved.
-  7. Per-Member + Tier + Subscription: re-create with Stripe-subscription-ref + status + cadence preserved; Stripe-Connect re-bind to Oyatie payment µservice.
+  7. Per-Member + Tier + Subscription: re-create with Stripe-subscription-ref + status + cadence preserved; Stripe-re-bind to Oyatie payment µservice.
   8. Per-Newsletter + Email: re-create with sender + branding + per-newsletter design; historical email-stats archived.
   9. Per-Tip + Comment + Recommendation: import with state preserved.
   10. Per-Theme: re-upload Handlebars-based theme; Routes.yaml transpile.
@@ -20327,7 +20327,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Lexical vs Mobiledoc AST drift (Ghost migrated from Mobiledoc to Lexical mid-2023; legacy posts may use Mobiledoc): per-post AST detect + transpile.
   - Card-type taxonomy in Lexical (HTML + bookmark + product + signup + email-only + button + gallery + video + audio + file + toggle + callout + header + divider + before-after + nft + market): per-card type-mapping preserve.
   - Members visibility filter NQL syntax (Ghost uses NQL — Notation Query Language for member filtering): per-filter NQL → Oyatie filter-DSL transpile.
-  - Tier Stripe-Product-Ref re-bind during Stripe-Connect migration: per-tier Stripe → Oyatie Connect re-bind.
+  - Tier Stripe-Product-Ref re-bind during Stripe-migration: per-tier Stripe → Oyatie re-bind.
   - Internal-tag `#` prefix semantics: per-tag prefix preserve.
   - Newsletter per-tier delivery routing: per-newsletter tier-binding preserve.
   - Email recipient-filter NQL: per-email filter transpile.
@@ -20340,14 +20340,14 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 
 - **Migration playbook outline** (10 numbered steps):
   1. Inventory via Ghost Admin API + Members-CSV-export.
-  2. Plan 30-day shadow window with Stripe-Connect re-bind scheduled.
+  2. Plan 30-day shadow window with Stripe-re-bind scheduled.
   3. Migrate site + posts + pages + tags + authors with Lexical/Mobiledoc transpile.
-  4. Migrate members + tiers + subscriptions + Stripe-Connect re-bind.
+  4. Migrate members + tiers + subscriptions + Stripe-re-bind.
   5. Migrate newsletters + emails + tips + comments + recommendations.
   6. Migrate themes + Routes.yaml + custom integrations + webhooks.
   7. Re-establish Portal modal embed snippet on existing pages.
   8. Re-establish SOC-2 / GDPR / PCI / CAN-SPAM / CASL attestations.
-  9. Stripe-Connect cutover from Ghost-Connect to Oyatie payment-platform.
+  9. Stripe-cutover from Ghost-to Oyatie payment-platform.
   10. Decommission Ghost per-site after 30-day shadow; DNS cutover; Ghost Pro sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
 - **Naming justification**: `web` + `commerce` + `marketing` + `apigw` + `developer-sdk` + `compliance` + `marketplace` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `ghost` + `ghost-pro` + `ghost-oss` + `ghost-members` + `ghost-newsletters` + `ghost-portal` + `ghost-tips` + `ghost-recommendations` + `ghost-comments` + `ghost-themes` + `ghost-routes-yaml` + `ghost-lexical` + `ghost-mobiledoc` + `ghost-sodo-search` are benchmark alias-only. The `web` µservice (per ADR-0131 per-microservice flat layout) is the canonical Ghost-equivalent publication + membership surface, distinct from the Substack-shape network-first newsletter (D-123) and Beehiiv-shape ad-monetized newsletter (D-124).
@@ -20512,7 +20512,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 ### Section D-152 - MongoDB Atlas
-- Vendor name and category: MongoDB Atlas (MongoDB, Inc.) — Multi-cloud managed MongoDB database-as-a-service: Atlas Clusters (M0..M700 + Serverless + Flex) + Replica Sets + Sharded Clusters + Atlas Search (Apache Lucene full-text + vector) + Atlas Vector Search + Atlas Data Federation + Atlas Data Lake + Atlas SQL Interface + Atlas Stream Processing + Atlas Triggers (Database + Auth + Scheduled) + Atlas Functions + Atlas App Services (formerly Realm) + Atlas Device Sync + Atlas Charts + Atlas Online Archive + Atlas Backup (Cloud + Continuous + PIT) + Atlas Encryption at Rest with KMS (AWS KMS / GCP KMS / Azure Key Vault + Customer Managed Keys) + Atlas Client-Side Field Level Encryption + Atlas Queryable Encryption + Atlas Federated Authentication (SAML + OIDC) + Atlas API Keys (Project + Org) + Atlas Database Auditing + Atlas Performance Advisor + Atlas Network Peering (AWS PrivateLink + GCP Private Service Connect + Azure Private Link) + Atlas IP Allowlist + Atlas BYOC + Atlas for Government (FedRAMP-Mod) + 100+ regions across AWS/GCP/Azure.
+- Vendor name and category: MongoDB Atlas (MongoDB, Inc.) — Multi-cloud managed MongoDB database-as-a-service: Atlas Clusters (M0..M700 + Serverless + Flex) + Replica Sets + Sharded Clusters + Atlas Search (Apache Lucene full-text + vector) + Atlas Vector Search + Atlas Data Federation + Atlas Data Lake + Atlas SQL Interface + Atlas Stream Processing + Atlas Triggers (Database + Auth + Scheduled) + Atlas Functions + Atlas App Services (formerly Realm) + Atlas Device Sync + Atlas Charts + Atlas Online Archive + Atlas Backup (Cloud + Continuous + PIT) + Atlas Encryption at Rest with KMS (AWS KMS / GCP KMS / Azure Key Vault + Customer Managed Keys) + Atlas Client-Side Field Level Encryption + Atlas Queryable Encryption + Atlas Federated Authentication (SAML + OIDC) + Atlas API Keys (Project + Org) + Atlas Database Auditing + Atlas Performance Advisor + Atlas Network Peering (AWS PrivateLink + GCP Private Service + Azure Private Link) + Atlas IP Allowlist + Atlas BYOC + Atlas for Government (FedRAMP-Mod) + 100+ regions across AWS/GCP/Azure.
 - Coverage tier: A (capability fit on `data` (clusters + replica sets + sharding + search + vector + federation + stream-processing) + `intelligence` (Vector Search + AI integrations) + `compute` (App Services + Functions + Triggers) + `apigw` (Data API + Atlas SQL) + `identity` (Federated Auth + SAML + OIDC) + `compliance` (SOC-2 + ISO + HIPAA + FedRAMP + PCI + GDPR + Queryable Encryption) + `observability` (Performance Advisor + Auditing)). Capability-tier mapping per ADR-0316: Free (M0) / Shared (M2-M5) → **Silver**; Dedicated (M10..M700) → **Gold**; Enterprise (BYOC + dedicated-VPC + CMK + HIPAA-BAA + FedRAMP-Mod + Queryable Encryption + dedicated-support + 99.995%-SLA) → **Platinum**.
 - Oyatie destination: `data` (clusters + sharding + search + vector + federation + stream-processing anchor); `intelligence` (Vector Search); `compute` (App Services + Functions + Triggers); `apigw` (Data API); `identity` (Federated Auth); `compliance` (SOC-2 + ISO + HIPAA + FedRAMP + PCI + Queryable Encryption); `observability` (Performance Advisor + Auditing).
 
@@ -20646,7 +20646,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   10. Per-App-Services-App + Function: redeploy with auth-providers + GraphQL-schema + sync-config preserved.
   11. Per-Data-Federation + Online-Archive: re-establish storage links + criteria; preserve compliance-lock for archived data.
   12. Per-Stream-Processor: transpile pipeline (source + window + sink).
-  13. Per-Network-Peering + Private-Endpoint: re-establish to Oyatie equivalents (VPC peering / PrivateLink / Private Service Connect / Private Link).
+  13. Per-Network-Peering + Private-Endpoint: re-establish to Oyatie equivalents (VPC peering / PrivateLink / Private Service / Private Link).
   14. Per-IP-Allowlist + DB-User: re-issue with auth-type + roles preserved.
   15. Per-Encryption-Key: re-link KMS CMK; rotate; re-encrypt where required; preserve queryable-encryption keys per ADR-0251 §D-10.
   16. Decommission Atlas per-project after 30-day shadow + change-stream cutover; Atlas sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
@@ -20687,9 +20687,9 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-153 - Confluent Cloud
-- Vendor name and category: Confluent Cloud (Confluent, Inc.) — Fully managed Apache Kafka platform: Kafka clusters (Basic + Standard + Dedicated + Enterprise + Freight) + Schema Registry + ksqlDB + Flink (managed Apache Flink) + Connect (200+ source/sink connectors via Confluent Hub) + Cluster Linking (geo-replication) + Stream Governance (data lineage + catalog + quality) + Stream Sharing + Tableflow (Kafka → Iceberg) + Confluent CLI + Terraform provider + REST API v3 + Kafka REST Proxy + multi-cloud (AWS / GCP / Azure) + 70+ regions + Private Networking (VPC Peering + PrivateLink + Transit Gateway) + BYOK / Customer Managed Keys + SSO (SAML + OIDC) + Group Mappings + Audit Log (RBAC + Authentication + Authorization) + 99.99% SLA (Dedicated/Enterprise).
-- Coverage tier: A (capability fit on `messaging` (Kafka clusters + topics + partitions + producers + consumers) + `data` (Schema Registry + ksqlDB + Flink + Tableflow → Iceberg) + `developer-experience` (Connect + Terraform + CLI) + `apigw` (REST Proxy + Stream Sharing) + `network` (VPC peering + PrivateLink + Transit Gateway) + `identity` (SSO + RBAC + group mappings) + `compliance` (SOC-2 + ISO + HIPAA + PCI + GDPR + BYOK)). Capability-tier mapping per ADR-0316: Basic → **Silver**; Standard → **Gold**; Dedicated / Enterprise / Freight (BYOK + PrivateLink + dedicated-network + HIPAA-BAA + 99.99%-SLA + FedRAMP path) → **Platinum**.
-- Oyatie destination: `messaging` (Kafka clusters + topics anchor); `data` (Schema Registry + ksqlDB + Flink + Tableflow); `developer-experience` (Connect + Terraform); `apigw` (REST Proxy); `network` (peering + PrivateLink); `identity` (SSO + RBAC); `compliance` (SOC-2 + ISO + HIPAA + PCI + BYOK).
+- Vendor name and category: Confluent Cloud (Confluent, Inc.) — Fully managed Apache Kafka platform: Kafka clusters (Basic + Standard + Dedicated + Enterprise + Freight) + Schema Registry + ksqlDB + Flink (managed Apache Flink) + (200+ source/sink connectors via Confluent Hub) + Cluster Linking (geo-replication) + Stream Governance (data lineage + catalog + quality) + Stream Sharing + Tableflow (Kafka → Iceberg) + Confluent CLI + Terraform provider + REST API v3 + Kafka REST Proxy + multi-cloud (AWS / GCP / Azure) + 70+ regions + Private Networking (VPC Peering + PrivateLink + Transit Gateway) + BYOK / Customer Managed Keys + SSO (SAML + OIDC) + Group Mappings + Audit Log (RBAC + Authentication + Authorization) + 99.99% SLA (Dedicated/Enterprise).
+- Coverage tier: A (capability fit on `messaging` (Kafka clusters + topics + partitions + producers + consumers) + `data` (Schema Registry + ksqlDB + Flink + Tableflow → Iceberg) + `developer-experience` (+ Terraform + CLI) + `apigw` (REST Proxy + Stream Sharing) + `network` (VPC peering + PrivateLink + Transit Gateway) + `identity` (SSO + RBAC + group mappings) + `compliance` (SOC-2 + ISO + HIPAA + PCI + GDPR + BYOK)). Capability-tier mapping per ADR-0316: Basic → **Silver**; Standard → **Gold**; Dedicated / Enterprise / Freight (BYOK + PrivateLink + dedicated-network + HIPAA-BAA + 99.99%-SLA + FedRAMP path) → **Platinum**.
+- Oyatie destination: `messaging` (Kafka clusters + topics anchor); `data` (Schema Registry + ksqlDB + Flink + Tableflow); `developer-experience` (+ Terraform); `apigw` (REST Proxy); `network` (peering + PrivateLink); `identity` (SSO + RBAC); `compliance` (SOC-2 + ISO + HIPAA + PCI + BYOK).
 
 - **Vendor data model and top objects** (Confluent Cloud canonical streaming-graph):
   - `Organization` (Org_ID, Name, Billing-Ref, SSO-Config, Group-Mappings[]).
@@ -20729,7 +20729,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - "Stream Lineage" — visual end-to-end flow (producers + topics + consumers + connectors + streams).
   - "Stream Catalog" — searchable catalog of topics + schemas + tags + business-metadata.
   - "Stream Quality" — rule-based + statistical quality monitoring.
-  - "Connect Plugin Marketplace" — 200+ connectors with self-managed + fully-managed lanes.
+  - "Plugin Marketplace" — 200+ connectors with self-managed + fully-managed lanes.
   - "ksqlDB Editor" — SQL-style stream + table queries.
   - "Flink SQL Workspace" — managed-Flink statement editor + compute-pool picker.
   - "Cluster Linking" — geo-replication with mirror topics + filter rules.
@@ -20842,7 +20842,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Consumer-group offset preservation across cluster link cutover: per-group offset translation.
   - Schema compatibility (Backward / Forward / Full / None + Transitive variants): per-subject compatibility preserve.
   - Schema reference graph (subject A references subject B): per-subject DAG migrate-in-order.
-  - Connect offsets + per-task progress: per-connector offset replay.
+  - offsets + per-task progress: per-connector offset replay.
   - ksqlDB persistent-query state-store: per-query state migrate or rebuild.
   - Flink statement savepoint / checkpoint: per-statement savepoint restore.
   - Cluster Linking direction (source-initiated vs destination-initiated): per-link direction preserve.
@@ -20873,8 +20873,8 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-123 - Substack
-- Vendor name and category: Substack Inc. — Substack publishing + paid-subscription network: Substack Newsletters (writer-first email publication + web-archive + RSS) + Paid Subscriptions (Stripe Connect Standard + monthly + annual + founding-member tier + comp + free-trial) + Substack Network (cross-publication recommendations + subscribe-to-other-newsletters + reader Inbox + Notes) + Substack Notes (Twitter-like microblog feed) + Substack Chat (publication chat — like Discord channels for paid subscribers) + Substack Podcast (audio episodes + transcripts + RSS-feed) + Substack Video (video episodes) + Substack Threads + Substack Comments + Substack Discussion Threads + Substack Polls + Reader App (iOS + Android) + Web reader + Email delivery (DKIM + DMARC + SPF + Amazon SES) + Custom Domains + Substack Pro (advances + grants for top writers) + Substack Bestsellers (badge program) + Substack Reads (curated discovery) + Substack Leaderboards + Substack Stats (subscriber + revenue + open/click) + Imports (Mailchimp + Beehiiv + ConvertKit + Ghost + WordPress + CSV) + Exports (CSV + Stripe-Subscription-export) + Stripe Connect Standard payments + Founding Member badge + Bestseller badges (Hundreds / Thousands / Tens-of-Thousands / Hundreds-of-Thousands / Millions).
-- Coverage tier: A (capability fit on `web` (publication anchor — Substack differentiated by network-first cross-publication discovery + paid-subscription as core primitive + Notes microblog + Chat) + `commerce` (paid subscriptions + founding-member + Stripe Connect Standard) + `marketing` (Email delivery + Notes + Recommendations + Bestsellers + Network) + `collaboration` (Comments + Chat + Discussion Threads + Polls) + `apigw` (Substack does NOT expose a public REST API — limited Reader-feed-RSS + UI-driven flows; this is a key constraint) + `compliance` (GDPR + CCPA + CAN-SPAM + CASL + PCI-DSS via Stripe + EU-DPF)). Capability-tier mapping per ADR-0316: Free (writer-side; Substack takes 10% of paid revenue) → **Silver**; Substack-Pro (advances/grants for select writers) → **Gold**; Substack-Bestseller-Status writers (≥1000 paid subs with revenue scale + Pro support + dedicated CSM) → **Platinum**.
+- Vendor name and category: Substack Inc. — Substack publishing + paid-subscription network: Substack Newsletters (writer-first email publication + web-archive + RSS) + Paid Subscriptions (Stripe Standard + monthly + annual + founding-member tier + comp + free-trial) + Substack Network (cross-publication recommendations + subscribe-to-other-newsletters + reader Inbox + Notes) + Substack Notes (Twitter-like microblog feed) + Substack Chat (publication chat — like Discord channels for paid subscribers) + Substack Podcast (audio episodes + transcripts + RSS-feed) + Substack Video (video episodes) + Substack Threads + Substack Comments + Substack Discussion Threads + Substack Polls + Reader App (iOS + Android) + Web reader + Email delivery (DKIM + DMARC + SPF + Amazon SES) + Custom Domains + Substack Pro (advances + grants for top writers) + Substack Bestsellers (badge program) + Substack Reads (curated discovery) + Substack Leaderboards + Substack Stats (subscriber + revenue + open/click) + Imports (Mailchimp + Beehiiv + ConvertKit + Ghost + WordPress + CSV) + Exports (CSV + Stripe-Subscription-export) + Stripe Standard payments + Founding Member badge + Bestseller badges (Hundreds / Thousands / Tens-of-Thousands / Hundreds-of-Thousands / Millions).
+- Coverage tier: A (capability fit on `web` (publication anchor — Substack differentiated by network-first cross-publication discovery + paid-subscription as core primitive + Notes microblog + Chat) + `commerce` (paid subscriptions + founding-member + Stripe Standard) + `marketing` (Email delivery + Notes + Recommendations + Bestsellers + Network) + `collaboration` (Comments + Chat + Discussion Threads + Polls) + `apigw` (Substack does NOT expose a public REST API — limited Reader-feed-RSS + UI-driven flows; this is a key constraint) + `compliance` (GDPR + CCPA + CAN-SPAM + CASL + PCI-DSS via Stripe + EU-DPF)). Capability-tier mapping per ADR-0316: Free (writer-side; Substack takes 10% of paid revenue) → **Silver**; Substack-Pro (advances/grants for select writers) → **Gold**; Substack-Bestseller-Status writers (≥1000 paid subs with revenue scale + Pro support + dedicated CSM) → **Platinum**.
 - Oyatie destination: `web` (publication + newsletter + post anchor); `commerce` (paid subscriptions + Stripe Connect); `marketing` (Notes + Recommendations + Bestsellers + cross-network); `collaboration` (Comments + Chat + Threads); `apigw` (limited — Substack import + export adapter, no public REST API by design); `compliance` (GDPR + CCPA + CAN-SPAM + PCI).
 
 - **Vendor data model and top objects** (Substack canonical publication-network model):
@@ -20905,7 +20905,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
     - **Sitemap**: `https://<sub>.substack.com/sitemap.xml`.
     - **Unofficial JSON endpoints**: `https://<sub>.substack.com/api/v1/posts/<slug>` returns post JSON.
     - **OAuth-via-Substack**: limited Reader-App-side identity flow (Sign-in-with-Substack).
-  - Auth: Stripe Connect Standard handshake for payments; Substack-managed Stripe account on writer's behalf.
+  - Auth: Stripe Standard handshake for payments; Substack-managed Stripe account on writer's behalf.
   - Imports: CSV upload + Mailchimp/Beehiiv/ConvertKit/Ghost/WordPress JSON imports.
   - Exports: CSV export of subscribers + Stripe-Subscription dashboard.
   - Webhooks: not exposed publicly.
@@ -20981,7 +20981,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
     (resource.kind != "bestseller_badge_issue" || (principal.role == "substack_employee" && context.thresholds_verified == true))
   };
   ```
-  Per-jurisdiction packs: GDPR + KR-PIPA + EU-DPF (Subscriber export DSAR); CCPA + CPRA; CAN-SPAM (unsubscribe + sender-identification); CASL (Canada anti-spam consent); PCI-DSS (Stripe Connect Standard); state-tax via Stripe Tax for paid subscriptions.
+  Per-jurisdiction packs: GDPR + KR-PIPA + EU-DPF (Subscriber export DSAR); CCPA + CPRA; CAN-SPAM (unsubscribe + sender-identification); CASL (Canada anti-spam consent); PCI-DSS (Stripe Standard); state-tax via Stripe Tax for paid subscriptions.
 
 - **Ontology projection**:
   - `substack.publication` → `oya-web-publication-site`.
@@ -21008,16 +21008,16 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   5. Per-Post: re-create from RSS feed + UI scrape with body-HTML + paywall + audience-tier preserved.
   6. Per-Section: re-create with visibility (public / paid) preserved.
   7. Per-Subscriber: import via CSV; preserve status + plan + paying-since + lifetime-revenue.
-  8. Per-Subscription-Plan: re-create with Stripe-Product migration via Stripe Connect Standard → Oyatie Stripe Connect; subscription-pipe handoff with subscriber notice.
+  8. Per-Subscription-Plan: re-create with Stripe-Product migration via Stripe Standard → Oyatie Stripe Connect; subscription-pipe handoff with subscriber notice.
   9. Per-Recommendation: re-bind cross-publication network edges to Oyatie marketing µservice.
   10. Per-Note + Chat-Room + Chat-Message + Comment + Discussion-Thread + Poll: import-as-archive (no public API; UI-side scrape of own data).
   11. Per-Podcast-Item + Video-Item: re-host on Oyatie + update RSS-enclosure URL with 301-redirect.
   12. Per-Email-Delivery stats: archive historical opens + clicks; Stripe-Subscription cutover with email notice to subscribers about new sender domain.
-  13. Decommission Substack publication after 30-day shadow + final newsletter announcing platform move; Stripe-Connect handoff; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
+  13. Decommission Substack publication after 30-day shadow + final newsletter announcing platform move; Stripe-handoff; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
 - **Failure modes** (13 specific failures):
   - No public REST API means migration is UI + RSS + CSV based: per-publication scraper-driven export with rate-limit + ToS-compliant pacing.
-  - Stripe-Connect Standard handoff (Substack's Stripe-Connect → writer's direct Stripe → Oyatie Connect): per-subscriber Stripe-Customer + Stripe-Subscription re-bind via Stripe API; subscription state must remain unbroken.
+  - Stripe-Standard handoff (Substack's Stripe-→ writer's direct Stripe → Oyatie Connect): per-subscriber Stripe-Customer + Stripe-Subscription re-bind via Stripe API; subscription state must remain unbroken.
   - Subscriber preservation across email-sender-domain change: per-publication SPF + DKIM + DMARC re-warm + IP-reputation transfer.
   - Notes microblog data export limitation (Notes have no export tool): per-author Notes scrape from public profile + screenshot archive.
   - Chat Room data export limitation (Chat has no export): per-room manual archive from UI.
@@ -21032,15 +21032,15 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 
 - **Migration playbook outline** (10 numbered steps):
   1. Inventory via Subscriber-CSV export + Stripe dashboard + RSS feed + UI archive.
-  2. Plan 30-day shadow with sender-domain warm-up + Stripe-Connect handoff.
+  2. Plan 30-day shadow with sender-domain warm-up + Stripe-handoff.
   3. Migrate publication + posts (RSS + UI scrape) + sections + comments + discussion-threads + polls.
-  4. Migrate subscribers + subscription-plans + Stripe-Connect → Oyatie Connect cutover.
+  4. Migrate subscribers + subscription-plans + Stripe-→ Oyatie cutover.
   5. Migrate Notes + Chat (manual archive) + Podcast + Video re-host.
   6. Re-bind Recommendations + cross-publication network to Oyatie equivalent.
   7. Migrate custom-domain DNS + email sender (SPF/DKIM/DMARC re-issue).
   8. Send final newsletter on Substack announcing migration; opt-in re-collect for sender-domain.
   9. Re-establish GDPR / CCPA / CAN-SPAM / CASL / PCI attestations.
-  10. Decommission Substack publication after 30-day shadow; Stripe-Connect handoff; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
+  10. Decommission Substack publication after 30-day shadow; Stripe-handoff; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
 - **Naming justification**: `web` + `commerce` + `marketing` + `collaboration` + `compliance` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `substack` + `substack-newsletters` + `substack-paid-subscriptions` + `substack-network` + `substack-notes` + `substack-chat` + `substack-podcast` + `substack-video` + `substack-recommendations` + `substack-bestsellers` + `substack-reads` + `substack-pro` + `substack-reader-app` are benchmark alias-only. The `web` µservice (per ADR-0131 per-microservice flat layout) is the canonical Substack-equivalent network-first newsletter surface, distinct from Ghost (D-122, OSS publisher + self-host) and Beehiiv (D-124, ad-monetization + newsletter-network).
 
@@ -21177,22 +21177,22 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   1. Provision Oyatie tenant + `web` + `commerce` + `marketing` + `intelligence` + `apigw` + `developer-sdk` + `compliance` + `marketplace` µservices with beehiiv-feature-parity (Editor + Audience + Ad Network + Boosts + Recommendations + Referral + Premium Subs + Polls + Surveys + Forms + Magic Links + Workspaces + AI).
   2. Export beehiiv Publication via REST v2: workspace + publication + posts + subscribers + tags + custom-fields + segments + premium-plans + premium-subscriptions + ad-network campaigns + boost-offers + recommendations + referral-program + polls + surveys + forms + magic-links + AI-action-log + webhooks + audit-log.
   3. Plan per-publication migration cohorts.
-  4. Per-Workspace + Publication: re-create with custom-hostname + organization-name + Stripe-Connect re-bind.
+  4. Per-Workspace + Publication: re-create with custom-hostname + organization-name + Stripe-re-bind.
   5. Per-Subscriber: re-create with status + tier + source-provenance + custom-fields + tags + referrer-edge preserved.
   6. Per-Custom-Field + Segment: re-create with filter-expression transpile.
   7. Per-Post + Post-Stats: re-create with content (free + premium variants) + audience-tier + platform-flag preserved; stats archived.
-  8. Per-Premium-Plan + Subscription: Stripe-Connect migration with subscription-pipe re-bind.
+  8. Per-Premium-Plan + Subscription: Stripe-migration with subscription-pipe re-bind.
   9. Per-Ad-Network-Campaign + Boost-Offer + Recommendation: re-bind to Oyatie marketplace + recommendations network (where bilateral consent exists).
   10. Per-Referral-Program + Referral-Subscriber: re-create with reward-tiers + leaderboard preserved.
   11. Per-Poll + Survey + Form: re-create with submissions archived.
   12. Per-Magic-Link + Webhook + AI-Action-Log: re-issue magic-link secret + re-register webhooks + import AI-ledger.
-  13. Decommission beehiiv per-publication after 30-day shadow; custom-hostname DNS cutover; Stripe-Connect handoff; beehiiv contract sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
+  13. Decommission beehiiv per-publication after 30-day shadow; custom-hostname DNS cutover; Stripe-handoff; beehiiv contract sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
 - **Failure modes** (13 specific failures):
   - Segment filter-expression DSL drift (beehiiv segment-rules are publication-specific DSL): per-segment rule transpile + count compare.
   - Source-provenance taxonomy (direct / signup_form / recommendation / boost / referral / api / import / migration): per-subscriber source preserve.
   - Post audience-tier dual-content (Content-Free-HTML + Content-Premium-HTML): per-post both variants preserve.
-  - Premium Plan Stripe-Price re-bind during Stripe-Connect handoff: per-plan Stripe-Product + Price re-create.
+  - Premium Plan Stripe-Price re-bind during Stripe-handoff: per-plan Stripe-Product + Price re-create.
   - Ad Network targeting (categories + geo + subscriber-tier): per-campaign targeting transpile.
   - Boost-Offer per-subscriber-price + budget + eligible-publications-filter: per-boost transpile + marketplace re-bind.
   - Referral reward-tier-payout (digital / shipped / boost_credit): per-tier reward-type preserve + ops-fulfillment chain.
@@ -21205,9 +21205,9 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 
 - **Migration playbook outline** (10 numbered steps):
   1. Inventory via beehiiv REST v2 + audit-log + AI-action-log.
-  2. Plan 30-day shadow with sender-warm-up + Stripe-Connect handoff.
+  2. Plan 30-day shadow with sender-warm-up + Stripe-handoff.
   3. Migrate workspaces + publications + posts + subscribers + tags + custom-fields + segments.
-  4. Migrate premium-plans + premium-subscriptions + Stripe-Connect cutover.
+  4. Migrate premium-plans + premium-subscriptions + Stripe-cutover.
   5. Migrate ad-network campaigns + boost-offers + recommendations + referral programs.
   6. Migrate polls + surveys + forms + magic-links + webhooks.
   7. Migrate beehiiv-AI action-log as conformance ledger.
@@ -21410,7 +21410,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 (See §27 of `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` for synthesis-audit-blessed pattern.)
 
 ### Section D-154 - PlanetScale
-- Vendor name and category: PlanetScale (PlanetScale, Inc.) — Managed MySQL-compatible serverless database built on Vitess: Databases + Branches (Git-style schema branching) + Deploy Requests (schema deployment PRs) + Schema Snapshots + Connection Strings (per-branch + per-password) + Insights (query performance + index suggestions) + Boost (managed Vitess query caching) + Safe Migrations (online DDL via gh-ost) + Foreign Key Constraints (limited) + Vector indexing (preview) + PlanetScale CLI (`pscale`) + REST API + Terraform provider + AWS / GCP regions + PlanetScale Connect (logical replication CDC to Snowflake/BigQuery via Singer + ETL partners) + Workflow rollback + Audit Log + SSO (SAML for Scaler Pro+) + IP Allowlist + AWS PrivateLink (Enterprise) + Customer-Managed-Keys (Enterprise) + Multi-region + Backup (daily snapshots + PITR) + Read-only regions (replicas) + Scaler / Scaler Pro / Enterprise tiers.
+- Vendor name and category: PlanetScale (PlanetScale, Inc.) — Managed MySQL-compatible serverless database built on Vitess: Databases + Branches (Git-style schema branching) + Deploy Requests (schema deployment PRs) + Schema Snapshots + Connection Strings (per-branch + per-password) + Insights (query performance + index suggestions) + Boost (managed Vitess query caching) + Safe Migrations (online DDL via gh-ost) + Foreign Key Constraints (limited) + Vector indexing (preview) + PlanetScale CLI (`pscale`) + REST API + Terraform provider + AWS / GCP regions + PlanetScale (logical replication CDC to Snowflake/BigQuery via Singer + ETL partners) + Workflow rollback + Audit Log + SSO (SAML for Scaler Pro+) + IP Allowlist + AWS PrivateLink (Enterprise) + Customer-Managed-Keys (Enterprise) + Multi-region + Backup (daily snapshots + PITR) + Read-only regions (replicas) + Scaler / Scaler Pro / Enterprise tiers.
 - Coverage tier: A (capability fit on `data` (MySQL-compatible databases + branches + schemas + replicas + backup) + `developer-experience` (branches + deploy requests + schema snapshots + CLI + Terraform) + `intelligence` (Insights + Boost cache) + `apigw` (per-branch connection strings) + `identity` (SSO + SAML + RBAC) + `network` (PrivateLink + IP allowlist) + `compliance` (SOC-2 + HIPAA-eligible + CMK)). Capability-tier mapping per ADR-0316: Hobby → **Silver**; Scaler / Scaler Pro → **Gold**; Enterprise (SSO + PrivateLink + CMK + HIPAA-BAA + dedicated-support + 99.999%-SLA + custom-region) → **Platinum**.
 - Oyatie destination: `data` (databases + branches + replicas + backup anchor); `developer-experience` (branches + deploy-requests + schema-snapshots); `intelligence` (Insights + Boost); `apigw` (per-branch connection-strings); `identity` (SSO + SAML); `network` (PrivateLink + IP-allowlist); `compliance` (SOC-2 + HIPAA + CMK).
 
@@ -21438,7 +21438,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - MySQL wire protocol: `<host>.<region>.psdb.cloud:3306` with TLS-required + SCRAM-style PSK via Password.
   - CLI: `pscale` (org switch + database create/list + branch create/promote/diff + deploy-request create/approve/queue + password create + backup create + restore create + connect / shell + insights queries / index-suggestions + boost queries / enable + audit-log list).
   - Terraform provider: `planetscale/planetscale` (`planetscale_database` + `planetscale_branch` + `planetscale_password` + `planetscale_deploy_request` + `planetscale_organization_member`).
-  - PlanetScale Connect (CDC): WebSocket + change-stream endpoint with PSK auth (logical replication via Vitess VStream).
+  - PlanetScale (CDC): WebSocket + change-stream endpoint with PSK auth (logical replication via Vitess VStream).
 
 - **Vendor distinctive UX surfaces**:
   - "Branches" — production + development + (optional) sandbox branches per database.
@@ -21552,7 +21552,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Boost cache key + TTL + invalidation semantics: per-query cache-policy preserve.
   - Per-password region pin (primary vs replica) + TLS CA chain: per-password region + cert preserve.
   - Backup encryption + per-branch retention-days: per-backup retention preserve.
-  - PlanetScale Connect (VStream) resume-token compatibility: per-subscription tail preserve.
+  - PlanetScale (VStream) resume-token compatibility: per-subscription tail preserve.
   - Cluster-size step taxonomy (PS-10..PS-400): per-database sizing-mapping.
   - Production-branch read-only web-console invariant: per-branch console-policy preserve.
   - Audit-log retention (Enterprise 365-day): per-stream retention preserve.
@@ -21562,14 +21562,14 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
 
 - **Migration playbook outline** (10 numbered steps):
   1. Inventory via PlanetScale REST + CLI + audit-log.
-  2. Plan 30-day shadow with PlanetScale-Connect (VStream) dual-write to Oyatie.
+  2. Plan 30-day shadow with PlanetScale-(VStream) dual-write to Oyatie.
   3. Migrate databases + branches + schemas + deploy-requests + schema-snapshots.
   4. Migrate passwords + backups + insights + boost.
   5. Migrate audit-log + SSO + IP-allowlist + PrivateLink + CMK + read-only regions.
   6. Re-establish FK + DDL conventions + online-migration tooling parity.
   7. Re-establish SOC-2 + ISO + GDPR + HIPAA + EU-DPF attestations.
   8. Cut MySQL connection strings + DNS to Oyatie endpoint; preserve `psdb.cloud` alias.
-  9. Re-establish PlanetScale-Connect CDC equivalents.
+  9. Re-establish PlanetScale-CDC equivalents.
   10. Decommission PlanetScale per-database after 30-day shadow + CDC-tail-zero sunset; tenant ledger evidence per ADR-0247 + ADR-0250 + ADR-0251 §D-10.
 
 - **Naming justification**: `data` + `developer-experience` + `intelligence` + `apigw` + `identity` + `network` + `compliance` are canonical 12-layer enum entries per ADR-0105 (13-value canonical); `planetscale` + `pscale` + `planetscale-branches` + `planetscale-deploy-requests` + `planetscale-boost` + `planetscale-insights` + `planetscale-connect` + `planetscale-private-link` + `planetscale-cmk` + `planetscale-schema-snapshots` are benchmark alias-only. The `data` µservice (per ADR-0131 per-microservice flat layout) is the canonical PlanetScale-equivalent managed-MySQL-on-Vitess surface.
@@ -23101,7 +23101,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   - Schema Registry API supports `/subjects`, `/subjects/{subject}/versions`, `/schemas/ids/{id}`, compatibility checks, modes, metadata, rules, and references.
   - Managed connectors API creates, pauses, resumes, validates, updates, and deletes source/sink connectors.
   - Flink SQL API creates compute pools and statements with SQL text, principal, status, and result access.
-  - CLI: `confluent` (`environment`, `kafka cluster`, `kafka topic`, `connect`, `schema-registry`, `flink`, `iam`, `api-key`, `network`, `audit-log`).
+  - CLI: `confluent` (`environment`, `kafka cluster`, `kafka topic`, `connector`, `schema-registry`, `flink`, `iam`, `api-key`, `network`, `audit-log`).
   - Terraform provider `confluentinc/confluent` manages cloud resources, clusters, topics, service accounts, API keys, ACLs, RBAC, connectors, schema registry, and networking.
   - Observability APIs expose Metrics API, Health+, alerts, audit logs, lag, connector/task status, and lineage/catalog.
 
@@ -23227,7 +23227,7 @@ SOC-2 pack adds `audit_logging_to_central_store_enforced`. HIPAA pack adds `host
   9. Re-establish SOC-2/GDPR/HIPAA/PCI/KR-PIPA evidence.
   10. Delete Confluent resources after retention and audit windows close.
 
-- **Naming justification**: `streaming`, `message-broker`, `eventing`, `schema-registry`, `data-governance`, `workflow-engine`, `developer-sdk`, `observability`, `policy`, and `compliance` are canonical capability entries; `confluent-cloud`, `kafka-cluster`, `schema-registry`, `connect`, `flink-sql`, `cluster-linking`, and `stream-governance` are benchmark aliases only.
+- **Naming justification**: `streaming`, `message-broker`, `eventing`, `schema-registry`, `data-governance`, `workflow-engine`, `developer-sdk`, `observability`, `policy`, and `compliance` are canonical capability entries; `confluent-cloud`, `kafka-cluster`, `schema-registry`, `connector`, `flink-sql`, `cluster-linking`, and `stream-governance` are benchmark aliases only.
 
 (See §27 of docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md for synthesis-audit-blessed pattern.)
 

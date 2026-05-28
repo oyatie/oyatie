@@ -19,15 +19,15 @@ info:
     164.514(b)(2)) + ISO/TS 25237.
 
     Authority: split from `diagnostics` per ADR-0132 + user directive 2026-05-21.
-  termsOfService: https://oyatie.dev/terms
+  termsOfService: https://oyatie.com/terms
   contact:
     name: axis-imaging
-    email: axis-imaging@oyatie.dev
+    email: axis-imaging@oyatie.com
   license:
     name: Oyatie Proprietary (Imaging µservice)
-    url: https://oyatie.dev/licenses/imaging
+    url: https://oyatie.com/licenses/imaging
 servers:
-  - url: https://imaging.{tenant}.oyatie.dev
+  - url: https://imaging.{tenant}.oyatie.com
     description: Per-tenant edge endpoint
     variables:
       tenant:

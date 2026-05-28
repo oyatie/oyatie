@@ -5,7 +5,7 @@
   "audit_class": "ADR-0321 second-pass operating-bar buildout",
   "findings": [
     {
-      "id": "contact-center-doc-suite-001",
+      "id": "contact-center-doc-set-001",
       "status": "closed-by-additive-artifacts",
       "evidence": "microservices/contact-center/",
       "target_artifacts": 100

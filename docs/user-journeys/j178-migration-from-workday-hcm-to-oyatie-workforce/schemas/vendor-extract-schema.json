@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/user-journeys/j178-migration-from-workday-hcm-to-oyatie-workforce/vendor-extract-schema.json",
+  "$id": "https://docs.oyatie.com/user-journeys/j178-migration-from-workday-hcm-to-oyatie-workforce/vendor-extract-schema.json",
   "title": "Workday HCM to Oyatie Workforce cutover vendor extract schema",
   "type": "object",
   "required": [

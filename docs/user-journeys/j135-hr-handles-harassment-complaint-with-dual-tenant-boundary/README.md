@@ -75,7 +75,7 @@ j135 is THE primary stress test of ADR-0311 dual-tenant boundary in an adversari
 
 - HR-platform engineers: read story.md ch1-ch3 + community + workflow-engine IPs
 - Cedar policy engineers: read handshake.md + permit-bundle schema (this is the canonical boundary test)
-- Security engineers: read integration-test-plan.md Suite 4 (personal-Messenger boundary)
+- Security engineers: read integration-test-plan.md Test Set 4 (personal-Messenger boundary)
 - Compliance engineers: read compliance IP + per-jurisdiction overlay sections
 
 ## Cross-references

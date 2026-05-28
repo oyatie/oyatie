@@ -10,7 +10,7 @@ contracts_exposed:
 regulatory_packs_consumed: [oya-pack-pci-dss-l1-v4, oya-pack-eu-psd2-sca]
 lifecycle: {state: incubating, preview_since: 2026-05-20}
 traceability:
-  github_issue: "oya-governance-pipeline://payments-doc-suite-buildout-2026-05-20"
+  github_issue: "oya-governance-pipeline://payments-doc-set-buildout-2026-05-20"
   source_adrs: [ADR-0056, ADR-0105, ADR-0253]
   ip_ref: IP-015
 allowed_dependency_edges: [kernel, usecase]

@@ -75,14 +75,14 @@ code --install-extension redhat.vscode-yaml
 code --install-extension svelte.svelte-vscode
 code --install-extension ms-playwright.playwright
 ./bin/oya doctor
-./bin/oya vcs status
+git status --short --branch
 ./bin/oya dev cell status --cell dev-cell-a
 ```
 
 | Tool | Role-specific expectation |
 | --- |--- |
 | VS Code | Install the repo profile plus rust-analyzer, Even Better TOML, YAML, Svelte for VS Code, Playwright Test, CodeLLDB, Cedar policy syntax, and Markdown All in One. Artifact: screenshot or `code --list-extensions` pasted into the onboarding issue. |
-| oya CLI | Run `./bin/oya doctor`, `./bin/oya vcs status`, and the role-specific smoke command. Artifact: terminal transcript with command, exit code, and expected output note. |
+| oya CLI | Run `./bin/oya doctor`, `git status --short --branch`, `./bin/oya verify --help`, and the role-specific smoke command. Artifact: terminal transcript with command, exit code, and expected output note. |
 | vault credentials | Request the dev-cell OpenBao path for the role and confirm access to read-only bootstrap credentials only. Artifact: secret path receipt with values redacted. |
 | dev cell access | Join `dev-cell-a` with the assigned sandbox tenant and verify the cell health endpoint. Artifact: `dev-cell-access-ok` evidence row in the onboarding issue. |
 | mentor pairing | Book the named mentor checkpoint series before writing code. Artifact: calendar holds for day 1, day 3, week 2, week 4, month 2, and quarter 1. |

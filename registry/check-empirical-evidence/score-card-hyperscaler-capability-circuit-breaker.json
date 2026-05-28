@@ -4,7 +4,11 @@
   "enforcement_status": "advisory-until-validator",
   "portfolio_gap_rank": 1,
   "adr_reference": "ADR-0134",
-  "affected_products": ["foundry", "ontology", "workflow"],
+  "affected_products": [
+    "foundry",
+    "ontology",
+    "workflow"
+  ],
   "source_evidence_refs": [
     "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json"
   ],

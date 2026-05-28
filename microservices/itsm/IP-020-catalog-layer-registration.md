@@ -41,7 +41,7 @@ Use the live `descriptor()` in `src/lib.rs` and `manifest.json` as registration 
 
 ## D. Implementation
 1. Read `descriptor()` and `manifest.json` as the two sources for registration.
-2. Register `itsm` as product-critical umbrella µservice, not a product suite.
+2. Register `itsm` as product-critical umbrella µservice, not a product platform.
 3. Include bounded contexts: on-call-schedule, escalation-policy, incident-room, status-update, postmortem.
 4. Include contract paths and capability names from OpenAPI enum where applicable.
 5. Include compliance packs and tenant-class behavior.

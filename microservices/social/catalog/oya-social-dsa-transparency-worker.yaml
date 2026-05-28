@@ -1,7 +1,7 @@
 apiVersion: catalog.oyatie/v2
 kind: Component
 metadata:
-  name: oya-social-dsa-transparency-worker
+  name: oya-community-social-dsa-transparency-worker
   namespace: social
 spec:
   microservice: social

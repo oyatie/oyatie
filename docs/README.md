@@ -371,7 +371,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#
 
 ### Section Purpose
 
-Products translate the ecosystem thesis into concrete PRDs. This shelf separates product-facing PRDs under `docs/products/` from microservice PRDs under `docs/prds/`; the latter currently contains the accepted implementation-driving PRDs for tenancy, ontology, workflow, application, HR, payroll, accounting, connect, and Foundry.
+Products translate the ecosystem thesis into concrete PRDs. This shelf separates product-facing PRDs under `docs/products/` from microservice PRDs under `docs/prds/`; the latter currently contains the accepted implementation-driving PRDs for tenancy, ontology, workflow, application, HR, payroll, accounting, communications, and governance pipeline services.
 
 ### Canonical Docs (Top 15)
 
@@ -384,7 +384,7 @@ Products translate the ecosystem thesis into concrete PRDs. This shelf separates
 7. [HR PRD](prds/hr.md) - HR PRD for enterprise M03 scope.
 8. [payroll PRD](prds/payroll.md) - Payroll PRD for enterprise M03 scope.
 9. [accounting PRD](prds/accounting.md) - Accounting PRD for enterprise M03 scope.
-10. [connect PRD](prds/connect.md) - Connect PRD for communication and workplace integration.
+10. [communications PRD](prds/communications.md) - PRD for Messenger, Mail, and Community communication surfaces.
 11. [cloud product PRD](products/cloud/PRD.md) - Cloud product PRD surface.
 12. [foundry product PRD](products/foundry/PRD.md) - Foundry product PRD surface.
 13. [foundry phase 00 spec](products/foundry/PHASE-00-SPEC.md) - Foundry Phase 00 product specification.
@@ -444,7 +444,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journey
 1. [prds/INDEX.md](prds/INDEX.md) - Index: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 2. [prds/accounting.md](prds/accounting.md) - Accounting: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 3. [prds/application.md](prds/application.md) - Application: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-4. [prds/connect.md](prds/connect.md) - Connect: product or microservice requirements authority for scope, users, boundaries, and success metrics.
+4. [prds/communications.md](prds/communications.md) - Communications: microservice requirements authority for Messenger, Mail, and Community scope, users, boundaries, and success metrics.
 5. [prds/foundry.md](prds/foundry.md) - Foundry: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 6. [prds/hr.md](prds/hr.md) - Hr: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 7. [prds/ontology.md](prds/ontology.md) - Ontology: product or microservice requirements authority for scope, users, boundaries, and success metrics.

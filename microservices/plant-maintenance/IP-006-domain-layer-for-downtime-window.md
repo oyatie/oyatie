@@ -10,7 +10,7 @@ persona: maya-okafor (reliability engineer), priya-singh (plant manager), tony-l
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-006: Domain layer for `downtime-window` — Planned + unplanned downtime with OEE driver

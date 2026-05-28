@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-audit-findings.json",
+  "$schema": "https://oyatie.com/schemas/microservice-audit-findings.json",
   "microservice": "detection",
   "audit_date": "2026-05-21",
   "status": "scaffolded",

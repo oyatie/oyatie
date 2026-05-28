@@ -127,7 +127,7 @@ She taps the green call button at 14:07:00 KST.
 The "SOS 정보 공유 중" indicator tells Yejin that iOS is sharing her
 location and emergency contacts with the call. Behind the scenes, iOS
 is also pinging the oyatie Messenger SOS relay endpoint at
-`https://emergency-relay.oyatie.dev/api/v1/ios-sos`.
+`https://emergency-relay.oyatie.com/api/v1/ios-sos`.
 
 ## 3. T+00:14 — Push notification to Yejin's emergency contacts
 

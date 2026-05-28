@@ -28,7 +28,7 @@ companion_docs:
   - microservices/plant-maintenance/ARCHITECTURE.md
   - microservices/plant-maintenance/compliance.md
   - microservices/plant-maintenance/manifest.json
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # PRD-plant-maintenance: Plant Maintenance
@@ -37,7 +37,7 @@ planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
 
 This PRD defines the SAP-parity product requirement surface for Plant Maintenance.
 plant-maintenance is equivalent to SAP PM/EAM coverage for equipment masters, maintenance plans, work orders, spare reservations, technician dispatch, and downtime windows.
-The target is not a monolithic ERP suite; the target is SAP PM / EAM parity through a flat, tenant-scoped microservice that composes with shared Oyatie substrates.
+The target is not a monolithic ERP platform; the target is SAP PM / EAM parity through a flat, tenant-scoped microservice that composes with shared Oyatie substrates.
 ADR-0315 binds the SAP-parity doctrine, ADR-0329 retires legacy activation vocabulary, ADR-0330 binds tenant_class demo_trial vs paid, ADR-0331 binds per-microservice tenant-class adoption, ADR-0244 binds tenant scoping, and ADR-0314 binds marketplace DealSet settlement.
 The service owns manage technical objects, preventive maintenance, corrective orders, spare-part reservations, technician dispatch, and downtime windows.
 The operating bar is the documentation-rigor PRD floor: 1500 or more lines, 40 or more stories, critical-path coverage, explicit policies, explicit ontology projections, and direct references.
@@ -47,7 +47,7 @@ Every mutation is Cedar default-deny first; every read is scoped to tenant plus 
 Open questions are limited to implementation sequencing; there is no unresolved product boundary decision in this PRD.
 
 ### A.1 Personas
-- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting suite lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
+- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting platform lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B tenant administrator: wants to activate packs, roles, and data residency boundaries without service-specific policy drift; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B operator: wants to run daily work, recover failures, and see batch progress before customers escalate; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B auditor: wants to export immutable evidence for every state transition and policy decision; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.

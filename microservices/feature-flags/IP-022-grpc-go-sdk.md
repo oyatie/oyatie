@@ -29,6 +29,6 @@ Go SDK implementing the OpenFeature `Provider` interface. Phase 2 SDK targeting 
 ## Definition of Done
 
 - `go test -race ./...` green
-- OpenFeature Go conformance suite passes
+- OpenFeature Go conformance set passes
 - Goroutine leak test: 1000 provider initializations + shutdowns → zero leaked goroutines
 - Bundle: importable as `go get go.oyatie.io/feature-flags-sdk`

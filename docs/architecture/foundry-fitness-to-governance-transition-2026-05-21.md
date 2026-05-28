@@ -30,7 +30,7 @@ The directive to rename comes from `CLAUDE.md` field:
 new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP
 ```
 
-ADR-0132 (`docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md`) establishes `oya-governance-no-new-suite-bundles` as the canonical CI lane name using the new prefix, confirming `oya-governance-*` as the forward prefix for all governance lanes.
+ADR-0132 (`docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`) establishes `oya-governance-no-grouping` as the canonical CI lane name using the new prefix, confirming `oya-governance-*` as the forward prefix for all governance lanes.
 
 ---
 
@@ -434,8 +434,8 @@ specs/masterplan.json
 specs/microservices/accounting.json
 specs/microservices/anonymous.json
 specs/microservices/calendar.json
-specs/microservices/connect-suite.json
-specs/microservices/enterprise-suite.json
+specs/tenant-rbac-packaging.json
+specs/microservices/tenant-rbac.json
 specs/microservices/hr.json
 specs/microservices/mail.json
 specs/microservices/messenger.json
@@ -766,14 +766,14 @@ microservices/cloud-iac/threat-model.md
 microservices/cloud-k8s/competitor-parity-matrix.md
 microservices/cloud-k8s/policy/cluster-isolation.md
 microservices/compliance/ARCHITECTURE.md
-microservices/connect/ARCHITECTURE.md
-microservices/connect/failure-modes.md
-microservices/connect/IP-014-compliance-critical-path.md
-microservices/connect/IP-015-connector-adapter-trait-doc.md
-microservices/connect/PHASE-01-INTEGRATION-SUBSTRATE-FOUNDATION.md
-microservices/connect/PRD.md
-microservices/connect/runbooks/connector-onboarding.md
-microservices/connect/scorecards/overrides.json
+microservices/connector/ARCHITECTURE.md
+microservices/connector/failure-modes.md
+microservices/connector/IP-014-compliance-critical-path.md
+microservices/connector/IP-015-connector-adapter-trait-doc.md
+microservices/connector/PHASE-01-INTEGRATION-SUBSTRATE-FOUNDATION.md
+microservices/connector/PRD.md
+microservices/connector/runbooks/connector-onboarding.md
+microservices/connector/scorecards/overrides.json
 microservices/feature-flags/ARCHITECTURE.md
 microservices/feature-flags/backfill-replay.md
 microservices/feature-flags/capacity-model.md

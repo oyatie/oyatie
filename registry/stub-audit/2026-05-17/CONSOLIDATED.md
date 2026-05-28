@@ -51,12 +51,12 @@ no-unwrap-prod, silent-failure, audit-emission).
 Both markdown PRDs (`docs/products/cloud/PRD.md`, `docs/products/foundry/PRD.md`) are
 missing 6 required template sections each (§2a acceptance criteria, §9b verification
 commands, §11b competitive, §11c best practices, §11d patterns/anti-patterns, §11e goals).
-All 4 enterprise PRDs (`suite.json`, `hr.json`, `payroll.json`, `accounting.json`) have
+All 4 enterprise PRDs (`platform.json`, `hr.json`, `payroll.json`, `accounting.json`) have
 under-structured `user_experience`, `best_practices`, `patterns`, `anti_patterns` blocks
 plus missing `production_readiness_gates` — payroll is the most critical given its KR
 statutory compliance claims with no production_readiness_gates defined.
 
-Connect sub-PRDs (`suite`, `mail`, `messenger`, `calendar`) carry unsourced competitive
+sub-PRDs (`platform`, `mail`, `messenger`, `calendar`) carry unsourced competitive
 claims (no `source_evidence_refs`) violating BP-07 in workflow.json.
 
 `workflow-studio.json` has 2 open deferrals (CRDT library choice `yrs OR loro`, JS vs
@@ -69,8 +69,8 @@ other products are spec'd to industry leading products", 5 parallel audit-and-fi
 are running:
 
 - Workflow Studio vs n8n editor + Zapier + Make + Retool + Power Automate
-- Enterprise suite (suite, hr, payroll, accounting) vs Workday + ADP + NetSuite + QuickBooks + SAP + BambooHR + Gusto + Xero + Sage
-- Connect suite (suite, mail, messenger, calendar) vs Google Workspace + Microsoft 365 + Slack + Proton + Outlook + Gmail
+- Enterprise platform (platform, hr, payroll, accounting) vs Workday + ADP + NetSuite + QuickBooks + SAP + BambooHR + Gusto + Xero + Sage
+- platform (platform, mail, messenger, calendar) vs Google Workspace + Microsoft 365 + Slack + Proton + Outlook + Gmail
 - Foundry vs Palantir Foundry + AWS Bedrock Agents + OpenAI Assistants + LangChain + GitHub Copilot Workspace
 - Cloud + meta-hyperscaler-pattern audit (AWS Well-Architected, Google SRE, Azure Well-Architected)
 

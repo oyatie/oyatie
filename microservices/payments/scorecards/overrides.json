@@ -1,7 +1,7 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "payments",
-  "summary": "Stripe Connect platform-facilitator shape; multi-PSP routing; PCI DSS L1 v4 scope; KR-FSS; EU PSD2",
+  "summary": "Stripe platform-facilitator shape; multi-PSP routing; PCI DSS L1 v4 scope; KR-FSS; EU PSD2",
   "chart_name": "oya-payments-app",
   "canonical_base_path": "specs/microservices/scorecards/canonical/",
   "aws_well_architected": {

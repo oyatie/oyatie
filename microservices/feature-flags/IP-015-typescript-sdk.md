@@ -50,4 +50,4 @@ const enabled = await client.getBooleanValue('my-flag', false);
 - `npm test` green
 - Bundle size ≤12 KB gzipped verified in CI
 - SSE reconnect: simulated disconnect → reconnects within 3s
-- OpenFeature conformance suite passes (TS target via `@openfeature/test-harness`)
+- OpenFeature conformance set passes (TS target via `@openfeature/test-harness`)

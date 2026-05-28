@@ -29,7 +29,7 @@ Map each compliance-framework control to the foundry-eval artifact + mechanism t
 | CC2.x (communication) | runbooks; tenant DPA disclosures | `runbooks/*`; `legal/dpa-template.md` |
 | CC3.x (risk assessment) | this threat-model + DPIA | `threat-model.md`; `dpia.md` |
 | CC4.x (monitoring) | Mimir + ClickHouse + audit-chain | `dashboards/*`; foundry-evidence |
-| CC5.x (control activities) | LEAN lanes; per-microservice-layout | per ADR-0131 lane suite |
+| CC5.x (control activities) | LEAN lanes; per-microservice-layout | per ADR-0131 lane set |
 | CC6.1 (logical access) | OIDC + Cedar + ServiceAccount RBAC | `policy/tenant-scope.cedar`; `policy/ci-scope.cedar` |
 | CC6.2 (authorization) | per-tenant scope binding | `policy/tenant-scope.cedar` |
 | CC6.3 (privileged access) | JIT via OpenBao | `policy/two-person-admin-ops.md` |

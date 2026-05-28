@@ -124,7 +124,7 @@ If the redaction pass fails (e.g., classifier crashes):
   §164.514 (Safe Harbour de-identification).
 - HITECH Act breach-notification rules.
 - ADR-0008 Data Use Boundary.
-- ADR-0135 (Connect dual-context, parallel).
+- ADR-0135 (dual-context, parallel).
 - `microservices/messenger/threat-model.md` T-I-08.
 - `microservices/messenger/dpia.md` R-08.
 - `microservices/messenger/compliance.md` HIPAA section.

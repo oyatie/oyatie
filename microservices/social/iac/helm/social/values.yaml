@@ -6,7 +6,7 @@ global:
   imagePullPolicy: IfNotPresent
 
 image:
-  repository: oya-social-app
+  repository: oya-community-social-app
   tag: "1.0.0"  # SHA-pinned at release-pointer advance per ADR-0139
 
 # ============================================================================
@@ -163,9 +163,9 @@ valkeyStreams:
 
 s3Media:
   endpoint: "${OCI_OBJECTSTORAGE_ENDPOINT}"
-  bucket: oya-social-media-${global.pack}
-  quarantineBucket: oya-social-quarantine-${global.pack}
-  cdnBucket: oya-social-cdn-${global.pack}
+  bucket: oya-community-social-media-${global.pack}
+  quarantineBucket: oya-community-social-quarantine-${global.pack}
+  cdnBucket: oya-community-social-cdn-${global.pack}
   accessKeyId: "${openbao:secret/social/s3/access-key}"
   secretAccessKey: "${openbao:secret/social/s3/secret-key}"
   sseKms: tenant-DEK

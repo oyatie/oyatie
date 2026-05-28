@@ -356,7 +356,7 @@ hyperscaler-gate runs per PR — easily ≫ 66 engineer-hours per quarter.)
 - ADR-0123: Hyperscaler maturity claim gate.
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward policy.
+- ADR-0132: No-grouping forward policy.
 - ADR-0133: Industry best-practice conformance.
 - ADR-0136: Foundry as a single µservice — establishes the consolidation.
 - ADR-0137: Foundry bounded contexts — names the six BCs.

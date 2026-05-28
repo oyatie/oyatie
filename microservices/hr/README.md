@@ -4,7 +4,7 @@ Service: `hr`
 Owner: `axis-enterprise`
 Status: foundation-slice-in-progress
 
-This flat microservice owns employee/employment records, organizational reporting seams, labor-compliance obligation detection, and HR evidence carriers. It is not an Enterprise Suite boundary; Enterprise Generic and SMB Generic are tenant/product-surface metadata layered over this HR service.
+This flat microservice owns employee/employment records, organizational reporting seams, labor-compliance obligation detection, and HR evidence carriers. It is not an Tenant RBAC boundary; Tenant RBAC view and Tenant RBAC view are tenant/product-surface metadata layered over this HR service.
 
 ## Current landed slice
 

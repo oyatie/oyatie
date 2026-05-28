@@ -499,7 +499,7 @@
     "microservices/feature-flags/catalog/oya-feature-flags-metric-kernel.yaml"
   ],
   "naming_justifications": {
-    "microservice": "feature-flags \u2014 single-concern substrate per ADR-0132 no-suite policy; hyphen-separated per BNF v4.1",
+    "microservice": "feature-flags — single-concern substrate per ADR-0132 no-grouping policy; hyphen-separated per BNF v4.1",
     "crate_pattern": "oya-feature-flags-<bc>-<layer> per ADR-0105 13-layer enum; BC values: flag, targeting, experiment, metric, rollout, killswitch",
     "kafka_topics": "oya.feature-flags.<event-class> \u2014 dot-separated namespace; snake_case event class per ADR-0263",
     "cedar_fragments": "policy/<capability>-<action>-authorization.cedar \u2014 kebab-case; action-scoped per ADR-0183"
@@ -562,7 +562,7 @@
     "il5",
     "kr-pipa"
   ],
-  "hyperscaler_benchmark": "1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals; 1: AWS Verified Permissions Cedar anchors the external control pattern for cedar-gates; 2: Google Zanzibar provides a second independent hyperscaler pattern for cedar-gates; 1: Stripe Connect account isolation anchors the external control pattern for tenant-scoping; 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for tenant-scoping",
+  "hyperscaler_benchmark": "1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals; 1: AWS Verified Permissions Cedar anchors the external control pattern for cedar-gates; 2: Google Zanzibar provides a second independent hyperscaler pattern for cedar-gates; 1: Stripe account isolation anchors the external control pattern for tenant-scoping; 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for tenant-scoping",
   "owner_team": "axis-governance",
   "tier_classification": "substrate",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",

@@ -57,4 +57,4 @@ spec:
             microservice: notes
           annotations:
             summary: "notes E2E invariant violation: AI feature attempted to read E2E note content"
-            runbook_url: "https://oyatie.dev/microservices/notes/runbooks/ai-classifier-rollback-e2e-respect"
+            runbook_url: "https://oyatie.com/microservices/notes/runbooks/ai-classifier-rollback-e2e-respect"

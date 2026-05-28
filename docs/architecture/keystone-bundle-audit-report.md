@@ -396,7 +396,7 @@ Legend:
 | Doc | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `/specs/platform-architecture.json` | P | P | P | P | P | P | P | P | P | N/A | The consolidated machine-readable source-of-truth; carries `keystone_adr_bundle:` array enumerating all 14 ADRs; carries `canonical_oyatie_tenant_row` example; carries 18 `audience_types` enum (wait — actually 8: PLATFORM_OWNER, B2B_TENANT, B2C_CONSUMER, DEVELOPER, SANDBOX, PREVIEW, PARTNER_AGENCY, RESELLER). |
-| `/specs/tenant-model.json` | P | P | P | P | P | P | P | P | P | N/A | 21 required fields; regex pattern on `tenant_id` allowing dot-separated sub-scopes; `x-reserved-namespace-check` extension hook; `industry_citations` carrying AWS Organizations + GCP Resource Manager + Azure AD + Stripe Connect + Salesforce + Palantir Apollo references. |
+| `/specs/tenant-model.json` | P | P | P | P | P | P | P | P | P | N/A | 21 required fields; regex pattern on `tenant_id` allowing dot-separated sub-scopes; `x-reserved-namespace-check` extension hook; `industry_citations` carrying AWS Organizations + GCP Resource Manager + Azure AD + Stripe + Salesforce + Palantir Apollo references. |
 | `/specs/cedar-fragment-schema.json` | P | P | P | P | P | P | P | P | P | N/A | 15 required fields; signed-by + signature + cosign_attestation_ref tightly bound; `scope` regex enforces `baseline|pack/<id>|overlay/<jur>|reserved|tenant/<id>` discipline; Cedar v4.2 + AWS Verified Permissions + Sigstore Rekor + Google Binary Authorization cited. |
 | `/specs/compliance-pack-schema.json` | P | P | P | P | P | P | P | P | P | N/A | 17 required fields; pack_id examples list 18 named packs (HIPAA, PCI-DSS-L1-v4, FedRAMP-Moderate-v5, FedRAMP-High-v5, EU-GDPR-2018-baseline, EU-AI-ACT-2024-HIGH-RISK, KR-PIPA-2023-amendment, KR-CSAP-v3.1, JP-APPI-2022-amendment, SG-MTCS-L3, AU-IRAP-PROTECTED, SOC2-T2, ISO27001-2022, ISO22301-2019, NIST-CSF-2.0, CCPA-CPRA-2023, SOX-404, DORA-2024); compliance-office signing key format tight. |
 
@@ -1233,7 +1233,7 @@ verifiable against a public source. The list is not exhaustive.
 | AWS Organizations + IAM principal ARN | tenant-model.json | AWS Organizations docs |
 | GCP Resource Manager folder hierarchy | tenant-model.json | cloud.google.com/resource-manager |
 | Azure AD multi-tenant + First-Party Tenant | tenant-model.json | Microsoft Azure docs |
-| Stripe Connect platform-facilitator | tenant-model.json | stripe.com/connect |
+| Stripe platform-facilitator | tenant-model.json | stripe.com/connect |
 | Palantir Apollo internal-tenant | tenant-model.json | palantir.com/apollo |
 | Salesforce multi-tenant + Trailhead | tenant-model.json | trailhead.salesforce.com |
 | Cloudflare ML-KEM-768 + X25519 hybrid | ADR-0253 §D-2 | Cloudflare blog Q3 2024 |

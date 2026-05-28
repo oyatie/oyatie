@@ -38,7 +38,7 @@ Marcus operates EU, US, KR, and AU footprints where one user data path triggers 
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -76,7 +76,7 @@ Marcus operates EU, US, KR, and AU footprints where one user data path triggers 
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -142,7 +142,7 @@ Marcus operates EU, US, KR, and AU footprints where one user data path triggers 
 | README-AC-010 | comms-email | Cedar deny-wins simulation | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | transparency report publication | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | regulator evidence partitioning | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | data lineage discovery | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | data lineage discovery | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | pack conflict graph | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | higher-restriction floor selection | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
@@ -187,7 +187,7 @@ Marcus operates EU, US, KR, and AU footprints where one user data path triggers 
 | README-AC-055 | comms-email | data lineage discovery | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | pack conflict graph | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | higher-restriction floor selection | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | transparency report publication | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | regulator evidence partitioning | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
@@ -232,7 +232,7 @@ Marcus operates EU, US, KR, and AU footprints where one user data path triggers 
 | README-AC-100 | comms-email | Cedar deny-wins simulation | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | transparency report publication | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | regulator evidence partitioning | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | pack conflict graph | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | higher-restriction floor selection | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | Cedar deny-wins simulation | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
@@ -277,7 +277,7 @@ Marcus operates EU, US, KR, and AU footprints where one user data path triggers 
 | README-AC-145 | comms-email | data lineage discovery | ADR-0304 higher-restriction-pack-floor-wins conflict rule | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | pack conflict graph | ADR-0251 cell certification levels and cross-pack Cedar gate | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | higher-restriction floor selection | ADR-0263 audit-event class requirements for every cross-pack decision | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | Cedar deny-wins simulation | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | Cedar deny-wins simulation | GDPR Article 5 principles, Article 6 lawful basis, Article 15 access, Article 17 erasure, Article 20 portability, Article 22 automated decision safeguards, Article 33 breach notification | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | transparency report publication | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.120, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | regulator evidence partitioning | Korean PIPA Articles 15, 17, 21, 22, 23, 29, 34, 35, 36, 37 data processing, transfer, security, breach, access, correction, suspension rights | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | data lineage discovery | Privacy Act 1988 APP 1, APP 3, APP 5, APP 6, APP 8, APP 11, APP 12, APP 13 and Part IIIC eligible data breach notification | Cedar deny-wins; ADR-0263 event sealed |

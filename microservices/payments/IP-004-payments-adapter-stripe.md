@@ -24,7 +24,7 @@ doc_status: published
 
 ## Purpose
 
-Implement `oya-payments-adapter-stripe`: `PspAdapter` for Stripe, including Connect platform-facilitator pattern, webhook-signature verification, and provider-BYOK credential retrieval from OpenBao.
+Implement `oya-payments-adapter-stripe`: `PspAdapter` for Stripe, including platform-facilitator pattern, webhook-signature verification, and provider-BYOK credential retrieval from OpenBao.
 
 ## Acceptance criteria
 
@@ -32,7 +32,7 @@ Implement `oya-payments-adapter-stripe`: `PspAdapter` for Stripe, including Conn
 - [ ] `authorize()` calls `POST https://api.stripe.com/v1/charges` (or `POST /v1/payment_intents` for SCA flows); uses tenant's Stripe secret key fetched from OpenBao `secret/<tenant_id>/payments/stripe/secret_key` per ADR-0296.
 - [ ] `capture()` calls `POST /v1/charges/{id}/capture`.
 - [ ] `refund()` calls `POST /v1/refunds`.
-- [ ] `payout()` calls `POST /v1/payouts` using Connect transfer → payout pattern.
+- [ ] `payout()` calls `POST /v1/payouts` using transfer → payout pattern.
 - [ ] `handle_webhook()` verifies `Stripe-Signature` header HMAC-SHA256 per Stripe docs; returns `PspError::WebhookReplayRejected` if `Stripe-Timestamp` older than 300s per `policy/abuse-defence.cedar`.
 - [ ] HTTP/3 + QUIC for all outbound Stripe API calls; fallback to HTTP/2 per ADR-0253.
 - [ ] Credential fetch: sidecar TTL ≤60s; never log or persist the key in-process beyond request lifecycle per ADR-0296.
@@ -67,7 +67,7 @@ fn verify_stripe_signature(payload: &[u8], sig_header: &str, secret: &[u8]) -> R
 
 ## Hyperscaler precedent
 
-Stripe Connect platform-facilitator: charge to `on_behalf_of: <connected_account>` with `application_fee_amount`. Payout via `Stripe.transfers.create` then `Stripe.payouts.create` per connected-account flow.
+Stripe platform-facilitator: charge to `on_behalf_of: <connected_account>` with `application_fee_amount`. Payout via `Stripe.transfers.create` then `Stripe.payouts.create` per connected-account flow.
 
 ## Cross-references
 

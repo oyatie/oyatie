@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j56/job-application-to-offer-state.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j56/job-application-to-offer-state.json",
   "title": "J56JobApplicationToOfferState",
   "description": "Shared job-application-to-offer-state schema for j56-job-application-to-offer. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

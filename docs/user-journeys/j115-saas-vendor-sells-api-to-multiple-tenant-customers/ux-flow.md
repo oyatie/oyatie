@@ -38,7 +38,7 @@ primary_persona: Priya Krishnan
 # j115-saas-vendor-sells-api-to-multiple-tenant-customers - UX flow
 
 Purpose: screen-by-screen flow for TenantF AIScribe sells API access to KrampusCorp, HealthcareSystem-Megacorp, and
-BoutiqueRetailer with per-customer metering, Stripe Connect usage billing, and per-tenant Cedar permits.
+BoutiqueRetailer with per-customer metering, Stripe usage billing, and per-tenant Cedar permits.
 
 ## UX invariants
 

@@ -209,7 +209,7 @@ Each subsection below maps threats to these classes.
   - Cedar policy auto-compiled from agreement; no manual policy authoring.
   - Policy compilation in `enforcement-domain` is unit-tested for known patterns.
   - Cedar evaluator's `Authorizer` is deny-by-default.
-- **Residual**: bounded by compiler-correctness — comprehensive test suite required (IP-005 §8).
+- **Residual**: bounded by compiler-correctness — comprehensive test set required (IP-005 §8).
 
 ### 7.2 Grantee gains projection-publish (write) capability
 - **Threat**: Grantee tries to publish to projection topic.

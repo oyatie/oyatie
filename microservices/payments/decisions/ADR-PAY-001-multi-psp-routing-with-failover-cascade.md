@@ -31,7 +31,7 @@ decision_owner: axis-payments
 - Payment authorization is externally side-effecting; retry and failover can create duplicate charges if idempotency and response classification are weak.
 - Issuer declines, suspected fraud, regulatory blocks, SCA action requirements, and "do not retry" responses must not cascade to another PSP.
 - PSP 5xx, network timeout before PSP receipt, regional outage, and rate-limit exhaustion can cascade if idempotency and attempt records are durable.
-- Stripe has strong developer ergonomics, orchestration primitives, broad global coverage, Connect marketplace patterns, and first-class PaymentIntent semantics.
+- Stripe has strong developer ergonomics, orchestration primitives, broad global coverage, marketplace patterns, and first-class PaymentIntent semantics.
 - Adyen has strong global acquiring, local payment method depth, enterprise interchange controls, and regional acquiring optimization.
 - Checkout.com has strong card acquiring in selected regions, processor routing concepts, and a useful third path for resilience and acceptance-rate tests.
 - Regional local rails such as Toss, KakaoPay, LINE Pay, WeChat Pay, and Alipay remain separate adapter lanes; this ADR focuses on global card PSP cascade.
@@ -89,7 +89,7 @@ decision_owner: axis-payments
 ### Stripe-only processing
 
 - Pros: simplest implementation and strongest developer ergonomics.
-- Pros: PaymentIntents, Checkout, Billing, and Connect cover many first milestones.
+- Pros: PaymentIntents, Checkout, Billing, and cover many first milestones.
 - Pros: fewer reconciliation adapters and less dispute variance.
 - Cons: single PSP creates availability, account-risk, and regional acceptance-rate concentration.
 - Cons: tenant provider-credential BYOK and enterprise acquiring preferences are harder to honor (ADR-0255 §D-4).

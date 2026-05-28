@@ -14,6 +14,14 @@ use oya_community_post_store_api::{
 };
 use oya_community_post_store_domain::{CommunityPost, VoteLedger};
 use oya_community_post_store_usecase::{cast_vote, create_post, moderate_post};
+use oya_community_social_post_composition_adapter_postgres::{
+    PersistSocialPostRecord, build_post_write_batch as build_social_post_write_batch,
+};
+use oya_community_social_post_composition_api::{
+    AuthorizedSocialContext, ComposePostRequest, SocialApiArtifactKind, SocialApiContext,
+    post_published_event_envelope,
+};
+use oya_community_social_post_composition_usecase::{compose_post, plan_story_purge};
 use oya_mail_mailbox_store_adapter_postgres::{
     PersistMailMessageRecord, build_mail_message_write_batch,
 };
@@ -40,14 +48,6 @@ use oya_shared_transactional_outbox_adapter_sqlx::{
     OutboxClaimRequest, SqlxOutboxDrainConfig, SqlxOutboxDrainError, SqlxTransactionalOutboxDrain,
 };
 use oya_shared_transactional_outbox_kernel::{BackboneOutboxTable, append_outbox_to_batch};
-use oya_social_post_composition_adapter_postgres::{
-    PersistSocialPostRecord, build_post_write_batch as build_social_post_write_batch,
-};
-use oya_social_post_composition_api::{
-    AuthorizedSocialContext, ComposePostRequest, SocialApiArtifactKind, SocialApiContext,
-    post_published_event_envelope,
-};
-use oya_social_post_composition_usecase::{compose_post, plan_story_purge};
 use sqlx::{Executor, PgPool, Postgres, Transaction, postgres::PgPoolOptions};
 
 const WORKLOAD_LIVE_ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_WORKLOAD_POSTGRES";
@@ -470,7 +470,7 @@ fn workload_migrations() -> &'static [&'static str] {
     &[
         oya_messenger_message_stream_adapter_postgres::MIGRATION_0001,
         oya_mail_mailbox_store_adapter_postgres::MIGRATION_0001,
-        oya_social_post_composition_adapter_postgres::MIGRATION_0001,
+        oya_community_social_post_composition_adapter_postgres::MIGRATION_0001,
         oya_community_post_store_adapter_postgres::MIGRATION_0001,
     ]
 }

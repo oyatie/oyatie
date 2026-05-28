@@ -96,7 +96,7 @@ see:
    provenance docs.
 
 They do NOT want — and the warrant does NOT cover — Diana's family
-chat with her mother, her tax filings, her Stripe Connect non-vinyl
+chat with her mother, her tax filings, her Stripe non-vinyl
 transactions, her wife's photos, her son's school stuff, her
 audit-related Drive (which is in her GAO tenant anyway).
 
@@ -274,7 +274,7 @@ data:
 
 ### 7.2 Payments pull
 
-- 1 Stripe charge: $1,847 to Rosenthal's Stripe Connect account,
+- 1 Stripe charge: $1,847 to Rosenthal's Stripe account,
   2025-03-12 14:22 EDT. ACH bank-account source: Diana's Wells Fargo
   account.
 

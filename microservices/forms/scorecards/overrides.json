@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "forms",
   "summary": "form authoring + conditional logic + validation + CAPTCHA + bulk distribution",
   "chart_name": "form-app",

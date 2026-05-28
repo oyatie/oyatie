@@ -31,7 +31,7 @@ doc_status: published
 
 Forms is the canonical oyatie µservice for **typed form definitions, response capture, and survey distribution**. It is the entry point for the `Form → Response → downstream action` lifecycle across every pack, every channel, and every workload class — from one-question polls to GDPR Art. 9 special-category consent capture to HIPAA-eligible patient intake.
 
-Forms is **net-new** per ADR-0135 — no `oya-connect-forms-*` crates exist. Forms ships flat (per ADR-0131), single-concern (per ADR-0132), SLO-gated (per ADR-0139).
+Forms is **net-new** per ADR-0135 — no `oya-forms-*` crates exist. Forms ships flat (per ADR-0131), single-concern (per ADR-0132), SLO-gated (per ADR-0139).
 
 Forms is the **Workspace-tier sibling** to `sheets` (responses bridge → sheets), `drive` (file uploads bridge → drive), `mail` (bulk distribution → mail), `messenger` (link share → messenger), and `workflow-engine` (form-submission triggers a workflow). Forms NEVER calls a foreign µservice directly; all inter-product flows are mediated by the Workflow + Ontology adapter pattern.
 

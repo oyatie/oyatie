@@ -29,7 +29,7 @@ related:
   - ADR-0099-data-class-registry.md
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-microservice-rule.md
+  - ADR-0132-no-grouping-microservice-rule.md
   - ADR-0140-cedar-policy-enforcement.md
   - ADR-0212-buildability-doctrine.md
   - ADR-0240-sovereign-cloud-per-regional-pack.md
@@ -1961,7 +1961,7 @@ permitted (regulator emission is mandatory).
 - **ADR-0099** — data-class registry
 - **ADR-0105** — 13-layer canonical enum
 - **ADR-0131** — per-microservice flat layout
-- **ADR-0132** — no-suite microservice rule
+- **ADR-0132** — no-grouping microservice rule
 - **ADR-0140** — Cedar policy enforcement
 - **ADR-0212** — buildability doctrine
 - **ADR-0240** — sovereign-cloud per-regional pack

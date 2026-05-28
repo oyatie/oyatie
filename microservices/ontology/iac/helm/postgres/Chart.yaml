@@ -9,7 +9,7 @@ description: |
 version: 1.0.0
 appVersion: "16.6"
 type: application
-home: https://oyatie.dev/microservices/ontology
+home: https://oyatie.com/microservices/ontology
 sources:
   - https://github.com/oyatie/oyatie
 keywords:
@@ -20,9 +20,9 @@ keywords:
   - oyatie
 maintainers:
   - name: axis-ontology
-    email: axis-ontology@oyatie.dev
+    email: axis-ontology@oyatie.com
   - name: cloud-iac
-    email: cloud-iac@oyatie.dev
+    email: cloud-iac@oyatie.com
 dependencies:
   - name: postgresql
     version: "16.6.x"

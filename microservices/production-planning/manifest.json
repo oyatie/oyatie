@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "production-planning",
   "title": "Production Planning",
   "status": "reserved-wave-3-g-anchor",
@@ -95,7 +95,7 @@
       "scorecards/overrides.json"
     ]
   },
-  "second_pass_doc_suite": {
+  "second_pass_doc_set": {
     "date": "2026-05-21",
     "target": "PR-143 operating bar",
     "operating_bar_artifact_target": 100,

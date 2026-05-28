@@ -135,7 +135,7 @@ The four Slice-8 reference PRDs used as the quality bar throughout this audit:
 | comms-email | 183 | 0 | none detected | 5 | STUB |
 | community | 1449 | 20 | numbered 1–19 (not §A–§J) | 8 | BORDERLINE |
 | compliance | 127 | 0 | A C F G | 5 | STUB |
-| connect | 321 | 0 | A B C D E F G H I J | 9 | STUB |
+| connector | 321 | 0 | A B C D E F G H I J | 9 | STUB |
 | consent-graph | 280 | 0 | none detected | 9 | STUB |
 | developer-sdk | 194 | 0 | A B C F | 13 | STUB |
 | docs | 387 | 0 | A B C F H I | 13 | STUB |
@@ -253,12 +253,12 @@ Every stub PRD shares the same structural deficiencies:
 1. **Zero `### US-` stories** — the parser cannot count stories; the CI lane
    reports 0/40 for all 39.
 2. **Missing §D (Functional requirements)** — present only in the 5 full PRDs
-   and `connect`. The remaining 41 PRDs collapse functional requirements into
+   and `connector`. The remaining 41 PRDs collapse functional requirements into
    §A or §C prose without the required structured section.
 3. **Missing §E (Non-functional requirements / six-dimension matrix)** — the
    maintainability/observability/scalability/performance/optimization/code-quality
    matrix from §1.2 is absent in 41 PRDs. Only the 4 reference-bar PRDs and
-   `connect` carry §E.
+   `connector` carry §E.
 4. **Missing §G (Success metrics with conversion + retention)** — many stubs
    have P50/P95/P99 mentions in prose but no structured §G with quantified
    conversion percentages and retention targets.
@@ -307,7 +307,7 @@ Per documentation-rigor.md §3.2.1, every ARCHITECTURE.md must contain these
 | comms-email | 164 | 21 | 14 | none | 2 | 22 | APPROVE-WITH-FINDINGS |
 | community | 119 | 14 | 14 | none | 14 | 14 | REVISE |
 | compliance | 183 | 24 | 14 | none | 2 | 24 | APPROVE-WITH-FINDINGS |
-| connect | 226 | 18 | 14 | none | 2 | 24 | APPROVE-WITH-FINDINGS |
+| connector | 226 | 18 | 14 | none | 2 | 24 | APPROVE-WITH-FINDINGS |
 | consent-graph | 103 | 12 | 12 | `intelligence-dispatch` `ontology-read-path` | 12 | 12 | REVISE |
 | developer-sdk | 103 | 12 | 12 | `intelligence-dispatch` `ontology-read-path` | 12 | 12 | REVISE |
 | docs | 119 | 14 | 14 | none | 14 | 14 | REVISE |
@@ -345,7 +345,7 @@ Per documentation-rigor.md §3.2.1, every ARCHITECTURE.md must contain these
 
 | Verdict | Count | µservices |
 |---|---:|---|
-| APPROVE-WITH-FINDINGS | 14 | `api-gateway`, `comms-email`, `compliance`, `connect`, `feature-flags`, `finops-portal`, `intelligence`, `mail`, `notes`, `ontology`, `ops-dashboard-control-center`, `payments`, `social`, `tenancy` |
+| APPROVE-WITH-FINDINGS | 14 | `api-gateway`, `comms-email`, `compliance`, `connector`, `feature-flags`, `finops-portal`, `intelligence`, `mail`, `notes`, `ontology`, `ops-dashboard-control-center`, `payments`, `social`, `tenancy` |
 | REVISE | 32 | All remaining |
 
 ### §3.4 ANCHOR-INJECTED boilerplate analysis
@@ -433,7 +433,7 @@ ADR sequence (columns left to right):
 | comms-email | 22/28 | `YYYYY.Y.YYYYYYYYYYY..Y..YYYY` |
 | community | 18/28 | `YYYYY.Y.YY.YYYYYY....YY...YY` |
 | compliance | 24/28 | `YYYYY.YYYYYYYYYYY..Y.YYYYYYY` |
-| connect | 27/28 | `YYYYYYYYYYYYYYY.YYYYYYYYYYYY` |
+| connector | 27/28 | `YYYYYYYYYYYYYYY.YYYYYYYYYYYY` |
 | consent-graph | 14/28 | `YYYYY.Y.YY.YY...Y....Y....YY` |
 | developer-sdk | 14/28 | `YYYYY.Y.YY.YY...Y....Y....YY` |
 | docs | 17/28 | `YYYYY.Y.YY.YYYY.Y....YY...YY` |
@@ -531,7 +531,7 @@ Per documentation-rigor.md §3.2.1, every compliance.md must contain:
 | comms-email | 249 | 16 | 15 | none | APPROVE-WITH-FINDINGS |
 | community | 281 | 17 | 15 | none | APPROVE-WITH-FINDINGS |
 | compliance | 211 | 14 | 13 | `ml-model-lifecycle` `detection-fairness-audit` | REVISE |
-| connect | 196 | 21 | 13 | `ml-model-lifecycle` `detection-fairness-audit` | REVISE |
+| connector | 196 | 21 | 13 | `ml-model-lifecycle` `detection-fairness-audit` | REVISE |
 | consent-graph | 270 | 14 | 13 | `ml-model-lifecycle` `detection-fairness-audit` | REVISE |
 | developer-sdk | 152 | 14 | 13 | `ml-model-lifecycle` `detection-fairness-audit` | REVISE |
 | docs | 442 | 15 | 13 | `ml-model-lifecycle` `detection-fairness-audit` | REVISE |
@@ -651,7 +651,7 @@ Per documentation-rigor.md §1 invariant #1:
 | comms-email | Yes | — | — | — | — | — | — | 0/6 | Yes | REVISE — old schema |
 | community | Yes | — | — | — | — | — | — | 0/6 | No | REVISE — old schema |
 | compliance | Yes | — | — | — | — | — | — | 0/6 | No | REVISE — old schema |
-| connect | Yes | — | — | — | — | — | — | 0/6 | No | REVISE — old schema |
+| connector | Yes | — | — | — | — | — | — | 0/6 | No | REVISE — old schema |
 | consent-graph | Yes | — | — | — | — | — | — | 0/6 | No | REVISE — has `cross_microservice_dependencies` extension |
 | developer-sdk | Yes | external-facing | — | — | — | — | — | 1/6 | No | REVISE — non-standard `tier` value |
 | docs | Yes | — | — | — | — | — | — | 0/6 | No | REVISE — old schema |
@@ -901,7 +901,7 @@ is still active:
 
 **PRD.md files (via frontmatter `related_adrs` lists):**
 `api-gateway`, `audit-chain`, `calendar`, `comms-email`, `community`,
-`compliance`, `connect`, `docs`, `drive`, `feature-flags`, `forms`, `foundry`,
+`compliance`, `connector`, `docs`, `drive`, `feature-flags`, `forms`, `foundry`,
 `identity`, `mail`, `meet`, `messenger`, `network`, `observability`, `ontology`,
 `payments`, `plugin-app-store`, `sheets`, `shorts`, `sites`, `slides`, `social`,
 `tasks`, `tenancy`, `translate`, `workflow-engine`, `workflow-studio` (31 PRDs)
@@ -1194,7 +1194,7 @@ all 45 dependents via the six-hops traversal invariant.
 | P3-10 | **calendar** | 326 | 0 | 14 | 17/28 | Full Wave-3-D |
 | P3-11 | **anonymous** | 387 | 0 | 12 | 15/28 | Full Wave-3-D |
 
-### §10.6 Tier 4 — Productivity suite
+### §10.6 Tier 4 — Productivity platform
 
 All 7 are STUB PRDs with 0 stories and all-boilerplate ARCHITECTURE.md.
 Ordered by substrate-adjacency (docs and drive are cross-product; notes, tasks,
@@ -1438,7 +1438,7 @@ because the "product" of these services is internal.
 | calendar | STUB (326 lines, 0 stories) | REVISE (14 RP, 17/28 ADR) | REVISE (13/15 anchors) | 0/6 fields | 1303 | All axes |
 | anonymous | STUB (387 lines, 0 stories) | REVISE (12 RP, 2 anchors missing, 15/28 ADR) | REVISE (13/15 anchors) | 0/6 fields | 1119 | All axes |
 
-### §12.5 Tier 4 — Productivity suite
+### §12.5 Tier 4 — Productivity platform
 
 | µservice | PRD | ARCH | compliance.md | manifest | Total corpus lines | Dominant gap |
 |---|---|---|---|---|---:|---|
@@ -1511,7 +1511,7 @@ Section detection: `grep "^## [A-J]"` per PRD.md.
 | comms-email | . | . | . | . | . | . | . | . | . | . | 0 |
 | community | Y | Y | Y | . | . | Y | Y | Y | Y | . | 7 (numbered, not §A–§J) |
 | compliance | Y | . | Y | . | . | Y | Y | . | . | . | 4 |
-| connect | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | 10 |
+| connector | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | 10 |
 | consent-graph | . | . | . | . | . | . | . | . | . | . | 0 |
 | developer-sdk | Y | Y | Y | . | . | Y | . | . | . | . | 4 |
 | docs | Y | Y | Y | . | . | Y | . | Y | Y | . | 6 |
@@ -1563,7 +1563,7 @@ Section detection: `grep "^## [A-J]"` per PRD.md.
 **§D, §E, §J are each present in only 5 of 46 PRDs (11%).** These three sections
 are the hallmark of a mature product requirements document:
 - §D (Functional requirements): forces explicit enumeration of functional
-  acceptance criteria beyond user stories; present only in `connect`, `identity`,
+  acceptance criteria beyond user stories; present only in `connector`, `identity`,
   `ontology`, `payments`, `workflow-engine`.
 - §E (Non-functional requirements / six-dimension matrix): forces latency,
   throughput, scalability, maintainability, observability, code-quality targets
@@ -1574,7 +1574,7 @@ are the hallmark of a mature product requirements document:
 §G (Success metrics) is present in 11 µservices (24%) but in most cases via
 numbered-heading format (not `## G`) — the 11 count includes `community`,
 `mail`, `messenger`, `compliance`, and 7 others using variants. True §A–§J
-canonical §G is only confirmed in the 4 reference-bar PRDs plus `connect`.
+canonical §G is only confirmed in the 4 reference-bar PRDs plus `connector`.
 
 §H (Compliance impact) at 70% is the highest-coverage optional section among
 the STUB PRDs — it appears even in 6-section stubs, suggesting scaffold tooling
@@ -1598,7 +1598,7 @@ structural rewrites, not incremental additions.
 
 ### §13.4 connect as an intermediate reference
 
-`connect` (321-line STUB PRD with 10/10 sections, 1 story, 27/28 ADR score) is
+`connector` (321-line STUB PRD with 10/10 sections, 1 story, 27/28 ADR score) is
 anomalous: it has the complete §A–§J structural skeleton with 0 `### US-`
 stories. It demonstrates that section structure can be laid down without story
 content. For the 32 µservices with 6/10 sections (A, B, C, F, H, I), the path
@@ -1646,7 +1646,7 @@ Cells: `S` = substantive (≥3 mentions); `C` = citation-only (1–2); `.` = abs
 | comms-email | S | S | S | S | C | . | 4S |
 | community | S | S | C | S | C | . | 3S |
 | compliance | C | S | S | S | C | . | 3S |
-| connect | C | S | C | S | C | . | 2S |
+| connector | C | S | C | S | C | . | 2S |
 | consent-graph | C | S | C | S | C | . | 2S |
 | developer-sdk | C | C | C | S | C | . | 1S |
 | docs | S | S | C | S | C | . | 3S |
@@ -1876,7 +1876,7 @@ Two CI lanes enforce documentation quality across the corpus:
 | `oya-governance-doc-rigor` | ADVISORY (warnings only) | 2026-07-16 | PRD line floor, story count, §A–§J presence, ARCHITECTURE.md anchor count, compliance.md anchor count, manifest field presence |
 | `oya-governance-doc-link-resolves` | ADVISORY (warnings only) | 2026-07-16 | placeholder markers occurrences, dead cross-references, missing frontmatter fields |
 | `oya-governance-cross-consistency` | ADVISORY (warnings only) | 2026-07-16 | Invariants 1–10 from §3.2.2 |
-| `oya-governance-doc-coverage` | ADVISORY (warnings only) | 2026-07-16 | Per-µservice doc suite completeness (all 4 file classes present) |
+| `oya-governance-doc-coverage` | ADVISORY (warnings only) | 2026-07-16 | Per-µservice doc set completeness (all 4 file classes present) |
 
 All four lanes transition to BLOCKER on 2026-07-16. From that date, any PR
 touching a µservice that fails any of the four checks will be blocked from
@@ -1940,7 +1940,7 @@ work before 2026-07-16.
 | workflow-engine | 0 | 1 | 1 | 1 | 1 | 4 | HIGH (PASS PRD; ARCH all boilerplate; compliance + manifest) |
 | notes | 1 | 0 | 1 | 1 | 0 | 3 | MEDIUM-HIGH |
 | social | 1 | 0 | 0 | 1 | 0 | 2 | MEDIUM |
-| connect | 1 | 0 | 1 | 1 | 0 | 3 | MEDIUM-HIGH |
+| connector | 1 | 0 | 1 | 1 | 0 | 3 | MEDIUM-HIGH |
 | tenancy | 1 | 0 | 1 | 1 | 0 | 3 | MEDIUM-HIGH |
 | cell | 1 | 1 | 1 | 1 | 1 | 5 | CRITICAL |
 | foundry | 1 | 1 | 0 | 1 | 0 | 3 | MEDIUM-HIGH |
@@ -1988,7 +1988,7 @@ authoring per µservice.
 |---|---:|---|
 | CRITICAL (5/5) | 24 | `anonymous`, `application`, `audit-chain`, `calendar`, `cell`, `cloud-iac`, `cloud-k8s`, `cloud-secrets`, `consent-graph`, `developer-sdk`, `docs`, `drive`, `forms`, `meet`, `messenger`, `network`, `observability`, `plugin-app-store`, `sheets`, `sites`, `slides`, `tasks`, `workflow-studio`, `calendar` |
 | HIGH (4/5) | 7 | `analytics`, `community`, `governance`, `identity`, `recordings`, `shorts`, `translate`, `workflow-engine` |
-| MEDIUM-HIGH (3/5) | 7 | `compliance`, `connect`, `finops-portal`, `foundry`, `notes`, `ops-dashboard-control-center`, `tenancy` |
+| MEDIUM-HIGH (3/5) | 7 | `compliance`, `connector`, `finops-portal`, `foundry`, `notes`, `ops-dashboard-control-center`, `tenancy` |
 | MEDIUM (2/5) | 6 | `api-gateway`, `intelligence`, `mail`, `ontology`, `payments`, `social` |
 | LOW-MEDIUM (2/5, easy fixes) | 2 | `ontology`, `payments` |
 | LOW (1/5) | 1 | `feature-flags` |

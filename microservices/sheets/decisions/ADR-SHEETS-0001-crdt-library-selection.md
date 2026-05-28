@@ -87,7 +87,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the sheets CRDT library, **align
 5. CRDT-to-canonical-cell-graph projection deterministically orders Loro nodes by their stable IDs at the cell-grid-domain boundary.
 6. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`).
 7. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-workbook reference corpus before merge.
-8. The sheets-crdt-no-silent-loss CI lane runs Loro's example test suite + sheets's own AC-06 property test (10 concurrent editors, randomized cell-edit interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
+8. The sheets-crdt-no-silent-loss CI lane runs Loro's example test set + sheets's own AC-06 property test (10 concurrent editors, randomized cell-edit interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 9. **Cross-µservice port-trait sharing**: where compatible, the `CrdtMergeEngine` port trait shape is identical across workflow-studio, docs, and sheets, so an engineer working in any of the three µservices sees the same kernel-level abstraction.
 
 ## Alternatives Considered
@@ -188,7 +188,7 @@ Pre-CRDT industry standard (Google Docs, Etherpad historically).
 - Loro author/maintainer set monitored via GitHub Security Advisories + RustSec advisory database — same monitoring set as workflow-studio + docs.
 - Major-version Loro upgrade is gated on:
   (a) 100-workbook reference corpus drill green.
-  (b) AC-06 property test suite green.
+  (b) AC-06 property test set green.
   (c) WASM bundle size delta ≤ +50 KB gzip.
   (d) **Coordinated upgrade across {workflow-studio, docs, sheets}** within the same calendar week.
 - Loro upstream maintainers are notified out-of-band of any CRDT-correctness issue oyatie surfaces.
@@ -198,7 +198,7 @@ Pre-CRDT industry standard (Google Docs, Etherpad historically).
 - **Risk**: Loro pre-1.0 vintage of any subsequent breaking-change release. **Mitigation**: pin to `^1.0` only; major-version upgrades require fresh round-trip drill + property-test corpus + cross-µservice coordination.
 - **Risk**: Loro maintainer-attrition. **Mitigation**: kernel port-trait wrapper makes library swap a contained refactor; three ADRs (this + ADR-WS-0001 + ADR-DOCS-0001) would be superseded jointly rather than allowed to rot.
 - **Risk**: Bundle-size creep over Loro minor versions. **Mitigation**: `crdt_wasm_bundle_size_bytes` SLO + release gate.
-- **Risk**: Spreadsheet cell-edit workload exposes Loro performance corner-case (e.g., large drag-fill ops). **Mitigation**: AC-06 property test corpus includes drag-fill scenarios; benchmark suite tracks Loro performance per cell-op pattern; regression triggers Loro upstream issue + temporary fallback to single-writer mode.
+- **Risk**: Spreadsheet cell-edit workload exposes Loro performance corner-case (e.g., large drag-fill ops). **Mitigation**: AC-06 property test corpus includes drag-fill scenarios; benchmark set tracks Loro performance per cell-op pattern; regression triggers Loro upstream issue + temporary fallback to single-writer mode.
 
 ## References
 

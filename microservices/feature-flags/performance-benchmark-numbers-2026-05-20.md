@@ -211,7 +211,7 @@ Demo/trial 1k eval/s cap × 30-day trial period prevents abuse while accommodati
 | Typical (p50) flags per paid tenant | ~200 | `PHASE-01 §BC-1` |
 | Typical (p50) flags per demo_trial tenant | ~20 | Estimated from comparable trial workloads |
 | Storage per flag | ~4 KB JSONB (definition + targeting rules) | Postgres column estimate |
-| Total platform storage cap | 10,000 × 100k tenants × 4 KB = 4 TB | Postgres on Patroni; Citus shard by tenant_id |
+| Total tenant RBAC storage cap | 10,000 × 100k tenants × 4 KB = 4 TB | Postgres on Patroni; Citus shard by tenant_id |
 
 Industry-leader benchmark: LaunchDarkly limit is "thousands per project, hundreds of projects per account"; Statsig "no hard limit"; Split.io enterprise unlimited. Oyatie 10k/tenant is competitive.
 

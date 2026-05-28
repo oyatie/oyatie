@@ -10,7 +10,7 @@ persona: integration-engineer, maya-okafor (reliability), elena-volkov (data ste
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-erp-parity + axis-integrations
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-013: Adapter integrations for `plant-maintenance` — Postgres, Kafka, SAP/Maximo/Infor adapters

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "contract-lifecycle-management",
   "title": "Contract Lifecycle Management",
   "status": "wave-4-rolling-remediated",

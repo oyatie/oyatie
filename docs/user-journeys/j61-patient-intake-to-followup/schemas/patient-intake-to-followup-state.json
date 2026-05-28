@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j61/patient-intake-to-followup-state.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j61/patient-intake-to-followup-state.json",
   "title": "J61PatientIntakeToFollowupState",
   "description": "Shared patient-intake-to-followup-state schema for j61-patient-intake-to-followup. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

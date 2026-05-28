@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/governance-amendment.json",
+  "$id": "https://docs.oyatie.com/specs/governance-amendment.json",
   "title": "GovernanceAmendment",
   "description": "Machine-readable amendment procedure for the post-CONSTITUTION-strike doctrinal substrate. Migrated from docs/CONSTITUTION.md §Amendments during the 2026-05-15 CONSTITUTION strike. This file governs amendments to decision-principles.json, forbidden-operations.json, decision-rights.json, and itself.",
   "_meta": {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j68/regulator-audit-pull-hippa-soc2-pci-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j68/regulator-audit-pull-hippa-soc2-pci-event.json",
   "title": "J68RegulatorAuditPullHippaSoc2PciEvent",
   "description": "Shared regulator-audit-pull-hippa-soc2-pci-event schema for j68-regulator-audit-pull-hippa-soc2-pci. Fields are intentionally common across services so OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 adapters cannot drift.",
   "_meta": {

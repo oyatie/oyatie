@@ -199,7 +199,7 @@ Counterpart canonical surface (ServiceNow CMDB + Discovery + Service Mapping; JS
 | 9.7 | Scheduled workflows | Scheduled job | Scheduled automation | Scheduler | `workflow-engine` substrate + worker scheduler | partial | Wave 15E: declare scheduler binding |
 | 9.8 | Workflow approval steps | Approval activities | Approval automation | Approval steps | `policy/service-management-authorization.cedar` + Cedar gating | covered | — |
 | 9.9 | AI-assisted workflow node generation | Now Assist Flow generation | Atlassian Intelligence | Freddy AI Builder | bind to `workflow-studio` + `intelligence` (per Foundry absorption ADR-0247) | missing | Wave 15E: declare AI-assisted node generation |
-| 9.10 | Integration Hub (pre-built spokes for SaaS) | IntegrationHub + 100+ spokes | Atlassian Marketplace apps | Connect apps | `marketplace` + `plugin-app-store` µservices | partial | Wave 15E: declare ITSM spoke catalog binding |
+| 9.10 | Integration Hub (pre-built spokes for SaaS) | IntegrationHub + 100+ spokes | Atlassian Marketplace apps | apps | `marketplace` + `plugin-app-store` µservices | partial | Wave 15E: declare ITSM spoke catalog binding |
 
 ## 10. Customer / Self-Service Portal family
 
@@ -256,13 +256,13 @@ Counterpart canonical surface (ServiceNow CMDB + Discovery + Service Mapping; JS
 |---|---|---|---|---|---|---|---|
 | 14.1 | REST API (per-object CRUD) | sys_rest_api + Table API | JSM Cloud REST API v3 | Freshservice API | `contracts/openapi-v1.yaml` (78 lines, thin — per F-SB-05) | partial | Wave 15E: expand OpenAPI surface |
 | 14.2 | Webhooks (outbound events) | Outbound REST + scripted | JSM Webhooks | Webhooks | `contracts/asyncapi-v1.yaml` | partial | Wave 15E: declare webhook surface |
-| 14.3 | Pre-built integrations (Slack, Teams, Jira, ServiceNow, Confluence, etc.) | IntegrationHub spokes | Atlassian Marketplace apps | Connect apps + Marketplace | bind to `marketplace` + `plugin-app-store` | partial | Wave 15E: declare canonical spoke list |
+| 14.3 | Pre-built integrations (Slack, Teams, Jira, ServiceNow, Confluence, etc.) | IntegrationHub spokes | Atlassian Marketplace apps | apps + Marketplace | bind to `marketplace` + `plugin-app-store` | partial | Wave 15E: declare canonical spoke list |
 | 14.4 | SSO + SCIM | SAML, OIDC, OAuth, SCIM v2 | SAML, OIDC, SCIM | SAML, OIDC, SCIM | bind to `identity` + `cloud-iam` | covered | — |
 | 14.5 | LDAP / AD sync | LDAP integration | AD sync | LDAP / AD | bind to `identity` | partial | Wave 15E: declare LDAP/AD binding |
 | 14.6 | Email-to-ticket | Inbound email parser | Email handler | Email-to-ticket | bind to `mail` µservice | partial | Wave 15E: declare email binding |
 | 14.7 | Chat / messenger integration | Slack, Teams, Webex spokes | Slack-native | Slack/Teams | bind to `messenger` | partial | Wave 15E: declare messenger binding |
-| 14.8 | Monitoring tool integration (PagerDuty, Datadog, Splunk) | Event Management spokes | Marketplace apps | Connect apps | bind to `observability` µservice | partial | Wave 15E: declare monitoring binding |
-| 14.9 | DevOps tool integration (GitHub, GitLab, Bitbucket, Jenkins) | DevOps Change Velocity | Native (Atlassian) | Connect apps | bind to `oya git` substrate + workflow-engine | partial | Wave 15E: declare DevOps binding |
+| 14.8 | Monitoring tool integration (PagerDuty, Datadog, Splunk) | Event Management spokes | Marketplace apps | apps | bind to `observability` µservice | partial | Wave 15E: declare monitoring binding |
+| 14.9 | DevOps tool integration (GitHub, GitLab, Bitbucket, Jenkins) | DevOps Change Velocity | Native (Atlassian) | apps | bind to `oya git` substrate + workflow-engine | partial | Wave 15E: declare DevOps binding |
 
 ## 15. Mobile family
 

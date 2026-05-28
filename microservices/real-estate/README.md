@@ -5,13 +5,13 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-real-estate + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-real-estate-doc-suite
+planned_enforcement_ref: oya-governance-real-estate-doc-set
 ---
 
 # Real Estate
 
 ## Purpose
-Real Estate is the SAP RE-FX parity microservice for Lease Management, Facility Management. It keeps a flat per-microservice layout, avoids ERP suite ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
+Real Estate is the SAP RE-FX parity microservice for Lease Management, Facility Management. It keeps a flat per-microservice layout, avoids ERP platform ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
 
 ## Bounded contexts
 - lease-contract: tenant-scoped command, query, event, replay, and audit surface.

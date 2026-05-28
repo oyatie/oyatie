@@ -13,7 +13,7 @@ The gap matters against Workday Learning and Cornerstone because those products 
 The success condition is an implementation plan a cold engineer can trace from this IP to concrete files such as `microservices/learning-management/src/config.rs` without inventing a hidden service boundary.
 
 ## B. Approach
-Implement `credential-sidecar-binding` as a service-local slice, not as a shared suite facility. The technical mechanism is credential lease acquisition and rotation bound to `OpenBao SecretReference boundary` and checked before user-visible promotion.
+Implement `credential-sidecar-binding` as a service-local slice, not as a shared platform facility. The technical mechanism is credential lease acquisition and rotation bound to `OpenBao SecretReference boundary` and checked before user-visible promotion.
 Use `course-catalog` as the first fixture path, then prove the same envelope across `enrollment` and `credential` so the design is not a one-object shortcut.
 Every command or event carries `tenant_id`, `principal_id`, `audience_type=LEARNING_ADMIN`, `home_cell`, `jurisdiction_code`, `data_class`, `traceparent`, `idempotency_key` for mutations, and an audit event class.
 The domain layer stays pure in `microservices/learning-management/src/domain/mod.rs`; usecase orchestration lives in `microservices/learning-management/src/usecase/mod.rs`; transport or provider details stay behind adapter/config files.

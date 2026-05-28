@@ -229,7 +229,7 @@ Canvas does not publish detailed p95/p99 numbers per operation in customer-visib
 |---|---|---|
 | Mobile-app cold-start | "Go.Learn opens in ≤2 seconds" | Docebo Go.Learn product page |
 | AI content recommendation latency | "≤500 ms personalized recommendations" | Docebo AI-Suite product page |
-| Course completion event emission | "real-time per-learner event stream" | Docebo Connect product page |
+| Course completion event emission | "real-time per-learner event stream" | Docebo product page |
 | Custom Reports generation (medium dataset) | "≤30 seconds for typical reports" | Docebo Custom Reports product page |
 | Quiz submission auto-grade latency | "instant feedback" (interpreted as ≤1 second p95) | Docebo Assessment product page |
 | Content marketplace transaction throughput | "thousands of transactions per minute" | Docebo Content Marketplace product page |

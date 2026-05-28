@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Threat Model
+# Cloud Intelligence service — Threat Model
 
 **Authority:** ADR-0007 Cedar, ADR-0373 (key-pool resilience + per-tenant isolation), ADR-0373 (audit)
 **Framework:** OWASP Top 10 for LLM Applications **2025** (proxy-relevant subset), plus STRIDE per surface.

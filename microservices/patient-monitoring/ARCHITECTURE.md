@@ -258,7 +258,7 @@ windows; the ring buffer in both cells absorbs any 5-second cutover variance).
 | FCM dispatcher | Android push | Rust + fcm-rust |
 | WebPush dispatcher | Browser push | Rust + web-push |
 | SMS dispatcher | Twilio + AWS SNS fallback | Rust HTTP |
-| Pager gateway | Spok / Connect / Vocera | Rust HTTP / SOAP |
+| Pager gateway | Spok / / Vocera | Rust HTTP / SOAP |
 | Dispatch log | Per-event delivery tracking | Postgres-16 + audit-chain |
 
 ### 4.5 DeteriorationPrediction + SepsisEarlyWarning
@@ -775,7 +775,7 @@ cell µservice → patient-monitoring (cell-A) : finalize + tear down
 ## 19. References
 
 - ADR-0131 (per-microservice flat layout)
-- ADR-0132 (suite/bundle dissolution)
+- ADR-0132 (platform/bundle dissolution)
 - ADR-0243 (Cedar universal gate)
 - ADR-0244 (tenant scoping primitive)
 - ADR-0245 (substrate-vs-product layering)

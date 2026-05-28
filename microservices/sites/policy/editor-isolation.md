@@ -177,7 +177,7 @@ This policy is enforced by:
 
 - ADR-0028 (Bominal audit-chain).
 - ADR-0117 (data residency).
-- ADR-0135 (Connect unbundle).
+- ADR-0135 (unbundle).
 - ADR-0140 (Cedar policy).
 - ADR-SITES-0001 (Loro CRDT).
 - `policy/tenant-scope.cedar`, `policy/ci-scope.cedar`, `policy/auditor-scope.cedar`, `policy/public-read.cedar`.

@@ -18,12 +18,12 @@ doc_status: published
 
 Oyatie is **not** an AWS clone, **not** a Salesforce clone, **not** a Naver clone, **not** a Google clone — and **not** a portfolio of any of them. Oyatie is a single product that **contains** all four kinds of surface, joined at a single tenancy model, a single identity, a single capability registry, a single audit chain, and a single agent runtime + engineering platform (Foundry).
 
-The seven axes are *(the former separate engineering-platform axis is now part of Foundry, 2026-05-09; Workspace / Productivity Suite added as Axis 2 on 2026-05-09)*:
+The seven axes are *(the former separate engineering-platform axis is now part of Foundry, 2026-05-09; Workspace / Productivity Platform added as Axis 2 on 2026-05-09)*:
 
 | Axis | Reads as | Owning bounded context (flat-crates target) |
 |---|---|---|
 | 1. SaaS multi-tenant shared substrate | "The shared substrate — tenancy, workflows, plugins, Ontology, marketplace" (per MASTERPLAN.md §2.4: `platform` retired → `shared`; Object Graph renamed → Ontology) | `crates/oya-platform-tenant-*`, `crates/oya-saas-workflow-*`, `crates/oya-saas-plugin-*` (BNF paths retained pending ADR-grade rename per ADR-0015 migration ledger) |
-| 2. **Workspace / Productivity Suite (NEW 2026-05-09)** — Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings | "The canonical end-user apps everyone uses every day" — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) class | `crates/oya-workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings}-*` |
+| 2. **Workspace / Productivity Platform (NEW 2026-05-09)** — Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings | "The canonical end-user apps everyone uses every day" — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) class | `crates/oya-workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings}-*` |
 | 3. Vertical industry cloud | "How that work is shaped per industry" | `crates/oya-vertical-{healthcare,industrial,logistics,fintech,legal,corporate,retail,education,public,hospitality,construction,realestate,agriculture,food}-*` |
 | 4. **Foundry: AI agent runtime + control plane + engineering platform** | "Who or what *executes* the work AND how engineers + customers build all of the above" | `crates/oya-foundry-*` covering: agent runtime (`-runtime-*`, `-capability-*`, `-policy-*`, `-evidence-*`), provider adapters (`-adapter-{anthropic,openai,gemini}-{api,subscription}-*`), and engineering-platform surfaces (`-catalog-*`, `-repoctl-*`, `-gates-*`, `-scorecard-*`, `-fitness-*`, `-marketplace-*`) |
 | 5. Cloud provider | "What runs everything" | `crates/oya-cloud-{compute,storage,network,iam,billing,observability}-*` |
@@ -53,7 +53,7 @@ Plane assignment is declared at the catalog level (`registry/catalog/<crate>.yam
 | Axis | Control plane | Data plane | Analytics plane |
 |---|---|---|---|
 | 1. SaaS | tenant onboarding, workflow publish, plugin install | workflow execution, plugin invocation | per-tenant retention, NPS |
-| 2. Workspace / Productivity Suite | mailbox provisioning, doc/sheet/site publish, calendar policy, meet recording policy | mail send/receive, doc/sheet edit + share, meet/chat/calls, drive read/write | per-tenant comms graph, doc collaboration patterns, content-safety telemetry |
+| 2. Workspace / Productivity Platform | mailbox provisioning, doc/sheet/site publish, calendar policy, meet recording policy | mail send/receive, doc/sheet edit + share, meet/chat/calls, drive read/write | per-tenant comms graph, doc collaboration patterns, content-safety telemetry |
 | 3. Vertical | per-vertical onboarding, regulatory-pack install | per-vertical execution, FHIR/EDI exchanges | per-vertical KPI dashboards |
 | 4a. Foundry — agent runtime | capability publish, autonomy-ceiling policy publish, model registration, provider-adapter auth bind | agent step execution, RAG retrieval, provider invocation | agent telemetry, eval runs, replay |
 | 4b. Foundry — engineering platform | catalog publish, claim-ceiling policy publish, gate authoring, fitness-fn registration | CI lane execution, scorecard ingestion | scorecard rollups, fitness-fn alerts, supply-chain attestation telemetry |
@@ -115,7 +115,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 **Anti-scope (still):**
 - No frontier-model pre-training as a standalone product (we are not an AGI lab; we don't sell our base LLM as a service to other LLM consumers).
 - No general-purpose model marketplace; in-house models are bound to Oyatie capabilities.
-- Frontier-LLM API consumption (Claude / OpenAI / Gemini) remains the primary path until the in-house variant beats or matches on the per-vertical eval suite.
+- Frontier-LLM API consumption (Claude / OpenAI / Gemini) remains the primary path until the in-house variant beats or matches on the per-vertical eval set.
 
 ### 3.0.2 Vision + Speech + Robotics intelligence (long-horizon, added 2026-05-09)
 
@@ -124,7 +124,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | Surface | Foundry crate (model substrate) | Per-vertical consumers |
 |---|---|---|
 | Vision | `crates/oya-foundry-model-vision-*` (OCR, image classification, object detection, video analytics, facial recognition where lawful, scene anomaly) | Industrial (CCTV facility per ADR-0027; AMR mapping per ADR-0027); Healthcare (clinical imaging per ADR-0033); Logistics (yard / dock vision); Retail (anti-theft, customer flow); Workspace (Drive doc OCR + understanding) |
-| Speech | `crates/oya-foundry-model-speech-*` (STT, TTS, voice biometrics, wake-word, multilingual incl. KR/JP/EN/ES/PT/HI/AR) | Workspace (Meet transcription + AI summary); Healthcare (voice-charting); Vertical contact-center (per-vertical voice agents); Connect (voice messaging) |
+| Speech | `crates/oya-foundry-model-speech-*` (STT, TTS, voice biometrics, wake-word, multilingual incl. KR/JP/EN/ES/PT/HI/AR) | Workspace (Meet transcription + AI summary); Healthcare (voice-charting); Vertical contact-center (per-vertical voice agents); (voice messaging) |
 | Robotics control | `crates/oya-foundry-robotics-control-*` (agent-mediated under autonomy ceiling T1-T3 default; T4 disabled for actuation) + `crates/oya-vertical-industrial-robotics-*` (fleet, simulator, kinematics) | Industrial (AGV/AMR/robotic arms/drones per ADR-0027+0143); Logistics (yard jockeys, ASRS, automated trucks); Healthcare (surgical robotics — anti-scope unless founder ratifies; disinfection robots OK) |
 
 **Critical design constraints** for Robotics in particular:
@@ -167,7 +167,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | Auto-issue triage | New issues auto-labeled per repo's 5-label triage vocabulary (per `docs/agents/triage-labels.md`); auto-routed to owning team |
 | Auto-flaky-quarantine | Tests failing intermittently auto-quarantined to a separate lane until fixed |
 | Auto-bypass-expiry | Foundation bypass past expiry auto-emits `EVT-FOUNDATION-BYPASS-EXPIRED` and opens a renewal PR |
-| Per-tenant CI lane | Per-tenant override / regression suite runs only on PRs touching tenant-bound code |
+| Per-tenant CI lane | Per-tenant override / regression set runs only on PRs touching tenant-bound code |
 | Speculative parallel dispatch | For agent-authored PRs: fire 3 alternative approaches in parallel; pick first to pass acceptance criteria |
 | Replay-as-eval | New PR's affected-test set is replayed against past trace set for regression detection |
 | Nightly affected-rebuild | `main` re-builds nightly with full `--all-features` to catch feature-flag drift (PM-2 from ADR-0015 plan) |
@@ -683,7 +683,7 @@ This section will expand to ~3-5 pages per axis in v0.2 once the recon agents la
 
 ### 13.1 SaaS multi-tenant platform
 
-> **v0.2 expansion scope** — workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
+> **v0.2 expansion scope** — workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
 
 ### 13.2 Vertical industry cloud
 

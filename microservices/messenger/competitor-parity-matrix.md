@@ -30,7 +30,7 @@ Discord enterprise pivot, Matrix v2 federation).
 
 | Competitor | Product / surface | Primary differentiator | Source |
 |---|---|---|---|
-| Slack | Slack Channels + DM + Huddles + Workflow Builder | enterprise-grade SaaS; mature SDK ecosystem; Slack Connect cross-org | `api.slack.com` |
+| Slack | Slack Channels + DM + Huddles + Workflow Builder | enterprise-grade SaaS; mature SDK ecosystem; Slack cross-org | `api.slack.com` |
 | Microsoft Teams | Teams Channels + Chat + Meetings + Files | M365 integration; eDiscovery + HIPAA + GCC-High | `learn.microsoft.com/microsoftteams` |
 | Discord | Voice + text channels + threads + Stage | massive-scale (200M MAU); gaming-oriented; aggressive feature velocity | `discord.com/developers/docs` |
 | Matrix / Element | Matrix protocol + Element client + Synapse server | OSS federation; E2E (Megolm + MLS WIP); decentralised | `spec.matrix.org` |
@@ -81,7 +81,7 @@ Discord enterprise pivot, Matrix v2 federation).
 | SEC 17a-4 + FINRA 4511 retention | ✅ pack-us-financial overlay | ✅ Enterprise Grid + Smarsh/Globanet | ✅ Purview | ❌ | self-host | partial |
 | Dual-context (personal/professional) | ✅ data-model invariant | personal-account ≠ work-account (account-level) | personal-MS-Teams ≠ work (account-level) | ❌ | identity-level | ❌ |
 | E2E DM | ✅ MLS (RFC 9420) M03 | ❌ | ❌ | ✅ Megolm; MLS WIP | ❌ | ❌ |
-| Federation | optional Matrix-bridge (M04) | Slack Connect (cross-org) | Teams federation | ❌ | ✅ native | partial |
+| Federation | optional Matrix-bridge (M04) | Slack (cross-org) | Teams federation | ❌ | ✅ native | partial |
 | Four-eyes admin disclosure | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Cedar / Rego / OPA policy | ✅ Cedar v4 | partial (admin-only) | partial | ❌ | partial | partial |
 
@@ -175,7 +175,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/messenger/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-MESSENGER gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0135 (Connect dual-context, parallel).
+- ADR-0135 (dual-context, parallel).
 - ADR-0139 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).

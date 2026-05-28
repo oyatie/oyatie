@@ -5,13 +5,13 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-global-trade + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-global-trade-doc-suite
+planned_enforcement_ref: oya-governance-global-trade-doc-set
 ---
 
 # Global Trade
 
 ## Purpose
-Global Trade is the SAP GTS parity microservice for Customs Management, Sanctioned Party Screening, Export Control, Trade Compliance. It keeps a flat per-microservice layout, avoids ERP suite ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
+Global Trade is the SAP GTS parity microservice for Customs Management, Sanctioned Party Screening, Export Control, Trade Compliance. It keeps a flat per-microservice layout, avoids ERP platform ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
 
 ## Bounded contexts
 - customs-declaration: tenant-scoped command, query, event, replay, and audit surface.

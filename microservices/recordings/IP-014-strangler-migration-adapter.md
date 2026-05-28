@@ -10,25 +10,25 @@ acceptance_lanes: [strangler-conformance]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-014: Strangler migration adapter (oya-connect-recordings-* → oya-recordings-*)
+# IP-014: Strangler migration adapter (oya-recordings-* → oya-recordings-*)
 
 ## Intent
 
-Author `oya-connect-recordings-migration-adapter` crate that shims the
-legacy `oya-connect-recordings-domain` symbol surface to the new
+Author `oya-recordings-migration-adapter` crate that shims the
+legacy `oya-recordings-domain` symbol surface to the new
 `oya-recordings-*` BCs. Preserves Hyrum's-Law surfaces per
 `migration-from-connect.md`.
 
 ## Concrete crate
 
-`oya-connect-recordings-migration-adapter` (single crate; lives under
+`oya-recordings-migration-adapter` (single crate; lives under
 `microservices/recordings/src/migration-adapter/`).
 
 ## Acceptance Gates
 
 ```bash
-cargo build -p oya-connect-recordings-migration-adapter
-cargo nextest run -p oya-connect-recordings-migration-adapter -- byte_compat
+cargo build -p oya-recordings-migration-adapter
+cargo nextest run -p oya-recordings-migration-adapter -- byte_compat
 cargo run -p oya-dev-cli -- gate validate strangler-conformance --microservice recordings
 ```
 
@@ -51,24 +51,24 @@ acceptance_status: ga
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | Migration adapter exposes legacy `oya-connect-recordings-domain` symbol surface 1:1 | `cargo build -p oya-connect-recordings-migration-adapter` |
-| AC-02 | Byte-for-byte serialisation compat with legacy crate | `cargo nextest run -p oya-connect-recordings-migration-adapter -- byte_compat` |
+| AC-01 | Migration adapter exposes legacy `oya-recordings-domain` symbol surface 1:1 | `cargo build -p oya-recordings-migration-adapter` |
+| AC-02 | Byte-for-byte serialisation compat with legacy crate | `cargo nextest run -p oya-recordings-migration-adapter -- byte_compat` |
 | AC-03 | 3-month adapter soak window scheduled before Phase 3 canary | ADR-0134 schedule (calendar artifact) |
 | AC-04 | `oya gate validate strangler-conformance --microservice recordings` exits 0 | governance lane |
 
 ## Build Sequence
 
-1. Single crate `oya-connect-recordings-migration-adapter` at `microservices/recordings/src/migration-adapter/`.
+1. Single crate `oya-recordings-migration-adapter` at `microservices/recordings/src/migration-adapter/`.
 2. Reexport surface symbols from new `oya-recordings-*` BCs, mapping legacy structs.
 3. Byte-compat fixture corpus from production data captured under legal hold.
-4. `cargo nextest run -p oya-connect-recordings-migration-adapter -- byte_compat`.
+4. `cargo nextest run -p oya-recordings-migration-adapter -- byte_compat`.
 
 ## Traceability
 
 | Sibling artifact | Reference |
 |---|---|
 | migration-from-connect.md | Hyrum surfaces enumeration |
-| ADR | ADR-0134 (Strangler timeline), ADR-0135 (Connect unbundle) |
+| ADR | ADR-0134 (Strangler timeline), ADR-0135 (unbundle) |
 
 ## Risk + Mitigation
 
@@ -81,7 +81,7 @@ acceptance_status: ga
 ## References
 
 - ADR-0134 (Strangler timeline).
-- ADR-0135 (Connect unbundle parallel session).
+- ADR-0135 (unbundle parallel session).
 - "Strangler Fig Application" — Martin Fowler (`martinfowler.com/bliki/StranglerFigApplication.html`).
 - `microservices/recordings/migration-from-connect.md`.
 

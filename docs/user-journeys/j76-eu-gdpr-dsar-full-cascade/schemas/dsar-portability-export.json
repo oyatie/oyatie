@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/gdpr/dsar-portability-export-v1.json",
+  "$id": "https://oyatie.com/schemas/gdpr/dsar-portability-export-v1.json",
   "title": "GDPR Art 20 Portability Bundle Manifest",
   "type": "object",
   "_meta": {

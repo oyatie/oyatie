@@ -188,7 +188,7 @@ Primary chat anchor: `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/8f
 | 40 | Regulatory pack overlays | Privacy rules | Privacy rules | Region rules | Compliance and Kustomize overlays | Partial |
 | 41 | GDPR support | Strong | Strong | Strong | Compliance map and DSAR runbook | Covered |
 | 42 | CCPA/CPRA support | Strong | Strong | Strong | Compliance map | Covered |
-| 43 | HIPAA support | Platform workflow adjacency | Privacy platform adjacency | Not primary | Break-glass healthcare and compliance map | Covered |
+| 43 | HIPAA support | Module workflow adjacency | Privacy platform adjacency | Not primary | Break-glass healthcare and compliance map | Covered |
 | 44 | KR PIPA support | Likely privacy program | Global privacy laws | Region-specific banner | Compliance map KR section | Covered |
 | 45 | LGPD support | Strong | Strong | Not primary but applicable | Compliance map BR section | Covered |
 | 46 | GPC support | Likely CMP | Explicit TrustArc CPM page | Web CMP likely | No GPC field in consent-graph contracts | Gap |

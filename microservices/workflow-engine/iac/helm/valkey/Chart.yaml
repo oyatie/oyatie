@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "8.1"  # Valkey 8.1 (RESP wire-compatible) per docs/standards/workflow-engine-substrate.md
 maintainers:
   - name: axis-workflow
-    email: axis-workflow@oyatie.dev
+    email: axis-workflow@oyatie.com
 dependencies:
   - name: valkey
     version: "19.x"

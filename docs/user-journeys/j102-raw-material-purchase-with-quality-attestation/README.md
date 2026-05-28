@@ -60,7 +60,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - Service: drive; IP file: ../../../microservices/drive/IP-journey-j102-evidence-vault.md; Role: evidence-vault
 - Service: audit-chain; IP file: ../../../microservices/audit-chain/IP-journey-j102-dual-seal-events.md; Role:
   dual-seal-events
-- Service: connect; IP file: ../../../microservices/connect/IP-journey-j102-external-rail-adapter.md; Role:
+- Service: connector; IP file: ../../../microservices/connector/IP-journey-j102-external-rail-adapter.md; Role:
   external-rail-adapter
 
 ## ADR cross-references
@@ -204,7 +204,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 001: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -213,7 +213,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 005: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -222,7 +222,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 009: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -230,7 +230,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 013: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -239,7 +239,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 017: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -247,7 +247,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 021: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -255,7 +255,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 025: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -264,7 +264,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 029: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -272,7 +272,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 033: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -280,7 +280,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 037: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -289,7 +289,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 041: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -298,7 +298,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 045: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -306,7 +306,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 049: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -315,7 +315,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 053: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -323,7 +323,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 057: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 060: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -331,7 +331,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 061: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -340,7 +340,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 065: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -348,7 +348,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 069: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -356,7 +356,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 073: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -365,7 +365,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 077: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -374,7 +374,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 081: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -382,7 +382,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 085: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -391,7 +391,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 089: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -399,7 +399,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 093: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -407,7 +407,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 097: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -416,7 +416,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 101: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -424,7 +424,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 105: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -432,7 +432,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 109: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -441,7 +441,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 113: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -450,7 +450,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 117: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -458,7 +458,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 121: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -467,7 +467,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 125: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -475,7 +475,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 129: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -483,7 +483,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 133: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal
   entitlement hierarchy.
@@ -492,7 +492,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 137: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: marketplace keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 140: payments keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
@@ -500,7 +500,7 @@ SLSA-class attestations, and dual-seals evidence in audit-chain.
 - readme-buildability 141: workflow-engine keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 142: drive keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 143: audit-chain keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 144: connect keeps Min-seo Park and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites

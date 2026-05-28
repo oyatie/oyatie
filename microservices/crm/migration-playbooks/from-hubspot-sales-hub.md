@@ -427,7 +427,7 @@ related_oyatie_adrs:
   - Rollback: use the rollback_pointer from action 15 and restore the previous authority flag before retrying.
 
 ## Phase 4: Verification
-- Named test suite: crm-migration-hubspot-regression-suite.
+- Named test set: crm-migration-hubspot-regression-suite.
 - Named SLO targets: P95 deal read <120 ms, P95 association traversal <200 ms, nightly export lag <45 minutes, association replay error <0.2%, and missing active owner exactly 0 at freeze.
 - Named delta-detection algorithm: HubSpot hs_lastmodifieddate watermark with archived-record overlap, association edge Merkle graph keyed by portal/object/id/type/target, and export ledger row-count comparison.
 - Verification must be run from an operator account that is not the migration writer account.

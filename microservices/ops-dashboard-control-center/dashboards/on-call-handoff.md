@@ -8,7 +8,7 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/runbooks/oncall-handoff-failure.md
   - microservices/ops-dashboard-control-center/policy/cedar/on-call-handoff-authorization.cedar
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # On-Call Handoff Panel — Reference

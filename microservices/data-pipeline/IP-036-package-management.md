@@ -47,7 +47,7 @@ Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0242, ADR-0243, ADR-0244, ADR-02
 - Required custody: `signing_certificate_chain` for marketplace packages; `tenant_signing_key_ref` for tenant-local packages.
 
 ## Implementation steps
-- Add `package-management` as a sub-context of `transform` bounded context (per ADR-0132 no-suite).
+- Add `package-management` as a sub-context of `transform` bounded context (per ADR-0132 no-grouping).
 - Add `src/domain/package.rs` with `PackageManifestBinding`, `PackageCategory` enum, `PackageDisposition` enum.
 - Add `src/usecase/package.rs` exposing `package.publish`, `package.install`, `package.uninstall`, `package.pin`, `package.unpin`, `package.update`, `package.lockfile_resolve`, `package.verify_signature`.
 - Add `src/adapter/package_registry.rs` (marketplace-backed registry adapter).

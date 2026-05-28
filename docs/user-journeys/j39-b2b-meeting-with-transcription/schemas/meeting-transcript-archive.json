@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j39/meeting-transcript-archive.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j39/meeting-transcript-archive.json",
   "title": "MeetingTranscriptArchive",
   "version": "1.0.0",
   "description": "Shared journey object for j39-b2b-meeting-with-transcription. It lets Marcus Chen host a large review meeting, transcribe it, archive the recording, and make the transcript searchable in Notes while preserving tenant scope, auditability, and cross-service status.",

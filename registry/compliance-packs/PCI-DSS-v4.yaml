@@ -41,7 +41,7 @@ compliance_scope:
     - "marketplace"
     - "payments"
     - "billing"
-    - "connect-dlp"
+    - "dlp"
     - "workflow-engine"
     - "control-center"
 activated_cedar_policies:

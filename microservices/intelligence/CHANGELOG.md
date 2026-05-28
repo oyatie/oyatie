@@ -18,7 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ## [Unreleased]
 
 ### Added
-- Full doc-suite buildout to match ADR-0255 two-layer scope.
+- Full doc-set buildout to match ADR-0255 two-layer scope.
 - 8 bounded contexts: `model-routing`, `providers`, `guardrails`, `eval`, `attribution`,
   `brand-ux-surface`, `credential-resolver`, `audit-tap`.
 - 25 implementation plans (`IP-001..IP-025`).

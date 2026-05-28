@@ -48,7 +48,7 @@ async fn fetch_invoice(
     period: &str,
 ) -> anyhow::Result<TenantInvoice> {
     let url = format!(
-        "https://api.oyatie.dev/v1/tenants/{tenant_id}/invoices/{period}"
+        "https://api.oyatie.com/v1/tenants/{tenant_id}/invoices/{period}"
     );
     let resp = client
         .get(&url)
@@ -66,7 +66,7 @@ async fn fetch_invoice(
 import httpx
 
 def fetch_invoice(token: str, tenant_id: str, period: str) -> dict:
-    url = f"https://api.oyatie.dev/v1/tenants/{tenant_id}/invoices/{period}"
+    url = f"https://api.oyatie.com/v1/tenants/{tenant_id}/invoices/{period}"
     with httpx.Client(headers={"Authorization": f"Bearer {token}"}) as c:
         r = c.get(url)
         r.raise_for_status()
@@ -80,7 +80,7 @@ async function fetchInvoice(
   token: string, tenantId: string, period: string,
 ): Promise<TenantInvoice> {
   const r = await fetch(
-    `https://api.oyatie.dev/v1/tenants/${tenantId}/invoices/${period}`,
+    `https://api.oyatie.com/v1/tenants/${tenantId}/invoices/${period}`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -98,7 +98,7 @@ async fn trigger_focus_export(
     period: &str,
 ) -> anyhow::Result<()> {
     let url = format!(
-        "https://api.oyatie.dev/v1/tenants/{tenant_id}/focus-export"
+        "https://api.oyatie.com/v1/tenants/{tenant_id}/focus-export"
     );
     let resp = client
         .post(&url)

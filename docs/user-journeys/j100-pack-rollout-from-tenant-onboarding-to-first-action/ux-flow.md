@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | Cedar fragment refresh | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | workflow compensation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | first protected action proof | 45 CFR 164.310 physical safeguards | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | pre-migration inventory | 45 CFR 164.316 policies, procedures, and documentation requirements | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | HIPAA cell eligibility check | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | Cedar fragment refresh | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | mid-flight pack activation | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | pre-migration inventory | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | HIPAA cell eligibility check | 45 CFR 164.524 access of individuals to protected health information | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | Cedar fragment refresh | 45 CFR 164.530 administrative requirements | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | Cedar fragment refresh | 45 CFR 164.530 administrative requirements | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | workflow compensation | ADR-0251 pack activation and cell certification levels | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | first protected action proof | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | mid-flight pack activation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | Cedar fragment refresh | ADR-0243 Cedar default-deny and signed fragment bundle publication | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | workflow compensation | 45 CFR 164.308 administrative safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | first protected action proof | 45 CFR 164.310 physical safeguards | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | mid-flight pack activation | 45 CFR 164.312 technical safeguards | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | pre-migration inventory | 45 CFR 164.316 policies, procedures, and documentation requirements | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | HIPAA cell eligibility check | 45 CFR 164.502 uses and disclosures of protected health information | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | Cedar fragment refresh | 45 CFR 164.514 de-identification and limited data set requirements | Cedar deny-wins; ADR-0263 event sealed |

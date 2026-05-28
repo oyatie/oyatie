@@ -54,7 +54,7 @@ Before Wave-3-G, the core thesis was already visible in the keystone bundle: ten
 Wave-3-G stretched that keystone bundle into a board-readable, GTM-readable, and implementation-readable story.
 It added the operational-edge ADR cluster ADR-0297 through ADR-0321.
 It expanded the journey corpus into j151 through j175.
-It deepened microservice documentation suites across workspace, cloud, ERP, compliance, governance, application, and B2B-SaaS coverage.
+It deepened microservice documentation sets across workspace, cloud, ERP, compliance, governance, application, and B2B-SaaS coverage.
 It pushed ERP parity beyond finance/accounting into production planning, plant maintenance, quality management, treasury, supply-chain planning, global trade, warehouse, real estate, and CRM.
 It authored or deepened persona dossiers at a scale large enough to make the "unified ecosystem" story testable against real human roles instead of abstract product categories.
 It landed compliance pack manifests, localization/regional packs, capability-tier registries, sample tenants, workflow templates, dashboards, tutorials, benchmarks, diagrams, and foundry pipeline references.
@@ -296,7 +296,7 @@ The journey wave succeeded when it used real names, roles, incidents, objects, a
 The journey wave failed where bundle shape lagged behind ambition.
 The Wave-4 rule should be simple: every new journey gets the full bundle shape before the next journey starts.
 
-### §2.5 Microservice documentation suite scale
+### §2.5 Microservice documentation set scale
 
 The post-Wave-3-G audit recorded 70 microservice directories.
 The live post-remediation tree records 78 microservice directories.
@@ -1018,7 +1018,7 @@ Persona files contribute 59,398 lines.
 Major architecture source docs contribute 35,304 lines.
 The nine named ERP top-level IP sets contribute 51,041 lines, but they are inside microservices and should be kept separate from whole-microservice totals.
 Those five non-overlapping or bounded buckets total 251,394 lines.
-That lower bound excludes most microservice doc-suite work outside the nine ERP services.
+That lower bound excludes most microservice doc-set work outside the nine ERP services.
 That lower bound excludes most per-microservice ADRs.
 That lower bound excludes most tutorials, dashboards, benchmarks, reference implementations, migration playbooks, and onboarding files.
 That lower bound excludes the all-IP corpus outside the nine named ERP services.
@@ -1034,7 +1034,7 @@ The all-microservices tree contains 853,636 lines.
 The post-Wave-3-G audit recorded 9,827 microservice files at its snapshot.
 The live tree records 11,293 microservice files after additional remediation.
 That delta in file count supports the claim that post-audit remediation continued materially.
-The user-requested doc-suite estimate of around 400 artifacts times 200 lines equals around 80,000 lines.
+The user-requested doc-set estimate of around 400 artifacts times 200 lines equals around 80,000 lines.
 The live microservice tree dwarfs that estimate.
 The user-requested ERP IP estimate of 8-9 services times 25 IPs times 250 lines equals about 50,000 lines.
 The live nine-service top-level IP count is 51,041 lines.
@@ -1625,7 +1625,7 @@ Microservice: cloud-data.
 Retrospective use: cloud data substrate visible in live tree.
 Wave-4 follow-up: bind to data warehouse and data pipeline.
 Microservice: cloud-iac.
-Retrospective use: infrastructure-as-code suite and requested doc-suite service.
+Retrospective use: infrastructure-as-code suite and requested doc-set service.
 Wave-4 follow-up: implement IaC drift and policy gates.
 Microservice: cloud-iam.
 Retrospective use: cloud identity and access management visible in live tree.
@@ -1649,7 +1649,7 @@ Microservice: cloud-storage.
 Retrospective use: live storage specialization.
 Wave-4 follow-up: bind to drive, recordings, audit-chain, and backup portability.
 Microservice: comms-email.
-Retrospective use: requested doc-suite service and email communication surface.
+Retrospective use: requested doc-set service and email communication surface.
 Wave-4 follow-up: repair PRD depth and DKIM/SPF/DMARC migration paths.
 Microservice: community.
 Retrospective use: hero surface and borderline PRD in earlier audit.
@@ -1688,10 +1688,10 @@ Microservice: developer-sdk.
 Retrospective use: ecosystem and plugin developer surface.
 Wave-4 follow-up: repair IPs with old oya vcs lines and non-flat layout.
 Microservice: docs.
-Retrospective use: requested doc-suite service and knowledge surface.
+Retrospective use: requested doc-set service and knowledge surface.
 Wave-4 follow-up: repair PRD and link to drive, sheets, slides, forms.
 Microservice: drive.
-Retrospective use: requested doc-suite service and storage/document surface.
+Retrospective use: requested doc-set service and storage/document surface.
 Wave-4 follow-up: Microsoft/Google migration journey bindings.
 Microservice: feature-flags.
 Retrospective use: infrastructure service with stub PRD in earlier audit.
@@ -1700,10 +1700,10 @@ Microservice: financial-planning.
 Retrospective use: B2B leader coverage service.
 Wave-4 follow-up: Anaplan/Pigment migration journey.
 Microservice: finops-portal.
-Retrospective use: requested doc-suite service and earlier stub PRD concern.
+Retrospective use: requested doc-set service and earlier stub PRD concern.
 Wave-4 follow-up: implement cost attribution and dashboards.
 Microservice: forms.
-Retrospective use: requested doc-suite service and workflow input surface.
+Retrospective use: requested doc-set service and workflow input surface.
 Wave-4 follow-up: repair PRD and bind to compliance evidence collection.
 Microservice: foundry.
 Retrospective use: pipeline, agent, and governance substrate.
@@ -1740,21 +1740,21 @@ Retrospective use: B2B leader coverage service.
 Wave-4 follow-up: Marketo/HubSpot/Braze migration journey.
 Microservice: marketplace.
 Retrospective use: DealSet and universal settlement surface.
-Wave-4 follow-up: deepen artifact suite and implement DealSet domain.
+Wave-4 follow-up: deepen artifact set and implement DealSet domain.
 Microservice: meet.
-Retrospective use: requested doc-suite service and synchronous collaboration.
+Retrospective use: requested doc-set service and synchronous collaboration.
 Wave-4 follow-up: bind to recordings, calendar, identity, and E2E constraints.
 Microservice: messenger.
 Retrospective use: hero surface and borderline PRD in earlier audit.
 Wave-4 follow-up: MLS/E2EE PRD repair and messaging runtime tests.
 Microservice: network.
-Retrospective use: requested doc-suite service and graph/network surface.
+Retrospective use: requested doc-set service and graph/network surface.
 Wave-4 follow-up: clarify distinction from cloud-network and social graph.
 Microservice: notes.
-Retrospective use: requested doc-suite service and personal/work memory surface.
+Retrospective use: requested doc-set service and personal/work memory surface.
 Wave-4 follow-up: bind to j07 inheritance and j43 handoff notes.
 Microservice: observability.
-Retrospective use: requested doc-suite service and audit/telemetry backbone.
+Retrospective use: requested doc-set service and audit/telemetry backbone.
 Wave-4 follow-up: implement dashboards, SLO evidence, and telemetry validators.
 Microservice: ontology.
 Retrospective use: reference PRD and unified object graph successor.
@@ -1784,19 +1784,19 @@ Microservice: real-estate.
 Retrospective use: ERP service with 25 IP files and 4,494 top-level IP lines.
 Wave-4 follow-up: lease, asset, occupancy, and compliance fixtures.
 Microservice: recordings.
-Retrospective use: requested doc-suite service and meet/media evidence surface.
+Retrospective use: requested doc-set service and meet/media evidence surface.
 Wave-4 follow-up: bind transcription, retention, E2E restrictions, and audit.
 Microservice: sheets.
-Retrospective use: requested doc-suite service and productivity surface.
+Retrospective use: requested doc-set service and productivity surface.
 Wave-4 follow-up: PRD repair and formula/audit/runtime tests.
 Microservice: shorts.
-Retrospective use: requested doc-suite service and creator/media surface.
+Retrospective use: requested doc-set service and creator/media surface.
 Wave-4 follow-up: creator spike, safety, and marketplace interactions.
 Microservice: sites.
 Retrospective use: website/publishing surface.
 Wave-4 follow-up: clarify role in docs/workplace ecosystem.
 Microservice: slides.
-Retrospective use: requested doc-suite service and presentation surface.
+Retrospective use: requested doc-set service and presentation surface.
 Wave-4 follow-up: board meeting and investor relations journeys.
 Microservice: social.
 Retrospective use: social surface and consumer adjacency.
@@ -1805,10 +1805,10 @@ Microservice: supply-chain-planning.
 Retrospective use: ERP service with 23 IP files and 5,077 top-level IP lines.
 Wave-4 follow-up: deepen missing IP count and connect to j170.
 Microservice: tasks.
-Retrospective use: requested doc-suite service and workflow/task execution.
+Retrospective use: requested doc-set service and workflow/task execution.
 Wave-4 follow-up: implement task assignment, escalation, and audit fixtures.
 Microservice: tenancy.
-Retrospective use: requested doc-suite service and universal scoping substrate.
+Retrospective use: requested doc-set service and universal scoping substrate.
 Wave-4 follow-up: reconcile hierarchy, regional packs, and capability tiers.
 Microservice: translate.
 Retrospective use: localization and cross-locale workflow surface.
@@ -1826,10 +1826,10 @@ Microservice: workflow-engine.
 Retrospective use: reference PRD and durable process substrate.
 Wave-4 follow-up: implement workflow template validation and replay tests.
 Microservice: workflow-studio.
-Retrospective use: requested doc-suite service and workflow authoring UI.
+Retrospective use: requested doc-set service and workflow authoring UI.
 Wave-4 follow-up: connect templates, UX, and runtime validation.
 Microservice: workplace-integration.
-Retrospective use: requested doc-suite service and integration surface.
+Retrospective use: requested doc-set service and integration surface.
 Wave-4 follow-up: deepen artifact count and clarify connector boundaries.
 
 ### §8.4 Journey source cross-reference set

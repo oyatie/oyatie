@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/saga-shape.schema.json",
+  "$id": "https://docs.oyatie.com/specs/saga-shape.schema.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-SAGA-SHAPE",
@@ -15,7 +15,13 @@
   },
   "title": "Oyatie saga shape",
   "type": "object",
-  "required": ["saga_id", "axis", "steps", "owner_team", "version"],
+  "required": [
+    "saga_id",
+    "axis",
+    "steps",
+    "owner_team",
+    "version"
+  ],
   "properties": {
     "saga_id": {
       "type": "string",
@@ -24,7 +30,19 @@
     },
     "axis": {
       "type": "string",
-      "enum": ["workspace", "cloud", "foundry", "saas", "vertical", "ads", "search", "ontology", "connect", "ops", "platform"],
+      "enum": [
+        "workspace",
+        "cloud",
+        "foundry",
+        "saas",
+        "vertical",
+        "ads",
+        "search",
+        "ontology",
+        "connector",
+        "ops",
+        "platform"
+      ],
       "description": "Axis owning the saga's primary use case."
     },
     "owner_team": {
@@ -39,11 +57,17 @@
       "type": "array",
       "minItems": 1,
       "maxItems": 64,
-      "items": {"$ref": "#/$defs/SagaStep"}
+      "items": {
+        "$ref": "#/$defs/SagaStep"
+      }
     },
     "rollback_strategy": {
       "type": "string",
-      "enum": ["reverse-order-compensation", "no-compensation-readonly", "best-effort-with-page"],
+      "enum": [
+        "reverse-order-compensation",
+        "no-compensation-readonly",
+        "best-effort-with-page"
+      ],
       "default": "reverse-order-compensation"
     },
     "audit_chain_emit": {
@@ -54,7 +78,16 @@
   "$defs": {
     "SagaStep": {
       "type": "object",
-      "required": ["step_id", "target_microservice", "forward_action", "compensation_action", "idempotency_key_strategy", "timeout_budget_ms", "retry_policy", "audit_class"],
+      "required": [
+        "step_id",
+        "target_microservice",
+        "forward_action",
+        "compensation_action",
+        "idempotency_key_strategy",
+        "timeout_budget_ms",
+        "retry_policy",
+        "audit_class"
+      ],
       "properties": {
         "step_id": {
           "type": "string",
@@ -62,32 +95,90 @@
         },
         "target_microservice": {
           "type": "string",
-          "enum": ["anonymous", "application", "audit-chain", "calendar", "cell", "cloud-iac", "cloud-k8s", "cloud-secrets", "community", "connect", "drive", "forms", "foundry", "governance", "mail", "meet", "messenger", "network", "notes", "observability", "ontology", "recordings", "sheets", "shorts", "sites", "slides", "social", "tasks", "tenancy", "translate", "workflow-engine", "workflow-studio"]
+          "enum": [
+            "anonymous",
+            "application",
+            "audit-chain",
+            "calendar",
+            "cell",
+            "cloud-iac",
+            "cloud-k8s",
+            "cloud-secrets",
+            "community",
+            "connector",
+            "drive",
+            "forms",
+            "foundry",
+            "governance",
+            "mail",
+            "meet",
+            "messenger",
+            "network",
+            "notes",
+            "observability",
+            "ontology",
+            "recordings",
+            "sheets",
+            "shorts",
+            "sites",
+            "slides",
+            "social",
+            "tasks",
+            "tenancy",
+            "translate",
+            "workflow-engine",
+            "workflow-studio"
+          ]
         },
         "forward_action": {
           "type": "object",
-          "required": ["capability_ref", "input_schema_ref"],
+          "required": [
+            "capability_ref",
+            "input_schema_ref"
+          ],
           "properties": {
-            "capability_ref": {"type": "string"},
-            "input_schema_ref": {"type": "string"}
+            "capability_ref": {
+              "type": "string"
+            },
+            "input_schema_ref": {
+              "type": "string"
+            }
           }
         },
         "compensation_action": {
           "type": "object",
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "properties": {
             "kind": {
               "type": "string",
-              "enum": ["Cancel", "Refund", "Retry", "NoopWithEvidence", "Custom"]
+              "enum": [
+                "Cancel",
+                "Refund",
+                "Retry",
+                "NoopWithEvidence",
+                "Custom"
+              ]
             },
-            "capability_ref": {"type": "string"},
-            "input_schema_ref": {"type": "string"},
-            "evidence_class": {"type": "string"}
+            "capability_ref": {
+              "type": "string"
+            },
+            "input_schema_ref": {
+              "type": "string"
+            },
+            "evidence_class": {
+              "type": "string"
+            }
           }
         },
         "idempotency_key_strategy": {
           "type": "string",
-          "enum": ["saga-step-attempt", "request-body-hash", "client-supplied"]
+          "enum": [
+            "saga-step-attempt",
+            "request-body-hash",
+            "client-supplied"
+          ]
         },
         "timeout_budget_ms": {
           "type": "integer",
@@ -96,29 +187,55 @@
         },
         "retry_policy": {
           "type": "object",
-          "required": ["max_attempts", "backoff_ms"],
+          "required": [
+            "max_attempts",
+            "backoff_ms"
+          ],
           "properties": {
-            "max_attempts": {"type": "integer", "minimum": 1, "maximum": 10},
-            "backoff_ms": {"type": "integer", "minimum": 100},
-            "jitter": {"type": "boolean", "default": true}
+            "max_attempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "backoff_ms": {
+              "type": "integer",
+              "minimum": 100
+            },
+            "jitter": {
+              "type": "boolean",
+              "default": true
+            }
           }
         },
         "audit_class": {
           "type": "string",
-          "enum": ["ReadOnly", "WriteIdempotent", "WriteNonIdempotent", "SideEffectIrreversible"]
+          "enum": [
+            "ReadOnly",
+            "WriteIdempotent",
+            "WriteNonIdempotent",
+            "SideEffectIrreversible"
+          ]
         }
       },
       "allOf": [
         {
           "comment": "If audit_class is not ReadOnly, compensation_action.kind must not be NoopWithEvidence.",
           "if": {
-            "properties": {"audit_class": {"const": "ReadOnly"}}
+            "properties": {
+              "audit_class": {
+                "const": "ReadOnly"
+              }
+            }
           },
           "else": {
             "properties": {
               "compensation_action": {
                 "properties": {
-                  "kind": {"not": {"const": "NoopWithEvidence"}}
+                  "kind": {
+                    "not": {
+                      "const": "NoopWithEvidence"
+                    }
+                  }
                 }
               }
             }

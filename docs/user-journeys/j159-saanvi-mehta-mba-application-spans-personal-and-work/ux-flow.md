@@ -169,7 +169,7 @@ UX notes:
 │                                                  │
 │  [recommendation letter body, in editing pane]  │
 │                                                  │
-│  Saanvi joined Stripe Connect APAC in early     │
+│  Saanvi joined Stripe APAC in early     │
 │  2022 as a senior product manager and within   │
 │  six months had built the analytical thesis    │
 │  that became the basis for our 2023 Indonesia  │
@@ -341,14 +341,14 @@ UX notes:
 ├──────────────────────────────────────────────────┤
 │                                                  │
 │ 📅 Today: Calibration meeting · 16:00-17:30 IST  │
-│    Stripe Connect APAC PM cohort                 │
+│    Stripe APAC PM cohort                 │
 │                                                  │
 │  ┌─ Saanvi's work-tenant agenda ──────────┐     │
 │  │  09:30 Standup (eng + PM)              │     │
-│  │  10:00 Connect Pricing Workshop        │     │
+│  │  10:00 Pricing Workshop        │     │
 │  │  12:00 Lunch (informal)                │     │
 │  │  13:00 1:1 with Mohammed Akram         │     │
-│  │  14:00 Connect APAC Design Review      │     │
+│  │  14:00 APAC Design Review      │     │
 │  │  15:30 Calibration prep                │     │
 │  │  16:00 ← you are here                  │     │
 │  │  17:30 Calibration meeting concludes   │     │

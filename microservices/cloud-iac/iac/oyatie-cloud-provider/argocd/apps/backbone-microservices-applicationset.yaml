@@ -33,7 +33,7 @@ spec:
             chartPath: microservices/messenger/iac/k8s/helm
             namespace: oya-backbone-messenger
             imageRepository: oya-messenger
-            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             primaryCargoPackage: oya-messenger-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
@@ -46,7 +46,7 @@ spec:
             chartPath: microservices/mail/iac/k8s/helm
             namespace: oya-backbone-mail
             imageRepository: oya-mail
-            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             primaryCargoPackage: oya-mail-mailbox-store-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
@@ -59,8 +59,8 @@ spec:
             chartPath: microservices/social/iac/k8s/helm
             namespace: oya-backbone-social
             imageRepository: oya-social
-            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
-            primaryCargoPackage: oya-social-app
+            imageDigest: "" # release automation injects ADR-0181 signed digest
+            primaryCargoPackage: oya-community-social-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
             workloadClass: app
@@ -72,7 +72,7 @@ spec:
             chartPath: microservices/community/iac/k8s/helm
             namespace: oya-backbone-community
             imageRepository: oya-community
-            imageDigest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+            imageDigest: "" # release automation injects ADR-0181 signed digest
             primaryCargoPackage: oya-community-post-store-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone

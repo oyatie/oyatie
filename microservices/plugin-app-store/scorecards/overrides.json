@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "plugin-app-store",
   "summary": "third-party developer plugin/app store + vetting pipeline + per-plugin permissioning",
   "chart_name": "plugin-app-store",

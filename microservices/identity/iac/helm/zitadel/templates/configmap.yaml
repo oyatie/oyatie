@@ -10,7 +10,7 @@ data:
   config.yaml: |
     # Zitadel runtime config per pack. Authority: ADR-0187.
     ExternalSecure: true
-    ExternalDomain: identity-{{ .Values.packLabel }}.oyatie.dev
+    ExternalDomain: identity-{{ .Values.packLabel }}.oyatie.com
     ExternalPort: 443
     TLS:
       Enabled: true
@@ -33,7 +33,7 @@ data:
         RefreshTokenIdleExpiration: 30d
         RefreshTokenExpiration: 90d
     WebAuthN:
-      RPID: identity-{{ .Values.packLabel }}.oyatie.dev
+      RPID: identity-{{ .Values.packLabel }}.oyatie.com
       RPName: oyatie identity
       UserVerification: required
       Attestation: indirect    # overlay tightens to direct in regulated packs

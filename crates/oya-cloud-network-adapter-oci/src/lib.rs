@@ -582,9 +582,8 @@ impl OciDirectInterconnectAdapter {
         } else {
             Err(NetworkProviderDirectInterconnectError::ProviderRejected {
                 provider: NetworkProviderKind::OciFastConnect,
-                reason:
-                    "provider_virtual_circuit_ref does not match configured OCI FastConnect target"
-                        .to_string(),
+                reason: "provider_virtual_circuit_ref does not match configured OCI Fasttarget"
+                    .to_string(),
             })
         }
     }

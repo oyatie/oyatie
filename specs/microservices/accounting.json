@@ -1,21 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/products/enterprise/accounting.schema.json",
-  "title": "ProductPrd:EnterpriseAccounting",
+  "$id": "https://docs.oyatie.com/schemas/microservices/accounting.schema.json",
+  "title": "MicroservicePrd:Accounting",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
-    "spec_id": "PRD-ENTERPRISE-ACCOUNTING",
+    "spec_id": "PRD-ACCOUNTING",
     "version": "1.0.0",
     "status": "Accepted",
-    "owner_team": "enterprise-product-council",
+    "owner_team": "tenant-rbac-governance-council",
     "created_at": "2026-05-16T16:15:00Z",
-    "purpose": "Enterprise Accounting PRD: double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, close workflow, payroll posting, and audit-ready financial controls."
+    "purpose": "Accounting microservice PRD: double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, close workflow, payroll posting, and audit-ready financial controls."
   },
   "identity": {
     "product_id": "accounting",
-    "suite_id": "enterprise",
-    "owning_axis": "vertical-enterprise",
-    "product_class": "suite-app",
+    "owning_axis": "finance-accounting",
+    "product_class": "service",
     "user_facing_surface": true,
     "context_model": [
       "tenant-work"
@@ -41,7 +40,7 @@
       "$ref:specs/microservices/workflow.json",
       "$ref:specs/microservices/ontology.json",
       "$ref:specs/deployment-ops-contract.json",
-      "$ref:specs/microservices/connect-suite.json"
+      "$ref:specs/tenant-rbac-packaging.json"
     ],
     "source_docs": [
       "$ref:/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
@@ -51,9 +50,9 @@
       "$ref:/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md"
     ],
     "user_decisions": [
-      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-13 one PRD per flat microservice with packaging by tenant/RBAC",
       "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/microservices/<id>.json",
-      "2026-05-16:enterprise scope starts with HR, Payroll, Accounting and remains extensible for every business SaaS module",
+      "2026-05-16:HR, Payroll, and Accounting are independent microservices; packaging is computed later by tenant/RBAC entitlements",
       "2026-05-16:deployment must be OpenTofu + Makefile + oya ops; no manual SSH troubleshooting",
       "2026-05-16:shell-script operations must move to Rust where logic exists"
     ]
@@ -63,12 +62,12 @@
     {
       "persona": "employee_end_user",
       "interface": "self-service web/mobile/desktop surfaces",
-      "billing": "workspace or enterprise seat"
+      "billing": "workspace or tenant RBAC entitlement"
     },
     {
       "persona": "manager_operator",
       "interface": "approval queue, team dashboard, exception handling",
-      "billing": "enterprise seat"
+      "billing": "tenant RBAC entitlement"
     },
     {
       "persona": "hr_finance_admin",
@@ -78,12 +77,12 @@
     {
       "persona": "compliance_officer",
       "interface": "legal hold, audit evidence, statutory filing and control evidence",
-      "billing": "compliance module entitlement"
+      "billing": "compliance role entitlement"
     },
     {
       "persona": "developer_integrator",
       "interface": "REST/gRPC/webhook/Workflow APIs",
-      "billing": "API and workflow execution units"
+      "billing": "tenant-scoped API and workflow execution units"
     }
   ],
   "acceptance_criteria": [
@@ -368,7 +367,7 @@
     "external_rejected": [
       {
         "name": "Workday/Oracle/SAP as product substrate",
-        "reason": "Enterprise suite is native; external suites are migration/coexistence adapters only"
+        "reason": "platform is native; external suites are migration/coexistence adapters only"
       },
       {
         "name": "manual shell/SSH operational glue",
@@ -428,21 +427,21 @@
       "severity": "critical",
       "risk": "unbalanced or cross-entity journal posting",
       "mitigation": "double-entry invariant and legal-entity-scoped accounts",
-      "owner": "enterprise-product-council"
+      "owner": "tenant-rbac-governance-council"
     },
     {
       "id": "R-02",
       "severity": "high",
       "risk": "KR VAT or close deadline missed",
       "mitigation": "deadline calendar workflow and evidence gate",
-      "owner": "enterprise-product-council"
+      "owner": "tenant-rbac-governance-council"
     },
     {
       "id": "R-03",
       "severity": "high",
       "risk": "payroll/accounting mismatch causes financial statement drift",
       "mitigation": "source payroll digest and reconciliation gate before close",
-      "owner": "enterprise-product-council"
+      "owner": "tenant-rbac-governance-council"
     }
   ],
   "competitive": [
@@ -465,7 +464,7 @@
         "ecosystem integrations"
       ],
       "we_beat_on": [
-        "enterprise legal-entity controls and KR statutory depth"
+        "legal-entity controls and KR statutory depth"
       ],
       "measurable_target": "VAT workflow coverage 100% by stable"
     },
@@ -504,27 +503,27 @@
   "goals": {
     "scalability": {
       "target": "EnterpriseAccounting supports SME self-serve through conglomerate legal-entity groups without forked code paths",
-      "verification": "oya gate validate enterprise-enterpriseaccounting-scale-model"
+      "verification": "oya gate validate enterpriseaccounting-scale-model"
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
-      "verification": "cargo nextest -p oya-enterprise-security-domain -- cross_tenant"
+      "verification": "cargo nextest -p oya-security-domain -- cross_tenant"
     },
     "performance": {
       "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
-      "verification": "cargo bench -p oya-enterprise-bench -- enterprise_hot_paths"
+      "verification": "cargo bench -p oya-bench -- enterprise_hot_paths"
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
-      "verification": "oya gate validate enterprise-finops-unit-economics"
+      "verification": "oya gate validate finops-unit-economics"
     },
     "reliability": {
       "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
-      "verification": "oya gate validate enterprise-slo-coverage"
+      "verification": "oya gate validate slo-coverage"
     }
   },
   "user_experience": {
-    "primary_navigation": "suite shell with HR, Payroll, Accounting, approvals, evidence, and admin work queues; personal/work context boundaries inherited from the workspace shell where applicable",
+    "primary_navigation": "platform shell with HR, Payroll, Accounting, approvals, evidence, and admin work queues; personal/work context boundaries inherited from the workspace shell where applicable",
     "critical_flows": [
       "tenant onboarding",
       "employee lifecycle",
@@ -584,12 +583,12 @@
     },
     {
       "id": "D-03",
-      "decision": "HR, Payroll, and Accounting are the first enterprise children; suite model remains extensible for procurement, compliance, assets, and corporate intelligence.",
+      "decision": "HR, Payroll, and Accounting are the first children; platform model remains extensible for procurement, compliance, assets, and corporate intelligence.",
       "date": "2026-05-16"
     },
     {
       "id": "D-04",
-      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier enterprise-suite crate naming; Accounting implementation crates use oya-accounting-<bounded-context>-<layer> under microservices/accounting/crates/.",
+      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier tenant-rbac crate naming; Accounting implementation crates use oya-accounting-<bounded-context>-<layer> under microservices/accounting/crates/.",
       "date": "2026-05-23"
     },
     {
@@ -634,7 +633,7 @@
     "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
     "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
     "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
-    "specs/microservices/connect-suite.json",
+    "specs/tenant-rbac-packaging.json",
     "specs/deployment-ops-contract.json"
   ]
 }

@@ -279,7 +279,7 @@ Cloudflare is the strongest named-tenant_class comparator for paid and paid cust
 | Feature | Oyatie paid | AWS Route 53 equivalent | Google Cloud DNS equivalent | Cloudflare DNS equivalent | Gap classification |
 | --- | --- | --- | --- | --- | --- |
 | Multi-region active operation | 3+ active regions with quorum declared | Managed global service | Managed global service | Managed anycast service | catch-up-proof |
-| Active-active failover | Declared with evacuation plans | Route 53 policies plus ARC patterns | Routing policies plus cloud operations | Load Balancing and enterprise ops | catch-up-proof |
+| Active-active failover | Declared with evacuation plans | Route 53 policies plus ARC patterns | Routing policies plus cloud operations | Load Balancing and tenant RBAC ops | catch-up-proof |
 | Split-horizon DNS | Declared | Public/private hosted zones | Public/private managed zones | Enterprise/custom network products | parity-documented |
 | Delegated zones | Declared | Delegation sets and NS delegation | Delegation via records and zones | Delegation/custom nameservers | parity-documented |
 | HSM-backed DNSSEC | Declared | AWS KMS/CloudHSM-adjacent patterns, Route 53 managed DNSSEC | Cloud HSM-adjacent governance, Cloud DNS DNSSEC | Enterprise key governance patterns | catch-up-build |

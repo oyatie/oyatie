@@ -25,7 +25,7 @@
     "Microsoft Dynamics 365 Master Planning"
   ],
   "scorecards": {
-    "doc_suite": "blocker-after-2026-07-15",
+    "doc_set": "blocker-after-2026-07-15",
     "adr_adherence": "blocker-after-2026-07-15",
     "abuse_defence_ux_floor": "required",
     "emergency_services_bypass": "required"

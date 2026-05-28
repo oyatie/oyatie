@@ -198,7 +198,7 @@ Completion target: author IP-031 through IP-037 under implementation-plans, add 
 - 167. The plan is Rust-strict and explicitly rejects Python, TypeScript, and Java runtime surfaces for data-pipeline CDK.
 - 168. The plan covers ten scaffold kinds across source and destination connectors.
 - 169. The plan defines scaffold, test, lint, package, publish, and withdraw surfaces.
-- 170. The plan requires integration, contract, replay, drift, and watermark monotonicity test suites.
+- 170. The plan requires integration, contract, replay, drift, and watermark monotonicity test sets.
 - 171. The plan packages CDK output through IP-036 connector_package.
 - 172. The plan binds marketplace publish to IP-014 DealSet.
 - 173. The plan requires human approval for Foundry-authored marketplace publish.

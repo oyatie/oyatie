@@ -5,7 +5,7 @@ doc_status: published
 # Team: axis-workspace
 
 ## Mission
-Own the Oyatie Workspace / Productivity Suite (Axis 2): Mail, Calendar, Docs, Sheets, Slides, Drive (Cloud Storage), Meet (video/audio/screen), Chat, Forms, Sites, Tasks, Notes, Translate, Recordings, Address Book. Ship a Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) / Kakao Work-class suite that is *natively* integrated with the SaaS platform, Foundry, Cloud, Search, Vertical-pack, and the regional-pack seams. Do NOT own per-vertical productivity (e.g. clinical-only mail) — that lives in the per-vertical team that depends on Workspace.
+Own the Oyatie Workspace / Productivity Platform (Axis 2): Mail, Calendar, Docs, Sheets, Slides, Drive (Cloud Storage), Meet (video/audio/screen), Chat, Forms, Sites, Tasks, Notes, Translate, Recordings, Address Book. Ship a Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) / Kakao Work-class suite that is *natively* integrated with the SaaS platform, Foundry, Cloud, Search, Vertical-pack, and the regional-pack seams. Do NOT own per-vertical productivity (e.g. clinical-only mail) — that lives in the per-vertical team that depends on Workspace.
 
 ## Owned axes / surfaces / contracts
 - Axis: `workspace` (axis 2 of 7)

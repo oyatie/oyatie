@@ -1,19 +1,19 @@
 openapi: 3.2.0
 info:
-  title: foundry-providers / provider-router
+  title: cloud-intelligence-providers / provider-router
   version: 0.1.0
   description: |
-    REST surface for the foundry-providers µservice's provider-router.
+    REST surface for the cloud-intelligence-providers µservice's provider-router.
     Tenants and workload µservices invoke this surface to dispatch
     capability-routed AI-provider calls. All credentials are referenced
     via OpenBao SecretReference URIs — never embedded.
   contact:
-    name: axis-foundry
-    email: axis-foundry@oyatie.dev
+    name: cloud-intelligence
+    email: cloud-intelligence@oyatie.com
   license:
     name: Internal
 servers:
-  - url: https://foundry-providers.{pack}.oyatie.dev/v1
+  - url: https://cloud-intelligence-providers.{pack}.oyatie.com/v1
     description: Per-pack provider-router endpoint
     variables:
       pack:
@@ -160,7 +160,7 @@ components:
   securitySchemes:
     oidc:
       type: openIdConnect
-      openIdConnectUrl: https://identity.{pack}.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://identity.{pack}.oyatie.com/.well-known/openid-configuration
     mtls:
       type: mutualTLS
   schemas:

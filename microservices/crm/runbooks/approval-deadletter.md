@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-21
 owner_team: axis-crm + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
-planned_enforcement_ref: oya-governance-crm-doc-suite
+planned_enforcement_ref: oya-governance-crm-doc-set
 scenario: approval-deadletter
 ---
 

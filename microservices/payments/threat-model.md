@@ -376,7 +376,7 @@ All components introduced by the payments substrate per [`ARCHITECTURE.md`](ARCH
 
 | Date | Reviewer | Outcome | Notes |
 |---|---|---|---|
-| 2026-05-20 | axis-payments + ops-security | Accepted (initial publication) | Standalone publication for Wave-3-A doc-suite buildout; PCI-QSA scoping audit scheduled M02-foundation pre-cert. |
+| 2026-05-20 | axis-payments + ops-security | Accepted (initial publication) | Standalone publication for Wave-3-A doc-set buildout; PCI-QSA scoping audit scheduled M02-foundation pre-cert. |
 
 ## References
 

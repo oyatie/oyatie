@@ -10,7 +10,7 @@
 
 The Imaging microservice is Oyatie's hyperscaler-grade medical imaging platform. Single-concern per ADR-0132 — covers the full PACS / VNA / DICOM substrate / radiologist workflow / AI image analysis / enterprise imaging surface.
 
-This µservice was split out of the bundled `diagnostics` µservice (which historically combined lab + imaging + pathology) per ADR-0132's no-suite doctrine. The concurrently-authored diagnostics µservice retains a bundled scope; **this imaging µservice's authority SUPERSEDES the diagnostics imaging-portions**. Reconciliation is queued for Wave 15M follow-up.
+This µservice was split out of the bundled `diagnostics` µservice (which historically combined lab + imaging + pathology) per ADR-0132's no-grouping doctrine. The concurrently-authored diagnostics µservice retains a bundled scope; **this imaging µservice's authority SUPERSEDES the diagnostics imaging-portions**. Reconciliation is queued for Wave 15M follow-up.
 
 Top-3 industry counterparts the µservice is designed to displace:
 

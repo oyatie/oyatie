@@ -5,7 +5,7 @@
 | Webhook secret unset/empty | Every delivery fails closed (503). No PRs gated. | Startup `WARN` log; 503 deliveries in Forgejo. | Provision `OYA_FORGEJO_WEBHOOK_SECRET` (SETUP-RUNBOOK). |
 | Secret divergence (Forgejo vs OpenBao) | All deliveries 401. | 401 deliveries; `signature rejected` logs. | Re-sync the two secrets (SETUP-RUNBOOK §rotate). |
 | Jenkins dispatch URL unset | Dispatch returns typed 502; no silent success. | Startup `WARN`; 502 on PR deliveries. | Set `OYA_JENKINS_DISPATCH_URL`. |
-| Jenkins unreachable | Dispatch 502 (`connect`/`write`/`read` transport error). | 502 + `dispatch failed` logs. | Restore Jenkins reachability (ADR-0349 farm). |
+| Jenkins unreachable | Dispatch 502 (`connector`/`write`/`read` transport error). | 502 + `dispatch failed` logs. | Restore Jenkins reachability (ADR-0349 farm). |
 | Malformed payload | 400 for that delivery; others unaffected. | 400 + `MalformedPayload` log. | Usually a sender bug; inspect the payload. |
 | Unknown event class | 422 (logged, not dropped). | 422 + `unroutable` log. | Amend the closed router table via ADR if the event must be gated. |
 | Gateway crash mid-delivery | Forgejo redelivers (at-least-once). The kick is idempotent by `(pr, head_sha)`; a duplicate kick re-runs CI harmlessly. | Pod restart; redelivery. | Automatic; the head_sha keys the kick. |

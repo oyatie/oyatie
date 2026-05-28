@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This net-new slice makes callback offers and missed-SLA recovery explicit. It displaces Genesys callbacks, NICE CXone callbacks, Five9 callbacks, Talkdesk callback scheduling, and AWS Connect callback flows. The target persona is Omar Watkins handling a queue incident where customers must not be silently dropped.
+This net-new slice makes callback offers and missed-SLA recovery explicit. It displaces Genesys callbacks, NICE CXone callbacks, Five9 callbacks, Talkdesk callback scheduling, and AWS callback flows. The target persona is Omar Watkins handling a queue incident where customers must not be silently dropped.
 
 ## Data Model Deltas
 
@@ -58,7 +58,7 @@ gRPC `CallbackSlaService.Reschedule(RescheduleCallbackRequest)` returns `state`,
 | NICE CXone Callback | `ContactCallbackRequest` | skill and contact id map to queue/customer refs. |
 | Five9 Callback | `ContactCallbackRequest` | campaign callback maps to callback request. |
 | Talkdesk Callback | `ContactCallbackRequest` | scheduled callback maps to requested_after. |
-| AWS Connect Callback Contact | `ContactCallbackRequest` | contact id maps to source ref. |
+| AWS Callback Contact | `ContactCallbackRequest` | contact id maps to source ref. |
 
 ## Workflow Steps
 

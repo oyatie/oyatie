@@ -46,7 +46,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_02` joins the journey trace root.
 ### Scene 03 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -74,7 +74,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_06` joins the journey trace root.
 ### Scene 07 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -102,7 +102,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_10` joins the journey trace root.
 ### Scene 11 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -130,7 +130,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_14` joins the journey trace root.
 ### Scene 15 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -158,7 +158,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_18` joins the journey trace root.
 ### Scene 19 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -186,7 +186,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_22` joins the journey trace root.
 ### Scene 23 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -214,7 +214,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_26` joins the journey trace root.
 ### Scene 27 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -242,7 +242,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_30` joins the journey trace root.
 ### Scene 31 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -270,7 +270,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_34` joins the journey trace root.
 ### Scene 35 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -298,7 +298,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_38` joins the journey trace root.
 ### Scene 39 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -326,7 +326,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_42` joins the journey trace root.
 ### Scene 43 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -354,7 +354,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_46` joins the journey trace root.
 ### Scene 47 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -382,7 +382,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_50` joins the journey trace root.
 ### Scene 51 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -410,7 +410,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_54` joins the journey trace root.
 ### Scene 55 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -438,7 +438,7 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 - Telemetry action: span `j29.workflow-engine.scene_58` joins the journey trace root.
 ### Scene 59 - connect
 - User intent: Yejin Park advances `workflow-studio-personal-automation` without changing human identity.
-- System action: `connect` performs `shipping-label-ingest` in tenant mode `personal-seller`.
+- System action: `connector` performs `shipping-label-ingest` in tenant mode `personal-seller`.
 - Policy action: Cedar checks tenant_id, audience_type, purpose, risk score, and consent.
 - Data action: every persisted primitive carries tenant_id, principal_id, home_cell, HLC, and traceparent.
 - UX action: `ko-KR` copy is primary; English fallback is explicit and non-sensitive.
@@ -457,39 +457,39 @@ Pattern precedent: n8n builder plus Zapier task history with Cedar delegation.
 |---:|---|---|---|
 | 1 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 2 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 3 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 3 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 4 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 5 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 6 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 7 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 7 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 8 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 9 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 10 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 11 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 11 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 12 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 13 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 14 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 15 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 15 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 16 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 17 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 18 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 19 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 19 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 20 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 21 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 22 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 23 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 23 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 24 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 25 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 26 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 27 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 27 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 28 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 29 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 30 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 31 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 31 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 | 32 | `marketplace` cannot finish `sale-event-emitter` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.marketplace.recovery_path_exercised` |
 | 33 | `workflow-studio` cannot finish `personal-builder-ui` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-studio.recovery_path_exercised` |
 | 34 | `workflow-engine` cannot finish `label-filing-runner` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.workflow-engine.recovery_path_exercised` |
-| 35 | `connect` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
+| 35 | `connector` cannot finish `shipping-label-ingest` within P95. | Retry idempotently, preserve user state, avoid duplicate writes, and show localized recovery. | `j29.connect.recovery_path_exercised` |
 
 ## D. Capacity math
 
@@ -501,47 +501,47 @@ Little Law launch floor: 1,200 journey starts per second times 1.2 seconds avera
 |---:|---|---:|---|
 | 1 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 2 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 3 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 3 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 4 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 5 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 6 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 7 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 7 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 8 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 9 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 10 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 11 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 11 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 12 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 13 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 14 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 15 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 15 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 16 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 17 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 18 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 19 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 19 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 20 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 21 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 22 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 23 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 23 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 24 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 25 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 26 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 27 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 27 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 28 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 29 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 30 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 31 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 31 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 32 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 33 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 34 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 35 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 35 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 36 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 37 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 38 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 39 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 39 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 40 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 41 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 | 42 | `j29.workflow-engine.label-filing-runner.count` | 200 | workflow-engine |
-| 43 | `j29.connect.shipping-label-ingest.count` | 200 | connect |
+| 43 | `j29.connect.shipping-label-ingest.count` | 200 | connector |
 | 44 | `j29.marketplace.sale-event-emitter.count` | 200 | marketplace |
 | 45 | `j29.workflow-studio.personal-builder-ui.count` | 200 | workflow-studio |
 
@@ -559,71 +559,71 @@ Little Law launch floor: 1,200 journey starts per second times 1.2 seconds avera
 |---:|---|---|
 | 1 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 2 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 3 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 3 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 4 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 5 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 6 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 7 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 7 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 8 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 9 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 10 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 11 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 11 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 12 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 13 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 14 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 15 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 15 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 16 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 17 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 18 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 19 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 19 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 20 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 21 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 22 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 23 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 23 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 24 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 25 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 26 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 27 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 27 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 28 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 29 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 30 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 31 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 31 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 32 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 33 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 34 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 35 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 35 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 36 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 37 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 38 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 39 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 39 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 40 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 41 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 42 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 43 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 43 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 44 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 45 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 46 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 47 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 47 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 48 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 49 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 50 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 51 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 51 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 52 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 53 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 54 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 55 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 55 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 56 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 57 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 58 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 59 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 59 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 60 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 61 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 62 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 63 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 63 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 64 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 65 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 66 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
-| 67 | `connect` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
+| 67 | `connector` completes `shipping-label-ingest` with no silent failure. | trace, audit, metric, integration test |
 | 68 | `marketplace` completes `sale-event-emitter` with no silent failure. | trace, audit, metric, integration test |
 | 69 | `workflow-studio` completes `personal-builder-ui` with no silent failure. | trace, audit, metric, integration test |
 | 70 | `workflow-engine` completes `label-filing-runner` with no silent failure. | trace, audit, metric, integration test |
@@ -634,8 +634,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 ## Appendix A. Persona acceptance detail
 
 ### Acceptance detail 001
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 002
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -650,8 +650,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 005
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 006
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -666,8 +666,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 009
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 010
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -682,8 +682,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 013
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 014
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -698,8 +698,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 017
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 018
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -714,8 +714,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 021
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 022
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -730,8 +730,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 025
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 026
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -746,8 +746,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 029
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 030
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -762,8 +762,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 033
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 034
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -778,8 +778,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 037
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 038
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -794,8 +794,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 041
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 042
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.
@@ -810,8 +810,8 @@ Yejin Park has completed `workflow-studio-personal-automation`. The user-visible
 - Operational proof: `workflow-studio` emits a bounded metric, an audit event, and a trace span for `personal-builder-ui`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 045
-- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connect`.
-- Operational proof: `connect` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
+- Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `connector`.
+- Operational proof: `connector` emits a bounded metric, an audit event, and a trace span for `shipping-label-ingest`.
 - Recovery proof: retry uses the original idempotency key and compensates rather than deleting audit history.
 ### Acceptance detail 046
 - Persona protection: the step preserves identity continuity and avoids cross-tenant leakage for `marketplace`.

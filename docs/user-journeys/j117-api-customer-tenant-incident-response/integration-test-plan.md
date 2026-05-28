@@ -76,7 +76,7 @@ operations, Messenger and Mail coordinate response, and the SLO breach produces 
 The stop condition is a reproducible run where every required service emits the expected audit event,
 the marketplace settlement ledger balances, and all negative tests fail closed.
 
-## Suite 1: contract-shape
+## Test Set 1: contract-shape
 
 OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 fixtures parse and round-trip
 
@@ -89,7 +89,7 @@ OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 fixtures parse and round-trip
 | 1.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 1.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 2: identity-boundary
+## Test Set 2: identity-boundary
 
 same human, correct tenant context, no implicit cross-tenant read
 
@@ -102,7 +102,7 @@ same human, correct tenant context, no implicit cross-tenant read
 | 2.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 2.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 3: cedar-deny
+## Test Set 3: cedar-deny
 
 missing counterparty permit denies before any side effect
 
@@ -115,7 +115,7 @@ missing counterparty permit denies before any side effect
 | 3.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 3.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 4: happy-path
+## Test Set 4: happy-path
 
 all service hops complete and marketplace settlement balances
 
@@ -128,7 +128,7 @@ all service hops complete and marketplace settlement balances
 | 4.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 4.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 5: payment-outage
+## Test Set 5: payment-outage
 
 settlement intent queues without duplicate debit
 
@@ -141,7 +141,7 @@ settlement intent queues without duplicate debit
 | 5.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 5.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 6: regional-partition
+## Test Set 6: regional-partition
 
 pre-final writes are safe and finality waits for quorum
 
@@ -154,7 +154,7 @@ pre-final writes are safe and finality waits for quorum
 | 6.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 6.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 7: abuse-defence
+## Test Set 7: abuse-defence
 
 ADR-0297 controls stop scripted counterparty probing
 
@@ -167,7 +167,7 @@ ADR-0297 controls stop scripted counterparty probing
 | 7.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 7.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 8: minor-protection
+## Test Set 8: minor-protection
 
 ADR-0292 controls activate when a protected user appears
 
@@ -180,7 +180,7 @@ ADR-0292 controls activate when a protected user appears
 | 8.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 8.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 9: observability
+## Test Set 9: observability
 
 ADR-0263 metrics, traces, logs, and audit-chain events align
 
@@ -193,7 +193,7 @@ ADR-0263 metrics, traces, logs, and audit-chain events align
 | 9.5 | `mail-fixture-j117` | `mail` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 | 9.6 | `finops-portal-fixture-j117` | `finops-portal` accepts only tenant-scoped inputs and emits typed result | trace span + audit event + metric sample |
 
-## Suite 10: rollback
+## Test Set 10: rollback
 
 compensating command or credit note preserves history
 

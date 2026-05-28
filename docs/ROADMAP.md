@@ -200,7 +200,7 @@ These need a council decision before the next plan refresh:
 1. Foundry rename evaluation (ADR-0006 "no Palantir vocabulary" clause) — keep "Foundry" or rename?
 2. Vertical pilot vertical (which one — Corporate, Healthcare, Industrial, Logistics, Fintech)?
 3. Which regional packs onboard at W-Cloud-Preview (KR / JP / US / EU candidates)?
-4. Connect Personal "no ads, ever" — keep inviolable or carve a P-tier?
+4. Personal "no ads, ever" — keep inviolable or carve a P-tier?
 5. Healthcare PHI exclusion from any aggregation — confirm hard-deny defaults?
 6. Search-engine consumer brand — "Oyatie Search" or separate brand for KR / Naver-class?
 7. Cloud customer self-onboarding at W-Cloud-Stable — open self-serve or invite-only pilot?

@@ -14,8 +14,8 @@ pub use oya_intelligence_eval_adapter::{
     EvalRunnerRequestEnvelope, EvalRunnerStatus, EvalRunnerTransportMode, IntelligenceEvalAdapter,
 };
 pub use oya_intelligence_eval_usecase::{
-    DomainEvalSuiteRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalPolicyDecision,
-    EvalSuite, EvalSuiteStatus, EvalSuiteThresholds, EvalUsecaseDenialKind, EvalUsecaseInput,
+    DomainEvalSetRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalPolicyDecision,
+    EvalSet, EvalSetStatus, EvalSetThresholds, EvalUsecaseDenialKind, EvalUsecaseInput,
     EvalUsecaseReceipt, EvalUsecaseStatus, IntelligenceEvalUsecase,
 };
 
@@ -62,7 +62,7 @@ pub struct EvalWorkerReceipt {
     pub idempotency_key: String,                         // data_class: INTERNAL_ONLY
     pub tenant_id: String,                               // data_class: INTERNAL_ONLY
     pub eval_surface: String,                            // data_class: INTERNAL_ONLY
-    pub suite_id: String,                                // data_class: INTERNAL_ONLY
+    pub eval_set_id: String,                             // data_class: INTERNAL_ONLY
     pub status: EvalWorkerStatus,                        // data_class: PUBLIC
     pub denial_kind: Option<EvalWorkerDenialKind>,       // data_class: INTERNAL_ONLY
     pub runner_status: Option<EvalRunnerDispatchStatus>, // data_class: INTERNAL_ONLY
@@ -89,7 +89,7 @@ pub struct EvalWorkerEvent {
     pub job_id: String,             // data_class: INTERNAL_ONLY
     pub attempt_id: String,         // data_class: INTERNAL_ONLY
     pub idempotency_key: String,    // data_class: INTERNAL_ONLY
-    pub suite_id: String,           // data_class: INTERNAL_ONLY
+    pub eval_set_id: String,        // data_class: INTERNAL_ONLY
     pub evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
@@ -277,9 +277,9 @@ impl IntelligenceEvalWorker {
                 &job.input.idempotency_key,
                 "redacted-invalid-idempotency-key",
             ),
-            suite_id: safe_ref(
-                &job.input.request.suite.suite_id,
-                "redacted-invalid-suite-id",
+            eval_set_id: safe_ref(
+                &job.input.request.eval_set.eval_set_id,
+                "redacted-invalid-eval_set-id",
             ),
             evidence_refs: sorted_unique(evidence_refs),
         });
@@ -306,7 +306,7 @@ fn validate_input(input: &EvalUsecaseInput) -> Result<(), String> {
         "validation:eval-worker-idempotency-key",
     )?;
     let request = &input.request;
-    let suite = &request.suite;
+    let eval_set = &request.eval_set;
     require_opaque(&request.tenant_id, "validation:eval-worker-tenant")?;
     require_opaque(&request.principal_id, "validation:eval-worker-principal")?;
     require_opaque(&request.eval_surface, "validation:eval-worker-surface")?;
@@ -326,24 +326,24 @@ fn validate_input(input: &EvalUsecaseInput) -> Result<(), String> {
         &request.policy_decision.eval_registry_snapshot_ref,
         "validation:eval-worker-eval-registry-snapshot",
     )?;
-    require_opaque(&suite.suite_id, "validation:eval-worker-suite-id")?;
-    require_opaque(&suite.model_ref, "validation:eval-worker-model-ref")?;
+    require_opaque(&eval_set.eval_set_id, "validation:eval-worker-eval_set-id")?;
+    require_opaque(&eval_set.model_ref, "validation:eval-worker-model-ref")?;
     require_opaque(
-        &suite.dataset_snapshot_ref,
+        &eval_set.dataset_snapshot_ref,
         "validation:eval-worker-dataset-snapshot",
     )?;
     require_opaque(
-        &suite.route_evidence_ref,
+        &eval_set.route_evidence_ref,
         "validation:eval-worker-route-evidence",
     )?;
     require_opaque(
-        &suite.guardrail_evidence_ref,
+        &eval_set.guardrail_evidence_ref,
         "validation:eval-worker-guardrail-evidence",
     )?;
-    if suite.cases.is_empty() {
+    if eval_set.cases.is_empty() {
         return Err("validation:eval-worker-case-metadata".to_owned());
     }
-    for case in &suite.cases {
+    for case in &eval_set.cases {
         require_metadata(&case.case_id, "validation:eval-worker-case-id")?;
         require_opaque(
             &case.evaluator_evidence_ref,
@@ -395,9 +395,9 @@ fn receipt_from_job(
             &job.input.request.eval_surface,
             "redacted-invalid-eval-surface",
         ),
-        suite_id: safe_ref(
-            &job.input.request.suite.suite_id,
-            "redacted-invalid-suite-id",
+        eval_set_id: safe_ref(
+            &job.input.request.eval_set.eval_set_id,
+            "redacted-invalid-eval_set-id",
         ),
         status,
         denial_kind,
@@ -548,7 +548,7 @@ mod tests {
         assert_eq!(worker.events()[1].kind, EvalWorkerEventKind::RunnerAccepted);
         let envelope = worker.adapter_last_envelope().expect("adapter envelope");
         assert_eq!(envelope.method, EvalRunnerHttpMethod::Post);
-        assert_eq!(envelope.suite_id, "suite:worker-release-gate");
+        assert_eq!(envelope.eval_set_id, "eval_set:worker-release-gate");
     }
 
     #[test]
@@ -654,14 +654,14 @@ mod tests {
             evidence_ref: "eval-runner:evidence:accepted".to_owned(),
         });
         let mut job = valid_job();
-        job.input.request.suite.cases[0].evaluator_evidence_ref =
+        job.input.request.eval_set.cases[0].evaluator_evidence_ref =
             "raw output model answer".to_owned();
 
         let receipt = worker.run_once(job);
 
         assert_eq!(receipt.status, EvalWorkerStatus::Denied);
         assert_eq!(receipt.denial_kind, Some(EvalWorkerDenialKind::InvalidJob));
-        assert_eq!(receipt.suite_id, "suite:worker-release-gate");
+        assert_eq!(receipt.eval_set_id, "eval_set:worker-release-gate");
         assert!(worker.events().is_empty());
         assert_eq!(worker.eval_usecase_cached_receipt_count(), 0);
         assert!(worker.adapter_last_envelope().is_none());
@@ -717,13 +717,13 @@ mod tests {
             not_before_epoch_seconds: 900,
             input: EvalUsecaseInput {
                 idempotency_key: "idem:eval-worker:1".to_owned(),
-                request: sample_domain_request("suite:worker-release-gate"),
+                request: sample_domain_request("eval_set:worker-release-gate"),
             },
         }
     }
 
-    fn sample_domain_request(suite_id: &str) -> DomainEvalSuiteRequest {
-        DomainEvalSuiteRequest {
+    fn sample_domain_request(eval_set_id: &str) -> DomainEvalSetRequest {
+        DomainEvalSetRequest {
             tenant_id: "tenant:alpha".to_owned(),
             principal_id: "principal:eval-worker".to_owned(),
             eval_surface: "surface:release-gate".to_owned(),
@@ -731,7 +731,7 @@ mod tests {
             trace_context_ref: "trace:eval-worker:1".to_owned(),
             policy_decision_ref: "policy:evidence:eval-worker:1".to_owned(),
             policy_decision: sample_policy(),
-            suite: sample_suite(suite_id),
+            eval_set: sample_eval_set(eval_set_id),
         }
     }
 
@@ -759,14 +759,14 @@ mod tests {
         }
     }
 
-    fn sample_suite(suite_id: &str) -> EvalSuite {
-        EvalSuite {
-            suite_id: suite_id.to_owned(),
+    fn sample_eval_set(eval_set_id: &str) -> EvalSet {
+        EvalSet {
+            eval_set_id: eval_set_id.to_owned(),
             model_ref: "modelref://openai/gpt-preview".to_owned(),
             route_evidence_ref: "route:evidence:eval-worker:1".to_owned(),
             guardrail_evidence_ref: "guardrail:evidence:eval-worker:1".to_owned(),
             dataset_snapshot_ref: "dataset://evals/worker/2026-05-23".to_owned(),
-            thresholds: EvalSuiteThresholds {
+            thresholds: EvalSetThresholds {
                 min_pass_rate_bps: 8_000,
                 max_safety_violation_rate_bps: 0,
                 require_golden: true,

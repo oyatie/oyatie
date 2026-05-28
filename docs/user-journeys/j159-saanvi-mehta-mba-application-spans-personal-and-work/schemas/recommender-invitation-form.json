@@ -112,7 +112,7 @@
         },
         "primary_role_at_observation": {
           "type": "string",
-          "examples": ["Director of Product, Stripe Connect APAC", "VP Digital Transformation, Marico"]
+          "examples": ["Director of Product, Stripe APAC", "VP Digital Transformation, Marico"]
         },
         "interaction_frequency": {
           "type": "string",
@@ -376,7 +376,7 @@
       "recommender_role_context": {
         "relationship_years": 4.5,
         "primary_observation_period": "2022-2026",
-        "primary_role_at_observation": "Director of Product, Stripe Connect APAC",
+        "primary_role_at_observation": "Director of Product, Stripe APAC",
         "interaction_frequency": "weekly"
       },
       "letter_deadline": "2026-12-22T23:59:59-05:00",

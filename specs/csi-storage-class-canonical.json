@@ -3,7 +3,16 @@
   "spec_id": "csi-storage-class-canonical",
   "spec_kind": "canonical-decision",
   "authoring_adr": "ADR-0161",
-  "related_adrs": ["ADR-0009", "ADR-0028", "ADR-0043", "ADR-0049", "ADR-0121", "ADR-0143", "ADR-0158", "ADR-0164"],
+  "related_adrs": [
+    "ADR-0009",
+    "ADR-0028",
+    "ADR-0043",
+    "ADR-0049",
+    "ADR-0121",
+    "ADR-0143",
+    "ADR-0158",
+    "ADR-0164"
+  ],
   "status": "Accepted",
   "date": "2026-05-18",
   "title": "CSI Driver + StorageClass Canonical Spec",
@@ -13,41 +22,60 @@
       "kind": "pg",
       "tier": "hot",
       "iops_class": "sub-millisecond",
-      "use_cases": ["PostgreSQL primary", "Redis primary", "audit-chain leaf storage"],
+      "use_cases": [
+        "PostgreSQL primary",
+        "Redis primary",
+        "audit-chain leaf storage"
+      ],
       "reclaim_policy_default": "Retain"
     },
     "oya-pg-warm": {
       "kind": "pg",
       "tier": "warm",
       "iops_class": "single-digit-ms",
-      "use_cases": ["warm replicas", "observability long-term storage"],
+      "use_cases": [
+        "warm replicas",
+        "observability long-term storage"
+      ],
       "reclaim_policy_default": "Retain"
     },
     "oya-pg-cold": {
       "kind": "pg",
       "tier": "cold",
       "iops_class": "tens-of-ms",
-      "use_cases": ["backups", "archived data", "cold tenant exports"],
+      "use_cases": [
+        "backups",
+        "archived data",
+        "cold tenant exports"
+      ],
       "reclaim_policy_default": "Delete"
     },
     "oya-redis-hot": {
       "kind": "redis",
       "tier": "hot",
       "iops_class": "sub-millisecond",
-      "use_cases": ["Redis primary"],
+      "use_cases": [
+        "Redis primary"
+      ],
       "reclaim_policy_default": "Retain"
     },
     "oya-s3-warm": {
       "kind": "s3",
       "tier": "warm",
       "access_pattern": "S3-API (boto / aws-sdk-rust)",
-      "use_cases": ["object storage standard tier"]
+      "use_cases": [
+        "object storage standard tier"
+      ]
     },
     "oya-s3-cold": {
       "kind": "s3",
       "tier": "cold",
       "access_pattern": "S3-API archive tier",
-      "use_cases": ["long-term audit anchors", "tenant exports", "backups"]
+      "use_cases": [
+        "long-term audit anchors",
+        "tenant exports",
+        "backups"
+      ]
     }
   },
   "per_pack_csi_driver_matrix": {

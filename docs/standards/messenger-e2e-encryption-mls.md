@@ -315,7 +315,7 @@ Components:
 | Signature | Ed25519 | RFC 8032 | deterministic, side-channel-resistant, smaller signatures than ECDSA, faster than RSA |
 | Hash | SHA-256 | FIPS 180-4 | hardware-accelerated (SHA-NI on x86; ARMv8 SHA instructions) |
 
-Why suite 0x0001 over alternatives:
+Why cipher suite 0x0001 over alternatives:
 
 - **vs MLS_128_DHKEMP256_AES128GCM_SHA256_P256 (0x0002)** — X25519 has
   no patent encumbrance, simpler implementation, well-audited
@@ -1277,7 +1277,7 @@ Push notification payload constraints:
 - **FCM:** max 4 KB; up to 4 KB of `data` payload.
 - **WebPush:** max 4 KB.
 
-The full MLS message can exceed 4 KB (especially for attachments + 
+The full MLS message can exceed 4 KB (especially for attachments +
 Commits at high group size); the push **does not contain the full
 message**.
 
@@ -1694,7 +1694,7 @@ pub async fn handle_inbound_mls_message(
             message_id: stored.message_id,
             recipient_device_id: recipient.device_id.clone(),
             payload: stored.payload.clone(),
-            // ... 
+            // ...
         }).await?;
     }
 
@@ -3171,7 +3171,7 @@ E2E-specific additions:
 | MLS application decrypt (1KB) | 0.5ms | 2ms | 5ms |
 | KeyPackage validate (server-side) | 1ms | 5ms | 15ms |
 
-These targets are validated against mls-rs's benchmark suite + 
+These targets are validated against mls-rs's benchmark set +
 oyatie's integration tests.
 
 ### 19.9 Capacity model
@@ -3298,8 +3298,8 @@ Sharding strategies:
 - **ADR-0253** — Network topology + edge service mesh.
 - **Bominal ADR-0028** — Audit-chain inheritance.
 - **Bominal ADR-0111** — Ciphertext property type + envelope encryption.
-- **Bominal ADR-0208** — Connect dual-context unified channel hub.
-- **Bominal ADR-0215** — Connect retention legal-hold dual-context.
+- **Bominal ADR-0208** — dual-context unified channel hub.
+- **Bominal ADR-0215** — retention legal-hold dual-context.
 
 ---
 

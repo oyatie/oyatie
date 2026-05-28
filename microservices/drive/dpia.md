@@ -75,7 +75,7 @@ DPIA mandatory pre-deployment. Reviewed by EU DPAs (Art. 35) and KR PIPC (Art. 3
 - **Data subjects:** end-users (the tenant's employees + invitees + customers); tenant operators; share-link viewers (external); oyatie operators (internal).
 - **Relationship:** joint controllership with tenant (GDPR Art. 26) for end-user file data; oyatie sole processor for operational metadata.
 - **Reasonable expectations:** tenant operators expect operational file storage; end-users expect storage per tenant's privacy notice; share-link viewers expect read-only scope.
-- **Previous experience:** Bominal Workspace Drive + Connect Files inheritance; no DPA-triggered complaints in inheritance period.
+- **Previous experience:** Bominal Workspace Drive + Files inheritance; no DPA-triggered complaints in inheritance period.
 
 ### 2.4 Purposes
 

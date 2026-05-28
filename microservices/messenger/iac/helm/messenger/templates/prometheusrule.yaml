@@ -36,7 +36,7 @@ spec:
             microservice: messenger
           annotations:
             summary: "messenger message-send fast-burn (14.4x) for 5m"
-            runbook_url: "https://oyatie.dev/microservices/messenger/runbooks/websocket-storm"
+            runbook_url: "https://oyatie.com/microservices/messenger/runbooks/websocket-storm"
 
         - alert: MessengerMessageSendSlowBurn6h
           expr: |
@@ -70,4 +70,4 @@ spec:
             microservice: messenger
           annotations:
             summary: "messenger context-isolation invariant violation attempt detected"
-            runbook_url: "https://oyatie.dev/microservices/messenger/policy/dual-context-isolation"
+            runbook_url: "https://oyatie.com/microservices/messenger/policy/dual-context-isolation"

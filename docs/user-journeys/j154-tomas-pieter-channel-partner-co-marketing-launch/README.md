@@ -33,9 +33,9 @@ Today is December 30, 14:11 CET. Tomas is in PartnerLift's WeWork on Weesperstra
 3. Stand up `crm` synchronisation: PartnerLift uses HubSpot; Glacier uses Salesforce. The shared lead pool flows to both, attributed correctly per the contract's 60/40 rule (60% to whoever sourced; 40% to the partner)
 4. Configure `comms-email` deliverability — three sender domains, two languages (NL + DE), per-country reputation budget. EU-GDPR + the Dutch Telecommunicatiewet require **per-purpose** opt-in (ADR-0272)
 5. Use `community` to seed a private **partner-only** Slack-like channel for the two marketing teams to coordinate during the campaign
-6. Use `connect` to broker the contract-level attestations (CMO-signed co-marketing contract, the EU-GDPR Data Processing Addendum between the three tenants, the Cedar policy bundle that scopes who-sees-what)
+6. Use `connector` to broker the contract-level attestations (CMO-signed co-marketing contract, the EU-GDPR Data Processing Addendum between the three tenants, the Cedar policy bundle that scopes who-sees-what)
 
-Microservices: `marketing-automation`, `crm`, `comms-email`, `community`, `connect`. Secondary touches: `identity` (three-tenant binding), `tenancy` (the shared tenant lifecycle), `audit-chain`, `compliance` (GDPR + Telecom-NL + DSA), `payments` (the 50/50 budget escrow + the attribution settlement at end of Q1), `analytics` (campaign metrics dashboard).
+Microservices: `marketing-automation`, `crm`, `comms-email`, `community`, `connector`. Secondary touches: `identity` (three-tenant binding), `tenancy` (the shared tenant lifecycle), `audit-chain`, `compliance` (GDPR + Telecom-NL + DSA), `payments` (the 50/50 budget escrow + the attribution settlement at end of Q1), `analytics` (campaign metrics dashboard).
 
 The Cedar policy is a **trinity policy** — three tenants, with the shared tenant being the only place where data from both sides commingles, and even there only the contracted scope.
 
@@ -46,7 +46,7 @@ Tomas Pieter is **MASTER-ROSTER §3.2 row 89** — the canonical channel-partner
 - Critical-path row 8 (B2B channel-partner dual-tenant identity)
 - Critical-path row 24 (cross-tenant data flow under contract; co-marketing being the most common cross-tenant marketing topology)
 
-Hyperscaler benchmark: HubSpot Marketing Hub + Marketing Contacts; Salesforce Marketing Cloud; PartnerStack for the channel-partner attribution; ZoomInfo for the prospect graph; Mailgun + AWS SES for the per-country email reputation; Slack Connect for the cross-org channel.
+Hyperscaler benchmark: HubSpot Marketing Hub + Marketing Contacts; Salesforce Marketing Cloud; PartnerStack for the channel-partner attribution; ZoomInfo for the prospect graph; Mailgun + AWS SES for the per-country email reputation; Slack for the cross-org channel.
 
 ## Artifact inventory
 
@@ -70,7 +70,7 @@ Hyperscaler benchmark: HubSpot Marketing Hub + Marketing Contacts; Salesforce Ma
 | `crm` | Bidirectional sync to HubSpot (PartnerLift) and Salesforce (Glacier); routes shared-pool leads with attribution | row 24 |
 | `comms-email` | Per-country deliverability; sender domain reputation tracking; bounce/complaint/feedback-loop handling | row 8 |
 | `community` | Private partner-only channel for the two marketing teams | row 24 |
-| `connect` | Brokers the contract attestation + DPA + Cedar bundle handoff between the three tenants | row 24 |
+| `connector` | Brokers the contract attestation + DPA + Cedar bundle handoff between the three tenants | row 24 |
 
 ## Secondary microservices touched
 

@@ -11,7 +11,7 @@ inbound_citations: [microservices/social/ARCHITECTURE.md]
 
 ## A. Trigger conditions
 
-- `oya-social-csam-classifier-adapter-photodna` emits a hash-match against the NCMEC list OR
+- `oya-community-social-csam-classifier-adapter-photodna` emits a hash-match against the NCMEC list OR
 - Content-moderation classifier emits `csam_classifier_score > 50` per `policy/content-policy.cedar` block.
 - User report flagging content as CSAM.
 

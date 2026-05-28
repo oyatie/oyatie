@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j01/emergency-profile-response.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j01/emergency-profile-response.json",
   "title": "EmergencyProfileResponse",
   "description": "Response shape returned to attested PSAP consoles. Field set strictly limited to opt-in fields per consent-graph.",
   "_meta": {

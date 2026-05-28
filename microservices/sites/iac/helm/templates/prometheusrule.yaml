@@ -28,7 +28,7 @@ spec:
           labels: {severity: page, slo: page-render-latency, burn: fast-1h-14x}
           annotations:
             summary: "Page-render latency burning 14x over 1h"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/publish-pipeline-rollback.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/publish-pipeline-rollback.md"
         - alert: sites-page-render-slow-burn-6h-6x
           expr: |
             (1 - (
@@ -53,7 +53,7 @@ spec:
           labels: {severity: page, slo: publish-latency, burn: fast-1h-14x}
           annotations:
             summary: "Publish pipeline latency burning 14x over 1h"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/publish-pipeline-rollback.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/publish-pipeline-rollback.md"
 
     - name: sites-acme-renew-latency
       interval: 30s
@@ -65,7 +65,7 @@ spec:
           labels: {severity: page, slo: acme-renew-latency, slo_target: 86400s}
           annotations:
             summary: "TLS cert expires within 24h — ACME renewal failed"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/acme-cert-renewal-failure.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/acme-cert-renewal-failure.md"
         - alert: sites-cert-expiry-near-ticket
           expr: |
             min(oya_sites_cert_expiry_seconds) < 604800
@@ -73,7 +73,7 @@ spec:
           labels: {severity: ticket, slo: acme-renew-latency}
           annotations:
             summary: "TLS cert expires within 7d"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/acme-cert-renewal-failure.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/acme-cert-renewal-failure.md"
 
     - name: sites-accessibility-wcag-correctness
       interval: 30s
@@ -85,7 +85,7 @@ spec:
           labels: {severity: page, slo: accessibility-wcag-correctness, slo_target: 1.0}
           annotations:
             summary: "WCAG 2.2 AA correctness FAILED — Sev-1 for pack-us-healthcare patient portals"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/page-export-corruption.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/page-export-corruption.md"
 
     - name: sites-seo-meta-correctness
       interval: 30s
@@ -97,7 +97,7 @@ spec:
           labels: {severity: page, slo: seo-meta-correctness, slo_target: 1.0}
           annotations:
             summary: "SEO meta correctness FAILED"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/page-export-corruption.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/page-export-corruption.md"
 
     - name: sites-search-cross-tenant-leak
       interval: 30s
@@ -109,7 +109,7 @@ spec:
           labels: {severity: page, sev: 1}
           annotations:
             summary: "Cross-tenant search result LEAK detected — Sev-1; immediate runbook"
-            runbook_url: "https://oyatie.dev/microservices/sites/incident-response.md"
+            runbook_url: "https://oyatie.com/microservices/sites/incident-response.md"
 
     - name: sites-cdn-cache
       interval: 30s
@@ -125,5 +125,5 @@ spec:
           labels: {severity: page, slo: page-render-latency}
           annotations:
             summary: "CDN cache hit ratio < 30% for > 15m; origin overwhelmed risk"
-            runbook_url: "https://oyatie.dev/microservices/sites/runbooks/cdn-cache-purge-cascade.md"
+            runbook_url: "https://oyatie.com/microservices/sites/runbooks/cdn-cache-purge-cascade.md"
 {{- end }}

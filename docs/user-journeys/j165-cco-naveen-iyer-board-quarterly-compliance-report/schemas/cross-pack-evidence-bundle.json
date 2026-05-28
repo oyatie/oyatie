@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j165/cross-pack-evidence-bundle.json",
+  "$id": "https://oyatie.com/schemas/j165/cross-pack-evidence-bundle.json",
   "title": "Tessellate Q1-2027 Cross-Pack Evidence Bundle",
   "description": "Cross-pack evidence bundle schema for the j165 board compliance report. Aggregates per-pack evidence ledgers + per-pack Merkle roots + cross-pack themes + super-Merkle-of-Merkles. Bundle is what gets archived to drive WORM + externally anchored.",
   "type": "object",

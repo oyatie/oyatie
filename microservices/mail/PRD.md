@@ -22,6 +22,10 @@ doc_status: published
 
 ---
 
+## Strict personal/professional separation
+
+Mail is a concrete microservice, not part of any retired grouping. Personal mail and professional mail share product ergonomics but not tenancy or RBAC authority. Personal mail lives under the user's personal tenant scope; professional mail lives under the organization/workspace tenant scope. The default cross-context decision is **deny**: org admins, legal hold, retention, DLP, search, export, notification routing, workflow bridges, and automation for a professional tenant cannot read, infer, mutate, or route personal mail. Any explicit user-mediated cross-context action must carry tenant id, RBAC scope, policy decision id, data-class check, and audit-chain evidence before execution.
+
 ## 1. Purpose
 
 The `mail` µservice is oyatie's unified mail surface. It speaks SMTP + IMAP4rev2 + JMAP + REST at the edge, stores messages in a per-tenant Postgres + SeaweedFS + Tantivy stack, and is differentiated at the application layer into two products that share the same substrate:
@@ -1350,10 +1354,10 @@ Framework coverage (cross-mapped with `compliance.md`):
 - ADR-0008, ADR-0028 (Bominal data-use boundary + audit-chain).
 - ADR-0056 (BNF v4.1). ADR-0105 (13-layer enum). ADR-0106 (usecase rename).
 - ADR-0117 (data residency). ADR-0123 (HG maturity).
-- ADR-0131 (per-microservice flat layout). ADR-0132 (no-suite forward policy). ADR-0133 (cross-tenant mail-server pattern).
-- ADR-0135 (Connect dissolution; dual-context invariant). ADR-0139 (agentic SLO-gated promotion). ADR-0140 (Cedar policy enforcement). ADR-0145 (Cedar refinement).
+- ADR-0131 (per-microservice flat layout). ADR-0132 (no-grouping forward policy). ADR-0133 (cross-tenant mail-server pattern).
+- ADR-0135 (dissolution; dual-context invariant). ADR-0139 (agentic SLO-gated promotion). ADR-0140 (Cedar policy enforcement). ADR-0145 (Cedar refinement).
 - ADR-0208, ADR-0210, ADR-0215 (Bominal inheritance for dual-context + KR group mail + retention).
-- ADR-0238 (Connect dissolution parallel session).
+- ADR-0238 (dissolution parallel session).
 - ADR-0241 (audit-chain canonical). ADR-0242 (oyatie-is-a-tenant doctrine). ADR-0245 (substrate-vs-product layering). ADR-0251 (compliance pack). ADR-0255 (provider-BYOK + intelligence Cedar gate).
 - ADR-MAIL-0003 (SDK launch order).
 
@@ -1494,7 +1498,7 @@ All shortcuts user-rebindable. Defaults match Superhuman where overlapping; Gmai
 
 **Steps.**
 1. Admin Console → Domains → Add → `helen-llc.com`.
-2. System auto-suggests DNS: MX, SPF (`v=spf1 include:_spf.oyatie.app -all`), DKIM (`oya._domainkey.helen-llc.com`), DMARC (`v=DMARC1; p=quarantine; rua=mailto:dmarc-rua-tenant@oyatie.dev`), MTA-STS (`https://mta-sts.helen-llc.com/.well-known/mta-sts.txt`).
+2. System auto-suggests DNS: MX, SPF (`v=spf1 include:_spf.oyatie.app -all`), DKIM (`oya._domainkey.helen-llc.com`), DMARC (`v=DMARC1; p=quarantine; rua=mailto:dmarc-rua-tenant@oyatie.com`), MTA-STS (`https://mta-sts.helen-llc.com/.well-known/mta-sts.txt`).
 3. Helen pastes records at her registrar; clicks Verify.
 4. DNS lookups succeed; status → "Active".
 5. Initial DMARC policy is `p=none` (monitor) for 14 days; after grace, system suggests `p=quarantine` then `p=reject`.

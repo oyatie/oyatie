@@ -155,7 +155,7 @@ Annual full pack DR drill: full failover to DR region; validate ≤ 30 min RTO.
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0135: Connect dissolution.
+- ADR-0135: dissolution.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/mail/capacity-model.md`.
 - `microservices/mail/cost-budget.md`.

@@ -19,7 +19,7 @@ version: 1.0.0
 appVersion: "1.0.0"
 maintainers:
   - name: axis-sites
-    email: sites@oyatie.dev
+    email: sites@oyatie.com
 keywords:
   - sites
   - cms
@@ -33,7 +33,7 @@ keywords:
   - cdn
   - wcag-2-2-aa
   - loro-crdt
-home: https://oyatie.dev/microservices/sites
+home: https://oyatie.com/microservices/sites
 sources:
   - https://github.com/oyatie/oyatie/tree/main/microservices/sites
 annotations:

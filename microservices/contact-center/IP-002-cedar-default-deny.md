@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This slice replaces Genesys roles, NICE CXone security profiles, Five9 admin profiles, Talkdesk roles, and AWS Connect security profiles with explicit Cedar checks. Omar Watkins is the named persona: he must prove supervisors cannot barge, monitor, export recordings, or reroute emergency calls without tenant, pack, and reason context.
+This slice replaces Genesys roles, NICE CXone security profiles, Five9 admin profiles, Talkdesk roles, and AWS security profiles with explicit Cedar checks. Omar Watkins is the named persona: he must prove supervisors cannot barge, monitor, export recordings, or reroute emergency calls without tenant, pack, and reason context.
 
 ## Data Model Deltas
 
@@ -65,7 +65,7 @@ gRPC `ContactCenterPolicyService.Evaluate(EvaluateContactPolicyRequest)` returns
 | NICE CXone Security Profile | `ContactCenterPermitBinding` | module rights map to actions. |
 | Five9 Profile | `ContactCenterPermitBinding` | admin flags map to explicit resources. |
 | Talkdesk Role | `ContactCenterPermitBinding` | role capabilities map to action rows. |
-| AWS Connect Security Profile | `ContactCenterPermitBinding` | permissions map to Cedar actions; ARNs stay source refs. |
+| AWS Security Profile | `ContactCenterPermitBinding` | permissions map to Cedar actions; ARNs stay source refs. |
 
 ## Workflow Steps
 

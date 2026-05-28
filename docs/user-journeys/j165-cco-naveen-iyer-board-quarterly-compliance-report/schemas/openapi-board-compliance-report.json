@@ -8,9 +8,9 @@
     "x-adrs": ["ADR-0244", "ADR-0263", "ADR-0251", "ADR-0250", "ADR-0253", "ADR-0255"]
   },
   "servers": [
-    {"url": "https://governance.us-east.oyatie.dev/v1", "description": "US-East primary GRC"},
-    {"url": "https://governance.eu-frankfurt.oyatie.dev/v1", "description": "EU evidence mirror"},
-    {"url": "https://governance.kr-seoul.oyatie.dev/v1", "description": "KR evidence mirror"}
+    {"url": "https://governance.us-east.oyatie.com/v1", "description": "US-East primary GRC"},
+    {"url": "https://governance.eu-frankfurt.oyatie.com/v1", "description": "EU evidence mirror"},
+    {"url": "https://governance.kr-seoul.oyatie.com/v1", "description": "KR evidence mirror"}
   ],
   "paths": {
     "/governance/board-report/workflow-initiate": {

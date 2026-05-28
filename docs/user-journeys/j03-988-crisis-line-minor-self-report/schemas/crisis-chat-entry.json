@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j03/crisis-chat-entry.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j03/crisis-chat-entry.json",
   "title": "CrisisChatEntry",
   "_meta": {
     "binding_adr": "ADR-0292",

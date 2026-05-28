@@ -7,7 +7,7 @@ info:
     url-routing, domain-binding, seo, cms-collection, search, and cdn-delivery
     bounded contexts.
 
-    Per ADR-0135 (Connect unbundle) + ADR-0132 (no-suite forward policy):
+    Per ADR-0135 (unbundle) + ADR-0132 (no-grouping forward policy):
     sites is a standalone tenant-facing µservice. Cross-tenant flows traverse
     Workflow + Ontology.
 
@@ -16,11 +16,11 @@ info:
     `public-read.cedar`, `ci-scope.cedar`).
   contact:
     name: axis-sites
-    email: sites@oyatie.dev
+    email: sites@oyatie.com
   license:
     name: Internal-Use
 servers:
-  - url: https://sites.{pack}.oyatie.dev/v1
+  - url: https://sites.{pack}.oyatie.com/v1
     description: per-pack production endpoint
     variables:
       pack:
@@ -343,7 +343,7 @@ components:
       generators: Ignore this x-extension for SDK and server wire generation.
       governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
   securitySchemes:
-    oidcBearer: {type: openIdConnect, openIdConnectUrl: 'https://auth.oyatie.dev/.well-known/openid-configuration'}
+    oidcBearer: {type: openIdConnect, openIdConnectUrl: 'https://auth.oyatie.com/.well-known/openid-configuration'}
     tenantApiKey: {type: apiKey, in: header, name: X-Oyatie-Tenant-Api-Key}
 
   responses:

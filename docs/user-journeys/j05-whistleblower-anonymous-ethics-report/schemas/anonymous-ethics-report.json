@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j05/anonymous-ethics-report.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j05/anonymous-ethics-report.json",
   "title": "AnonymousEthicsReport",
   "version": "1.0.0",
   "description": "AnonymousEthicsReport shared object for j05 Anonymous ethics report from SNU Hospital employee. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

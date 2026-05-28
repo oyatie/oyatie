@@ -401,7 +401,7 @@ Every audit event carries `tenant_id`; every rate-limit bucket key is salted wit
 - Runbook/IaC evidence: `microservices/api-gateway/runbooks/audit-key-rotation.md`, `microservices/api-gateway/runbooks/blue-green-rollback.md`, `microservices/api-gateway/runbooks/bot-storm.md`, `microservices/api-gateway/runbooks/cell-evac.md`, `microservices/api-gateway/runbooks/circuit-breaker-engaged.md`; +11 more.
 - Compliance packs: `us`, `eu`, `kr`, `cn-pipl-2021`, `us-healthcare`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `identity`, `policy-engine`, `audit-chain`, `observability`, `cloud-secrets`; +1 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `api-gateway` `north-south-request-admission` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

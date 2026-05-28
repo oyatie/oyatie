@@ -15,7 +15,7 @@ Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0243, ADR-0244, ADR-0245, ADR-02
 - Treat Hevo and Stitch simple sync concurrency as usability pressure.
 - Treat Matillion and Talend Cloud workload queues as transform pressure.
 - Treat Informatica IICS and Estuary Flow as governed throughput pressure.
-- Preserve fairness without creating a suite-level scheduler.
+- Preserve fairness without creating a platform-level scheduler.
 
 ## Local references
 - `microservices/data-pipeline/capacity-model.md` is the capacity authority.

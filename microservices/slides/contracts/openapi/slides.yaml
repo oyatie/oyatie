@@ -5,20 +5,20 @@ info:
   description: |
     Slides µservice REST surface — collaborative presentation product (Google-Slides /
     PowerPoint Web / Keynote / Pitch / Beautiful.ai / Canva-presentations-class).
-    Per ADR-0135 Connect dissolution + ADR-0131 per-microservice flat layout.
+    Per ADR-0135 dissolution + ADR-0131 per-microservice flat layout.
     All endpoints OIDC tenant-bound. Cedar v4.2 LTS default-deny enforced per
     `policy/tenant-scope.cedar`. Per-slide ACL granularity per ADR-SLIDES-0007.
   contact:
     name: axis-workspace + council-design-system
-    email: axis-workspace@oyatie.dev
+    email: axis-workspace@oyatie.com
   license:
     name: Apache-2.0
 servers:
-  - url: https://api.oyatie.dev/slides/v1
+  - url: https://api.oyatie.com/slides/v1
     description: production
-  - url: https://api-staging.oyatie.dev/slides/v1
+  - url: https://api-staging.oyatie.com/slides/v1
     description: staging
-  - url: https://api-dev.oyatie.dev/slides/v1
+  - url: https://api-dev.oyatie.com/slides/v1
     description: dev
 security:
   - oidcBearer: []
@@ -435,7 +435,7 @@ components:
   securitySchemes:
     oidcBearer:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   responses:
     Unauthorized:
       description: missing/invalid OIDC token

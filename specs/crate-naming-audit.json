@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/crate-naming-audit.json",
+  "$id": "https://docs.oyatie.com/specs/crate-naming-audit.json",
   "title": "CrateNamingAudit",
   "description": "Audit of workspace.members against the 12-layer canonical enum (per ADR-0056). Captures each non-compliant crate with a proposed action: ADOPT the suffix as a canonical extension if it is a well-defined, multi-crate pattern, or RENAME to a canonical layer otherwise. Per user directive 2026-05-15: 'audit enums layers as well ... if they are well defined and serve a purpose, consider adopting them. otherwise stick to canonical layer types.'",
   "_meta": {
@@ -35,17 +35,17 @@
       "id": "ADOPT-PAT-01",
       "match": "^oya-check-",
       "current_count": 36,
-      "purpose": "fitness-check \u00b5service family: one crate per check, dual-purpose lib+bin. The \u00b5service IS the layer (the crate's whole identity is 'a check named X'). Layer suffix is omitted by convention.",
-      "binding": "load-bearing \u2014 formalize in ADR-0056 amendment.",
-      "amendment_action": "Add an exception clause to ADR-0056 \u00a7'12-Value Layer Enum' allowing `oya-check-<feature>` as a self-layering convention; cite this spec."
+      "purpose": "fitness-check µservice family: one crate per check, dual-purpose lib+bin. The µservice IS the layer (the crate's whole identity is 'a check named X'). Layer suffix is omitted by convention.",
+      "binding": "load-bearing — formalize in ADR-0056 amendment.",
+      "amendment_action": "Add an exception clause to ADR-0056 §'12-Value Layer Enum' allowing `oya-check-<feature>` as a self-layering convention; cite this spec."
     },
     "backend_suffix": {
       "id": "ADOPT-PAT-02",
       "match": "*-adapter-{fake|aws|oci|inmemory}",
       "current_count": 13,
       "purpose": "Backend qualifier on an adapter crate: the layer is `adapter`; the backend name is a sub-suffix denoting which external system. Already canonical (last canonical token is `adapter` and the backend qualifies it).",
-      "binding": "load-bearing \u2014 already implicit; document in ADR-0056 amendment as a recognized sub-suffix pattern.",
-      "amendment_action": "DONE per ADR-0105: ADR-0056 \u00a7'Layer semantics > adapter' amended with `{fake|aws|oci|inmemory|...}` as the allowed backend-qualifier set."
+      "binding": "load-bearing — already implicit; document in ADR-0056 amendment as a recognized sub-suffix pattern.",
+      "amendment_action": "DONE per ADR-0105: ADR-0056 §'Layer semantics > adapter' amended with `{fake|aws|oci|inmemory|...}` as the allowed backend-qualifier set."
     },
     "tools_implicit_app": {
       "id": "ADOPT-PAT-03",
@@ -53,8 +53,8 @@
       "rejected_by": "ADR-0107 amendment 2026-05-15 (self-supersede)",
       "match": "^tools/oya-[a-z0-9-]+$",
       "current_count": 10,
-      "purpose": "ORIGINAL (rejected): Crates directly under tools/ are implicitly the `app` layer. REJECTED per user directive 2026-05-15 \u2014 no directory-implicit naming; every tools/ crate takes a canonical layer suffix from the 13-value enum (binaries use `-app`).",
-      "binding": "REJECTED \u2014 pattern removed; replaced by explicit canonical-suffix binding in ADR-0105 amendment 2026-05-15.",
+      "purpose": "ORIGINAL (rejected): Crates directly under tools/ are implicitly the `app` layer. REJECTED per user directive 2026-05-15 — no directory-implicit naming; every tools/ crate takes a canonical layer suffix from the 13-value enum (binaries use `-app`).",
+      "binding": "REJECTED — pattern removed; replaced by explicit canonical-suffix binding in ADR-0105 amendment 2026-05-15.",
       "amendment_action": "REVERSED per ADR-0107 supersede 2026-05-15. Tools/ crates are renamed per their canonical layer suffix; binary tools take `-app`. Sole doctrinal carve-out: `oya-tooling-agent-read` (ADR-0053 sanctioned primitive, NOT a layer-enum exception)."
     }
   },
@@ -72,7 +72,7 @@
       "suffix": "api",
       "count": 21,
       "rationale": "21 crates consistently use `-api` as the contract-surface layer across cloud-*, identity, tenancy, ontology, policy-cedar, regional-pack, foundry-dashboard, foundry-adapter-anthropic-compat, foundry-adapter-openai-compat. Well-defined, multi-crate, purposeful: denotes 'this crate exposes a typed contract' without committing to HTTP-vs-gRPC-vs-GraphQL at the type level. Renaming all 21 to `rest`/`grpc`/`graphql` would lose the protocol-neutral contract framing.",
-      "amendment_action": "DONE per ADR-0105: ADR-0056 \u00a7'12-Value Layer Enum' extended from 12 to 13 values; `api` added as a protocol-neutral contract-surface layer; depends-on-kernel-only flow rule documented.",
+      "amendment_action": "DONE per ADR-0105: ADR-0056 §'12-Value Layer Enum' extended from 12 to 13 values; `api` added as a protocol-neutral contract-surface layer; depends-on-kernel-only flow rule documented.",
       "crates": [
         "oya-cloud-compute-functions-api",
         "oya-cloud-compute-k8s-api",
@@ -101,7 +101,7 @@
       "verdict": "RENAME",
       "suffix": "runtime",
       "count": 3,
-      "rationale": "ADR-0056 \u00a7'Concrete migration' (lines 283-289) explicitly slates `*-runtime` crates for rename to `*-app`. `runtime` is not in the canonical enum and doesn't generalize: each of the 3 crates is a composition-root binary that wires kernels + adapters into a deployable service \u2014 that is `app`'s exact definition.",
+      "rationale": "ADR-0056 §'Concrete migration' (lines 283-289) explicitly slates `*-runtime` crates for rename to `*-app`. `runtime` is not in the canonical enum and doesn't generalize: each of the 3 crates is a composition-root binary that wires kernels + adapters into a deployable service — that is `app`'s exact definition.",
       "amendment_action": "Per-crate rename to `-app` suffix. Each rename = C1-shaped atomic commit (workspace.members + crate dir + Cargo.toml + all importers + any *-runtime binary refs in workflows/scripts).",
       "crates": [
         {
@@ -172,13 +172,13 @@
           "current": "oya-vcs-polyglot-indexer-adapters",
           "shape": "lib-only",
           "proposed": "oya-vcs-polyglot-indexer-adapter",
-          "note": "PLURAL \u2192 SINGULAR. ADR-0056 \u00a7'Layer semantics > adapter' is singular."
+          "note": "PLURAL → SINGULAR. ADR-0056 §'Layer semantics > adapter' is singular."
         },
         {
           "current": "oya-saas-plugin-marketplace",
           "shape": "?",
           "proposed": "oya-saas-plugin-marketplace-app",
-          "note": "Need to inspect \u2014 if lib, suffix `-domain` or `-application`; if bin, `-app`."
+          "note": "Need to inspect — if lib, suffix `-domain` or `-application`; if bin, `-app`."
         },
         {
           "current": "oya-adapter-substitution-test",
@@ -190,7 +190,7 @@
           "current": "oya-tooling-agent-read",
           "shape": "bin (in tools/)",
           "proposed": "KEEP",
-          "note": "Sanctioned primitive per CLAUDE.md; renaming would break the agent operating contract. Adopt as fixed name (Exception). Add to ADR-0056 \u00a7'Naming exceptions'."
+          "note": "Sanctioned primitive per CLAUDE.md; renaming would break the agent operating contract. Adopt as fixed name (Exception). Add to ADR-0056 §'Naming exceptions'."
         }
       ]
     }
@@ -205,13 +205,13 @@
       "backend-suffix"
     ],
     "rejected_patterns": [
-      "tools/-implicit-app (rejected per ADR-0107 amendment 2026-05-15 \u2014 replaced by explicit canonical-suffix binding)"
+      "tools/-implicit-app (rejected per ADR-0107 amendment 2026-05-15 — replaced by explicit canonical-suffix binding)"
     ],
     "renames_required": 11,
     "rename_estimate": "11 atomic commits, ~30-60 min per crate (C1-shaped: workspace.members + Cargo.toml + crate dir + all importers + verification build)"
   },
   "execution_dependencies": [
-    "ADR-0056 amendment ratification (per governance-amendment.json \u00a7procedure) BEFORE any rename executes",
+    "ADR-0056 amendment ratification (per governance-amendment.json §procedure) BEFORE any rename executes",
     "Per-rename PR cites this audit row + the ADR amendment number",
     "Cargo.lock refreshed after each rename"
   ],

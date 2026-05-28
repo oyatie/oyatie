@@ -1,8 +1,8 @@
 {
-  "$schema": "https://oyatie.dev/schemas/audit-findings.json",
+  "$schema": "https://oyatie.com/schemas/audit-findings.json",
   "microservice": "ops-dashboard-control-center",
   "audit_date": "2026-05-20",
-  "auditor": "oya-governance-doc-suite + manual ADR-adherence matrix pass",
+  "auditor": "oya-governance-doc-set + manual ADR-adherence matrix pass",
   "axis_a_artifact_count": {
     "before": 36,
     "after": 110,

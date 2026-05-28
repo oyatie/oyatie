@@ -8,8 +8,8 @@
     "x-adrs": ["ADR-0244", "ADR-0263", "ADR-0251", "ADR-0245", "ADR-0252", "ADR-0253", "ADR-0255"]
   },
   "servers": [
-    {"url": "https://governance.us-east.oyatie.dev/v1", "description": "Skylark primary"},
-    {"url": "https://connect.cross-tenant.oyatie.dev/v1", "description": "Cross-tenant channel"}
+    {"url": "https://governance.us-east.oyatie.com/v1", "description": "Skylark primary"},
+    {"url": "https://connect.cross-tenant.oyatie.com/v1", "description": "Cross-tenant channel"}
   ],
   "paths": {
     "/governance/m-and-a/workspace-open": {

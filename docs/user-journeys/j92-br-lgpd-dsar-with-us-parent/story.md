@@ -93,7 +93,7 @@ Failure mode: if the Portuguese response delivery lane cannot prove compliance, 
 | 10 | Tomás Silva | comms-email | portability bundle build; GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Receipt EVT-J92-010 shown with pack BR-LGPD |
 | 11 | Tomás Silva | community | ANPD-ready incident audit; LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Receipt EVT-J92-011 shown with pack US-CCPA |
 | 12 | Tomás Silva | compliance | Portuguese response delivery; LGPD Article 7 lawful bases for personal data processing | Receipt EVT-J92-012 shown with pack EU-GDPR |
-| 13 | Tomás Silva | connect | LGPD request intake; LGPD Article 11 sensitive personal data processing | Receipt EVT-J92-013 shown with pack BR-LGPD |
+| 13 | Tomás Silva | connector | LGPD request intake; LGPD Article 11 sensitive personal data processing | Receipt EVT-J92-013 shown with pack BR-LGPD |
 | 14 | Tomás Silva | consent-graph | US parent inventory discovery; LGPD Article 18 data-subject rights including access, correction, anonymization, portability, deletion, and revocation | Receipt EVT-J92-014 shown with pack US-CCPA |
 | 15 | Tomás Silva | developer-sdk | higher-restriction floor calculation; LGPD Article 33 international transfer conditions | Receipt EVT-J92-015 shown with pack EU-GDPR |
 | 16 | Tomás Silva | docs | portability bundle build; LGPD Article 38 data protection impact report authority | Receipt EVT-J92-016 shown with pack BR-LGPD |
@@ -138,7 +138,7 @@ Failure mode: if the Portuguese response delivery lane cannot prove compliance, 
 | 55 | Tomás Silva | comms-email | LGPD request intake; LGPD Article 33 international transfer conditions | Receipt EVT-J92-055 shown with pack BR-LGPD |
 | 56 | Tomás Silva | community | US parent inventory discovery; LGPD Article 38 data protection impact report authority | Receipt EVT-J92-056 shown with pack US-CCPA |
 | 57 | Tomás Silva | compliance | higher-restriction floor calculation; LGPD Article 46 security measures | Receipt EVT-J92-057 shown with pack EU-GDPR |
-| 58 | Tomás Silva | connect | portability bundle build; LGPD Article 48 security incident communication | Receipt EVT-J92-058 shown with pack BR-LGPD |
+| 58 | Tomás Silva | connector | portability bundle build; LGPD Article 48 security incident communication | Receipt EVT-J92-058 shown with pack BR-LGPD |
 | 59 | Tomás Silva | consent-graph | ANPD-ready incident audit; California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.130 CCPA/CPRA rights | Receipt EVT-J92-059 shown with pack US-CCPA |
 | 60 | Tomás Silva | developer-sdk | Portuguese response delivery; GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Receipt EVT-J92-060 shown with pack EU-GDPR |
 | 61 | Tomás Silva | docs | LGPD request intake; LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Receipt EVT-J92-061 shown with pack BR-LGPD |
@@ -183,7 +183,7 @@ Failure mode: if the Portuguese response delivery lane cannot prove compliance, 
 | 100 | Tomás Silva | comms-email | portability bundle build; GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Receipt EVT-J92-100 shown with pack BR-LGPD |
 | 101 | Tomás Silva | community | ANPD-ready incident audit; LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Receipt EVT-J92-101 shown with pack US-CCPA |
 | 102 | Tomás Silva | compliance | Portuguese response delivery; LGPD Article 7 lawful bases for personal data processing | Receipt EVT-J92-102 shown with pack EU-GDPR |
-| 103 | Tomás Silva | connect | LGPD request intake; LGPD Article 11 sensitive personal data processing | Receipt EVT-J92-103 shown with pack BR-LGPD |
+| 103 | Tomás Silva | connector | LGPD request intake; LGPD Article 11 sensitive personal data processing | Receipt EVT-J92-103 shown with pack BR-LGPD |
 | 104 | Tomás Silva | consent-graph | US parent inventory discovery; LGPD Article 18 data-subject rights including access, correction, anonymization, portability, deletion, and revocation | Receipt EVT-J92-104 shown with pack US-CCPA |
 | 105 | Tomás Silva | developer-sdk | higher-restriction floor calculation; LGPD Article 33 international transfer conditions | Receipt EVT-J92-105 shown with pack EU-GDPR |
 | 106 | Tomás Silva | docs | portability bundle build; LGPD Article 38 data protection impact report authority | Receipt EVT-J92-106 shown with pack BR-LGPD |
@@ -228,7 +228,7 @@ Failure mode: if the Portuguese response delivery lane cannot prove compliance, 
 | 145 | Tomás Silva | comms-email | LGPD request intake; LGPD Article 33 international transfer conditions | Receipt EVT-J92-145 shown with pack BR-LGPD |
 | 146 | Tomás Silva | community | US parent inventory discovery; LGPD Article 38 data protection impact report authority | Receipt EVT-J92-146 shown with pack US-CCPA |
 | 147 | Tomás Silva | compliance | higher-restriction floor calculation; LGPD Article 46 security measures | Receipt EVT-J92-147 shown with pack EU-GDPR |
-| 148 | Tomás Silva | connect | portability bundle build; LGPD Article 48 security incident communication | Receipt EVT-J92-148 shown with pack BR-LGPD |
+| 148 | Tomás Silva | connector | portability bundle build; LGPD Article 48 security incident communication | Receipt EVT-J92-148 shown with pack BR-LGPD |
 | 149 | Tomás Silva | consent-graph | ANPD-ready incident audit; California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.130 CCPA/CPRA rights | Receipt EVT-J92-149 shown with pack US-CCPA |
 | 150 | Tomás Silva | developer-sdk | Portuguese response delivery; GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Receipt EVT-J92-150 shown with pack EU-GDPR |
 | 151 | Tomás Silva | docs | LGPD request intake; LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Receipt EVT-J92-151 shown with pack BR-LGPD |

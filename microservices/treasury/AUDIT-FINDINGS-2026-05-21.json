@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "treasury-cash-position-doc-suite",
+      "id": "treasury-cash-position-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/cash-position-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "treasury-liquidity-forecast-doc-suite",
+      "id": "treasury-liquidity-forecast-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/liquidity-forecast-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "treasury-bank-account-doc-suite",
+      "id": "treasury-bank-account-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/bank-account-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "treasury-debt-instrument-doc-suite",
+      "id": "treasury-debt-instrument-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/debt-instrument-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "treasury-fx-exposure-doc-suite",
+      "id": "treasury-fx-exposure-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/fx-exposure-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "treasury-hedge-designation-doc-suite",
+      "id": "treasury-hedge-designation-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/hedge-designation-authorization.cedar",

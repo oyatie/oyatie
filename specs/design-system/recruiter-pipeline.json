@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/recruiter-pipeline.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/recruiter-pipeline.schema.json",
   "title": "DesignSystem:Recruiter Pipeline",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "recruiter-pipeline",

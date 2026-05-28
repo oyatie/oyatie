@@ -60,14 +60,14 @@ Technical target set: tenant-isolation-posture-query.yaml, tenant-scope-enforcem
 
 | Counterpart | Relevant pressure | Oyatie closure in this IP |
 |---|---|---|
-| Stripe Connect account isolation and AWS Organizations account boundaries | Mature external control surface to compare against. | Stripe Connect account isolation and AWS Organizations account boundaries are the counterpart controls; Oyatie binds both to Cedar and RLS. |
+| Stripe account isolation and AWS Organizations account boundaries | Mature external control surface to compare against. | Stripe account isolation and AWS Organizations account boundaries are the counterpart controls; Oyatie binds both to Cedar and RLS. |
 | GitHub | Required verification regex and PR/evidence control-plane precedent. | This IP remains changeset-driven, reviewable, and tied to branch/admission evidence rather than prose-only approval. |
 
 ## H. Service-Specific Drilldown
 1. Build `TenantPostureView` from tenancy, quota, evidence freshness, and Cedar policy state.
 2. Partner-agency principals must receive only scoped tenants; internal principals still require Cedar action checks.
 3. Postgres RLS mirrors Cedar scope so a missed application filter cannot leak cross-tenant rows.
-4. Stripe Connect and Salesforce Shield are counterpart pressure for tenant/account audit boundaries.
+4. Stripe and Salesforce Shield are counterpart pressure for tenant/account audit boundaries.
 5. Tests cover cross-tenant pivot forbid and `TenantScopeViolationDetected` alert.
 
 ## I. Review Notes

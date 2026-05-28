@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/gdpr/dsar-audit-event-cascade-v1.json",
+  "$id": "https://oyatie.com/schemas/gdpr/dsar-audit-event-cascade-v1.json",
   "title": "GDPR DSAR Audit Event Cascade",
   "_meta": {
     "doc_class": "AuditEventCascade",

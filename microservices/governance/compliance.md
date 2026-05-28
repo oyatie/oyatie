@@ -68,7 +68,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 | CC7.3 | Remediation + RCA | postmortem per failure-mode |
 | CC7.4 | Evidence of operating effectiveness | every Finding signed + sealed; quarterly audit reports; 7y retention |
 | CC7.5 | System monitoring | observability µservice + OnCall |
-| CC8.1 | Change management | every change via PR + ~50-lane suite; ADR successor-IP for material changes |
+| CC8.1 | Change management | every change via PR + ~50-lane set; ADR successor-IP for material changes |
 | A1.1 | Availability commitments + meeting them | SLO at 99.95% per PRD; SLO authoring under slos/ |
 | C1.1 | Confidential information identification | dpia.md §3 data inventory |
 | C1.2 | Disposal | retention windows per data-residency.md; KMS key-destroy at retention end |
@@ -81,7 +81,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 |---|---|---|
 | A.5.1 | Information security policies | this document + threat-model.md + dpia.md + ADR-0133 |
 | A.5.7 | Threat intelligence | quarterly STRIDE+LINDDUN + supply-chain vendor recency lane |
-| A.5.8 | Information security in project management | per-PR ~50-lane suite |
+| A.5.8 | Information security in project management | per-PR ~50-lane set |
 | A.5.10 | Information classification | data-class lane + Bominal ADR-0028 taxonomy |
 | A.5.15 | Access control | Cedar fragments + SPIFFE + OpenBao JIT |
 | A.5.16 | Identity management | OIDC + per-runner SPIFFE; identity rotation 30d |
@@ -109,7 +109,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 | A.8.22 | Segregation of networks | per-pack cluster isolation; ARC runner pool isolation |
 | A.8.23 | Web filtering | outbound allow-list per runner |
 | A.8.24 | Use of cryptography | Ed25519 + AES-GCM via KMS; key rotation 30-90d |
-| A.8.25 | Secure development lifecycle | SLSA L3 + per-PR ~50-lane suite |
+| A.8.25 | Secure development lifecycle | SLSA L3 + per-PR ~50-lane set |
 | A.8.26 | Application security requirements | OWASP ASVS v4 mapping |
 | A.8.27 | Secure system architecture + engineering principles | clean-arch per `feedback_clean_architecture_requirements.md` |
 | A.8.28 | Secure coding | rustfmt + clippy -D warnings + `cargo deny check` |

@@ -132,7 +132,7 @@ Gap: none for Application boundary; generic build/deploy belongs elsewhere.
 Vercel surface V01: unique deployment URLs.
 Source: Vercel generates a unique URL for preview or production deployments.
 Application parity: Partial.
-Evidence: Application OpenAPI server URL is per tenant and pack: `https://{tenant}.app-{pack}.oyatie.dev/api/v1`.
+Evidence: Application OpenAPI server URL is per tenant and pack: `https://{tenant}.app-{pack}.oyatie.com/api/v1`.
 Gap: generated preview URLs for per-commit or per-branch shell previews are absent.
 
 Vercel surface V02: preview deployments on pull requests.
@@ -517,7 +517,7 @@ Required artifacts: limits doc, machine-readable limit manifest, tenant admin vi
 Additive surface A07: Migration Playbooks for Mandated Counterparts.
 Description: Heroku-to-Application, Vercel-to-Application, and Fly-to-Application migration playbooks.
 Counterpart basis: this batch's union-coverage bar.
-Oyatie-specific twist: do not model Application as generic PaaS; map app platform workflows to tenant shell and cell runtime.
+Oyatie-specific twist: do not model Application as generic PaaS; map app tenant RBAC workflows to tenant shell and cell runtime.
 Required artifacts: three playbooks plus risk register.
 
 Additive surface A08: Handoff Contract Linter.

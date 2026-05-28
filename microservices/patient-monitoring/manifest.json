@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "patient-monitoring",
   "title": "Patient Monitoring (Vital Signs Telemetry + RPM + ICU)",
   "status": "wave-15m-f-authoring",
@@ -165,7 +165,7 @@
     "axis-healthcare-vertical",
     "axis-substrate-product-boundary"
   ],
-  "owner_team_email_handle": "patient-monitoring-stewards@oyatie.dev",
+  "owner_team_email_handle": "patient-monitoring-stewards@oyatie.com",
   "stewardship_pager_rotation": "patient-monitoring-l3-oncall",
   "incident_response_class": "P0-life-critical",
   "rpo_objective_seconds": 1,

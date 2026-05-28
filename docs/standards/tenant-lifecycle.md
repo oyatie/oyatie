@@ -12,7 +12,7 @@ related_adrs:
   - ADR-0175
 status: canonical-base
 authorities_cited:
-  - Stripe Connect onboarding account state machine
+  - Stripe onboarding account state machine
   - AWS Organizations account creation lifecycle
   - Google Workspace Admin SDK domain lifecycle states
   - GDPR Art. 17 right to erasure

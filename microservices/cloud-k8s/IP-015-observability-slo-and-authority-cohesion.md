@@ -127,14 +127,14 @@ for slo in microservices/cloud-k8s/slos/*.openslo.yaml; do
   cargo run -p oya-observability-slo-engine-rest -- validate "$slo"
 done
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --microservice cloud-k8s --sha <head-sha> --env staging
+cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice cloud-k8s --sha <head-sha> --env staging
 ```
 
 ## Test Plan
 
 - All 4 OpenSLO manifests validate per OpenSLO v1.0 schema (AC-01 of observability PRD)
 - HG-CLOUD-K8S registered in authority-cohesion: `gate list --id HG-CLOUD-K8S` returns it
-- vcs-promotion-readiness lane: green for cloud-k8s at head SHA (cluster up, all 4 SLIs green)
+- oya-governance-promotion-readiness lane: green for cloud-k8s at head SHA (cluster up, all 4 SLIs green)
 - Burn-rate alarms wired to grafana-oncall
 
 ## Halt Conditions

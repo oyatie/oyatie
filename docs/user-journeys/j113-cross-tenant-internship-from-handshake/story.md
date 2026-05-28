@@ -100,7 +100,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - workplace-integration moves the relationship forward
@@ -177,7 +177,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - community moves the relationship forward
@@ -256,7 +256,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - messenger moves the relationship forward
@@ -333,7 +333,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - workplace-integration moves the relationship forward
@@ -412,7 +412,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - community moves the relationship forward
@@ -489,7 +489,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - messenger moves the relationship forward
@@ -568,7 +568,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - workplace-integration moves the relationship forward
@@ -645,7 +645,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - community moves the relationship forward
@@ -724,7 +724,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - messenger moves the relationship forward
@@ -801,7 +801,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - workplace-integration moves the relationship forward
@@ -880,7 +880,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - community moves the relationship forward
@@ -957,7 +957,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - messenger moves the relationship forward
@@ -1036,7 +1036,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - workplace-integration moves the relationship forward
@@ -1113,7 +1113,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - community moves the relationship forward
@@ -1192,7 +1192,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - messenger moves the relationship forward
@@ -1269,7 +1269,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - workplace-integration moves the relationship forward
@@ -1348,7 +1348,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - community moves the relationship forward
@@ -1425,7 +1425,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - messenger moves the relationship forward
@@ -1505,7 +1505,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - workplace-integration moves the relationship forward
@@ -1584,7 +1584,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - community moves the relationship forward
@@ -1665,7 +1665,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - messenger moves the relationship forward
@@ -1744,7 +1744,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - workplace-integration moves the relationship forward
@@ -1825,7 +1825,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - community moves the relationship forward
@@ -1904,7 +1904,7 @@ bindings, weekly timesheets, stipend, and mentor DM channel.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if university career center tenant is a child or facilitator tenant, the relationship is a
   revocable Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - messenger moves the relationship forward

@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "16.2"  # Postgres LTS pin per docs/standards/audit-chain.md
 maintainers:
   - name: axis-audit-chain
-    email: axis-audit-chain@oyatie.dev
+    email: axis-audit-chain@oyatie.com
 dependencies:
   - name: postgresql-ha
     version: "^14.0.0"

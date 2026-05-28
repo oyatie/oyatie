@@ -346,7 +346,7 @@ Per ADR-0328 §D-6.24 each deliverable includes a backlog rows section. The pari
 | BL-MSGR-PARITY-008 | Verify multi-context deployment row in §11 against iac/<context>/ module work in F-MSGR-001 fix | Wave 15D |
 | BL-MSGR-PARITY-009 | Codify cross-product mention surface as a parity row (Oyatie cross-product mention via Ontology) — none of Slack/Teams/Discord offer this; unique-feature parity row | Wave 14 |
 | BL-MSGR-PARITY-010 | Codify Workflow Studio first-class chat trigger as a parity row — Slack Workflow Builder is the closest analog but Oyatie's Workflow Engine emission is typed via the Ontology | Wave 14 |
-| BL-MSGR-PARITY-011 | Codify cross-tenant cohort channel as a parity row — Slack Connect provides cross-org DMs but does NOT provide a verified-corporate-email gate or MLS E2EE; Oyatie offers all three | Wave 14 |
+| BL-MSGR-PARITY-011 | Codify cross-tenant cohort channel as a parity row — Slack provides cross-org DMs but does NOT provide a verified-corporate-email gate or MLS E2EE; Oyatie offers all three | Wave 14 |
 | BL-MSGR-PARITY-012 | Coordinate parity refresh against Slack 2026-Q2 release, MS Teams 2026-Q2 release, Discord 2026-Q2 release; review cadence is bi-annual per the prior competitor-parity-matrix.md §Bi-Annual Refresh Process | Wave 14 / Wave 18 |
 
 ## §18 Cross-Counterpart Differentiator Rows (Oyatie-Specific)
@@ -390,7 +390,7 @@ Migration steps cover:
 4. Thread continuity (Slack thread ts → Oyatie thread_id; preserve thread topology).
 5. File migration (Slack file URL → Oyatie file-attachment SeaweedFS storage with malware re-scan).
 6. Reactions + mentions + pinned messages preserved.
-7. Slack Connect cross-org DMs migrate to Matrix federation bridge per ADR-MSGR-0004.
+7. Slack cross-org DMs migrate to Matrix federation bridge per ADR-MSGR-0004.
 8. Slack Workflow Builder workflows re-author into Oyatie Workflow Engine + Workflow Studio per ADR-0145.
 9. Slack DLP rules re-express in Cedar per ADR-0243.
 10. Retention policy re-express per the messenger retention pack overlay.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j02/code-blue-intake.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j02/code-blue-intake.json",
   "title": "CodeBlueIntake",
   "version": "1.0.0",
   "description": "CodeBlueIntake shared object for j02 Healthcare code blue EHR break-glass. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

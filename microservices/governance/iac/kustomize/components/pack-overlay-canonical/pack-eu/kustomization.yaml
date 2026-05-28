@@ -20,5 +20,5 @@ configMapGenerator:
       - OCI_OBJECTSTORAGE_ENDPOINT=https://objectstorage.eu-frankfurt-1.oraclecloud.com
       - LLM_PROVIDER_RESIDENCY=eu-resident
       - CDN_EDGE_REGION=eu-frankfurt-1
-      - GDPR_DPO_CONTACT=dpo@oyatie.dev
+      - GDPR_DPO_CONTACT=dpo@oyatie.com
       - EU_AI_ACT_TRANSPARENCY_REQUIRED=true

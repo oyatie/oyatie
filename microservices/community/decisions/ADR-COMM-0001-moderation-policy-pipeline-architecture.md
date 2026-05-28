@@ -151,7 +151,7 @@ The chain is composed at the `oya-community-moderation-queue-usecase` layer; the
 - ADR-0028 — audit-chain Merkle / Ed25519 sealing
 - ADR-0135 — Connect-unbundle (parent ADR establishing the community µservice)
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - Reddit Automoderator + ModSupport documentation — `https://www.reddit.com/wiki/automoderator`
 - Stack Overflow flag queue + diamond-mod escalation — `https://meta.stackexchange.com/q/161541`
 - Discord AutoMod + Trust & Safety architecture — `https://discord.com/safety`

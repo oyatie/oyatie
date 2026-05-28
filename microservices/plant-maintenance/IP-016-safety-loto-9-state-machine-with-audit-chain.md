@@ -10,7 +10,7 @@ persona: safety-authority, carlos-reyes-ii (technician), tony-li (supervisor), m
 status: Accepted
 date: 2026-05-20
 owner_team: axis-plant-maintenance + axis-safety
-planned_enforcement_ref: oya-governance-plant-maintenance-doc-suite
+planned_enforcement_ref: oya-governance-plant-maintenance-doc-set
 ---
 
 # IP-016: Safety-LOTO 9-state machine with audit-chain anchoring (OSHA 29 CFR 1910.147 + NFPA 70E)

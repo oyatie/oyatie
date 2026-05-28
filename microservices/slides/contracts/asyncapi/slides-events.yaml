@@ -10,7 +10,7 @@ info:
 defaultContentType: application/json
 servers:
   prod-ws:
-    host: ws.oyatie.dev
+    host: ws.oyatie.com
     protocol: wss
     description: production WS gateway
 channels:

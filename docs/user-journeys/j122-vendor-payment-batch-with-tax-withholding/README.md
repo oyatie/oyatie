@@ -93,7 +93,7 @@ mass payout, and mail receipts.
 |---|---|---|
 | `payments` | [IP-journey-j122-mass-payout-and-withholding-ledger.md](../../../microservices/payments/IP-journey-j122-mass-payout-and-withholding-ledger.md) | mass-payout-and-withholding-ledger |
 | `finops-portal` | [IP-journey-j122-ap-batch-control-panel.md](../../../microservices/finops-portal/IP-journey-j122-ap-batch-control-panel.md) | ap-batch-control-panel |
-| `connect` | [IP-journey-j122-bank-rail-payout-adapter.md](../../../microservices/connect/IP-journey-j122-bank-rail-payout-adapter.md) | bank-rail-payout-adapter |
+| `connector` | [IP-journey-j122-bank-rail-payout-adapter.md](../../../microservices/connector/IP-journey-j122-bank-rail-payout-adapter.md) | bank-rail-payout-adapter |
 | `compliance` | [IP-journey-j122-tax-withholding-overlay.md](../../../microservices/compliance/IP-journey-j122-tax-withholding-overlay.md) | tax-withholding-overlay |
 | `workflow-engine` | [IP-journey-j122-approval-and-release-state-machine.md](../../../microservices/workflow-engine/IP-journey-j122-approval-and-release-state-machine.md) | approval-and-release-state-machine |
 | `mail` | [IP-journey-j122-vendor-remittance-notices.md](../../../microservices/mail/IP-journey-j122-vendor-remittance-notices.md) | vendor-remittance-notices |
@@ -102,7 +102,7 @@ mass payout, and mail receipts.
 
 - `payments`: mass-payout-and-withholding-ledger; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.
 - `finops-portal`: ap-batch-control-panel; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.
-- `connect`: bank-rail-payout-adapter; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.
+- `connector`: bank-rail-payout-adapter; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.
 - `compliance`: tax-withholding-overlay; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.
 - `workflow-engine`: approval-and-release-state-machine; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.
 - `mail`: vendor-remittance-notices; participates in `VendorBatchWithholdingCommand` and emits `VendorBatchPayoutSettled` evidence.

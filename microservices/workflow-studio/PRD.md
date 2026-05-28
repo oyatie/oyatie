@@ -91,7 +91,7 @@ This µservice is **shared substrate AND hero product** simultaneously per `feed
 
 - OIDC tenant-scoped at every REST/WebSocket entry; Studio refuses opens without resolvable tenant identity.
 - Per-seat license-gate Cedar fragment enforced at editor open; refusal emits `studio_per_seat_license_denied` audit row.
-- Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.dev; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`) — no inline scripts except WASM bootstrap nonce; no eval.
+- Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.com; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`) — no inline scripts except WASM bootstrap nonce; no eval.
 - XSS-free architecture: spec body fields rendered via virtual-DOM text nodes; never `innerHTML`. Anti-pattern `per_tenant_branding_mid_render` is forbidden per `/specs/microservices/workflow-studio.json` §anti_patterns.
 - Per-tenant CDN cache key: CDN partitions cache by `(tenant_hash, pack, version)`; no cross-tenant cache pollution.
 - WebSocket auth: OIDC token validated at WS upgrade; tenant binding rebound at WS message dispatch (server cannot trust client-supplied tenant_id mid-stream).
@@ -551,7 +551,7 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-WORKFLOW-STUDIO registers here |
 | ADR-0139 | Agentic SLO-gated promotion | Studio SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout + workflow unbundle | this µservice authored natively under it; sibling = workflow-engine |
-| ADR-0132 | Product-suite-and-bundle dissolution | Studio is a hero product, not a suite |
+| ADR-0132 | Product-platform-and-bundle dissolution | Studio is a hero product, not a suite |
 | ADR-0133 | Industry-best-practice conformance | Studio competitor parity tracked here |
 | ADR-0140 | Cedar policy enforcement | license-gate-cedar BC built on this |
 | oyatie override | Workflow Studio scope | `feedback_workflow_studio_scope.md` |

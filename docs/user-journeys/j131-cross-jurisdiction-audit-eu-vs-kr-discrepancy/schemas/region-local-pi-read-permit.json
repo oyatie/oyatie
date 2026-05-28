@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/specs/journey/j131/region-local-pi-read-permit.json",
+  "$id": "https://oyatie.com/specs/journey/j131/region-local-pi-read-permit.json",
   "title": "RegionLocalPiReadPermit",
   "version": "1.0.0",
   "_meta": {

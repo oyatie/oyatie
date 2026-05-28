@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j137/sox-control-evidence-bundle.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j137/sox-control-evidence-bundle.json",
   "title": "SoxControlEvidenceBundle",
   "description": "Evidence pack envelope for a single SOX 404 sample. The bundle is sealed as one audit-chain leaf and aggregated into the quarterly evidence pack.",
   "_meta": {

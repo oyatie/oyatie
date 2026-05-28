@@ -9,7 +9,7 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
   - microservices/ops-dashboard-control-center/multi-region.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Capacity Model — ops-dashboard-control-center

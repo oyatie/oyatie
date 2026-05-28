@@ -19,7 +19,7 @@ Register the `HG-NOTES` hyperscaler-grade conformance gate per ADR-0133. The gat
 - dual-context isolation (parallel ADR-0238)
 - e2e-ai-refusal invariant (ADR-NOTES-0005)
 - pack residency (ADR-0117)
-- documentation suite coverage (ADR-0063)
+- documentation set coverage (ADR-0063)
 - canonical base + localization packs (ADR-0064)
 - SLO-gated promotion (ADR-0139)
 - authority cohesion (ADR-0133)

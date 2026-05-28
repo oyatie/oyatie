@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/user-journeys/j179-migration-from-servicenow-itsm-to-oyatie-itsm/vendor-extract-schema.json",
+  "$id": "https://docs.oyatie.com/user-journeys/j179-migration-from-servicenow-itsm-to-oyatie-itsm/vendor-extract-schema.json",
   "title": "ServiceNow ITSM to Oyatie ITSM cutover vendor extract schema",
   "type": "object",
   "required": [

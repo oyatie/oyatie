@@ -72,7 +72,7 @@ SLSA, NIST SSDF (SP 800-218), OWASP ASVS v4, Google SRE Workbook, AWS Well-Archi
 ## References
 
 - ADR-0131 (per-microservice flat layout) — folder authority.
-- ADR-0132 (no-suite forward-policy) — bundle decision.
+- ADR-0132 (no-grouping forward-policy) — bundle decision.
 - ADR-0133 (industry-best-practice conformance) — 6-axis program.
 - `docs/standards/agentic-dev-team-optimization.md` — axis-5 + axis-6 reference.
 

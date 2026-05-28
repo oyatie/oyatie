@@ -1,4 +1,4 @@
-# IP-001 — LLM Gateway Production Design
+# IP-001 — Cloud Intelligence Production Design
 
 **Phase:** LLM-GATEWAY-PRODUCTION-DESIGN
 **Owner:** council-foundry
@@ -8,7 +8,7 @@
 
 ## Scope
 
-Take the cloud-intelligence µservice from its current code-backed local foundation (`CS-LLM-GATEWAY-AGENT-DISPATCH-001` — pure kernel + axum SSE-passthrough proxy) to a **production-grade multi-provider LLM gateway** with:
+Take the cloud-intelligence µservice from its current code-backed local foundation (`CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001` — pure kernel + axum SSE-passthrough proxy) to a **production-grade multi-provider cloud-intelligence gateway** with:
 
 - a canonical OpenAI-compatible REST surface (brief §2),
 - provider adapters with byte-passthrough SSE (brief §1),

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/user-journeys/j146/MarketplaceSaleSettlement.json",
+  "$id": "https://oyatie.com/schemas/user-journeys/j146/MarketplaceSaleSettlement.json",
   "title": "MarketplaceSaleSettlement",
   "type": "object",
   "_meta": {

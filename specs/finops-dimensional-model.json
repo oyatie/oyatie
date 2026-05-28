@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/finops-dimensional-model.schema.json",
+  "$id": "https://docs.oyatie.com/specs/finops-dimensional-model.schema.json",
   "title": "Oyatie FinOps + Sustainability Dimensional Model Schema",
   "description": "Canonical dimensional rollup contract owned by the finops-portal microservice per ADR-0344. Specifies six canonical axes (tenant / product / capability / provider / cell / compliance_pack), per-axis aggregation primitives (cost_usd_minor_units_sum + co2_grams_sum + watt_hours_sum + event_count), rollup freshness budget, retention, three regulator-export evidence file formats (CSRD ESRS E1 / SB-253 / SEC climate disclosure), and the per-microservice sustainability_emission_model manifest block shape.",
   "version": "1.0.0",
@@ -73,13 +73,31 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["axis_id", "axis_name", "source_field", "cardinality_budget", "indexed", "rollup_partition_key"],
+        "required": [
+          "axis_id",
+          "axis_name",
+          "source_field",
+          "cardinality_budget",
+          "indexed",
+          "rollup_partition_key"
+        ],
         "properties": {
           "axis_id": {
             "type": "string",
-            "enum": ["tenant", "product", "capability", "provider", "cell", "compliance_pack"]
+            "enum": [
+              "tenant",
+              "product",
+              "capability",
+              "provider",
+              "cell",
+              "compliance_pack"
+            ]
           },
-          "axis_name": {"type": "string", "minLength": 3, "maxLength": 120},
+          "axis_name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          },
           "source_field": {
             "type": "string",
             "description": "Audit-row field that supplies this axis at rollup time."
@@ -87,14 +105,26 @@
           "cardinality_budget": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["max_distinct_per_cell_per_day", "high_cardinality_allowed"],
+            "required": [
+              "max_distinct_per_cell_per_day",
+              "high_cardinality_allowed"
+            ],
             "properties": {
-              "max_distinct_per_cell_per_day": {"type": "integer", "minimum": 1},
-              "high_cardinality_allowed": {"type": "boolean"}
+              "max_distinct_per_cell_per_day": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "high_cardinality_allowed": {
+                "type": "boolean"
+              }
             }
           },
-          "indexed": {"type": "boolean"},
-          "rollup_partition_key": {"type": "boolean"}
+          "indexed": {
+            "type": "boolean"
+          },
+          "rollup_partition_key": {
+            "type": "boolean"
+          }
         }
       },
       "default": [
@@ -102,7 +132,10 @@
           "axis_id": "tenant",
           "axis_name": "Tenant",
           "source_field": "tenant_id",
-          "cardinality_budget": {"max_distinct_per_cell_per_day": 1000000, "high_cardinality_allowed": true},
+          "cardinality_budget": {
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": true
+          },
           "indexed": true,
           "rollup_partition_key": true
         },
@@ -110,7 +143,10 @@
           "axis_id": "product",
           "axis_name": "Product",
           "source_field": "product",
-          "cardinality_budget": {"max_distinct_per_cell_per_day": 200, "high_cardinality_allowed": false},
+          "cardinality_budget": {
+            "max_distinct_per_cell_per_day": 200,
+            "high_cardinality_allowed": false
+          },
           "indexed": true,
           "rollup_partition_key": false
         },
@@ -118,7 +154,10 @@
           "axis_id": "capability",
           "axis_name": "Capability",
           "source_field": "capability",
-          "cardinality_budget": {"max_distinct_per_cell_per_day": 50000, "high_cardinality_allowed": true},
+          "cardinality_budget": {
+            "max_distinct_per_cell_per_day": 50000,
+            "high_cardinality_allowed": true
+          },
           "indexed": true,
           "rollup_partition_key": false
         },
@@ -126,7 +165,10 @@
           "axis_id": "provider",
           "axis_name": "Provider",
           "source_field": "provider",
-          "cardinality_budget": {"max_distinct_per_cell_per_day": 10, "high_cardinality_allowed": false},
+          "cardinality_budget": {
+            "max_distinct_per_cell_per_day": 10,
+            "high_cardinality_allowed": false
+          },
           "indexed": true,
           "rollup_partition_key": false
         },
@@ -134,7 +176,10 @@
           "axis_id": "cell",
           "axis_name": "Cell",
           "source_field": "cell_id",
-          "cardinality_budget": {"max_distinct_per_cell_per_day": 1, "high_cardinality_allowed": false},
+          "cardinality_budget": {
+            "max_distinct_per_cell_per_day": 1,
+            "high_cardinality_allowed": false
+          },
           "indexed": true,
           "rollup_partition_key": true
         },
@@ -142,7 +187,10 @@
           "axis_id": "compliance_pack",
           "axis_name": "Compliance Pack",
           "source_field": "cell.compliance_pack",
-          "cardinality_budget": {"max_distinct_per_cell_per_day": 20, "high_cardinality_allowed": false},
+          "cardinality_budget": {
+            "max_distinct_per_cell_per_day": 20,
+            "high_cardinality_allowed": false
+          },
           "indexed": true,
           "rollup_partition_key": false
         }
@@ -152,34 +200,55 @@
       "type": "object",
       "description": "Per-axis aggregation primitives surfaced by the rollup per ADR-0344 D-3.3.",
       "additionalProperties": false,
-      "required": ["cost_usd_minor_units_sum", "co2_grams_sum", "watt_hours_sum", "event_count"],
+      "required": [
+        "cost_usd_minor_units_sum",
+        "co2_grams_sum",
+        "watt_hours_sum",
+        "event_count"
+      ],
       "properties": {
         "cost_usd_minor_units_sum": {
           "type": "object",
           "properties": {
-            "type": {"const": "int64"},
-            "description": {"const": "Sum of per-call USD cost in minor units (cents) over the axis bucket."}
+            "type": {
+              "const": "int64"
+            },
+            "description": {
+              "const": "Sum of per-call USD cost in minor units (cents) over the axis bucket."
+            }
           }
         },
         "co2_grams_sum": {
           "type": "object",
           "properties": {
-            "type": {"const": "uint64"},
-            "description": {"const": "Sum of per-call CO2-equivalent emissions in grams over the axis bucket."}
+            "type": {
+              "const": "uint64"
+            },
+            "description": {
+              "const": "Sum of per-call CO2-equivalent emissions in grams over the axis bucket."
+            }
           }
         },
         "watt_hours_sum": {
           "type": "object",
           "properties": {
-            "type": {"const": "uint64"},
-            "description": {"const": "Sum of per-call energy consumption in whole watt-hours over the axis bucket."}
+            "type": {
+              "const": "uint64"
+            },
+            "description": {
+              "const": "Sum of per-call energy consumption in whole watt-hours over the axis bucket."
+            }
           }
         },
         "event_count": {
           "type": "object",
           "properties": {
-            "type": {"const": "uint64"},
-            "description": {"const": "Count of audit-chain rows folded into the axis bucket."}
+            "type": {
+              "const": "uint64"
+            },
+            "description": {
+              "const": "Count of audit-chain rows folded into the axis bucket."
+            }
           }
         }
       }
@@ -187,33 +256,88 @@
     "rollup_contract": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["owner_microservice", "compute_engine", "storage_substrate", "freshness_budget", "staleness_audit_class", "materialized_views"],
+      "required": [
+        "owner_microservice",
+        "compute_engine",
+        "storage_substrate",
+        "freshness_budget",
+        "staleness_audit_class",
+        "materialized_views"
+      ],
       "properties": {
-        "owner_microservice": {"const": "finops-portal"},
-        "compute_engine": {"const": "clickhouse-26-3-lts-iceberg-engine"},
-        "storage_substrate": {"const": "apache-iceberg-via-rest-catalog"},
+        "owner_microservice": {
+          "const": "finops-portal"
+        },
+        "compute_engine": {
+          "const": "clickhouse-26-3-lts-iceberg-engine"
+        },
+        "storage_substrate": {
+          "const": "apache-iceberg-via-rest-catalog"
+        },
         "freshness_budget": {
           "type": "object",
           "properties": {
-            "p99_seconds": {"type": "integer", "const": 300, "description": "5-minute p99 freshness per (tenant, hour) tuple."}
+            "p99_seconds": {
+              "type": "integer",
+              "const": 300,
+              "description": "5-minute p99 freshness per (tenant, hour) tuple."
+            }
           }
         },
-        "staleness_audit_class": {"const": "rollup.staleness.exceeded"},
+        "staleness_audit_class": {
+          "const": "rollup.staleness.exceeded"
+        },
         "materialized_views": {
           "type": "array",
           "minItems": 3,
           "items": {
             "type": "object",
             "properties": {
-              "view_id": {"type": "string"},
-              "grain": {"type": "string", "enum": ["per_minute", "per_hour", "per_day", "per_month"]},
-              "partition_keys": {"type": "array", "items": {"type": "string"}}
+              "view_id": {
+                "type": "string"
+              },
+              "grain": {
+                "type": "string",
+                "enum": [
+                  "per_minute",
+                  "per_hour",
+                  "per_day",
+                  "per_month"
+                ]
+              },
+              "partition_keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           },
           "default": [
-            {"view_id": "rollup_tenant_minute", "grain": "per_minute", "partition_keys": ["tenant_id", "cell_id"]},
-            {"view_id": "rollup_tenant_hour", "grain": "per_hour", "partition_keys": ["tenant_id", "cell_id"]},
-            {"view_id": "rollup_tenant_day", "grain": "per_day", "partition_keys": ["tenant_id", "cell_id"]}
+            {
+              "view_id": "rollup_tenant_minute",
+              "grain": "per_minute",
+              "partition_keys": [
+                "tenant_id",
+                "cell_id"
+              ]
+            },
+            {
+              "view_id": "rollup_tenant_hour",
+              "grain": "per_hour",
+              "partition_keys": [
+                "tenant_id",
+                "cell_id"
+              ]
+            },
+            {
+              "view_id": "rollup_tenant_day",
+              "grain": "per_day",
+              "partition_keys": [
+                "tenant_id",
+                "cell_id"
+              ]
+            }
           ]
         }
       }
@@ -221,11 +345,26 @@
     "retention": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["audit_row_retention_years", "rollup_table_retention_years", "regulator_export_pack_retention_years"],
+      "required": [
+        "audit_row_retention_years",
+        "rollup_table_retention_years",
+        "regulator_export_pack_retention_years"
+      ],
       "properties": {
-        "audit_row_retention_years": {"type": "integer", "const": 7, "description": "7-year HIPAA / PCI / CSRD / SOC2 floor."},
-        "rollup_table_retention_years": {"type": "integer", "const": 7},
-        "regulator_export_pack_retention_years": {"type": "integer", "const": 10, "description": "Regulator pack retention exceeds raw retention to support late audits."}
+        "audit_row_retention_years": {
+          "type": "integer",
+          "const": 7,
+          "description": "7-year HIPAA / PCI / CSRD / SOC2 floor."
+        },
+        "rollup_table_retention_years": {
+          "type": "integer",
+          "const": 7
+        },
+        "regulator_export_pack_retention_years": {
+          "type": "integer",
+          "const": 10,
+          "description": "Regulator pack retention exceeds raw retention to support late audits."
+        }
       }
     },
     "regulator_export_formats": {
@@ -236,15 +375,46 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["format_id", "framework", "schema_version", "filing_cadence", "filing_authority", "signed_via", "hlc_ordered"],
+        "required": [
+          "format_id",
+          "framework",
+          "schema_version",
+          "filing_cadence",
+          "filing_authority",
+          "signed_via",
+          "hlc_ordered"
+        ],
         "properties": {
-          "format_id": {"type": "string", "enum": ["csrd-esrs-e1", "sb-253", "sec-climate-disclosure"]},
-          "framework": {"type": "string"},
-          "schema_version": {"type": "string"},
-          "filing_cadence": {"type": "string", "enum": ["annual", "fiscal-year"]},
-          "filing_authority": {"type": "string"},
-          "signed_via": {"const": "cosign-per-ADR-0181"},
-          "hlc_ordered": {"const": true}
+          "format_id": {
+            "type": "string",
+            "enum": [
+              "csrd-esrs-e1",
+              "sb-253",
+              "sec-climate-disclosure"
+            ]
+          },
+          "framework": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "filing_cadence": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "fiscal-year"
+            ]
+          },
+          "filing_authority": {
+            "type": "string"
+          },
+          "signed_via": {
+            "const": "cosign-per-ADR-0181"
+          },
+          "hlc_ordered": {
+            "const": true
+          }
         }
       },
       "default": [
@@ -281,41 +451,93 @@
       "type": "object",
       "description": "Fallback chain for region carbon intensity per ADR-0344 D-7.",
       "additionalProperties": false,
-      "required": ["canonical_provider", "cache_substrate", "cache_ttl_seconds", "fallback_chain", "carbon_intensity_source_enum"],
+      "required": [
+        "canonical_provider",
+        "cache_substrate",
+        "cache_ttl_seconds",
+        "fallback_chain",
+        "carbon_intensity_source_enum"
+      ],
       "properties": {
         "canonical_provider": {
           "type": "object",
           "properties": {
-            "name": {"const": "electricityMaps"},
-            "api_base": {"const": "https://api.electricitymaps.com/v3"},
-            "endpoint": {"const": "/carbon-intensity/{zone}"},
-            "client_path": {"const": "microservices/observability/src/carbon_intensity/electricitymaps_client.rs"},
-            "language": {"const": "rust"}
+            "name": {
+              "const": "electricityMaps"
+            },
+            "api_base": {
+              "const": "https://api.electricitymaps.com/v3"
+            },
+            "endpoint": {
+              "const": "/carbon-intensity/{zone}"
+            },
+            "client_path": {
+              "const": "microservices/observability/src/carbon_intensity/electricitymaps_client.rs"
+            },
+            "language": {
+              "const": "rust"
+            }
           }
         },
-        "cache_substrate": {"const": "valkey-per-ADR-0336"},
-        "cache_ttl_seconds": {"type": "integer", "const": 3600},
+        "cache_substrate": {
+          "const": "valkey-per-ADR-0336"
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "const": 3600
+        },
         "fallback_chain": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "order": {"type": "integer"},
-              "source_id": {"type": "string", "enum": ["electricitymaps", "provider_grid_avg", "sovereign_published"]},
-              "activation_condition": {"type": "string"}
+              "order": {
+                "type": "integer"
+              },
+              "source_id": {
+                "type": "string",
+                "enum": [
+                  "electricitymaps",
+                  "provider_grid_avg",
+                  "sovereign_published"
+                ]
+              },
+              "activation_condition": {
+                "type": "string"
+              }
             }
           },
           "default": [
-            {"order": 1, "source_id": "electricitymaps", "activation_condition": "cache hit or successful synchronous fetch"},
-            {"order": 2, "source_id": "provider_grid_avg", "activation_condition": "3+ consecutive electricityMaps failures (circuit breaker open)"},
-            {"order": 3, "source_id": "sovereign_published", "activation_condition": "sovereign compliance pack mandates override per ADR-0240/ADR-0251"}
+            {
+              "order": 1,
+              "source_id": "electricitymaps",
+              "activation_condition": "cache hit or successful synchronous fetch"
+            },
+            {
+              "order": 2,
+              "source_id": "provider_grid_avg",
+              "activation_condition": "3+ consecutive electricityMaps failures (circuit breaker open)"
+            },
+            {
+              "order": 3,
+              "source_id": "sovereign_published",
+              "activation_condition": "sovereign compliance pack mandates override per ADR-0240/ADR-0251"
+            }
           ]
         },
         "carbon_intensity_source_enum": {
           "type": "array",
           "minItems": 5,
-          "items": {"type": "string"},
-          "default": ["electricitymaps", "provider_grid_avg", "sovereign_published", "cache_hit", "cache_miss_fallback"]
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "electricitymaps",
+            "provider_grid_avg",
+            "sovereign_published",
+            "cache_hit",
+            "cache_miss_fallback"
+          ]
         }
       }
     },
@@ -323,11 +545,17 @@
       "type": "object",
       "description": "Per-microservice manifest.json sustainability_emission_model block shape per ADR-0344 D-2.",
       "additionalProperties": false,
-      "required": ["required_fields", "tier_overhead_factor_defaults", "validation_baseline_tolerance_pct"],
+      "required": [
+        "required_fields",
+        "tier_overhead_factor_defaults",
+        "validation_baseline_tolerance_pct"
+      ],
       "properties": {
         "required_fields": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "default": [
             "pod_runtime_tier_ref",
             "power_model.cpu_watts_per_vcpu_second",
@@ -348,10 +576,22 @@
         "tier_overhead_factor_defaults": {
           "type": "object",
           "properties": {
-            "tier_0_kata_clh": {"type": "number", "const": 1.4},
-            "tier_1_kata_clh": {"type": "number", "const": 1.4},
-            "tier_2_runc": {"type": "number", "const": 1.0},
-            "tier_3_runc_edge": {"type": "number", "const": 1.05}
+            "tier_0_kata_clh": {
+              "type": "number",
+              "const": 1.4
+            },
+            "tier_1_kata_clh": {
+              "type": "number",
+              "const": 1.4
+            },
+            "tier_2_runc": {
+              "type": "number",
+              "const": 1.0
+            },
+            "tier_3_runc_edge": {
+              "type": "number",
+              "const": 1.05
+            }
           }
         },
         "validation_baseline_tolerance_pct": {
@@ -365,11 +605,18 @@
       "type": "object",
       "description": "Cedar context inputs gained per ADR-0344 D-9 for provider routing and carbon-aware scheduling.",
       "additionalProperties": false,
-      "required": ["provider_routing_inputs", "carbon_aware_scheduling_inputs", "tier_eligibility", "compliance_pack_exclusions"],
+      "required": [
+        "provider_routing_inputs",
+        "carbon_aware_scheduling_inputs",
+        "tier_eligibility",
+        "compliance_pack_exclusions"
+      ],
       "properties": {
         "provider_routing_inputs": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "default": [
             "context.region.carbon_intensity_g_co2e_per_kwh",
             "context.workload.carbon_budget_g_co2e_per_kwh",
@@ -379,7 +626,9 @@
         },
         "carbon_aware_scheduling_inputs": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "default": [
             "resource.carbon_aware",
             "resource.pod_runtime_tier",
@@ -394,20 +643,40 @@
           "properties": {
             "eligible_for_deferral": {
               "type": "array",
-              "items": {"type": "integer", "enum": [2, 3]},
-              "default": [2, 3]
+              "items": {
+                "type": "integer",
+                "enum": [
+                  2,
+                  3
+                ]
+              },
+              "default": [
+                2,
+                3
+              ]
             },
             "ineligible_for_deferral": {
               "type": "array",
-              "items": {"type": "integer", "enum": [0, 1]},
-              "default": [0, 1],
+              "items": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "default": [
+                0,
+                1
+              ],
               "description": "Tier 0 + Tier 1 ineligible per ADR-0344 B2.019."
             }
           }
         },
         "compliance_pack_exclusions": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "default": [
             "eu-ai-act-annex-iii",
             "hipaa-em-incident-response",
@@ -421,7 +690,10 @@
       "type": "object",
       "description": "ADR-0174 chargeback formula widening per ADR-0344 D-10.",
       "additionalProperties": false,
-      "required": ["formula", "carbon_cost"],
+      "required": [
+        "formula",
+        "carbon_cost"
+      ],
       "properties": {
         "formula": {
           "const": "chargeback_period_total = labelled_spend + capability_invocation + audit_chain_emission + storage + credits + carbon_cost"
@@ -429,15 +701,34 @@
         "carbon_cost": {
           "type": "object",
           "properties": {
-            "default_usd": {"type": "number", "const": 0},
-            "opt_in_tenant_class": {"type": "string", "enum": ["paid"]},
-            "formula": {"const": "co2_grams_sum_in_period * carbon_cost_per_gram_usd"},
+            "default_usd": {
+              "type": "number",
+              "const": 0
+            },
+            "opt_in_tenant_class": {
+              "type": "string",
+              "enum": [
+                "paid"
+              ]
+            },
+            "formula": {
+              "const": "co2_grams_sum_in_period * carbon_cost_per_gram_usd"
+            },
             "carbon_cost_per_gram_usd_source": {
               "type": "array",
-              "items": {"type": "string"},
-              "default": ["eu-ets-price", "california-cap-and-trade", "voluntary-verra", "voluntary-gold-standard"]
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "eu-ets-price",
+                "california-cap-and-trade",
+                "voluntary-verra",
+                "voluntary-gold-standard"
+              ]
             },
-            "demo_trial_tenants": {"const": "always 0 USD; no opt-in"}
+            "demo_trial_tenants": {
+              "const": "always 0 USD; no opt-in"
+            }
           }
         }
       }
@@ -446,22 +737,37 @@
       "type": "object",
       "description": "ADR-0174 anomaly thresholds widening per ADR-0344 D-10.3.",
       "additionalProperties": false,
-      "required": ["carbon_spike", "watt_hours_creep"],
+      "required": [
+        "carbon_spike",
+        "watt_hours_creep"
+      ],
       "properties": {
         "carbon_spike": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "tenant co2_grams > 3*MAD over rolling 14-day baseline AND co2_grams > 10000g/hr"},
-            "severity": {"const": "SEV-2"},
-            "audit_event_class": {"const": "carbon.spike.detected"}
+            "trigger": {
+              "const": "tenant co2_grams > 3*MAD over rolling 14-day baseline AND co2_grams > 10000g/hr"
+            },
+            "severity": {
+              "const": "SEV-2"
+            },
+            "audit_event_class": {
+              "const": "carbon.spike.detected"
+            }
           }
         },
         "watt_hours_creep": {
           "type": "object",
           "properties": {
-            "trigger": {"const": "tenant watt_hours > 7-day rolling baseline by 25% sustained >= 24h"},
-            "severity": {"const": "SEV-3"},
-            "audit_event_class": {"const": "energy.watt_hours.creep.detected"}
+            "trigger": {
+              "const": "tenant watt_hours > 7-day rolling baseline by 25% sustained >= 24h"
+            },
+            "severity": {
+              "const": "SEV-3"
+            },
+            "audit_event_class": {
+              "const": "energy.watt_hours.creep.detected"
+            }
           }
         }
       }
@@ -477,10 +783,22 @@
         "requires_validator_lane"
       ],
       "properties": {
-        "requires_originating_adr": {"type": "boolean", "const": true},
-        "requires_reverse_reference_to_adr_0344": {"type": "boolean", "const": true},
-        "requires_audit_event_schema_update": {"type": "boolean", "const": true},
-        "requires_per_microservice_emission_model_block": {"type": "boolean", "const": true},
+        "requires_originating_adr": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_reverse_reference_to_adr_0344": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_audit_event_schema_update": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_per_microservice_emission_model_block": {
+          "type": "boolean",
+          "const": true
+        },
         "requires_validator_lane": {
           "type": "string",
           "const": "oya gate validate finops-dimensional-rollup"
@@ -492,7 +810,9 @@
     "semver": {
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
-      "examples": ["1.0.0"]
+      "examples": [
+        "1.0.0"
+      ]
     }
   }
 }

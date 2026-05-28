@@ -172,7 +172,7 @@ This anchor is closed for `workflow-engine` against ADR-0244 §D-3: tenant_id, a
 - `cell` and `cloud-iac` enforce the runtime cell, ingress, ECH/PQC, and facility posture for `workflow-engine`.
 
 ### Hyperscaler precedents
-- Precedent 1: Stripe Connect connected-account isolation is the reference pattern for the control shape described here.
+- Precedent 1: Stripe connected-account isolation is the reference pattern for the control shape described here.
 - Precedent 2: AWS Organizations account-boundary pattern is the second reference pattern used to avoid a single-vendor cargo-cult design.
 - The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
@@ -417,7 +417,7 @@ This anchor is closed for `workflow-engine` against ADR-0249 §D-1: marketplace 
 - `cell` and `cloud-iac` enforce the runtime cell, ingress, ECH/PQC, and facility posture for `workflow-engine`.
 
 ### Hyperscaler precedents
-- Precedent 1: Stripe Connect platform-facilitator model is the reference pattern for the control shape described here.
+- Precedent 1: Stripe platform-facilitator model is the reference pattern for the control shape described here.
 - Precedent 2: AWS Marketplace seller-of-record controls is the second reference pattern used to avoid a single-vendor cargo-cult design.
 - The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
@@ -449,7 +449,7 @@ This anchor is closed for `workflow-engine` against ADR-0249 §D-1: marketplace 
 - Runbook/IaC evidence: `microservices/workflow-engine/runbooks/deadlock-resolution.md`, `microservices/workflow-engine/runbooks/durable-execution-restart.md`, `microservices/workflow-engine/runbooks/event-bus-replay.md`, `microservices/workflow-engine/runbooks/valkey-failover.md`, `microservices/workflow-engine/runbooks/spec-rollback.md`; +9 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `workflow-engine` `workflow-execute` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

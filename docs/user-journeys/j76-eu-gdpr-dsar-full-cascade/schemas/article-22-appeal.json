@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/gdpr/article-22-appeal-v1.json",
+  "$id": "https://oyatie.com/schemas/gdpr/article-22-appeal-v1.json",
   "title": "GDPR Article 22 Appeal Request",
   "type": "object",
   "_meta": {

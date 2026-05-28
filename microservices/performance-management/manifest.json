@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "performance-management",
   "title": "Performance Management",
   "status": "wave-4-rolling-remediation-2026-05-21",

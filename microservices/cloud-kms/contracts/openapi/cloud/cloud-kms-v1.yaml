@@ -12,7 +12,7 @@ info:
   license:
     name: Inherited from oyatie root
 servers:
-  - url: https://{tenant}.cloud-kms.oyatie.dev/v1
+  - url: https://{tenant}.cloud-kms.oyatie.com/v1
     variables:
       tenant:
         default: tenant-id

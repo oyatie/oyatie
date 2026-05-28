@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/markdown-retirement-policy.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/markdown-retirement-policy.schema.json",
   "_sunset": {
     "sunset_topic": "markdown-retirement-policy",
     "sunset_at": "2026-08-31",
@@ -35,28 +35,28 @@
       "/evidence/audits/consensus/**/*.md (historical consensus outputs; immutable; logged as audit-archive profile)"
     ],
     "retire_via_json_migration": [
-      "docs/CONSTITUTION.md \u2192 RETIRED (per user 2026-05-13 'i dont think constitution is necessary'; content redistributed: mission\u2192masterplan; principles\u2192agent-operating-contract; prohibitions\u2192forbidden-operations.json; decision rights\u2192RACI-OWNERSHIP)",
-      "docs/AGENTS.md \u2192 /specs/agent-operating-contract.json",
-      "docs/DOC-CATALOG.md \u2192 /registry/doc-catalog.json",
-      "docs/MASTERPLAN.md \u2192 /specs/masterplan.json",
-      "docs/decisions/ADR-*.md \u2192 /registry/adrs.json + per-ADR content under /registry/adr-content/*.json",
-      "docs/microservices/*.md \u2192 /registry/microservices.json",
-      "docs/bounded-contexts/*.md \u2192 /registry/bounded-contexts.json",
-      "docs/standards/*.md \u2192 /registry/standards.json",
-      "docs/runbooks/*.md \u2192 /registry/runbooks.json",
-      "docs/prds/*.md \u2192 /registry/prds.json",
-      "docs/templates/*.md \u2192 /templates/*.json or *.yaml",
-      "docs/checklists/*.md \u2192 /specs/checklists.json",
-      ".omc/plans/ralplan-*.md \u2192 .omc/plans/ralplan-*.json (instances of plan-schema.json)",
-      "/specs/*.md \u2192 /specs/*.json",
-      "/evidence/goals/*.md \u2192 /registry/goals.json",
-      "/templates/checklists/*.md \u2192 /templates/checklists/*.json"
+      "docs/CONSTITUTION.md → RETIRED (per user 2026-05-13 'i dont think constitution is necessary'; content redistributed: mission→masterplan; principles→agent-operating-contract; prohibitions→forbidden-operations.json; decision rights→RACI-OWNERSHIP)",
+      "docs/AGENTS.md → /specs/agent-operating-contract.json",
+      "docs/DOC-CATALOG.md → /registry/doc-catalog.json",
+      "docs/MASTERPLAN.md → /specs/masterplan.json",
+      "docs/decisions/ADR-*.md → /registry/adrs.json + per-ADR content under /registry/adr-content/*.json",
+      "docs/microservices/*.md → /registry/microservices.json",
+      "docs/bounded-contexts/*.md → /registry/bounded-contexts.json",
+      "docs/standards/*.md → /registry/standards.json",
+      "docs/runbooks/*.md → /registry/runbooks.json",
+      "docs/prds/*.md → /registry/prds.json",
+      "docs/templates/*.md → /templates/*.json or *.yaml",
+      "docs/checklists/*.md → /specs/checklists.json",
+      ".omc/plans/ralplan-*.md → .omc/plans/ralplan-*.json (instances of plan-schema.json)",
+      "/specs/*.md → /specs/*.json",
+      "/evidence/goals/*.md → /registry/goals.json",
+      "/templates/checklists/*.md → /templates/checklists/*.json"
     ]
   },
   "migration_phases": [
     {
       "phase_id": "PHASE-1-PATTERN-PROVE",
-      "scope": "Wave 6 ralplan .md \u2192 .json + 3-root-hub update + retirement ledger seed + capability-registry rows",
+      "scope": "Wave 6 ralplan .md → .json + 3-root-hub update + retirement ledger seed + capability-registry rows",
       "deadline": "2026-05-13",
       "status": "in-progress"
     },
@@ -68,7 +68,7 @@
     },
     {
       "phase_id": "PHASE-3-WAVE-PLANS",
-      "scope": "Wave 7 v1.0.0 + Wave 5 v18 + Wave 1/2/3/4 ralplan-*.md \u2192 .json",
+      "scope": "Wave 7 v1.0.0 + Wave 5 v18 + Wave 1/2/3/4 ralplan-*.md → .json",
       "deadline": "2026-05-20",
       "status": "planned",
       "files_count_estimated": 6,
@@ -79,7 +79,7 @@
     },
     {
       "phase_id": "PHASE-4-ADRS",
-      "scope": "88 ADRs at docs/decisions/ADR-*.md \u2192 consolidated /registry/adrs.json + per-ADR-content JSON files",
+      "scope": "88 ADRs at docs/decisions/ADR-*.md → consolidated /registry/adrs.json + per-ADR-content JSON files",
       "deadline": "2026-06-12",
       "status": "planned",
       "files_count_estimated": 88,
@@ -92,7 +92,7 @@
     },
     {
       "phase_id": "PHASE-5-CORE-DOCS",
-      "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* \u2192 JSON",
+      "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* → JSON",
       "deadline": "2026-06-30",
       "status": "planned",
       "files_count_estimated": 4,
@@ -105,7 +105,7 @@
     },
     {
       "phase_id": "PHASE-6-MICROSERVICE-BC-STANDARDS-RUNBOOKS-PRDS",
-      "scope": "16 microservices + 30 BCs + 25 standards + 12 runbooks + 16 PRDs \u2192 consolidated registries",
+      "scope": "16 microservices + 30 BCs + 25 standards + 12 runbooks + 16 PRDs → consolidated registries",
       "deadline": "2026-07-31",
       "status": "planned",
       "files_count_estimated": 99,
@@ -116,7 +116,7 @@
     },
     {
       "phase_id": "PHASE-7-TEMPLATES-CHECKLISTS-GOALS",
-      "scope": "10 templates + 6 checklists + 3 goals + 5 omc-templates \u2192 JSON/YAML",
+      "scope": "10 templates + 6 checklists + 3 goals + 5 omc-templates → JSON/YAML",
       "deadline": "2026-08-15",
       "status": "planned",
       "files_count_estimated": 24
@@ -135,6 +135,6 @@
   "honest_gaps": [
     "Some Markdown semantic content (prose explanations, narrative ADR Context sections) does not naturally project to JSON without loss. Mitigation: each registry row carries a `body_markdown_archived_at` field pointing to the historical .md preserved under .git history; JSON instances carry the EXTRACTED structured fields only.",
     "Existing tooling (rustdoc, mdbook, IDE Markdown previews) is markdown-aware. Replacement tooling (JSON-rendering UIs, generated HTML from JSON) is foundation-prerequisite per Wave 1 docs portal v7 + ADR-0066.",
-    "External-facing docs (anything published to https://docs.oyatie.dev) is foundation-side; this policy covers repo-internal docs only. Public docs site can render from JSON via Leptos SSR per ADR-0065."
+    "External-facing docs (anything published to https://docs.oyatie.com) is foundation-side; this policy covers repo-internal docs only. Public docs site can render from JSON via Leptos SSR per ADR-0065."
   ]
 }

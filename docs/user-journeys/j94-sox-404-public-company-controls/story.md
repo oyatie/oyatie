@@ -91,7 +91,7 @@ Failure mode: if the whistleblower protected intake lane cannot prove compliance
 | 10 | Marcus Chen | comms-email | management certification packet; Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Receipt EVT-J94-010 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 11 | Marcus Chen | community | external auditor read-only portal; 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Receipt EVT-J94-011 shown with pack SOX-404 |
 | 12 | Marcus Chen | compliance | whistleblower protected intake; Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Receipt EVT-J94-012 shown with pack DODD-FRANK-WHISTLEBLOWER |
-| 13 | Marcus Chen | connect | control inventory import; Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Receipt EVT-J94-013 shown with pack SOX-404 |
+| 13 | Marcus Chen | connector | control inventory import; Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Receipt EVT-J94-013 shown with pack SOX-404 |
 | 14 | Marcus Chen | consent-graph | segregation-of-duties graph; Sarbanes-Oxley Act section 802 records destruction penalties | Receipt EVT-J94-014 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 15 | Marcus Chen | developer-sdk | quarterly evidence close; Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Receipt EVT-J94-015 shown with pack SOX-404 |
 | 16 | Marcus Chen | docs | management certification packet; SEC Rule 21F-17 anti-impediment to whistleblower communication | Receipt EVT-J94-016 shown with pack DODD-FRANK-WHISTLEBLOWER |
@@ -136,7 +136,7 @@ Failure mode: if the whistleblower protected intake lane cannot prove compliance
 | 55 | Marcus Chen | comms-email | control inventory import; Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Receipt EVT-J94-055 shown with pack SOX-404 |
 | 56 | Marcus Chen | community | segregation-of-duties graph; SEC Rule 21F-17 anti-impediment to whistleblower communication | Receipt EVT-J94-056 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 57 | Marcus Chen | compliance | quarterly evidence close; Sarbanes-Oxley Act section 302 issuer officer certifications | Receipt EVT-J94-057 shown with pack SOX-404 |
-| 58 | Marcus Chen | connect | management certification packet; Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Receipt EVT-J94-058 shown with pack DODD-FRANK-WHISTLEBLOWER |
+| 58 | Marcus Chen | connector | management certification packet; Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Receipt EVT-J94-058 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 59 | Marcus Chen | consent-graph | external auditor read-only portal; 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Receipt EVT-J94-059 shown with pack SOX-404 |
 | 60 | Marcus Chen | developer-sdk | whistleblower protected intake; Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Receipt EVT-J94-060 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 61 | Marcus Chen | docs | control inventory import; Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Receipt EVT-J94-061 shown with pack SOX-404 |
@@ -181,7 +181,7 @@ Failure mode: if the whistleblower protected intake lane cannot prove compliance
 | 100 | Marcus Chen | comms-email | management certification packet; Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Receipt EVT-J94-100 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 101 | Marcus Chen | community | external auditor read-only portal; Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Receipt EVT-J94-101 shown with pack SOX-404 |
 | 102 | Marcus Chen | compliance | whistleblower protected intake; Sarbanes-Oxley Act section 802 records destruction penalties | Receipt EVT-J94-102 shown with pack DODD-FRANK-WHISTLEBLOWER |
-| 103 | Marcus Chen | connect | control inventory import; Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Receipt EVT-J94-103 shown with pack SOX-404 |
+| 103 | Marcus Chen | connector | control inventory import; Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Receipt EVT-J94-103 shown with pack SOX-404 |
 | 104 | Marcus Chen | consent-graph | segregation-of-duties graph; SEC Rule 21F-17 anti-impediment to whistleblower communication | Receipt EVT-J94-104 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 105 | Marcus Chen | developer-sdk | quarterly evidence close; Sarbanes-Oxley Act section 302 issuer officer certifications | Receipt EVT-J94-105 shown with pack SOX-404 |
 | 106 | Marcus Chen | docs | management certification packet; Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Receipt EVT-J94-106 shown with pack DODD-FRANK-WHISTLEBLOWER |
@@ -226,7 +226,7 @@ Failure mode: if the whistleblower protected intake lane cannot prove compliance
 | 145 | Marcus Chen | comms-email | control inventory import; Sarbanes-Oxley Act section 302 issuer officer certifications | Receipt EVT-J94-145 shown with pack SOX-404 |
 | 146 | Marcus Chen | community | segregation-of-duties graph; Sarbanes-Oxley Act section 404(a) management assessment of internal control over financial reporting | Receipt EVT-J94-146 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 147 | Marcus Chen | compliance | quarterly evidence close; 15 U.S.C. 7262 SOX 404 management assessment and auditor attestation | Receipt EVT-J94-147 shown with pack SOX-404 |
-| 148 | Marcus Chen | connect | management certification packet; Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Receipt EVT-J94-148 shown with pack DODD-FRANK-WHISTLEBLOWER |
+| 148 | Marcus Chen | connector | management certification packet; Exchange Act Rules 13a-15 and 15d-15 internal control over financial reporting | Receipt EVT-J94-148 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 149 | Marcus Chen | consent-graph | external auditor read-only portal; Sarbanes-Oxley Act section 806 whistleblower anti-retaliation | Receipt EVT-J94-149 shown with pack SOX-404 |
 | 150 | Marcus Chen | developer-sdk | whistleblower protected intake; Sarbanes-Oxley Act section 802 records destruction penalties | Receipt EVT-J94-150 shown with pack DODD-FRANK-WHISTLEBLOWER |
 | 151 | Marcus Chen | docs | control inventory import; Dodd-Frank Act section 922 and 15 U.S.C. 78u-6 SEC whistleblower incentives and protection | Receipt EVT-J94-151 shown with pack SOX-404 |

@@ -308,7 +308,7 @@ These are NOT a tier (per `feedback_tenant_class_2026_05_20`). They are uniforml
 | Funnel experiments (multi-step) | Optimizely | Phase 2 | feature-flags |
 | Workflow Builder UI | LaunchDarkly | Phase 2 | `workflow-studio` |
 | Code references scanner | LaunchDarkly | Phase 2 | feature-flags + `oya-vcs` |
-| Slack/Teams native integration | LaunchDarkly | Phase 2 | `messenger` + `connect` |
+| Slack/Teams native integration | LaunchDarkly | Phase 2 | `messenger` + `connector` |
 | No-code experiment editor | Optimizely | Phase 3 | `workflow-studio` |
 | Impressions data export pipeline | Split.io | Phase 2 | `analytics` + marketplace pack |
 | Prerequisite flag dependency graph | All 3 | Phase 2 | feature-flags |

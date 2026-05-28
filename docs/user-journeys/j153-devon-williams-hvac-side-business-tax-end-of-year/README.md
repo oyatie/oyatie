@@ -35,9 +35,9 @@ It is **December 28**, the Monday after Christmas, 19:42 PST. Devon is at the ki
 2. Categorize and tag **187 receipts** from the year — gas, tools, parts, vehicle maintenance, supplies — into Schedule-C-conformant categories via `finops-portal`
 3. File his **mileage log** from `tasks` (the side-business job log) into the IRS-recognized format (54.5¢/mi for 2026)
 4. Use `workflow-studio` to set up an **end-of-year automation** so that next year's reconciliation runs nightly instead of one frantic December evening
-5. Use `connect` to push the consolidated Schedule-C data to his tax preparer (Cookson Tax & Accounting, Hayward) over a secure, audit-sealed channel — without exposing the underlying Bayshore W-2 (which is Devon-at-work's tenant data, not Devon-as-side-business's)
+5. Use `connector` to push the consolidated Schedule-C data to his tax preparer (Cookson Tax & Accounting, Hayward) over a secure, audit-sealed channel — without exposing the underlying Bayshore W-2 (which is Devon-at-work's tenant data, not Devon-as-side-business's)
 
-Five microservices: `payments`, `finops-portal`, `tasks`, `connect`, `workflow-studio`. Secondary touches on `identity` (tenant-switching), `tenancy` (dual-tenant boundary per ADR-0311), `audit-chain`, `compliance` (CA-CDTFA sales tax for installed parts), `marketplace` (Devon found 3 of his side gigs through the oya neighbor-marketplace surface), `community` (the customer reviews from his repeat customers shape his SEO discoverability).
+Five microservices: `payments`, `finops-portal`, `tasks`, `connector`, `workflow-studio`. Secondary touches on `identity` (tenant-switching), `tenancy` (dual-tenant boundary per ADR-0311), `audit-chain`, `compliance` (CA-CDTFA sales tax for installed parts), `marketplace` (Devon found 3 of his side gigs through the oya neighbor-marketplace surface), `community` (the customer reviews from his repeat customers shape his SEO discoverability).
 
 The Cedar policy enforces **dual-tenant strict separation** (ADR-0311): Bayshore's W-2 payroll data never leaks into `Devon Williams HVAC LLC`, and the LLC's customer list never leaks into Bayshore.
 
@@ -68,10 +68,10 @@ Hyperscaler benchmark: Stripe for the Connect-style payments + Stripe Tax for 10
 
 | µservice | Role in this journey | Critical-path row |
 |---|---|---|
-| `payments` | Holds Devon's side-business payment-rail receipts (Stripe Connect deposits, plus the imported Venmo and Zelle reconciliations); produces the canonical 2026 income statement | row 9 |
+| `payments` | Holds Devon's side-business payment-rail receipts (Stripe deposits, plus the imported Venmo and Zelle reconciliations); produces the canonical 2026 income statement | row 9 |
 | `finops-portal` | Categorizes 187 receipts; computes the Schedule-C 1040 lines; tracks the 1099-K $2,500 threshold for 2026 (per ARPA changes); flags the CA-CDTFA sales tax obligation on installed parts | row 9 |
 | `tasks` | Hosts the side-business job log including the mileage log; produces the IRS-recognized 54.5¢/mi summary | row 8 |
-| `connect` | Pushes the consolidated Schedule-C export to Cookson Tax & Accounting; manages the tax-preparer share-link with a per-document watermark | row 9 |
+| `connector` | Pushes the consolidated Schedule-C export to Cookson Tax & Accounting; manages the tax-preparer share-link with a per-document watermark | row 9 |
 | `workflow-studio` | Enables Devon to author the nightly reconciliation automation; visual flow editor for the gray-collar persona | row 8, row 9 |
 
 ## Secondary microservices touched
@@ -90,14 +90,14 @@ Hyperscaler benchmark: Stripe for the Connect-style payments + Stripe Tax for 10
 | Pack | Activation reason |
 |---|---|
 | US-IRS-Schedule-C | Sole-proprietor income tax reporting; Schedule-C 1040 line-item enumeration |
-| US-Form-1099-K | 2026 threshold ($2,500 per ARPA 2021 as amended by 2025 reconciliation act); Stripe Connect issues 1099-K when threshold crossed; Venmo + Zelle threshold-tracking imports |
+| US-Form-1099-K | 2026 threshold ($2,500 per ARPA 2021 as amended by 2025 reconciliation act); Stripe issues 1099-K when threshold crossed; Venmo + Zelle threshold-tracking imports |
 | US-State-CA-CDTFA | California sales tax on tangible personal property installed in HVAC repairs; District tax for Alameda County (Hayward) |
 | ISO-20022 | Cross-rail payment reconciliation; canonical message format for the bank-import path |
 
 ## Regulatory anchors
 
 1. IRS Schedule-C 1040 (Profit or Loss from Business — Sole Proprietorship)
-2. IRS Form 1099-K threshold $2,500 for tax year 2026 (per the ARPA 2021 amendment + 2025 reconciliation act adjustment); Stripe Connect issues 1099-K to Devon if his side-business gross crossed the threshold
+2. IRS Form 1099-K threshold $2,500 for tax year 2026 (per the ARPA 2021 amendment + 2025 reconciliation act adjustment); Stripe issues 1099-K to Devon if his side-business gross crossed the threshold
 3. IRS Pub. 463 standard mileage rate 54.5¢/mi for 2026
 4. CA-CDTFA District Tax Lookup for Hayward (Alameda County base 7.25% + Alameda district 2.75% = 10.25% for 2026)
 5. ADR-0311 dual-tenant identity strict separation (no W-2 ↔ LLC cross-leak)
@@ -110,7 +110,7 @@ Hyperscaler benchmark: Stripe for the Connect-style payments + Stripe Tax for 10
 |---|---|---|
 | `us-west-2-primary` | SOC2 + PCI-DSS Level-1 | Primary placement for both Bayshore and Devon Williams HVAC LLC tenants |
 | `us-west-2-finops-cell` | SOC2 + IRS-1075 (tax-data handling) | Hosts the Schedule-C compute + the 1099-K threshold ledger |
-| `global-shared-control-plane` | SOC2 | Hosts the `connect` share-link to Cookson Tax |
+| `global-shared-control-plane` | SOC2 | Hosts the `connector` share-link to Cookson Tax |
 
 ## Cedar permit class (excerpt — full text in `schemas/cedar-policy.cedar`)
 
@@ -160,8 +160,8 @@ The acceptable cross-tenant signal is **at the personal-1040 level**, where Devo
 
 | AC | Result expected |
 |---|---|
-| AC-J153-001 | All 2026 Stripe Connect deposits ($28,419.27 across 47 jobs) reconcile to side-business tenant `devon_williams_hvac_llc`; zero cross-tenant leak |
-| AC-J153-002 | Venmo import ($4,217.50 across 14 Q1-Q2 jobs) deduplicates against any duplicate Stripe Connect entry; 1099-K threshold tracked across rails |
+| AC-J153-001 | All 2026 Stripe deposits ($28,419.27 across 47 jobs) reconcile to side-business tenant `devon_williams_hvac_llc`; zero cross-tenant leak |
+| AC-J153-002 | Venmo import ($4,217.50 across 14 Q1-Q2 jobs) deduplicates against any duplicate Stripe entry; 1099-K threshold tracked across rails |
 | AC-J153-003 | Zelle import ($1,800 across 3 jobs from one repeat customer) categorized correctly; no duplicate; commingled-account warning surfaced if customer's Zelle name doesn't match invoice |
 | AC-J153-004 | All 187 receipts categorized to Schedule-C lines 1, 8, 9, 10, 13, 22, 23, 27a per the IRS schedule; auto-categorization confidence ≥0.85 on 162/187, manual on 25/187 |
 | AC-J153-005 | Mileage log from `tasks` (4,217 business miles across 73 trips, all log-correlated with a job ID) produces $2,298.27 deductible (4,217 × 54.5¢) |
@@ -181,7 +181,7 @@ The acceptable cross-tenant signal is **at the personal-1040 level**, where Devo
 - ADR-0311 dual-tenant identity strict separation
 - ADR-0244 tenant scoping
 - ADR-0249 multi-category marketplace (the 3 gigs Devon found via marketplace)
-- ADR-0255 §D-4 provider-credential BYOK (Devon optionally uses his own Stripe Connect API key under platform_default mode)
+- ADR-0255 §D-4 provider-credential BYOK (Devon optionally uses his own Stripe API key under platform_default mode)
 
 ## What this journey deliberately does NOT cover
 

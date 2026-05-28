@@ -16,7 +16,7 @@ appVersion: "1.0.0"
 home: https://github.com/oyatie/oyatie/tree/main/microservices/drive
 maintainers:
   - name: axis-drive
-    email: drive@oyatie.dev
+    email: drive@oyatie.com
 dependencies:
   # Object-store backends (per ADR-DRIVE-0001)
   - name: garage

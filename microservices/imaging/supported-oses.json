@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-supported-oses.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-supported-oses.schema.json",
   "microservice": "imaging",
   "date": "2026-05-21",
   "tier_1_oses": [

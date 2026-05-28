@@ -233,16 +233,16 @@ Evidence: `microservices/tasks/PRD.md:22` defines a broad task-management substr
 Evidence: `microservices/tasks/PRD.md:40` through `microservices/tasks/PRD.md:63` define twenty functional requirement families.
 Evidence: `microservices/tasks/PRD.md:187` says `tasks` must not import product microservice crates directly.
 Evidence: `microservices/tasks/ARCHITECTURE.md:40` through `microservices/tasks/ARCHITECTURE.md:47` names cross-service relationships.
-Evidence: `microservices/tasks/manifest.json:455` through `microservices/tasks/manifest.json:471` lists dependencies including `connect`.
+Evidence: `microservices/tasks/manifest.json:455` through `microservices/tasks/manifest.json:471` lists dependencies including `connector`.
 Finding: the intended ownership boundary is large but coherent: task records, projects, views, search, dependency graph, imports, exports, automation, recurrence, comments, attachments, and webhooks belong here.
 Finding: the product purpose is closer to Linear plus Jira plus Asana union coverage than to a small issue CRUD service.
 Finding: the boundary statement in PRD is stronger than the manifest dependency statement.
-Finding: `connect` dependency language in the manifest conflicts with the PRD's statement that tasks is no longer part of the old Connect suite.
+Finding: `connector` dependency language in the manifest conflicts with the PRD's statement that tasks is no longer part of the old platform.
 Finding: the cross-product rule is appropriate and should stay: tasks should publish contracts and events, not import product microservice crates.
 Finding: the local docs correctly identify many consumer services, including mail, calendar, drive, messenger, workflow, ontology, audit, tenancy, and billing.
 Risk: product breadth is large enough that the service needs a tighter contract/implementation split before development begins.
 Risk: if every competitor feature is treated as in-scope for the first implementation slice, the service will not become buildable.
-Risk: if the manifest is not updated, future agents may keep rebuilding the retired Connect dependency path.
+Risk: if the manifest is not updated, future agents may keep rebuilding the retired dependency path.
 Positive signal: the PRD's requirements map well to a full work-management product.
 Positive signal: the architecture uses ports and adapters language that can support Rust crate boundaries.
 Positive signal: the compliance and DPIA docs recognize task data as potentially sensitive work data.
@@ -668,7 +668,7 @@ Coherence verdict: no forbidden implementation language, but no buildable Rust s
 | F-TSK-005 | P2 | Retired demo_trial tenant_class/paid tenant_class baseline/paid tenant_class scale/compliance_pack-gated paid tenant_class vocabulary appears 167 times. | §3.4.T catalog; `feedback_no_tenant_class_adoption_2026_05_20.md:10`. | Schedule Wave 15J cleanup for benchmarks, tutorials, FAQs, migration playbooks, and capability-tier docs. |
 | F-TSK-006 | P2 | Tenant-class semantics are not adopted. | §3.4.C; `microservices/tasks/cost-budget.md:52`; no `tenant_class`, `demo_trial`, or `revenue_share` exact strings. | Replace old pricing classes and tenant-tier labels with current `tenant_class` and billing-component language. |
 | F-TSK-007 | P2 | The benchmark doc uses old tiered hardware assumptions. | `microservices/tasks/benchmarks/tasks-vs-asana-jira-linear-monday.md:12`; `feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md:139`. | Rewrite benchmark numbers as a single industry-leader target set with deployment-context and tenant_class overlays. |
-| F-TSK-008 | P2 | Manifest dependency on `connect` conflicts with PRD boundary language. | `microservices/tasks/PRD.md:187`; `microservices/tasks/manifest.json:455` through `microservices/tasks/manifest.json:471`. | Decide whether `connect` is compatibility-only, then update manifest dependency semantics. |
+| F-TSK-008 | P2 | Manifest dependency on `connector` conflicts with PRD boundary language. | `microservices/tasks/PRD.md:187`; `microservices/tasks/manifest.json:455` through `microservices/tasks/manifest.json:471`. | Decide whether `connector` is compatibility-only, then update manifest dependency semantics. |
 | F-TSK-009 | P2 | PRD and IP-002 reference a missing naming justification spec. | `microservices/tasks/PRD.md:151`; `microservices/tasks/IP-002-cargo-workspace-bootstrap.md:85`; no referenced file in inventory. | Add the spec or remove the acceptance criterion if superseded. |
 | F-TSK-010 | P2 | Manifest audit-chain coverage is narrower than PRD event coverage. | `microservices/tasks/PRD.md:93`; `microservices/tasks/manifest.json:343` through `microservices/tasks/manifest.json:350`. | Align audit-chain, AsyncAPI, and PRD event lists. |
 | F-TSK-011 | P2 | Architecture still contains scaffold markers. | `microservices/tasks/ARCHITECTURE.md:3`; `feedback_docs_substance_not_scaffold_2026_05_20.md:10`. | Replace scaffold markers and scaffold-like summaries with buildable architecture detail. |
@@ -680,7 +680,7 @@ Coherence verdict: no forbidden implementation language, but no buildable Rust s
 
 ## §5 Open questions
 
-1. Should `connect` remain in `manifest.json` as a compatibility migration dependency, or should it be removed to match the PRD's standalone tasks boundary?
+1. Should `connector` remain in `manifest.json` as a compatibility migration dependency, or should it be removed to match the PRD's standalone tasks boundary?
 2. Should the first Rust workspace slice implement the 18 current catalog entities or the 57-crate shape described by PRD and IP-002?
 3. Should the missing `specs/naming-justification.md` be created as a service-local spec or promoted to a shared naming registry?
 4. Should T0/T1/T2 autonomy labels be renamed in manifest keys to avoid confusion with retired capability-tier language?

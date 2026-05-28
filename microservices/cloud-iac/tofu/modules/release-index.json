@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-module-release-index.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-module-release-index.schema.json",
   "schema_version": "1.0",
   "release_index_id": "cloud-iac-opentofu-modules-local-release-index",
   "generated_by_changeset": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001",

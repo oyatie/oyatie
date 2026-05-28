@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "imaging",
   "title": "Imaging (Medical Imaging / PACS / VNA / Radiology Workflow)",
   "status": "wave-15m-g-authored-2026-05-21",

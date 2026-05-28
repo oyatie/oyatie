@@ -118,7 +118,7 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 
 ### Operational
 
-- Cargo workspace: `oya-social-feed-timeline-domain` carries the heuristic `rank_score` function; P01 has no `oya-social-feed-timeline-adapter-foundry-runtime` (added in P03).
+- Cargo workspace: `oya-community-social-feed-timeline-domain` carries the heuristic `rank_score` function; P01 has no `oya-community-social-feed-timeline-adapter-foundry-runtime` (added in P03).
 - Cedar policy: ranking_explanation API surface for Art. 27 visible from P01 (heuristic-aware).
 - Runbook `runbooks/content-moderation-rollback.md` (paired with this ADR's classifier counterpart) covers ML model rollback in P03; P01 has a simpler "revert to chronological for affected tenants" path.
 - CI lane `oya-governance-eu-ai-act-conformance` registered in IP-015; covers heuristic + ML modes.
@@ -135,7 +135,7 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 ## References
 
 - ADR-0022 — Bominal autonomy-tier classification (T0/T1/T2 inherited).
-- ADR-0135 — Connect dissolution (parallel; dual-context source).
+- ADR-0135 — dissolution (parallel; dual-context source).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-SOC-0003 — Content-moderation classifier bounds (paired EU AI Act ADR).
 - ADR-SOC-0005 — Dual-context feed isolation (paired DCI ADR).

@@ -22,7 +22,7 @@ decision_owner: axis-tenancy
 - Existing policies include `tenant-scope.cedar`, `lifecycle.md`, `rls-isolation.md`, `action-authorization.cedar`, and `data-residency.cedar`.
 - ADR-0313 introduces conglomerate tenant hierarchy and sovereign children; this ADR binds the tenancy-local state machine and permit enforcement.
 - Named precedent: AWS Organizations accounts and organizational units separate parent management authority from child account data-plane access.
-- Named precedent: Stripe Connect separates platform facilitation from connected-account ownership and capabilities.
+- Named precedent: Stripe separates platform facilitation from connected-account ownership and capabilities.
 - Named precedent: Google Cloud Resource Manager folders and projects encode hierarchy while IAM controls delegation.
 - Constraint TEN-C1: Tenant is a universal substrate primitive per ADR-0002 and must not be redefined per product.
 - Constraint TEN-C2: every lifecycle transition and parent-child grant mutation must emit audit evidence per ADR-0003.

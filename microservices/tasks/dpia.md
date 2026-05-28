@@ -79,7 +79,7 @@ DPIA + EU AI Act conformity-assessment mandatory pre-deployment. Reviewed by EU 
 - **Data subjects:** end-users (the tenant's employees + assignees + watchers); tenant operators; oyatie operators (internal).
 - **Relationship:** joint controllership with tenant (GDPR Art. 26) for end-user task data; oyatie sole processor for operational metadata. **For T2 auto-assign in employment-context, tenant is the controller; oyatie is the processor + AI-system-provider per EU AI Act.**
 - **Reasonable expectations:** tenant operators expect operational task management; end-users (employees) expect work-allocation per tenant's privacy notice + employment contract; auto-assign in employment context requires explicit upstream disclosure.
-- **Previous experience:** Bominal Connect Tasks inheritance per ADR-0231-0233; no DPA-triggered complaints in inheritance period.
+- **Previous experience:** Bominal Tasks inheritance per ADR-0231-0233; no DPA-triggered complaints in inheritance period.
 
 ### 2.4 Purposes
 

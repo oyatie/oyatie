@@ -316,7 +316,7 @@
     {
       "adr": "ADR-0026",
       "number": 26,
-      "title": "In-house AI model substrate — long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval suite favors in-house",
+      "title": "In-house AI model substrate — long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval set favors in-house",
       "status": "proposed",
       "owner": "foundry",
       "date": "2026-05-09",
@@ -352,7 +352,7 @@
     {
       "adr": "ADR-0029",
       "number": 29,
-      "title": "Connect microservice — dual-context communications (Professional + Personal) as cohesion-bound replacement for Google Workspace / M365 / Naver Works / Kakao Work",
+      "title": "microservice — dual-context communications (Professional + Personal) as cohesion-bound replacement for Google Workspace / M365 / Naver Works / Kakao Work",
       "status": "accepted",
       "owner": "oya-connect",
       "date": "2026-05-09 (rewritten 2026-05-13 — \"Workspace\" product renamed to \"Connect\"; flat µservice framing)",
@@ -748,11 +748,11 @@
     {
       "adr": "ADR-0063",
       "number": 63,
-      "title": "Documentation suite coverage — every planned feature ships with a complete doc suite, CI-enforced",
+      "title": "Documentation set coverage — every planned feature ships with a complete doc set, CI-enforced",
       "status": "accepted",
       "owner": "council-architecture",
       "date": "2026-05-13",
-      "path": "decisions/ADR-0063-documentation-suite-coverage.md",
+      "path": "decisions/ADR-0063-documentation-set-coverage.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0001", "ADR-0011", "ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0064"]
@@ -1300,11 +1300,11 @@
     {
       "adr": "ADR-0132",
       "number": 132,
-      "title": "No-suite forward-policy (universal flat catalog)",
+      "title": "No-grouping forward-policy (universal flat catalog)",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0132-product-suite-and-bundle-dissolution.md",
+      "path": "decisions/ADR-0132-product-platform-and-bundle-dissolution.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0056", "ADR-0105", "ADR-0110", "ADR-0115", "ADR-0119", "ADR-0122", "ADR-0127", "ADR-0139", "ADR-0131", "ADR-0135"]
@@ -2404,11 +2404,11 @@
     {
       "adr": "ADR-0234",
       "number": 234,
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Social Expansion Planning Contract",
       "status": "Accepted",
-      "owner": "connect-product-council",
+      "owner": "communications-service-council",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0234-connect-social-expansion-planning-contract.md",
+      "path": "decisions/ADR-0234-community-social-expansion-planning-contract.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0001", "ADR-0029", "ADR-0056", "ADR-0105", "ADR-0123"]
@@ -2416,9 +2416,9 @@
     {
       "adr": "ADR-0235",
       "number": 235,
-      "title": "Connect Core Public Contracts",
+      "title": "Core Public Contracts",
       "status": "Accepted",
-      "owner": "connect-product-council",
+      "owner": "communications-service-council",
       "date": "2026-05-17",
       "path": "decisions/ADR-0235-connect-core-public-contracts.md",
       "supersedes": [],
@@ -2440,7 +2440,7 @@
     {
       "adr": "ADR-0237",
       "number": 237,
-      "title": "Connect dissolution — Strangler-pattern migration",
+      "title": "dissolution — Strangler-pattern migration",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-17",
@@ -2452,7 +2452,7 @@
     {
       "adr": "ADR-0238",
       "number": 238,
-      "title": "Connect super-app expansion into 8 flat µservices",
+      "title": "super-app expansion into 8 flat µservices",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-17",

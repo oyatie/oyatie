@@ -2,7 +2,7 @@
 doc_class: DeprecationNotice
 template_id: TPL-DEPRECATION-NOTICE
 microservice: sites
-deprecated_artifact: oya-connect-sites-* crate family
+deprecated_artifact: oya-sites-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-SITES accepts at p99 SLOs sustained 30d
@@ -13,7 +13,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Deprecation Notice: `oya-connect-sites-*` crate family
+# Deprecation Notice: `oya-sites-*` crate family
 
 > Formal deprecation notice in the format prescribed by the agent-skills
 > `deprecation-and-migration` skill SKILL.md §"Step 2: Announce and Document".
@@ -43,11 +43,11 @@ soak + Phase 3 canary), the indicative advisory removal date is
 
 ## Reason
 
-The legacy `oya-connect-sites-*` family was authored before the
+The legacy `oya-sites-*` family was authored before the
 following ADRs crystallised; each ADR makes the legacy shape non-
 conforming:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — agentic SLO-gated promotion.** Sites needs
@@ -66,7 +66,7 @@ conforming:
 5. **ADR-SITES-0001 → ADR-SITES-0007** — sites-specific decisions
    (Loro CRDT pick, rendering strategy, CDN substrate, ACME flow, CMS
    data model, AI-page-build bounds, image pipeline) need to live at
-   per-µservice ADR granularity, not at the Connect suite level.
+   per-µservice ADR granularity, not at the platform level.
 
 ## Migration Guide pointer
 
@@ -83,14 +83,14 @@ verification checklist.
 
 ## Affected packages enumerated
 
-Per `find crates -maxdepth 1 -type d -name 'oya-connect-sites-*'`
+Per `find crates -maxdepth 1 -type d -name 'oya-sites-*'`
 (2026-05-17 workspace state):
 
 | Currently extant in `crates/` | Mapped replacement |
 |---|---|
-| `oya-connect-sites-domain` | split per BC → `oya-sites-{site,page,block,theme,navigation,url-routing,domain-binding,seo,cms-collection,search,cdn-delivery}-domain` |
+| `oya-sites-domain` | split per BC → `oya-sites-{site,page,block,theme,navigation,url-routing,domain-binding,seo,cms-collection,search,cdn-delivery}-domain` |
 
-Plus all `oya-connect-sites-{kernel,usecase,api,adapter*,rest,worker,
+Plus all `oya-sites-{kernel,usecase,api,adapter*,rest,worker,
 sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 
 ## Breaking changes flagged per `feedback_no_silent_regression`
@@ -105,11 +105,11 @@ sdk,app}-*` crates scaffolded during Phase 2 adapter authoring.
 | URL percent-encoding preserved per RFC 3986 | 1 | **Behaviourally divergent** for paths with %-encoded chars | adapter does NOT mask; documented Hyrum #1 |
 | CDN cache-key version-aware | 1 | **Behaviourally divergent** — cache miss on first deploy | warm-up procedure in runbook; documented Hyrum #5 |
 | Block serialisation: portable-text | 1 | **Format-divergent** | adapter preserves `legacy_json_export` flag; flag sunsets Phase 5 |
-| `oya-connect-sites-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface) | — |
+| `oya-sites-migration-adapter` shim authored | 2 | No (preserves legacy symbol surface) | — |
 | Feature-flagged canary 10→50→100% | 3 | No (additive, gated) | — |
 | Zero-usage verification | 4 | No (observability only) | — |
-| **`oya-connect-sites-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
-| `microservices/connect/` umbrella folder removed | 6 | No | — |
+| **`oya-sites-*` crates removed from workspace** | **5** | **YES — breaking** | **6-mo advisory sunset from 2026-05-17** |
+| `microservices/connector/` umbrella folder removed | 6 | No | — |
 
 Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 

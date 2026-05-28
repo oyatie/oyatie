@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/design-system/sales-copilot-panel.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/design-system/sales-copilot-panel.schema.json",
   "title": "DesignSystem:Sales Copilot Panel",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "sales-copilot-panel",

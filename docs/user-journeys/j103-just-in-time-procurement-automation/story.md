@@ -101,7 +101,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 003 - payments moves the relationship forward
@@ -178,7 +178,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 007 - workflow-engine moves the relationship forward
@@ -257,7 +257,7 @@ auto-fulfills, and payment releases on delivery evidence.
   per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 011 - observability moves the relationship forward
@@ -336,7 +336,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 015 - payments moves the relationship forward
@@ -415,7 +415,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 019 - workflow-engine moves the relationship forward
@@ -492,7 +492,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 023 - observability moves the relationship forward
@@ -573,7 +573,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 027 - payments moves the relationship forward
@@ -650,7 +650,7 @@ auto-fulfills, and payment releases on delivery evidence.
   per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 031 - workflow-engine moves the relationship forward
@@ -729,7 +729,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 035 - observability moves the relationship forward
@@ -808,7 +808,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 039 - payments moves the relationship forward
@@ -887,7 +887,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 043 - workflow-engine moves the relationship forward
@@ -964,7 +964,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 047 - observability moves the relationship forward
@@ -1045,7 +1045,7 @@ auto-fulfills, and payment releases on delivery evidence.
   per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 051 - payments moves the relationship forward
@@ -1122,7 +1122,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 055 - workflow-engine moves the relationship forward
@@ -1201,7 +1201,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 059 - observability moves the relationship forward
@@ -1280,7 +1280,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 063 - payments moves the relationship forward
@@ -1359,7 +1359,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 067 - workflow-engine moves the relationship forward
@@ -1436,7 +1436,7 @@ auto-fulfills, and payment releases on delivery evidence.
   per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 071 - observability moves the relationship forward
@@ -1517,7 +1517,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 075 - payments moves the relationship forward
@@ -1595,7 +1595,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 079 - workflow-engine moves the relationship forward
@@ -1675,7 +1675,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 083 - observability moves the relationship forward
@@ -1754,7 +1754,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 087 - payments moves the relationship forward
@@ -1834,7 +1834,7 @@ auto-fulfills, and payment releases on delivery evidence.
   per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 091 - workflow-engine moves the relationship forward
@@ -1912,7 +1912,7 @@ auto-fulfills, and payment releases on delivery evidence.
   audit_id per ADR-0263.
 - Conglomerate doctrine: if AcmeRawMaterials Hamburg is a child or facilitator tenant, the relationship is a revocable
   Cedar grant and the child remains sovereign per ADR-0313.
-- Hyperscaler precedent: Stripe Connect platform facilitator is the named pattern used to keep entitlements explicit and
+- Hyperscaler precedent: Stripe platform facilitator is the named pattern used to keep entitlements explicit and
   reversible.
 
 ### Beat 095 - observability moves the relationship forward

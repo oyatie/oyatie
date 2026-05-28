@@ -57,7 +57,7 @@ Cold-start question: *Where does an inbound email from a B2B client land, get cl
 
 ## §principals (ADR-0242)
 
-Operates as `oyatie.mail.{inbound-smtp, outbound-smtp, mailbox-store, search-index, retention-policy, legal-hold, jmap-frontend, imap-frontend, spam-classifier}` principals. Called by tenant principals `<tenant>.<workspace>.<actor>` and by substrate principals from `connect`, `ontology`, `intelligence`, `governance`.
+Operates as `oyatie.mail.{inbound-smtp, outbound-smtp, mailbox-store, search-index, retention-policy, legal-hold, jmap-frontend, imap-frontend, spam-classifier}` principals. Called by tenant principals `<tenant>.<workspace>.<actor>` and by substrate principals from `connector`, `ontology`, `intelligence`, `governance`.
 ### Content-pass expansion — principals
 - This expansion preserves the existing prose above and closes `principals` for `mail` to the ≥50-line documentation-rigor floor.
 - Service owner `axis-mail` owns this answer; service_class `product`; audience `B2C_CONSUMER + B2B_TENANT`.
@@ -180,7 +180,7 @@ Every mailbox row carries `tenant_id` + `home_cell` + `dr_cell` + `audience_type
 - Runbook/IaC evidence: `microservices/mail/runbooks/account-compromise-recovery.md`, `microservices/mail/runbooks/dkim-key-rotation.md`, `microservices/mail/runbooks/dlp-quarantine-release.md`, `microservices/mail/runbooks/dmarc-rollout-monitoring.md`, `microservices/mail/runbooks/e2e-encryption-key-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `mail` `T0-suggest` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -620,7 +620,7 @@ Exposes `email-template`, `signature-gallery`, `sieve-filter-recipe`, `compose-a
 - Runbook/IaC evidence: `microservices/mail/runbooks/account-compromise-recovery.md`, `microservices/mail/runbooks/dkim-key-rotation.md`, `microservices/mail/runbooks/dlp-quarantine-release.md`, `microservices/mail/runbooks/dmarc-rollout-monitoring.md`, `microservices/mail/runbooks/e2e-encryption-key-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `mail` `T0-suggest` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

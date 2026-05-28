@@ -59,7 +59,7 @@ Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel
 |---|---|---|
 | Citus | Tenant-distributed Postgres | Persists sub-scope hierarchy with the same tenant shard key as lifecycle data. |
 | Slack Enterprise Grid | Workspace membership hierarchy | Makes workspace/project lookups efficient and tenant isolated. |
-| Stripe Connect | Connected account hierarchy | Gives payments and marketplace flows durable child-scope lookup under a tenant. |
+| Stripe | Connected account hierarchy | Gives payments and marketplace flows durable child-scope lookup under a tenant. |
 
 ## DR posture (per ADR-0343)
 - Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.

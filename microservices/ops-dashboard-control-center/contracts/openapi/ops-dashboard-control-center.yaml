@@ -13,7 +13,7 @@ info:
   license:
     name: MIT
 servers:
-  - url: https://ops.{pack}.oyatie.dev
+  - url: https://ops.{pack}.oyatie.com
     description: per-pack operator endpoint
     variables:
       pack:

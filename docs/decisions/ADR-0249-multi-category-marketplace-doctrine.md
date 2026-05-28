@@ -18,7 +18,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0213-ecosystem-as-a-service-architecture.md (marketplace name reservation activated; plugin-app-store refactor onto shared marketplace substrates)
-  - ADR-0132-no-suite-forward-policy.md (declares that "Marketplace" is a brand-layer concept per ADR-0132 §Rejected alternative 2, NOT an architectural µservice; the 8 substrate µservices are flat single-concern µservices; new categories land as new flat µservices or tag values, never as a marketplace-<category>/ bundle folder)
+  - ADR-0132-no-grouping-forward-policy.md (declares that "Marketplace" is a brand-layer concept per ADR-0132 §Rejected alternative 2, NOT an architectural µservice; the 8 substrate µservices are flat single-concern µservices; new categories land as new flat µservices or tag values, never as a marketplace-<category>/ bundle folder)
 superseded_by: []
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
@@ -30,7 +30,7 @@ related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0147-wasmtime-sandbox-baseline.md
@@ -210,8 +210,8 @@ subscriptions), Apple Music (subscription), Apple TV+ (subscription).
 The shared substrate (developer identity, payment, review, search,
 notarization) operates under multiple consumer surfaces.
 
-Stripe Connect launched 2012 as a tool for facilitating payments
-between platforms and their sub-merchants. Stripe Connect powers
+Stripe launched 2012 as a tool for facilitating payments
+between platforms and their sub-merchants. Stripe powers
 Shopify (e-commerce), DoorDash (services), Lyft (services), Substack
 (subscriptions), Glossier (D2C), Atoms (D2C), Kickstarter
 (crowdfunding) — five different commerce shapes on one substrate.
@@ -1594,7 +1594,7 @@ not separate µservices but are bounded contexts within a single
 **Decision: marketplace BCs live inside one µservice
 `microservices/marketplace/` (NEW)**, with each BC implementing the
 category-specific orchestration over the eight substrates. This
-preserves ADR-0132 (no-suite) because marketplace is *one* µservice
+preserves ADR-0132 (no-grouping) because marketplace is *one* µservice
 serving the consumer-surface concern; the substrates underneath are
 already separate µservices.
 
@@ -2052,7 +2052,7 @@ in oyatie-escrow until delivery confirmation + dispute window
 expires. For services category, milestone-payments escrow each
 milestone independently.
 
-## Relation to ADR-0132 (no-suite forward policy)
+## Relation to ADR-0132 (no-grouping forward policy)
 
 **"Marketplace" is a brand-layer concept, not an architectural µservice.**
 
@@ -2154,7 +2154,7 @@ BCs. One database; one bounded context tree; one team.
 - Easiest to reason about in early phases.
 
 **Cons:**
-- **Violates ADR-0132 no-suite policy** outright (bundling
+- **Violates ADR-0132 no-grouping policy** outright (bundling
   multiple distinct concerns into one µservice).
 - **Single database becomes a bottleneck.** Catalog reads compete
   with order writes; ranking compute competes with fulfillment.
@@ -2250,7 +2250,7 @@ consumer-surface BCs rolled out per certification readiness, with
   surface.
 - **Cedar coverage tractable.** Per-category permits + default-
   deny per ADR-0243 §D-3.
-- **No-suite policy preserved.** Each substrate is a single-
+- **No-grouping policy preserved.** Each substrate is a single-
   concern µservice; marketplace surface is a single-concern
   µservice (consumer surface).
 
@@ -2583,9 +2583,9 @@ ADR-0131 flat layout.
 - **Apple 2024 App Store Transparency Report.** Review SLA + rejection rates.
 - **Google Play Console Help.** Multi-shape app + subscription + content distribution.
 - **Microsoft Store partner docs** (`learn.microsoft.com/en-us/windows/uwp/publish/`).
-- **Stripe Connect Platform documentation** (`stripe.com/docs/connect`). Multi-shape commerce facilitator.
-- **Stripe Connect 2024 PSP rev share + KYC + payout substrate.**
-- **Stripe Atlas + Express + Custom Connect product tiers.**
+- **Stripe Tenant/RBAC Packaging documentation** (`stripe.com/docs/connect`). Multi-shape commerce facilitator.
+- **Stripe 2024 PSP rev share + KYC + payout substrate.**
+- **Stripe Atlas + Express + Custom product tiers.**
 - **Substack Publisher Help Center.** Subscription content commerce shape.
 - **Patreon Creator Platform docs.**
 - **Salesforce AppExchange Security Review** (`partners.salesforce.com/partnerresource/security`).
@@ -2652,7 +2652,7 @@ ADR-0131 flat layout.
 - **ADR-0110 — ChangeSet state machine.** Listing state machine parallel pattern.
 - **ADR-0128 — Hyperscaler architecture invariants.** Marketplace substrates satisfy invariants.
 - **ADR-0131 — Per-microservice flat layout.** Each new substrate ships under this.
-- **ADR-0132 — No-suite forward policy.** Eight substrate µservices is the minimum decomposition; marketplace surface is one µservice.
+- **ADR-0132 — No-grouping forward policy.** Eight substrate µservices is the minimum decomposition; marketplace surface is one µservice.
 - **ADR-0144 — EU AI Act graduated-risk tier model.** Per-category AI features.
 - **ADR-0145 — Inter-microservice communication reform.** Direct gRPC + 3 invariants across all marketplace calls.
 - **ADR-0147 — Wasmtime sandbox baseline.** Plugin runtime (digital plugins category).
@@ -2686,7 +2686,7 @@ ADR-0131 flat layout.
 - `feedback_quality_performance_scalability_bar` — reinforced; hyperscaler-grade marketplace.
 - `feedback_flat_product_catalog` — preserved; marketplace is one product, eight substrates, four surface BCs.
 - `feedback_automate_everything` — reinforced; vetting + moderation + trust-score recompute automated.
-- `feedback_autonomous_implementation_artifacts` — reinforced; per-substrate full doc suite + IPs.
+- `feedback_autonomous_implementation_artifacts` — reinforced; per-substrate full doc set + IPs.
 - `feedback_workflow_studio_scope` — design-language consistency with marketplace.
 - `feedback_no_silent_regression` — reinforced; shared substrate prevents per-category drift.
 
@@ -2700,7 +2700,7 @@ decision in this ADR is attributed to a named hyperscaler pattern
 
 | Decision section | Hyperscaler pattern (named) | Source citation | Anti-pattern avoided |
 |---|---|---|---|
-| D-1 (8 marketplace substrates) | "Substrate-Shared, Surface-Specialised" | Amazon ASIN evolution (Bezos 1997 + Bryar/Carr 2021); Stripe Connect Platform docs; Apple One subscription bundle | "Per-Category Stack Duplication" — N stacks for N commerce shapes |
+| D-1 (8 marketplace substrates) | "Substrate-Shared, Surface-Specialised" | Amazon ASIN evolution (Bezos 1997 + Bryar/Carr 2021); Stripe Tenant/RBAC Packaging docs; Apple One subscription bundle | "Per-Category Stack Duplication" — N stacks for N commerce shapes |
 | D-1.1 (catalog universal Listing) | "Universal Product Identifier" | Amazon ASIN; eBay Item ID; Walmart Marketplace Item ID; Etsy Listing ID | "Per-Category Catalog Fragmentation" — categories share no identity primitive |
 | D-1.2 (inventory per-warehouse) | "Per-Warehouse Stock State" | Amazon Fulfilled-By-Amazon docs; Shopify Inventory API; ShipBob docs | "Single Global Inventory" — no warehouse dimension makes 3PL impossible |
 | D-1.3 (orders durable saga) | "Saga Pattern for Distributed Order Workflow" | Temporal.io docs (Workflow Engine inheritance); AWS Step Functions Saga blueprint; Stripe Order API | "Synchronous Order Pipeline" — long pipeline blocks under failure |
@@ -2716,7 +2716,7 @@ decision in this ADR is attributed to a named hyperscaler pattern
 | D-6 (fulfillment_capabilities[]) | "Declared Fulfillment Capabilities" | Shopify Locations API; Amazon Seller Fulfilled vs FBA distinction | "Implicit Fulfillment" — no declared shape leads to fulfillment failures |
 | D-7 (trust + reputation + cold-start) | "Cold-Start with Graduated Limits" | Stripe Radar; Airbnb New Host program; eBay 100-feedback restriction history | "No Cold-Start Friction" — fraud floods new accounts |
 | D-8 (marketplace cell pinning + cross-cell projection) | "Cell-Local Surface + Cross-Cell Projection" | Amazon's per-region retail with cross-region catalog; AWS Marketplace cross-region catalog | "Single Global Cell" — single point of failure |
-| D-9 (per-category cert readiness wave) | "Phased Activation by Certification" | Stripe Atlas + Connect + Treasury phased launches; Apple Pay country-by-country activation | "Big-Bang Multi-Category Launch" — fails when one cert blocks others |
+| D-9 (per-category cert readiness wave) | "Phased Activation by Certification" | Stripe Atlas + + Treasury phased launches; Apple Pay country-by-country activation | "Big-Bang Multi-Category Launch" — fails when one cert blocks others |
 | D-10 (cross-tenant + cross-cell saga) | "Compensating Saga across Cells" | AWS Step Functions Saga; Temporal cross-cluster workflow | "Two-Phase Commit Across Cells" — synchronous 2PC blocking |
 | D-11 (marketplace facilitator tax) | "Marketplace Facilitator with Per-Jurisdiction Activation" | Amazon's MTL implementation; Etsy's state-by-state activation; Shopify Tax | "Seller Self-Reports Tax" — collection failure + compliance risk |
 | D-12 (per-category Cedar gating) | "Per-Category Policy Overlay" | Apple App Store category-specific review (Health/Medical); Shopify per-category requirements | "Single Policy for All Categories" — under-restricts healthcare etc. |
@@ -2974,7 +2974,7 @@ layer enum.
 | `oya-shared-marketplace-pricing-domain` | `domain` | `oya` · `shared` · `marketplace` · `pricing` · `domain` | Pricing BC domain logic |
 | `oya-shared-marketplace-discovery-domain` | `domain` | `oya` · `shared` · `marketplace` · `discovery` · `domain` | Discovery/search BC domain logic |
 | `oya-shared-marketplace-trust-safety-domain` | `domain` | `oya` · `shared` · `marketplace` · `trust-safety` · `domain` | Trust-and-safety BC domain logic; hyphenated sub-token is BNF-valid |
-| `oya-check-no-marketplace-bundle-folder` | self-layering (ADR-0105 Amendment 2) | `oya` · `check` · `no-marketplace-bundle-folder` | Fitness-check; enforces ADR-0132 no-suite constraint on marketplace namespace; `oya-check-*` flat namespace exempt from layer suffix |
+| `oya-check-no-marketplace-bundle-folder` | self-layering (ADR-0105 Amendment 2) | `oya` · `check` · `no-marketplace-bundle-folder` | Fitness-check; enforces ADR-0132 no-grouping constraint on marketplace namespace; `oya-check-*` flat namespace exempt from layer suffix |
 | `oya-check-marketplace-substrate-naming` | self-layering (ADR-0105 Amendment 2) | `oya` · `check` · `marketplace-substrate-naming` | Fitness-check; validates substrate µservice BNF conformance |
 | `oya-check-marketplace-category-bc-ownership` | self-layering (ADR-0105 Amendment 2) | `oya` · `check` · `marketplace-category-bc-ownership` | Fitness-check; every marketplace category token maps to a declared BC owner |
 | `oya-check-marketplace-multi-category-gate` | self-layering (ADR-0105 Amendment 2) | `oya` · `check` · `marketplace-multi-category-gate` | Fitness-check; validates multi-category doctrine compliance (ADR-0249) |

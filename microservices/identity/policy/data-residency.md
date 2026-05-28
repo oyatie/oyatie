@@ -51,7 +51,7 @@ Each tenant has its own users, credentials, audit log, billing relationship. The
 - **Cedar**: `forbid when { principal.pack != resource.pack }` (in `dual-context-residency.cedar`).
 - **Kyverno**: admission denies any K8s resource in pack-X that references pack-Y.
 - **OpenBao**: per-pack OpenBao instances; no cross-pack mTLS trust.
-- **DNS**: per-pack `identity-<pack>.oyatie.dev` endpoints; global `identity.oyatie.dev` is a 404 + selector.
+- **DNS**: per-pack `identity-<pack>.oyatie.com` endpoints; global `identity.oyatie.com` is a 404 + selector.
 - **Audit**: any attempted cross-pack call emits `IdentityResidencyViolationAttempt` event with full context.
 
 ## Pack-overlay specifics

@@ -18,7 +18,7 @@ supersedes: []
 amends:
   - ADR-0063-documentation-coverage-enforcement.md (promotes substance-bar from policy to canonical doctrine + adds CI-enforceable substance density check)
   - ADR-0091-multispectrum-review-doctrine.md (elevates the substance facet from advisory to BLOCKER class)
-  - ADR-0132-product-suite-and-bundle-dissolution.md (declares that suite-style table-of-contents documents fail the substance bar)
+  - ADR-0132-product-platform-and-bundle-dissolution.md (declares that suite-style table-of-contents documents fail the substance bar)
   - ADR-0245-substrate-vs-product-layering.md (substrate documentation must satisfy substance bar before any product layer references it)
 superseded_by: []
 related:
@@ -725,7 +725,7 @@ oya-governance-nightly workflow.
 - ADR-0105 (layer-enum 13-canonical) — governance lane layer assignment.
 - ADR-0130 (observability SLO-gated promotion) — SLO authoring location.
 - ADR-0131 (per-microservice flat layout) — crate layout convention.
-- ADR-0132 (product-suite-and-bundle-dissolution) — table-of-contents ban
+- ADR-0132 (product-platform-and-bundle-dissolution) — table-of-contents ban
   alignment.
 - ADR-0145 (inter-microservice communication reform) — governance crate
   ownership rule.

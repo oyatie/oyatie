@@ -14,7 +14,7 @@ metadata:
     oyatie/pci-req: "4"
 data:
   # ECH outer ClientHello SNI (public-facing; does not reveal inner SNI)
-  public_name: "payments-ech.oyatie.dev"
+  public_name: "payments-ech.oyatie.com"
 
   # Config rotation policy: ≥90 days per ADR-0253 amendment
   rotation_cadence_days: "90"
@@ -23,9 +23,9 @@ data:
   kem_algorithm: "X25519MLKEM768"
 
   # DNS HTTPS RR publishing
-  # Zone: oyatie.dev; record: _https._tcp.api.payments.oyatie.dev IN HTTPS 1 . ech=<base64>
+  # Zone: oyatie.dev; record: _https._tcp.api.payments.oyatie.com IN HTTPS 1 . ech=<base64>
   dns_zone: "oyatie.dev"
-  dns_rr_name: "_https._tcp.api.payments.oyatie.dev"
+  dns_rr_name: "_https._tcp.api.payments.oyatie.com"
 
 ---
 # PQC cert config for payments µservice
@@ -45,11 +45,11 @@ spec:
   subject:
     organizations:
       - oyatie
-  commonName: api.payments.oyatie.dev
+  commonName: api.payments.oyatie.com
   dnsNames:
-    - api.payments.oyatie.dev
-    - payments.oyatie.dev
-    - "*.payments.oyatie.dev"
+    - api.payments.oyatie.com
+    - payments.oyatie.com
+    - "*.payments.oyatie.com"
   issuerRef:
     name: oyatie-pqc-ca-issuer
     kind: ClusterIssuer

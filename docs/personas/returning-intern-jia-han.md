@@ -217,7 +217,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Returning Intern Jia Han must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

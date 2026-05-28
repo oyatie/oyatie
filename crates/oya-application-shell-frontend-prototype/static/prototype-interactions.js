@@ -112,7 +112,7 @@ export function mountShellChrome() {
       route: 'FD-001 graph',
       title: 'FD-001 graph · product substrate',
       body: 'Service catalog, workflow, Messenger, Mail, Community, cloud posture, and evidence receipts are visible as one operating graph.',
-      status: 'FD-001 product graph active · Oyatie Cloud dogfood cell-us-east-2 · local visual route',
+      status: 'FD-001 service graph active · Oyatie Cloud dogfood cell-us-east-2 · local visual route',
       target: '#service-catalog',
       severity: 'info',
     },
@@ -169,7 +169,7 @@ export function mountShellChrome() {
       title: 'Finance · close and ledger command',
       body: 'Payroll, ledger, vendors, billing, tax, and leave controls share the April close proof workload.',
       status: 'Finance command active · close and ledger panels inherit FD-001 context',
-      target: '#finance-commercial-suite',
+      target: '#finance-commercial-service',
       severity: 'review',
     },
     identity: {
@@ -177,7 +177,7 @@ export function mountShellChrome() {
       title: 'Identity · org and access envelope',
       body: 'Auth, org profile, sessions, workforce, and onboarding panels stay inside the same tenant role boundary.',
       status: 'Identity command active · org/access panels inherit tenant context',
-      target: '#identity-workforce-suite',
+      target: '#identity-workforce-service',
       severity: 'info',
     },
     evidence: {
@@ -204,7 +204,7 @@ export function mountShellChrome() {
     if (value === 'comms' || value === 'communications') return 'messenger';
     if (value === 'receipt' || value === 'audit') return 'evidence';
     if (value === 'action-inbox' || value === 'workbench') return 'daily';
-    if (value === 'product-graph' || value === 'catalog' || value === 'modules') return 'fd001';
+    if (value === 'service-graph' || value === 'catalog' || value === 'modules') return 'fd001';
     return productRouteCopy[value] ? value : 'fd001';
   }
 
@@ -295,8 +295,8 @@ export function mountShellChrome() {
     ['#service-catalog', 'fd001'],
     ['#workflow-studio', 'workflow'],
     ['#work-hub', 'messenger'],
-    ['#finance-commercial-suite', 'finance'],
-    ['#identity-workforce-suite', 'identity'],
+    ['#finance-commercial-service', 'finance'],
+    ['#identity-workforce-service', 'identity'],
     ['#cloud-ops-cockpit', 'cloud'],
     ['#resource-audit-console', 'evidence'],
     ['#ontology-command-console', 'fd001'],
@@ -486,13 +486,13 @@ export function mountShellChrome() {
       const route = button.dataset.headerRoute;
       const status = document.querySelector('[data-header-route-status]');
       const labels = {
-        fd001: 'FD-001 product graph opened from header quick route · local visual route',
+        fd001: 'FD-001 service graph opened from header quick route · local visual route',
         cloud: 'Oyatie Cloud substrate opened from header quick route · no cloud mutation',
         'work-hub': 'Work Hub opened at Messenger · Mail and Community quick routes remain visible · local only',
         evidence: 'REC-WF-7741 evidence ledger opened from header quick route · review only',
       };
       const targets = {
-        fd001: '#product-graph',
+        fd001: '#service-graph',
         cloud: '#cloud-ops-cockpit',
         'work-hub': '#work-hub',
         evidence: '#audit-ledger',
@@ -506,7 +506,7 @@ export function mountShellChrome() {
 
       if (route === 'fd001') {
         activateServiceCatalog();
-        document.querySelector('#product-graph')?.scrollIntoView({ block: 'center' });
+        document.querySelector('#service-graph')?.scrollIntoView({ block: 'center' });
       }
       if (route === 'cloud') activateCockpitPanel('topology');
       if (route === 'work-hub') {
@@ -522,7 +522,7 @@ export function mountShellChrome() {
       if (status) status.textContent = labels[route] || 'Header route staged locally';
       pushActivity?.({
         title: labels[route] || 'Header quick route staged',
-        body: 'The responsive header kept FD-001 product delivery and Oyatie Cloud substrate reachable when the left rail is hidden.',
+        body: 'The responsive header kept FD-001 tenant workload delivery and Oyatie Cloud substrate reachable when the left rail is hidden.',
         severity: route === 'evidence' ? 'review' : 'info',
       });
     });
@@ -590,13 +590,13 @@ export function mountShellChrome() {
     button.addEventListener('click', () => {
       const action = button.dataset.commandProofAction;
       const labels = {
-        fd001: 'FD-001 product graph opened from command palette · local visual route',
+        fd001: 'FD-001 service graph opened from command palette · local visual route',
         cloud: 'Oyatie Cloud substrate cells opened from command palette · no cloud mutation',
         receipt: 'REC-WF-7741 evidence receipt opened from command palette · review only',
         'local-boundary': 'Command boundary shown · no backend, workflow, mail, IAM, billing, deploy, or cloud mutation',
       };
       const targets = {
-        fd001: '#product-graph',
+        fd001: '#service-graph',
         cloud: '#cloud-ops-cockpit',
         receipt: '#audit-ledger',
       };
@@ -631,7 +631,7 @@ export function mountShellChrome() {
       const href = item.getAttribute('href');
       const deepRoutes = {
         '#identity-employees': () => activateIdentityPanelFromShell('employees'),
-        '#identity-workforce-suite': () => activateIdentityPanelFromShell('auth'),
+        '#identity-workforce-service': () => activateIdentityPanelFromShell('auth'),
         '#business-logics': () => activateBusinessLogics(),
         '#payroll-cockpit': () => activateBusinessLogics(),
         '#filing-readiness': () => activateBusinessLogics(),
@@ -648,7 +648,7 @@ export function mountShellChrome() {
         '#deployment-gates': () => activateResourcePanel('gates'),
         '#modules-title': () => activateServiceCatalog(),
         '#service-catalog': () => activateServiceCatalog(),
-        '#product-graph': () => activateServiceCatalog(),
+        '#service-graph': () => activateServiceCatalog(),
         '#daily-execution': () => activateDailyExecution(),
         '#tasks-title': () => activateDailyExecution(),
         '#schedule-title': () => activateDailyExecution(),
@@ -671,27 +671,27 @@ export function mountShellChrome() {
       const action = button.dataset.railProofAction;
       const status = document.querySelector('[data-rail-status]');
       const labels = {
-        'product-graph': 'FD-001 product graph opened from persistent rail · local visual route',
+        'service-graph': 'FD-001 service graph opened from persistent rail · local visual route',
         cloud: 'Oyatie Cloud substrate opened from persistent rail · no cloud mutation',
         evidence: 'REC-WF-7741 evidence ledger opened from persistent rail · review only',
         'work-hub': 'Work Hub opened at Messenger from persistent rail · Mail and Community remain one click away · local only',
       };
       const targets = {
-        'product-graph': '#product-graph',
+        'service-graph': '#service-graph',
         cloud: '#cloud-ops-cockpit',
         evidence: '#audit-ledger',
         'work-hub': '#work-hub',
       };
       const activeNavTargets = {
-        'product-graph': '#modules-title',
+        'service-graph': '#modules-title',
         cloud: '#cloud-ops-cockpit',
         evidence: '#audit-ledger',
         'work-hub': '#work-hub',
       };
 
-      if (action === 'product-graph') {
+      if (action === 'service-graph') {
         activateServiceCatalog();
-        document.querySelector('#product-graph')?.scrollIntoView({ block: 'center' });
+        document.querySelector('#service-graph')?.scrollIntoView({ block: 'center' });
       }
       if (action === 'cloud') activateCockpitPanel('topology');
       if (action === 'evidence') activateResourcePanel('audit');
@@ -707,7 +707,7 @@ export function mountShellChrome() {
       if (status) status.textContent = labels[action] || 'Persistent rail proof route staged locally';
       pushActivity?.({
         title: labels[action] || 'Persistent rail proof route staged',
-        body: 'FD-001 product delivery and Oyatie Cloud substrate stayed connected in one visual-only shell graph.',
+        body: 'FD-001 tenant workload delivery and Oyatie Cloud substrate stayed connected in one visual-only shell graph.',
         severity: action === 'evidence' ? 'review' : 'info',
       });
     });
@@ -823,7 +823,7 @@ export function mountShellChrome() {
         'work-hub': '#work-hub',
         evidence: '#audit-ledger',
         cloud: '#cloud-ops-cockpit',
-        identity: '#identity-workforce-suite',
+        identity: '#identity-workforce-service',
         policy: '#policy-access',
         catalog: '#service-catalog',
       };
@@ -1104,8 +1104,8 @@ export function mountShellChrome() {
           destination: 'Community',
           source: 'Oyatie Cloud',
           title: `Council note · ${copy.title}`,
-          body: `${copy.title} proves FD-001 product delivery can run as a tenant workload on Oyatie Cloud. ${copy.receipt} remains local evidence.`,
-          audience: 'Platform · Finance · People Ops · Governance',
+          body: `${copy.title} proves FD-001 tenant workload delivery can run as a tenant workload on Oyatie Cloud. ${copy.receipt} remains local evidence.`,
+          audience: 'Infrastructure · Finance · People Ops · Governance',
           kind: 'draft',
           meta: `${copy.receipt} · community route staged locally`,
         });
@@ -1320,7 +1320,7 @@ export function mountShellChrome() {
     setProductActivity('evidence', `${copy.title} selected in universal receipt stream`, { source });
     window.oyaPushActivity?.({
       title: `${copy.title} receipt selected`,
-      body: `${copy.id} joins FD-001 product delivery and Oyatie Cloud substrate proof without persistence.`,
+      body: `${copy.id} joins FD-001 tenant workload delivery and Oyatie Cloud substrate proof without persistence.`,
       severity: copy.state === 'sealed' ? 'info' : 'review',
     });
   }
@@ -1373,7 +1373,7 @@ export function mountShellChrome() {
           source: 'Evidence spine',
           title: `Council receipt note · ${copy.title}`,
           body: `${copy.id} connects FD-001 product work to Oyatie Cloud substrate proof. The note remains role-gated and local-only.`,
-          audience: 'Governance · Platform · Finance · People Ops',
+          audience: 'Governance · Infrastructure · Finance · People Ops',
           kind: 'draft',
           meta: `${copy.id} · community proof note`,
         });
@@ -1487,7 +1487,7 @@ export function mountShellChrome() {
         'route-vendors': 'Vendor spend opened as FD-001 procurement proof',
         'route-billing': 'Billing and filing opened as FD-001 revenue proof',
         'route-filing': 'Filing readiness opened as FD-001 localization proof',
-        'route-identity': 'Identity suite opened as FD-001 access proof',
+        'route-identity': 'Identity service opened as FD-001 access proof',
         'route-daily': 'Daily Work opened as FD-001 execution proof',
         'route-finops': 'FinOps opened as Oyatie Cloud tenant workload cost proof',
         'route-cloud': 'Oyatie Cloud topology opened as the dogfood substrate',
@@ -1501,7 +1501,7 @@ export function mountShellChrome() {
         'route-mail': 'Reviewer Mail opened locally',
         'route-messenger': 'Messenger room opened locally',
         'route-community': 'Community review opened locally',
-        'route-catalog': 'Service catalog opened for product graph proof',
+        'route-catalog': 'Service catalog opened for service graph proof',
       };
 
       board?.querySelectorAll('[data-trust-proof-card]').forEach((card) => {
@@ -1544,7 +1544,7 @@ export function mountShellChrome() {
       }
       if (action === 'route-identity') {
         activateIdentityPanelFromShell('auth');
-        window.history.replaceState(null, '', '#identity-workforce-suite');
+        window.history.replaceState(null, '', '#identity-workforce-service');
       }
       if (action === 'route-daily') {
         activateDailyExecution();
@@ -1598,7 +1598,7 @@ export function mountShellChrome() {
       if (evidenceStatus && board?.closest('#evidence-ledger, #object-graph')) {
         evidenceStatus.textContent = labels[action] || 'Evidence trust proof action staged locally';
       }
-      const financeStatus = document.querySelector('#finance-commercial-suite [data-finance-status]');
+      const financeStatus = document.querySelector('#finance-commercial-service [data-finance-status]');
       if (financeStatus && board?.closest('#ledger-preview')) {
         financeStatus.textContent = labels[action] || 'Ledger trust proof action staged locally';
       }
@@ -1764,7 +1764,7 @@ export function mountShellChrome() {
         else if (target === '#identity-employees') activateIdentityPanelFromShell('employees');
         else if (target === '#work-hub') activateSurfaceFromShell('Messenger');
         else document.querySelector(target)?.scrollIntoView({ block: 'start' });
-        if (status) status.textContent = `${title} opened in the local product graph`;
+        if (status) status.textContent = `${title} opened in the local service graph`;
       }
       window.oyaPushActivity?.({
         title: `${title} catalog ${action || 'action'}`,
@@ -1785,7 +1785,7 @@ export function mountShellChrome() {
       if (action === 'community') activateSurfaceFromShell('Community');
       if (action === 'evidence') activateEvidenceConsole();
       const status = document.querySelector('[data-catalog-status]');
-      if (status) status.textContent = `Product graph route opened: ${action}`;
+      if (status) status.textContent = `Service graph route opened: ${action}`;
     });
   });
 
@@ -1890,11 +1890,11 @@ export function mountShellChrome() {
       window.history.replaceState(null, '', '#work-hub');
     } else if (route === 'finance') {
       activateFinancePanelFromShell('ledger');
-      window.history.replaceState(null, '', '#finance-commercial-suite');
+      window.history.replaceState(null, '', '#finance-commercial-service');
     } else if (route === 'cloud') routeToLocalTarget('#cloud-ops-cockpit', actionLabel);
     else if (route === 'identity') {
       activateIdentityPanelFromShell('roles');
-      window.history.replaceState(null, '', '#identity-workforce-suite');
+      window.history.replaceState(null, '', '#identity-workforce-service');
     } else if (route === 'evidence') routeToLocalTarget('#evidence-spine', actionLabel);
     else if (route === 'catalog') routeToLocalTarget('#service-catalog', actionLabel);
     else if (route === 'inbox') routeToLocalTarget('#command-center-workbench', actionLabel);
@@ -2133,13 +2133,13 @@ export function mountShellChrome() {
     });
   });
 
-  document.querySelectorAll('[data-suite-action]').forEach((button) => {
-    if (button.dataset.suiteBound === 'true') return;
-    button.dataset.suiteBound = 'true';
+  document.querySelectorAll('[data-service-action]').forEach((button) => {
+    if (button.dataset.platformBound === 'true') return;
+    button.dataset.platformBound = 'true';
     button.addEventListener('click', () => {
-      const action = button.dataset.suiteAction;
-      const card = button.closest('.suite-card');
-      const cardTitle = card?.querySelector('h4')?.textContent?.trim() || 'Suite card';
+      const action = button.dataset.platformAction;
+      const card = button.closest('.service-card');
+      const cardTitle = card?.querySelector('h4')?.textContent?.trim() || 'Service card';
       const labels = {
         'payroll-finance': 'Payroll finance cockpit opened locally',
         'payroll-workflow': 'Payroll workflow gate opened locally',
@@ -2148,7 +2148,7 @@ export function mountShellChrome() {
         'filing-billing': 'Billing and tax filing panel opened locally',
         'filing-community': 'Filing council note opened locally',
         'filing-evidence': 'Filing receipt opened locally',
-        'employee-identity': 'Identity workforce suite opened locally',
+        'employee-identity': 'Identity workforce service opened locally',
         'employee-onboarding': 'Onboarding setup checklist opened locally',
         'employee-policy': 'Policy access envelope opened locally',
         'employee-mail': 'Employee reviewer Mail draft opened locally',
@@ -2157,9 +2157,9 @@ export function mountShellChrome() {
         'governance-community': 'Governance community route opened locally',
         'governance-evidence': 'Governance evidence spine opened locally',
       };
-      card?.classList.add('suite-card-selected');
-      document.querySelectorAll('.suite-card').forEach((item) => {
-        if (item !== card) item.classList.remove('suite-card-selected');
+      card?.classList.add('service-card-selected');
+      document.querySelectorAll('.service-card').forEach((item) => {
+        if (item !== card) item.classList.remove('service-card-selected');
       });
       if (action === 'payroll-finance') activateFinancePanelFromShell('ledger');
       if (action === 'payroll-workflow') routeToLocalTarget('#workflow-studio', cardTitle);
@@ -2175,8 +2175,8 @@ export function mountShellChrome() {
         document.querySelector('[data-governance-risk]')?.click();
       }
       window.oyaPushActivity?.({
-        title: labels[action] || `${cardTitle} suite route staged`,
-        body: 'Enterprise suite overview card routed to a richer local command surface; no backend mutation occurred.',
+        title: labels[action] || `${cardTitle} service route staged`,
+        body: 'Operations service overview card routed to a richer local command surface; no backend mutation occurred.',
         severity: action?.includes('evidence') || action?.includes('workflow') || action?.includes('governance') ? 'review' : 'info',
       });
     });
@@ -2420,7 +2420,7 @@ export function mountShellChrome() {
     const status = document.querySelector('[data-daily-status]');
     if (status) status.textContent = 'Daily execution opened from shell navigation';
     applyDailyFilter();
-    setProductActivity('fd001', 'Daily execution opened · FD-001 action queue remains tied to the product graph', { source: 'shell navigation' });
+    setProductActivity('fd001', 'Daily execution opened · FD-001 action queue remains tied to the service graph', { source: 'shell navigation' });
   }
 
   function setText(selector, value) {
@@ -2494,7 +2494,7 @@ export function mountShellChrome() {
       '#evidence-ledger': 'evidence',
       '#object-graph': 'evidence',
       '#service-catalog': 'fd001',
-      '#product-graph': 'fd001',
+      '#service-graph': 'fd001',
       '#modules-title': 'fd001',
       '#daily-execution': 'fd001',
       '#tasks-title': 'fd001',
@@ -2508,11 +2508,11 @@ export function mountShellChrome() {
     const status = document.querySelector('[data-catalog-status]');
     if (status) status.textContent = 'Service catalog opened from shell navigation';
     applyCatalogFilter();
-    setProductActivity('fd001', 'Service catalog opened · FD-001 product graph active on Oyatie Cloud', { source: 'service catalog' });
+    setProductActivity('fd001', 'Service catalog opened · FD-001 service graph active on Oyatie Cloud', { source: 'service catalog' });
   }
 
   function activateIdentityPanelFromShell(panel = 'auth') {
-    document.querySelector('#identity-workforce-suite')?.scrollIntoView({ block: 'start' });
+    document.querySelector('#identity-workforce-service')?.scrollIntoView({ block: 'start' });
     document.querySelectorAll('[data-identity-tab]').forEach((button) => {
       const active = button.dataset.identityTab === panel;
       button.classList.toggle('active', active);
@@ -2521,13 +2521,13 @@ export function mountShellChrome() {
     document.querySelectorAll('[data-identity-panel]').forEach((item) => {
       item.classList.toggle('active', item.dataset.identityPanel === panel);
     });
-    const status = document.querySelector('#identity-workforce-suite [data-identity-status]');
+    const status = document.querySelector('#identity-workforce-service [data-identity-status]');
     if (status) status.textContent = 'Identity workspace opened from command palette';
-    setProductActivity('fd001', 'Identity workspace opened · role envelope remains part of FD-001 product graph', { source: 'identity suite' });
+    setProductActivity('fd001', 'Identity workspace opened · role envelope remains part of FD-001 service graph', { source: 'identity service' });
   }
 
   function activateFinancePanelFromShell(panel = 'ledger') {
-    document.querySelector('#finance-commercial-suite')?.scrollIntoView({ block: 'start' });
+    document.querySelector('#finance-commercial-service')?.scrollIntoView({ block: 'start' });
     document.querySelectorAll('[data-finance-tab]').forEach((button) => {
       const active = button.dataset.financeTab === panel;
       button.classList.toggle('active', active);
@@ -2536,9 +2536,9 @@ export function mountShellChrome() {
     document.querySelectorAll('[data-finance-panel]').forEach((item) => {
       item.classList.toggle('active', item.dataset.financePanel === panel);
     });
-    const status = document.querySelector('#finance-commercial-suite [data-finance-status]');
+    const status = document.querySelector('#finance-commercial-service [data-finance-status]');
     if (status) status.textContent = 'Finance control opened from command palette';
-    setProductActivity('fd001', 'Finance control opened · payroll close remains the FD-001 proof workload', { source: 'finance suite' });
+    setProductActivity('fd001', 'Finance control opened · payroll close remains the FD-001 proof workload', { source: 'finance service' });
   }
 
   function markCommsSurface(label) {
@@ -2702,21 +2702,21 @@ export function mountShellChrome() {
   if (window.location.hash === '#deployment-gates') activateResourcePanel('gates');
   if (window.location.hash === '#modules-title') activateServiceCatalog();
   if (window.location.hash === '#service-catalog') activateServiceCatalog();
-  if (window.location.hash === '#product-graph') activateServiceCatalog();
+  if (window.location.hash === '#service-graph') activateServiceCatalog();
   if (window.location.hash === '#daily-execution') activateDailyExecution();
   if (window.location.hash === '#tasks-title') activateDailyExecution();
   if (window.location.hash === '#schedule-title') activateDailyExecution();
   if (window.location.hash === '#evidence-spine') activateEvidenceConsole();
   if (window.location.hash === '#evidence-ledger') activateEvidenceConsole();
   if (window.location.hash === '#object-graph') activateEvidenceConsole('graph');
-  if (window.location.hash === '#identity-workforce-suite') activateIdentityPanelFromShell('auth');
+  if (window.location.hash === '#identity-workforce-service') activateIdentityPanelFromShell('auth');
   if (window.location.hash === '#identity-auth') activateIdentityPanelFromShell('auth');
   if (window.location.hash === '#identity-sessions') activateIdentityPanelFromShell('sessions');
   if (window.location.hash === '#identity-roles') activateIdentityPanelFromShell('roles');
   if (window.location.hash === '#identity-org') activateIdentityPanelFromShell('org');
   if (window.location.hash === '#identity-employees') activateIdentityPanelFromShell('employees');
   if (window.location.hash === '#identity-onboarding') activateIdentityPanelFromShell('onboarding');
-  if (window.location.hash === '#finance-commercial-suite') activateFinancePanelFromShell('ledger');
+  if (window.location.hash === '#finance-commercial-service') activateFinancePanelFromShell('ledger');
   if (window.location.hash === '#ledger-preview') activateFinancePanelFromShell('ledger');
   if (window.location.hash === '#vendors-spend') activateFinancePanelFromShell('vendors');
   if (window.location.hash === '#billing-tax') activateFinancePanelFromShell('billing');
@@ -3118,19 +3118,19 @@ export function mountDashboardFallback() {
     });
   });
 
-  const identitySuite = root.querySelector('[data-identity-suite]');
-  const identityStatus = identitySuite?.querySelector('[data-identity-status]');
-  const employeeSearch = identitySuite?.querySelector('[data-employee-search]');
+  const identityService = root.querySelector('[data-identity-service]');
+  const identityStatus = identityService?.querySelector('[data-identity-status]');
+  const employeeSearch = identityService?.querySelector('[data-employee-search]');
   let onboardingPercent = 56;
 
   function activateIdentityPanel(panel = 'auth') {
-    if (!identitySuite) return;
-    identitySuite.querySelectorAll('[data-identity-tab]').forEach((button) => {
+    if (!identityService) return;
+    identityService.querySelectorAll('[data-identity-tab]').forEach((button) => {
       const active = button.dataset.identityTab === panel;
       button.classList.toggle('active', active);
       if (button.getAttribute('role') === 'tab') button.setAttribute('aria-selected', String(active));
     });
-    identitySuite.querySelectorAll('[data-identity-panel]').forEach((item) => {
+    identityService.querySelectorAll('[data-identity-panel]').forEach((item) => {
       item.classList.toggle('active', item.dataset.identityPanel === panel);
     });
     const labels = {
@@ -3145,17 +3145,17 @@ export function mountDashboardFallback() {
   }
 
   function applyEmployeeSearch() {
-    if (!identitySuite || !employeeSearch) return;
+    if (!identityService || !employeeSearch) return;
     const term = employeeSearch.value.trim().toLowerCase();
-    const activeFilter = identitySuite.querySelector('[data-employee-filter].active')?.dataset.employeeFilter || 'all';
-    identitySuite.querySelectorAll('[data-employee-row]').forEach((row) => {
+    const activeFilter = identityService.querySelector('[data-employee-filter].active')?.dataset.employeeFilter || 'all';
+    identityService.querySelectorAll('[data-employee-row]').forEach((row) => {
       const matchesText = !term || row.textContent.toLowerCase().includes(term);
       const matchesTeam = activeFilter === 'all' || row.dataset.employeeTeam === activeFilter;
       row.hidden = !matchesText || !matchesTeam;
     });
   }
 
-  identitySuite?.querySelectorAll('[data-identity-tab]').forEach((button) => {
+  identityService?.querySelectorAll('[data-identity-tab]').forEach((button) => {
     button.addEventListener('click', () => activateIdentityPanel(button.dataset.identityTab || 'auth'));
   });
 
@@ -3164,21 +3164,21 @@ export function mountDashboardFallback() {
     if (identityStatus) identityStatus.textContent = 'Employee search filtered locally';
   });
 
-  identitySuite?.querySelectorAll('[data-employee-filter]').forEach((button) => {
+  identityService?.querySelectorAll('[data-employee-filter]').forEach((button) => {
     button.addEventListener('click', () => {
-      identitySuite.querySelectorAll('[data-employee-filter]').forEach((item) => item.classList.toggle('active', item === button));
+      identityService.querySelectorAll('[data-employee-filter]').forEach((item) => item.classList.toggle('active', item === button));
       applyEmployeeSearch();
       if (identityStatus) identityStatus.textContent = `${button.textContent.trim()} filter applied locally`;
     });
   });
 
-  identitySuite?.querySelectorAll('[data-workforce-anchor-action]').forEach((button) => {
+  identityService?.querySelectorAll('[data-workforce-anchor-action]').forEach((button) => {
     if (button.dataset.workforceAnchorBound === 'true') return;
     button.dataset.workforceAnchorBound = 'true';
     button.addEventListener('click', () => {
       const action = button.dataset.workforceAnchorAction;
       const card = button.closest('[data-workforce-card]');
-      const workforceStatus = identitySuite.querySelector('[data-workforce-anchor-status]');
+      const workforceStatus = identityService.querySelector('[data-workforce-anchor-status]');
       const labels = {
         'route-payroll': 'Payroll impact opened locally from workforce directory',
         'route-workflow': 'Workforce lifecycle workflow opened locally',
@@ -3192,7 +3192,7 @@ export function mountDashboardFallback() {
         'route-cloud': 'Oyatie Cloud cell proof opened from workforce directory',
       };
       if (card) {
-        identitySuite.querySelectorAll('[data-workforce-card]').forEach((item) => item.classList.toggle('selected', item === card));
+        identityService.querySelectorAll('[data-workforce-card]').forEach((item) => item.classList.toggle('selected', item === card));
       }
       button.closest('.workforce-anchor-actions, .workforce-anchor-routes')?.querySelectorAll('[data-workforce-anchor-action]').forEach((item) => {
         item.classList.toggle('active', item === button);
@@ -3215,10 +3215,10 @@ export function mountDashboardFallback() {
         document.querySelector('#resource-audit-console')?.scrollIntoView({ block: 'start' });
         window.history.replaceState(null, '', '#audit-ledger');
       }
-      if (action === 'stage-invite') identitySuite.querySelector('[data-identity-action="add-employee"]')?.click();
+      if (action === 'stage-invite') identityService.querySelector('[data-identity-action="add-employee"]')?.click();
       if (action === 'route-leave') {
         document.querySelector('[data-finance-tab="leave"]')?.click();
-        document.querySelector('#finance-commercial-suite')?.scrollIntoView({ block: 'start' });
+        document.querySelector('#finance-commercial-service')?.scrollIntoView({ block: 'start' });
         window.history.replaceState(null, '', '#leave-time');
       }
       if (action === 'route-mail') {
@@ -3250,13 +3250,13 @@ export function mountDashboardFallback() {
     });
   });
 
-  identitySuite?.querySelectorAll('[data-onboarding-anchor-action]').forEach((button) => {
+  identityService?.querySelectorAll('[data-onboarding-anchor-action]').forEach((button) => {
     if (button.dataset.onboardingAnchorBound === 'true') return;
     button.dataset.onboardingAnchorBound = 'true';
     button.addEventListener('click', () => {
       const action = button.dataset.onboardingAnchorAction;
       const card = button.closest('[data-onboarding-card]');
-      const onboardingStatus = identitySuite.querySelector('[data-onboarding-anchor-status]');
+      const onboardingStatus = identityService.querySelector('[data-onboarding-anchor-status]');
       const labels = {
         'route-tasks': 'Today queue opened from tenant setup locally',
         'import-employees': 'Employee import staged from onboarding locally',
@@ -3270,7 +3270,7 @@ export function mountDashboardFallback() {
         'route-schedule': 'Schedule pressure opened from onboarding locally',
       };
       if (card) {
-        identitySuite.querySelectorAll('[data-onboarding-card]').forEach((item) => item.classList.toggle('selected', item === card));
+        identityService.querySelectorAll('[data-onboarding-card]').forEach((item) => item.classList.toggle('selected', item === card));
       }
       button.closest('.onboarding-anchor-actions, .onboarding-anchor-routes')?.querySelectorAll('[data-onboarding-anchor-action]').forEach((item) => {
         item.classList.toggle('active', item === button);
@@ -3281,7 +3281,7 @@ export function mountDashboardFallback() {
       }
       if (action === 'import-employees') {
         activateIdentityPanel('employees');
-        identitySuite.querySelector('[data-identity-action="add-employee"]')?.click();
+        identityService.querySelector('[data-identity-action="add-employee"]')?.click();
         window.history.replaceState(null, '', '#identity-employees');
       }
       if (action === 'route-cloud') {
@@ -3294,7 +3294,7 @@ export function mountDashboardFallback() {
         document.querySelector('#cloud-ops-cockpit')?.scrollIntoView({ block: 'start' });
         window.history.replaceState(null, '', '#policy-access');
       }
-      if (action === 'advance-setup') identitySuite.querySelector('[data-identity-action="advance-onboarding"]')?.click();
+      if (action === 'advance-setup') identityService.querySelector('[data-identity-action="advance-onboarding"]')?.click();
       if (action === 'route-evidence') {
         document.querySelector('#evidence-spine')?.scrollIntoView({ block: 'start' });
         window.history.replaceState(null, '', '#evidence-spine');
@@ -3327,14 +3327,14 @@ export function mountDashboardFallback() {
     });
   });
 
-  identitySuite?.querySelectorAll('[data-employee-action]').forEach((button) => {
+  identityService?.querySelectorAll('[data-employee-action]').forEach((button) => {
     if (button.dataset.employeeActionBound === 'true') return;
     button.dataset.employeeActionBound = 'true';
     button.addEventListener('click', () => {
       const row = button.closest('[data-employee-row]');
       const name = row?.querySelector('strong')?.textContent?.trim() || 'Employee';
-      const workforceStatus = identitySuite.querySelector('[data-workforce-anchor-status]');
-      identitySuite.querySelectorAll('[data-employee-row]').forEach((item) => item.classList.toggle('selected', item === row));
+      const workforceStatus = identityService.querySelector('[data-workforce-anchor-status]');
+      identityService.querySelectorAll('[data-employee-row]').forEach((item) => item.classList.toggle('selected', item === row));
       button.classList.add('active');
       const message = `${name} inspected locally · workforce tenant workload remains read-only`;
       if (workforceStatus) workforceStatus.textContent = message;
@@ -3347,16 +3347,16 @@ export function mountDashboardFallback() {
     });
   });
 
-  identitySuite?.querySelectorAll('[data-identity-action]').forEach((button) => {
+  identityService?.querySelectorAll('[data-identity-action]').forEach((button) => {
     button.addEventListener('click', () => {
       const action = button.dataset.identityAction;
       if (action === 'open-audit') {
-        identitySuite.querySelector('[data-identity-tab="sessions"]')?.click();
+        identityService.querySelector('[data-identity-tab="sessions"]')?.click();
         if (identityStatus) identityStatus.textContent = 'Audit trail opened locally';
         return;
       }
       if (action === 'add-passkey') {
-        const list = identitySuite.querySelector('[data-passkey-list]');
+        const list = identityService.querySelector('[data-passkey-list]');
         if (list && !list.querySelector('[data-local-passkey]')) {
           const row = document.createElement('div');
           row.className = 'auth-method local';
@@ -3364,7 +3364,7 @@ export function mountDashboardFallback() {
           row.innerHTML = '<span>＋</span><strong>Apple Watch · passkey draft</strong><small>passkey · pending confirmation · local mock</small><em>now</em>';
           list.prepend(row);
         }
-        const score = identitySuite.querySelector('[data-security-score]');
+        const score = identityService.querySelector('[data-security-score]');
         if (score) score.textContent = '97/100';
         if (identityStatus) identityStatus.textContent = 'Passkey registration preview staged locally';
         window.oyaPushActivity?.({
@@ -3375,12 +3375,12 @@ export function mountDashboardFallback() {
         return;
       }
       if (action === 'add-employee') {
-        identitySuite.querySelector('[data-identity-tab="employees"]')?.click();
-        const tbody = identitySuite.querySelector('.employee-directory-table tbody');
+        identityService.querySelector('[data-identity-tab="employees"]')?.click();
+        const tbody = identityService.querySelector('.employee-directory-table tbody');
         if (tbody && !tbody.querySelector('[data-local-employee]')) {
           const row = document.createElement('tr');
           row.dataset.employeeRow = 'true';
-          row.dataset.employeeTeam = 'platform';
+          row.dataset.employeeTeam = 'infrastructure';
           row.dataset.localEmployee = 'true';
           row.innerHTML = '<td><strong>로컬 초대</strong><small>Local invite · emp_draft</small></td><td>Pending teammate</td><td>플랫폼팀</td><td>김지영</td><td>draft</td><td><span class="status-chip warning">초대</span></td>';
           tbody.prepend(row);
@@ -3396,11 +3396,11 @@ export function mountDashboardFallback() {
       }
       if (action === 'advance-onboarding') {
         onboardingPercent = Math.min(100, onboardingPercent + 11);
-        const percent = identitySuite.querySelector('[data-onboarding-percent]');
+        const percent = identityService.querySelector('[data-onboarding-percent]');
         if (percent) percent.textContent = `${onboardingPercent}%`;
         const progress = percent?.parentElement?.querySelector('.score-bar');
         progress?.style.setProperty('--bar', `${onboardingPercent}%`);
-        const activeStep = identitySuite.querySelector('.onboarding-steps li.active');
+        const activeStep = identityService.querySelector('.onboarding-steps li.active');
         if (activeStep) {
           activeStep.classList.remove('active');
           activeStep.classList.add('done');
@@ -3416,7 +3416,7 @@ export function mountDashboardFallback() {
     });
   });
 
-  identitySuite?.querySelectorAll('[data-identity-route-action]').forEach((button) => {
+  identityService?.querySelectorAll('[data-identity-route-action]').forEach((button) => {
     button.addEventListener('click', () => {
       const route = button.dataset.identityRouteAction || 'auth';
       const labels = {
@@ -3428,7 +3428,7 @@ export function mountDashboardFallback() {
         evidence: 'Identity evidence spine opened locally',
         employees: 'Employee lifecycle opened locally',
       };
-      identitySuite.querySelectorAll('[data-identity-route-action]').forEach((item) => item.classList.toggle('active', item === button));
+      identityService.querySelectorAll('[data-identity-route-action]').forEach((item) => item.classList.toggle('active', item === button));
       if (route === 'workflow') document.querySelector('#workflow-studio')?.scrollIntoView({ block: 'start' });
       if (route === 'mail') {
         document.querySelector('#work-hub')?.scrollIntoView({ block: 'start' });
@@ -3436,9 +3436,9 @@ export function mountDashboardFallback() {
       }
       if (route === 'sessions' || route === 'onboarding' || route === 'employees') {
         activateIdentityPanel(route);
-        identitySuite.scrollIntoView({ block: 'start' });
+        identityService.scrollIntoView({ block: 'start' });
       }
-      if (route === 'finance') document.querySelector('#finance-commercial-suite')?.scrollIntoView({ block: 'start' });
+      if (route === 'finance') document.querySelector('#finance-commercial-service')?.scrollIntoView({ block: 'start' });
       if (route === 'evidence') document.querySelector('#evidence-spine')?.scrollIntoView({ block: 'start' });
       if (identityStatus) identityStatus.textContent = labels[route] || 'Identity route staged locally';
       window.oyaPushActivity?.({
@@ -3449,7 +3449,7 @@ export function mountDashboardFallback() {
     });
   });
 
-  identitySuite?.querySelectorAll('[data-identity-anchor-action]').forEach((button) => {
+  identityService?.querySelectorAll('[data-identity-anchor-action]').forEach((button) => {
     if (button.dataset.identityAnchorBound === 'true') return;
     button.dataset.identityAnchorBound = 'true';
     button.addEventListener('click', () => {
@@ -3531,19 +3531,19 @@ export function mountDashboardFallback() {
     });
   });
 
-  const financeSuite = root.querySelector('[data-finance-suite]');
-  const financeStatus = financeSuite?.querySelector('[data-finance-status]');
-  const financeCommandStatus = financeSuite?.querySelector('[data-finance-command-status]');
-  const vendorSearch = financeSuite?.querySelector('[data-vendor-search]');
+  const financeService = root.querySelector('[data-finance-service]');
+  const financeStatus = financeService?.querySelector('[data-finance-status]');
+  const financeCommandStatus = financeService?.querySelector('[data-finance-command-status]');
+  const vendorSearch = financeService?.querySelector('[data-vendor-search]');
 
   function activateFinancePanel(panel = 'ledger') {
-    if (!financeSuite) return;
-    financeSuite.querySelectorAll('[data-finance-tab]').forEach((button) => {
+    if (!financeService) return;
+    financeService.querySelectorAll('[data-finance-tab]').forEach((button) => {
       const active = button.dataset.financeTab === panel;
       button.classList.toggle('active', active);
       if (button.getAttribute('role') === 'tab') button.setAttribute('aria-selected', String(active));
     });
-    financeSuite.querySelectorAll('[data-finance-panel]').forEach((item) => {
+    financeService.querySelectorAll('[data-finance-panel]').forEach((item) => {
       item.classList.toggle('active', item.dataset.financePanel === panel);
     });
     const labels = {
@@ -3557,11 +3557,11 @@ export function mountDashboardFallback() {
   }
 
   function routeFinanceCommand(route) {
-    if (!route || !financeSuite) return;
+    if (!route || !financeService) return;
     const panelRoutes = new Set(['ledger', 'vendors', 'billing', 'leave']);
     if (panelRoutes.has(route)) {
       activateFinancePanel(route);
-      financeSuite.scrollIntoView({ block: 'start' });
+      financeService.scrollIntoView({ block: 'start' });
       return;
     }
     if (route === 'workflow') {
@@ -3584,14 +3584,14 @@ export function mountDashboardFallback() {
   }
 
   function applyVendorSearch() {
-    if (!financeSuite || !vendorSearch) return;
+    if (!financeService || !vendorSearch) return;
     const term = vendorSearch.value.trim().toLowerCase();
-    financeSuite.querySelectorAll('[data-vendor-row]').forEach((row) => {
+    financeService.querySelectorAll('[data-vendor-row]').forEach((row) => {
       row.hidden = Boolean(term) && !row.textContent.toLowerCase().includes(term);
     });
   }
 
-  financeSuite?.querySelectorAll('[data-finance-tab]').forEach((button) => {
+  financeService?.querySelectorAll('[data-finance-tab]').forEach((button) => {
     button.addEventListener('click', () => activateFinancePanel(button.dataset.financeTab || 'ledger'));
   });
 
@@ -3600,7 +3600,7 @@ export function mountDashboardFallback() {
     if (financeStatus) financeStatus.textContent = 'Vendor table filtered locally';
   });
 
-  financeSuite?.querySelectorAll('[data-finance-action]').forEach((button) => {
+  financeService?.querySelectorAll('[data-finance-action]').forEach((button) => {
     button.addEventListener('click', () => {
       const action = button.dataset.financeAction;
       const labels = {
@@ -3616,7 +3616,7 @@ export function mountDashboardFallback() {
       };
       if (action === 'add-vendor') {
         activateFinancePanel('vendors');
-        const tbody = financeSuite.querySelector('.vendor-table tbody');
+        const tbody = financeService.querySelector('.vendor-table tbody');
         if (tbody && !tbody.querySelector('[data-local-vendor]')) {
           const row = document.createElement('tr');
           row.dataset.vendorRow = 'true';
@@ -3642,10 +3642,10 @@ export function mountDashboardFallback() {
     });
   });
 
-  financeSuite?.querySelectorAll('[data-finance-anchor-action]').forEach((button) => {
+  financeService?.querySelectorAll('[data-finance-anchor-action]').forEach((button) => {
     button.addEventListener('click', () => {
       const action = button.dataset.financeAnchorAction;
-      const panel = button.closest('[data-finance-panel]') || financeSuite;
+      const panel = button.closest('[data-finance-panel]') || financeService;
       const localStatus = panel.querySelector('[data-finance-anchor-status]');
       const labels = {
         'stage-contract': 'Vendor contract packet staged for FD-001 local procurement review',
@@ -3678,7 +3678,7 @@ export function mountDashboardFallback() {
 
       const routeToFinancePanel = (financePanel, hash) => {
         activateFinancePanel(financePanel);
-        financeSuite.scrollIntoView({ block: 'start' });
+        financeService.scrollIntoView({ block: 'start' });
         window.history.replaceState(null, '', hash);
       };
 
@@ -3726,7 +3726,7 @@ export function mountDashboardFallback() {
     });
   });
 
-  financeSuite?.querySelectorAll('[data-finance-command-action]').forEach((button) => {
+  financeService?.querySelectorAll('[data-finance-command-action]').forEach((button) => {
     button.addEventListener('click', () => {
       const action = button.dataset.financeCommandAction;
       const route = button.dataset.financeRoute;
@@ -3758,7 +3758,7 @@ export function mountDashboardFallback() {
         'route-community': 'Community route active',
         'route-evidence': 'Evidence spine route active',
       };
-      financeSuite.querySelectorAll('[data-finance-command-action]').forEach((item) => {
+      financeService.querySelectorAll('[data-finance-command-action]').forEach((item) => {
         item.classList.toggle('is-selected', item === button);
       });
       if (financeCommandStatus) financeCommandStatus.textContent = labels[action] || 'Commercial command route staged';
@@ -3815,7 +3815,7 @@ export function mountDashboardFallback() {
       title: 'Evidence receipt · Workflow output bus',
       status: 'Evidence output selected · receipt spine opened with local FD-001/Oyatie Cloud proof',
       body: 'Workflow Studio staged a receipt showing run preview, human route, product surface draft, and Oyatie Cloud substrate context.',
-      audience: 'Audit reviewers · Platform governance',
+      audience: 'Audit reviewers · Module governance',
       kind: 'evidence',
     },
   };

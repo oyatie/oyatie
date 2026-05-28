@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j121/event.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j121/event.json",
   "title": "J121EventSchema",
   "version": "1.0.0",
   "_meta": {
@@ -24,7 +24,7 @@
       "ADR-0257"
     ],
     "industry_citations": [
-      "Stripe Connect platform facilitator settlement",
+      "Stripe platform facilitator settlement",
       "AWS EventBridge event envelope",
       "Palantir Foundry ontology projection"
     ],

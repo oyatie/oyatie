@@ -118,7 +118,7 @@ Benchmarks displaced: Redox, Rhapsody, InterSystems IRIS for Health, Lyniate/Cor
 - InterSystems proof: ADR-0257 and ADR-0258 references define version handling.
 - Lyniate/Corepoint displacement: channel operations are displaced by consent workflow, audit evidence, and runbook-controlled sync.
 - Lyniate/Corepoint proof: local-consent-sync-lag.md owns remediation.
-- Mirth Connect displacement: script-level filters are displaced by declarative Cedar gates and deterministic redaction manifests.
+- Mirth displacement: script-level filters are displaced by declarative Cedar gates and deterministic redaction manifests.
 - Mirth proof: every bundle rule is testable without channel script authority.
 - NextGate displacement: MPI identity confidence does not grant consent; identity and consent are separate gates.
 - NextGate proof: patient_scope_id only selects candidate data after consent is active.

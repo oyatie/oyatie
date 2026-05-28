@@ -17,7 +17,7 @@ Slack is excellent at:
 - Best-in-class UX for casual + structured workplace chat.
 - Massive integration ecosystem (1 500+ apps in the Slack App Directory).
 - Channel-based mental model that scales from team-level to org-wide.
-- Slack Connect for cross-organization workflows.
+- Slack for cross-organization workflows.
 - Slack Enterprise Grid for multi-workspace organizations.
 
 oyatie messenger adds:
@@ -53,10 +53,10 @@ Document:
 - Workspace count (Enterprise Grid only).
 - Channel count + per-channel member count distribution.
 - DM count + cross-workspace DM count.
-- User count + Slack Connect external user count.
+- User count + Slack external user count.
 - Active App integrations (and their replacement plan).
 - Active Workflow Builder workflows.
-- Slack Connect partnerships (counterparty orgs + scopes).
+- Slack partnerships (counterparty orgs + scopes).
 - Slack Enterprise Key Management (EKM) configuration (if applicable).
 - Compliance exports + retention settings.
 
@@ -72,7 +72,7 @@ Typical mid-size Enterprise Grid: 1 workspace per business unit (5-20 workspaces
 | Channel (public/private) | Channel (per-channel ACL via Cedar) |
 | Direct Message (DM) | Conversation kind=`dm` |
 | Multi-Party DM (MPDM) | Conversation kind=`group_dm` |
-| Slack Connect (cross-org DM) | Cross-tenant federation grant + cohort channel |
+| Slack (cross-org DM) | Cross-tenant federation grant + cohort channel |
 | Slack Huddle | oyatie huddle (LiveKit SFU; MLS-derived SRTP) |
 | Slack Threads | MLS sub-conversation |
 | Slack Reactions | Per-message reaction (encrypted under MLS group epoch) |
@@ -105,7 +105,7 @@ The migration:
 4. Imports DMs → oyatie conversations (kind=dm + group_dm).
 5. **Re-encrypts message history under MLS group epoch 0** — Slack server-stored plaintext is encrypted under fresh per-conversation MLS groups during import. Subsequent epochs are advanced as devices join.
 6. Imports reactions + pins + threads.
-7. Replays Slack-Connect partnerships → oyatie tenant-pair federation grants (requires counterparty consent).
+7. Replays Slack-partnerships → oyatie tenant-pair federation grants (requires counterparty consent).
 
 Backfill rate ~ 5k msgs/sec at paid. 1B messages → ~ 56 hours.
 
@@ -193,7 +193,7 @@ After ≥ 90 d:
 | User adoption: Slack mental model is sticky | High | Pre-launch training; preserve channel slug + threading UX; provide migration FAQ |
 | App integration gap | High | Pre-audit; port top-20 apps to plugin SDK before cutover; defer long-tail apps to community |
 | Slack Workflow Builder workflows | Medium | Map to workflow-engine µservice flows; some 1:1 mapping, some require redesign |
-| Slack Connect partnerships | Medium | Replay as tenant-pair federation grants; require counterparty consent (may take weeks) |
+| Slack partnerships | Medium | Replay as tenant-pair federation grants; require counterparty consent (may take weeks) |
 | Slack EKM compliance certifications | Medium | oyatie paid compliance-pack provides FIPS-140-3 L3 + SOC2 + HIPAA + FedRAMP-High equivalents |
 | User mention conventions (`@here`, `@channel`) | Low | Direct 1:1 mapping in oyatie |
 | Slack emoji + custom emoji | Low | Custom emoji exported + imported; standard Unicode emoji unchanged |
@@ -203,7 +203,7 @@ After ≥ 90 d:
 | Custom Slack themes / branding | Low | oyatie theme support; brand assets re-applied |
 | Slack DLP integrations (Nightfall, Polymer, etc.) | Medium | Replace with oyatie's intelligence µservice DLP scanner pre-encryption |
 | Slack retention policies | Low | Map to oyatie pack retention class via `compliance` µservice |
-| Slack Connect external counterparties (across orgs) | High | Require counterparty buy-in; some may not migrate; provide bridge mode (oyatie ↔ Slack via SCIM + webhook) for transition period |
+| Slack external counterparties (across orgs) | High | Require counterparty buy-in; some may not migrate; provide bridge mode (oyatie ↔ Slack via SCIM + webhook) for transition period |
 | Mobile client transition (Slack mobile vs oyatie mobile) | Medium | Side-by-side iOS/Android available; rolling cutover by device |
 | User-installed apps (per-user OAuth) | Medium | User-by-user re-auth on oyatie equivalent plugin |
 | Slack Search index quality | Low | oyatie search is metadata + client-side for E2EE channels; full-text on cleartext channels matches Slack quality after index warm-up |

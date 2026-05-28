@@ -13,7 +13,7 @@ doctrine_overlays:
 
 # Contact Center — Feature Parity Matrix (UNION-coverage)
 
-This matrix grades the `contact-center` µservice against the UNION of capabilities offered by Genesys Cloud, Five9, and Amazon Connect (dispatch top-3) plus Twilio Flex, Zendesk Talk, NICE CXone, and Talkdesk (corpus-named secondary counterparts). UNION-coverage means: if ANY of the seven names ships the capability, it lands in the universe.
+This matrix grades the `contact-center` µservice against the UNION of capabilities offered by Genesys Cloud, Five9, and Amazon (dispatch top-3) plus Twilio Flex, Zendesk Talk, NICE CXone, and Talkdesk (corpus-named secondary counterparts). UNION-coverage means: if ANY of the seven names ships the capability, it lands in the universe.
 
 Grading scheme (NO tenant_class dimension per `feedback_no_tenant_class_eligibility_2026_05_20`):
 
@@ -37,9 +37,9 @@ Deployment-context column shows which contexts (per `feedback_multi_context_prov
 
 ## 1. Inbound voice routing
 
-Inbound voice routing is THE load-bearing CCaaS capability. Genesys Cloud routes via Architect flows; Five9 via VIVR; Amazon Connect via Connect flows JSON.
+Inbound voice routing is THE load-bearing CCaaS capability. Genesys Cloud routes via Architect flows; Five9 via VIVR; Amazon via flows JSON.
 
-| # | Sub-capability | Genesys Cloud | Five9 | Amazon Connect | Twilio Flex | Zendesk Talk | NICE CXone | Talkdesk | Oyatie current | Tenant class | Deployment contexts |
+| # | Sub-capability | Genesys Cloud | Five9 | Amazon | Twilio Flex | Zendesk Talk | NICE CXone | Talkdesk | Oyatie current | Tenant class | Deployment contexts |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | SIP INVITE handling | Y | Y | Y | Y | Y | Y | Y | N (no src/adapter/sip.rs) | both | all-6 |
 | 2 | Skill-based routing | Y | Y | Y | Y | Y | Y | Y | D (capability YAML declared; no algorithm in src) | both | all-6 |
@@ -58,7 +58,7 @@ Coverage: top-3 each offer all 10 sub-capabilities. Oyatie has 9/10 declared but
 
 Outbound dialer modes: preview, progressive, predictive, power. TCPA-abandonment-rate enforcement is the regulatory anchor.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 11 | Preview dialer | Y | Y | Y | Y | Y | Y | Y | N | paid | all-6 |
 | 12 | Progressive dialer | Y | Y | Y | Y | partial | Y | Y | N | paid | all-6 |
@@ -75,14 +75,14 @@ Coverage: top-3 each offer all 10 sub-capabilities. Oyatie has 4/10 declared + 0
 
 ## 3. IVR (Interactive Voice Response)
 
-Self-service voice flow runtime. Genesys uses Architect; Amazon Connect uses Connect flows JSON; Five9 uses VIVR.
+Self-service voice flow runtime. Genesys uses Architect; Amazon uses flows JSON; Five9 uses VIVR.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 21 | DTMF input capture | Y | Y | Y | Y | Y | Y | Y | N | both | all-6 |
 | 22 | Speech-to-text input (ASR-driven IVR) | Y | Y | Y (Lex bots) | Y | partial | Y | Y | N (intelligence µservice delegation declared, no contract) | paid | all-6 |
 | 23 | Text-to-speech output | Y | Y | Y | Y | partial | Y | Y | N | both | all-6 |
-| 24 | IVR-flow visual designer | Y (Architect) | Y | Y (Connect flows GUI) | Y (Studio) | partial | Y | Y (Talkdesk Studio) | N | paid | oyatie-public, aws-guest, oci-guest |
+| 24 | IVR-flow visual designer | Y (Architect) | Y | Y (flows GUI) | Y (Studio) | partial | Y | Y (Talkdesk Studio) | N | paid | oyatie-public, aws-guest, oci-guest |
 | 25 | IVR-flow JSON export | Y | Y | Y (canonical) | Y | partial | partial | Y | N (schema not declared) | both | all-6 |
 | 26 | IVR-flow version control | Y | partial | Y (per-version) | Y | partial | Y | Y | N | both | all-6 |
 | 27 | IVR menu depth ≥ 8 levels | Y | Y | Y | Y | Y | Y | Y | D (tier-matrix claims 8 levels) | both | all-6 |
@@ -96,7 +96,7 @@ Coverage: top-3 each offer all 10 sub-capabilities. Oyatie has 1/10 declared + 0
 
 Web chat + SDK chat + in-app chat.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 31 | Web chat widget | Y | Y | Y | Y | Y (flagship) | Y | Y | N (delegated to messenger µservice in theory; not bound) | both | all-6 |
 | 32 | In-app SDK chat | Y | Y | Y | Y | Y | Y | Y | N | both | all-6 |
@@ -115,7 +115,7 @@ Coverage: top-3 each offer all 10 sub-capabilities. Oyatie chat parity is 0/10. 
 
 Email-as-channel (different from comms-email µservice transactional mail). SMS + social DM (FB Messenger, X DM, Instagram DM, WhatsApp Business).
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 41 | Email channel ticketing | Y | Y | Y | Y | Y (flagship) | Y | Y | N (delegated to comms-email + community?) | both | all-6 |
 | 42 | SMS inbound + outbound | Y | Y | Y | Y | Y | Y | Y | N | both | all-6 |
@@ -132,9 +132,9 @@ Coverage: 10 sub-capabilities; oyatie has 0/10. Several are pack-gated (LINE for
 
 ## 6. Video channel
 
-Video customer service is the rising-leader differentiator (Amazon Connect added video in 2025; Genesys via Genesys Cloud Video).
+Video customer service is the rising-leader differentiator (Amazon added video in 2025; Genesys via Genesys Cloud Video).
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 51 | Video inbound (customer initiates) | Y | partial | Y (2025+) | Y (native Programmable Video) | partial | Y | Y | N | paid | all-6 |
 | 52 | Video outbound (agent initiates) | Y | partial | Y | Y | partial | Y | Y | N | paid | all-6 |
@@ -148,7 +148,7 @@ Coverage: 5 video sub-capabilities; oyatie 0/5. Should delegate to `meet` µserv
 
 Real-time AI agent-assist; conversational bots for self-service.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 56 | Conversational AI bot (NLU) | Y (Bot Connector + DialogFlow/Lex) | Y (Practical AI) | Y (Lex flagship) | Y (Autopilot) | Y (Answer Bot) | Y (Enlighten AI) | Y (Talkdesk Copilot) | D (intelligence µservice delegation declared) | paid | all-6 |
 | 57 | Intent classification | Y | Y | Y (Lex) | Y | Y | Y | Y | N | paid | all-6 |
@@ -165,9 +165,9 @@ Coverage: 10 AI sub-capabilities; oyatie 0/10 implemented (4/10 declared via int
 
 ## 8. Agent desktop
 
-The agent-facing UI / workspace. Genesys uses Genesys Cloud agent desktop; Five9 has Agent Desktop Plus; Amazon Connect has CCP (Contact Control Panel).
+The agent-facing UI / workspace. Genesys uses Genesys Cloud agent desktop; Five9 has Agent Desktop Plus; Amazon has CCP (Contact Control Panel).
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 66 | Web-based agent desktop | Y | Y | Y (CCP) | Y (Flex flagship) | Y | Y | Y | N (no frontend/web/contact-center/ found) | both | all-6 |
 | 67 | Native desktop app (Windows) | Y (legacy) | Y | partial | partial | partial | Y | partial | N | paid | all-6 |
@@ -191,7 +191,7 @@ Coverage: 15 agent-desktop sub-capabilities; oyatie 0/15 implemented (1/15 decla
 
 Agent guidance scripts; screen pop integration with CRM on inbound call.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 81 | Script designer | Y | Y | partial | Y | partial | Y | Y | N | paid | all-6 |
 | 82 | Dynamic script per skill | Y | Y | partial | Y | partial | Y | Y | N | paid | all-6 |
@@ -206,9 +206,9 @@ Coverage: 8 script sub-capabilities; oyatie 0/8.
 
 ## 10. WFM (Workforce Management)
 
-Forecasting, scheduling, intra-day management. NICE and Genesys are the historical WFM leaders; Five9 has WFM via Calabrio acquisition; Connect has basic forecasting.
+Forecasting, scheduling, intra-day management. NICE and Genesys are the historical WFM leaders; Five9 has WFM via Calabrio acquisition; has basic forecasting.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 89 | Forecasting (call volume + AHT) | Y | Y (via Calabrio) | partial | partial | partial | Y (flagship) | Y | N | paid | all-6 |
 | 90 | Schedule generation | Y | Y | partial | partial | N | Y | Y | N | paid | all-6 |
@@ -225,7 +225,7 @@ Coverage: 8 WFM sub-capabilities; oyatie 1/8 declared (workforce-adherence-strea
 
 Call quality scoring, calibration, agent coaching.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 97 | Quality monitoring (manual scoring) | Y | Y | partial | partial | partial | Y (flagship) | Y | D (quality-monitoring bounded context declared) | paid | all-6 |
 | 98 | Auto-quality scoring (AI-driven) | Y | Y | Y (Contact Lens) | partial | partial | Y (Enlighten) | Y | N | paid | all-6 |
@@ -242,7 +242,7 @@ Coverage: 8 WFO/QM sub-capabilities; oyatie 0/8 implemented (3/8 declared partia
 
 Recording capture + storage + retention + retrieval + export.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 105 | Audio recording (full call) | Y | Y | Y | Y | Y | Y | Y | N (recordings µservice delegation declared; no contract) | both | all-6 |
 | 106 | Recording-on-demand (pause/resume mid-call) | Y | Y | Y | Y | Y | Y | Y | N | paid | all-6 |
@@ -262,7 +262,7 @@ Coverage: 11 recording sub-capabilities; oyatie 0/11 implemented (7/11 declared)
 
 Historical reporting + real-time dashboards + custom report builders.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 116 | Real-time supervisor dashboard | Y | Y | Y | Y | Y | Y | Y | partial (dashboards/operating-bar-overview.json) | both | all-6 |
 | 117 | Historical reporting (canned reports) | Y | Y | Y | Y | Y | Y | Y | N | both | all-6 |
@@ -279,7 +279,7 @@ Coverage: 8 analytics sub-capabilities; oyatie 1/8 partially implemented.
 
 Real-time monitoring of agent state + barge-in + whisper + coach.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 124 | Agent presence visualization | Y | Y | Y | Y | Y | Y | Y | D (agent-state-sync capability) | both | all-6 |
 | 125 | Live call monitoring (listen-only) | Y | Y | Y | Y | Y | Y | Y | N | paid | all-6 |
@@ -295,7 +295,7 @@ Coverage: 7 supervisor sub-capabilities; oyatie 0/7 implemented (1/7 declared).
 
 Callback queueing + estimated wait time + scheduled callbacks.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 131 | In-queue callback offer | Y | Y | Y | Y | Y | Y | Y | D (callback-schedule capability + IP-030) | both | all-6 |
 | 132 | Scheduled callback (caller picks time) | Y | Y | Y | Y | Y | Y | Y | D | both | all-6 |
@@ -312,7 +312,7 @@ Coverage: 8 callback sub-capabilities; oyatie 4/8 declared (capability + Cedar f
 
 Real-time sentiment scoring + transcription quality.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 139 | Real-time transcription | Y | Y | Y (Contact Lens) | Y | Y | Y | Y | D (intelligence µservice delegation, no gRPC contract) | paid | all-6 |
 | 140 | Post-call transcription | Y | Y | Y | Y | Y | Y | Y | D | both | all-6 |
@@ -330,7 +330,7 @@ Coverage: 9 sentiment/transcription sub-capabilities; oyatie 2/9 declared (deleg
 
 Caller-ID authentication; FCC TRACED Act compliance; KCC Korean equivalent.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 148 | STIR/SHAKEN signing (A/B/C attestation) | Y | Y | Y | Y | Y | Y | Y | D (tier-matrix paid compliance-pack claim; no impl) | paid | on-prem, colo, oyatie-as-cloud-provider |
 | 149 | STIR/SHAKEN verification (inbound) | Y | Y | Y | Y | Y | Y | Y | N | paid | all-6 |
@@ -347,7 +347,7 @@ Coverage: 8 telephony-compliance sub-capabilities; oyatie 0/8 implemented (3/8 d
 
 Out-of-the-box integration with downstream CRM systems.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 156 | Salesforce native integration | Y | Y | Y | Y | Y | Y | Y | N (delegated to crm µservice; binding missing) | paid | oyatie-public, aws-guest |
 | 157 | MS Dynamics 365 integration | Y | Y | Y | partial | partial | Y | Y | N | paid | oyatie-public, aws-guest |
@@ -362,7 +362,7 @@ Coverage: 6 CRM-integration sub-capabilities; oyatie 0/6.
 
 Webhooks, SDK, custom-extension platforms.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 162 | REST API surface | Y | Y | Y | Y | Y | Y | Y | partial (OpenAPI 3.2.0 declared; minimal endpoints) | both | all-6 |
 | 163 | Webhook events for inbound/outbound | Y | Y | Y (EventBridge) | Y | Y | Y | Y | partial (AsyncAPI 3.1.0 channel declared; one message type) | both | all-6 |
@@ -370,7 +370,7 @@ Webhooks, SDK, custom-extension platforms.
 | 165 | TypeScript SDK | Y | Y | Y | Y | Y | Y | Y | N (Rust-strict; TS-SDK only via codegen from contracts) | both | all-6 |
 | 166 | Java SDK | Y | Y | Y | Y | Y | Y | Y | N (Java forbidden per Rust-strict doctrine; not authored) | both | all-6 |
 | 167 | Python SDK | Y | Y | Y | Y | Y | Y | Y | N (Python forbidden; Rust-only) | both | all-6 |
-| 168 | Open IVR-flow JSON schema | partial (Architect proprietary) | partial (Five9 IVR proprietary) | Y (Connect flows JSON) | Y (Studio JSON) | partial | partial (NICE Studio proprietary) | Y (Talkdesk Studio) | N (schema not authored) | both | all-6 |
+| 168 | Open IVR-flow JSON schema | partial (Architect proprietary) | partial (Five9 IVR proprietary) | Y (flows JSON) | Y (Studio JSON) | partial | partial (NICE Studio proprietary) | Y (Talkdesk Studio) | N (schema not authored) | both | all-6 |
 | 169 | Custom-extension marketplace (3rd-party apps) | Y (Genesys AppFoundry) | Y (CloudSure) | Y (AppFoundry) | Y (Twilio Marketplace) | Y (Zendesk Marketplace) | Y (CXone Mpower) | Y (Talkdesk AppConnect) | D (delegated to marketplace µservice + plugin-app-store) | paid | all-6 |
 
 Coverage: 8 extensibility sub-capabilities; oyatie 4/8 partial/declared, 0/8 implemented to feature parity.
@@ -379,7 +379,7 @@ Coverage: 8 extensibility sub-capabilities; oyatie 4/8 partial/declared, 0/8 imp
 
 Compliance posture per regulatory pack.
 
-| # | Sub-capability | Genesys | Five9 | Connect | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
+| # | Sub-capability | Genesys | Five9 | | Twilio | Zendesk | NICE | Talkdesk | Oyatie | Tenant class | Deployment |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 170 | SOC 2 Type II | Y | Y | Y | Y | Y | Y | Y | D (pack declared in manifest) | paid | all-6 |
 | 171 | ISO 27001 | Y | Y | Y | Y | Y | Y | Y | D | paid | all-6 |
@@ -402,7 +402,7 @@ Total UNION universe across the 20 sections above: 179 sub-capabilities.
 |---|---:|---:|---:|
 | Genesys Cloud | 168 | 9 | 2 |
 | Five9 | 154 | 16 | 9 |
-| Amazon Connect | 150 | 17 | 12 |
+| Amazon | 150 | 17 | 12 |
 | Twilio Flex | 161 | 14 | 4 |
 | Zendesk Talk | 109 | 38 | 32 |
 | NICE CXone | 167 | 9 | 3 |

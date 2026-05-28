@@ -47,7 +47,7 @@ edge inserts + cycle detection (per PRD §"Bounded Contexts" note).
 |---|---|---|
 | `microservices/tasks/src/oya-tasks-dependency-graph-{kernel,domain,usecase,api,adapter,rest,app}/src/lib.rs` | created/replaced | 7-crate stack |
 | `microservices/tasks/src/oya-tasks-task-store-adapter-postgres/migrations/20260518_cycle_prevention.sql` | created | trigger function |
-| `microservices/tasks/src/oya-tasks-dependency-graph-domain/tests/cycle_refusal.rs` | created | property test suite |
+| `microservices/tasks/src/oya-tasks-dependency-graph-domain/tests/cycle_refusal.rs` | created | property test set |
 | `microservices/tasks/catalog/oya-tasks-dependency-graph-*.yaml` | created | catalog entries |
 
 ## Acceptance Gates

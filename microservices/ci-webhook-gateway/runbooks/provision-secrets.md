@@ -62,7 +62,7 @@ vault kv get secret/oya/ci-webhook-gateway
 In Forgejo, as a repo admin of `oya-admin/oyatie`:
 
 - Repo → **Settings → Webhooks → Add Webhook → Forgejo (Gitea-compatible)**.
-- **Target URL**: `https://intelligence.oya.cloud/webhook/forgejo`
+- **Target URL**: `https://ci-webhook-gateway.oyatie.com/webhook/forgejo`
   (or in-cluster: `http://ci-webhook-gateway.ci-webhook-gateway.svc.cluster.local:8081/webhook/forgejo`).
 - **HTTP Method**: POST. **Content type**: `application/json`.
 - **Signing key type**: Ed25519. **Public key**: paste the content of

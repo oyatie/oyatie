@@ -61,8 +61,8 @@
 31. Network Access Analyzer.
 32. Route server support.
 33. BGP peering through route servers and Direct Connect.
-34. AWS Direct Connect private connectivity.
-35. Direct Connect 1/10/100/400 Gbps dedicated port options.
+34. AWS Direct private connectivity.
+35. Direct 1/10/100/400 Gbps dedicated port options.
 36. Site-to-Site VPN.
 37. Client VPN.
 38. VPN CloudHub patterns.
@@ -108,8 +108,8 @@
 20. Cloud Interconnect.
 21. VLAN attachments.
 22. Router appliance integration.
-23. Private Service Connect for Google APIs.
-24. Private Service Connect for producer services.
+23. Private Service for Google APIs.
+24. Private Service for producer services.
 25. Private services access.
 26. Cloud NAT.
 27. Instance-based proxy route targets.
@@ -260,7 +260,7 @@
 | Tenant packet tags | no | no | no | no | yes in tenant_class matrix | Oyatie additive |
 | Cell-aware routing | partial | partial | partial | yes for Oyatie | yes | needs architecture |
 | On-prem support | yes | yes | yes | yes | partial, FAQ | needs IaC |
-| Colo support | yes via Direct Connect | yes via Interconnect | yes via ExpressRoute | yes | partial | needs IaC |
+| Colo support | yes via Direct | yes via Interconnect | yes via ExpressRoute | yes | partial | needs IaC |
 | Public cloud provider mode | no | no | no | yes for Oyatie | partial | needs product API |
 | OCI Always Free demo_trial | no | no | no | yes for Oyatie | no | canonical gap |
 | OpenTofu context deployment | no | no | no | yes for Oyatie | no | canonical gap |
@@ -279,7 +279,7 @@
 | Flow-log retention policy | yes | yes | yes | yes | partial | needs compliance |
 | Compliance tenant_class mapping | partial | partial | partial | yes | partial, tenant_class matrix | needs compliance.md |
 | FIPS packet path | partial | partial | partial | yes for Oyatie | partial | needs proof |
-| MACsec / link encryption | Direct Connect options | Interconnect options | Azure backbone MACsec statement | yes | partial | needs context detail |
+| MACsec / link encryption | Direct options | Interconnect options | Azure backbone MACsec statement | yes | partial | needs context detail |
 | SR-IOV / DPDK tenant path | no | no | no | additive | paid claim | needs design/proof |
 | eBPF policy enforcement | no | no | no | additive | Cilium/eBPF claim | needs implementation map |
 | HTTP/3 ingress default | no | no | no | yes for Oyatie | partial | needs SLO/contracts |
@@ -384,7 +384,7 @@
 | Load balancer ownership | Keep LB API in cloud-network or split to dedicated LB sub-surface with clear owner. | `ARCHITECTURE.md §lb-boundary`. | `crates/oya-cloud-network-lb-api/src/lib.rs:1-16` |
 | WAF policy | Bind WAF policy references to Cedar, edge WAF, and context IaC. | `policy/network-waf.cedar` plus IaC module outputs. | LB API WAF field |
 | DDoS tenant_classes | Convert DDoS runbook into product capability by tenant_class and context. | `PRD.md §ddos-protection`. | `runbooks/ddos-mitigation-engagement.md:15-186` |
-| Direct interconnect | Define port speeds, BGP sessions, RPKI, MACsec, SLAs, and billing. | `capacity-model.md §interconnect`. | AWS Direct Connect / Google Interconnect / Azure ExpressRoute |
+| Direct interconnect | Define port speeds, BGP sessions, RPKI, MACsec, SLAs, and billing. | `capacity-model.md §interconnect`. | AWS Direct / Google Interconnect / Azure ExpressRoute |
 | VPN | Define site-to-site and client VPN equivalent, tenant policy, and routing. | `contracts/openapi/cloud/cloud-network-vpn-v1.yaml`. | AWS Site-to-Site VPN / Google Cloud VPN / Azure VPN Gateway |
 | Cloud router | Define portable route-server API with context adapters. | `ARCHITECTURE.md §route-server`. | AWS route server / Google Cloud Router |
 | Shared network | Define tenant/org sharing model without provider account vocabulary leakage. | `PRD.md §shared-network`. | AWS VPC sharing / Google Shared VPC |

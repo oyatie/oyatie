@@ -46,7 +46,7 @@ layout: flat per-microservice layout per ADR-0131
 ## Cold open
 
 Nadia publishes a Foundry-vetted plugin into plugin-app-store; 50 tenants install it; every subscription
-and usage charge cascades developer to oyatie to tenant through Stripe Connect style settlement. The
+and usage charge cascades developer to oyatie to tenant through Stripe style settlement. The
 narrative starts with Nadia Park, third-party developer and micro-SaaS founder in tenant nadia-labs.dev
 and follows the same principal through every screen, message, approval, ledger posting, and audit
 emission.

@@ -43,8 +43,23 @@ const VALUES_REQUIRED_LINES: &[(&str, &str)] = &[
 ];
 
 const DEPLOYMENT_REQUIRED_LINES: &[(&str, &str)] = &[
-    ("templates/deployment.yaml", ".Values.image.digest"),
-    ("templates/deployment.yaml", "@{{ .Values.image.digest }}"),
+    (
+        "templates/deployment.yaml",
+        "$imageDigest := .Values.image.digest | default \"\"",
+    ),
+    (
+        "templates/deployment.yaml",
+        "regexMatch \"^sha256:[0-9a-f]{64}$\" $imageDigest",
+    ),
+    (
+        "templates/deployment.yaml",
+        "regexMatch \"[1-9a-f]\" (trimPrefix \"sha256:\" $imageDigest)",
+    ),
+    (
+        "templates/deployment.yaml",
+        "fail \"image.digest must be set to a real non-zero sha256 digest when image.cosign.required=true\"",
+    ),
+    ("templates/deployment.yaml", "@{{ $imageDigest }}"),
     ("templates/deployment.yaml", ".Values.image.cosign.required"),
     (
         "templates/deployment.yaml",
@@ -52,7 +67,7 @@ const DEPLOYMENT_REQUIRED_LINES: &[(&str, &str)] = &[
     ),
     (
         "templates/deployment.yaml",
-        "oyatie.com/image-digest: {{ .Values.image.digest | quote }}",
+        "oyatie.com/image-digest: {{ $imageDigest | quote }}",
     ),
     (
         "templates/deployment.yaml",
@@ -351,12 +366,12 @@ fn require_values_yaml(text: Option<&str>, issues: &mut Vec<String>) -> usize {
     };
     let mut checked = 0usize;
     match find_image_digest(text) {
-        Some(digest) if valid_sha256_digest(&digest) => {
+        Some(digest) if digest.is_empty() || valid_sha256_digest(&digest) => {
             checked += 1;
         }
         Some(digest) => {
             issues.push(format!(
-                "values.yaml image.digest must be sha256:<64 lowercase non-zero hex>, found {digest:?}"
+                "values.yaml image.digest must be empty for release injection or sha256:<64 lowercase non-zero hex>, found {digest:?}"
             ));
         }
         None => issues.push("values.yaml must declare image.digest".to_string()),
@@ -371,9 +386,7 @@ fn find_image_digest(text: &str) -> Option<String> {
             continue;
         };
         let value = value.trim().trim_matches('"').trim_matches('\'');
-        if value.starts_with("sha256:") {
-            return Some(value.to_string());
-        }
+        return Some(value.to_string());
     }
     None
 }
@@ -499,24 +512,22 @@ mod tests {
         temp.write(
             "microservices/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
             &valid_deployment().replace(
-                "{{- if .Values.image.digest }}@{{ .Values.image.digest }}{{- else }}:",
-                "{{- if .Values.image.digest }}:{{ .Values.image.tag }}{{- else }}:",
+                "{{- if $imageDigest }}@{{ $imageDigest }}{{- else }}:",
+                "{{- if $imageDigest }}:{{ .Values.image.tag }}{{- else }}:",
             ),
         );
 
         let error = validate_cloud_iac_helm_chart_gate(temp.args()).expect_err("drift rejected");
-        assert!(error.contains("@{{ .Values.image.digest }}"));
+        assert!(error.contains("@{{ $imageDigest }}"));
     }
 
     #[test]
     fn cloud_iac_helm_chart_gate_rejects_zero_digest_placeholder() {
         let temp = valid_temp_repo("cloud-iac-helm-chart-zero-digest");
+        let zero_digest = format!("sha256:{}", "0".repeat(64));
         temp.write(
             "microservices/cloud-iac/iac/k8s/helm/values.yaml",
-            &valid_values().replace(
-                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-            ),
+            &valid_values().replace("digest: \"\"", &format!("digest: \"{zero_digest}\"")),
         );
 
         let error = validate_cloud_iac_helm_chart_gate(temp.args()).expect_err("zero rejected");
@@ -610,10 +621,10 @@ annotations:
 
     fn valid_values() -> &'static str {
         r#"image:
-  registry: registry.oyatie.dev
+  registry: registry.oyatie.internal
   repository: oya-cloud-iac
   tag: "0.1.0"
-  digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  digest: ""
   cosign:
     required: true
     policy: ADR-0181
@@ -623,14 +634,18 @@ config:
     }
 
     fn valid_deployment() -> String {
-        r#"apiVersion: apps/v1
+        r#"{{- $imageDigest := .Values.image.digest | default "" -}}
+{{- if and .Values.image.cosign.required (not (and (regexMatch "^sha256:[0-9a-f]{64}$" $imageDigest) (regexMatch "[1-9a-f]" (trimPrefix "sha256:" $imageDigest)))) -}}
+{{- fail "image.digest must be set to a real non-zero sha256 digest when image.cosign.required=true" -}}
+{{- end -}}
+apiVersion: apps/v1
 kind: Deployment
 spec:
   template:
     metadata:
       annotations:
         cosign.sigstore.dev/required: {{ .Values.image.cosign.required | quote }}
-        oyatie.com/image-digest: {{ .Values.image.digest | quote }}
+        oyatie.com/image-digest: {{ $imageDigest | quote }}
         oyatie.com/image-promotion-policy: {{ .Values.image.cosign.policy | quote }}
     spec:
       securityContext:
@@ -638,7 +653,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}{{- if .Values.image.digest }}@{{ .Values.image.digest }}{{- else }}:{{ .Values.image.tag }}{{- end }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}{{- if $imageDigest }}@{{ $imageDigest }}{{- else }}:{{ .Values.image.tag }}{{- end }}"
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

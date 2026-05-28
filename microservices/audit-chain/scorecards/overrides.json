@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "audit-chain",
   "summary": "append-only sealed event ledger w/ Merkle proofs + HSM signing",
   "chart_name": "audit-storage",

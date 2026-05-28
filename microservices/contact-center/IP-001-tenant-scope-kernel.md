@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This slice creates the tenant boundary for a contact center launch without copying Genesys division, NICE CXone business unit, Five9 domain, Talkdesk account, or AWS Connect instance semantics into the platform. Nadia Singh is the named persona: she activates a regulated support tenant and needs queues, agents, recordings, and routing state to stay tenant-scoped before any call or chat can enter service.
+This slice creates the tenant boundary for a contact center launch without copying Genesys division, NICE CXone business unit, Five9 domain, Talkdesk account, or AWS instance semantics into the platform. Nadia Singh is the named persona: she activates a regulated support tenant and needs queues, agents, recordings, and routing state to stay tenant-scoped before any call or chat can enter service.
 
 ## Data Model Deltas
 
@@ -24,7 +24,7 @@ This slice creates the tenant boundary for a contact center launch without copyi
 | `contact_center_scope` | `tenant_id` | `uuid not null` | Tenant partition key. |
 | `contact_center_scope` | `service_region` | `text not null` | Cell/region where routing is allowed. |
 | `contact_center_scope` | `regulated_channel_flags` | `text[] not null` | `voice_recorded`, `sms`, `chat`, `emergency_bypass`. |
-| `contact_center_scope` | `source_vendor_refs` | `jsonb not null default '{}'` | Genesys org/division, NICE CXone BU, Five9 domain, Talkdesk account, AWS Connect instance. |
+| `contact_center_scope` | `source_vendor_refs` | `jsonb not null default '{}'` | Genesys org/division, NICE CXone BU, Five9 domain, Talkdesk account, AWS instance. |
 | `contact_center_scope` | `recording_residency_pack` | `text not null` | HIPAA, GDPR, PCI-DSS, TCPA overlay. |
 | `contact_center_scope` | `created_at` | `timestamptz not null` | HLC timestamp. |
 
@@ -66,7 +66,7 @@ gRPC `ContactCenterScopeService.CreateScope(CreateContactCenterScopeRequest)` ad
 | NICE CXone Business Unit | `ContactCenterScope` | `businessUnitId -> source_vendor_refs.nice_cxone_business_unit_id`. |
 | Five9 Domain | `ContactCenterScope` | `domainId -> source_vendor_refs.five9_domain_id`; domain timezone advisory only. |
 | Talkdesk Account | `ContactCenterScope` | `accountId -> source_vendor_refs.talkdesk_account_id`. |
-| AWS Connect Instance | `ContactCenterScope` | `instanceArn -> source_vendor_refs.aws_connect_instance_arn`; instance policies do not become Cedar grants. |
+| AWS Instance | `ContactCenterScope` | `instanceArn -> source_vendor_refs.aws_connect_instance_arn`; instance policies do not become Cedar grants. |
 
 ## Workflow Steps
 
@@ -102,7 +102,7 @@ Branches: duplicate vendor instance returns `409 scope_conflict`; unsupported re
 
 ## Migration Notes
 
-Genesys, NICE CXone, Five9, Talkdesk, and AWS Connect all treat tenancy and routing boundaries differently. Migration stores vendor ids as references only; Oyatie scope, tenant, and pack fields become the authority.
+Genesys, NICE CXone, Five9, Talkdesk, and AWS all treat tenancy and routing boundaries differently. Migration stores vendor ids as references only; Oyatie scope, tenant, and pack fields become the authority.
 
 ## Cross-µservice Handoffs
 

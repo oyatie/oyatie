@@ -337,7 +337,14 @@ fn ontology_product_edges_have_declared_sources_and_targets() {
         .iter()
         .map(|node| node["id"].as_str().expect("product node id is a string"))
         .collect();
-    for required_node in ["connect", "workflow", "ontology", "foundry"] {
+    for required_node in [
+        "community",
+        "messenger",
+        "mail",
+        "workflow",
+        "ontology",
+        "foundry",
+    ] {
         assert!(
             product_node_ids.contains(required_node),
             "missing product node {required_node}"

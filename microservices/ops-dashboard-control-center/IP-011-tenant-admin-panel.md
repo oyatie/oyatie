@@ -60,13 +60,13 @@ Technical target set: tenant-admin-surface.json, tenant-scope-enforcement.cedar,
 
 | Counterpart | Relevant pressure | Oyatie closure in this IP |
 |---|---|---|
-| Stripe Connect and Salesforce Shield tenant audit surfaces | Mature external control surface to compare against. | Stripe Connect and Salesforce Shield tenant audit surfaces are counterparts; Oyatie adds partner-agency scoped tenant reads. |
+| Stripe and Salesforce Shield tenant audit surfaces | Mature external control surface to compare against. | Stripe and Salesforce Shield tenant audit surfaces are counterparts; Oyatie adds partner-agency scoped tenant reads. |
 | GitHub | Required verification regex and PR/evidence control-plane precedent. | This IP remains changeset-driven, reviewable, and tied to branch/admission evidence rather than prose-only approval. |
 
 ## H. Service-Specific Drilldown
 1. Compose tenant lifecycle, quota, isolation score, and evidence pack age into one posture query.
 2. Partner-agency views use scoped_tenants and RLS; internal support still receives audit-sealed reads.
-3. Stripe Connect and Salesforce Shield are counterparts for account/tenant audit isolation.
+3. Stripe and Salesforce Shield are counterparts for account/tenant audit isolation.
 4. Dashboard panels must resolve to `dashboards/tenant-admin-surface.json`.
 5. Tests cover posture freshness, evidence age alert, partner-agency filter, and cross-tenant denial.
 

@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Failure Modes (the failure ladder + FMEA)
+# Cloud Intelligence service — Failure Modes (the failure ladder + FMEA)
 
 **Authority:** ADR-0373 (key-pool resilience state machine), ADR-0090 (hyper backbone)
 **Owner:** council-foundry + ops-sre-reliability

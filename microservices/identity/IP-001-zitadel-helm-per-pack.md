@@ -24,7 +24,7 @@ Deploy Zitadel v2.55.0 via Helm chart v9.34.1 to each regulatory pack with full 
 | `microservices/identity/iac/helm/zitadel/values.yaml` | Default values: 3 replicas, image tag v2.55.0, Postgres DSN via SecretReference | 180 lines |
 | `microservices/identity/iac/helm/zitadel/templates/deployment.yaml` | Deployment with SecretReference env + Istio sidecar annotations | 95 lines |
 | `microservices/identity/iac/helm/zitadel/templates/service.yaml` | ClusterIP service exposing 8080 (admin) + 8443 (OIDC) | 30 lines |
-| `microservices/identity/iac/helm/zitadel/templates/ingress.yaml` | Istio Ambient ingress binding to `identity-<pack>.oyatie.dev` | 45 lines |
+| `microservices/identity/iac/helm/zitadel/templates/ingress.yaml` | Istio Ambient ingress binding to `identity-<pack>.oyatie.com` | 45 lines |
 | `microservices/identity/iac/helm/zitadel/templates/hpa.yaml` | HPA: min 3, max 20, 70% CPU + 80% memory target | 35 lines |
 | `microservices/identity/iac/helm/zitadel/templates/pdb.yaml` | PodDisruptionBudget: minAvailable=2 | 15 lines |
 | `microservices/identity/iac/helm/zitadel/templates/networkpolicy.yaml` | Restrict ingress to Envoy waypoint + Postgres egress only | 55 lines |
@@ -45,7 +45,7 @@ Deploy Zitadel v2.55.0 via Helm chart v9.34.1 to each regulatory pack with full 
 | `helm template ... | kubectl apply --dry-run=server -f -` | server-side dry-run | every K8s resource validates |
 | `kyverno-cli scan helm-rendered.yaml` against `policy/kyverno/zitadel-baseline.yaml` | admission | required-labels, image-pin, no-root, no-privileged-escalation pass |
 | Cilium NetworkPolicy compile-check | static | policy renders to valid CiliumNetworkPolicy |
-| Conformance: spin up minikube + apply chart + verify `/oauth/v2/discovery` returns 200 with `issuer: https://identity-test.oyatie.dev` | e2e | smoke pass |
+| Conformance: spin up minikube + apply chart + verify `/oauth/v2/discovery` returns 200 with `issuer: https://identity-test.oyatie.com` | e2e | smoke pass |
 | Postgres event-store schema migration test | e2e | initial schema applies clean; upgrade from previous minor cleanly migrates |
 
 ## SecretReference inventory

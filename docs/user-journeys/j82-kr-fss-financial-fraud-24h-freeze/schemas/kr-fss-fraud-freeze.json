@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j82-kr-fss-fraud-freeze.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j82-kr-fss-fraud-freeze.schema.json",
   "title": "J82 KR FSS financial fraud 24h freeze Journey Object",
   "version": "1.0.0",
   "_meta": {

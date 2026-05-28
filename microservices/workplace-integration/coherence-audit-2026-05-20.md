@@ -47,7 +47,7 @@ Tenant-class adoption state: absent in current µservice artifacts
 14. A coherent outcome can still exist if the µservice is explicitly scoped as the workplace-domain adapter into those integration surfaces.
 15. Current artifacts do not yet make that bridge explicit.
 16. The audit therefore evaluates two axes at once: the actual local product, and the required counterpart union bar.
-17. The service has a large artifact suite: 135 files and 22,660 total lines under the µservice path.
+17. The service has a large artifact set: 135 files and 22,660 total lines under the µservice path.
 18. The line mass is not the same as substance because multiple 36-line operational docs share a common scaffold.
 19. The most serious implementation blockers are not missing prose volume; they are contradictory contract/event mappings and missing canonical infrastructure posture.
 20. The service has Rust source and Cargo metadata, but only a documentation scaffold in `src/lib.rs`.
@@ -109,7 +109,7 @@ Read strategy: full inventory plus substantial reads of PRD, architecture, READM
 19. `microservices/workplace-integration/IP-journey-j56-offer-e-sign.md`
 20. `microservices/workplace-integration/IP-journey-j63-informed-consent.md`
 21. `microservices/workplace-integration/IP-journey-j70-e-sign.md`
-22. `microservices/workplace-integration/PHASE-01-DOC-SUITE-CLOSURE.md`
+22. `microservices/workplace-integration/PHASE-01-DOC-SET-CLOSURE.md`
 23. `microservices/workplace-integration/PRD.md`
 24. `microservices/workplace-integration/README.md`
 25. `microservices/workplace-integration/backfill-replay.md`

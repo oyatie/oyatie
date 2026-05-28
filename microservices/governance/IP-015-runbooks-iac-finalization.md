@@ -119,7 +119,7 @@ cargo run -p oya-dev-cli -- gate validate industry-best-practice-conformance --m
 | Helm lint passes | chart sanity |
 | Kustomize dry-run resolves | overlay sanity |
 | HG-GOV registration recognized | authority-cohesion lane green |
-| Full ~50-lane suite passes on governance HEAD | phase exit |
+| Full ~50-lane set passes on governance HEAD | phase exit |
 
 ## Halt Conditions
 

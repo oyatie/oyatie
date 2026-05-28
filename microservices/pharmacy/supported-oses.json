@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/supported-oses.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/supported-oses.schema.json",
   "microservice": "pharmacy",
   "authority": "feedback_os_support_matrix_2026_05_20 + ADR-0328 §D-17 + ADR-0332",
   "tier_1_blocking_in_ci": [

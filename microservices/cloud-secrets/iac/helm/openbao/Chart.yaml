@@ -10,7 +10,7 @@ sources:
   - https://github.com/openbao/openbao
 maintainers:
   - name: axis-cloud-secrets
-    email: axis-cloud-secrets@oyatie.dev
+    email: axis-cloud-secrets@oyatie.com
 keywords:
   - vault
   - openbao

@@ -534,7 +534,7 @@ Additive surface 20: Sites can use audit evidence to prove migration, publish, r
 
 Backlog item 1: Align manifest BCs and layers with PRD plus contracts.
 
-Backlog item 2: Remove stale Connect dependency from live manifest surfaces.
+Backlog item 2: Remove stale dependency from live manifest surfaces.
 
 Backlog item 3: Add tenant-class behavior document or manifest section for `demo_trial`, `paid`, and `revenue_share`.
 

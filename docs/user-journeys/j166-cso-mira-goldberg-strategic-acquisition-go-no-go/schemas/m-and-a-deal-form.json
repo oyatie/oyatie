@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j166/m-and-a-deal-form.json",
+  "$id": "https://oyatie.com/schemas/j166/m-and-a-deal-form.json",
   "title": "Skylark + MRT M&A Deal Form (Q2-2027)",
   "description": "JSON schema for the strategic-acquisition decision form. Aggregates deal terms, target inputs, acquirer inputs, financial model scenarios, ML scenario results, pack cross-check, merger filings, counsel review, committee endorsement, board vote, decision record. This is what gets archived to drive WORM + super-Merkle anchored.",
   "type": "object",

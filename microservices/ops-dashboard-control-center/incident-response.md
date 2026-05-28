@@ -12,7 +12,7 @@ companion_docs:
   - microservices/ops-dashboard-control-center/runbooks/dashboard-perf-degradation.md
   - microservices/ops-dashboard-control-center/runbooks/step-up-auth-bypass-attempt.md
   - microservices/ops-dashboard-control-center/failure-modes.md
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # Incident Response — ops-dashboard-control-center

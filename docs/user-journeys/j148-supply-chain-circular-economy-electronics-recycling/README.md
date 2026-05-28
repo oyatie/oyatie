@@ -98,7 +98,7 @@ credit.
 | `workflow-engine` | [IP-journey-j148-recycling-route-dag.md](../../../microservices/workflow-engine/IP-journey-j148-recycling-route-dag.md) | recycling-route-dag |
 | `ontology` | [IP-journey-j148-material-provenance-graph.md](../../../microservices/ontology/IP-journey-j148-material-provenance-graph.md) | material-provenance-graph |
 | `audit-chain` | [IP-journey-j148-chain-of-custody-seal.md](../../../microservices/audit-chain/IP-journey-j148-chain-of-custody-seal.md) | chain-of-custody-seal |
-| `connect` | [IP-journey-j148-carrier-and-recycler-adapters.md](../../../microservices/connect/IP-journey-j148-carrier-and-recycler-adapters.md) | carrier-and-recycler-adapters |
+| `connector` | [IP-journey-j148-carrier-and-recycler-adapters.md](../../../microservices/connector/IP-journey-j148-carrier-and-recycler-adapters.md) | carrier-and-recycler-adapters |
 | `community` | [IP-journey-j148-consumer-impact-reputation.md](../../../microservices/community/IP-journey-j148-consumer-impact-reputation.md) | consumer-impact-reputation |
 
 ## Integration points
@@ -108,7 +108,7 @@ credit.
 - `workflow-engine`: recycling-route-dag; participates in `CircularRecyclingReturnCommand` and emits `CircularMaterialProvenanceSettled` evidence.
 - `ontology`: material-provenance-graph; participates in `CircularRecyclingReturnCommand` and emits `CircularMaterialProvenanceSettled` evidence.
 - `audit-chain`: chain-of-custody-seal; participates in `CircularRecyclingReturnCommand` and emits `CircularMaterialProvenanceSettled` evidence.
-- `connect`: carrier-and-recycler-adapters; participates in `CircularRecyclingReturnCommand` and emits `CircularMaterialProvenanceSettled` evidence.
+- `connector`: carrier-and-recycler-adapters; participates in `CircularRecyclingReturnCommand` and emits `CircularMaterialProvenanceSettled` evidence.
 - `community`: consumer-impact-reputation; participates in `CircularRecyclingReturnCommand` and emits `CircularMaterialProvenanceSettled` evidence.
 
 ## Completion boundary

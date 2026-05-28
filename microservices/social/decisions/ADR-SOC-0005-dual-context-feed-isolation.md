@@ -170,13 +170,13 @@ oyatie social adopts the **dual-context isolation pattern from parallel ADR-0238
 ## References
 
 - ADR-0008 — Data Use Boundary.
-- ADR-0135 — Connect dissolution (parallel; dual-context source).
+- ADR-0135 — dissolution (parallel; dual-context source).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — Suite-and-bundle dissolution.
 - ADR-SOC-0001 — Feed-ranking algorithm (paired DCI ADR — ranking is per-tier).
 - ADR-SOC-0004 — Federation posture (paired DCI-08 ADR).
-- Bominal ADR-0208 — Connect dual-context unified channel hub (inherited).
-- Bominal ADR-0215 — Connect retention legal-hold dual-context (inherited).
+- Bominal ADR-0208 — dual-context unified channel hub (inherited).
+- Bominal ADR-0215 — retention legal-hold dual-context (inherited).
 - `microservices/social/PRD.md` §"Bounded Contexts" + §"Tenant Value".
 - `microservices/social/policy/dual-context-isolation.md` (full DCI document).
 - `microservices/social/policy/tenant-scope.cedar`.

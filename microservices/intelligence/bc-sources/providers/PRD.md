@@ -202,7 +202,7 @@ oyatie differentiators:
 - ADR-0117 — pack residency model.
 - ADR-0139 — agentic SLO-gated promotion.
 - ADR-0131 — per-microservice flat layout.
-- ADR-0132 — product suite and bundle dissolution.
+- ADR-0132 — product platform and bundle dissolution.
 - ADR-0133 — industry-best-practice conformance program.
 - Bominal ADR-0019 — runtime catalog (informs vendor list).
 - `docs/standards/observability-slo.md`.

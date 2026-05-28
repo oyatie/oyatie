@@ -19,7 +19,7 @@ sites	microservices/sites/contracts/openapi.yaml	pending	pending	false	axis-work
 forms	microservices/forms/contracts/openapi.yaml	pending	pending	false	axis-workspace
 tasks	microservices/tasks/contracts/openapi.yaml	pending	pending	false	axis-workspace
 translate	microservices/translate/contracts/openapi.yaml	pending	pending	false	axis-workspace
-connect	microservices/connect/contracts/openapi.yaml	pending	pending	false	axis-saas
+connector	microservices/connector/contracts/openapi.yaml	pending	pending	false	axis-saas
 shorts	microservices/shorts/contracts/openapi.yaml	pending	pending	false	axis-saas
 social	microservices/social/contracts/openapi.yaml	pending	pending	false	axis-saas
 community	microservices/community/contracts/openapi.yaml	pending	pending	false	axis-saas

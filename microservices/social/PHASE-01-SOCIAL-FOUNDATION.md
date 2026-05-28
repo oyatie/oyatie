@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-social-foundation
 status: Active
 entry_gate: |
-  ADR-0135 (parallel Connect dissolution) + ADR-0131 + ADR-0132 accepted; /specs/microservices/social.json published;
+  ADR-0135 (parallel dissolution) + ADR-0131 + ADR-0132 accepted; /specs/microservices/social.json published;
   observability µservice IP-001..IP-015 merged so social can author OpenSLO manifests and pass promotion-readiness gate.
 exit_gate: |
   All 15 IPs merged; all ~115 crates compile + nextest green; oya gate validate per-microservice-layout --microservice social

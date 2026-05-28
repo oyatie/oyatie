@@ -26,7 +26,7 @@ companion_docs:
   - microservices/whiteboard/ARCHITECTURE.md
   - microservices/whiteboard/compliance.md
   - microservices/whiteboard/manifest.json
-planned_enforcement_ref: oya-governance-whiteboard-doc-suite
+planned_enforcement_ref: oya-governance-whiteboard-doc-set
 ---
 
 # PRD-whiteboard: Whiteboard

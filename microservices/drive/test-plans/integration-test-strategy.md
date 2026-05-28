@@ -85,7 +85,7 @@ Live object storage and scanner certification may exist in separate lanes; this 
 - Cross-service handoff target: all manifest audit-chain events have at least one integration publish test.
 - Policy coverage target: permissions, share-link, quarantine, and immutability decisions have Cedar fuzz coverage.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `integration::file_store_flow`.
 - Test `file_upload_s3_fake_acme_success`.

@@ -318,7 +318,7 @@ Response (per filing):
 
 - **Dual-seal**: every supplier-data submission seals in both MFI tenant + supplier tenant.
 - **TrueTime**: ≤ 10 ms uncertainty.
-- **MLS encryption**: all `connect` cross-tenant channels MLS-encrypted per RFC 9420.
+- **MLS encryption**: all `connector` cross-tenant channels MLS-encrypted per RFC 9420.
 - **HTTP/3 + QUIC**: all µservice traffic.
 - **Diacritic + locale**: international supplier names preserve UTF-8 NFC (Norsk Hydro ASA, Aluminerie Alouette Inc., Comisión Federal de Electricidad, Aktiengesellschaft).
 - **NDA scoping**: every cross-tenant data exchange requires active NDA reference.

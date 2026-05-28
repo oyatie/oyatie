@@ -38,7 +38,7 @@ fn payroll_storage_records_metadata_without_durable_backend_claim() {
     );
     assert_eq!(
         accounting_record.topic,
-        "enterprise.payroll.accounting.journal_draft"
+        "tenant_rbac.payroll.accounting.journal_draft"
     );
     assert_eq!(accounting_record.primary_ref, "jrn_payroll_2026_01");
     assert_eq!(accounting_record.evidence_ref_count, 2);

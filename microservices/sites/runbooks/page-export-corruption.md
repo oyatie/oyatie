@@ -166,7 +166,7 @@ cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo seo-met
 
 - If Case A, file Loro CRDT upstream bug + add regression test.
 - If Case D, check pinned context version annually.
-- Update LEAN regression suite at `tests/reference/*.rs`.
+- Update LEAN regression set at `tests/reference/*.rs`.
 
 ## References
 

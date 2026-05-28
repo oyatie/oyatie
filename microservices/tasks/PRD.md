@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tenant_class_eligibility: [demo_trial, paid]
 paid_billing_components_emitted: [per_seat, per_usage]
 milestone_first_ship: M03-connect-dissolution
-bominal_source: [ADR-0231-connect-tasks-board-and-views, ADR-0232-connect-tasks-dependency-graph, ADR-0233-connect-tasks-recurring-and-rsvp-equivalent]
+bominal_source: [ADR-0231-tasks-board-and-views, ADR-0232-tasks-dependency-graph, ADR-0233-tasks-recurring-and-rsvp-equivalent]
 related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-0329, ADR-0330, ADR-0331, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
 related_specs: [/specs/microservices/tasks.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-The `tasks` µservice is oyatie's native **work-item / task management** substrate — the user-facing CRUD surface that humans use to organise actionable work. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0135 (Connect unbundle), `tasks` is a standalone tenant-facing µservice — no longer part of any Connect suite — owning: task CRUD with title/description/status/priority/assignee/due-date/labels/parent-subtask; list/project (collection-of-tasks with custom-field schema); board (kanban view with columns); view (list + board + gantt + calendar + timeline + table — multi-view per project); assignee + watcher; due-date + reminder; recurring-task (RRULE-aligned subset per RFC 5545); dependency graph (blocks / blocked-by / relates-to); checklist (subtasks-lite); attachment (cross-µservice to drive); comment + reaction; time-tracking (start/stop timer + manual entry; M02-onward); custom-field (text/number/date/dropdown/multi-select/person/url/checkbox); saved-filter + view-template; label/tag; sprint/iteration (Linear-class agile); milestone; status-workflow (per-project; configurable Todo→InProgress→Review→Done); priority (P0..P3 + Linear-style); automation (cross-µservice to workflow-engine — task-state-change triggers); notifications (cross-µservice to mail + messenger); bulk-edit; multi-assignee (with primary-assignee semantics); templates + template-marketplace; cross-task + cross-project search (Meilisearch); import (CSV + Jira + Asana + Trello + Linear + Todoist); export (CSV + JSON); API + webhooks; integrations (calendar bridge for due-date → event); epic-roadmap (Linear/Jira); portfolio-view (cross-project rollup); AI-task-suggest (T0 next-task suggest, T1 auto-categorise + priority-suggest, T2 auto-assign).
+The `tasks` µservice is oyatie's native **work-item / task management** substrate — the user-facing CRUD surface that humans use to organise actionable work. Per ADR-0132 (product-platform + bundle dissolution) and parallel-session ADR-0135 (unbundle), `tasks` is a standalone tenant-facing µservice — no longer part of any platform — owning: task CRUD with title/description/status/priority/assignee/due-date/labels/parent-subtask; list/project (collection-of-tasks with custom-field schema); board (kanban view with columns); view (list + board + gantt + calendar + timeline + table — multi-view per project); assignee + watcher; due-date + reminder; recurring-task (RRULE-aligned subset per RFC 5545); dependency graph (blocks / blocked-by / relates-to); checklist (subtasks-lite); attachment (cross-µservice to drive); comment + reaction; time-tracking (start/stop timer + manual entry; M02-onward); custom-field (text/number/date/dropdown/multi-select/person/url/checkbox); saved-filter + view-template; label/tag; sprint/iteration (Linear-class agile); milestone; status-workflow (per-project; configurable Todo→InProgress→Review→Done); priority (P0..P3 + Linear-style); automation (cross-µservice to workflow-engine — task-state-change triggers); notifications (cross-µservice to mail + messenger); bulk-edit; multi-assignee (with primary-assignee semantics); templates + template-marketplace; cross-task + cross-project search (Meilisearch); import (CSV + Jira + Asana + Trello + Linear + Todoist); export (CSV + JSON); API + webhooks; integrations (calendar bridge for due-date → event); epic-roadmap (Linear/Jira); portfolio-view (cross-project rollup); AI-task-suggest (T0 next-task suggest, T1 auto-categorise + priority-suggest, T2 auto-assign).
 
 The µservice differentiates from `workflow-engine` (durable execution engine) by being the **user-facing CRUD primitive for work-items that humans manage manually**. Calendar binds time-blocks; tasks binds work-items.
 
@@ -398,12 +398,12 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
+| ADR-0135 | unbundle (parallel session) | dual-context inheritance |
 | ADR-0139 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
-| ADR-0132 | Product-suite + bundle dissolution | µservice independence |
+| ADR-0132 | Product-platform + bundle dissolution | µservice independence |
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |
-| ADR-0134 | Connect dissolution Strangler migration | migration policy |
+| ADR-0134 | dissolution Strangler migration | migration policy |
 | ADR-0140 | Cedar policy enforcement | policy substrate |
 | ADR-0329 | Tier system retired and replaced by tenant_class | tier-retirement authority |
 | ADR-0330 | demo_trial vs paid tenant_class with composable paid billing components | tenant_class authority |
@@ -414,9 +414,9 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 | ADR-TASKS-0004 | View engine + board realtime | CRDT/realtime authority |
 | ADR-TASKS-0005 | Automation engine cross-µservice (workflow-engine bridge) | automation authority |
 | ADR-TASKS-0006 | AI auto-assign + EU AI Act Annex III §4 bounds | AI authority |
-| Bominal ADR-0231 | Connect tasks board + views | inherited 1:1 |
-| Bominal ADR-0232 | Connect tasks dependency graph | inherited 1:1 |
-| Bominal ADR-0233 | Connect tasks recurring + RSVP-equivalent | inherited 1:1 |
+| Bominal ADR-0231 | tasks board + views | inherited 1:1 |
+| Bominal ADR-0232 | tasks dependency graph | inherited 1:1 |
+| Bominal ADR-0233 | tasks recurring + RSVP-equivalent | inherited 1:1 |
 
 ## Doctrine refs (ADR-0346..0349)
 

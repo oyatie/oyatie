@@ -92,7 +92,7 @@ All SDKs support:
 ```rust
 use oya_sites_site_sdk::{SitesClient, CreateSiteRequest};
 
-let client = SitesClient::new("https://sites.kr.oyatie.dev/v1")
+let client = SitesClient::new("https://sites.kr.oyatie.com/v1")
     .with_oidc_token(token)
     .with_tenant_api_key(api_key);
 
@@ -107,7 +107,7 @@ let site = client.sites()
 import { SitesClient } from '@oyatie/sites-sdk';
 
 const client = new SitesClient({
-  baseUrl: 'https://sites.kr.oyatie.dev/v1',
+  baseUrl: 'https://sites.kr.oyatie.com/v1',
   oidcToken: token,
   tenantApiKey: apiKey,
 });
@@ -121,7 +121,7 @@ const site = await client.sites.create({ name: 'Acme Public Site', visibility: '
 from oya_sites_sdk import SitesClient
 
 client = SitesClient(
-    base_url='https://sites.kr.oyatie.dev/v1',
+    base_url='https://sites.kr.oyatie.com/v1',
     oidc_token=token,
     tenant_api_key=api_key,
 )

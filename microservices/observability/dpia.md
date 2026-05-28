@@ -280,7 +280,7 @@ This DPIA re-reviews on:
 - ADR-0117: Cloud-native infrastructure (data residency).
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/observability/threat-model.md` — paired security artifact.
 - `microservices/observability/policy/tenant-isolation.md` (Slice A Task A3).

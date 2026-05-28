@@ -27,7 +27,7 @@ companion_docs:
   - microservices/contact-center/ARCHITECTURE.md
   - microservices/contact-center/compliance.md
   - microservices/contact-center/manifest.json
-planned_enforcement_ref: oya-governance-contact-center-doc-suite
+planned_enforcement_ref: oya-governance-contact-center-doc-set
 ---
 
 # PRD-contact-center: Contact Center
@@ -170,7 +170,7 @@ The first anchor is intentionally four artifacts. Full PR-143 buildout follows a
 - Public API model: YYYY-MM-DD carrier triplet across `Oyatie-Version`, `/v/<YYYY-MM-DD>/contact-center/...`, and proto3 `oyatie_version`.
 - SDK model: generated agent-desktop, supervisor, and migration SDKs use semantic `major.minor.patch` versions.
 - Support window: the last 3 public API versions remain supported for at least 180 days.
-- Per-tenant pinning: yes, because Genesys, Twilio Flex, Zendesk Talk, Five9, and AWS Connect migrations roll tenant by tenant.
+- Per-tenant pinning: yes, because Genesys, Twilio Flex, Zendesk Talk, Five9, and AWS migrations roll tenant by tenant.
 - Internal mesh exemption: yes, preserving ADR-0145 direct gRPC for routing, consent, and audit-chain calls.
 
 ## F. UX Flows
@@ -208,7 +208,7 @@ The first anchor is intentionally four artifacts. Full PR-143 buildout follows a
 - Bypassing marketplace DealSet settlement for commercial obligations.
 
 ## K. Hyperscaler and Industry Precedents
-- Precedent: Amazon Connect contact-flow routing; imported lesson is shared substrate plus explicit projection instead of hidden product-coupled state.
+- Precedent: Amazon contact-flow routing; imported lesson is shared substrate plus explicit projection instead of hidden product-coupled state.
 - Precedent: Twilio Flex programmable contact center; imported lesson is shared substrate plus explicit projection instead of hidden product-coupled state.
 - Precedent: Genesys Cloud queue management; imported lesson is shared substrate plus explicit projection instead of hidden product-coupled state.
 

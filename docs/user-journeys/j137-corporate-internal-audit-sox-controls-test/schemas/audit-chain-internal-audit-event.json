@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j137/audit-chain-internal-audit-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j137/audit-chain-internal-audit-event.json",
   "title": "AuditChainInternalAuditEvent",
   "description": "Sealed audit-chain leaf emitted by every internal-audit-bound action. Extends the canonical AuditEventSealed envelope per ADR-0028 + ADR-0263.",
   "_meta": {

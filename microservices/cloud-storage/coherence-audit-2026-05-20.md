@@ -12,7 +12,7 @@ Audit date: 2026-05-20.
 2. Machine-readable plan: `specs/master-plan-sequencing.json:704-867` for six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
 3. Service PRD citation: service-local `microservices/cloud-storage/PRD.md` is absent; closest product-purpose evidence read is `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:8-11` plus root cloud PRD capability records `docs/products/cloud/PRD.md:1587-1665`.
 4. Service architecture citation: service-local `microservices/cloud-storage/ARCHITECTURE.md` is absent; closest architecture evidence read is root crate map `docs/products/cloud/PRD.md:131-137` and local backend explanation `microservices/cloud-storage/faqs/storage-engineer-faq.md:15-22`.
-5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` sets full-suite requirements and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability and hyperscaler-grade tests.
+5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` sets full-platform requirements and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability and hyperscaler-grade tests.
 
 ## §1 µservice Purpose Summary
 
@@ -247,7 +247,7 @@ Buildability gap 48: docs do not define restore test evidence.
 Buildability gap 49: docs do not define air-gapped on-prem operation.
 Buildability gap 50: docs do not define colo rack, power, or storage media assumptions.
 Dimension verdict: not intern-buildable.
-Dimension classification: P2 for missing doc suite; P1 for wrong required tools and handoff gaps.
+Dimension classification: P2 for missing doc set; P1 for wrong required tools and handoff gaps.
 
 ### §3.4 Dimension 4 - Canonical-Direction Alignment
 
@@ -278,7 +278,7 @@ Canonical citation: ADR-0328 says missing inspection artifacts should be recorde
 Current artifact state: this audit records the missing artifacts explicitly.
 Classification: aligned for audit behavior.
 Constraint 7: documentation-rigor.
-Canonical citation: `docs/standards/documentation-rigor.md:62-81` expects full suites.
+Canonical citation: `docs/standards/documentation-rigor.md:62-81` expects full platforms.
 Current artifact state: only seven docs exist.
 Classification: drifted-fixable, P2.
 Constraint 8: brief-template anti-patterns.
@@ -543,11 +543,11 @@ Dimension verdict: source tree aligned by absence; docs drift, P1.
 | P2 | D2 | Root OpenAPI/runtime bindings lack local contract inventory | `registry/openapi/schema-bindings.tsv:41-58`; `registry/openapi/runtime-bindings.tsv:9-11` | Add service-local contracts index |
 | P2 | D2 | Prior scorecard already names low artifact count and missing threat model | `docs/architecture/wave-3-final-scorecard-2026-05-20.md:2159-2167` | Add threat model and artifact suite |
 | P2 | D3 | No local source tree | service inventory; `reference-implementations/...:30-215` | Move runnable example into Rust crate or link owning crate |
-| P2 | D3 | No local test suite | `registry/openapi/runtime-bindings.tsv:9-11`; service inventory | Add test plan and service-local test pointers |
+| P2 | D3 | No local test set | `registry/openapi/runtime-bindings.tsv:9-11`; service inventory | Add test plan and service-local test pointers |
 | P2 | D3 | No capacity model | `docs/standards/documentation-rigor.md:62-81`; service inventory | Add object count, prefix, throughput, media model |
 | P2 | D3 | No failure modes | `docs/standards/documentation-rigor.md:62-81`; service inventory | Add split-brain, KMS loss, lifecycle misfire cases |
 | P2 | D3 | No incident response | `docs/standards/documentation-rigor.md:62-81`; service inventory | Add operational runbooks |
-| P2 | D4 | Documentation-rigor suite incomplete | `docs/standards/documentation-rigor.md:62-81`; `docs/DOC-COVERAGE.md:130-139` | Build full suite |
+| P2 | D4 | Documentation-rigor suite incomplete | `docs/standards/documentation-rigor.md:62-81`; `docs/DOC-COVERAGE.md:130-139` | Build full platform |
 | P2 | D5 | Union counterpart parity is partial, not complete | AWS/GCS/Azure official docs cited in §3.5; local inventory | Add missing batch, analytics, soft-delete, HNS, private networking |
 | P2 | D8 | No supported OS manifest | `specs/master-plan-sequencing.json:777-815`; service inventory | Add `supported-oses.json` |
 | P2 | D8 | No package or CI matrix | `ADR-0328:3877-3927`; service inventory | Add per-OS package formats and CI lanes |

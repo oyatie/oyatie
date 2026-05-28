@@ -45,7 +45,7 @@ Visit the Anthropic OAuth authorization endpoint in a browser:
 https://claude.ai/oauth/authorize
   ?client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e
   &response_type=code
-  &redirect_uri=https://intelligence.oya.cloud/anthropic/oauth/callback
+  &redirect_uri=https://cloud-intelligence.oyatie.com/anthropic/oauth/callback
   &scope=openid%20profile%20email
   &state=<random-csrf-token>
 ```
@@ -59,7 +59,7 @@ curl -s -X POST https://claude.ai/oauth/token \
   -d "grant_type=authorization_code" \
   -d "code=<code-from-redirect>" \
   -d "client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e" \
-  -d "redirect_uri=https://intelligence.oya.cloud/anthropic/oauth/callback"
+  -d "redirect_uri=https://cloud-intelligence.oyatie.com/anthropic/oauth/callback"
 ```
 
 Copy the `refresh_token` from the response. Keep it in a password manager — it is the
@@ -129,11 +129,11 @@ PROXY_KEY=$(kubectl -n cloud-intelligence exec deploy/cloud-intelligence -- \
 # Health check
 curl -sS \
   -H "Authorization: Bearer ${PROXY_KEY}" \
-  https://intelligence.oya.cloud/anthropic/v1/health
+  https://cloud-intelligence.oyatie.com/anthropic/v1/health
 # expect: HTTP 200 {"status":"ok"}
 
 # Route a real request through the gateway
-ANTHROPIC_BASE_URL=https://intelligence.oya.cloud/anthropic \
+ANTHROPIC_BASE_URL=https://cloud-intelligence.oyatie.com/anthropic \
   claude --version
 # expect: version printed without TLS or auth error
 ```

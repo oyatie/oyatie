@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j88-au-irap-protected-tenant.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j88-au-irap-protected-tenant.schema.json",
   "title": "J88 AU IRAP PROTECTED tenant Journey Object",
   "version": "1.0.0",
   "_meta": {

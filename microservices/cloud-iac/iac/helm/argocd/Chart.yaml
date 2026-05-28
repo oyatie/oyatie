@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "v2.13.0"  # ArgoCD LTS line per docs/standards/observability-slo.md
 maintainers:
   - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.dev
+    email: axis-cloud-iac@oyatie.com
 dependencies:
   - name: argo-cd
     version: "^7.8.0"

@@ -1,7 +1,7 @@
 {
   "service": "marketplace",
   "scorecards": [
-    "doc-suite-completeness",
+    "doc-set-completeness",
     "contract-version-exact",
     "tenant-scope",
     "cedar-default-deny",

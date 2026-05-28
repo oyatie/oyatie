@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `translate` microservice is oyatie's machine-translation (MT) and software-localization platform. It is **net-new per ADR-0135 "connect-super-app expansion"** — there is no Bominal antecedent and no `oya-connect-translate-*` crate to relocate. It owns:
+The `translate` microservice is oyatie's machine-translation (MT) and software-localization platform. It is **net-new per ADR-0135 "connect-super-app expansion"** — there is no Bominal antecedent and no `oya-translate-*` crate to relocate. It owns:
 
 - **Real-time text translation** (sub-250 ms p95 for ≤ 500-char segments) routed across in-house oyatie-trained models, external MT vendors (DeepL, Google Cloud Translation, Microsoft Translator, Amazon Translate), and frontier LLMs (Anthropic, OpenAI, Gemini) via `foundry-providers`.
 - **Translation Memory (TM)** with leverage-match scoring: exact (100 %), in-context exact (ICE), fuzzy (75–99 % via minhash-LSH per OmegaT), and TM-leverage decisions per ADR-TRANSLATE-0002.
@@ -33,7 +33,7 @@ The `translate` microservice is oyatie's machine-translation (MT) and software-l
 - **Data-residency-bound inference** per ADR-TRANSLATE-0004 — sovereign tenants (KR PIPA Art. 28, EU GDPR Art. 44–50, CN PIPL Art. 38–43, IN DPDPA §16) never have content crossing region boundaries during inference.
 - **Bulk-translate API + webhook** for asynchronous large-file workloads (10 k-segment XLIFF p95 ≤ 60 s).
 
-This µservice is **shared substrate** (every other oyatie product calls it for in-editor translate, body translation in mail/messenger/social, caption translation in meet, and content-localization in docs/sheets/slides) **and** a standalone product (tenants buy it directly as a Lokalise/Smartling/Crowdin replacement). Per ADR-0132 §"no new bundle/suite µservices", translate is single-concern and flat; it does NOT bundle TM + termbase + QE — those are its primary BCs.
+This µservice is **shared substrate** (every other oyatie product calls it for in-editor translate, body translation in mail/messenger/social, caption translation in meet, and content-localization in docs/sheets/slides) **and** a standalone product (tenants buy it directly as a Lokalise/Smartling/Crowdin replacement). Per ADR-0132 §"no new bundle/grouping µservices", translate is single-concern and flat; it does NOT bundle TM + termbase + QE — those are its primary BCs.
 
 ## Tenant Value
 
@@ -305,7 +305,7 @@ oyatie differentiators:
 - ADR-0135 — connect super-app expansion (parent ADR; translate is per ADR-0135 §"shared substrate µservices").
 - ADR-0139 — agentic SLO-gated promotion.
 - ADR-0131 — per-microservice flat layout.
-- ADR-0132 — product suite and bundle dissolution.
+- ADR-0132 — product platform and bundle dissolution.
 - ADR-0133 — industry-best-practice conformance program.
 - ADR-TRANSLATE-0001 — MT engine routing and fallback.
 - ADR-TRANSLATE-0002 — Translation memory and leverage model.

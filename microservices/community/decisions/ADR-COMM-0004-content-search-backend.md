@@ -132,7 +132,7 @@ The community µservice ships a **two-backend search stack** behind the `Content
 
 ### Negative
 
-- Two adapters to maintain; two test suites; two quarterly upgrade IPs. Mitigated by sharing the port trait + shared upgrade cadence with messenger.
+- Two adapters to maintain; two test sets; two quarterly upgrade IPs. Mitigated by sharing the port trait + shared upgrade cadence with messenger.
 - Cross-BC merge logic lives in usecase layer; complexity is moderate but real. Mitigated by a single `MultiSearchQuery` type + a single merger implementation under property-based tests.
 - Tenant migration from Tantivy → Meilisearch (when a starter tenant grows past the comfort zone) requires re-index + dual-publish + cutover. Documented as `runbooks/search-backend-migration.md` (NEW, to be authored when first tenant requires it).
 - Meilisearch operator pool is smaller than Elasticsearch's. Mitigated by Meilisearch's small surface; operator on-call docs in `runbooks/search-rebuild.md` (already exists) cover the day-2 ops scenarios.
@@ -167,7 +167,7 @@ The community µservice ships a **two-backend search stack** behind the `Content
 - ADR-MSGR-0003 — sibling µservice's identical backend selection
 - ADR-0135 — Connect-unbundle
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - `microservices/community/PRD.md` FR-07
 - `microservices/community/IP-009-search-index-elasticsearch.md`
 - `microservices/community/catalog/oya-community-search-index-adapter-search.yaml`

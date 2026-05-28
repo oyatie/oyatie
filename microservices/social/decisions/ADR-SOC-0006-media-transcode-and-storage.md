@@ -67,12 +67,12 @@ The decision needs to (a) pick image + video transcoders, (b) pick the storage +
 
 oyatie social adopts a **single canonical media stack** for P01:
 
-1. **Image transcoder: ImageMagick 7.1 LTS** in `oya-social-post-composition-adapter-imagemagick`.
+1. **Image transcoder: ImageMagick 7.1 LTS** in `oya-community-social-post-composition-adapter-imagemagick`.
    - Variants: thumbnail (128×128 WebP), small (480px WebP/AVIF), medium (1024px WebP/AVIF), large (2048px WebP/AVIF).
    - Output formats: WebP primary (90% size reduction vs PNG; browser-wide support); AVIF secondary (where higher compression beneficial; Chrome / Firefox / Safari support).
    - Original retained for archival (Professional-tier WORM compliance per HIPAA / SEC 17a-4).
    - OCR for alt-text auto-draft (capability T1-assist).
-2. **Video transcoder: ffmpeg 7.x LTS** in `oya-social-post-composition-adapter-ffmpeg`.
+2. **Video transcoder: ffmpeg 7.x LTS** in `oya-community-social-post-composition-adapter-ffmpeg`.
    - Output: HLS (RFC 8216) with three quality tiers (hls_low 360p 800kbps, hls_med 720p 2500kbps, hls_high 1080p 5000kbps).
    - Segment duration: 6s (standard).
    - Audio codec: AAC; video codec: H.264 (broadest device support) + AV1 (where CPU + device support allows for better compression).
@@ -183,13 +183,13 @@ oyatie social adopts a **single canonical media stack** for P01:
 
 ### Operational
 
-- Cargo workspace: `oya-social-post-composition-adapter-imagemagick` + `-adapter-ffmpeg` + `-adapter-s3` per ADR-0105 Amendment 3 naming.
+- Cargo workspace: `oya-community-social-post-composition-adapter-imagemagick` + `-adapter-ffmpeg` + `-adapter-s3` per ADR-0105 Amendment 3 naming.
 - Helm: `media-transcode-worker` deployment with `runtimeClassName: gvisor`; non-root + read-only root FS.
 - Weekly CVE scan via Trivy + Grype on transcode worker images.
 - LTS pin tracking: ImageMagick 7.1 + ffmpeg 7.x + libwebp + libaom (AVIF encoder) in `Cargo.toml` + Helm values.
 - Quarantine bucket + production bucket lifecycle managed via S3 bucket policies + IAM (per-bucket service-account scopes).
 - Cloudflare R2 + Workers config managed via OpenTofu.
-- Per-pack S3 + CDN bucket naming: `oya-social-media-<pack>` + `oya-social-cdn-<pack>` + `oya-social-quarantine-<pack>`.
+- Per-pack S3 + CDN bucket naming: `oya-community-social-media-<pack>` + `oya-community-social-cdn-<pack>` + `oya-community-social-quarantine-<pack>`.
 - Integrity check worker: periodic digest verification on Postgres-stored digests vs S3-fetched blobs.
 - Runbook: `runbooks/media-transcode-degraded.md` (Slice B; same shape as messenger attachment-restore).
 

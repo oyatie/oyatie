@@ -7,7 +7,7 @@ status: Accepted
 sales_segment: cross-suite-substrate-and-hero-product
 tier: hero-product
 milestone_first_ship: M02-foundation
-bominal_source: [ADR-0029-workspace-recordings-adjunct.md, ADR-0215-connect-retention-legal-hold-dual-context.md]
+bominal_source: [ADR-0029-workspace-recordings-adjunct.md, ADR-0215-retention-legal-hold-dual-context.md]
 related_adrs:
   - ADR-0008
   - ADR-0056
@@ -55,8 +55,8 @@ retention + legal-hold + eDiscovery + export); the producing µservices
 (`meet`, `messenger`, future live-broadcast) only **record** and emit to this
 µservice via durable ingest contract.
 
-This µservice ships under ADR-0132 (no-suite forward-policy) as a stand-alone
-µservice at the architecture layer, factored out of the legacy Connect-suite
+This µservice ships under ADR-0132 (no-grouping forward-policy) as a stand-alone
+µservice at the architecture layer, factored out of the legacy Connect-platform
 by parallel ADR-0238. Bominal predecessor: `workspace-recordings` adjunct from
 Bominal ADR-0029.
 
@@ -489,10 +489,10 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
+| ADR-0135 | dual-context (parallel) | dual-context isolation source |
 | ADR-0139 | Agentic SLO-gated promotion | gates recordings releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
-| ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
+| ADR-0132 | Suite-and-bundle dissolution | factored into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-RECORDINGS under this |
 | ADR-RECORDINGS-0001 | Transcription + diarization pipeline | Whisper-large + pyannote |
 | ADR-RECORDINGS-0002 | Retention + legal-hold policy | SEC 17a-4 + HIPAA + KR + EU |
@@ -502,7 +502,7 @@ Sharding:
 | ADR-RECORDINGS-0006 | AI feature bounds | EU AI Act + transparency |
 | ADR-RECORDINGS-0007 | Multi-source ingest contract | meet + huddle + live + manual |
 | Bominal ADR-0029 | Workspace recordings adjunct | inherited Workspace-GA shape |
-| Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited |
+| Bominal ADR-0215 | retention legal-hold dual-context | inherited |
 | Bominal ADR-0028 | Audit-chain Merkle + Ed25519 | inherited |
 | Bominal ADR-0111 | Ciphertext property type + envelope encryption | inherited |
 

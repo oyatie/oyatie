@@ -460,7 +460,7 @@ Each context has:
 - ADR-0056 Rust Clean Architecture BNF.
 - ADR-0105 13-layer enum.
 - ADR-0131 per-microservice flat layout.
-- ADR-0132 no-suite microservices.
+- ADR-0132 no-grouping microservices.
 - ADR-0145 inter-microservice direct gRPC.
 - ADR-0214 cross-tenant real-time visibility.
 - ADR-0248 hyperscaler-shape cellular architecture.

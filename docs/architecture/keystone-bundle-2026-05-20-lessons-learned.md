@@ -57,7 +57,7 @@ Those are documented in §9.
 
 ---
 
-## §2 Lesson 1 — Rate-Limit Saturation from Parallel Full-Suite Dispatch
+## §2 Lesson 1 — Rate-Limit Saturation from Parallel Full-Platform Dispatch
 
 ### §2.1 What Happened
 

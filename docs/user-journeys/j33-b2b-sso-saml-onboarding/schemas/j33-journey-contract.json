@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j33-b2b-sso-saml-onboarding.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j33-b2b-sso-saml-onboarding.schema.json",
   "title": "j33 B2B SSO SAML onboarding Journey Contract",
   "type": "object",
   "additionalProperties": false,

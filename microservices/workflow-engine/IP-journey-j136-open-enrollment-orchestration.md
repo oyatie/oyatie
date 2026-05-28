@@ -112,7 +112,7 @@ All 8 µservices (workflow-engine + forms + drive + connect + payments + mail + 
 
 ## Test gates
 
-- All Suite 3 + 4 + 5 + 6 + 7 + 8 + 9 tests
+- All Test Set 3 + 4 + 5 + 6 + 7 + 8 + 9 tests
 
 ## Notes
 

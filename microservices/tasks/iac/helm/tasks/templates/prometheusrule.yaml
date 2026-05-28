@@ -79,7 +79,7 @@ spec:
             microservice: tasks
           annotations:
             summary: "tasks dependency cycle refusals elevated — surge in client retries or attack"
-            runbook_url: "https://oyatie.dev/microservices/tasks/runbooks/dependency-cycle-storm"
+            runbook_url: "https://oyatie.com/microservices/tasks/runbooks/dependency-cycle-storm"
 
         - alert: TasksAutoAssignFairnessAnomaly
           expr: |
@@ -94,7 +94,7 @@ spec:
             microservice: tasks
           annotations:
             summary: "tasks T2 auto-assign fairness deviation > 20% (Annex III §4 employment-context)"
-            runbook_url: "https://oyatie.dev/microservices/tasks/runbooks/auto-assign-fairness-drift"
+            runbook_url: "https://oyatie.com/microservices/tasks/runbooks/auto-assign-fairness-drift"
 
         - alert: TasksRecurringMaterializerBacklog
           expr: |
@@ -114,4 +114,4 @@ spec:
             microservice: tasks
           annotations:
             summary: "tasks search fell back to direct-Postgres tsvector path (Meilisearch unhealthy)"
-            runbook_url: "https://oyatie.dev/microservices/tasks/runbooks/search-index-rebuild"
+            runbook_url: "https://oyatie.com/microservices/tasks/runbooks/search-index-rebuild"

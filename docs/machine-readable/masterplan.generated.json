@@ -1018,7 +1018,7 @@
               "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
             },
             {
-              "description": "Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no suite/bundle).",
+              "description": "Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no platform/bundle).",
               "exit_criteria": "the ADR names all four microservices, asserts flat single-concern layout per ADR-0131/0132, and explicitly marks them as future-lane work.",
               "id": "ADR-0376-D4",
               "status": "declared",

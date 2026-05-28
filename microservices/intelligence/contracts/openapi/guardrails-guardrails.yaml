@@ -14,11 +14,11 @@ info:
     - X-Scope-OrgID MUST match the principal's tenant; mismatch returns 401.
   contact:
     name: axis-foundry-guardrails
-    url: https://oyatie.dev/teams/axis-foundry-guardrails
+    url: https://oyatie.com/teams/axis-foundry-guardrails
   license:
     name: Internal
 servers:
-  - url: https://guardrails-{pack}.oyatie.dev/api/v1
+  - url: https://guardrails-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -29,7 +29,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
     SPIFFE:
       type: mutualTLS
   parameters:

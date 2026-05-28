@@ -30,9 +30,9 @@ Captain Olufemi runs the Bonny-Lekki Cooperative — fourteen owner-operator fis
 2. Stand up a co-op-wide evacuation roll-call on `messenger` that handles the 14 captains plus 87 crew plus ~310 dependent family members on a single broadcast channel
 3. Release emergency cash advances from the co-op's pooled escrow — ₦4.2M total — to crew families that need it before the storm makes landing impossible
 4. Capture an `audit-chain` trail that survives the regulator's post-storm review (NIMASA, NIMET, the cooperative regulator) and an insurance adjuster's reconstruction
-5. Notify `connect`-bridged buyers (three cold-storage warehouses, two restaurant chains in Lagos, one export broker in Abidjan) that the next 9-day catch window is cancelled
+5. Notify `connector`-bridged buyers (three cold-storage warehouses, two restaurant chains in Lagos, one export broker in Abidjan) that the next 9-day catch window is cancelled
 
-The journey exercises **five microservices in concert under emergency conditions** — `payments`, `finops-portal`, `messenger`, `audit-chain`, `connect` — with the secondary touch on `identity`, `tenancy`, `workflow-engine`, `compliance`, and `observability`. The Cedar policy invokes **ADR-0298 emergency-services bypass** to lift the normal 24-hour escrow disbursement hold without disabling the audit ledger.
+The journey exercises **five microservices in concert under emergency conditions** — `payments`, `finops-portal`, `messenger`, `audit-chain`, `connector` — with the secondary touch on `identity`, `tenancy`, `workflow-engine`, `compliance`, and `observability`. The Cedar policy invokes **ADR-0298 emergency-services bypass** to lift the normal 24-hour escrow disbursement hold without disabling the audit ledger.
 
 ## Why this journey matters
 
@@ -42,7 +42,7 @@ Captain Olufemi is the highest-leverage green-collar persona in MASTER-ROSTER §
 - Critical-path row 30 (multi-tenant cooperative settlement)
 - The supply-chain-cluster gap on buyer-side notification when the supply side fails for safety reasons
 
-Hyperscaler benchmark: Stripe Connect for the cooperative-payment flow; Twilio Conversations for the broadcast roll-call channel; AWS IoT Core for the vessel telemetry that confirms each captain's GPS position before the recall is declared complete.
+Hyperscaler benchmark: Stripe for the cooperative-payment flow; Twilio Conversations for the broadcast roll-call channel; AWS IoT Core for the vessel telemetry that confirms each captain's GPS position before the recall is declared complete.
 
 ## Artifact inventory
 
@@ -65,7 +65,7 @@ Hyperscaler benchmark: Stripe Connect for the cooperative-payment flow; Twilio C
 | `finops-portal` | Surfaces the cooperative's escrow balance to Olufemi in real time; runs the post-storm reconciliation against the actual catch loss | row 30 |
 | `messenger` | Hosts the `co-op-evacuation-2026-10-23` broadcast channel; ferries ACK / NACK / NEED-FUEL / NEED-MEDICAL flags from each captain back to the co-op dashboard | row 1 |
 | `audit-chain` | Seals every roll-call entry, every Cedar bypass invocation, every payment disbursement under ADR-0263 emission classes; provides the regulator-ready evidence bundle | row 1, row 30 |
-| `connect` | Brokers the cancellation notice to the six external buyers (three cold-storage, two restaurants, one Abidjan broker) without exposing the co-op's internal financial state | row 30 |
+| `connector` | Brokers the cancellation notice to the six external buyers (three cold-storage, two restaurants, one Abidjan broker) without exposing the co-op's internal financial state | row 30 |
 
 ## Secondary microservices touched
 
@@ -88,7 +88,7 @@ Hyperscaler benchmark: Stripe Connect for the cooperative-payment flow; Twilio C
 ## Regulatory anchors
 
 1. NIMET storm escalation protocol; cooperative recall decision linked to NIMET hazard code (in this case `NIMET-2026-AISHA-CAT3`)
-2. NIMASA (Nigerian Maritime Administration and Safety Agency) vessel-recall protocol Form NM-7B; the cooperative files a single Form NM-7B for all fourteen vessels via the `connect` bridge
+2. NIMASA (Nigerian Maritime Administration and Safety Agency) vessel-recall protocol Form NM-7B; the cooperative files a single Form NM-7B for all fourteen vessels via the `connector` bridge
 3. NG-NDPR Section 2.1 lawful-basis (vital interests of crew + family) for the personal-data processing during the recall
 4. ECOWAS Convention on Search and Rescue 1979 article 3 obligations for cooperative-level recall coordination
 5. ADR-0298 emergency-services bypass — the Cedar policy that lifts the normal 24-hour escrow hold on the ₦4.2M disbursement
@@ -143,10 +143,10 @@ The Cedar policy refuses the bypass if the storm declaration is later than 24 ho
 | AC | Result expected |
 |---|---|
 | AC-J151-001 | All 14 captains ACK their position via VHF or Inmarsat-C within 90 minutes of the recall; `messenger` shows 14/14 green |
-| AC-J151-002 | All 87 crew members are flagged personally-safe within 120 minutes; the 5 reported NEED-MEDICAL routed to NEMA via the `connect` bridge |
+| AC-J151-002 | All 87 crew members are flagged personally-safe within 120 minutes; the 5 reported NEED-MEDICAL routed to NEMA via the `connector` bridge |
 | AC-J151-003 | All 87 crew-family advances (₦35,000 × 87 = ₦3.045M) disbursed within 180 minutes; the bypass invocation is sealed in `audit-chain` with the NIMET hazard code in the event payload |
 | AC-J151-004 | The reserve ₦1.155M (for fuel + spoiled-catch compensation) is held pending post-storm review; the `finops-portal` shows the cooperative escrow remaining balance correctly |
-| AC-J151-005 | All 6 external buyers receive a cancellation notice via `connect` within 60 minutes of the recall declaration; the notices show only the cancellation reason ("maritime-safety-declared-emergency") not the cooperative's internal financial state |
+| AC-J151-005 | All 6 external buyers receive a cancellation notice via `connector` within 60 minutes of the recall declaration; the notices show only the cancellation reason ("maritime-safety-declared-emergency") not the cooperative's internal financial state |
 | AC-J151-006 | The post-storm regulator bundle (NIMASA Form NM-7B + NIMET acknowledgement + NDPR processing log) is exportable from `audit-chain` in a single click, signed by the cooperative's passkey-bound identity |
 | AC-J151-007 | No Cedar permit denies a legitimate operation; no Cedar permit allows a non-emergency operation during the bypass window |
 | AC-J151-008 | The 60-second passkey step-up is enforced for every disbursement; an attempt by a non-captain-of-record member to invoke the bypass is refused with an audit-event sealed |

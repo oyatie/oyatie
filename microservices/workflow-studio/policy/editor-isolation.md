@@ -160,12 +160,12 @@ LEAN check `oya-governance-cdn-cache-key-tenant-isolated` validates CDN cache co
 
 ```text
 Content-Security-Policy:
-  default-src 'self' https://cdn-<pack>.oyatie.dev;
-  script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>' https://cdn-<pack>.oyatie.dev;
-  style-src 'self' 'unsafe-inline' https://cdn-<pack>.oyatie.dev;
-  img-src 'self' data: https://cdn-<pack>.oyatie.dev;
-  connect-src 'self' wss://studio-<pack>.oyatie.dev https://workflow-engine-<pack>.oyatie.dev;
-  font-src 'self' https://cdn-<pack>.oyatie.dev;
+  default-src 'self' https://cdn-<pack>.oyatie.com;
+  script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>' https://cdn-<pack>.oyatie.com;
+  style-src 'self' 'unsafe-inline' https://cdn-<pack>.oyatie.com;
+  img-src 'self' data: https://cdn-<pack>.oyatie.com;
+  connect-src 'self' wss://studio-<pack>.oyatie.dev https://workflow-engine-<pack>.oyatie.com;
+  font-src 'self' https://cdn-<pack>.oyatie.com;
   object-src 'none';
   frame-ancestors 'none';
   base-uri 'self';

@@ -231,7 +231,7 @@ oya-cloud-tenancy-adapter           — Cloud µservice, Tenancy BC, adapter
 oya-cloud-storage-sdk               — Cloud µservice, Storage BC, sdk (public_layers)
 oya-foundry-grit-cli                — Foundry µservice, Grit BC, CLI
 oya-application-product-enablement-rest — Application µservice, Product-Enablement BC, rest
-oya-connect-messenger-grpc          — Connect µservice, Messenger BC, grpc
+oya-messenger-grpc          — µservice, Messenger BC, grpc
 oya-tenancy-kernel                  — Tenancy µservice, no BC (single concept), kernel
 oya-medical-domain                  — Medical µservice, no BC (single concept), domain
 oya-check-architecture              — Check namespace (BNF-exempt)

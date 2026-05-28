@@ -179,7 +179,7 @@ Confidence: high
 Scope-risk: narrow
 Directive: Do not force-push; stop and route to fix-loop if this base refresh conflicts.
 Tested: automated queue repair will run sequential simulation through PR #${target_pr} before pushing.
-Not-tested: full repository test suite."; then
+Not-tested: full repository test set."; then
     echo "::error::queue repair conflict while merging base ${base_ref} into PR #${target_pr}" >&2
     git -C "$repair_worktree" diff --name-only --diff-filter=U >&2 || true
     exit 1
@@ -212,7 +212,7 @@ Confidence: high
 Scope-risk: narrow
 Directive: Do not force-push; stop and route to fix-loop if this merge conflicts.
 Tested: automated queue repair will run sequential simulation through PR #${target_pr} before pushing.
-Not-tested: full repository test suite."; then
+Not-tested: full repository test set."; then
     echo "::error::queue repair conflict while merging PR #${number} into PR #${target_pr}" >&2
     git -C "$repair_worktree" diff --name-only --diff-filter=U >&2 || true
     exit 1

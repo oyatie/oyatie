@@ -28,7 +28,7 @@ companion_docs:
   - microservices/warehouse/ARCHITECTURE.md
   - microservices/warehouse/compliance.md
   - microservices/warehouse/manifest.json
-planned_enforcement_ref: oya-governance-warehouse-doc-suite
+planned_enforcement_ref: oya-governance-warehouse-doc-set
 ---
 
 # PRD-warehouse: Warehouse
@@ -37,7 +37,7 @@ planned_enforcement_ref: oya-governance-warehouse-doc-suite
 
 This PRD defines the SAP-parity product requirement surface for Warehouse.
 warehouse is equivalent to SAP EWM coverage for inbound, outbound, putaway, picking, yard appointment, labor assignment, and goods movement evidence.
-The target is not a monolithic ERP suite; the target is SAP EWM parity through a flat, tenant-scoped microservice that composes with shared Oyatie substrates.
+The target is not a monolithic ERP platform; the target is SAP EWM parity through a flat, tenant-scoped microservice that composes with shared Oyatie substrates.
 ADR-0315 binds the SAP-parity doctrine, ADR-0329/0330/0331 binds tenant-class activation over product fragmentation, ADR-0244 binds tenant scoping, and ADR-0314 binds marketplace DealSet settlement.
 The service owns control inbound and outbound logistics, putaway tasks, picking waves, yard appointments, labor assignment, goods movements, and stock evidence.
 The operating bar is the documentation-rigor PRD floor: 1500 or more lines, 40 or more stories, critical-path coverage, explicit policies, explicit ontology projections, and direct references.
@@ -47,7 +47,7 @@ Every mutation is Cedar default-deny first; every read is scoped to tenant plus 
 Open questions are limited to implementation sequencing; there is no unresolved product boundary decision in this PRD.
 
 ### A.1 Personas
-- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting suite lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
+- B2B process owner: wants to prove parity against incumbent ERP workflows without inheriting platform lock-in; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B tenant administrator: wants to activate packs, roles, and data residency boundaries without service-specific policy drift; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B operator: wants to run daily work, recover failures, and see batch progress before customers escalate; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.
 - B2B auditor: wants to export immutable evidence for every state transition and policy decision; frustration is hidden suite coupling, unclear audit evidence, or unclear ownership across services.

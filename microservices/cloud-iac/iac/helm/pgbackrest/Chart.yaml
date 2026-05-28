@@ -18,6 +18,6 @@ version: 0.1.0
 appVersion: "2.58.0"  # pgBackRest stable per docs/standards/backup-canonical.md
 maintainers:
   - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.dev
+    email: axis-cloud-iac@oyatie.com
 # No upstream chart — sidecar pattern; values are consumed by per-Postgres
 # StatefulSet templates rendered from the canonical postgres µservice chart.

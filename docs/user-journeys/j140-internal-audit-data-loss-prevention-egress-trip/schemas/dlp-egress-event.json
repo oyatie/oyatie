@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j140/dlp-egress-event.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j140/dlp-egress-event.json",
   "title": "DLPEgressEvent",
   "description": "Envelope for a DLP egress evaluation event. Captured at the drive egress boundary; sealed regardless of outcome.",
   "_meta": {"binding_adr": "ADR-0307", "related_adrs": ["ADR-0311","ADR-0243","ADR-0028"], "schema_version": "v1.0.0"},

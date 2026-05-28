@@ -56,7 +56,7 @@ doc_status: published
 | PCI-DSS L1 v4 | yes | yes | yes | yes | yes | n/a | **yes (target Q4 2026)** |
 | KR-FSS licence | partial (Korea-Stripe-equivalent) | no | yes | no | no | no | **inherited via Toss** |
 | EU PSD2 SCA support | yes | yes | n/a | yes | yes | n/a | **yes** (M02) |
-| Marketplace revshare automation | yes (Connect Express) | yes (MarketPay) | no | yes | no | no | **yes** (M02 per ADR-0249) |
+| Marketplace revshare automation | yes (Express) | yes (MarketPay) | no | yes | no | no | **yes** (M02 per ADR-0249) |
 | Cross-currency settlement | yes | yes | no | yes | yes | yes | **yes** (M02 — Stripe + Adyen native) |
 | Idempotency-key API | yes | yes | partial | weak | yes | partial | **yes** |
 | Webhook HMAC signing | yes | yes | yes | yes | yes | yes | **yes** |
@@ -68,7 +68,7 @@ doc_status: published
 
 ## §3. Feature parity matrix — marketplace surfaces (ADR-0249 multi-category)
 
-| Marketplace category | Stripe Connect | Adyen MarketPay | Paddle MoR | **Oyatie payments** |
+| Marketplace category | Stripe | Adyen MarketPay | Paddle MoR | **Oyatie payments** |
 |---|:--:|:--:|:--:|:--:|
 | Plugin / app store | yes | yes | yes | **yes** (M02) |
 | Workflow templates | partial | partial | partial | **yes** (M02 per ADR-0249) |
@@ -128,7 +128,7 @@ What oyatie payments uniquely offers:
 
 ## §8. References
 
-- Stripe Connect docs — `stripe.com/docs/connect`.
+- Stripe docs — `stripe.com/docs/connect`.
 - Adyen MarketPay docs — `docs.adyen.com/marketpay`.
 - Toss Payments docs — `docs.tosspayments.com`.
 - Paddle merchant-of-record — `paddle.com/billing`.

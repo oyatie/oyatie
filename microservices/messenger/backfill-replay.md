@@ -155,5 +155,5 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - `microservices/messenger/cost-budget.md`.
 - `microservices/messenger/contracts/asyncapi/messenger-events.yaml`.
 - ADR-0028 audit-chain.
-- ADR-0135 (Connect dual-context, parallel).
+- ADR-0135 (dual-context, parallel).
 - ADR-0131 (per-microservice flat layout).

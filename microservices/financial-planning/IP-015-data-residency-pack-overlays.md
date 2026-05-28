@@ -237,7 +237,7 @@ permit(
 
 ## Migration Notes
 - Anaplan workspace and model exports need workspace region plus export target mapping.
-- Workday Adaptive Planning instances need data-center and OfficeConnect export region mapping.
+- Workday Adaptive Planning instances need data-center and Officeexport region mapping.
 - Oracle EPM Cloud pods need region and application type mapped before import.
 - OneStream applications need hosting location and disaster recovery replication policy.
 - Vena tenants need workbook storage region and Office document export region.

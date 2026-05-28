@@ -7,7 +7,7 @@ description: |
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
-home: https://oyatie.dev/microservices/finops-portal
+home: https://oyatie.com/microservices/finops-portal
 keywords:
   - finops
   - cost-attribution
@@ -18,7 +18,7 @@ sources:
   - https://github.com/oyatie/oyatie
 maintainers:
   - name: ops-finops council
-    email: ops-finops@oyatie.dev
+    email: ops-finops@oyatie.com
 dependencies:
   - name: _oya-helpers
     version: "^1.0.0"

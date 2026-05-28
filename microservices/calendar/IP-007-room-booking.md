@@ -31,7 +31,7 @@ Implement the `oya-calendar-room-booking-kernel` bounded context and its planned
 ## D. Ordered implementation steps
 1. Define `Resource`, `Booking`, `ConflictDecision`, and booking-window types.
 2. Implement conflict detection for one-off and recurring bookings.
-3. Connect decisions to event-store transaction boundaries.
+3. decisions to event-store transaction boundaries.
 4. Emit `RoomBooked` and `RoomBookingConflict` events from `contracts/asyncapi/calendar-events.yaml`.
 5. Add tests for simultaneous contenders and recurring room reservations.
 6. Add REST contract tests against `contracts/openapi/calendar.yaml`.

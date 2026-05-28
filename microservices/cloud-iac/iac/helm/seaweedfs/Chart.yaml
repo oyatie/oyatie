@@ -12,7 +12,7 @@ version: 0.1.0
 appVersion: "4.22"  # SeaweedFS latest stable per docs/standards/object-store-canonical.md (verified 2026-05-18)
 maintainers:
   - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.dev
+    email: axis-cloud-iac@oyatie.com
 dependencies:
   - name: seaweedfs
     version: "^4.22.0"

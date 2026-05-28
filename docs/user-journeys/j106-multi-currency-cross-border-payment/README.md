@@ -52,7 +52,7 @@ SEPA rails through Connect.
 | Service | IP file | Role |
 |---|---|---|
 | payments | ../../../microservices/payments/IP-journey-j106-escrow-and-settlement.md | escrow-and-settlement |
-| connect | ../../../microservices/connect/IP-journey-j106-external-rail-adapter.md | external-rail-adapter |
+| connector | ../../../microservices/connector/IP-journey-j106-external-rail-adapter.md | external-rail-adapter |
 | compliance | ../../../microservices/compliance/IP-journey-j106-pack-attestation.md | pack-attestation |
 | audit-chain | ../../../microservices/audit-chain/IP-journey-j106-dual-seal-events.md | dual-seal-events |
 
@@ -185,7 +185,7 @@ SEPA rails through Connect.
 - readme-buildability 001: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 004: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -193,7 +193,7 @@ SEPA rails through Connect.
 - readme-buildability 005: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 007: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -202,7 +202,7 @@ SEPA rails through Connect.
 - readme-buildability 009: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -210,7 +210,7 @@ SEPA rails through Connect.
 - readme-buildability 013: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -219,7 +219,7 @@ SEPA rails through Connect.
 - readme-buildability 017: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 019: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 020: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -227,7 +227,7 @@ SEPA rails through Connect.
 - readme-buildability 021: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -235,7 +235,7 @@ SEPA rails through Connect.
 - readme-buildability 025: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -244,7 +244,7 @@ SEPA rails through Connect.
 - readme-buildability 029: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 032: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -252,7 +252,7 @@ SEPA rails through Connect.
 - readme-buildability 033: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -260,7 +260,7 @@ SEPA rails through Connect.
 - readme-buildability 037: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 040: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -268,7 +268,7 @@ SEPA rails through Connect.
 - readme-buildability 041: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 043: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -277,7 +277,7 @@ SEPA rails through Connect.
 - readme-buildability 045: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -285,7 +285,7 @@ SEPA rails through Connect.
 - readme-buildability 049: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -294,7 +294,7 @@ SEPA rails through Connect.
 - readme-buildability 053: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 055: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 056: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -302,7 +302,7 @@ SEPA rails through Connect.
 - readme-buildability 057: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 060: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -310,7 +310,7 @@ SEPA rails through Connect.
 - readme-buildability 061: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -319,7 +319,7 @@ SEPA rails through Connect.
 - readme-buildability 065: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 068: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -327,7 +327,7 @@ SEPA rails through Connect.
 - readme-buildability 069: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -335,7 +335,7 @@ SEPA rails through Connect.
 - readme-buildability 073: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 076: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -343,7 +343,7 @@ SEPA rails through Connect.
 - readme-buildability 077: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 079: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -352,7 +352,7 @@ SEPA rails through Connect.
 - readme-buildability 081: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -360,7 +360,7 @@ SEPA rails through Connect.
 - readme-buildability 085: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -369,7 +369,7 @@ SEPA rails through Connect.
 - readme-buildability 089: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 091: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 092: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -377,7 +377,7 @@ SEPA rails through Connect.
 - readme-buildability 093: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -385,7 +385,7 @@ SEPA rails through Connect.
 - readme-buildability 097: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -394,7 +394,7 @@ SEPA rails through Connect.
 - readme-buildability 101: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 104: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -402,7 +402,7 @@ SEPA rails through Connect.
 - readme-buildability 105: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -410,7 +410,7 @@ SEPA rails through Connect.
 - readme-buildability 109: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 112: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -418,7 +418,7 @@ SEPA rails through Connect.
 - readme-buildability 113: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 115: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -427,7 +427,7 @@ SEPA rails through Connect.
 - readme-buildability 117: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -435,7 +435,7 @@ SEPA rails through Connect.
 - readme-buildability 121: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -444,7 +444,7 @@ SEPA rails through Connect.
 - readme-buildability 125: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform facilitator.
 - readme-buildability 127: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 128: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -452,7 +452,7 @@ SEPA rails through Connect.
 - readme-buildability 129: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -460,7 +460,7 @@ SEPA rails through Connect.
 - readme-buildability 133: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -469,7 +469,7 @@ SEPA rails through Connect.
 - readme-buildability 137: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 140: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -477,7 +477,7 @@ SEPA rails through Connect.
 - readme-buildability 141: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 142: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 143: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 144: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -485,7 +485,7 @@ SEPA rails through Connect.
 - readme-buildability 145: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 146: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 147: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 148: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -493,7 +493,7 @@ SEPA rails through Connect.
 - readme-buildability 149: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 150: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform facilitator.
+  ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform facilitator.
 - readme-buildability 151: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -502,7 +502,7 @@ SEPA rails through Connect.
 - readme-buildability 153: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 154: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 155: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 156: audit-chain keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
@@ -510,7 +510,7 @@ SEPA rails through Connect.
 - readme-buildability 157: payments keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 158: connect keeps Eun-ji Seo and bank rail providers inside tenant-scoped evidence, cites
-  ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 159: compliance keeps Eun-ji Seo and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
   ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.

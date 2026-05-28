@@ -215,7 +215,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | primary | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Sales Manager Anthony Costa must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

@@ -32,7 +32,7 @@ The market situation at M03 launch:
 
 - **iOS / macOS clients** — Apple Mail is the default mail client for ~55% of iOS users (Litmus 2025 H1) and ~25% of macOS desktop mail. Apple Mail speaks IMAP4rev1 / IMAP4rev2 natively; JMAP support is absent from Apple Mail and unlikely to appear until Apple ships its own JMAP push notification adapter. Third-party iOS clients (Spark, Edison, Airmail) speak both. Native Swift SDKs are how high-end iOS productivity apps deliver native-feel UX; React Native + JS bridges feel laggy in mail-list scrolling and search.
 - **Web / Node** — JMAP (RFC 8620 + 8621) is the modern protocol: HTTP/JSON, batched, push-friendly via SSE, much friendlier than IMAP4 to web ecosystems. FastMail's `jmap-client-ts` and the IETF `jmap-jam` reference wrapper are widely used. TypeScript SDK consumers are dominated by web apps and Node middleware that prefer JSON over the binary-tagged IMAP4 wire format.
-- **Android** — Android mail clients vary widely; the dominant pattern is IMAP+OAuth. Native Kotlin SDK is desirable but lower priority than iOS at M03 (KR market launch is ~70% iOS for the high-end enterprise productivity segment per IDC KR 2025 data).
+- **Android** — Android mail clients vary widely; the dominant pattern is IMAP+OAuth. Native Kotlin SDK is desirable but lower priority than iOS at M03 (KR market launch is ~70% iOS for the high-end business productivity segment per IDC KR 2025 data).
 - **Desktop (Thunderbird, etc.)** — IMAP-first; JMAP support is recent (Thunderbird 115+) but considered experimental.
 
 A naïve "ship all SDKs simultaneously" doubles the initial maintenance surface without commensurate market reach. A naïve "IMAP-first universal" stunts the modern client ecosystem (JMAP web clients, push notifications, batched operations) by deferring JMAP into a second wave that historically never ships on time. A naïve "TypeScript first" leaves Apple Mail / Spark / Edison consumers on a lower-priority path on day one and effectively concedes the iOS-heavy KR launch market.
@@ -94,7 +94,7 @@ oyatie mail SDKs launch in this sequence and protocol order:
 ### Negative
 
 - Three Wave-1 + Wave-2 SDKs to maintain (Swift, TypeScript, IMAP4rev2 reference, Kotlin). Mitigated by the JMAP-jam-shared core + protocol-conformance contract tests that run once and cover all SDK wrappers.
-- IMAP4rev2 SDK arrives in Wave 2, meaning early third-party-client integrators have to build against the wire protocol with no oyatie-side SDK help for ~1 quarter. We mitigate with a published JMAP+IMAP feature-parity matrix and a first-wave wire-protocol conformance suite consumers can self-test against.
+- IMAP4rev2 SDK arrives in Wave 2, meaning early third-party-client integrators have to build against the wire protocol with no oyatie-side SDK help for ~1 quarter. We mitigate with a published JMAP+IMAP feature-parity matrix and a first-wave wire-protocol conformance set consumers can self-test against.
 - JMAP push (`@push:` URL push channel per RFC 8620 §7.3) requires HTTP server-side infrastructure beyond IMAP IDLE; mitigated by re-using the µservice's WebSocket gateway (per messenger PRD) for the push channel; cross-µservice import refused by LEAN-A2 so push runs via the `audit-chain`-compatible event bus instead.
 - Python + Go SDKs slip to Wave 3; tenant-automation consumers needing those languages early use raw JMAP HTTP/JSON for one extra quarter.
 
@@ -128,7 +128,7 @@ oyatie mail SDKs launch in this sequence and protocol order:
 - Litmus Email Client Market Share 2025 H1
 - IDC Korea Mobile OS Share Report 2025
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-MAIL-0002 — Mail-server backend per tenant_class and workload profile (paired choice)
 - `microservices/mail/PRD.md` Open Questions 1 + 5
 - `microservices/mail/sdk-plan.md`

@@ -31,7 +31,7 @@ tofu apply \
 - **Kubernetes cluster** (Talos preferred for hardened deployments; customer-managed).
 - **Local PostgreSQL** with WAL streaming to local replica.
 - **Local SeaweedFS** with Compliance mode for WORM.
-- **Customer-provided HSM** (Thales Luna 7 A790 / Utimaco / Entrust nShield Connect XC) for QES.
+- **Customer-provided HSM** (Thales Luna 7 A790 / Utimaco / Entrust nShield XC) for QES.
 - **MetalLB** for service load balancing.
 - **OpenBao** for credential management.
 - **Local OTEL collector** for observability (data stays on-prem).

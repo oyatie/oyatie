@@ -161,7 +161,7 @@ Make one simplification at a time. Run tests after each change. **Submit refacto
 ```
 FOR EACH SIMPLIFICATION:
 1. Make the change
-2. Run the test suite
+2. Run the test set
 3. If tests pass → commit (or continue to next simplification)
 4. If tests fail → revert and reconsider
 ```

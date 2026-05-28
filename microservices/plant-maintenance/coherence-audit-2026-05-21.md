@@ -267,7 +267,7 @@ Tenant-class scan result: no `tenant_class`, `demo_trial`, `revenue_share`, per-
 8. `IP-016` through `IP-025` add real EAM depth, but the Rust implementation has not absorbed those nouns into typed domain state.
 9. The current source code still presents an early scaffold: `src/lib.rs:49-75` exposes layer and API descriptions rather than domain behavior.
 10. The current CLI is local manifest/config validation only at `src/main.rs:1-55`.
-11. The service is not a monolithic ERP suite; that is a positive alignment with `PRD.md:49-53`.
+11. The service is not a monolithic ERP platform; that is a positive alignment with `PRD.md:49-53`.
 12. The service does not yet prove it can own daily plant maintenance execution end to end.
 13. The strongest ownership evidence is the PRD plus manifest.
 14. The weakest ownership evidence is the Rust domain and adapter implementation.
@@ -514,7 +514,7 @@ Tenant-class scan result: no `tenant_class`, `demo_trial`, `revenue_share`, per-
 | PM-AUD-P2-13 | P2 | Onboarding, migration, tutorial, FAQ, and reference implementation directories are absent. | Inventory has no `faqs/`, `onboarding/`, `migration-playbooks/`, `reference-implementations/`, or `tutorials/`. | Add targeted operator and integrator material after contracts stabilize. |
 | PM-AUD-P2-14 | P2 | Billing and finops still use tenant-class dimensions instead of tenant class. | `PRD.md:1132`. | Emit tenant class, usage dimension, deployment context, and commercial model to finops. |
 | PM-AUD-P3-01 | P3 | Rust-strict extension posture passes. | Forbidden extension scan returned no Python, JS, TS, Ruby, Go, Java, Scala, Groovy, PHP, or F# source files. | Keep Rust-only backend posture; add checks to CI. |
-| PM-AUD-P3-02 | P3 | Cedar policy file set exists across contexts. | Policy inventory contains equipment, plan, work-order, spare, technician-dispatch, downtime, tenant, auditor, CI, and emergency files. | Connect policies to executable fixtures and tenant-class semantics. |
+| PM-AUD-P3-02 | P3 | Cedar policy file set exists across contexts. | Policy inventory contains equipment, plan, work-order, spare, technician-dispatch, downtime, tenant, auditor, CI, and emergency files. | policies to executable fixtures and tenant-class semantics. |
 | PM-AUD-P3-03 | P3 | SLO files exist for core operations. | Four OpenSLO files exist under `slos/`. | Reconcile thresholds and add context overlays. |
 | PM-AUD-P3-04 | P3 | REST, event, and proto contracts exist. | Contract files exist under `contracts/`. | Replace generic payloads and align with source. |
 | PM-AUD-P3-05 | P3 | Catalog covers six context-layer combinations. | Inventory includes catalog files for downtime, equipment, maintenance, spare, technician-dispatch, and work-order layers. | Bind catalog entries to real source modules and verification. |

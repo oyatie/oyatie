@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/cloud-iac-module-archive-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/cloud-iac-module-archive-manifest.schema.json",
   "schema_version": "1.0",
   "archive_manifest_id": "cloud-iac-opentofu-modules-deterministic-local-archives",
   "generated_by_changeset": "CS-CLOUD-IAC-MODULE-ARCHIVE-GATE-001",

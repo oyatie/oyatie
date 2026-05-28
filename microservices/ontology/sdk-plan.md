@@ -203,7 +203,7 @@ CI lane `oya-governance-sdk-regen-conformance` ensures generated code matches th
 | Doc | Channel |
 |---|---|
 | Rust SDK rustdoc | `docs.rs/oya-ontology-sdk` (subsequent-to-GA-tier-promotion) |
-| OpenAPI spec | `https://ontology-kr.oyatie.dev/api/v1/openapi.yaml` |
+| OpenAPI spec | `https://ontology-kr.oyatie.com/api/v1/openapi.yaml` |
 | TypeScript declaration | `npm` registry + GitHub Packages |
 | Python type stubs | bundled in PyPI package |
 | Quickstart guide (per language) | `docs/sdk/<lang>/quickstart.md` |

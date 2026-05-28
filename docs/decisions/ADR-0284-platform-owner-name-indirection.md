@@ -1472,7 +1472,7 @@ Bootstrap ordering:
 - **ADR-0049 — Cross-region replication + residency.** Replication
   semantics preserved across rebrand.
 - **ADR-0063 — Doc coverage enforcement.** This ADR ships with full
-  doc suite per the lean-a5-doc-coverage lane.
+  doc set per the lean-a5-doc-coverage lane.
 - **ADR-0064 — Canonical base + localization overlay.** Brand
   display name uses the canonical-base + locale-overlay pattern.
 - **ADR-0105 — Thirteen-layer canonical enum.** Layer rules

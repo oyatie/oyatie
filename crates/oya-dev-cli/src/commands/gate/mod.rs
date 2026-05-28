@@ -1794,7 +1794,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {
                     Ok(report) => {
                         println!(
-                            "hyperscaler architecture invariant validation passed: {} invariants, {} products, {} planned lanes",
+                            "hyperscaler architecture invariant validation passed: {} invariants, {} services, {} planned lanes",
                             report.invariant_count, report.product_count, report.planned_lane_count
                         );
                         ExitCode::SUCCESS

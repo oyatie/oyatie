@@ -98,7 +98,7 @@ agreement, and repayment cascade stay tenant-scoped.
 | `workplace-integration` | [IP-journey-j121-esign-closing-package.md](../../../microservices/workplace-integration/IP-journey-j121-esign-closing-package.md) | esign-closing-package |
 | `payments` | [IP-journey-j121-repayment-cascade.md](../../../microservices/payments/IP-journey-j121-repayment-cascade.md) | repayment-cascade |
 | `finops-portal` | [IP-journey-j121-financial-statement-export.md](../../../microservices/finops-portal/IP-journey-j121-financial-statement-export.md) | financial-statement-export |
-| `connect` | [IP-journey-j121-bank-core-adapter.md](../../../microservices/connect/IP-journey-j121-bank-core-adapter.md) | bank-core-adapter |
+| `connector` | [IP-journey-j121-bank-core-adapter.md](../../../microservices/connector/IP-journey-j121-bank-core-adapter.md) | bank-core-adapter |
 
 ## Integration points
 
@@ -108,7 +108,7 @@ agreement, and repayment cascade stay tenant-scoped.
 - `workplace-integration`: esign-closing-package; participates in `BankTenantLoanApplicationCommand` and emits `BankTenantLoanAgreementExecuted` evidence.
 - `payments`: repayment-cascade; participates in `BankTenantLoanApplicationCommand` and emits `BankTenantLoanAgreementExecuted` evidence.
 - `finops-portal`: financial-statement-export; participates in `BankTenantLoanApplicationCommand` and emits `BankTenantLoanAgreementExecuted` evidence.
-- `connect`: bank-core-adapter; participates in `BankTenantLoanApplicationCommand` and emits `BankTenantLoanAgreementExecuted` evidence.
+- `connector`: bank-core-adapter; participates in `BankTenantLoanApplicationCommand` and emits `BankTenantLoanAgreementExecuted` evidence.
 
 ## Completion boundary
 

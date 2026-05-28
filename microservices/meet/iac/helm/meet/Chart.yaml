@@ -11,7 +11,7 @@ type: application
 version: 0.1.0
 appVersion: "1.0.0"
 maintainers:
-  - {name: axis-meet, email: axis-meet@oyatie.dev}
+  - {name: axis-meet, email: axis-meet@oyatie.com}
 keywords: [meet, conferencing, video, audio, webrtc, livekit, sfu, webinar, transcription]
 dependencies:
   - name: livekit-server

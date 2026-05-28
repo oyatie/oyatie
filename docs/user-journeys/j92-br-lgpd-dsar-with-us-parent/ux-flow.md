@@ -227,7 +227,7 @@ related_adrs:
 | UX-010 | comms-email | portability bundle build | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | UX-011 | community | ANPD-ready incident audit | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |
 | UX-012 | compliance | Portuguese response delivery | LGPD Article 7 lawful bases for personal data processing | Cedar deny-wins; ADR-0263 event sealed |
-| UX-013 | connect | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
+| UX-013 | connector | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
 | UX-014 | consent-graph | US parent inventory discovery | LGPD Article 18 data-subject rights including access, correction, anonymization, portability, deletion, and revocation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-015 | developer-sdk | higher-restriction floor calculation | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | UX-016 | docs | portability bundle build | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |
@@ -272,7 +272,7 @@ related_adrs:
 | UX-055 | comms-email | LGPD request intake | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | UX-056 | community | US parent inventory discovery | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |
 | UX-057 | compliance | higher-restriction floor calculation | LGPD Article 46 security measures | Cedar deny-wins; ADR-0263 event sealed |
-| UX-058 | connect | portability bundle build | LGPD Article 48 security incident communication | Cedar deny-wins; ADR-0263 event sealed |
+| UX-058 | connector | portability bundle build | LGPD Article 48 security incident communication | Cedar deny-wins; ADR-0263 event sealed |
 | UX-059 | consent-graph | ANPD-ready incident audit | California Civil Code sections 1798.100, 1798.105, 1798.110, 1798.115, 1798.130 CCPA/CPRA rights | Cedar deny-wins; ADR-0263 event sealed |
 | UX-060 | developer-sdk | Portuguese response delivery | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | UX-061 | docs | LGPD request intake | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |
@@ -317,7 +317,7 @@ related_adrs:
 | UX-100 | comms-email | portability bundle build | GDPR Articles 15, 17, 20, 22, and 33 for overlapping EU subject records | Cedar deny-wins; ADR-0263 event sealed |
 | UX-101 | community | ANPD-ready incident audit | LGPD Law 13.709/2018 Article 6 purpose, adequacy, necessity, transparency, security principles | Cedar deny-wins; ADR-0263 event sealed |
 | UX-102 | compliance | Portuguese response delivery | LGPD Article 7 lawful bases for personal data processing | Cedar deny-wins; ADR-0263 event sealed |
-| UX-103 | connect | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
+| UX-103 | connector | LGPD request intake | LGPD Article 11 sensitive personal data processing | Cedar deny-wins; ADR-0263 event sealed |
 | UX-104 | consent-graph | US parent inventory discovery | LGPD Article 18 data-subject rights including access, correction, anonymization, portability, deletion, and revocation | Cedar deny-wins; ADR-0263 event sealed |
 | UX-105 | developer-sdk | higher-restriction floor calculation | LGPD Article 33 international transfer conditions | Cedar deny-wins; ADR-0263 event sealed |
 | UX-106 | docs | portability bundle build | LGPD Article 38 data protection impact report authority | Cedar deny-wins; ADR-0263 event sealed |

@@ -216,7 +216,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | primary | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | IR Manager Lev Kahn must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

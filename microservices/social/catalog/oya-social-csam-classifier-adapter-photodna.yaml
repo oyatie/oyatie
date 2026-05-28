@@ -1,7 +1,7 @@
 apiVersion: catalog.oyatie/v2
 kind: Component
 metadata:
-  name: oya-social-csam-classifier-adapter-photodna
+  name: oya-community-social-csam-classifier-adapter-photodna
   namespace: social
 spec:
   microservice: social

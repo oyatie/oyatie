@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-sites-*` → `oya-sites-*`
+# Migration: `oya-sites-*` → `oya-sites-*`
 
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **sites** µservice. It is the
@@ -28,7 +28,7 @@ soak in flight.**
 |---|---|
 | Replacement | `oya-sites-*` crate family under `microservices/sites/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-SITES accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-BC sites surface (site / page / block / theme / navigation / url-routing / domain-binding / seo / cms-collection / search / cdn-delivery) is only addressable at µservice granularity, not at Connect-suite granularity |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-BC sites surface (site / page / block / theme / navigation / url-routing / domain-binding / seo / cms-collection / search / cdn-delivery) is only addressable at µservice granularity, not at Connect-platform granularity |
 | Migration owner (Churn Rule) | axis-sites |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -36,120 +36,120 @@ soak in flight.**
 
 The 11 bounded-contexts of the `sites` µservice live under
 `microservices/sites/src/crates/` per ADR-0131. Each legacy
-`oya-connect-sites-*` crate has a 1:1 replacement under the new prefix.
+`oya-sites-*` crate has a 1:1 replacement under the new prefix.
 
 ### Crate import-path map
 
-| Legacy `oya-connect-sites-*` path | New `oya-sites-*` path |
+| Legacy `oya-sites-*` path | New `oya-sites-*` path |
 |---|---|
-| `oya-connect-sites-domain` | (split per BC; see note below) |
-| `oya-connect-sites-site-kernel` | `oya-sites-site-kernel` |
-| `oya-connect-sites-site-domain` | `oya-sites-site-domain` |
-| `oya-connect-sites-site-usecase` | `oya-sites-site-usecase` |
-| `oya-connect-sites-site-api` | `oya-sites-site-api` |
-| `oya-connect-sites-site-adapter` | `oya-sites-site-adapter` |
-| `oya-connect-sites-site-adapter-postgres` | `oya-sites-site-adapter-postgres` |
-| `oya-connect-sites-site-rest` | `oya-sites-site-rest` |
-| `oya-connect-sites-site-worker` | `oya-sites-site-worker` |
-| `oya-connect-sites-site-sdk` | `oya-sites-site-sdk` |
-| `oya-connect-sites-site-app` | `oya-sites-site-app` |
-| `oya-connect-sites-page-kernel` | `oya-sites-page-kernel` |
-| `oya-connect-sites-page-domain` | `oya-sites-page-domain` |
-| `oya-connect-sites-page-usecase` | `oya-sites-page-usecase` |
-| `oya-connect-sites-page-api` | `oya-sites-page-api` |
-| `oya-connect-sites-page-adapter` | `oya-sites-page-adapter` |
-| `oya-connect-sites-page-adapter-postgres` | `oya-sites-page-adapter-postgres` |
-| `oya-connect-sites-page-rest` | `oya-sites-page-rest` |
-| `oya-connect-sites-page-worker` | `oya-sites-page-worker` |
-| `oya-connect-sites-page-sdk` | `oya-sites-page-sdk` |
-| `oya-connect-sites-page-app` | `oya-sites-page-app` |
-| `oya-connect-sites-block-kernel` | `oya-sites-block-kernel` |
-| `oya-connect-sites-block-domain` | `oya-sites-block-domain` |
-| `oya-connect-sites-block-usecase` | `oya-sites-block-usecase` |
-| `oya-connect-sites-block-api` | `oya-sites-block-api` |
-| `oya-connect-sites-block-adapter` | `oya-sites-block-adapter` |
-| `oya-connect-sites-block-adapter-loro` | `oya-sites-block-adapter-loro` (NEW — per ADR-SITES-0001 Loro CRDT alignment; replaces legacy in-house OT engine) |
-| `oya-connect-sites-block-app` | `oya-sites-block-app` |
-| `oya-connect-sites-theme-kernel` | `oya-sites-theme-kernel` |
-| `oya-connect-sites-theme-domain` | `oya-sites-theme-domain` |
-| `oya-connect-sites-theme-usecase` | `oya-sites-theme-usecase` |
-| `oya-connect-sites-theme-api` | `oya-sites-theme-api` |
-| `oya-connect-sites-theme-adapter` | `oya-sites-theme-adapter` |
-| `oya-connect-sites-theme-app` | `oya-sites-theme-app` |
-| `oya-connect-sites-navigation-kernel` | `oya-sites-navigation-kernel` |
-| `oya-connect-sites-navigation-domain` | `oya-sites-navigation-domain` |
-| `oya-connect-sites-navigation-usecase` | `oya-sites-navigation-usecase` |
-| `oya-connect-sites-navigation-api` | `oya-sites-navigation-api` |
-| `oya-connect-sites-navigation-adapter` | `oya-sites-navigation-adapter` |
-| `oya-connect-sites-navigation-app` | `oya-sites-navigation-app` |
-| `oya-connect-sites-url-routing-kernel` | `oya-sites-url-routing-kernel` |
-| `oya-connect-sites-url-routing-domain` | `oya-sites-url-routing-domain` |
-| `oya-connect-sites-url-routing-usecase` | `oya-sites-url-routing-usecase` |
-| `oya-connect-sites-url-routing-api` | `oya-sites-url-routing-api` |
-| `oya-connect-sites-url-routing-adapter` | `oya-sites-url-routing-adapter` |
-| `oya-connect-sites-url-routing-adapter-postgres` | `oya-sites-url-routing-adapter-postgres` |
-| `oya-connect-sites-url-routing-rest` | `oya-sites-url-routing-rest` |
-| `oya-connect-sites-url-routing-app` | `oya-sites-url-routing-app` |
-| `oya-connect-sites-domain-binding-kernel` | `oya-sites-domain-binding-kernel` |
-| `oya-connect-sites-domain-binding-domain` | `oya-sites-domain-binding-domain` |
-| `oya-connect-sites-domain-binding-usecase` | `oya-sites-domain-binding-usecase` |
-| `oya-connect-sites-domain-binding-api` | `oya-sites-domain-binding-api` |
-| `oya-connect-sites-domain-binding-adapter` | `oya-sites-domain-binding-adapter` |
-| `oya-connect-sites-domain-binding-adapter-acme` | `oya-sites-domain-binding-adapter-acme` (NEW — per ADR-SITES-0004; legacy used static cert injection) |
-| `oya-connect-sites-domain-binding-adapter-cert-manager` | `oya-sites-domain-binding-adapter-cert-manager` (NEW — per ADR-SITES-0004) |
-| `oya-connect-sites-domain-binding-rest` | `oya-sites-domain-binding-rest` |
-| `oya-connect-sites-domain-binding-worker` | `oya-sites-domain-binding-worker` |
-| `oya-connect-sites-domain-binding-app` | `oya-sites-domain-binding-app` |
-| `oya-connect-sites-seo-kernel` | `oya-sites-seo-kernel` |
-| `oya-connect-sites-seo-domain` | `oya-sites-seo-domain` |
-| `oya-connect-sites-seo-usecase` | `oya-sites-seo-usecase` |
-| `oya-connect-sites-seo-api` | `oya-sites-seo-api` |
-| `oya-connect-sites-seo-adapter` | `oya-sites-seo-adapter` |
-| `oya-connect-sites-seo-app` | `oya-sites-seo-app` |
-| `oya-connect-sites-cms-collection-kernel` | `oya-sites-cms-collection-kernel` |
-| `oya-connect-sites-cms-collection-domain` | `oya-sites-cms-collection-domain` |
-| `oya-connect-sites-cms-collection-usecase` | `oya-sites-cms-collection-usecase` |
-| `oya-connect-sites-cms-collection-api` | `oya-sites-cms-collection-api` |
-| `oya-connect-sites-cms-collection-adapter` | `oya-sites-cms-collection-adapter` |
-| `oya-connect-sites-cms-collection-adapter-postgres` | `oya-sites-cms-collection-adapter-postgres` |
-| `oya-connect-sites-cms-collection-rest` | `oya-sites-cms-collection-rest` |
-| `oya-connect-sites-cms-collection-worker` | `oya-sites-cms-collection-worker` |
-| `oya-connect-sites-cms-collection-app` | `oya-sites-cms-collection-app` |
-| `oya-connect-sites-search-kernel` | `oya-sites-search-kernel` |
-| `oya-connect-sites-search-domain` | `oya-sites-search-domain` |
-| `oya-connect-sites-search-usecase` | `oya-sites-search-usecase` |
-| `oya-connect-sites-search-api` | `oya-sites-search-api` |
-| `oya-connect-sites-search-adapter` | `oya-sites-search-adapter` |
-| `oya-connect-sites-search-adapter-meilisearch` | `oya-sites-search-adapter-meilisearch` (NEW — legacy used pg-FTS) |
-| `oya-connect-sites-search-rest` | `oya-sites-search-rest` |
-| `oya-connect-sites-search-worker` | `oya-sites-search-worker` |
-| `oya-connect-sites-search-app` | `oya-sites-search-app` |
-| `oya-connect-sites-cdn-delivery-kernel` | `oya-sites-cdn-delivery-kernel` |
-| `oya-connect-sites-cdn-delivery-domain` | `oya-sites-cdn-delivery-domain` |
-| `oya-connect-sites-cdn-delivery-usecase` | `oya-sites-cdn-delivery-usecase` |
-| `oya-connect-sites-cdn-delivery-api` | `oya-sites-cdn-delivery-api` |
-| `oya-connect-sites-cdn-delivery-adapter` | `oya-sites-cdn-delivery-adapter` |
-| `oya-connect-sites-cdn-delivery-adapter-s3` | `oya-sites-cdn-delivery-adapter-s3` |
-| `oya-connect-sites-cdn-delivery-adapter-cloudflare-cdn-stub` | `oya-sites-cdn-delivery-adapter-cloudflare-cdn-stub` (per ADR-SITES-0003 stub posture) |
-| `oya-connect-sites-cdn-delivery-adapter-libvips` | `oya-sites-cdn-delivery-adapter-libvips` (NEW — per ADR-SITES-0007; legacy used ImageMagick) |
-| `oya-connect-sites-cdn-delivery-adapter-pandoc` | `oya-sites-cdn-delivery-adapter-pandoc` |
-| `oya-connect-sites-cdn-delivery-rest` | `oya-sites-cdn-delivery-rest` |
-| `oya-connect-sites-cdn-delivery-worker` | `oya-sites-cdn-delivery-worker` |
-| `oya-connect-sites-cdn-delivery-app` | `oya-sites-cdn-delivery-app` |
+| `oya-sites-domain` | (split per BC; see note below) |
+| `oya-sites-site-kernel` | `oya-sites-site-kernel` |
+| `oya-sites-site-domain` | `oya-sites-site-domain` |
+| `oya-sites-site-usecase` | `oya-sites-site-usecase` |
+| `oya-sites-site-api` | `oya-sites-site-api` |
+| `oya-sites-site-adapter` | `oya-sites-site-adapter` |
+| `oya-sites-site-adapter-postgres` | `oya-sites-site-adapter-postgres` |
+| `oya-sites-site-rest` | `oya-sites-site-rest` |
+| `oya-sites-site-worker` | `oya-sites-site-worker` |
+| `oya-sites-site-sdk` | `oya-sites-site-sdk` |
+| `oya-sites-site-app` | `oya-sites-site-app` |
+| `oya-sites-page-kernel` | `oya-sites-page-kernel` |
+| `oya-sites-page-domain` | `oya-sites-page-domain` |
+| `oya-sites-page-usecase` | `oya-sites-page-usecase` |
+| `oya-sites-page-api` | `oya-sites-page-api` |
+| `oya-sites-page-adapter` | `oya-sites-page-adapter` |
+| `oya-sites-page-adapter-postgres` | `oya-sites-page-adapter-postgres` |
+| `oya-sites-page-rest` | `oya-sites-page-rest` |
+| `oya-sites-page-worker` | `oya-sites-page-worker` |
+| `oya-sites-page-sdk` | `oya-sites-page-sdk` |
+| `oya-sites-page-app` | `oya-sites-page-app` |
+| `oya-sites-block-kernel` | `oya-sites-block-kernel` |
+| `oya-sites-block-domain` | `oya-sites-block-domain` |
+| `oya-sites-block-usecase` | `oya-sites-block-usecase` |
+| `oya-sites-block-api` | `oya-sites-block-api` |
+| `oya-sites-block-adapter` | `oya-sites-block-adapter` |
+| `oya-sites-block-adapter-loro` | `oya-sites-block-adapter-loro` (NEW — per ADR-SITES-0001 Loro CRDT alignment; replaces legacy in-house OT engine) |
+| `oya-sites-block-app` | `oya-sites-block-app` |
+| `oya-sites-theme-kernel` | `oya-sites-theme-kernel` |
+| `oya-sites-theme-domain` | `oya-sites-theme-domain` |
+| `oya-sites-theme-usecase` | `oya-sites-theme-usecase` |
+| `oya-sites-theme-api` | `oya-sites-theme-api` |
+| `oya-sites-theme-adapter` | `oya-sites-theme-adapter` |
+| `oya-sites-theme-app` | `oya-sites-theme-app` |
+| `oya-sites-navigation-kernel` | `oya-sites-navigation-kernel` |
+| `oya-sites-navigation-domain` | `oya-sites-navigation-domain` |
+| `oya-sites-navigation-usecase` | `oya-sites-navigation-usecase` |
+| `oya-sites-navigation-api` | `oya-sites-navigation-api` |
+| `oya-sites-navigation-adapter` | `oya-sites-navigation-adapter` |
+| `oya-sites-navigation-app` | `oya-sites-navigation-app` |
+| `oya-sites-url-routing-kernel` | `oya-sites-url-routing-kernel` |
+| `oya-sites-url-routing-domain` | `oya-sites-url-routing-domain` |
+| `oya-sites-url-routing-usecase` | `oya-sites-url-routing-usecase` |
+| `oya-sites-url-routing-api` | `oya-sites-url-routing-api` |
+| `oya-sites-url-routing-adapter` | `oya-sites-url-routing-adapter` |
+| `oya-sites-url-routing-adapter-postgres` | `oya-sites-url-routing-adapter-postgres` |
+| `oya-sites-url-routing-rest` | `oya-sites-url-routing-rest` |
+| `oya-sites-url-routing-app` | `oya-sites-url-routing-app` |
+| `oya-sites-domain-binding-kernel` | `oya-sites-domain-binding-kernel` |
+| `oya-sites-domain-binding-domain` | `oya-sites-domain-binding-domain` |
+| `oya-sites-domain-binding-usecase` | `oya-sites-domain-binding-usecase` |
+| `oya-sites-domain-binding-api` | `oya-sites-domain-binding-api` |
+| `oya-sites-domain-binding-adapter` | `oya-sites-domain-binding-adapter` |
+| `oya-sites-domain-binding-adapter-acme` | `oya-sites-domain-binding-adapter-acme` (NEW — per ADR-SITES-0004; legacy used static cert injection) |
+| `oya-sites-domain-binding-adapter-cert-manager` | `oya-sites-domain-binding-adapter-cert-manager` (NEW — per ADR-SITES-0004) |
+| `oya-sites-domain-binding-rest` | `oya-sites-domain-binding-rest` |
+| `oya-sites-domain-binding-worker` | `oya-sites-domain-binding-worker` |
+| `oya-sites-domain-binding-app` | `oya-sites-domain-binding-app` |
+| `oya-sites-seo-kernel` | `oya-sites-seo-kernel` |
+| `oya-sites-seo-domain` | `oya-sites-seo-domain` |
+| `oya-sites-seo-usecase` | `oya-sites-seo-usecase` |
+| `oya-sites-seo-api` | `oya-sites-seo-api` |
+| `oya-sites-seo-adapter` | `oya-sites-seo-adapter` |
+| `oya-sites-seo-app` | `oya-sites-seo-app` |
+| `oya-sites-cms-collection-kernel` | `oya-sites-cms-collection-kernel` |
+| `oya-sites-cms-collection-domain` | `oya-sites-cms-collection-domain` |
+| `oya-sites-cms-collection-usecase` | `oya-sites-cms-collection-usecase` |
+| `oya-sites-cms-collection-api` | `oya-sites-cms-collection-api` |
+| `oya-sites-cms-collection-adapter` | `oya-sites-cms-collection-adapter` |
+| `oya-sites-cms-collection-adapter-postgres` | `oya-sites-cms-collection-adapter-postgres` |
+| `oya-sites-cms-collection-rest` | `oya-sites-cms-collection-rest` |
+| `oya-sites-cms-collection-worker` | `oya-sites-cms-collection-worker` |
+| `oya-sites-cms-collection-app` | `oya-sites-cms-collection-app` |
+| `oya-sites-search-kernel` | `oya-sites-search-kernel` |
+| `oya-sites-search-domain` | `oya-sites-search-domain` |
+| `oya-sites-search-usecase` | `oya-sites-search-usecase` |
+| `oya-sites-search-api` | `oya-sites-search-api` |
+| `oya-sites-search-adapter` | `oya-sites-search-adapter` |
+| `oya-sites-search-adapter-meilisearch` | `oya-sites-search-adapter-meilisearch` (NEW — legacy used pg-FTS) |
+| `oya-sites-search-rest` | `oya-sites-search-rest` |
+| `oya-sites-search-worker` | `oya-sites-search-worker` |
+| `oya-sites-search-app` | `oya-sites-search-app` |
+| `oya-sites-cdn-delivery-kernel` | `oya-sites-cdn-delivery-kernel` |
+| `oya-sites-cdn-delivery-domain` | `oya-sites-cdn-delivery-domain` |
+| `oya-sites-cdn-delivery-usecase` | `oya-sites-cdn-delivery-usecase` |
+| `oya-sites-cdn-delivery-api` | `oya-sites-cdn-delivery-api` |
+| `oya-sites-cdn-delivery-adapter` | `oya-sites-cdn-delivery-adapter` |
+| `oya-sites-cdn-delivery-adapter-s3` | `oya-sites-cdn-delivery-adapter-s3` |
+| `oya-sites-cdn-delivery-adapter-cloudflare-cdn-stub` | `oya-sites-cdn-delivery-adapter-cloudflare-cdn-stub` (per ADR-SITES-0003 stub posture) |
+| `oya-sites-cdn-delivery-adapter-libvips` | `oya-sites-cdn-delivery-adapter-libvips` (NEW — per ADR-SITES-0007; legacy used ImageMagick) |
+| `oya-sites-cdn-delivery-adapter-pandoc` | `oya-sites-cdn-delivery-adapter-pandoc` |
+| `oya-sites-cdn-delivery-rest` | `oya-sites-cdn-delivery-rest` |
+| `oya-sites-cdn-delivery-worker` | `oya-sites-cdn-delivery-worker` |
+| `oya-sites-cdn-delivery-app` | `oya-sites-cdn-delivery-app` |
 
-> **`oya-connect-sites-domain` split.** The legacy bundled crate
+> **`oya-sites-domain` split.** The legacy bundled crate
 > bundled site + page + block + theme + navigation + url-routing +
 > domain-binding + seo + cms-collection + search + cdn-delivery into a
 > single domain-layer crate. Per ADR-0131 + ADR-0105 (13-layer enum),
 > the new layout splits the domain layer per bounded context.
-> Migration imports from the legacy bundled `oya-connect-sites-domain`
+> Migration imports from the legacy bundled `oya-sites-domain`
 > must each pick the specific replacement BC; a one-line wholesale
 > `use oya_sites::*` import is not supported.
 
 ### Net-new boundaries (no legacy counterpart)
 
 The new µservice introduces capabilities that did NOT exist in
-`oya-connect-sites-*`. They are NOT part of the migration surface —
+`oya-sites-*`. They are NOT part of the migration surface —
 they are clean replacement-boundary features:
 
 - **`oya-sites-block-adapter-loro`** — Loro CRDT 1.x replaces the
@@ -203,9 +203,9 @@ use oya_sites_seo_kernel::{SeoMeta, OpenGraphTags};
 ```toml
 # BEFORE — Cargo.toml of a downstream consumer
 [dependencies]
-oya-connect-sites-site-kernel = { workspace = true }
-oya-connect-sites-page-usecase = { workspace = true }
-oya-connect-sites-block-kernel = { workspace = true }
+oya-sites-site-kernel = { workspace = true }
+oya-sites-page-usecase = { workspace = true }
+oya-sites-block-kernel = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -216,10 +216,10 @@ oya-sites-block-kernel = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-sites-*` family was authored before the
+The legacy `oya-sites-*` family was authored before the
 following ADRs crystallised:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 — per-µservice SLO authority.** Sites needs independent
@@ -242,11 +242,11 @@ following ADRs crystallised:
 5. **ADR-SITES-0001 → ADR-SITES-0007** — sites-specific decisions
    (Loro CRDT pick, rendering strategy, CDN substrate, ACME flow, CMS
    data model, AI-page-build bounds, image pipeline) need to live at
-   per-µservice ADR granularity, not at the Connect suite level.
+   per-µservice ADR granularity, not at the platform level.
 
 ## Migration Guide (step-by-step)
 
-For each consumer crate that imports `oya-connect-sites-*`:
+For each consumer crate that imports `oya-sites-*`:
 
 ### Step 1 — Add the new dependency
 
@@ -264,7 +264,7 @@ rg -l "oya_connect_sites_" --type rust path/to/your/crate
 ### Step 3 — Verify behavioural parity
 
 ```bash
-cargo nextest run --features connect-sites-strangler-canary
+cargo nextest run --features sites-strangler-canary
 ```
 
 Run with the feature flag enabled to route through the new µservice;
@@ -287,7 +287,7 @@ ADR-0134), remove the legacy dependency from your `Cargo.toml`.
 ### Step 5 — Verify zero residual
 
 ```bash
-cargo tree -e normal -p your-crate | grep oya-connect-sites   # expect empty
+cargo tree -e normal -p your-crate | grep oya-sites   # expect empty
 rg "use oya_connect_sites_" --type rust path/to/your/crate    # expect zero hits
 ```
 
@@ -298,7 +298,7 @@ rg "use oya_connect_sites_" --type rust path/to/your/crate    # expect zero hits
 | Feature flag namespace | `connect.sites.*` | `sites.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` (umbrella) | `microservices/sites/slos/*.openslo.yaml` (per-µservice, 9 files) |
 | Helm chart values key | `.Values.connect.sites.*` | `.Values.sites.*` |
-| K8s namespace | `connect` | `sites` |
+| K8s namespace | `connector` | `sites` |
 | Cedar policy fragment path | `policy/connect/sites/*.cedar` | `microservices/sites/policy/*.cedar` |
 | pack-kr overlay path | `policy/connect/sites/pack-kr/*` | `microservices/sites/iac/kustomize/overlays/pack-kr/*` + per-pack section in `threat-model.md` / `dpia.md` / `compliance.md` / `multi-region.md` |
 | Workflow event prefix | `connect.sites.*` | `sites.*` (e.g., `sites.page.lifecycle.v1`, `sites.domain.cert.v1`) |
@@ -394,7 +394,7 @@ had a long-tail dependency:
 | Phase | Description | Status (sites) | Exit condition |
 |---|---|---|---|
 | 1. Parallel ship | New µservice + legacy coexist | **active** | HG-SITES passes at p99 SLOs in dev cluster sustained 7d |
-| 2. Adapter soak | `oya-connect-sites-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
+| 2. Adapter soak | `oya-sites-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
 | 3. Feature-flagged canary | 10% → 50% → 100% traffic shift over 6 weeks | pending | New µservice carries 100% traffic for 7 consecutive days |
 | 4. Zero-active-usage verification | Dependency-graph + telemetry + grep all clean | pending | Verification commands all exit 0 |
 | 5. Code removal sweep | Delete legacy crates + Cargo.toml entries + spec pointers | pending | `cargo build --workspace` exits 0; no `oya_connect_sites_*` symbol resolves |
@@ -413,12 +413,12 @@ had a long-tail dependency:
   ```
 - [ ] **All active consumers have been migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-sites-domain --invert    | grep -v 'oya-connect-sites-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-sites-domain --invert    | grep -v 'oya-sites-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_sites_" --type rust    | rg -v "migration-adapter|legacy_in_process|tests/"    | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-sites-*" | wc -l   # expect 0
+  find crates -maxdepth 1 -type d -name "oya-sites-*" | wc -l   # expect 0
   test ! -f /specs/microservices/sites.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:

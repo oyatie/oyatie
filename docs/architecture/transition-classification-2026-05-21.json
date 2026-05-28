@@ -1934,42 +1934,42 @@
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/ARCHITECTURE.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/ARCHITECTURE.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/failure-modes.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/failure-modes.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/IP-014-compliance-critical-path.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/IP-014-compliance-critical-path.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/IP-015-connector-adapter-trait-doc.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/IP-015-connector-adapter-trait-doc.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/PHASE-01-INTEGRATION-SUBSTRATE-FOUNDATION.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/PHASE-01-INTEGRATION-SUBSTRATE-FOUNDATION.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/PRD.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/PRD.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/runbooks/connector-onboarding.md",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/runbooks/connector-onboarding.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/microservices/connect/scorecards/overrides.json",
+      "file": "/Users/jasonlee/oyatie/microservices/connector/scorecards/overrides.json",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
@@ -2779,12 +2779,12 @@
       "reason": "Forward-looking spec \u2014 rename lane reference strings including enforcement_lane_id values"
     },
     {
-      "file": "/Users/jasonlee/oyatie/specs/microservices/connect-suite.json",
+      "file": "/Users/jasonlee/oyatie/specs/tenant-rbac-packaging.json",
       "category": "A/D",
       "reason": "Forward-looking spec \u2014 rename lane reference strings including enforcement_lane_id values"
     },
     {
-      "file": "/Users/jasonlee/oyatie/specs/microservices/enterprise-suite.json",
+      "file": "/Users/jasonlee/oyatie/specs/microservices/tenant-rbac.json",
       "category": "A/D",
       "reason": "Forward-looking spec \u2014 rename lane reference strings including enforcement_lane_id values"
     },

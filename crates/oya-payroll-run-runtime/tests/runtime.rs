@@ -59,7 +59,7 @@ fn payroll_runtime_dispatches_trial_close_and_journal_metadata() {
     assert_eq!(journal.status, 202);
     assert_eq!(
         journal_body["auditTopic"],
-        "enterprise.payroll.accounting.journal_draft"
+        "tenant_rbac.payroll.accounting.journal_draft"
     );
     assert_eq!(
         journal_body["idempotencyKey"],

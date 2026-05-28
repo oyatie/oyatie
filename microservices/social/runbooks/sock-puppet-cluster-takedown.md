@@ -3,7 +3,7 @@ doc_class: Runbook
 status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0297]
-companion_docs: [microservices/social/catalog/oya-social-sock-puppet-detector-kernel.yaml]
+companion_docs: [microservices/social/catalog/oya-community-social-sock-puppet-detector-kernel.yaml]
 inbound_citations: [microservices/social/ARCHITECTURE.md]
 ---
 
@@ -11,7 +11,7 @@ inbound_citations: [microservices/social/ARCHITECTURE.md]
 
 ## A. Trigger conditions
 
-- `oya-social-sock-puppet-detector-kernel` emits a cluster verdict with confidence > 90.
+- `oya-community-social-sock-puppet-detector-kernel` emits a cluster verdict with confidence > 90.
 - External tip-off / news report of coordinated inauthentic behavior on the platform.
 - Pattern-anomaly alert: ≥10 new accounts within 1h sharing device fingerprint + IP-range + email-domain.
 

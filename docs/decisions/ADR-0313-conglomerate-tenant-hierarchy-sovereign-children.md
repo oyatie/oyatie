@@ -236,9 +236,9 @@ all converged on.
   "Resource hierarchy"; Google CRE Book ch. 8 "Managing change at
   scale.")
 
-- **Stripe Connect Platform Account → Connected Account.** The
+- **Stripe Tenant/RBAC Packaging Account → Connected Account.** The
   platform-facilitator pattern is the single most-cited industry
-  reference for this ADR. Stripe Connect platforms (Shopify, Lyft,
+  reference for this ADR. Stripe platforms (Shopify, Lyft,
   DoorDash, Booking.com, Squarespace) hold permit grants against
   connected accounts (the merchant subsidiaries). Each connected
   account is sovereign (its own Stripe Account ID, its own balance,
@@ -247,16 +247,16 @@ all converged on.
   refunds). On platform exit, the connected account retains its
   Stripe identity and migrates to direct relationship — no data loss,
   no merchant re-onboarding. (Source: Stripe Engineering Blog 2024
-  "Designing Connect for global platforms"; Stripe API Reference
+  "Designing for global platforms"; Stripe API Reference
   2025 ed. "Accounts" + "Application Fees" + "Transfers"; Stripe
-  Sessions 2024 "Connect platform mechanics" talk.)
+  Sessions 2024 "platform mechanics" talk.)
 
 - **Salesforce Org Hierarchy + Salesforce Multi-Org Reporting +
   Salesforce Connect.** Each Salesforce Org is a sovereign tenant
   (its own metadata, its own data, its own audit-trail). Multi-Org
   reporting is a permit-mediated federation, not a data merge.
   Customer-controlled Org-to-Org sync uses External Objects +
-  Salesforce Connect over OData; the leaf Org retains residency.
+  Salesforce over OData; the leaf Org retains residency.
   (Source: Salesforce Architects 2024 "Multi-org strategy"; Trailhead
   module "Multi-Org Strategy and Architecture.")
 
@@ -413,7 +413,7 @@ permit (
 };
 ```
 
-This is exactly the Stripe Connect platform-facilitator pattern
+This is exactly the Stripe platform-facilitator pattern
 generalized: instead of facilitator → connected-account, it is
 controlling-entity → controlled-tenant, with a richer scope vocabulary
 (read-only-financial / read-only-operational / read-write-board-
@@ -490,7 +490,7 @@ The conglomerate-tenancy doctrine therefore composes with:
   finops-portal, audit-chain, and tenancy.
 - Six new CI lanes (§D-8 / §E.4) enforce the invariants.
 - The ADR-0244 §D-3 `primary_tenants` field is preserved unchanged
-  but cross-referenced from this ADR (Stripe Connect facilitator
+  but cross-referenced from this ADR (Stripe facilitator
   is now a special case of §D-3 scope tier `payment-facilitation`).
 - The ADR-0244 §D-3 `can_facilitate_sub_merchants` BOOL is preserved
   unchanged but cross-referenced (it is the binary form of the
@@ -1227,7 +1227,7 @@ documentation-rigor.md §1.1 completeness invariant #3:
       "AWS Organizations Service Control Policies",
       "Microsoft 365 Multi-Tenant Organization model",
       "Google Workspace reseller console permit model",
-      "Stripe Connect platform-facilitator pattern"
+      "Stripe platform-facilitator pattern"
     ],
     "related_adrs": ["ADR-0313", "ADR-0244", "ADR-0243", "ADR-0242"],
     "binding_adr": "ADR-0313",
@@ -1449,7 +1449,7 @@ fragment evaluates against ONLY that parent's facet.
 
 #### §D-3.7 `payment-facilitation`
 
-The Stripe-Connect platform-facilitator pattern. Cross-references
+The Stripe-platform-facilitator pattern. Cross-references
 ADR-0244 §D-3 `can_facilitate_sub_merchants` (which is the binary
 form of this scope tier). When the parent is a marketplace platform
 (per ADR-0249 multi-category marketplace) and the children are
@@ -1951,14 +1951,14 @@ on customer data within bank holding companies; the regulatory
 fix in 2010-2014 codified what Cedar now enforces at the platform
 layer.
 
-### §D-7 Stripe Connect platform-facilitator pattern integration
+### §D-7 Stripe platform-facilitator pattern integration
 
 Cross-reference ADR-0244 §D-3 `can_facilitate_sub_merchants` BOOL.
-The Stripe Connect platform-facilitator pattern is a SPECIAL CASE of
+The Stripe platform-facilitator pattern is a SPECIAL CASE of
 ADR-0313 where the controlling-entity scope is `payment-facilitation`
 ONLY, not full read/write.
 
-**Grant shape (Stripe-Connect equivalent)**:
+**Grant shape (Stripe-equivalent)**:
 
 ```sql
 INSERT INTO conglomerate_grants (
@@ -2578,9 +2578,9 @@ hours.
 - Google Workspace Admin Help 2024 "Reseller features"; Google
   Cloud Resource Manager Docs 2024 "Resource hierarchy"; Google CRE
   Book ch. 8 "Managing change at scale."
-- Stripe Engineering Blog 2024 "Designing Connect for global
+- Stripe Engineering Blog 2024 "Designing for global
   platforms"; Stripe API Reference 2025 ed. "Accounts" + "Application
-  Fees" + "Transfers"; Stripe Sessions 2024 "Connect platform
+  Fees" + "Transfers"; Stripe Sessions 2024 "platform
   mechanics."
 - Salesforce Architects 2024 "Multi-org strategy"; Trailhead module
   "Multi-Org Strategy and Architecture."

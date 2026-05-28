@@ -63,7 +63,7 @@ Instead of building all the database, then all the API, then all the UI — buil
 Task 1: Build entire database schema
 Task 2: Build all API endpoints
 Task 3: Build all UI components
-Task 4: Connect everything
+Task 4: everything
 ```
 
 **Good (vertical slicing):**

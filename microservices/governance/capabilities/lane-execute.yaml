@@ -74,7 +74,7 @@ Side effects:
 ## SLO
 
 - Per-lane execution p99 ≤ 10s.
-- Full ~50-lane suite p99 ≤ 60s.
+- Full ~50-lane set p99 ≤ 60s.
 - Availability 99.95% monthly.
 
 ## Versioning

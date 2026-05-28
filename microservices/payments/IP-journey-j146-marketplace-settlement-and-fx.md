@@ -50,7 +50,7 @@ On delivery confirmation, release to seller via cross-tenant payable (`purpose=m
 
 ### T3 — FX integration
 
-- Quote via Connect FX adapter (e.g., Wise, OANDA, or banking FX).
+- Quote via FX adapter (e.g., Wise, OANDA, or banking FX).
 - Display mid_rate + spread_pct to buyer + seller at quote time.
 - Settle at quoted rate (no surprise).
 

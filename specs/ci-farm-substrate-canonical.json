@@ -20,7 +20,14 @@
     "engine": "Jenkins LTS",
     "managed_by": "JCasC-only (configuration-as-code plugin; numExecutors=0 on controller)",
     "license_class": "Contributor (MIT)",
-    "forbidden_alternatives": ["jenkins-x", "tekton", "spinnaker", "circleci", "travis", "buildkite-saas"],
+    "forbidden_alternatives": [
+      "jenkins-x",
+      "tekton",
+      "spinnaker",
+      "circleci",
+      "travis",
+      "buildkite-saas"
+    ],
     "github_actions_parity": "RETIRED per ADR-0361: GitHub Actions removed entirely; Jenkins is the sole CI. No Actions<->Jenkins parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) remains the lane authority."
   },
   "ephemeral_agents": {
@@ -55,7 +62,16 @@
     "logical_lane_model": "One lane per microservice vertical (microservices/<ms>/ci/Jenkinsfile). The flat-microservice-catalog + workflow-ontology-adapter-layer architecture invariants guarantee lanes are decoupled (no direct cross-service calls), so lanes run concurrently.",
     "lane_inventory_reference": ".omx/plans/parallel-lane-scoping.md",
     "concurrency_governor": "Concurrent lanes are bounded by Karpenter capacity + container_cap, not by a single host; a single dev host realistically sustains ~5-6 heavy lanes, the farm sustains many more.",
-    "per_lane_stages": ["checkout", "install rust ci tooling", "cargo fmt --check", "cargo check", "cargo clippy -D warnings", "cargo nextest run (profile ci)", "scoped oya gate validate", "cosign-verified image build (ADR-0181)"],
+    "per_lane_stages": [
+      "checkout",
+      "install rust ci tooling",
+      "cargo fmt --check",
+      "cargo check",
+      "cargo clippy -D warnings",
+      "cargo nextest run (profile ci)",
+      "scoped oya gate validate",
+      "cosign-verified image build (ADR-0181)"
+    ],
     "shared_library": "oya-jenkins-shared global library carries the cache-wiring and gate-invocation steps so lanes inherit them rather than duplicating."
   },
   "merge_queue_integration": {

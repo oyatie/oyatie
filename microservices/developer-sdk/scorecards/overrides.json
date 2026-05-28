@@ -1,5 +1,5 @@
 {
-  "$schema": "https://oyatie.dev/schemas/microservice-scorecard-overrides.json",
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
   "microservice": "developer-sdk",
   "summary": "third-party developer onboarding + signing keys + sandbox + portal + payout + tax forms",
   "chart_name": "developer-sdk",

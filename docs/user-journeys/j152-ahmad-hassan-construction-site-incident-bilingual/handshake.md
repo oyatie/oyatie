@@ -322,7 +322,7 @@ Failure modes:
 - `⟂` step-up stale (>120s) → `403` + `EVT-J152-CEDAR-DENY-STEPUP-STALE-NNN`
 - `⟂` acute window lapsed → `403` + `EVT-J152-CEDAR-DENY-STALE-BYPASS-NNN`
 
-## §5 Connect — EMS first-responder share
+## §5 — EMS first-responder share
 
 ### 5.1 Generate one-time share link
 
@@ -355,7 +355,7 @@ Audit: `EVT-J152-CONNECT-EMS-LINK-MINT-008a`.
 
 ### 5.2 First-responder access
 
-When Marcus Tate (AMR paramedic) taps the link, `connect` emits: `EVT-J152-CONNECT-EMS-EXCERPT-VIEW-008`.
+When Marcus Tate (AMR paramedic) taps the link, `connector` emits: `EVT-J152-CONNECT-EMS-EXCERPT-VIEW-008`.
 
 Failure mode:
 

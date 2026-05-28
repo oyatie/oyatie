@@ -29,7 +29,7 @@ related:
   - ADR-0106-application-to-usecase-rename.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-forward-policy.md
+  - ADR-0132-no-grouping-forward-policy.md
   - ADR-0140-cedar-policy-enforcement.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
@@ -1451,7 +1451,7 @@ bundle.
 3. **One network hop per evaluation.** Mitigated to <1ms p99 by in-
    cell evaluator + Valkey hot cache + SDK circuit-breaker fallback.
 4. **47-crate footprint grows the workspace.** Bounded by ADR-0132
-   no-suite policy; each BC is single-concern.
+   no-grouping policy; each BC is single-concern.
 
 ### Operational
 
@@ -1733,7 +1733,7 @@ under the `policy-engine` µservice:
 - **ADR-0106 — application → usecase rename.** Crate layer naming.
 - **ADR-0128 — Hyperscaler architecture invariants.** Substrate µservice pattern.
 - **ADR-0131 — Per-microservice flat layout.** Directory layout authority.
-- **ADR-0132 — No-suite forward policy.** Single-concern BCs.
+- **ADR-0132 — No-grouping forward policy.** Single-concern BCs.
 - **ADR-0140 — Cedar policy enforcement (retired).** Original framing.
 - **ADR-0144 — EU AI Act graduated-risk tier model.** Tier evaluation is Cedar-mediated.
 - **ADR-0145 — Inter-microservice communication reform.** Direct gRPC + Cedar evaluation at caller.
@@ -1774,7 +1774,7 @@ avoided.
 | Decision section | Hyperscaler pattern (named) | Source citation | Anti-pattern avoided |
 |---|---|---|---|
 | D-1 (Promote BC to peer substrate µservice) | "Centralized Policy Service" | AWS Verified Permissions (re:Invent 2023 BOA303); Google Org Policy; Netflix authz service (Netflix Tech Blog 2024) | "Embedded Policy in Application Service" — policy evolution coupled to host service deploy cycle |
-| D-2 (8 BCs: fragment-registry, evaluator, signing-chain, hot-reload, coverage-audit, pack-overlay, tenant-overlay, bootstrap-genesis) | "Single-Concern Bounded Contexts" | DDD (Evans 2003); ADR-0132 no-suite forward policy | "Bundle Bounded Context" — multi-concern BCs prone to coupling drift |
+| D-2 (8 BCs: fragment-registry, evaluator, signing-chain, hot-reload, coverage-audit, pack-overlay, tenant-overlay, bootstrap-genesis) | "Single-Concern Bounded Contexts" | DDD (Evans 2003); ADR-0132 no-grouping forward policy | "Bundle Bounded Context" — multi-concern BCs prone to coupling drift |
 | D-3 (47-crate redistribution following BNF v4.1 + ADR-0105 layer enum) | "Hexagonal Architecture with Port-in-Kernel" | Cockburn 2005 Hexagonal; ADR-0105 13-value canonical enum | "Anemic Layered Architecture" — ports defined outside kernel, leaking I/O concerns |
 | D-4 (gRPC + OpenAPI 3.2.0 dual surface; 10 operations) | "gRPC-Primary with REST Compat" | Google API Design Guide; Stripe API design (REST primary with gRPC for internal); Cloudflare Workers gRPC | "Single-Protocol Lock-in" — REST-only locks out efficient inter-µservice calls; gRPC-only locks out browser callers |
 | D-5 (Per-cell deployment: 3+ replicas + HPA + PDB + cross-region paired DR cell) | "Cell-Sharded Stateless Tier with HA" | AWS cell-based architecture (Bryan Liston re:Invent 2018); ADR-0009 cell architecture; ADR-0048 cell sharding | "Global Singleton Service" — single-region or single-replica policy service is a portfolio-wide blast radius |

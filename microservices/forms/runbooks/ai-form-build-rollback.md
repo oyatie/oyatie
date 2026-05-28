@@ -82,7 +82,7 @@ Cause: tenant prompt suggests employment screening / credit / insurance.
 | Step | Action |
 |---|---|
 | 1 | Compare prompt corpus pre/post regression: any tenant-side pattern change? |
-| 2 | Run T2-eval suite locally: `cargo run -p oya-dev-cli -- forms ai-build-eval --reference capabilities/eval/t2-auto-reference.jsonl`. |
+| 2 | Run T2-eval set locally: `cargo run -p oya-dev-cli -- forms ai-build-eval --reference capabilities/eval/t2-auto-reference.jsonl`. |
 | 3 | If eval pass-rate drops: rollback foundry-providers route to previous LLM version. |
 | 4 | Coordinate with foundry-providers + tenant on next-iteration improvement. |
 

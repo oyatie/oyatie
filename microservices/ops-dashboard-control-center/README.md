@@ -13,7 +13,7 @@ companion_docs:
   - microservices/ops-dashboard-control-center/PRD.md
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
   - microservices/ops-dashboard-control-center/manifest.json
-planned_enforcement_ref: oya-governance-microservice-doc-suite
+planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
 # ops-dashboard-control-center

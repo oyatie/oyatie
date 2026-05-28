@@ -73,7 +73,7 @@ compliance_requirements:
 counterpart_reference:
   aws_marketplace: "(no direct counterpart)"
   appexchange: "Flow Action / Flow Template"
-  atlassian_marketplace: "Forge Function / Connect module"
+  atlassian_marketplace: "Forge Function / module"
 tenant_class_caps:
   demo_trial:
     rate_per_minute: 5

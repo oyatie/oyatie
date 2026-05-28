@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j27-calendar-cross-context-family-and-work.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j27-calendar-cross-context-family-and-work.schema.json",
   "title": "j27 Calendar cross-context family and work Journey Contract",
   "type": "object",
   "additionalProperties": false,

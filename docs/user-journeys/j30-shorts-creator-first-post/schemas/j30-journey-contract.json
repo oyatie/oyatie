@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j30-shorts-creator-first-post.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j30-shorts-creator-first-post.schema.json",
   "title": "j30 Shorts creator first post Journey Contract",
   "type": "object",
   "additionalProperties": false,

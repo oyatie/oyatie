@@ -43,7 +43,11 @@ variable "argocd_image" {
 variable "argocd_image_digest" {
   description = "Cosign-verified ArgoCD image digest promoted by ADR-0181."
   type        = string
-  default     = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  nullable    = false
+  validation {
+    condition     = can(regex("^sha256:[0-9a-f]{64}$", var.argocd_image_digest)) && !can(regex("^sha256:0+$", var.argocd_image_digest))
+    error_message = "argocd_image_digest must be a real non-zero sha256 digest promoted by ADR-0181."
+  }
 }
 
 variable "repo_url" {

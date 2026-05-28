@@ -3,11 +3,11 @@
   "_artifact_id": "bounded-contexts-registry",
   "_meta": {
     "doc_class": "Registry",
-    "purpose": "Machine-readable registry of all bounded contexts per BC per ADR-0015 flat-crates + ADR-0056 BNF v4.1. Replaces docs/bounded-contexts/*.md per markdown-retirement-policy PHASE-6. Each row declares BC id + parent \u00b5service + responsibility + primary crate family + consumer/retention criterion.",
+    "purpose": "Machine-readable registry of all bounded contexts per BC per ADR-0015 flat-crates + ADR-0056 BNF v4.1. Replaces docs/bounded-contexts/*.md per markdown-retirement-policy PHASE-6. Each row declares BC id + parent µservice + responsibility + primary crate family + consumer/retention criterion.",
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "linus_critique_anchor": "Wave 1 IP-X1 catalog-prelude \u2014 first 2 ops BCs (docs-portal + workspace) registered to dogfood the active-artifact-contract validator",
+    "linus_critique_anchor": "Wave 1 IP-X1 catalog-prelude — first 2 ops BCs (docs-portal + workspace) registered to dogfood the active-artifact-contract validator",
     "supersedes_markdown": "docs/bounded-contexts/*.md (PHASE-6 migration target; 30+ files)"
   },
   "bounded_contexts": [
@@ -35,7 +35,7 @@
       "microservice_id": "ops",
       "wave": "wave_1",
       "phase": "M03-P06 (workspace-14-surfaces)",
-      "responsibility": "Workspace shell that mounts every ops \u00b5service surface (docs + dashboards + tenant-mgmt + capacity + on-call + ...). 14 surface slots per ADR-0067. SURFACE_CATALOG declares which surfaces are Live vs ReservedComingSoon.",
+      "responsibility": "Workspace shell that mounts every ops µservice surface (docs + dashboards + tenant-mgmt + capacity + on-call + ...). 14 surface slots per ADR-0067. SURFACE_CATALOG declares which surfaces are Live vs ReservedComingSoon.",
       "primary_crate_family_planned": "oya-ops-workspace-shell-{kernel,domain,application,rest,adapter}",
       "consumer_retention_criterion": "ops.oyatie.com root SPA host; consumer for every other ops BC's surface registration",
       "visibility_tier": "internal-private (M03-P06)",
@@ -46,7 +46,7 @@
         "ops-internal-sre.cedar (Wave 5)",
         "ops-internal-admin.cedar (Wave 5)"
       ],
-      "plan_ref": ".omc/plans/ralplan-ops-portal-2026-05-13.md (parent v7 \u00a76(a) workspace shell)",
+      "plan_ref": ".omc/plans/ralplan-ops-portal-2026-05-13.md (parent v7 §6(a) workspace shell)",
       "status": "planned-IP-pending-dispatch"
     }
   ],
@@ -77,12 +77,12 @@
     "ops/feature-flag-mgmt (Wave 7)",
     "ops/webhook-emitter (Wave 7)",
     "foundry/engine-substrate (existing per docs/bounded-contexts/foundry-engine-substrate.md)",
-    "connect/* (existing per docs/microservices/connect.md)",
+    "messenger/* + mail/* + community/* + connector/* (flat microservices; no product-group wrapper)",
     "application/branding + product-enablement + product-launchpad + sso-hub + tenant-navigation"
   ],
   "honest_gaps": [
-    "Only 2 BCs populated this slice (ops/docs-portal + ops/workspace) \u2014 both Wave 1.",
-    "primary_crate_family_planned uses `-*` glob; crates not yet authored in HEAD \u2014 Wave 1 IP-X1 dispatch will land them.",
+    "Only 2 BCs populated this slice (ops/docs-portal + ops/workspace) — both Wave 1.",
+    "primary_crate_family_planned uses `-*` glob; crates not yet authored in HEAD — Wave 1 IP-X1 dispatch will land them.",
     "openapi_contract_planned + cedar_fragments_planned cite WT-only / not-yet-authored paths; this is honest plan-stage state."
   ],
   "purpose": "Auto-backfilled purpose for bounded-contexts.json"

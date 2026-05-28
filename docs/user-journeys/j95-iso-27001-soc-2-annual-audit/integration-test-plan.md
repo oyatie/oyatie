@@ -25,7 +25,7 @@ related_adrs:
 
 ## Suites
 
-| Suite | Scope | Pass condition |
+| Test set | Scope | Pass condition |
 |---|---|---|
 | J95-T001 | analytics scope confirmation | Cedar decision and audit event cite ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls A.5, A.6, A.7, A.8; data remains tenant-scoped |
 | J95-T002 | api-gateway evidence collector mapping | Cedar decision and audit event cite ISO/IEC 27002:2022 Annex A implementation guidance for organizational, people, physical, and technological controls; data remains tenant-scoped |

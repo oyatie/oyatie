@@ -568,4 +568,4 @@ Channel read returning messages from a neighboring tenant.
 - `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`.
 - `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`.
 - `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
-- `microservices/messenger/` remains the service-owned doc suite and is intentionally not modified by this corpus.
+- `microservices/messenger/` remains the service-owned doc set and is intentionally not modified by this corpus.

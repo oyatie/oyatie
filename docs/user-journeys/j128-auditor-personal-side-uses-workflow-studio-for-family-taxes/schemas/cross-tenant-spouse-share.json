@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/specs/journey/j128/cross-tenant-spouse-share.json",
+  "$id": "https://oyatie.com/specs/journey/j128/cross-tenant-spouse-share.json",
   "title": "CrossTenantSpouseShare",
   "version": "1.0.0",
   "_meta": {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j12/emergency-rate-limit-decision.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j12/emergency-rate-limit-decision.json",
   "title": "EmergencyRateLimitDecision",
   "version": "1.0.0",
   "description": "EmergencyRateLimitDecision shared object for j12 Mass casualty incident at 10x emergency traffic. The object is intentionally narrow so service boundaries can validate safety-critical state without relying on prose.",

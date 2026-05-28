@@ -32,7 +32,7 @@ flowchart TB
 
     subgraph Personal["B2C Tenants (individuals; M05+)"]
       direction LR
-      P1[Connect Personal users]:::tenant
+      P1[Personal users]:::tenant
     end
 
     Tenants -->|OIDC/SAML SSO| App
@@ -89,7 +89,7 @@ flowchart TB
       SECURITY[security]
     end
 
-    subgraph Connect["Connect cluster (Pro B2B + Personal B2C)"]
+    subgraph Connect["cluster (Pro B2B + Personal B2C)"]
       direction TB
       CONNECT[connect — dual-context]
       COMMUNITY[community]
@@ -97,7 +97,7 @@ flowchart TB
       PROFILE_PERSONAL[profile-personal]
     end
 
-    subgraph ConnectPersonal["Connect Personal (B2C path)"]
+    subgraph ConnectPersonal["Personal (B2C path)"]
       CP[connect-personal context — user-owned keys]:::personal
     end
 
@@ -158,7 +158,7 @@ flowchart TB
     Workforce -.->|substrate calls| Substrate
     FinTech -.->|substrate calls| Substrate
     Industrial -.->|substrate calls| Substrate
-    Connect -.->|substrate calls| Substrate
+    -.->|substrate calls| Substrate
     Hospitality -.->|substrate calls| Substrate
     Substrate -.->|runtime| Cloud
     Foundry -.->|build/verify| Tenants
@@ -309,7 +309,7 @@ Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 |---|---|---|---|
 | **medical** | Encounter / Practitioner / Organization (FHIR R5 entities in `records` substrate) | HIRA DUR realtime; NHIS 청구; KHIRA outcomes; 의료법 retention; EMR cross-walk (더존/유비케어/비트컴퓨터) | M04 |
 | **pharmacy** | Prescription / Dispense / MedicationRequest | HIRA DUR check (≤200ms p99); KFDA recall/dispatch | M04 |
-| **patient** | Patient B2C portal (separate from clinician surface) | 의료법 환자 권리; appointment booking; Connect Personal link | M04 |
+| **patient** | Patient B2C portal (separate from clinician surface) | 의료법 환자 권리; appointment booking; Personal link | M04 |
 | **emergency** | Routing / Handoff / Dispatch | 119 응급의료; 응급의료법 | M04 |
 | **clinical** | Workflow handoffs across encounter lifecycle | KR clinical pathway templates | M04 |
 | **healthcare-portal** | Provider-facing portal (cross-clinic ops) | KR multi-clinic dispatch | M04 |
@@ -333,7 +333,7 @@ Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 | **procurement** | Vendor onboarding / PO / Receipt | 전자세금계산서 (홈택스) | M07 |
 | **security** | Physical security + audit + access logs | 개인정보보호법 records | M07 |
 
-### 5.5 Connect cluster (Pro B2B + Personal B2C)
+### 5.5 cluster (Pro B2B + Personal B2C)
 
 | µservice | Canonical scope | KR pack overlay | Lead milestone |
 |---|---|---|---|
@@ -535,7 +535,7 @@ pub struct WorkflowRun {
 
 Deterministic replay: every step recorded to `step_journal` BEFORE side effect. On crash, replay from journal head; replay-then-act for un-recorded steps.
 
-### 6.7 Connect dual-context schema (Bominal ADR-0208 inheritance)
+### 6.7 dual-context schema (Bominal ADR-0208 inheritance)
 
 ```sql
 CREATE TYPE connect_pro.context_kind AS ENUM ('professional', 'personal');
@@ -632,7 +632,7 @@ flowchart LR
     ReadWS --> Algo[Algorithm §5: 10 steps]
     ReadMP --> Algo
     ReadPack --> Algo
-    Algo --> Step3[§3: canonical suite per µservice<br/>microservice-record + PRD + naming-ADR + BC reg + phase-spec ref + impl-plan ref]
+    Algo --> Step3[§3: canonical set per µservice<br/>microservice-record + PRD + naming-ADR + BC reg + phase-spec ref + impl-plan ref]
     Algo --> Step5[§5: per-pack overlay<br/>regulatory ADR + acceptance evidence + overlay PRD if material_scope=true]
     Algo --> Step8[§8: orphan-scan<br/>whitelist templates / INDEX / README / RETIRED]
     Step3 --> Report[Markdown report → docs/DOC-COVERAGE.md]
@@ -666,7 +666,7 @@ rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0064-canonical-bas
 - `docs/decisions/ADR-0056-rust-clean-architecture-bnf.md` (BNF v4.1 + 12-layer enum)
 - `docs/decisions/ADR-0058-flat-microservice-catalog.md` (catalog flatness)
 - `docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md` (Workflow + Ontology load-bearing rule)
-- `docs/decisions/ADR-0063-documentation-suite-coverage.md` (LEAN-A5 lane spec)
+- `docs/decisions/ADR-0063-documentation-set-coverage.md` (LEAN-A5 lane spec)
 - `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md` (seam / adapter / pack trichotomy)
 - `docs/localization-packs/INDEX.md` + `docs/localization-packs/kr/pack.yaml`
 - `.omc/plans/M01-M03-parallelization-manifest.md` (dispatch DAG)

@@ -99,8 +99,8 @@ Per call site:
 
 ## Phase 5 — Cutover billing + numbers (Day 30+)
 
-If your business depends on Stripe Connect or Twilio phone numbers:
-- Stripe Connect → `marketplace` µservice (ADR-0314 universal deal-settlement). Stripe accounts can be linked rather than migrated;
+If your business depends on Stripe or Twilio phone numbers:
+- Stripe → `marketplace` µservice (ADR-0314 universal deal-settlement). Stripe accounts can be linked rather than migrated;
   the `marketplace` µservice orchestrates both Stripe and direct settlement.
 - Twilio phone numbers → port to a SIP carrier supported by `meet` (Twilio Elastic SIP, Bandwidth, Telnyx). Number porting is a 7-30
   day process driven by the carrier; `meet` provisions the Oyatie side.

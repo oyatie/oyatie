@@ -57,7 +57,7 @@ payment releases on delivery evidence.
   deal-settlement-ledger
 - Service: payments; IP file: ../../../microservices/payments/IP-journey-j103-escrow-and-settlement.md; Role:
   escrow-and-settlement
-- Service: connect; IP file: ../../../microservices/connect/IP-journey-j103-external-rail-adapter.md; Role:
+- Service: connector; IP file: ../../../microservices/connector/IP-journey-j103-external-rail-adapter.md; Role:
   external-rail-adapter
 - Service: observability; IP file: ../../../microservices/observability/IP-journey-j103-risk-and-slo-telemetry.md; Role:
   risk-and-slo-telemetry
@@ -205,7 +205,7 @@ payment releases on delivery evidence.
 - readme-buildability 001: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 002: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 003: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -214,7 +214,7 @@ payment releases on delivery evidence.
 - readme-buildability 005: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 006: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 007: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal
@@ -224,7 +224,7 @@ payment releases on delivery evidence.
 - readme-buildability 009: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 010: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 011: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 012: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -232,7 +232,7 @@ payment releases on delivery evidence.
 - readme-buildability 013: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 014: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 015: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -241,7 +241,7 @@ payment releases on delivery evidence.
 - readme-buildability 017: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 018: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform
+  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 019: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement
@@ -251,7 +251,7 @@ payment releases on delivery evidence.
 - readme-buildability 021: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 022: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 023: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 024: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -259,7 +259,7 @@ payment releases on delivery evidence.
 - readme-buildability 025: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 026: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 027: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -268,7 +268,7 @@ payment releases on delivery evidence.
 - readme-buildability 029: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 030: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 031: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -277,7 +277,7 @@ payment releases on delivery evidence.
 - readme-buildability 033: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 034: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 035: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 036: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -286,7 +286,7 @@ payment releases on delivery evidence.
 - readme-buildability 037: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 038: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 039: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -295,7 +295,7 @@ payment releases on delivery evidence.
 - readme-buildability 041: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 042: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 043: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal
@@ -305,7 +305,7 @@ payment releases on delivery evidence.
 - readme-buildability 045: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 046: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 047: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 048: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -313,7 +313,7 @@ payment releases on delivery evidence.
 - readme-buildability 049: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 050: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 051: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -322,7 +322,7 @@ payment releases on delivery evidence.
 - readme-buildability 053: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 054: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform
+  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 055: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement
@@ -332,7 +332,7 @@ payment releases on delivery evidence.
 - readme-buildability 057: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 058: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 059: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 060: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -340,7 +340,7 @@ payment releases on delivery evidence.
 - readme-buildability 061: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 062: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 063: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -349,7 +349,7 @@ payment releases on delivery evidence.
 - readme-buildability 065: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 066: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 067: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -358,7 +358,7 @@ payment releases on delivery evidence.
 - readme-buildability 069: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 070: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 071: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 072: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -367,7 +367,7 @@ payment releases on delivery evidence.
 - readme-buildability 073: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 074: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 075: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -376,7 +376,7 @@ payment releases on delivery evidence.
 - readme-buildability 077: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 078: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 079: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal
@@ -386,7 +386,7 @@ payment releases on delivery evidence.
 - readme-buildability 081: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 082: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 083: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 084: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -394,7 +394,7 @@ payment releases on delivery evidence.
 - readme-buildability 085: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 086: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 087: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -403,7 +403,7 @@ payment releases on delivery evidence.
 - readme-buildability 089: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 090: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform
+  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 091: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement
@@ -413,7 +413,7 @@ payment releases on delivery evidence.
 - readme-buildability 093: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 094: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 095: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 096: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -421,7 +421,7 @@ payment releases on delivery evidence.
 - readme-buildability 097: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 098: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 099: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -430,7 +430,7 @@ payment releases on delivery evidence.
 - readme-buildability 101: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 102: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 103: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -439,7 +439,7 @@ payment releases on delivery evidence.
 - readme-buildability 105: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 106: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 107: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 108: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -448,7 +448,7 @@ payment releases on delivery evidence.
 - readme-buildability 109: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 110: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0243-cedar-as-universal-gate, and maps the control to Stripe platform facilitator.
 - readme-buildability 111: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -457,7 +457,7 @@ payment releases on delivery evidence.
 - readme-buildability 113: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to AWS Organizations.
 - readme-buildability 114: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe Connect platform
+  cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 115: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Bloomberg Terminal
@@ -467,7 +467,7 @@ payment releases on delivery evidence.
 - readme-buildability 117: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to AWS Organizations.
 - readme-buildability 118: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 119: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 120: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -475,7 +475,7 @@ payment releases on delivery evidence.
 - readme-buildability 121: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to AWS Organizations.
 - readme-buildability 122: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0263-observability-emission-contract, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0263-observability-emission-contract, and maps the control to Stripe platform facilitator.
 - readme-buildability 123: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -484,7 +484,7 @@ payment releases on delivery evidence.
 - readme-buildability 125: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to AWS Organizations.
 - readme-buildability 126: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe Connect platform
+  cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Stripe platform
   facilitator.
 - readme-buildability 127: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0242-oyatie-is-a-tenant-doctrine, and maps the control to Bloomberg Terminal entitlement
@@ -494,7 +494,7 @@ payment releases on delivery evidence.
 - readme-buildability 129: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to AWS Organizations.
 - readme-buildability 130: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe Connect platform facilitator.
+  ADR-0249-multi-category-marketplace-doctrine, and maps the control to Stripe platform facilitator.
 - readme-buildability 131: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0263-observability-emission-contract, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 132: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
@@ -502,7 +502,7 @@ payment releases on delivery evidence.
 - readme-buildability 133: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to AWS Organizations.
 - readme-buildability 134: marketplace keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Stripe platform facilitator.
 - readme-buildability 135: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0314-marketplace-universal-deal-settlement-substrate, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -511,7 +511,7 @@ payment releases on delivery evidence.
 - readme-buildability 137: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0243-cedar-as-universal-gate, and maps the control to AWS Organizations.
 - readme-buildability 138: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
-  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe Connect platform facilitator.
+  cites ADR-0244-tenant-as-universal-scoping-primitive, and maps the control to Stripe platform facilitator.
 - readme-buildability 139: workflow-engine keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped
   evidence, cites ADR-0249-multi-category-marketplace-doctrine, and maps the control to Bloomberg Terminal entitlement
   hierarchy.
@@ -520,7 +520,7 @@ payment releases on delivery evidence.
 - readme-buildability 141: payments keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape, and maps the control to AWS Organizations.
 - readme-buildability 142: connect keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence, cites
-  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe Connect platform facilitator.
+  ADR-0311-dual-tenant-identity-personal-vs-work-boundary, and maps the control to Stripe platform facilitator.
 - readme-buildability 143: observability keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,
   cites ADR-0313-conglomerate-tenant-hierarchy, and maps the control to Bloomberg Terminal entitlement hierarchy.
 - readme-buildability 144: audit-chain keeps Jae-hyun Choi and AcmeRawMaterials Hamburg inside tenant-scoped evidence,

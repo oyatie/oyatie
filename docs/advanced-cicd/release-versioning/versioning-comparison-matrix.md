@@ -37,7 +37,7 @@ doc_status: published
 |---|---|---|---|
 | SemVer 2.0.0 | semver.org | Libraries, SDKs, anything with a `pub` API | AWS SDK, Google libraries, Azure SDK, OCI SDK, Rust, Stripe libs, Twilio libs |
 | CalVer (`YYYY.MM`) | calver.org | OS distros, continuously-evolving SaaS, internal tooling | Ubuntu 24.04, IntelliJ 2024.2, Black 24.4.0 |
-| Hybrid | mixed | Large enterprise platforms with both axes | .NET (SemVer + November release year), Azure (SemVer SDK + date API), Stripe (SemVer SDK + date API) |
+| Hybrid | mixed | Large enterprise-market systems with both axes | .NET (SemVer + November release year), Azure (SemVer SDK + date API), Stripe (SemVer SDK + date API) |
 
 ## 3. API versioning patterns
 

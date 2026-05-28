@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This net-new slice tracks agent state against schedules without becoming a full workforce-management suite. It displaces Genesys WEM adherence, NICE CXone WFM adherence, Five9 workforce signals, Talkdesk Workforce Management, and AWS Connect agent event streams.
+This net-new slice tracks agent state against schedules without becoming a full workforce-management suite. It displaces Genesys WEM adherence, NICE CXone WFM adherence, Five9 workforce signals, Talkdesk Workforce Management, and AWS agent event streams.
 
 ## Data Model Deltas
 
@@ -59,7 +59,7 @@ gRPC `AgentAdherenceService.StreamAdherence(StreamAdherenceRequest)` streams age
 | NICE CXone Agent State | `AgentAdherenceInterval` | state id maps to observed state. |
 | Five9 Agent State | `AgentAdherenceInterval` | status maps to observed state. |
 | Talkdesk Agent Activity | `AgentAdherenceInterval` | activity maps to observed state. |
-| AWS Connect Agent Event | `AgentAdherenceInterval` | event type maps to interval transition. |
+| AWS Agent Event | `AgentAdherenceInterval` | event type maps to interval transition. |
 
 ## Workflow Steps
 

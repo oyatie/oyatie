@@ -59,7 +59,7 @@ spec:
             - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
               valueFrom: { secretKeyRef: { name: zitadel-postgres-user, key: password } }
             - name: ZITADEL_EXTERNALDOMAIN
-              value: identity-{{ .Values.packLabel }}.oyatie.dev
+              value: identity-{{ .Values.packLabel }}.oyatie.com
             - name: ZITADEL_EXTERNALSECURE
               value: "true"
             - name: ZITADEL_LOG_LEVEL

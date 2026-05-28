@@ -37,7 +37,7 @@ The KR pack provides the regulatory, statutory, language, document-template, and
 | Healthcare | medical, pharmacy, patient, emergency, clinical, healthcare-portal |
 | FinTech | payments, insurance, finance-quant, settlement |
 | Industrial | manufacturing, logistics, facility-ops, procurement, security |
-| Connect | connect (Pro + Personal); community |
+| | connect (Pro + Personal); community |
 | Hospitality | hospitality, dining, cellar |
 
 Substrate (tenancy / identity / audit-chain / etc.), Workflow, Ontology, Cloud, Foundry, Application are pack-neutral by ADR (their concerns are universal); KR-specific behavior in those layers flows in via pack adapters only.
@@ -73,7 +73,7 @@ Substrate (tenancy / identity / audit-chain / etc.), Workflow, Ontology, Cloud, 
 | `truck-transport-act` | 화물자동차운수사업법 | logistics adapter | M07 | 국토교통부 |
 | `port-transport-act` | 항만운송사업법 | logistics adapter | M07 | 해양수산부 |
 | `119-emergency` | 119 응급의료 routing | emergency adapter | M04 | 소방청 |
-| `connect-retention-kr` | 메신저 / 메일 보관 의무 (Bominal ADR-0215 KR-mode) | connect adapter | M03 | (Bominal-inherited) |
+| `retention-kr` | 메신저 / 메일 보관 의무 (Bominal ADR-0215 KR-mode) | connect adapter | M03 | (Bominal-inherited) |
 
 ---
 
@@ -169,10 +169,10 @@ Gate per phase (M01-P05 already green; M02-P22 / M03-P08 forthcoming):
 ## 7. References
 
 - [ADR-0064 Canonical base + localization packs](../decisions/ADR-0064-canonical-base-and-localization-packs.md)
-- [ADR-0063 Documentation suite coverage](../decisions/ADR-0063-documentation-suite-coverage.md)
+- [ADR-0063 Documentation set coverage](../decisions/ADR-0063-documentation-set-coverage.md)
 - [MASTERPLAN §2.5, §5.5](../MASTERPLAN.md)
 - [INDEX](INDEX.md)
 - Bominal ADR-0140 (retired per ADR-0145) (inherited regional-pack pattern)
 - Bominal ADR-0190 (inherited versioned regulatory corpus.lock)
 - Bominal ADR-0210 (M03 KR group payroll + mail launch criteria)
-- Bominal ADR-0215 (Connect retention / legal hold dual-context)
+- Bominal ADR-0215 (retention / legal hold dual-context)

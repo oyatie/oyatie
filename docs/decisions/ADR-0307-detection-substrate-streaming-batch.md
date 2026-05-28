@@ -30,7 +30,7 @@ related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0130-agentic-slo-gated-promotion.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-microservice-rule.md
+  - ADR-0132-no-grouping-microservice-rule.md
   - ADR-0140-cedar-policy-enforcement.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0212-buildability-doctrine.md
@@ -123,7 +123,7 @@ naming_justifications:
     layer: layer_5_shared_substrate
     bnf_segments: microservices.detection
     justification: >
-      Per ADR-0131 per-microservice flat layout + ADR-0132 no-suite rule, the
+      Per ADR-0131 per-microservice flat layout + ADR-0132 no-grouping rule, the
       detection capability MUST ship as a single-concern flat µservice under
       microservices/detection/ — not bundled under a "fraud-suite" or
       "risk-suite" name. The µservice serves all eight detection families
@@ -547,7 +547,7 @@ NOT:
 
 Establish `microservices/detection/` as a substrate-tier flat
 µservice (per ADR-0131 per-microservice flat layout + ADR-0132
-no-suite rule) exposing eight substrate primitives:
+no-grouping rule) exposing eight substrate primitives:
 
 1. **Streaming pipeline (Apache Flink-class).** Consumes audit
    events from Kafka per ADR-0263; per-family rules + ML models
@@ -1807,7 +1807,7 @@ Per ADR-0294 anomaly-rollback applied to detection substrate:
 - **ADR-0105** — 13-layer canonical enum (layer 5 shared-substrate)
 - **ADR-0130** — agentic SLO-gated promotion (per-µservice SLO)
 - **ADR-0131** — per-microservice flat layout
-- **ADR-0132** — no-suite microservice rule (single-concern)
+- **ADR-0132** — no-grouping microservice rule (single-concern)
 - **ADR-0140** — Cedar policy enforcement
 - **ADR-0145** — inter-microservice communication reform (direct gRPC)
 - **ADR-0212** — buildability doctrine (CI fitness lanes)

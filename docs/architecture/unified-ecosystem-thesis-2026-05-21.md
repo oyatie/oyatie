@@ -11,7 +11,7 @@ planned_enforcement_ref: 'oya-governance-doc-rigor'
 purpose: >
   Master architecture narrative for the unified-ecosystem thesis: one platform, one identity, one policy engine, one workflow engine, one ontology, one audit chain, one marketplace settlement, and one UX shell vocabulary. Products are role and capability projections of the unified substrate, not separate adoption islands.
 related_adrs:
-  - docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
   - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
   - docs/decisions/ADR-0245-substrate-vs-product-layering.md
   - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
@@ -46,7 +46,7 @@ external_precedent_refs:
   - Google Workspace Learning Center: https://support.google.com/a/users/answer/9389764
   - Salesforce Platform and AppExchange: https://www.salesforce.com/platform/ecosystem
   - Salesforce Trailhead AppExchange basics: https://trailhead.salesforce.com/content/learn/modules/appexchange_basics
-  - ServiceNow Now Platform workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
+  - ServiceNow Now Module workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
   - Atlassian Platform: https://www.atlassian.com/platform
   - Notion connected workspace: https://www.notion.com/help/guides/connected-workspace-for-product-teams-to-collaborate-ideate-and-launch
   - Gartner SaaS sprawl collaboration research: https://www.gartner.com/en/documents/6873766
@@ -103,7 +103,7 @@ The total fragmentation-tax surface at this scale is approximately USD 38.5 mill
 ### 1.3 The substrate alternative
 The substrate alternative is one identity (passkey-backed; ADR-0311 dual-tenant boundary), one policy engine (Cedar; ADR-0243), one workflow engine (durable; ADR-0245 substrate), one ontology (object graph with projections; ADR-0244 tenancy primitive on every object), one audit chain (sealed evidence; ADR-0251 pack-aware retention), one marketplace settlement (universal; ADR-0314), one UX shell (thirteen-verb vocabulary; ADR-0317 role projections; ADR-0318 collar universality), one training model (substrate fluency; see training-cost-doctrine sibling), one compliance posture (pack primitive; ADR-0251), and one plugin extensibility (governed admission; ADR-0249).
 
-The substrate does not preclude operationally-distinct services. ADR-0132 dissolves product suites but preserves the right to declare a service when there is a documented operational concern (e.g., a regulated rail, a hardware integration, a certified network). The default decision is substrate; the exception is service.
+The substrate does not preclude operationally-distinct services. ADR-0132 dissolves product platforms but preserves the right to declare a service when there is a documented operational concern (e.g., a regulated rail, a hardware integration, a certified network). The default decision is substrate; the exception is service.
 
 ### 1.4 The procurement narrative
 The procurement narrative changes when the substrate alternative is real. Instead of "buy CRM-vendor-A versus CRM-vendor-B," procurement asks "which capability tier does our workforce need on the unified substrate?" Instead of "this year we are buying ITSM," procurement asks "this year we are upgrading the ITSM capability tier with these specific extensions." The vendor-selection grammar collapses because the substrate is one tenant-bounded surface.
@@ -302,7 +302,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Scalability: Workflow Engine sharded by tenant; deterministic-replay enabled for audit-chain reconstruction.
 - Performance: state transitions complete within 50 ms p50, 200 ms p99; long-running activities (e.g., human approvals) are tracked as suspended states.
 - Optimization: Workflow templates are version-controlled; hot templates are precompiled.
-- Code quality: workflow-template-test suite at every release; replay-based regression tests.
+- Code quality: workflow-template-test set at every release; replay-based regression tests.
 
 **Failure-mode tree**:
 - Inconsistent state: replay from audit-chain to recover; deny new transitions until consistency is verified.
@@ -407,7 +407,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Pack-specific verb-hiding: rejected; pack may restrict the verb's policy-bound visibility but not its presence in the shell.
 - Locale-specific verb addition: rejected unless adopted globally via ADR.
 - Capability-tier-specific verb subtraction: rejected; Cedar may deny the verb but the verb remains visible with denial-recovery affordances.
-- Accessibility regression: rejected at the UX-shell conformance suite.
+- Accessibility regression: rejected at the UX-shell conformance set.
 - Custom-app shadow vocabulary: rejected at marketplace admission.
 
 **Implementation references**: `oya-shared-ux-shell-action-router`, `oya-shared-ux-shell-localization`, `oya-shared-ux-shell-accessibility`.
@@ -1285,7 +1285,7 @@ For each displaced incumbent, the doctrine maps the incumbent's substrate-releva
 ### 10.13 Stripe displacement
 **Incumbent surface**: payment processing, billing, fraud, identity, treasury.
 
-**Substrate mapping**: Stripe charge → marketplace-settlement event. Stripe subscription → marketplace-settlement recurring schedule. Stripe Connect → marketplace-settlement primitive (multi-party). Stripe Radar → fraud-detection projection.
+**Substrate mapping**: Stripe charge → marketplace-settlement event. Stripe subscription → marketplace-settlement recurring schedule. Stripe → marketplace-settlement primitive (multi-party). Stripe Radar → fraud-detection projection.
 
 **Displacement weakness**: Stripe's payment-rail integrations and acquiring-bank relationships; PCI compliance depth.
 
@@ -1792,7 +1792,7 @@ The doctrine forbids product forks, hidden policy engines, local audit trails, c
 **Required correction**: the substrate enforces the tenant boundary at every primitive; passkey authentication is identity, not authorization.
 
 ### 13.11 Using suite branding to sneak in a multi-concern service boundary
-**Failure**: ADR-0132 product-suite dissolution is bypassed; product fork hides behind marketing.
+**Failure**: ADR-0132 product-platform dissolution is bypassed; product fork hides behind marketing.
 **Required correction**: the multi-concern boundary must be raised as an ADR with documented operational concern; default decision is to use the substrate.
 
 ### 13.12 Accepting an external plugin without isolation, admission, settlement, and audit hooks
@@ -1853,7 +1853,7 @@ Each anti-pattern is detectable through one or more facets of the multispectrum-
 - F3 (architecture): does the anti-pattern bypass a substrate primitive?
 - F8 (cohesion): does the anti-pattern duplicate logic across microservices?
 - A1 (own-policy-naming): does the introduced name fit the v4 BNF + 12-layer enum?
-- A2 (own-policy-documentation): does the introduced surface ship the required doc suite?
+- A2 (own-policy-documentation): does the introduced surface ship the required doc set?
 - A3 (own-policy-structure): does the introduced surface respect the per-microservice flat layout per ADR-0131?
 - A4 (own-policy-architecture): does the introduced surface respect ADR-0245 substrate-vs-product layering?
 
@@ -2151,7 +2151,7 @@ The doctrine intersects the multispectrum-review v2.4.0 lane at every facet:
 ### 13.H.2 Adherence facets (A-family)
 Per v2.3.0 the A-family own-policy-adherence facets gate the doctrine:
 - **A1 naming**: every introduced name (verb, capability tier, role projection, pack overlay) must justify v4 BNF plus 12-layer enum conformance at scaffold time.
-- **A2 documentation**: every µservice ships full doc suite plus per-pack overlays.
+- **A2 documentation**: every µservice ships full doc set plus per-pack overlays.
 - **A3 structure**: per-microservice flat layout per ADR-0131.
 - **A4 architecture**: substrate-vs-product layering per ADR-0245.
 - **A5 dependency**: cohesion-and-dependency rules per ADR-0244 plus ADR-0245.
@@ -2265,13 +2265,13 @@ The following claims are aspirational pending substrate maturity and customer va
 The following claims are testable today against the substrate implementation:
 - Verb-enum boundedness: the UX-shell action router has a fixed thirteen-verb enum; conformance lane verifies.
 - Cedar evaluation latency: substrate observability emits Cedar evaluation latency histograms.
-- Workflow Engine deterministic replay: replay-test suite covers every Workflow template.
-- Ontology projection consistency: schema-migration test suite verifies backward-compat.
+- Workflow Engine deterministic replay: replay-test set covers every Workflow template.
+- Ontology projection consistency: schema-migration test set verifies backward-compat.
 - Audit-chain integrity: cryptographic chain-link verification on every read.
-- Marketplace settlement primitive operations: settlement-test suite covers offer-acceptance-settlement-dispute-reversal.
+- Marketplace settlement primitive operations: settlement-test set covers offer-acceptance-settlement-dispute-reversal.
 - Dual-tenant boundary enforcement: cross-tenant fuzz tests fire on every release.
 - Compliance-pack overlay composition: per-pack conformance tests verify overlay composition.
-- Plugin admission gates: per-plugin admission-test suite covers isolation, pack-conformance, settlement, audit.
+- Plugin admission gates: per-plugin admission-test set covers isolation, pack-conformance, settlement, audit.
 
 ### 13.J.4 Claim-discipline gate
 Marketing copy citing this doctrine must reference one of the three evidence levels per §13.J.1. Copy that references only aspirational claims (§13.J.2) must be tagged as forward-looking. Copy that references testable claims (§13.J.3) must cite the relevant conformance lane or telemetry projection.
@@ -2338,7 +2338,7 @@ Owns: `oya-shared-marketplace-settlement`, `oya-shared-marketplace-admission`, `
 Owns: `oya-shared-ux-shell-action-router`, `oya-shared-ux-shell-localization`, `oya-shared-ux-shell-accessibility`, `oya-shared-ux-shell-density`. Conformance lanes: `oya-governance-verb-enum`, `oya-governance-ux-shell`, `oya-governance-accessibility`. ADRs: ADR-0317, ADR-0318, ADR-0253.
 
 ### 13.L.9 Compliance-pack-team scope
-Owns: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-shared-compliance-pack-evidence`. Conformance lanes: per-pack conformance test suites. ADRs: ADR-0251.
+Owns: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-shared-compliance-pack-evidence`. Conformance lanes: per-pack conformance test sets. ADRs: ADR-0251.
 
 ### 13.L.10 Plugin-team scope
 Owns: `oya-shared-plugin-admission`, `oya-shared-plugin-isolation`. Conformance lanes: `oya-governance-plugin-admission`. ADRs: ADR-0249.
@@ -2446,7 +2446,7 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
 - docs/architecture/training-cost-doctrine-2026-05-21.md
 - docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
-- docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md
+- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
 - docs/decisions/ADR-0242-oyatie-is-a-tenant.md
 - docs/decisions/ADR-0243-cedar-as-universal-gate.md
 - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
@@ -2495,7 +2495,7 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
   Use in this thesis: metadata-driven platform extension, marketplace distribution, and role-tailored product clouds over shared customer data.
 - Salesforce Trailhead AppExchange basics: https://trailhead.salesforce.com/content/learn/modules/appexchange_basics
   Use in this thesis: ecosystem learning and marketplace onboarding as a governed adoption primitive.
-- ServiceNow Now Platform workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
+- ServiceNow Now Module workflow automation: https://www.servicenow.com/now-platform/workflow-automation.html
   Use in this thesis: workflow automation and low-code development over one governed platform surface.
 - Atlassian Platform: https://www.atlassian.com/platform
   Use in this thesis: shared administration, graph, work management, and compliance features across multiple team tools.

@@ -1446,7 +1446,7 @@ Design:
 - normalizes dynamic fields for fixture stability
 - supports streaming fixtures
 
-Foundry lesson: use VCR fixtures for AI/API integrations, but keep the actual test suite, configs, and CI lanes present and enforceable.
+Foundry lesson: use VCR fixtures for AI/API integrations, but keep the actual test set, configs, and CI lanes present and enforceable.
 
 ---
 
@@ -2090,7 +2090,7 @@ Only after policy/runtime foundations exist, add shell/browser/network tools wit
 # Unknowns and limits
 
 - The branch does not include enough metadata to build or run cleanly.
-- The actual test suite is missing.
+- The actual test set is missing.
 - Production feature flag behavior cannot be fully verified.
 - Server-side APIs and policy behavior are inferred from client code.
 - Some internal-only branches may be dead-code-eliminated in external builds.
@@ -2364,7 +2364,7 @@ For autonomous work, every external tool source should be normalized into a sing
 - side effects
 - autonomy tier
 - policy requirements
-- eval suite
+- eval set
 - audit topics
 - rollback expectations
 - allowed tenants / regions
@@ -2676,7 +2676,7 @@ Each capability should declare:
 - required approvals
 - rollback behavior
 - evidence emitted
-- eval suite
+- eval set
 
 This is directly relevant to Foundry: capability records should be the source of truth, not ad-hoc tool descriptions.
 

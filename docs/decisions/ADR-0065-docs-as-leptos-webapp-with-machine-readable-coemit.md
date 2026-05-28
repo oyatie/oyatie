@@ -17,7 +17,7 @@ doc_status: published
 
 Per user instruction 2026-05-13: "I want to maintain all our documentation (currently in markdown) in Leptos. I want to build auto generation of the documentation into it. And have machine readable optimized JSON, YAML or TOML. This is a shift in direction. We now maintain all our docs as web pages."
 
-Today every artifact in the doc suite (per ADR-0063) is hand-authored markdown: ADRs, PRDs, microservice records, BC registrations, phase-specs, impl-plans, milestone READMEs, pack manifests, evidence bundles. Two consumer surfaces use them differently:
+Today every artifact in the doc set (per ADR-0063) is hand-authored markdown: ADRs, PRDs, microservice records, BC registrations, phase-specs, impl-plans, milestone READMEs, pack manifests, evidence bundles. Two consumer surfaces use them differently:
 
 - **Humans** (founder, council, GTM) want browsable, searchable, cross-linked web pages — not raw markdown.
 - **Agents** (executors, fitness lanes, autopilot, ralplan, codex review) want machine-readable structured data — not markdown re-parsed each time.
@@ -44,7 +44,7 @@ Markdown is the source of truth. Pages and structured outputs are deterministic 
 
 Add `docs` to the flat µservice catalog (per ADR-0058) with BCs:
 
-- `portal` — Leptos web app serving rendered pages (B2B + Personal contexts; same dual-context model as `connect` per ADR-0208 inheritance)
+- `portal` — Leptos web app serving rendered pages (B2B + Personal contexts; same dual-context model as `connector` per ADR-0208 inheritance)
 - `generator` — parser + transformer: markdown + frontmatter → AST → Leptos components + JSON/YAML/TOML emitter
 - `search` — full-text + semantic search over the doc corpus (consumes `search` substrate + `vector` substrate)
 - `cross-ref` — bidirectional link graph (ADR ↔ PRD ↔ phase-spec ↔ impl-plan ↔ µservice record); supports "what cites this ADR", "what depends on this phase-spec"
@@ -89,7 +89,7 @@ competitors: ["Stripe", "Workday", ...]
 # Microservice record
 doc_class: Microservice
 microservice: <kebab>
-cluster: workforce | healthcare | fintech | industrial | connect | hospitality | substrate | cloud | foundry | application | adapter
+cluster: workforce | healthcare | fintech | industrial | connector | hospitality | substrate | cloud | foundry | application | adapter
 status: planned | shipped | retired
 introducing_phase: M02-P01
 bounded_contexts: [<bc-name>, ...]
@@ -274,7 +274,7 @@ Existing markdown remains the source-of-truth throughout the migration; the port
 
 | Alternative | Why rejected |
 |---|---|
-| **Hugo / Docusaurus / mdbook + JSON sidecar** | External tool chains; not part of oyatie Rust stack; can't integrate with `oya-foundry-*` fitness lanes natively; Leptos pattern reused from Workflow Studio + Connect makes a single client-tier story |
+| **Hugo / Docusaurus / mdbook + JSON sidecar** | External tool chains; not part of oyatie Rust stack; can't integrate with `oya-foundry-*` fitness lanes natively; Leptos pattern reused from Workflow Studio + makes a single client-tier story |
 | **Markdown-only (status quo)** | Humans get the worst-of-both; agents must re-parse markdown per query; cross-refs are hand-maintained |
 | **Pure-Leptos hand-authored (no markdown source)** | Friction for ADR/PRD authoring; loses git-blame trail on prose; bypasses the existing 60+ ADR / 75+ µservice doc base |
 | **JSON-only source (no markdown)** | Loses human readability; harder to git-diff; loses "view raw" path for transparency |
@@ -300,7 +300,7 @@ First green window: M02-P22 (doc-coverage `--blocker` includes generator validat
 - ADR-0056 (BNF v4.1)
 - ADR-0058 (flat catalog; `docs` enters the catalog)
 - ADR-0061 (Application B2B shell; Docs Portal as first product alongside Workflow Studio)
-- ADR-0063 (documentation suite coverage; extended to schema + generated output)
+- ADR-0063 (documentation set coverage; extended to schema + generated output)
 - ADR-0064 (canonical base + localization packs; pack overlay docs participate in the portal)
 - Bominal ADR-0209 (Leptos client-stack policy; inherited)
 - `docs/MASTERPLAN.md` §2.1 catalog (adding `docs` µservice)

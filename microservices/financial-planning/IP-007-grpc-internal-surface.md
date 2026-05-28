@@ -268,6 +268,6 @@ permit (
 - To `ontology`: resolve projection ids and graph relationships.
 - To `analytics`: request actuals and variance-ready datasets.
 - To `audit-chain`: seal gRPC call lifecycle events.
-- To `connect`: receive normalized vendor migration batches.
+- To `connector`: receive normalized vendor migration batches.
 - To `observability`: export method latency, deadline, and status counters.
 - To `financial-planning` IP-006: stage AsyncAPI outbox events from usecase transactions.

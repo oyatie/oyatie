@@ -55,7 +55,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - The company should accept milestone-based board reporting.
 - The company should avoid investor covenants that force premature revenue scaling.
 - The company should avoid strategic restrictions that weaken cloud neutrality.
-- The company should prefer investors familiar with enterprise infrastructure and SaaS consolidation.
+- The company should prefer investors familiar with tenant RBAC infrastructure and SaaS consolidation.
 - The company should prefer investors with access to CIO, CISO, CFO, and regulated-market buyer networks.
 - The company should prefer investors who understand long-cycle enterprise sales.
 - The company should prefer investors who understand technical moat before revenue scale.
@@ -80,7 +80,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - A $15.0 million plan would leave less contingency for enterprise sales-cycle delay.
 - A $22.0 million plan would accelerate compliance and partner enablement but increase dilution.
 - The use-of-funds model prioritizes proving platform defensibility before broad hiring.
-- The budget is benchmarked against enterprise-platform startup needs, not consumer SaaS.
+- The budget is benchmarked against tenant-rbac startup needs, not consumer SaaS.
 - The plan recognizes that Salesforce, SAP, Workday, ServiceNow, Microsoft, and Palantir are trusted incumbents.
 - The plan recognizes that trust must be earned through evidence.
 - The plan recognizes that Gartner forecasts software spending at $1.444 trillion in 2026.
@@ -582,7 +582,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Against Oracle, funds build cloud-neutral application substrate and ERP adjacency.
 - Against Palantir, funds build SaaS-consolidation packaging around ontology-like operations.
 - Against AWS, funds build application-level governed runtime on top of cloud primitives.
-- Against Azure, funds build deployment portability and Entra integration without suite lock-in.
+- Against Azure, funds build deployment portability and Entra integration without platform lock-in.
 - Against Google Cloud, funds build data and AI integration while owning business workflow semantics.
 - Against Veeva, funds test regulated-pack evidence patterns.
 - Against Procore, funds test project and field-workflow packaging patterns.
@@ -658,7 +658,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 
 ## 24 - Named Investor Fit
 
-- Ideal investor type: enterprise infrastructure lead.
+- Ideal investor type: tenant RBAC infrastructure lead.
 - Ideal investor type: vertical SaaS specialist.
 - Ideal investor type: cloud marketplace strategist.
 - Ideal investor type: regulated-market specialist.

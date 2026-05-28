@@ -22,7 +22,7 @@ microservices_touched: [api-gateway, identity, workflow-engine, ontology, audit-
 | [`schemas/code-blue-event.json`](schemas/code-blue-event.json) | HL7v2 alarm event envelope |
 | [`schemas/break-glass-read.json`](schemas/break-glass-read.json) | Break-glass request |
 | [`schemas/break-glass-justification.json`](schemas/break-glass-justification.json) | Post-hoc justification |
-| [`integration-test-plan.md`](integration-test-plan.md) | E2E test suite |
+| [`integration-test-plan.md`](integration-test-plan.md) | E2E test set |
 
 ## Per-µservice IPs
 

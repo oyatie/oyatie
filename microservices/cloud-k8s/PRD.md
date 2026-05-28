@@ -404,7 +404,7 @@ Sharding:
 | ADR-0121 | On-prem k8s stack: kubeadm + containerd + Istio + Envoy | this PRD's substrate decision |
 | ADR-0139 | Agentic SLO-gated promotion | gating consumer of cluster |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
-| ADR-0132 | Product suite + bundle dissolution | no-suite forward policy |
+| ADR-0132 | Product platform + bundle dissolution | no-grouping forward policy |
 | ADR-0133 | Industry-best-practice conformance program | CIS / NSA / NIST framework conformance |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-K8S registers here |
 | ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives used throughout |

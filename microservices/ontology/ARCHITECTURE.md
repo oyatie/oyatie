@@ -60,7 +60,7 @@ Cold-start question: *Where does a property defined on `Person` get evaluated wh
 
 ## §principals (ADR-0242)
 
-Operates as `oyatie.ontology.{type-registry, query-engine, function-engine, action-engine, agent-gateway, audit-chain}` principals. Called by tenant principals `<tenant>.<workspace>.<actor>` and by substrate principals from `intelligence`, `workflow-studio`, `governance`, `connect`, `mail`, `notes`, `social`, `community`, `marketplace`. No legacy `oyatie` string literal exists — every reference is via `tenant.platform_owner_indirection` per ADR-0284.
+Operates as `oyatie.ontology.{type-registry, query-engine, function-engine, action-engine, agent-gateway, audit-chain}` principals. Called by tenant principals `<tenant>.<workspace>.<actor>` and by substrate principals from `intelligence`, `workflow-studio`, `governance`, `connector`, `mail`, `notes`, `social`, `community`, `marketplace`. No legacy `oyatie` string literal exists — every reference is via `tenant.platform_owner_indirection` per ADR-0284.
 ### Content-pass expansion — principals
 - This expansion preserves the existing prose above and closes `principals` for `ontology` to the ≥50-line documentation-rigor floor.
 - Service owner `axis-ontology` owns this answer; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
@@ -183,7 +183,7 @@ Every table carries `tenant_id` + `home_cell` + `dr_cell` + `audience_type` + `p
 - Runbook/IaC evidence: `microservices/ontology/runbooks/cedar-fragment-rollback.md`, `microservices/ontology/runbooks/clickhouse-rebalance.md`, `microservices/ontology/runbooks/cross-tenant-leak-recovery.md`, `microservices/ontology/runbooks/object-type-deprecation.md`, `microservices/ontology/runbooks/ontology-bot-score-recalibration.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `ontology` `cedar-evaluate` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -623,7 +623,7 @@ Ontology surfaces `data-product`, `entity-type-template`, and `function-template
 - Runbook/IaC evidence: `microservices/ontology/runbooks/cedar-fragment-rollback.md`, `microservices/ontology/runbooks/clickhouse-rebalance.md`, `microservices/ontology/runbooks/cross-tenant-leak-recovery.md`, `microservices/ontology/runbooks/object-type-deprecation.md`, `microservices/ontology/runbooks/ontology-bot-score-recalibration.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `ontology` `cedar-evaluate` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

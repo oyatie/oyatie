@@ -90,7 +90,7 @@ S21. Customer Self-Service Portal — Salesforce Experience Cloud (Customer Comm
 
 S22. Live Chat / Messaging — Salesforce Service Cloud Messaging + Chat (formerly Live Agent) + Messaging for In-App + Messaging Sessions + WhatsApp/Facebook channels.
 
-S23. Voice / Call Center — Salesforce Service Cloud Voice + Amazon Connect integration + Call Recording + Voice Transcription + Voice Insights + Wrap-up Codes.
+S23. Voice / Call Center — Salesforce Service Cloud Voice + Amazon integration + Call Recording + Voice Transcription + Voice Insights + Wrap-up Codes.
 
 S24. Case Survey / Feedback — Salesforce Surveys + Feedback Management + Lifecycle Maps + NPS / CSAT capture + Action Plans.
 

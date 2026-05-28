@@ -1333,11 +1333,11 @@ No service can claim regulated-finance readiness until derived data, search, exp
 - Revocation test: prove revocation invalidates cached access and creates audit evidence.
 - Pack test: prove the service honors IS-Banking, IS-Investment-Mgmt, IS-Insurance, and general-tenant overlays when they apply.
 
-#### F-2.13. `connect`
-- Migration owner: `connect` service owner.
+#### F-2.13. `connector`
+- Migration owner: `connector` service owner.
 - FRONT mapping: `connect_front_user` is denied by default until the active product pack binds it to `IB`, `Trading`, `Research`, `AssetMgmt`, or `WealthMgmt`.
 - MIDDLE mapping: `connect_risk_reviewer`, `connect_compliance_reviewer`, and `connect_legal_reviewer` are review-only and purpose-bound.
-- BACK mapping: `connect_ops_operator`, `connect_records_operator`, and `connect_platform_operator` are operational and payload-limited.
+- BACK mapping: `connect_ops_operator`, `connect_records_operator`, and `tenant_rbac_packaging_operator` are operational and payload-limited.
 - Boundary exposure: tenant membership alone is insufficient for restricted data in this service.
 - Cedar requirement: evaluate `Tenant::OfficeScopeAssignment` and `Tenant::OfficeBoundaryClearance` for protected read, write, search, export, event, embedding, and model actions.
 - Audit requirement: emit `OfficeBoundaryAttemptEvaluated` for every protected decision and the relevant assignment or clearance event when state changes.

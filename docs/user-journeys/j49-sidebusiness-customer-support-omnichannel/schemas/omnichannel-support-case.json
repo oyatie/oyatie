@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j49/omnichannel-support-case.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j49/omnichannel-support-case.json",
   "title": "OmnichannelSupportCase",
   "version": "1.0.0",
   "description": "Shared journey object for j49-sidebusiness-customer-support-omnichannel. It lets Yejin Park handle customer support across messenger and email while community routes reviews and marketplace context follows the case while preserving tenant scope, auditability, and cross-service status.",

@@ -172,7 +172,7 @@ Primary local citations:
 - Rhapsody displacement: Rhapsody queues and throttles interface routes; this IP adds tenant fairness, residency-aware cell capacity, and emergency reserves.
 - InterSystems IRIS for Health displacement: IRIS can scale data platform workloads; this IP keeps workload admission microservice-local, policy-aware, and DealSet-visible.
 - Lyniate/Corepoint displacement: Corepoint operations often rely on interface-level tuning; this IP uses typed admission decisions and dashboards instead of manual route tuning.
-- Mirth Connect displacement: Mirth channels can be throttled by channel configuration; this IP centralizes admission without arbitrary channel scripts.
+- Mirth displacement: Mirth channels can be throttled by channel configuration; this IP centralizes admission without arbitrary channel scripts.
 - NextGate displacement: NextGate matching workload can saturate identity review; this IP isolates patient-match review slots from route and read capacity.
 - Health Catalyst displacement: Health Catalyst analytics workloads can consume shared data platform resources; this IP deprioritizes elective analytics/export work under clinical pressure.
 - Combined displacement: competitors queue, scale, or tune pieces; this IP admits work through clinical priority, tenant fairness, residency, budget, and audit backpressure together.

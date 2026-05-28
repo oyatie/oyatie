@@ -404,11 +404,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 52 refs / 204 lines = 25.49 per 100 lines
 - artifact: `docs/decisions/ADR-0062-quality-performance-scalability-bar.md`
 - named gaps: alternatives/rejections not explicit
-### ADR-0063 — ADR-0063-documentation-suite-coverage.md
+### ADR-0063 — ADR-0063-documentation-set-coverage.md
 - status: accepted
 - depth: A-rigorous; lines=216; substance_markers=8
 - cross-ref-density: 28 refs / 216 lines = 12.96 per 100 lines
-- artifact: `docs/decisions/ADR-0063-documentation-suite-coverage.md`
+- artifact: `docs/decisions/ADR-0063-documentation-set-coverage.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0064 — ADR-0064-canonical-base-and-localization-packs.md
 - status: accepted
@@ -818,11 +818,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 160 refs / 392 lines = 40.82 per 100 lines
 - artifact: `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
 - named gaps: none named; retain in regression audit
-### ADR-0132 — ADR-0132-product-suite-and-bundle-dissolution.md
+### ADR-0132 — ADR-0132-product-platform-and-bundle-dissolution.md
 - status: Accepted
 - depth: C-partial; lines=112; substance_markers=4
 - cross-ref-density: 74 refs / 112 lines = 66.07 per 100 lines
-- artifact: `docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md`
+- artifact: `docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0133 — ADR-0133-industry-best-practice-conformance-program.md
 - status: Accepted
@@ -1430,11 +1430,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 0 refs / 0 lines
 - named gaps: missing decision artifact; cannot verify rationale, alternatives, constraints, tests, or cross-service effect
 - remediation gate: author ADR shell only after source-of-truth owner confirms decision exists; otherwise mark reserved/deprecated explicitly
-### ADR-0234 — ADR-0234-connect-social-expansion-planning-contract.md
+### ADR-0234 — ADR-0234-community-social-expansion-planning-contract.md
 - status: Accepted
 - depth: C-partial; lines=75; substance_markers=7
 - cross-ref-density: 34 refs / 75 lines = 45.33 per 100 lines
-- artifact: `docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md`
+- artifact: `docs/decisions/ADR-0234-community-social-expansion-planning-contract.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0235 — ADR-0235-connect-core-public-contracts.md
 - status: Accepted
@@ -1974,7 +1974,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=294; substance_markers=10
 - cross-ref-density: 71 refs / 294 lines = 24.15 per 100 lines
-- artifact: `microservices/connect/decisions/ADR-MS-001-connector-broker-webhook-and-dlq-contract.md`
+- artifact: `microservices/connector/decisions/ADR-MS-001-connector-broker-webhook-and-dlq-contract.md`
 - named gaps: none named; retain in regression audit
 ### ADR-MS — ADR-MS-001-omnichannel-routing-queue-and-consent-contract.md
 - status: Proposed
@@ -2192,7 +2192,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - threat-model: threat_mentions=305; status=evidenced
 - test-plan: test_mentions=1172; status=evidenced
 - named gaps: none named; retain in regression audit
-### µservice `connect`
+### µservice `connector`
 - current-state: complete; artifacts=183; corpus_lines=32250
 - surface coverage: api, events, data, policy, contract, ops; api=2723 events=4145 data=2077 policy=14417 contract=3929 ops=2280
 - capability-tier mapping: mentions=5; status=mapped
@@ -4768,7 +4768,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - µservice `comms-email`: test-plan=present; test_mentions=44; integration_markers=76; benchmark_markers=89; named gaps=none named; retain in regression audit
 - µservice `community`: test-plan=present; test_mentions=1221; integration_markers=1363; benchmark_markers=930; named gaps=none named; retain in regression audit
 - µservice `compliance`: test-plan=present; test_mentions=1172; integration_markers=746; benchmark_markers=930; named gaps=none named; retain in regression audit
-- µservice `connect`: test-plan=present; test_mentions=1172; integration_markers=782; benchmark_markers=188; named gaps=none named; retain in regression audit
+- µservice `connector`: test-plan=present; test_mentions=1172; integration_markers=782; benchmark_markers=188; named gaps=none named; retain in regression audit
 - µservice `consent-graph`: test-plan=present; test_mentions=45; integration_markers=221; benchmark_markers=662; named gaps=none named; retain in regression audit
 - µservice `contact-center`: test-plan=present; test_mentions=5333; integration_markers=42; benchmark_markers=6471; named gaps=none named; retain in regression audit
 - µservice `contract-lifecycle-management`: test-plan=present; test_mentions=5344; integration_markers=49; benchmark_markers=6019; named gaps=none named; retain in regression audit

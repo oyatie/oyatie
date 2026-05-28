@@ -532,7 +532,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | Server-side tenant_id stamping on inbound events | Preventive | axis-workflow | LEAN check on event-bus rest |
 | Ed25519 spec signature verification | Preventive | axis-workflow | `oya-governance-workflow-spec-signature-verification` lane |
 | Ed25519 audit-chain seals | Detective + Non-repudiation | audit-chain | Audit-chain regression tests |
-| Outbox idempotency keys | Preventive (replay-attack) | axis-workflow | Replay determinism test suite |
+| Outbox idempotency keys | Preventive (replay-attack) | axis-workflow | Replay determinism test set |
 | Single-writer Valkey lease per run | Preventive (race conditions) | axis-workflow | Concurrent-writer integration test |
 | Wasmtime sandbox per step | Preventive | axis-workflow | Sandbox fuzz tests |
 | Step-payload `data_class` annotations | Preventive | each spec author | `oya-check-data-class` lane |

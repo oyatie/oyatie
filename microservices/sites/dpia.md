@@ -21,7 +21,7 @@ gdpr_art_35_threshold: yes — (a) systematic monitoring of public accessible ar
 | Controller | tenant (oyatie is processor per GDPR Art. 28) |
 | Joint controller | none |
 | Processor | oyatie B.V. + sub-processors per `legal/sub-processors.md` |
-| DPO | council-privacy@oyatie.dev |
+| DPO | council-privacy@oyatie.com |
 | Assessment date | 2026-05-17 |
 | Re-assessment trigger | new BC; new sub-processor; new pack; new T-tier; new cross-µservice integration |
 

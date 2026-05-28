@@ -1,9 +1,9 @@
 [package]
-name = "oya-marketplace-doc-suite-scaffold"
+name = "oya-marketplace-doc-set-scaffold"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Marketplace documentation-suite scaffold crate"
+description = "Marketplace documentation-set scaffold crate"
 
 [lib]
 path = "src/lib.rs"

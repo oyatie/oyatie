@@ -411,7 +411,7 @@ Load-bearing ADRs are flagged.
   (tenant scoping), ADR-0316 (capability-tier-over-product), ADR-0321
   (B2B-leader coverage), ADR-0313 (conglomerate tenant hierarchy).
 - **Naming-justifications:** present.
-- **Hyperscaler precedents:** Stripe Connect + Stripe Issuing platform-
+- **Hyperscaler precedents:** Stripe + Stripe Issuing platform-
   facilitator settlement; Shopify Markets settlement; AWS Marketplace
   Private Offers settlement.
 - **Regulatory anchors:** US FATCA tenant-tax-classification; EU DAC7
@@ -433,7 +433,7 @@ Load-bearing ADRs are flagged.
   coverage-tier verdict per row (covered-by-composition, new-required,
   pack-overlay).
 - **Cross-references:** ADR-0131 (flat µservice layout), ADR-0132 (no
-  suite µservices), ADR-0244 (tenant scoping), ADR-0245 (substrate/
+  grouping µservices), ADR-0244 (tenant scoping), ADR-0245 (substrate/
   product layering), ADR-0249 (marketplace), ADR-0313 (conglomerate),
   ADR-0314 (DealSet settlement).
 - **Naming-justifications:** present.
@@ -455,9 +455,9 @@ Load-bearing ADRs are flagged.
 - **Key primitives:** capability-tier as first-class concept (tenant
   activation bundle of permits + projections + workflows + UX shell
   manifest + compliance overlay + telemetry); per-tier registry shape;
-  rejection of suite µservices and product-fragment µservices; per-
+  rejection of grouping µservices and product-fragment µservices; per-
   tier observability stream.
-- **Cross-references:** ADR-0132 (no-suite-bundles), ADR-0244 (tenant
+- **Cross-references:** ADR-0132 (no-grouping-bundles), ADR-0244 (tenant
   scoping), ADR-0245 (substrate/product), ADR-0315 (ERP parity), ADR-
   0321 (B2B-leader coverage), ADR-0249 (marketplace), ADR-0257
   (ontology object-type versioning).
@@ -596,7 +596,7 @@ Load-bearing ADRs are flagged.
   management, learning-management, itsm, incident-management, financial-
   planning, data-warehouse, contract-lifecycle-management, whiteboard,
   design-collaboration, data-pipeline, healthcare-integration).
-- **Cross-references:** ADR-0131 (flat layout), ADR-0132 (no-suite),
+- **Cross-references:** ADR-0131 (flat layout), ADR-0132 (no-grouping),
   ADR-0244 (tenant scoping), ADR-0245 (substrate/product), ADR-0249
   (marketplace), ADR-0257 (ontology versioning), ADR-0314 (DealSet),
   ADR-0315 (ERP parity), ADR-0316 (capability tier).
@@ -824,7 +824,7 @@ maturity invariant after ONE-POLICY-ENGINE.
   audit §3.1**); ADR-0249 multi-category marketplace; ADR-0314 DealSet
   settlement; ADR-0321 vendor coverage dossier; ADR-0250 build-ahead-of-
   certification.
-- **Named precedent:** PASS. Stripe Connect platform-facilitator +
+- **Named precedent:** PASS. Stripe platform-facilitator +
   Shopify Markets + AWS Marketplace + Salesforce AppExchange cited.
 - **Failure-mode tree:** PARTIAL. ADR-0249 enumerates fraud, dispute,
   chargeback. ADR-0314 enumerates fee-distribution-failure. Missing:
@@ -1850,7 +1850,7 @@ Per the remediation surfaces above:
   - `oya-governance-b2b-leader-coverage-dossier`
   - `oya-governance-b2b-new-microservice-doc-anchors`
   - `oya-governance-erp-parity-module-map`
-  - `oya-governance-no-new-suite-bundles`
+  - `oya-governance-no-grouping`
   - `oya-governance-coverage-matrix-current`
   - `oya-governance-doc-graph-6hops`
 - **Acceptance:** Walker emits per-doc reachability; capability-tier
@@ -2825,7 +2825,7 @@ stamped. Mechanics audit therefore focuses on the §A + §B + §C +
   pipeline, healthcare-integration. **VERIFIED — all 13 directories
   present per `ls microservices/`.**
 - **§B-3 suite-rejection rule:** no salesforce / servicenow /
-  workday / microsoft / adobe / b2b-suite µservices.
+  workday / microsoft / adobe / b2b-grouping µservices.
 - **§B-4 dossier-row schema:** vendor name; coverage tier; oyatie
   destination; Cedar permit shape; ontology projection; workflow
   template library; UX shell adaptation; pack overlay applicable;
@@ -2899,7 +2899,7 @@ must close. Source: corpus-rigor-audit-2026-05-21-post-wave-3-g.md
 | api-gateway (re-check) | 127 (PASS) | already at-bar |
 | feature-flags | 16 | -54 to floor |
 | intelligence | 17 | -53 to floor |
-| connect | 18 | -52 to floor |
+| connector | 18 | -52 to floor |
 | ops-dashboard-control-center | 36 | -34 to floor |
 
 ### §17.3 Wave-3-G New µservices — Content Status
@@ -3347,7 +3347,7 @@ stamped.
   ecosystem / iPaaS.
 - **Coverage tier:** D (new µservice required: `microservices/data-
   pipeline/`).
-- **Oyatie destination:** `data-pipeline` (primary); `connect` (for
+- **Oyatie destination:** `data-pipeline` (primary); `connector` (for
   source/sink adapter registry); `workflow-engine` (for orchestration
   primitives); `ontology` (for schema-projection-on-the-wire).
 - **Cedar permit shape:** `permit(principal, action in DataPipelineAction

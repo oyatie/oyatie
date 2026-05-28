@@ -261,7 +261,7 @@ ADRs still **treating these as canonical primitives** (not merely referencing th
 | ADR-0001-cohesion-thesis-one-product-flat-catalog.md | references `grit` in §B; historical citation | **P2** |
 | ADR-0057-cutover-mechanics-rename-plan-v4.md | references `grit` cutover mechanics | **P2** |
 | ADR-0056-rust-clean-architecture-bnf.md | references `grit` in workflow | **P2** |
-| ADR-0063-documentation-suite-coverage.md | mentions `grit` in evidence path | **P2** |
+| ADR-0063-documentation-set-coverage.md | mentions `grit` in evidence path | **P2** |
 | ADR-0066-live-code-introspection-docs-portal.md | references `grit` in section header | **P2** |
 | ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md | references `grit` | **P2** |
 | ADR-0097-foundry-account-adapter-rename-target-slot-last.md | uses `grit` claim/work/done semantics | **P1** |
@@ -436,7 +436,7 @@ The rigor matrix sets the ADR-row floor at **1500 lines**. The corpus contains *
 | ADR-0149-idempotency-keys-canonical.md | 65 | **P1** |
 | ADR-0153-outbox-pattern.md | 69 | **P1** |
 | ADR-0093-latency-budget-reporter-rename.md | 72 | **P1** |
-| ADR-0234-connect-social-expansion-planning-contract.md | 74 | **P1** |
+| ADR-0234-community-social-expansion-planning-contract.md | 74 | **P1** |
 | ADR-0235-connect-core-public-contracts.md | 74 | **P1** |
 | ADR-0118-retire-archive-orphan-fitness-lane.md | 80 | **P1** |
 | ADR-0123-hyperscaler-maturity-claim-gate.md | 80 | **P1** |
@@ -452,7 +452,7 @@ The rigor matrix sets the ADR-row floor at **1500 lines**. The corpus contains *
 | ADR-0051-mobile-and-native-client-strategy.md | 106 | **P1** |
 | ADR-0106-rename-application-to-usecase.md | 110 | **P1** |
 | ADR-0216-open-integration-and-migration-out-policy.md | 110 | **P1** |
-| ADR-0132-product-suite-and-bundle-dissolution.md | 111 | **P1** |
+| ADR-0132-product-platform-and-bundle-dissolution.md | 111 | **P1** |
 | ADR-0091-foundry-write-gate-foundations.md | 115 | **P1** |
 | ADR-0218-tenant-granular-control-surface.md | 116 | **P1** |
 | ADR-0018-glossary-and-terminology-canon.md | 117 | **P1** |
@@ -582,7 +582,7 @@ The corpus cites 264 distinct ADR-numbers and physically contains 247 distinct A
 | missing ADR slot 0125 | gap in 0124..0128 cluster (own-merge-queue to hyperscaler-architecture-invariants) | **P1** |
 | missing ADR slot 0126 | gap in 0124..0128 cluster | **P1** |
 | missing ADR slot 0127 | gap in 0124..0128 cluster | **P1** |
-| missing ADR slot 0224 | gap in 0223 (oya-git) to 0234 (connect-social) | **P1** |
+| missing ADR slot 0224 | gap in 0223 (oya-git) to 0234 (community-social) | **P1** |
 | missing ADR slot 0231 | gap in 0223..0234 cluster | **P1** |
 | missing ADR slot 0232 | gap in 0223..0234 cluster | **P1** |
 | missing ADR slot 0256 | gap between 0255 (intelligence) and 0257 (ontology) | **P1** |
@@ -889,7 +889,7 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR-0149-idempotency-keys-canonical | 65 | Proposed | -1435 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 (cite Stripe idempotency model) |
 | ADR-0153-outbox-pattern | 69 | Proposed | -1431 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 (cite Confluent + AWS DynamoDB CDC) |
 | ADR-0093-latency-budget-reporter-rename | 72 | Accepted | -1428 | R-P0-08, R-P1-15 (or fold into adjacent ADR if rename-only) |
-| ADR-0234-connect-social-expansion-planning-contract | 74 | Proposed | -1426 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
+| ADR-0234-community-social-expansion-planning-contract | 74 | Proposed | -1426 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0235-connect-core-public-contracts | 74 | Proposed | -1426 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0118-retire-archive-orphan-fitness-lane | 80 | Accepted | -1420 | R-P0-08, R-P1-15 |
 | ADR-0123-hyperscaler-maturity-claim-gate | 80 | Accepted | -1420 | R-P0-08, R-P1-15, R-P1-04 (rename oya vcs) |
@@ -905,7 +905,7 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR-0051-mobile-and-native-client-strategy | 106 | Accepted | -1394 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0106-rename-application-to-usecase | 110 | Accepted | -1390 | R-P0-08, R-P1-15 |
 | ADR-0216-open-integration-and-migration-out-policy | 110 | Proposed | -1390 | R-P0-08, R-P1-15 |
-| ADR-0132-product-suite-and-bundle-dissolution | 111 | Accepted | -1389 | R-P0-08, R-P1-15 |
+| ADR-0132-product-platform-and-bundle-dissolution | 111 | Accepted | -1389 | R-P0-08, R-P1-15 |
 | ADR-0091-foundry-write-gate-foundations | 115 | Accepted | -1385 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0218-tenant-granular-control-surface | 116 | Proposed | -1384 | R-P0-08, R-P1-15 |
 | ADR-0018-glossary-and-terminology-canon | 117 | Accepted | -1383 | R-P0-08, R-P1-15, R-P1-03 (declare Object Graph→Ontology rename) |
@@ -1018,7 +1018,7 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0032-dcim-software-for-own-dc-ops | 213 | Proposed | -1287 | R-P0-08, R-P1-15 |
 | ADR-0067-ops-oyatie-com-hyperscaler-operations-console | 213 | Accepted | -1287 | R-P0-08, R-P1-15 |
 | ADR-0008-data-use-boundary | 214 | Proposed | -1286 | R-P0-08, R-P1-15 |
-| ADR-0063-documentation-suite-coverage | 215 | Accepted | -1285 | R-P0-08, R-P1-15 |
+| ADR-0063-documentation-set-coverage | 215 | Accepted | -1285 | R-P0-08, R-P1-15 |
 | ADR-0141-workflow-ontology-read-path-direct | 215 | Superseded | -1285 | OK as superseded; R-P2-01 if status casing wrong |
 | ADR-0186-observability-backplane-layering | 216 | Proposed | -1284 | R-P0-08, R-P1-15 |
 | ADR-0046-vector-store-strategy | 217 | Proposed | -1283 | R-P0-08, R-P1-15 |
@@ -1194,7 +1194,7 @@ The corpus body cites 264 distinct ADR-numbers. The 17 ADR-numbers cited but wit
 | missing ADR slot 0125 | Cluster gap in 0124..0128. Adjacent to merge-queue / hyperscaler-architecture-invariants | Tombstone or land |
 | missing ADR slot 0126 | Same cluster | Tombstone or land |
 | missing ADR slot 0127 | Same cluster | Tombstone or land |
-| missing ADR slot 0224 | Cluster gap in 0223..0234 (oya-git → connect-social-expansion). Possibly a Connect-related planned ADR | Tombstone or land |
+| missing ADR slot 0224 | Cluster gap in 0223..0234 (oya-git → community-social-expansion). Possibly a Connect-related planned ADR | Tombstone or land |
 | missing ADR slot 0231 | Same cluster | Tombstone or land |
 | missing ADR slot 0232 | Same cluster | Tombstone or land |
 | missing ADR slot 0256 | Gap between 0255 (intelligence) and 0257 (ontology). Critical because 0255/0257 amendments use this slot | Tombstone or land |
@@ -1346,7 +1346,7 @@ This section spot-checks 5 ADRs against the documentation-rigor.md §1.1 hypersc
 
 | Signal | Status | Evidence |
 |---|---|---|
-| 1. Named precedent | ✓ | Cites AWS shared-responsibility, Palantir tenant scoping, Stripe Connect facilitator |
+| 1. Named precedent | ✓ | Cites AWS shared-responsibility, Palantir tenant scoping, Stripe facilitator |
 | 2. Failure-mode tree | ✓ | tenant_id leakage; principal_id confusion; lifecycle_state race; partition skew |
 | 3. Capacity math | ✓ | Per-tenant row budgets, audit-event cardinality |
 | 4. Observability hooks | ✓ | Per ADR-0263 emission contract |
@@ -1361,7 +1361,7 @@ This section spot-checks 5 ADRs against the documentation-rigor.md §1.1 hypersc
 
 | Signal | Status | Evidence |
 |---|---|---|
-| 1. Named precedent | ✓ | AWS substrate, Palantir Foundry, Stripe Connect |
+| 1. Named precedent | ✓ | AWS substrate, Palantir Foundry, Stripe |
 | 2. Failure-mode tree | ✓ | substrate-substrate cycle; product-substrate dependency violation; tier overlap |
 | 3. Capacity math | ✓ | Per-tier shard width; cross-tier RTT budget |
 | 4. Observability hooks | ✓ | Per ADR-0263 |

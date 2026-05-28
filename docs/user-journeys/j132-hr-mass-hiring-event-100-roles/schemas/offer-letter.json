@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j132/offer-letter.json",
+  "$id": "https://oyatie.com/schemas/j132/offer-letter.json",
   "title": "OfferLetter",
   "type": "object",
   "_meta": {

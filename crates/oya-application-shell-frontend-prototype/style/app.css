@@ -3841,7 +3841,7 @@ h3 {
   color: var(--accent-deep);
 }
 
-.comms-suite-toolbar {
+.comms-service-toolbar {
   display: grid;
   grid-template-columns: minmax(16rem, 1fr) repeat(3, auto) minmax(14rem, auto);
   gap: var(--space-2);
@@ -3853,7 +3853,7 @@ h3 {
   padding: var(--space-3);
 }
 
-.comms-suite-toolbar label {
+.comms-service-toolbar label {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -3865,7 +3865,7 @@ h3 {
   padding: 0.25rem 0.625rem;
 }
 
-.comms-suite-toolbar input {
+.comms-service-toolbar input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -3874,7 +3874,7 @@ h3 {
   outline: 0;
 }
 
-.comms-suite-toolbar button,
+.comms-service-toolbar button,
 .comms-message-toolbar button,
 .comms-sidebar button {
   min-height: 1.75rem;
@@ -3887,7 +3887,7 @@ h3 {
   padding: 0.25rem 0.625rem;
 }
 
-.comms-suite-toolbar > span {
+.comms-service-toolbar > span {
   color: var(--ink-faint);
   font-family: var(--oya-font-mono);
   font-size: var(--text-xs);
@@ -3898,7 +3898,7 @@ h3 {
   grid-template-columns: minmax(18rem, 0.72fr) minmax(28rem, 1.28fr);
 }
 
-.comms-suite-shell {
+.comms-service-shell {
   display: grid;
   grid-template-columns: 13rem minmax(16rem, 0.9fr) minmax(24rem, 1.25fr) 15rem;
   gap: var(--space-3);
@@ -3925,7 +3925,7 @@ h3 {
 
 .comms-sidebar button.active,
 .comms-sidebar button:hover,
-.comms-suite-toolbar button:hover,
+.comms-service-toolbar button:hover,
 .comms-message-toolbar button:hover {
   border-color: var(--accent-border);
   background: var(--accent-bg);
@@ -5186,7 +5186,7 @@ h3 {
   }
 }
 
-/* Bominal parity repair: command-center density, product graph, and workflow
+/* Bominal parity repair: command-center density, service graph, and workflow
    feature depth. These overrides keep the UI cohesive instead of presenting
    disconnected demo cards. */
 
@@ -5307,7 +5307,7 @@ h3 {
 
 .workbench-head,
 .copilot-head,
-.suite-board-head {
+.service-board-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5318,7 +5318,7 @@ h3 {
 
 .workbench-head h3,
 .copilot-head h3,
-.suite-board-head h3 {
+.service-board-head h3 {
   margin: 0;
   font-size: var(--text-lg);
 }
@@ -5456,7 +5456,7 @@ h3 {
 }
 
 .copilot-card button,
-.suite-card button,
+.service-card button,
 .workflow-ai-suggestion button {
   min-height: 1.625rem;
   border: 1px solid var(--rule-strong);
@@ -5469,7 +5469,7 @@ h3 {
 }
 
 .copilot-card button:hover,
-.suite-card button:hover,
+.service-card button:hover,
 .workflow-ai-suggestion button:hover {
   border-color: var(--accent-border);
   background: var(--accent-bg);
@@ -5483,7 +5483,7 @@ h3 {
   font-size: var(--text-xs);
 }
 
-.enterprise-suite-board {
+.tenant-rbac-board {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
@@ -5493,12 +5493,12 @@ h3 {
   background: var(--paper-raised);
 }
 
-.suite-board-head {
+.service-board-head {
   grid-column: 1 / -1;
   background: var(--paper-sunken);
 }
 
-.suite-card {
+.service-card {
   display: grid;
   align-content: start;
   gap: var(--space-3);
@@ -5508,16 +5508,16 @@ h3 {
   padding: var(--space-4);
 }
 
-.suite-card:last-child {
+.service-card:last-child {
   border-right: 0;
 }
 
-.suite-card h4 {
+.service-card h4 {
   margin: 0;
   font-size: var(--text-md);
 }
 
-.suite-metric-row {
+.service-metric-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   border: 1px solid var(--rule);
@@ -5525,23 +5525,23 @@ h3 {
   overflow: hidden;
 }
 
-.suite-metric-row span {
+.service-metric-row span {
   display: grid;
   gap: var(--space-1);
   border-right: 1px solid var(--rule-faint);
   padding: var(--space-2);
 }
 
-.suite-metric-row span:last-child {
+.service-metric-row span:last-child {
   border-right: 0;
 }
 
-.suite-metric-row strong {
+.service-metric-row strong {
   font-size: var(--text-lg);
 }
 
-.suite-metric-row small,
-.suite-kv dt,
+.service-metric-row small,
+.service-kv dt,
 .employee-mini-table th {
   color: var(--ink-faint);
   font-family: var(--oya-font-mono);
@@ -5550,7 +5550,7 @@ h3 {
   text-transform: uppercase;
 }
 
-.suite-checklist {
+.service-checklist {
   display: grid;
   gap: var(--space-2);
   margin: 0;
@@ -5558,7 +5558,7 @@ h3 {
   list-style: none;
 }
 
-.suite-checklist li {
+.service-checklist li {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -5588,7 +5588,7 @@ h3 {
   vertical-align: top;
 }
 
-.suite-graph {
+.service-graph {
   display: flex;
   align-items: end;
   gap: var(--space-2);
@@ -5601,7 +5601,7 @@ h3 {
   padding: var(--space-3);
 }
 
-.suite-graph span {
+.service-graph span {
   flex: 1;
   height: var(--bar);
   border: 1px solid var(--accent-border);
@@ -5609,13 +5609,13 @@ h3 {
   background: var(--accent-bg);
 }
 
-.suite-kv {
+.service-kv {
   display: grid;
   gap: var(--space-2);
   margin: 0;
 }
 
-.suite-kv div {
+.service-kv div {
   display: grid;
   grid-template-columns: 5rem 1fr;
   gap: var(--space-2);
@@ -5623,12 +5623,12 @@ h3 {
   padding-bottom: var(--space-2);
 }
 
-.suite-kv dd {
+.service-kv dd {
   margin: 0;
   color: var(--ink-muted);
 }
 
-.identity-workforce-suite {
+.identity-workforce-service {
   scroll-margin-top: 5.25rem;
   overflow: hidden;
   padding: 0;
@@ -5636,7 +5636,7 @@ h3 {
   background: var(--paper-raised);
 }
 
-.identity-suite-head {
+.identity-service-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5646,12 +5646,12 @@ h3 {
   padding: var(--space-4);
 }
 
-.identity-suite-head h3 {
+.identity-service-head h3 {
   margin: 0;
   font-size: var(--text-lg);
 }
 
-.identity-suite-actions {
+.identity-service-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -5659,7 +5659,7 @@ h3 {
   gap: var(--space-2);
 }
 
-.identity-suite-actions button,
+.identity-service-actions button,
 .identity-settings-rail button,
 .identity-tabs button,
 .employee-directory-tools button,
@@ -5675,7 +5675,7 @@ h3 {
   padding: 0.25rem 0.625rem;
 }
 
-.identity-suite-actions button:hover,
+.identity-service-actions button:hover,
 .identity-settings-rail button:hover,
 .identity-tabs button:hover,
 .employee-directory-tools button:hover,
@@ -5689,7 +5689,7 @@ h3 {
   color: var(--accent-deep);
 }
 
-.identity-suite-shell {
+.identity-service-shell {
   display: grid;
   grid-template-columns: 15rem minmax(0, 1fr) 16rem;
   min-height: 43rem;
@@ -5767,7 +5767,7 @@ h3 {
   font-size: var(--text-xs);
 }
 
-.identity-suite-main {
+.identity-service-main {
   min-width: 0;
   background: var(--paper-raised);
 }
@@ -6638,7 +6638,7 @@ h3 {
   padding-top: var(--space-3);
 }
 
-.finance-commercial-suite {
+.finance-commercial-service {
   scroll-margin-top: 5.25rem;
   overflow: hidden;
   padding: 0;
@@ -6646,7 +6646,7 @@ h3 {
   background: var(--paper-raised);
 }
 
-.finance-suite-head {
+.finance-service-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6656,12 +6656,12 @@ h3 {
   padding: var(--space-4);
 }
 
-.finance-suite-head h3 {
+.finance-service-head h3 {
   margin: 0;
   font-size: var(--text-lg);
 }
 
-.finance-suite-actions,
+.finance-service-actions,
 .vendor-toolbar,
 .finance-tabs {
   display: flex;
@@ -6670,11 +6670,11 @@ h3 {
   gap: var(--space-2);
 }
 
-.finance-suite-actions {
+.finance-service-actions {
   justify-content: flex-end;
 }
 
-.finance-suite-actions button,
+.finance-service-actions button,
 .finance-ledger-rail button,
 .finance-tabs button,
 .vendor-toolbar button,
@@ -6694,7 +6694,7 @@ h3 {
   padding: 0.25rem 0.625rem;
 }
 
-.finance-suite-actions button:hover,
+.finance-service-actions button:hover,
 .finance-ledger-rail button:hover,
 .finance-tabs button:hover,
 .vendor-toolbar button:hover,
@@ -6754,7 +6754,7 @@ h3 {
   font-style: normal;
 }
 
-.finance-suite-shell {
+.finance-service-shell {
   display: grid;
   grid-template-columns: 14rem minmax(0, 1fr) 16rem;
   min-height: 38rem;
@@ -6806,7 +6806,7 @@ h3 {
   color: var(--ink-faint);
 }
 
-.finance-suite-main {
+.finance-service-main {
   min-width: 0;
 }
 
@@ -7879,7 +7879,7 @@ h3 {
 /* The standalone Bominal settings surfaces do not double-stack a provenance
    rail beside employee tables. Hide the tertiary rail in the cohesive shell so
    Employees/Auth/Org read as real settings pages rather than nested widgets. */
-.identity-suite-shell {
+.identity-service-shell {
   grid-template-columns: 14.5rem minmax(0, 1fr);
 }
 
@@ -7887,8 +7887,8 @@ h3 {
   display: none;
 }
 
-.identity-suite-main,
-.finance-suite-main {
+.identity-service-main,
+.finance-service-main {
   min-width: 0;
 }
 
@@ -7952,8 +7952,8 @@ h3 {
 
   .workflow-ide,
   .hub-workspace,
-  .comms-suite-shell,
-  .comms-suite-toolbar {
+  .comms-service-shell,
+  .comms-service-toolbar {
     grid-template-columns: 1fr;
     height: auto;
   }
@@ -7971,7 +7971,7 @@ h3 {
   }
 
   .command-center-workbench,
-  .enterprise-suite-board {
+  .tenant-rbac-board {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -8016,7 +8016,7 @@ h3 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .identity-suite-shell {
+  .identity-service-shell {
     grid-template-columns: 13rem minmax(0, 1fr);
   }
 
@@ -8024,7 +8024,7 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .finance-suite-shell {
+  .finance-service-shell {
     grid-template-columns: 13rem minmax(0, 1fr);
   }
 
@@ -8042,11 +8042,11 @@ h3 {
 
   .priority-workbench,
   .governed-copilot,
-  .suite-board-head {
+  .service-board-head {
     grid-column: 1 / -1;
   }
 
-  .suite-card {
+  .service-card {
     border-right: 0;
     border-bottom: 1px solid var(--rule);
   }
@@ -8081,7 +8081,7 @@ h3 {
   }
 
   .hub-route-board,
-  .comms-suite-toolbar {
+  .comms-service-toolbar {
     grid-template-columns: 1fr;
   }
 
@@ -8230,12 +8230,12 @@ h3 {
   .activity-spine-head,
   .operator-intelligence,
   .command-center-workbench,
-  .enterprise-suite-board,
+  .tenant-rbac-board,
   .governance-command-grid,
   .policy-gate-list,
   .governance-route-grid,
   .governance-kv div,
-  .identity-suite-shell,
+  .identity-service-shell,
   .auth-grid,
   .identity-command-board,
   .identity-command-kv,
@@ -8246,7 +8246,7 @@ h3 {
   .employee-directory-tools,
   .onboarding-flow,
   .finance-kpi-strip,
-  .finance-suite-shell,
+  .finance-service-shell,
   .ledger-layout,
   .finance-command-grid,
   .finance-spine-flow,
@@ -8276,8 +8276,8 @@ h3 {
   .receipt-stitching-grid,
   .receipt-stitching-actions,
   .ops-route-grid,
-  .comms-suite-shell,
-  .comms-suite-toolbar {
+  .comms-service-shell,
+  .comms-service-toolbar {
     grid-template-columns: 1fr;
   }
 
@@ -8306,7 +8306,7 @@ h3 {
     grid-template-columns: 1fr 1fr;
   }
 
-  .identity-suite-head {
+  .identity-service-head {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -8324,7 +8324,7 @@ h3 {
     display: none;
   }
 
-  .finance-suite-head {
+  .finance-service-head {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -8393,12 +8393,12 @@ h3 {
   }
 }
 
-/* Service catalog / product graph
+/* Service catalog / service graph
    Bominal-inspired density: table-first, owner/criticality chips, and a
-   lineage rail that makes modules feel like one product system. */
+   lineage rail that makes modules feel like one service graph. */
 #service-catalog,
 #modules-title,
-#product-graph {
+#service-graph {
   scroll-margin-top: 6rem;
 }
 
@@ -8565,7 +8565,7 @@ h3 {
 }
 
 .catalog-table-shell,
-.catalog-product-graph {
+.catalog-service-graph {
   overflow: hidden;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
@@ -8783,7 +8783,7 @@ h3 {
   opacity: 0.7;
 }
 
-.catalog-product-graph {
+.catalog-service-graph {
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
@@ -8888,7 +8888,7 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .catalog-product-graph {
+  .catalog-service-graph {
     position: static;
   }
 }
@@ -10946,7 +10946,7 @@ h3 {
   gap: var(--space-2);
 }
 
-.comms-suite-toolbar {
+.comms-service-toolbar {
   grid-template-columns: minmax(16rem, 1fr) auto repeat(3, auto) minmax(14rem, auto);
 }
 
@@ -11194,11 +11194,11 @@ h3 {
 
 @media (max-width: 86rem) {
   .comms-receipt-bridge,
-  .comms-suite-toolbar {
+  .comms-service-toolbar {
     grid-template-columns: 1fr;
   }
 
-  .comms-suite-toolbar > span {
+  .comms-service-toolbar > span {
     justify-self: start;
   }
 }
@@ -12481,35 +12481,35 @@ h3 {
   }
 }
 
-/* Enterprise suite overview repair: rail anchor cards now route into full command surfaces. */
-.suite-card-brief {
+/* Operations service overview repair: rail anchor cards now route into full command surfaces. */
+.service-card-brief {
   color: var(--ink-muted);
   margin: 0;
 }
 
-.suite-card-actions,
-.suite-people-stats {
+.service-card-actions,
+.service-people-stats {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
 }
 
-.suite-card-actions {
+.service-card-actions {
   margin-top: var(--space-3);
 }
 
-.suite-card-actions button {
+.service-card-actions button {
   min-height: 2rem;
 }
 
-.suite-card-selected {
+.service-card-selected {
   border-color: var(--accent-border) !important;
   background: color-mix(in oklch, var(--accent-bg) 55%, var(--paper)) !important;
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 18%, transparent);
 }
 
-.suite-people-stats span {
+.service-people-stats span {
   display: grid;
   min-width: 6rem;
   border: 1px solid var(--rule);
@@ -12518,12 +12518,12 @@ h3 {
   padding: var(--space-2);
 }
 
-.suite-people-stats strong {
+.service-people-stats strong {
   font-size: 1.2rem;
   line-height: 1;
 }
 
-.suite-people-stats small {
+.service-people-stats small {
   color: var(--ink-faint);
   font-family: var(--oya-font-mono);
   font-size: var(--text-xs);

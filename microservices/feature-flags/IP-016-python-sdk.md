@@ -51,5 +51,5 @@ enabled: bool = await client.get_boolean_value("my-flag", False, ctx)
 - `pytest` green
 - `mypy --strict` zero errors
 - SSE stream: background task survives 24h without leak (asyncio task leak detector)
-- OpenFeature Python conformance suite passes
+- OpenFeature Python conformance set passes
 - Sync wrapper: `resolve_boolean_details_sync()` callable from non-async context

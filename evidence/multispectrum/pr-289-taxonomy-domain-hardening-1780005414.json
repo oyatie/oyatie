@@ -1,0 +1,54 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "pr-289-taxonomy-domain-hardening-1780005414",
+  "change_class_id": "CC-4",
+  "freshness_unix": 1780005414,
+  "timestamp_iso": "2026-05-28T21:56:54Z",
+  "agent_id": "codex-pr289-hyperscaler-quality-bar",
+  "scope": [
+    "crates/oya-application-shell-frontend-prototype/**",
+    "microservices/cloud-intelligence/**",
+    "microservices/ci-webhook-gateway/iac/k8s/helm/**",
+    "microservices/**/contracts/**",
+    "microservices/**/iac/helm/**",
+    "docs/user-journeys/**/schemas/**",
+    "specs/**/*.json",
+    "scripts/reject-public-dev-domains.sh",
+    "scripts/tests/reject-public-dev-domains.test.sh"
+  ],
+  "summary": "Resolves PR #289 hyperscaler-quality review blockers by flattening active product/platform wording to service terminology, retiring active LLM Gateway residue after cloud-intelligence rename landed, enforcing public .com versus internal .dev domain intent, and hardening Helm image digest promotion gates.",
+  "nonclaims": [
+    "No live deployment, DNS cutover, or cluster rollout is claimed.",
+    "Historical ADR and archived evidence references may retain retired terms as historical records.",
+    "Foundry-era intelligence internals not explicitly in the cloud-intelligence/public-domain blocker set are not renamed in this slice."
+  ],
+  "facets": {
+    "F1_linus": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Mechanical vocabulary and URL cleanup preserves existing service boundaries; no new abstraction or dependency added."]},
+    "F2_hyperscaler": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Public endpoints now prefer owned oyatie.com surfaces while internal registry/SPiffe/OpenBao .dev hosts remain internal-only."]},
+    "F3_adversarial": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Negative gate tests now reject root https://oyatie.dev public schema URLs and @oyatie.dev public contact emails."]},
+    "F4_ergonomic": {"considered": true, "rigor": "scan", "verdict": "PASS", "findings": ["Active UI shell class/function/data identifiers moved from platform wrappers to service graph terminology."]},
+    "F5_quality": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Fresh final local gates passed in /tmp/pr289-final-local-gates-20260528175447.log."]},
+    "F6_alternatives": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Rejected broad Foundry rename in this slice to avoid scope creep beyond the cloud-intelligence blocker and parallel rename lane."]},
+    "F7_security": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Helm charts fail closed unless cosign-required images are pinned to a real non-zero sha256 digest."]},
+    "F8_performance": {"considered": true, "rigor": "scan", "verdict": "PASS", "findings": ["No hot-path algorithm changes; affected Rust packages compile/check with existing code paths."]},
+    "F9_compliance": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Public .dev gate enforces user-owned domain policy: .com for public/customer surfaces, .dev only for internal/developer hosts."]},
+    "F10_testability": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Domain gate, digest gate, retired grouping gate, CI digest contract gate, Helm fail/pass renders, cargo tests/checks, fmt, and diff check all ran locally."]},
+    "F11_observability": {"considered": true, "rigor": "scan", "verdict": "PASS", "findings": ["Cloud-intelligence SLO display names and escalation contacts now use current cloud-intelligence terminology."]},
+    "F12_reserved": {"considered": true, "rigor": "scan", "verdict": "PASS", "findings": ["Reserved facet not applicable."]},
+    "F13_maintainability": {"considered": true, "rigor": "deep", "verdict": "PASS", "findings": ["Taxonomy cleanup aligns active names with module/service/libs/kernel/application/infrastructure language and avoids connect/product-suite wrappers."]}
+  },
+  "verification": [
+    {"command": "scripts/tests/reject-public-dev-domains.test.sh && scripts/reject-public-dev-domains.sh .", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"},
+    {"command": "scripts/tests/reject-placeholder-digests.test.sh && scripts/reject-placeholder-digests.sh .", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"},
+    {"command": "scripts/tests/reject-retired-grouping-wording.test.sh && scripts/reject-retired-grouping-wording.sh .", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"},
+    {"command": "scripts/tests/verify-ci-image-digest-contracts.test.sh && scripts/verify-ci-image-digest-contracts.sh .", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"},
+    {"command": "helm template cloud-intelligence ... without digest fails; with digest renders cloud-intelligence.oyatie.com", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"},
+    {"command": "helm template ci-webhook-gateway ... without digest fails; with digest renders ci-webhook-gateway.oyatie.com", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"},
+    {"command": "cargo check/test targeted packages, cargo fmt --all -- --check, git diff --check", "status": "passed", "evidence": "/tmp/pr289-final-local-gates-20260528175447.log"}
+  ],
+  "known_gaps": [
+    "Full workspace nextest and live Jenkins checks remain PR/CI responsibilities after push.",
+    "PR merge is still blocked until remote review and status checks are green."
+  ],
+  "git_sha": "fd386ed3c63a8b101905eba3c236a5eb7ec06263"
+}

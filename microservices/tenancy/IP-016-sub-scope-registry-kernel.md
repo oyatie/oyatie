@@ -62,7 +62,7 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 
 | Counterpart | Relevant capability | Gap this IP closes |
 |---|---|---|
-| Stripe Connect | Connected accounts under a platform account | Provides a tenant-local child-scope model before payment/account scopes reuse tenancy ids. |
+| Stripe | Connected accounts under a platform account | Provides a tenant-local child-scope model before payment/account scopes reuse tenancy ids. |
 | Slack Enterprise Grid | Workspace hierarchy inside an enterprise org | Adds first-class workspace/project/org-unit hierarchy instead of ad hoc downstream strings. |
 | AWS Organizations | OU tree with parent-child constraints | Brings cycle/depth validation into the kernel before the Postgres adapter persists closure rows. |
 

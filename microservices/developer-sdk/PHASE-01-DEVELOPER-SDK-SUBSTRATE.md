@@ -93,7 +93,7 @@ Same shape as plugin-app-store phase; substitute `developer-sdk` for `plugin-app
 
 | Scenario | Pass criterion |
 |---|---|
-| Stripe-Connect parity | onboard developer → KYC pass → bank verified → signing key issued → submit plugin → vetting pass → install on test tenant → settle payout → emit 1099 — all ≤ 24h |
+| Stripe-parity | onboard developer → KYC pass → bank verified → signing key issued → submit plugin → vetting pass → install on test tenant → settle payout → emit 1099 — all ≤ 24h |
 | KYC false-positive | ≤ 2% rate on weekly review |
 | Codegen determinism | Regenerate all six SDK families twice → byte-identical |
 | Sandbox reset | ≤ 30s p99 |
@@ -107,6 +107,6 @@ Per ADR-0105 13-layer enum; same shape as plugin-app-store with additional layer
 ## References
 
 - ADR-0213; ADR-0131; ADR-0132; ADR-0139; ADR-0170 (Backstage); ADR-0185 (OpenAPI 3.2 codegen); ADR-0199 (per-tenant cost attribution); ADR-0211 (in-house).
-- Stripe Connect docs; Apple Developer Program docs; Backstage docs.
+- Stripe docs; Apple Developer Program docs; Backstage docs.
 - `microservices/developer-sdk/PRD.md`.
 - `/specs/per-microservice-flat-layout.json`.

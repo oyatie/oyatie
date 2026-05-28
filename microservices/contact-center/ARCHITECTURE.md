@@ -208,7 +208,7 @@ Contact Center owns real-time voice routing, recording consent, and agent-state 
 - Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
 - Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
-- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 1: Stripe account isolation anchors the external control pattern for `tenant-scoping`.
 - Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
 - Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
@@ -748,7 +748,7 @@ Contact Center owns real-time voice routing, recording consent, and agent-state 
 - Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
 - Compliance packs: `SOC-2`, `ISO-27001`, `GDPR`, `HIPAA-2024`, `PCI-DSS-L1-v4`; +2 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `messenger`, `community`, `intelligence`, `recordings`, `workflow-engine`; +2 more.
-- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 1: Stripe platform facilitator anchors the external control pattern for `marketplace`.
 - Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
 - Tenant-scope invariant: every `contact-center` `voice-routing` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
 - Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.

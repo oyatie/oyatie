@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/contracts/workflow_spec.v1.json",
+  "$id": "https://docs.oyatie.com/contracts/workflow_spec.v1.json",
   "title": "OyatieWorkflowSpecV1",
   "type": "object",
   "additionalProperties": false,

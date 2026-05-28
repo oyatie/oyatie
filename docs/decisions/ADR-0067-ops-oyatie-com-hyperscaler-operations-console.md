@@ -183,7 +183,7 @@ The four primary protected contracts on `ops.oyatie.com` itself:
 CI lanes (M02-P22 BLOCKER):
 
 - `lean-a5-documentation` + `lean-a6-docs-generated-consistency` + `lean-a7-endpoint-coverage` + `lean-a8-dead-code-zero-tolerance` (per ADR-0063/0066)
-- NEW `lean-a9-ops-policy-coverage` (M03-P06 scope) — every non-public ops surface has a Cedar policy fragment + red-team probe in the test suite (per pre-mortem §4 of ralplan-docs-portal). BLOCKER before any non-public surface goes live.
+- NEW `lean-a9-ops-policy-coverage` (M03-P06 scope) — every non-public ops surface has a Cedar policy fragment + red-team probe in the test set (per pre-mortem §4 of ralplan-docs-portal). BLOCKER before any non-public surface goes live.
 
 Owner: `axis-foundry` (substrate + extractors) + `ops-sre-reliability` (dashboards / health / on-call / incident / capacity / finops) + `council-privacy` (Cedar policy fragments) + `gtm-customer-success` (tenant-facing surface design).
 

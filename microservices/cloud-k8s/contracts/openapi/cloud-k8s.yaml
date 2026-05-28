@@ -20,11 +20,11 @@ info:
     (not included in this document).
   contact:
     name: axis-cloud
-    url: https://oyatie.dev/teams/axis-cloud
+    url: https://oyatie.com/teams/axis-cloud
   license:
     name: Internal
 servers:
-  - url: https://cloud-k8s-{pack}.oyatie.dev/api/v1
+  - url: https://cloud-k8s-{pack}.oyatie.com/api/v1
     description: Per-pack endpoint
     variables:
       pack:
@@ -85,7 +85,7 @@ components:
   securitySchemes:
     OIDC:
       type: openIdConnect
-      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
   parameters:
     PackPath:
       in: path

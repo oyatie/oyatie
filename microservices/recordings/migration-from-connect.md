@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-recordings-*` → `oya-recordings-*`
+# Migration: `oya-recordings-*` → `oya-recordings-*`
 
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **recordings** µservice. It is the
@@ -28,7 +28,7 @@ in `microservices/recordings/`.**
 |---|---|
 | Replacement | `oya-recordings-*` crate family under `microservices/recordings/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-RECORDINGS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 22-BC recordings surface (recording / media-segment / transcript / translation / redaction / chapter-marker / summary / thumbnail-pack / search / retention-policy / legal-hold / export / share-link / playback / ediscovery / watermarking / drm-stub / audio-loudness / video-encode-ladder / accessibility-captions / recording-ingest) is only addressable at µservice granularity |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 22-BC recordings surface (recording / media-segment / transcript / translation / redaction / chapter-marker / summary / thumbnail-pack / search / retention-policy / legal-hold / export / share-link / playback / ediscovery / watermarking / drm-stub / audio-loudness / video-encode-ladder / accessibility-captions / recording-ingest) is only addressable at µservice granularity |
 | Migration owner (Churn Rule) | axis-recordings |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -36,31 +36,31 @@ in `microservices/recordings/`.**
 
 The 22 bounded-contexts of the `recordings` µservice live under
 `microservices/recordings/src/crates/` per ADR-0131. The legacy
-`oya-connect-recordings-domain` crate is **a single bundled crate** that
+`oya-recordings-domain` crate is **a single bundled crate** that
 splits per BC; consumers must pick the specific replacement BC per
 import-site.
 
 ### Crate import-path map
 
-Legacy `oya-connect-recordings-domain` (single crate) →
+Legacy `oya-recordings-domain` (single crate) →
 `oya-recordings-{recording,media-segment,transcript,translation,redaction,chapter-marker,summary,thumbnail-pack,search,retention-policy,legal-hold,export,share-link,playback,ediscovery,watermarking,drm-stub,audio-loudness,video-encode-ladder,accessibility-captions,recording-ingest}-{kernel,domain,usecase,api,adapter-*,rest,worker,sdk,app}` (per BC, per layer).
 
 | Legacy symbol | New crate · symbol |
 |---|---|
-| `oya_connect_recordings_domain::RecordingArchiveEntry` | `oya_recordings_recording_kernel::Recording` |
-| `oya_connect_recordings_domain::RecordingArchiveEntryCreate` | `oya_recordings_recording_kernel::RecordingCreate` |
-| `oya_connect_recordings_domain::ArchiveRetentionPolicy` | `oya_recordings_retention_policy_kernel::RetentionPolicy` |
-| `oya_connect_recordings_domain::ArchiveRetentionPolicyCreate` | `oya_recordings_retention_policy_kernel::RetentionPolicyCreate` |
-| `oya_connect_recordings_domain::RecordingVariant` | `oya_recordings_media_segment_kernel::MediaSegment` (HLS) + `oya_recordings_export_kernel::ExportVariant` (export-bundle) — splits per concern |
-| `oya_connect_recordings_domain::RecordingVariantFormat` | `oya_recordings_media_segment_kernel::SegmentFormat` (HLS/DASH/CMAF) + `oya_recordings_export_kernel::ExportFormat` (mp4/mp3/wav/vtt/srt/pdf/docx) |
-| `oya_connect_recordings_domain::RecordingArchiveReader` (port) | `oya_recordings_recording_kernel::RecordingRepository` |
-| `oya_connect_recordings_domain::RecordingArchiveError` | `oya_recordings_recording_kernel::RecordingError` + per-BC variants |
-| `oya_connect_recordings_domain::RecordingsSurfaceStaging` | retired — surface staging shape is now the `RecordingIngestRequest` in `oya_recordings_recording_ingest_kernel` per ADR-RECORDINGS-0007 |
+| `oya_recordings_domain::RecordingArchiveEntry` | `oya_recordings_recording_kernel::Recording` |
+| `oya_recordings_domain::RecordingArchiveEntryCreate` | `oya_recordings_recording_kernel::RecordingCreate` |
+| `oya_recordings_domain::ArchiveRetentionPolicy` | `oya_recordings_retention_policy_kernel::RetentionPolicy` |
+| `oya_recordings_domain::ArchiveRetentionPolicyCreate` | `oya_recordings_retention_policy_kernel::RetentionPolicyCreate` |
+| `oya_recordings_domain::RecordingVariant` | `oya_recordings_media_segment_kernel::MediaSegment` (HLS) + `oya_recordings_export_kernel::ExportVariant` (export-bundle) — splits per concern |
+| `oya_recordings_domain::RecordingVariantFormat` | `oya_recordings_media_segment_kernel::SegmentFormat` (HLS/DASH/CMAF) + `oya_recordings_export_kernel::ExportFormat` (mp4/mp3/wav/vtt/srt/pdf/docx) |
+| `oya_recordings_domain::RecordingArchiveReader` (port) | `oya_recordings_recording_kernel::RecordingRepository` |
+| `oya_recordings_domain::RecordingArchiveError` | `oya_recordings_recording_kernel::RecordingError` + per-BC variants |
+| `oya_recordings_domain::RecordingsSurfaceStaging` | retired — surface staging shape is now the `RecordingIngestRequest` in `oya_recordings_recording_ingest_kernel` per ADR-RECORDINGS-0007 |
 
 ### Net-new boundaries (no legacy counterpart)
 
 The new µservice introduces capabilities that did NOT exist in
-`oya-connect-recordings-domain`. They are therefore not part of the migration
+`oya-recordings-domain`. They are therefore not part of the migration
 surface — they are clean replacement-boundary features:
 
 - **Per-µservice transcript BC** (`oya-recordings-transcript-*`) — legacy
@@ -93,7 +93,7 @@ surface — they are clean replacement-boundary features:
 
 ```rust
 // BEFORE
-use oya_connect_recordings_domain::{
+use oya_recordings_domain::{
     RecordingArchiveEntry, RecordingArchiveEntryCreate,
     ArchiveRetentionPolicy, ArchiveRetentionPolicyCreate,
     RecordingVariant, RecordingVariantFormat,
@@ -121,7 +121,7 @@ use oya_recordings_recording_ingest_kernel::{
 ```toml
 # BEFORE
 [dependencies]
-oya-connect-recordings-domain = { workspace = true }
+oya-recordings-domain = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -134,10 +134,10 @@ oya-recordings-recording-ingest-kernel   = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-recordings-domain` crate was authored before the
+The legacy `oya-recordings-domain` crate was authored before the
 following ADRs crystallised:
 
-1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
+1. **ADR-0132 — no-grouping forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a brand-layer
    concept and must not appear in crate names.
 2. **ADR-0139 — per-µservice SLO authority.** Recordings needs independent
@@ -162,16 +162,16 @@ following ADRs crystallised:
    decisions (transcription pipeline, retention + legal-hold, redaction
    overlay, playback + CDN, tiered storage, AI feature bounds, multi-source
    ingest contract) need to live at per-µservice ADR granularity, not at
-   the Connect suite level.
+   the platform level.
 6. **`recordings` is now a centralised store** receiving from meet +
    messenger + future live-broadcast + manual upload. The legacy
-   `oya-connect-recordings-domain` only modelled meet-source recordings via
+   `oya-recordings-domain` only modelled meet-source recordings via
    `RecordingRef`/`RecordingArchiveEntryCreate`; the new µservice owns the
    multi-source ingest contract per ADR-RECORDINGS-0007.
 
 ## Migration Guide (step-by-step)
 
-For each consumer crate that imports `oya-connect-recordings-domain`:
+For each consumer crate that imports `oya-recordings-domain`:
 
 ### Step 1 — Add the new dependencies
 
@@ -182,7 +182,7 @@ Keep the legacy dependency for now (Phase 2 adapter soak).
 ### Step 2 — Update imports per the import-path map above
 
 ```bash
-rg -l "oya_connect_recordings_domain" --type rust path/to/your/crate
+rg -l "oya_recordings_domain" --type rust path/to/your/crate
 ```
 
 Manual disambiguation needed for the `RecordingVariant` / `RecordingVariantFormat`
@@ -192,7 +192,7 @@ guard rails on both shapes during the soak.
 ### Step 3 — Verify behavioural parity
 
 ```bash
-cargo nextest run --features connect-recordings-strangler-canary
+cargo nextest run --features recordings-strangler-canary
 ```
 
 Run with the feature flag enabled to route through the new µservice; run
@@ -211,13 +211,13 @@ remove the legacy dependency.
 
 ```toml
 # Remove:
-oya-connect-recordings-domain = { workspace = true }
+oya-recordings-domain = { workspace = true }
 ```
 
 ### Step 5 — Verify zero residual
 
 ```bash
-cargo tree -e normal -p your-crate | grep oya-connect-recordings   # expect empty
+cargo tree -e normal -p your-crate | grep oya-recordings   # expect empty
 rg "use oya_connect_recordings_" --type rust path/to/your/crate    # expect zero
 ```
 
@@ -228,7 +228,7 @@ rg "use oya_connect_recordings_" --type rust path/to/your/crate    # expect zero
 | Feature flag namespace | `connect.recordings.*` | `recordings.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` (umbrella) | `microservices/recordings/slos/*.openslo.yaml` (per-µservice, 10 files) |
 | Helm chart values key | `.Values.connect.recordings.*` | `.Values.recordings.*` |
-| K8s namespace | `connect` | `recordings` |
+| K8s namespace | `connector` | `recordings` |
 | Cedar policy fragment path | `policy/connect/recordings/*.cedar` | `microservices/recordings/policy/cedar/*.cedar` |
 | pack-kr overlay path | `policy/connect/recordings/pack-kr/*` | `microservices/recordings/iac/kustomize/overlays/pack-kr/*` |
 | Workflow event prefix | `connect.recordings.*` | `recordings.*` (e.g., `recordings.recording.published.v1`, `recordings.transcript.ready.v1`, `recordings.legalhold.engaged.v1`) |
@@ -314,7 +314,7 @@ dependency:
 | Phase | Description | Status (recordings) | Exit condition |
 |---|---|---|---|
 | 1. Parallel ship | New µservice + legacy coexist | **active** | HG-RECORDINGS passes at p99 SLOs in dev cluster sustained 7d |
-| 2. Adapter soak | `oya-connect-recordings-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
+| 2. Adapter soak | `oya-recordings-migration-adapter` shims legacy symbols → new impl | pending | All consumers compile against adapter; 3-month soak elapses |
 | 3. Feature-flagged canary | 10 % → 50 % → 100 % traffic shift over 6 weeks | pending | New µservice carries 100 % traffic for 7 consecutive days |
 | 4. Zero-active-usage verification | Dependency-graph + telemetry + grep all clean | pending | Verification commands all exit 0 |
 | 5. Code removal sweep | Delete legacy crate + Cargo.toml entries + spec pointers | pending | `cargo build --workspace` exits 0; no `oya_connect_recordings_*` symbol resolves |
@@ -332,12 +332,12 @@ dependency:
   ```
 - [ ] **All active consumers have been migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-recordings-domain --invert    | grep -v 'oya-connect-recordings-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-recordings-domain --invert    | grep -v 'oya-recordings-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_recordings_" --type rust    | rg -v "migration-adapter|legacy_in_process|tests/"    | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-recordings-*" | wc -l    # expect 0
+  find crates -maxdepth 1 -type d -name "oya-recordings-*" | wc -l    # expect 0
   ```
 - [ ] **No references to the deprecated system remain** (excluding historical
   ADR / RETIRED.md / git-log):
@@ -383,11 +383,11 @@ not migrate during the 5-month adapter + canary window. Per
 
 ## References
 
-- ADR-0135: Connect super-app expansion into flat µservices.
+- ADR-0135: super-app expansion into flat µservices.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational policy).
+- ADR-0134: dissolution Strangler migration (operational policy).
 - ADR-RECORDINGS-0001..0007.
 - RFC 8216 — HLS.
 - ISO/IEC 23009-1 — DASH.

@@ -91,7 +91,7 @@ Failure mode: if the regulator renewal calendar lane cannot prove compliance, th
 | 10 | Yejin Park | comms-email | NMLS evidence upload; 31 CFR 1022.210 money services business anti-money-laundering program | Receipt EVT-J91-010 shown with pack US-TX-MTL |
 | 11 | Yejin Park | community | Cedar-gated payment throttling; 31 CFR 1022.320 suspicious activity reporting for money services businesses | Receipt EVT-J91-011 shown with pack US-FL-MTL |
 | 12 | Yejin Park | compliance | regulator renewal calendar; California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Receipt EVT-J91-012 shown with pack US-WA-MTL |
-| 13 | Yejin Park | connect | threshold detection; New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Receipt EVT-J91-013 shown with pack US-MSB |
+| 13 | Yejin Park | connector | threshold detection; New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Receipt EVT-J91-013 shown with pack US-MSB |
 | 14 | Yejin Park | consent-graph | state license gap analysis; Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Receipt EVT-J91-014 shown with pack US-CA-MTL |
 | 15 | Yejin Park | developer-sdk | surety bond packet; Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Receipt EVT-J91-015 shown with pack US-NY-MTL |
 | 16 | Yejin Park | docs | NMLS evidence upload; Washington RCW 19.230.030 license required and 19.230.050 surety bond | Receipt EVT-J91-016 shown with pack US-TX-MTL |
@@ -136,7 +136,7 @@ Failure mode: if the regulator renewal calendar lane cannot prove compliance, th
 | 55 | Yejin Park | comms-email | threshold detection; Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Receipt EVT-J91-055 shown with pack US-MSB |
 | 56 | Yejin Park | community | state license gap analysis; Washington RCW 19.230.030 license required and 19.230.050 surety bond | Receipt EVT-J91-056 shown with pack US-CA-MTL |
 | 57 | Yejin Park | compliance | surety bond packet; 31 CFR 1010.100(ff) money transmitter definition | Receipt EVT-J91-057 shown with pack US-NY-MTL |
-| 58 | Yejin Park | connect | NMLS evidence upload; 31 CFR 1022.210 money services business anti-money-laundering program | Receipt EVT-J91-058 shown with pack US-TX-MTL |
+| 58 | Yejin Park | connector | NMLS evidence upload; 31 CFR 1022.210 money services business anti-money-laundering program | Receipt EVT-J91-058 shown with pack US-TX-MTL |
 | 59 | Yejin Park | consent-graph | Cedar-gated payment throttling; 31 CFR 1022.320 suspicious activity reporting for money services businesses | Receipt EVT-J91-059 shown with pack US-FL-MTL |
 | 60 | Yejin Park | developer-sdk | regulator renewal calendar; California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Receipt EVT-J91-060 shown with pack US-WA-MTL |
 | 61 | Yejin Park | docs | threshold detection; New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Receipt EVT-J91-061 shown with pack US-MSB |
@@ -181,7 +181,7 @@ Failure mode: if the regulator renewal calendar lane cannot prove compliance, th
 | 100 | Yejin Park | comms-email | NMLS evidence upload; California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Receipt EVT-J91-100 shown with pack US-TX-MTL |
 | 101 | Yejin Park | community | Cedar-gated payment throttling; New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Receipt EVT-J91-101 shown with pack US-FL-MTL |
 | 102 | Yejin Park | compliance | regulator renewal calendar; Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Receipt EVT-J91-102 shown with pack US-WA-MTL |
-| 103 | Yejin Park | connect | threshold detection; Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Receipt EVT-J91-103 shown with pack US-MSB |
+| 103 | Yejin Park | connector | threshold detection; Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Receipt EVT-J91-103 shown with pack US-MSB |
 | 104 | Yejin Park | consent-graph | state license gap analysis; Washington RCW 19.230.030 license required and 19.230.050 surety bond | Receipt EVT-J91-104 shown with pack US-CA-MTL |
 | 105 | Yejin Park | developer-sdk | surety bond packet; 31 CFR 1010.100(ff) money transmitter definition | Receipt EVT-J91-105 shown with pack US-NY-MTL |
 | 106 | Yejin Park | docs | NMLS evidence upload; 31 CFR 1022.210 money services business anti-money-laundering program | Receipt EVT-J91-106 shown with pack US-TX-MTL |
@@ -226,7 +226,7 @@ Failure mode: if the regulator renewal calendar lane cannot prove compliance, th
 | 145 | Yejin Park | comms-email | threshold detection; 31 CFR 1010.100(ff) money transmitter definition | Receipt EVT-J91-145 shown with pack US-MSB |
 | 146 | Yejin Park | community | state license gap analysis; 31 CFR 1022.210 money services business anti-money-laundering program | Receipt EVT-J91-146 shown with pack US-CA-MTL |
 | 147 | Yejin Park | compliance | surety bond packet; 31 CFR 1022.320 suspicious activity reporting for money services businesses | Receipt EVT-J91-147 shown with pack US-NY-MTL |
-| 148 | Yejin Park | connect | NMLS evidence upload; California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Receipt EVT-J91-148 shown with pack US-TX-MTL |
+| 148 | Yejin Park | connector | NMLS evidence upload; California Financial Code section 2030 license requirement and section 2037 surety/securities obligation | Receipt EVT-J91-148 shown with pack US-TX-MTL |
 | 149 | Yejin Park | consent-graph | Cedar-gated payment throttling; New York Banking Law Article 13-B sections 641 licensing and 643 security/bonding | Receipt EVT-J91-149 shown with pack US-FL-MTL |
 | 150 | Yejin Park | developer-sdk | regulator renewal calendar; Texas Finance Code Chapter 151 sections 151.302 license and 151.308 security | Receipt EVT-J91-150 shown with pack US-WA-MTL |
 | 151 | Yejin Park | docs | threshold detection; Florida Statutes Chapter 560 sections 560.125 licensure and 560.209 permissible investments/security | Receipt EVT-J91-151 shown with pack US-MSB |

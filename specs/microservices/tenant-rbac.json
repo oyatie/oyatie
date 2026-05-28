@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/microservices/tenant-rbac.schema.json",
+  "title": "MicroservicePrd:TenantRbac",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-TENANT-RBAC",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "tenant-rbac-governance-council",
+    "created_at": "2026-05-28T00:00:00Z",
+    "purpose": "Tenant/RBAC control microservice for entitlement-to-scope packaging, tenant workload admission, and policy evidence. It governs flattened clean-architecture microservices without creating product-grouping wrappers."
+  },
+  "identity": {
+    "microservice_id": "tenant-rbac",
+    "product_class": "service",
+    "user_facing_surface": false,
+    "crate_refs": [
+      "oya-tenant-rbac-domain",
+      "oya-tenant-rbac-application",
+      "oya-tenant-rbac-api",
+      "oya-tenant-rbac-runtime"
+    ],
+    "packaging_policy_ref": "$ref:specs/tenant-rbac-packaging.json",
+    "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
+  },
+  "responsibilities": [
+    "resolve tenant entitlements into RBAC scopes",
+    "validate tenant workload admission without bypassing owning microservice policy",
+    "emit audit-chain evidence for entitlement and scope decisions",
+    "hold cloud-readiness evidence for tenant isolation, resource quota, workload identity, and service-account boundaries",
+    "keep flattened clean-architecture boundaries explicit across domain, application, API, runtime, infrastructure, kernel, and library layers"
+  ],
+  "non_goals": [
+    "owning mail, messenger, community, calendar, HR, payroll, accounting, or healthcare domain data",
+    "creating product grouping wrappers, bundles, vertical grouping services, or market-label ownership boundaries",
+    "granting access without downstream microservice RBAC and tenant-policy evaluation"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "TRBAC-AC-01",
+      "given": "a tenant package resolves to enabled surfaces",
+      "when": "a user requests a microservice capability",
+      "then": "the decision carries tenant_id, entitlement_set_id, role binding, policy scope, and audit evidence refs before the owning microservice evaluates access"
+    },
+    {
+      "id": "TRBAC-AC-02",
+      "given": "a regulated tenant enables healthcare-related capabilities",
+      "when": "healthcare-integration or adjacent services are exposed",
+      "then": "the exposure is controlled by regulatory pack, tenancy, and RBAC scopes rather than a market-label product boundary"
+    }
+  ],
+  "source_evidence_refs": [
+    "https://kubernetes.io/docs/concepts/security/multi-tenancy/",
+    "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+    "https://docs.aws.amazon.com/whitepapers/latest/saas-tenant-isolation-strategies/full-stack-isolation.html"
+  ]
+}

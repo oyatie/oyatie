@@ -1,4 +1,4 @@
-# LLM Gateway µservice — Operational Boundaries
+# Cloud Intelligence service — Operational Boundaries
 
 **Authority:** ADR-0373 (resilience state machine), ADR-0373 (audit), ADR-0090 (hyper backbone)
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §10 (operational boundaries + failure modes), §4 (SLOs), §9 (audit governance).

@@ -1,6 +1,6 @@
-# Migration playbook — Stripe Connect → Oyatie `marketplace`
+# Migration playbook — Stripe → Oyatie `marketplace`
 
-Audience: a platform running a marketplace on Stripe Connect (Express, Custom, or Standard) — typically a SaaS that takes a cut of
+Audience: a platform running a marketplace on Stripe (Express, Custom, or Standard) — typically a SaaS that takes a cut of
 transactions between two parties (e.g. Uber-style, Substack-style, Etsy-style, B2B SaaS marketplace).
 
 > Phase budget: 60 days for a small marketplace (≤ 1k sellers); 120 days for mid-market (≤ 100k sellers); 240 days for large
@@ -71,7 +71,7 @@ Listings imported but unpublished by default; publish per-seller after they've s
 
 ## Phase 3 — Dual-run (Day 60…90)
 
-For each purchase your platform handles, fire both Stripe Connect and Oyatie marketplace in parallel:
+For each purchase your platform handles, fire both Stripe and Oyatie marketplace in parallel:
 ```python
 async def purchase(buyer, listing):
     # Source of truth: Stripe
@@ -101,20 +101,20 @@ Move tax responsibility to Oyatie marketplace:
 ## Phase 5 — Cutover (Day 120…135)
 
 1. New purchases route to Oyatie marketplace only.
-2. Existing escrows + recurring subscriptions continue to flow through Stripe Connect for their natural lifetime.
-3. After all Stripe-side escrows release, disable new Stripe Connect charges.
+2. Existing escrows + recurring subscriptions continue to flow through Stripe for their natural lifetime.
+3. After all Stripe-side escrows release, disable new Stripe charges.
 
-## Phase 6 — Stripe Connect decommission (Day 135+)
+## Phase 6 — Stripe decommission (Day 135+)
 
 - For accounts with no pending balance: deactivate.
 - For accounts with pending balance: wait for final payout, then deactivate.
-- After 30 d of no charges: archive the Stripe Connect platform account (Stripe retains records but stops new charges).
+- After 30 d of no charges: archive the Stripe platform account (Stripe retains records but stops new charges).
 
 ## Rollback
 
 Within the dual-run + new-purchase cutover (60-day window):
 - Disable the marketplace-first routing.
-- Re-enable Stripe Connect first.
+- Re-enable Stripe first.
 - Migrate any Oyatie-only escrows back to Stripe via a one-time refund + re-charge.
 
 After full decommission: rollback requires re-onboarding sellers on Stripe Connect, which is a 7-30 day per-seller process.
@@ -122,7 +122,7 @@ After full decommission: rollback requires re-onboarding sellers on Stripe Conne
 ## What you gain
 
 - One ledger across listing categories (vs Stripe's single-category orientation).
-- Lower platform fee on the paid revenue_share path (5.6 % vs effective 3.5 % Stripe Connect but excluding tax + KYC + dispute external costs; total
+- Lower platform fee on the paid revenue_share path (5.6 % vs effective 3.5 % Stripe but excluding tax + KYC + dispute external costs; total
   ~5.6 % vs ~5 % all-in, so close).
 - Cedar-gated dispute stages.
 - BLAKE3 audit chain.

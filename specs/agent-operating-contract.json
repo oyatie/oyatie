@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/agent-operating-contract.json",
+  "$id": "https://docs.oyatie.com/specs/agent-operating-contract.json",
   "spec_id": "EXE-AGENT-OPERATING-CONTRACT-PROJECTION",
   "title": "Agent Operating Contract Machine Projection",
   "status": "ProjectionUntilPhase5Promotion",

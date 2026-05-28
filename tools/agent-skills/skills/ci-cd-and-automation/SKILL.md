@@ -319,8 +319,8 @@ Slow CI pipeline?
 ├── Only run what changed
 │   └── Use path filters to skip unrelated jobs (e.g., skip e2e for docs-only PRs)
 ├── Use matrix builds
-│   └── Shard test suites across multiple runners
-├── Optimize the test suite
+│   └── Shard test sets across multiple runners
+├── Optimize the test set
 │   └── Remove slow tests from the critical path, run them on a schedule instead
 └── Use larger runners
     └── GitHub-hosted larger runners or self-hosted for CPU-heavy builds
@@ -387,4 +387,4 @@ After setting up or modifying CI:
 - [ ] CI results feed back into the development loop
 - [ ] Secrets are stored in the secrets manager, not in code
 - [ ] Deployment has a rollback mechanism
-- [ ] Pipeline runs in under 10 minutes for the test suite
+- [ ] Pipeline runs in under 10 minutes for the test set

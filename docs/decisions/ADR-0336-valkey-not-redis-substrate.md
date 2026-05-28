@@ -570,7 +570,7 @@ D-12.8. The bucket does NOT touch ADRs that reference Redis as a forbidden licen
 
 D-12.9. The bucket DOES touch ADRs that reference Redis as a substrate candidate; those references are migrated to Valkey with a citation to this ADR.
 
-D-12.10. After the bucket lands, the µservice's CI lane suite (`oya-governance-valkey-not-redis-vocabulary` and seven sibling lanes) MUST report zero residue for that µservice.
+D-12.10. After the bucket lands, the µservice's CI lane set (`oya-governance-valkey-not-redis-vocabulary` and seven sibling lanes) MUST report zero residue for that µservice.
 
 ## E. Enforcement-by-lanes
 

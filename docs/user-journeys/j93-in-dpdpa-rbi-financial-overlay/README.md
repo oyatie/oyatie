@@ -38,7 +38,7 @@ Aiyana sells illustration commissions in India and needs DPDPA consent plus RBI 
 | schemas/journey-messages.proto | proto3 RPC/event message contract | n/a |
 | schemas/pack-state-bnf.md | BNF v4.1 grammar and ADR-0105 13-layer mapping | n/a |
 | microservices/<svc>/IP-journey-* | 45 flat per-microservice implementation plans | 400 each |
-| integration-test-plan.md | End-to-end and adversarial test suites | 400 |
+| integration-test-plan.md | End-to-end and adversarial test sets | 400 |
 | README.md | Index, matrix, and operating contract | 300 |
 
 ## Regulatory anchors
@@ -77,7 +77,7 @@ Aiyana sells illustration commissions in India and needs DPDPA consent plus RBI 
 | comms-email | transactional notices, regulator acknowledgements, and signed delivery receipts |
 | community | public and counterparty-facing portal flows plus ecosystem communication surfaces |
 | compliance | pack activation, regulator article mapping, and auditor portal evidence inventory |
-| connect | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
+| connector | cross-tenant connector handshakes, parent/subsidiary bridges, and partner attestations |
 | consent-graph | purpose consent, withdrawal propagation, and data-subject rights state |
 | developer-sdk | SDK contracts, examples, and generated client tests for the journey API |
 | docs | tenant documentation portal, policy packet publishing, and regulator-readable knowledge base |
@@ -143,7 +143,7 @@ Aiyana sells illustration commissions in India and needs DPDPA consent plus RBI 
 | README-AC-010 | comms-email | quarterly RBI evidence run | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-011 | community | consent withdrawal propagation | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-012 | compliance | cross-border processing review | DPDPA section 5 notice | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-013 | connect | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-013 | connector | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-014 | consent-graph | merchant KYC tiering | DPDPA section 7 certain legitimate uses | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-015 | developer-sdk | per-transaction RBI threshold check | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-016 | docs | quarterly RBI evidence run | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |
@@ -188,7 +188,7 @@ Aiyana sells illustration commissions in India and needs DPDPA consent plus RBI 
 | README-AC-055 | comms-email | creator consent notice | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-056 | community | merchant KYC tiering | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-057 | compliance | per-transaction RBI threshold check | DPDPA sections 11 to 14 data principal access, correction, erasure, grievance redressal, and nomination rights | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-058 | connect | quarterly RBI evidence run | DPDPA section 16 processing personal data outside India | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-058 | connector | quarterly RBI evidence run | DPDPA section 16 processing personal data outside India | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-059 | consent-graph | consent withdrawal propagation | RBI Master Directions on Prepaid Payment Instruments 2021 paragraphs 9 and 10 for PPI type/limit controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-060 | developer-sdk | cross-border processing review | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-061 | docs | creator consent notice | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |
@@ -233,7 +233,7 @@ Aiyana sells illustration commissions in India and needs DPDPA consent plus RBI 
 | README-AC-100 | comms-email | quarterly RBI evidence run | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-101 | community | consent withdrawal propagation | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-102 | compliance | cross-border processing review | DPDPA section 5 notice | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-103 | connect | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-103 | connector | creator consent notice | DPDPA section 6 consent | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-104 | consent-graph | merchant KYC tiering | DPDPA section 7 certain legitimate uses | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-105 | developer-sdk | per-transaction RBI threshold check | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-106 | docs | quarterly RBI evidence run | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |
@@ -278,7 +278,7 @@ Aiyana sells illustration commissions in India and needs DPDPA consent plus RBI 
 | README-AC-145 | comms-email | creator consent notice | DPDPA section 8 general obligations of Data Fiduciary | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-146 | community | merchant KYC tiering | DPDPA section 10 Significant Data Fiduciary obligations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-147 | compliance | per-transaction RBI threshold check | DPDPA sections 11 to 14 data principal access, correction, erasure, grievance redressal, and nomination rights | Cedar deny-wins; ADR-0263 event sealed |
-| README-AC-148 | connect | quarterly RBI evidence run | DPDPA section 16 processing personal data outside India | Cedar deny-wins; ADR-0263 event sealed |
+| README-AC-148 | connector | quarterly RBI evidence run | DPDPA section 16 processing personal data outside India | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-149 | consent-graph | consent withdrawal propagation | RBI Master Directions on Prepaid Payment Instruments 2021 paragraphs 9 and 10 for PPI type/limit controls | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-150 | developer-sdk | cross-border processing review | RBI Payment Aggregator/Payment Gateway Guidelines DPSS.CO.PD.No.1810/02.14.008/2019-20 paragraphs 7 merchant onboarding and 10 escrow account operations | Cedar deny-wins; ADR-0263 event sealed |
 | README-AC-151 | docs | creator consent notice | Digital Personal Data Protection Act 2023 section 4 grounds for processing personal data | Cedar deny-wins; ADR-0263 event sealed |

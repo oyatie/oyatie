@@ -152,7 +152,7 @@ Current Tier II members:
 
 - **Anthropic API** — used in foundry providers; replacement target is
   the in-house foundry-runtime model substrate (ADR-0026); readiness
-  gate is `human-eval ≥ 95% on internal benchmark suite + tool-use
+  gate is `human-eval ≥ 95% on internal benchmark set + tool-use
   parity demonstrated`.
 - **Anthropic Subscription (Claude Code / oauth)** — same.
 - **OpenAI API** — same.

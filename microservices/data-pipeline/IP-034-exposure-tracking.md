@@ -46,7 +46,7 @@ Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0242, ADR-0243, ADR-0244, ADR-02
 - `internal_report`: internal stakeholder report.
 
 ## Implementation steps
-- Add `exposure-tracking` as a sub-context of the `lineage` bounded context (per ADR-0132 no-suite).
+- Add `exposure-tracking` as a sub-context of the `lineage` bounded context (per ADR-0132 no-grouping).
 - Add `src/domain/exposure.rs` with `DataExposure`, `ExposureType` enum, `ExposureMaturity` enum, `UpstreamRef` variant.
 - Add `src/usecase/exposure.rs` exposing `exposure.register`, `exposure.amend`, `exposure.promote`, `exposure.deprecate`, `exposure.notify_impact`, `exposure.query_upstream`, `exposure.query_downstream`.
 - Add `local-exposure-register-scope.cedar` and `local-exposure-impact-notify-scope.cedar`.

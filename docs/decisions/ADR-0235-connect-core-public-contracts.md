@@ -1,9 +1,9 @@
 ---
 id: ADR-0235
 status: Accepted
-deciders: connect-product-council, council-architecture, council-privacy
+deciders: communications-service-council, council-architecture, council-privacy
 date: 2026-05-17
-owner: connect-product-council
+owner: communications-service-council
 supersedes: []
 superseded_by: []
 related:
@@ -18,10 +18,10 @@ related_specs:
   - /specs/products/connect/calendar.json
   - /specs/products/connect/messenger.json
 version: 1.0.0
-purpose: Authorize the Connect core public contracts added by the OP-11 industry audit and bind them to Workflow/Ontology mediation, audit emission, and dual-context safety rules.
+purpose: Authorize the core public contracts added by the OP-11 industry audit and bind them to Workflow/Ontology mediation, audit emission, and dual-context safety rules.
 ---
 
-# ADR-0235: Connect Core Public Contracts
+# ADR-0235: Core Public Contracts
 
 ## Status
 
@@ -29,7 +29,7 @@ Accepted - 2026-05-17.
 
 ## Context
 
-PR #131 expands the existing Connect suite, mail, messenger, and calendar PRDs after the OP-11 competitive audit. The PR introduces six public contracts:
+PR #131 expands the existing platform, mail, messenger, and calendar PRDs after the OP-11 competitive audit. The PR introduces six public contracts:
 
 - `connect.mail.alias.v1`
 - `connect.perimeter-auth-result.v1`
@@ -42,7 +42,7 @@ These contracts are useful only if they remain explicit product contracts rather
 
 ## Decision
 
-Accept the six contracts as **planning-stage public contracts** for Connect core PRDs with these constraints:
+Accept the six contracts as **planning-stage public contracts** for core PRDs with these constraints:
 
 - Contract use is advisory until the corresponding implementation crates, contract schemas, and validators land.
 - All cross-product behavior must route through Workflow and Ontology mediation. Direct child-to-child calls are not allowed.
@@ -62,7 +62,7 @@ Accept the six contracts as **planning-stage public contracts** for Connect core
 
 ## Consequences
 
-- Connect core PRDs must cite this ADR when naming the six contracts.
+- core PRDs must cite this ADR when naming the six contracts.
 - Hyperscaler and competitive benchmark claims remain advisory until validators bind the contracts to implementation.
 - Follow-up implementation must add schemas and tests before these contract names are used as shipped API commitments.
 - Reviewers can block future PRs that widen these contracts without updating this ADR or superseding it.

@@ -572,17 +572,17 @@ S-15. Report any remaining historical references or validation gaps.
 
 V-1. `RUSTC_WRAPPER= cargo test --manifest-path crates/oya-shuffle-sharding/Cargo.toml`.
 
-V-2. The crate test suite proves deterministic selection.
+V-2. The crate test set proves deterministic selection.
 
-V-3. The crate test suite proves tenant-sensitive selection changes.
+V-3. The crate test set proves tenant-sensitive selection changes.
 
-V-4. The crate test suite proves pack and region filtering.
+V-4. The crate test set proves pack and region filtering.
 
-V-5. The crate test suite proves inactive cells are not selected.
+V-5. The crate test set proves inactive cells are not selected.
 
-V-6. The crate test suite proves duplicate cell ids are rejected.
+V-6. The crate test set proves duplicate cell ids are rejected.
 
-V-7. The crate test suite proves insufficient eligible cells are rejected.
+V-7. The crate test set proves insufficient eligible cells are rejected.
 
 V-8. `RUSTC_WRAPPER= cargo doc --manifest-path crates/oya-shuffle-sharding/Cargo.toml --no-deps`.
 

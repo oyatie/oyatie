@@ -22,7 +22,7 @@ Implement notes surface for:
 1. **`AppendToTaxYearNote`** — append filed-submission confirmations
    to a per-tax-year Note in the personal tenant.
 2. **Cross-reference resolver** — link Note entries to Drive PDF refs
-   + Connect submission rows.
+   + submission rows.
 
 ## Data model
 

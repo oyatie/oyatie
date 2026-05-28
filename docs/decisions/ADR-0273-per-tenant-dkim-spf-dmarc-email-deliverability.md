@@ -30,7 +30,7 @@ related:
   - ADR-0117-regional-compliance-pack-data-residency.md
   - ADR-0123-event-bus-schema-registry.md
   - ADR-0131-per-microservice-flat-layout.md
-  - ADR-0132-no-suite-policy-governance-lane.md
+  - ADR-0132-no-grouping-policy-governance-lane.md
   - ADR-0133-cellular-architecture-amazon-shape.md
   - ADR-0135-dual-context-isolation-kernel-invariant.md
   - ADR-0139-finops-tag-sustainability.md

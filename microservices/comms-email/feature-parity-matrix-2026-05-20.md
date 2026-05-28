@@ -373,7 +373,7 @@ Oyatie coverage evidence: `SVC-ADR-005-template-rendering-engine-selection.md`; 
 Oyatie gap judgment: rendering technology is chosen, but lifecycle APIs for templates, versions, previews, and validation are not visible in the current OpenAPI.
 Parity action: add template CRUD/version/preview/validation contracts or explicitly delegate template lifecycle to another µservice.
 
-List and audience flow: SendGrid and Mailgun expose list/unsubscribe-adjacent capabilities, while Postmark intentionally separates broadcast streams and avoids full marketing-suite scope.
+List and audience flow: SendGrid and Mailgun expose list/unsubscribe-adjacent capabilities, while Postmark intentionally separates broadcast streams and avoids full marketing-platform scope.
 List and audience evidence: `https://support.sendgrid.com/hc/en-us/articles/1260806604209-Unsubscribe-Methods`; `https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/mailing-lists`; `https://postmarkapp.com/message-streams`.
 Oyatie coverage evidence: `README.md:17-21`; `IP-018-list-management-usecase.md:11-24`; `IP-024-list-management-rest.md:15-22`; `PRD.md:92-98`.
 Oyatie gap judgment: list management is the most scope-sensitive parity area because it can turn comms-email into a marketing automation product.

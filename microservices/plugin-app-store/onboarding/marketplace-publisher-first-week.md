@@ -16,7 +16,7 @@ Audience: a developer/team publishing your first listing to the oyatie marketpla
 Morning (3 h):
 1. Receive `iam` invite. Cedar role `marketplace::publisher` binds: `marketplace::listing::{create,update,publish}`, `marketplace::analytics::read::own`, `marketplace::payment::receive`.
 2. Log in to the publisher portal: `https://marketplace-publisher.<tenant>.oyatie.io`.
-3. Configure your publisher profile: legal name, jurisdiction (for tax compliance), payment account (Stripe Connect / Adyen), support contact, marketing URL, privacy policy URL, terms-of-service URL.
+3. Configure your publisher profile: legal name, jurisdiction (for tax compliance), payment account (Stripe / Adyen), support contact, marketing URL, privacy policy URL, terms-of-service URL.
 4. Sign the publisher agreement (provisioned via `contract-lifecycle-management` µservice). Without a signed PA, you cannot publish.
 
 Afternoon (4 h):

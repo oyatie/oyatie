@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.oyatie.dev/user-journeys/j41/developer-sandbox-promotion.json",
+  "$id": "https://schemas.oyatie.com/user-journeys/j41/developer-sandbox-promotion.json",
   "title": "DeveloperSandboxPromotion",
   "version": "1.0.0",
   "description": "Shared journey object for j41-b2b-developer-builds-on-platform. It lets Marcus Chen let a senior engineer use the developer SDK, deploy into a per-tenant sandbox, then promote to production while preserving tenant scope, auditability, and cross-service status.",

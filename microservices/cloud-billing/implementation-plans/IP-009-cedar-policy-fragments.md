@@ -8,7 +8,7 @@ owner: axis-cloud-billing
 status: drafted
 priority: P0
 binding_adrs: [ADR-0243, ADR-0244, ADR-0330, ADR-0263, ADR-0131]
-counterpart_parity: [Stripe Connect platform policies, Recurly user roles, AWS IAM, OpenFGA]
+counterpart_parity: [Stripe platform policies, Recurly user roles, AWS IAM, OpenFGA]
 capabilities_touched: all cap.cloud.billing.* gates
 billing_components: [per_seat, per_usage, revenue_share]
 tenant_class_scope: both
@@ -245,7 +245,7 @@ These five gates encode the demo_trial lifecycle state machine at the policy lay
 
 | Counterpart | Their policy model | Oyatie equivalent | Delta |
 |---|---|---|---|
-| Stripe Connect | Platform policy: charge_type ∈ {direct, destination, separate}; per-connected-account permissions | Per-tenant role-based Cedar gates + billing_components attribute checks | Stripe's Connect rules are a special-case of revenue_share; oyatie's model handles general N-component composability. |
+| Stripe | Platform policy: charge_type ∈ {direct, destination, separate}; per-connected-account permissions | Per-tenant role-based Cedar gates + billing_components attribute checks | Stripe's rules are a special-case of revenue_share; oyatie's model handles general N-component composability. |
 | Recurly | User roles: admin, billing, support, reporting | tenant-admin, tenant-finance-reader, tenant-finops-admin, oyatie-finance-operator | Same role pattern; Cedar adds attribute-based conditions. |
 | AWS IAM | JSON IAM policies on resources with `Condition` clauses | Cedar policies on entities with `when {}` clauses | Cedar is more expressive than IAM (subset/membership operators); same authorization model. |
 | OpenFGA | Relationship-based authorization graphs (Zanzibar-style) | Cedar entity hierarchies + attribute-based conditions | Cedar covers both attribute-based (ABAC) and relationship-based (ReBAC) at policy layer. |

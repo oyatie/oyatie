@@ -388,13 +388,13 @@ Strengths:
   v4.1), ADR-0105 (13-layer enum), ADR-0106 (usecase rename),
   ADR-0117 (cloud-native progression), ADR-0120 (Rust-first on-prem),
   ADR-0121 (on-prem K8s stack), ADR-0123 (hyperscaler maturity gate),
-  ADR-0131 (per-microservice flat layout), ADR-0132 (no-suite),
+  ADR-0131 (per-microservice flat layout), ADR-0132 (no-grouping),
   ADR-0133 (industry-best-practice conformance), ADR-0139 (agentic
   SLO-gated promotion), ADR-0140 (Cedar; noted retired per ADR-0145),
   ADR-0145 (inter-microservice communication reform), ADR-0146
   (Cosign + Kyverno), ADR-0158 (multi-region disposition), ADR-0161
   (canonical StorageClass), ADR-0164 (sovereign air-gap), ADR-0198
-  (Karpenter > Cluster Autoscaler), ADR-0234 (Connect social), ADR-0236
+  (Karpenter > Cluster Autoscaler), ADR-0234 (social), ADR-0236
   (corpus remediation), ADR-0242..ADR-0284 keystone bundle.
 - Cross-microservice references trace to cell, cloud-iac, identity,
   tenancy, policy-engine, observability, audit-chain, cloud-secrets,
@@ -414,7 +414,7 @@ Findings:
   to ARCHITECTURE source_anchors so the deployment spectrum + cell
   topology connection is explicit.
 - F-OUT-02 (P2): the manifest.adrs roster lists eleven ADRs, of which
-  one is ADR-0234 (Connect social expansion planning contract).
+  one is ADR-0234 (social expansion planning contract).
   That ADR is unrelated to cloud-k8s; likely a copy-paste residue.
   Fix: remove ADR-0234 from manifest.adrs.
 - F-OUT-03 (P2): ADR-0145 retired ADR-0140 (Cedar). compliance.md
@@ -604,7 +604,7 @@ cloud-k8s is the on-prem Kubernetes substrate that runs every other
 oyatie microservice. The PRD's "Internal Outcome 4 — Hyperscaler-
 parity substrate" names the precedent set as AWS EKS, GCP GKE, Azure
 AKS, Oracle OKE, Rancher RKE2, OpenShift, and Tanzu Kubernetes Grid.
-The benchmark suite cites those plus Talos Linux + Omni. The
+The benchmark set cites those plus Talos Linux + Omni. The
 microservice does not invent a Kubernetes distribution; it uses
 upstream kubeadm + containerd + Istio + Envoy + Cilium + CSI in a
 combination that matches CNCF conformance.
@@ -824,7 +824,7 @@ two missing entries (policy-engine, cloud-secrets).
 | F-INT-06 | P3 | internal-coherence | capability-tiers/*.md | rewrite under tenant-class + deployment-context after tier retirement |
 | F-INT-07 | P3 | internal-coherence | multi-region.md | disambiguate ADR-0158 intra-cluster RPO vs cross-cluster RPO |
 | F-OUT-01 | P1 | outbound-cross-reference | PRD.md + ARCHITECTURE.md | add ADR-0254 + ADR-0248 citations |
-| F-OUT-02 | P2 | outbound-cross-reference | manifest.json | remove ADR-0234 (Connect social) |
+| F-OUT-02 | P2 | outbound-cross-reference | manifest.json | remove ADR-0234 (social) |
 | F-OUT-03 | P2 | outbound-cross-reference | PRD.md + compliance.md | drop ADR-0140 retired references; add ADR-0145 |
 | F-OUT-04 | P3 | outbound-cross-reference | this audit doc | link back to ADR-0328 in subsequent IPs |
 | F-OUT-05 | P2 | outbound-cross-reference | manifest.json | add policy-engine + cloud-secrets to depends_on_microservices |

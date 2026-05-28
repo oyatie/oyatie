@@ -17,7 +17,7 @@ doc_status: published
 
 The B2B entry point for Oyatie is a unified shell where tenants sign in and enable products from the flat catalog à-la-carte (like enabling services in an AWS console). This shell was called "Modular Product Shell" in Bominal ADR-0121. Per session decision 2026-05-13, oyatie renames it to **Application** (capital A).
 
-User context: "In essence everything is 'shared'" + Bominal ADR-0121 model (inherited with glossary translation). The Application shell is the entry point for the B2B tenant experience; it is NOT the same as Connect Personal (B2C, person-pillar, separate entry path).
+User context: "In essence everything is 'shared'" + Bominal ADR-0121 model (inherited with glossary translation). The Application shell is the entry point for the B2B tenant experience; it is NOT the same as Personal (B2C, person-pillar, separate entry path).
 
 **Naming justification:** "Application" (capital A) is the established term for a unified shell that hosts multiple products. Contrast with lowercase "application" which is the clean-architecture layer name (ADR-0056). Context distinguishes them: capital-A Application = the B2B shell µservice; lowercase application = the use-case layer in BNF v4.1. Per override #8 of ADR-0060.
 
@@ -60,9 +60,9 @@ Enabling a microservice:
 3. Records the enablement event in the audit chain (ADR-0003).
 4. Registers the product's capabilities in the tenant's capability namespace (ADR-0011).
 
-### Connect Personal is a separate entry path
+### Personal is a separate entry path
 
-Connect Personal (B2C) does NOT go through Application. It is a separate entry path via the person-pillar (Bominal ADR-0208 Personal context). Application is exclusively the B2B shell.
+Personal (B2C) does NOT go through Application. It is a separate entry path via the person-pillar (Bominal ADR-0208 Personal context). Application is exclusively the B2B shell.
 
 ### Application renders via capability registry
 

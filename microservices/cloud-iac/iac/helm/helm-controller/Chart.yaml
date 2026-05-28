@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "v1.0.1"  # Flux helm-controller LTS pin
 maintainers:
   - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.dev
+    email: axis-cloud-iac@oyatie.com
 dependencies:
   - name: helm-controller
     version: "^1.0.0"

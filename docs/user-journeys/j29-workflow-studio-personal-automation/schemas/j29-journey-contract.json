@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j29-workflow-studio-personal-automation.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j29-workflow-studio-personal-automation.schema.json",
   "title": "j29 Workflow Studio personal automation Journey Contract",
   "type": "object",
   "additionalProperties": false,

@@ -35,7 +35,7 @@ cross_product_compound: true
 # j111-staffing-agency-as-tenant-facilitator - Integration test plan
 
 Purpose: prove that A staffing-agency tenant sources workers from Community, places them at KrampusCorp, ConstructionCo,
-and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissions.
+and HealthcareSystem-Megacorp, and receives Stripe facilitator commissions.
 
 ## Test environment
 
@@ -46,7 +46,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
 - Test data: synthetic, non-production, no secrets, no live rails.
 - Test contracts: OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, JSON Schema 2020-12.
 
-## Suite 1: tenant admission
+## Test Set 1: tenant admission
 
 ### IT-111-001: community handles staffing agency tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -114,7 +114,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 2: identity binding
+## Test Set 2: identity binding
 
 ### IT-111-007: identity handles ConstructionCo
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -182,7 +182,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 3: Cedar permit evaluation
+## Test Set 3: Cedar permit evaluation
 
 ### IT-111-013: payments handles staffing agency tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -250,7 +250,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 4: marketplace settlement
+## Test Set 4: marketplace settlement
 
 ### IT-111-019: tenancy handles ConstructionCo
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -318,7 +318,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 5: workflow orchestration
+## Test Set 5: workflow orchestration
 
 ### IT-111-025: workflow-engine handles staffing agency tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -386,7 +386,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 6: payment escrow
+## Test Set 6: payment escrow
 
 ### IT-111-031: community handles ConstructionCo
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -454,7 +454,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 7: ontology projection
+## Test Set 7: ontology projection
 
 ### IT-111-037: identity handles staffing agency tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -522,7 +522,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 8: audit dual seal
+## Test Set 8: audit dual seal
 
 ### IT-111-043: payments handles ConstructionCo
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -590,7 +590,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 9: compliance overlay
+## Test Set 9: compliance overlay
 
 ### IT-111-049: tenancy handles staffing agency tenant
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.
@@ -658,7 +658,7 @@ and HealthcareSystem-Megacorp, and receives Stripe Connect facilitator commissio
   success.
 - Evidence: persist contract payload, policy decision, metric sample, and human-visible status copy for reviewer replay.
 
-## Suite 10: human review
+## Test Set 10: human review
 
 ### IT-111-055: workflow-engine handles ConstructionCo
 - Arrange: seed tenant pair, Cedar permit, marketplace deal-set, pack overlays, and deterministic clock for j111.

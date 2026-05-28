@@ -1449,9 +1449,9 @@ Promote AI Substrate and Consumer Brand Surface to two peer
   two runbooks, two contracts, two failure-mode docs, two threat
   models. Brand Surface alone wouldn't justify the operational
   overhead.
-- **Contradicts ADR-0132 (no-suite forward policy).** Splitting
+- **Contradicts ADR-0132 (no-grouping forward policy).** Splitting
   Intelligence into substrate + brand-surface µservices is a
-  bundle/suite shape; the policy forbids it for new µservices.
+  bundle/grouping shape; the policy forbids it for new µservices.
   Note: this is an addition-creation, so ADR-0132 applies.
 
 **Rejected** because the lifecycle coupling + latency budget

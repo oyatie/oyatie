@@ -112,7 +112,7 @@ Repo references: microservices/healthcare-integration/contracts/asyncapi-v1.yaml
 - Rhapsody displacement: Rhapsody routes interface messages; this kernel makes the route illegal unless tenant, purpose, pack, and audit fields are already complete.
 - InterSystems IRIS for Health displacement: IRIS can centralize clinical data; this kernel prevents centralization from flattening tenant home-cell and pack residency.
 - Lyniate/Corepoint displacement: Corepoint mapping strength is adapter-side; this kernel keeps mapping outputs subordinate to Oyatie tenant and ontology references.
-- Mirth Connect displacement: Mirth channels often express transformation logic; this kernel refuses channel success as sufficient without audit, policy, and DealSet correlation.
+- Mirth displacement: Mirth channels often express transformation logic; this kernel refuses channel success as sufficient without audit, policy, and DealSet correlation.
 - NextGate displacement: NextGate identity matching is useful but not authoritative; this kernel treats match confidence as evidence under tenant scope, not as cross-tenant identity collapse.
 - Health Catalyst displacement: Health Catalyst analytics can aggregate healthcare facts; this kernel requires analytics extracts to start from scoped, policy-cleared, evidence-bearing records.
 - Epic displacement: Epic FHIR app access is source-specific; this kernel normalizes Epic ids into tenant provenance rather than product boundary.

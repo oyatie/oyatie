@@ -1583,7 +1583,7 @@ Why oyatie's path is hyperscaler-grade, not just feature-parity.
 | Post-quantum | Roadmap. | X25519MLKEM768 hybrid in TLS 1.3 today (ADR-0253 D-9). |
 | Audit chain | Append-only logs; not Merkle-sealed. | Merkle-sealed + Ed25519-signed (ADR-0028); per-period seal verification (failure 5.8). |
 | Cross-cell traffic | Implicit. | Cedar-gated + SPIFFE-attested per hop (steps 16, 44, 62). |
-| Federation | Slack Connect (Slack-to-Slack only). | Matrix r0.6.1 + ActivityPub + Slack-Connect adapter (Messenger PRD §4.8). |
+| Federation | Slack (Slack-to-Slack only). | Matrix r0.6.1 + ActivityPub + Slack-adapter (Messenger PRD §4.8). |
 
 Slack is excellent at the consumer-product layer; oyatie matches it
 and adds the hyperscaler substrate underneath.
@@ -1595,7 +1595,7 @@ and adds the hyperscaler substrate underneath.
 | E2E posture | Signal-Protocol-derived; PQ3 (Kyber + ECDH) since iOS 17.2. | MLS RFC 9420; IETF-standardised; group-native FS + PCS. Hybrid PQ planned 2026 Q3-Q4 (MLS std §3.5.3). |
 | Group scale | ~32 active (iMessage); ~1000 cap (FaceTime). | 10k per MLS group (Messenger PRD AC-03). |
 | Multi-device | Proprietary; Apple-ID-mediated; per-device E2E since iOS 17.2 with Contact Key Verification. | MLS multi-device via distinct LeafNodes per device (MLS std §7); same code path as multi-user. |
-| Cross-vendor | Closed; falls back to SMS for non-Apple. | Matrix federation + ActivityPub + Slack-Connect (PRD §4.8). |
+| Cross-vendor | Closed; falls back to SMS for non-Apple. | Matrix federation + ActivityPub + Slack-(PRD §4.8). |
 | Cell architecture | Apple internal; not publicly documented. | Hamilton-cellular per ADR-0248; publicly documented at this level. |
 | Policy posture | Apple-internal; implicit. | Cedar at every gate (ADR-0243). |
 | Audit chain | None visible to users; Apple-internal. | Per-tenant Merkle-sealed; DSAR Article 17 + 20 ready (ADR-0242 D-4). |
@@ -1614,7 +1614,7 @@ multi-tenancy, federation, and audit visibility.
 | Multi-device | Sesame + Signal Sender Keys; 4-device cap. | MLS multi-device via distinct LeafNodes; no fixed device cap. |
 | Cross-cell | Implicit (Meta data centres). | Cedar-gated + SPIFFE-attested per hop. |
 | Policy posture | Meta-internal. | Cedar at every gate. |
-| Federation | None. | Matrix + ActivityPub + Slack-Connect (PRD §4.8). |
+| Federation | None. | Matrix + ActivityPub + Slack-(PRD §4.8). |
 | Backup | Cloud key backup; recoverable with phone PIN. | Per-user passphrase-encrypted (Argon2id) or passkey-bound; recoverable only by user (MLS std §11.3). |
 | Audit chain | Meta-internal. | Per-tenant Merkle-sealed. |
 | Sovereign cloud | Single Meta data centres. | Per-pack overlay (ADR-0240); pack-kr CSAP, pack-eu GAIA-X, pack-ksa NDMO. |

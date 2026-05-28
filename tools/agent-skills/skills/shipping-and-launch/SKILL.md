@@ -113,7 +113,7 @@ return null;
 
 ```
 1. DEPLOY to staging
-   └── Full test suite in staging environment
+   └── Full test set in staging environment
    └── Manual smoke test of critical flows
 
 2. DEPLOY to production (feature flag OFF)

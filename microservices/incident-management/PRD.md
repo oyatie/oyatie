@@ -27,7 +27,7 @@ companion_docs:
   - microservices/incident-management/ARCHITECTURE.md
   - microservices/incident-management/compliance.md
   - microservices/incident-management/manifest.json
-planned_enforcement_ref: oya-governance-incident-management-doc-suite
+planned_enforcement_ref: oya-governance-incident-management-doc-set
 ---
 
 # PRD-incident-management: Incident Management

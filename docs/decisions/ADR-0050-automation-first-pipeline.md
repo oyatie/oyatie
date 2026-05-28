@@ -72,8 +72,8 @@ endpoint = "https://s3.kr-seoul-1.oya.cloud"   # ADR-0028 storage surface
 # - test only the union
 ```
 
-- A PR that touches only one Foundry crate runs only that crate's tests + transitive dependents — not the full ~300+ crate test suite.
-- Full suite runs nightly on main + on every release candidate.
+- A PR that touches only one Foundry crate runs only that crate's tests + transitive dependents — not the full ~300+ crate test set.
+- Full platform runs nightly on main + on every release candidate.
 
 ### Per-agent worktree isolation
 
@@ -103,7 +103,7 @@ One-PR-at-a-time for any PR touching root Cargo.toml / pnpm-workspace / branch-p
 | `oya-governance-license-policy` | 1 min |
 | Per-axis fitness lanes | 3 min each |
 | Per-affected-graph test | 10 min |
-| Full-suite nightly | 60 min |
+| Full-platform nightly | 60 min |
 | Release-candidate verification | 15 min |
 
 Lanes that exceed budget repeatedly are budget-reviewed at the monthly automation review; persistent budget breach triggers a refactor backlog item.
@@ -140,10 +140,10 @@ pub struct FlakyQuarantine {
 
 ### Nightly affected-rebuild on main
 
-- Per-night, full-affected-graph rebuild + full-suite test on main HEAD.
+- Per-night, full-affected-graph rebuild + full-platform test on main HEAD.
 - Per-night, full-affected-graph rebuild for each release branch.
 - Per-night, full-supply-chain scan (per ADR-0039 Trivy 4-layer).
-- Per-night, regression suite per axis.
+- Per-night, regression set per axis.
 
 ### Per-PR blast-radius classification
 
@@ -218,7 +218,7 @@ This ADR does not own the gitops branch model (per ADR-0041). Does not own the s
 - **Cons:** the failure mode this ADR exists to prevent; automation backslides at every deadline.
 - **Rejected because:** Google + Amazon learned this lesson; we adopt the doctrine.
 
-### Alternative B — No per-affected-graph testing; full suite per PR
+### Alternative B — No per-affected-graph testing; full platform per PR
 
 - **Pros:** simpler.
 - **Cons:** CI time grows linearly with codebase; PR latency degrades.

@@ -41,7 +41,7 @@ companion_docs:
 │  └─────────────────────────────────────────────────────┘ │
 │                                                          │
 │  Connectors available (12):                              │
-│  • Stripe Connect (consumer)                             │
+│  • Stripe (consumer)                             │
 │  • Vanguard taxable brokerage                            │
 │  • Smithsonian W-2 (Jennifer shared)                     │
 │  • Virginia DOR e-File                                   │
@@ -83,7 +83,7 @@ Tenant indicator: green "🏠 Personal — Diana" persistent.
 ┌─────────────────────────────────────────────────────────┐
 │  Running family-tax-2025...                              │
 │                                                          │
-│  [1/15] ✓ Stripe Connect pull — 47 tx, $4,200 gross     │
+│  [1/15] ✓ Stripe pull — 47 tx, $4,200 gross     │
 │  [2/15] ✓ Vanguard dividends — $3,287                    │
 │  [3/15] ✓ Smithsonian W-2 — fetched (Jennifer's)         │
 │  [4/15] ⟳ GAO W-2 (Diana via NFC) — reading from Drive   │

@@ -98,7 +98,7 @@ Unit tests must run offline and must never require real chat content, real attac
 - Mutation score target for `search` ACL filter: 96 percent killed mutants.
 - Minimum assertion density: one semantic assertion per channel, message, presence, attachment, or fanout state transition.
 
-## Specific Test Suites
+## Specific Test Sets
 
 - Module `channel_store::kernel::tests`.
 - Test `channel_create_requires_tenant_id`.

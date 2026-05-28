@@ -1098,7 +1098,7 @@ This anchor is closed for `social` against documentation-rigor.md §3.2.4 Domain
 
 ### Service-specific answer
 - `social` dependency inventory spans crates/catalog, containers, Helm/Kustomize/OpenTofu, Cedar fragments, contracts, and generated SDKs.
-- Inventory artifacts: `microservices/social/catalog/oya-social-app.yaml`, `microservices/social/catalog/oya-social-content-moderation-adapter-clamav.yaml`, `microservices/social/catalog/oya-social-content-moderation-adapter-opswat.yaml`, `microservices/social/catalog/oya-social-content-moderation-kernel.yaml`, `microservices/social/catalog/oya-social-csam-classifier-adapter-photodna.yaml`, `microservices/social/catalog/oya-social-dsa-transparency-worker.yaml`; +21 more.
+- Inventory artifacts: `microservices/social/catalog/oya-community-social-app.yaml`, `microservices/social/catalog/oya-community-social-content-moderation-adapter-clamav.yaml`, `microservices/social/catalog/oya-community-social-content-moderation-adapter-opswat.yaml`, `microservices/social/catalog/oya-community-social-content-moderation-kernel.yaml`, `microservices/social/catalog/oya-community-social-csam-classifier-adapter-photodna.yaml`, `microservices/social/catalog/oya-community-social-dsa-transparency-worker.yaml`; +21 more.
 - Every build emits SBOM, provenance, source commit, builder identity, dependency digests, and signature/transparency-log pointers.
 - Dependencies are pinned to exact versions/digests; unpinned charts/images/crates block promotion.
 - Example: `composer-suggest-and-hashtag-completion` image promotion requires cosign signature, SLSA provenance, vulnerability scan, license check, and matching manifest/catalog record.

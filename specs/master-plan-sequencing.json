@@ -107,7 +107,7 @@
       "hyperscaler_pattern_authority": "specs/hyperscaler-architecture-invariants.json",
       "api_first_contracts_must_exist_before_handlers": true,
       "required_rules": [
-        "flat_microservice_catalog_not_suite_forks",
+        "flat_microservice_catalog_not_grouping_forks",
         "per_microservice_prd_manifest_phase_ip_contracts",
         "per_microservice_clean_architecture_crate_layers",
         "per_microservice_api_first_contracts_before_handlers",
@@ -489,7 +489,7 @@
           "sheets",
           "slides",
           "forms",
-          "connect",
+          "connector",
           "comms-email",
           "community",
           "analytics",
@@ -1594,7 +1594,7 @@
           "dispatch_mode": "1 codex orchestrator for the mechanical rename across 34 lane prefixes + ~200 cross-references + workspace Cargo.toml + Cargo.lock regen + 4 new governance lanes",
           "depends_on": [
             "ADR-0347 Acceptance",
-            "ADR-0132 no-suite-policy (governance prefix doctrine)",
+            "ADR-0132 no-grouping-policy (governance prefix doctrine)",
             "ADR-0335 foundry-retired"
           ]
         },

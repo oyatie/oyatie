@@ -33,7 +33,7 @@ PRD-messenger Open Question 3 asks: federation with external Slack/Teams via ada
 
 Three federation surfaces in the field:
 
-- **Slack Connect / Teams External Access** — proprietary federation; closed protocols; both have their own E2E + audit-chain assumptions; integrating means accepting their tenancy model.
+- **Slack / Teams External Access** — proprietary federation; closed protocols; both have their own E2E + audit-chain assumptions; integrating means accepting their tenancy model.
 - **Matrix (RFC + matrix.org spec)** — open federation protocol (Matrix Client-Server r0.6+, Server-Server r0.x); used by Element, Beeper, mozilla.org, ietf.org, kde.org; supports MLS-style E2E (ratchet); federation traffic over HTTPS with Ed25519 server signing.
 - **XMPP (RFC 6120 / 6121 / 6122)** — older federation; server-to-server (S2S) over TLS; ecosystem aging; protocol complexity high; modern E2E support (OMEMO) less mature than Matrix's MLS.
 
@@ -61,7 +61,7 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
    - **Matrix Client-Server API r0.6+** (the modern API).
    - NO Matrix Server-Server federation in the M03 launch tier — that's a successor-IP ADR if needed; client-server federation alone enables 99% of "external partner on Element" interop use cases.
    - **NO XMPP** — S2S complexity, weaker E2E ecosystem (OMEMO is less mature than MLS), aging operator pool. Refused.
-   - **NO Slack Connect / Teams External Access** at the protocol level (proprietary, closed) — but a per-tenant ADAPTER from oyatie messenger to Slack Connect could be authored in the future as a substrate adapter behind a port trait; that would be its own ADR, not this one. M03 launch tier does NOT include such an adapter.
+   - **NO Slack / Teams External Access** at the protocol level (proprietary, closed) — but a per-tenant ADAPTER from oyatie messenger to Slack could be authored in the future as a substrate adapter behind a port trait; that would be its own ADR, not this one. M03 launch tier does NOT include such an adapter.
 
 4. **Personal-DM tier NEVER federated**:
    - Federation is forbidden on `DirectConversation` resources where `active_context=Personal`. Cedar `personal-dm-scope.cedar` already contains the unconditional forbid for context-drift; this ADR adds an explicit forbid for federation actions on Personal-DM resources.
@@ -90,7 +90,7 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 - Cons: S2S federation complexity; XMPP OMEMO E2E maturity lower than MLS; aging operator pool; doubled federation surface; ~2x the security review.
 - Rejected: Matrix alone covers the modern interop need at much lower cost.
 
-### C. Slack Connect / Teams native federation (proprietary protocols)
+### C. Slack / Teams native federation (proprietary protocols)
 - Pros: covers the largest interop market (Slack + Teams dominate enterprise messaging).
 - Cons: requires per-protocol adapter + ongoing compatibility maintenance as Slack / Microsoft change their protocols; ToS exposure; the adapters themselves are large engineering investments; better scheduled-for-distinct-tracked-work to a successor-IP substrate-adapter ADR.
 - Rejected at M03: scheduled-for-distinct-tracked-work to a future ADR; not in launch scope.
@@ -125,7 +125,7 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 
 - Federation principal ACL is intentionally narrow (no reactions, no thread-create, no mentions to local principals); some legitimate interop use cases will hit friction. Mitigated by clear documentation + future ADRs that may relax specific restrictions after operational experience.
 - XMPP-only partners are excluded; documented as a hard limitation. Future XMPP support via a substrate adapter remains possible (separate ADR).
-- Slack Connect / Teams External Access excluded at M03; users wanting that interop must use email / Workflow Studio integrations instead. Future substrate adapter possible via separate ADR.
+- Slack / Teams External Access excluded at M03; users wanting that interop must use email / Workflow Studio integrations instead. Future substrate adapter possible via separate ADR.
 - Matrix S2S federation scheduled-for-distinct-tracked-work; tenants whose partners run their own Matrix homeservers must use C2S bridges or a Matrix bot until S2S is added.
 
 ### Operational
@@ -155,15 +155,15 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 - RFC 9420 — Messaging Layer Security (MLS)
 - RFC 6120 / 6121 / 6122 — XMPP (referenced for rejected alternative)
 - Element / matrix.org operational deployments — public docs
-- Slack Connect documentation — `https://api.slack.com/connect` (referenced for scheduled-for-distinct-tracked-work alternative)
+- Slack documentation — `https://api.slack.com/connect` (referenced for scheduled-for-distinct-tracked-work alternative)
 - Microsoft Teams External Access — `https://learn.microsoft.com/en-us/microsoftteams/manage-external-access`
 - GDPR Arts. 44-49 — cross-border transfer
 - KR PIPA Art. 17 — cross-border transfer
 - HIPAA 45 CFR §164.314 — Business Associate Agreements
 - ePrivacy Directive 2002/58/EC Art. 5 — confidentiality of communications
-- ADR-0135 — Connect full social network super-app (dual-context source)
+- ADR-0135 — full social network super-app (dual-context source)
 - ADR-0131 — Per-microservice flat layout
-- ADR-0132 — Product-suite-and-bundle dissolution
+- ADR-0132 — Product-platform-and-bundle dissolution
 - ADR-MSGR-0002 — E2E personal-DM key escrow tier-split (paired posture)
 - `microservices/messenger/PRD.md` Open Question 3
 - `microservices/messenger/policy/dual-context-isolation.md`

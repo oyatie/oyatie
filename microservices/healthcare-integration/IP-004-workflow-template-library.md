@@ -174,9 +174,9 @@ Repo references: docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-h
 ## Competitor Displacement
 - Redox displacement: Redox workflows are network exchange oriented; Oyatie templates bind workflow, policy, ontology, event, and evidence in one controlled path.
 - Rhapsody displacement: Rhapsody route workflows become adapter steps inside Oyatie HL7 route templates, not the governing workflow.
-- InterSystems IRIS for Health displacement: IRIS process orchestration is replaced by platform workflow templates that preserve tenant cells and pack controls.
+- InterSystems IRIS for Health displacement: IRIS process orchestration is replaced by tenant RBAC workflow templates that preserve tenant cells and pack controls.
 - Lyniate/Corepoint displacement: Corepoint interface work is only the adapter segment after policy and before evidence sealing.
-- Mirth Connect displacement: Mirth channel pipelines are displaced by workflow states with explicit rollback, replay, audit, and review gates.
+- Mirth displacement: Mirth channel pipelines are displaced by workflow states with explicit rollback, replay, audit, and review gates.
 - NextGate displacement: NextGate matching is displaced by a patient-match review workflow that refuses automatic cross-tenant identity collapse.
 - Health Catalyst displacement: Health Catalyst analytics pipelines are displaced by evidence-first export workflows for governed extracts.
 - Epic displacement: Epic import becomes a FHIR import workflow, not a suite-specific privileged path.

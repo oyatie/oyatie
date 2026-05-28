@@ -704,7 +704,7 @@
       "title": "ADR-0376-D3: Dogfood-first scope: the build target is the milestone where Oyatie provisions its OWN clusters via the cluster-CRUD API as tenant-zero (oyatie-dogfood-tenancy), with NO internal bypass of the tenant model. Billing, public SLA, DPIA, and external multi-tenant GA are explicitly DEFERRED to a follow-on ADR named as future work here, not designed in this ADR."
     },
     {
-      "body": "Generated from masterplan deliverable `ADR-0376-D4`.\n\nName the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no suite/bundle).\n\n<!-- oya-board-sync:ADR-0376-D4 -->\n",
+      "body": "Generated from masterplan deliverable `ADR-0376-D4`.\n\nName the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no platform/bundle).\n\n<!-- oya-board-sync:ADR-0376-D4 -->\n",
       "deliverable_id": "ADR-0376-D4",
       "labels": [
         "state/declared",
@@ -712,7 +712,7 @@
         "deliverable/adr-0376-d4",
         "milestone/m-managed-k8s-product"
       ],
-      "title": "ADR-0376-D4: Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no suite/bundle)."
+      "title": "ADR-0376-D4: Name the four flat, single-concern microservices the product layer decomposes into (BUILT in later lanes, NOT now): oya-managed-k8s-cluster-lifecycle, oya-managed-k8s-tenant-quota, oya-managed-k8s-control-plane-host, oya-managed-k8s-sla-observability. Flat layout per ADR-0131/0132 (src/ canonical root, single-concern, no platform/bundle)."
     },
     {
       "body": "Generated from masterplan deliverable `ADR-0376-D5`.\n\nResolve the placeholder-debt token `adr-0375-managed-k8s-product-surface`: repoint the registry/placeholder-debt/adr-follow-ups.yaml entry and the ADR-0375 back-reference at ADR-0376, since the product surface now has its own ADR.\n\n<!-- oya-board-sync:ADR-0376-D5 -->\n",

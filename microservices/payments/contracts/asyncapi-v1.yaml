@@ -16,11 +16,11 @@ info:
 defaultContentType: application/json
 servers:
   production:
-    host: payments-events.oyatie.dev:5671
+    host: payments-events.oyatie.com:5671
     protocol: amqp
     description: AMQP over QUIC; per-tenant topic
   sandbox:
-    host: payments-events-sandbox.oyatie.dev:5671
+    host: payments-events-sandbox.oyatie.com:5671
     protocol: amqp
 channels:
   payment-events:

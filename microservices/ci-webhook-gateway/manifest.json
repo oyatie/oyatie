@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "ci-webhook-gateway",
   "title": "CI Webhook Gateway",
   "status": "wave-3-scaffold-2026-05-26",
@@ -13,7 +13,7 @@
   "owner_team": "council-architecture + ops-platform",
   "criticality_tier": "substrate-critical",
   "flat_layout_authority": "ADR-0131",
-  "no_suite_authority": "ADR-0132",
+  "no_grouping_authority": "ADR-0132",
   "adrs": [
     "ADR-0105",
     "ADR-0131",

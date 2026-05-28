@@ -7,7 +7,7 @@
   "artifact_target": 100,
   "findings": [
     {
-      "id": "quality-management-inspection-plan-doc-suite",
+      "id": "quality-management-inspection-plan-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/inspection-plan-authorization.cedar",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "quality-management-inspection-lot-doc-suite",
+      "id": "quality-management-inspection-lot-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/inspection-lot-authorization.cedar",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "quality-management-certificate-of-analysis-doc-suite",
+      "id": "quality-management-certificate-of-analysis-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/certificate-of-analysis-authorization.cedar",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "quality-management-quality-notification-doc-suite",
+      "id": "quality-management-quality-notification-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/quality-notification-authorization.cedar",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "id": "quality-management-quality-hold-doc-suite",
+      "id": "quality-management-quality-hold-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/quality-hold-authorization.cedar",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "quality-management-audit-evidence-doc-suite",
+      "id": "quality-management-audit-evidence-doc-set",
       "status": "closed-by-second-pass",
       "evidence": [
         "policy/audit-evidence-authorization.cedar",

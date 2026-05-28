@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/cedar-policy-schema.schema.json",
+  "$id": "https://docs.oyatie.com/specs/cedar-policy-schema.schema.json",
   "title": "Oyatie Cedar Policy Schema Canonicalization",
   "description": "Canonical machine-readable contract for Cedar policy schema manifests in Oyatie. This spec is the schema-level companion to specs/cedar-fragment-schema.json and is cited by ADR-0243 Cedar as Universal Gate, ADR-0294 Cedar Fragment Soak + Anomaly-Rollback, and docs/standards/cedar-policy-authoring.md. It defines how entity types, action types, bounded context, private implementation attributes, permit sets, fragments, fixtures, soak controls, fallback semantics, and audit mappings are declared before a policy schema can govern application authorization.",
   "version": "1.0.0",

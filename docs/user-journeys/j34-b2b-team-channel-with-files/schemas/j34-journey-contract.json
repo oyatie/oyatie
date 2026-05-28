@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j34-b2b-team-channel-with-files.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j34-b2b-team-channel-with-files.schema.json",
   "title": "j34 B2B team channel with files Journey Contract",
   "type": "object",
   "additionalProperties": false,

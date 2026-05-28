@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.dev/schemas/j133/severance-packet.json",
+  "$id": "https://oyatie.com/schemas/j133/severance-packet.json",
   "title": "SeverancePacket",
   "type": "object",
   "_meta": {

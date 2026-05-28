@@ -59,7 +59,7 @@ non-public content. Per `feedback_autonomous_decision_principles.md`,
 "long-term right > short-term cost" → substrate-portability matters
 more than absolute lowest cost.
 
-The legacy `oya-connect-sites-*` used a tenant-id-only cache-key,
+The legacy `oya-sites-*` used a tenant-id-only cache-key,
 which caused version-blind cache serving (Hyrum #5 surface in migration
 guide). The new µservice MUST fix this.
 

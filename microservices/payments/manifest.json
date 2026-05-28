@@ -461,7 +461,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: iac/helm/payments-app/values.yamlautoscaling + failure-modes.md FM-01; tenant_rate_limit: policy/abuse-defence.cedarrate-limit-per-principal; paiden_signals: dashboards/payments-overview.json; error_budget_burn: slos/charge-api-availability.openslo.yaml; Stripe Connect (platform-facilitator pattern); Adyen MarketPay (marketplace settlement)",
+  "hyperscaler_benchmark": "circuit_breaker: iac/helm/payments-app/values.yamlautoscaling + failure-modes.md FM-01; tenant_rate_limit: policy/abuse-defence.cedarrate-limit-per-principal; paiden_signals: dashboards/payments-overview.json; error_budget_burn: slos/charge-api-availability.openslo.yaml; Stripe (platform-facilitator pattern); Adyen MarketPay (marketplace settlement)",
   "owner_team": "axis-payments",
   "tier_classification": "substrate",
   "data_classification": "FINANCIAL, PII_IDENTIFYING, AUDIT",

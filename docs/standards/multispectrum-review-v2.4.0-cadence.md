@@ -674,7 +674,7 @@ individually assessed before closure. See `feedback_codex_bulk_resolve_antipatte
 not actionable, the closure MUST document WHY with an evidence pointer (not a
 blanket "won't fix" without rationale).
 
-### §8.5 Parallel Full-Suite Dispatch
+### §8.5 Parallel Full-Platform Dispatch
 
 **Pattern:** All 20+ facets dispatched simultaneously without wave ordering.
 

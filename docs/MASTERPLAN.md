@@ -47,7 +47,7 @@ Historical planning prompts and old `.omc/plans/` root drafts are archived under
 
 ## First Deliverable
 
-FD-001 is Enterprise Generic plus SMB Generic at full production depth. This is not a preview scope and not a reduced launch. The first deliverable exits only when the canonical base and Korea localization pack are both ready with evidence.
+FD-001 is Tenant RBAC view plus Tenant RBAC view at full production depth. This is not a preview scope and not a reduced launch. The first deliverable exits only when the canonical base and Korea localization pack are both ready with evidence.
 
 Required FD-001 surfaces:
 
@@ -103,7 +103,7 @@ Execution follows vertical delivery ordering:
 2. Build FD-001 through product-vertical slices that include customer UX, domain logic, APIs, data, policy, telemetry, tests, operations, deployment, and evidence.
 3. Parallelize only after shared contracts are locked. Safe parallel lanes include messenger, mail, community, ops dashboard/control center, foundry, workflow, ontology, infra, and Korea localization pack.
 4. Serialize shared data model ownership, root workspace manifest changes, public API compatibility changes, branch protection, and promotion policy changes.
-5. Promote only through Oya VCS claim, verify, done, and promote transitions with evidence.
+5. Promote only through an isolated plain-git branch, PR against `dev`, Jenkins required checks, `oya gate` / `oya verify` evidence, and reviewer/governance approval.
 
 ## Claim Rule
 

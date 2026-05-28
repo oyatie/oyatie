@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/user-journeys/j86-pci-tokenized-payment.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/user-journeys/j86-pci-tokenized-payment.schema.json",
   "title": "J86 PCI DSS L1 tokenized payment flow Journey Object",
   "version": "1.0.0",
   "_meta": {

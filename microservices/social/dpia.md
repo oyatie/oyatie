@@ -94,7 +94,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 - **Data subjects:** End-users of tenant applications (consumer users of B2C tenants; employee users of B2B tenants); tenant operators; oyatie operators; non-users referenced in posts (e.g., subjects of journalism).
 - **Relationship:** Joint controllership with tenant under Art. 26.
 - **Reasonable expectations:** End-users expect public-by-default semantics + tenant-admin moderation under disclosed policy.
-- **Previous experience:** Bominal `connect-social` predecessor; no DPA-triggered complaints in 24 months on the social slice; **social as a standalone µservice is NET-NEW** in oyatie per ADR-0135.
+- **Previous experience:** Bominal `community-social` predecessor; no DPA-triggered complaints in 24 months on the social slice; **social as a standalone µservice is NET-NEW** in oyatie per ADR-0135.
 - **Industry codes:** EU DSA + UK Online Safety Act + AU Online Safety Act for content moderation transparency.
 - **Children:** all packs apply pack-aware child consent threshold (GDPR Art. 8 default 16y; member states may lower to 13y; COPPA US <13; KR <14; LGPD <12).
 

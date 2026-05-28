@@ -168,7 +168,7 @@ Cross-product integration check: this phase introduces NO direct imports between
 
 ## ChangeSet Contract per IP
 
-Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). The minimum ChangeSet payload per IP, written at `microservices/workflow-engine/evidence/multispectrum/<change_id>-<unix_ts>.json` on `oya vcs done`:
+Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). The minimum ChangeSet payload per IP is written at `microservices/workflow-engine/evidence/multispectrum/<change_id>-<unix_ts>.json` before opening the pull request against `dev`:
 
 ```json
 {
@@ -251,19 +251,22 @@ branches:
       - oya-governance-promotion-readiness
 ```
 
-## Oya VCS Symbol Locks
+## Git/Jenkins governance handoff
 
-Per ADR-0116, this phase uses `oya vcs` primitives exclusively. Grit and ICM are explicitly NOT used.
+Per ADR-0363 and the current repo AGENTS contract, this phase uses one isolated branch/worktree per implementation lane, a pull request against `dev`, Jenkins CI, `oya gate`, and `oya verify`. Grit, ICM, and retired `oya vcs` primitives are explicitly NOT used.
 
 ```bash
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/workflow-engine/src/crates/<crate>/**"
+# Create an isolated branch/worktree before beginning each IP.
+git worktree add ../oyatie-workflow-engine-<ip-id> -b feature/workflow-engine-<ip-id> dev
 
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
+# Verify after each IP's acceptance gates pass.
+cargo run -p oya-dev-cli -- gate run-all --ci-required
+cargo run -p oya-dev-cli -- verify --ci-required
+
+# Open a PR against dev; Jenkins CI and reviewer APPROVE provide merge readiness.
+git push -u origin feature/workflow-engine-<ip-id>
+
+# Promotion is Jenkins/ArgoCD-governed after merge, using signed image digests.
 ```
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/workflow-engine/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.

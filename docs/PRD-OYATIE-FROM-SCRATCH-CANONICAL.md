@@ -97,7 +97,7 @@ The first production release must prove four things:
 | Tenancy and identity | Tenant lifecycle, org hierarchy, workspaces, OIDC/SAML, WebAuthn/MFA, sessions, service identity |
 | Policy and data boundary | Cedar authorization, feature activation, autonomy ceilings, consent tiers, egress controls, DSR cascade |
 | Audit chain | Append-only event evidence, sealing, verification, retention, export, recovery replay |
-| Workspace and Connect | Mail, chat, calendar, drive, docs, sheets, slides, forms, meet, tasks, notes, translate, recordings |
+| Workspace and | Mail, chat, calendar, drive, docs, sheets, slides, forms, meet, tasks, notes, translate, recordings |
 | Workflow | Workflow engine, workflow studio, state machines, DAGs, approvals, retries, idempotency, human tasks |
 | Ontology | Object types, link types, action types, functions, entity history, provenance, query APIs |
 | Foundry | Agent runtime, capability registry, provider adapters, run/step evidence, RAG retrieval, engineering automation |
@@ -330,7 +330,7 @@ Rules:
 | CI | GitHub Actions for hosted workflows; Jenkins LTS for self-hosted, air-gapped, on-prem, and colo parity |
 | Image registry | OCI registry with signed image enforcement |
 | Deployment modes | Shared cloud, dedicated cell, hybrid, on-prem, air-gapped, and future owned/colocated capacity |
-| Agent-safe VCS workflow | Oya VCS claim, verify, done, promote lifecycle |
+| Agent-safe repository workflow | Isolated plain-git branch, PR against `dev`, Jenkins required checks, `oya gate` / `oya verify`, reviewer/governance approval |
 
 ### 8.7 Retired Or Rejected Choices
 
@@ -639,11 +639,12 @@ Exit criteria:
 Recommended local command vocabulary:
 
 ```bash
-oya vcs claim --agent <agent-id> --intent "<slice>" <artifact::Identifier>
+git worktree add -b <branch> <isolated-worktree> origin/dev
+git status --short --branch
 oya verify --ci-required
-oya vcs verify --agent <agent-id> --evidence "<verification summary>"
-oya vcs done --agent <agent-id> --evidence "<closeout summary>"
-oya vcs promote --changeset <id>
+oya gate run-all
+git push -u origin <branch>
+gh pr create --base dev --head <branch>
 ```
 
 ## 14. Success Metrics
@@ -798,7 +799,7 @@ isolation for untrusted tenant code.
 Deploy server-side workloads to Kubernetes. Use OpenTofu for infrastructure as
 code, Argo CD for GitOps, signed OCI images, SBOMs, cosign/Sigstore provenance,
 SLSA posture, GitHub Actions for hosted CI, and Jenkins LTS for self-hosted or
-air-gapped parity. Use Oya VCS claim, verify, done, and promote lifecycle for
+air-gapped parity. Use the plain-git branch, PR, Jenkins, `oya gate` / `oya verify`, and reviewer/governance lifecycle for
 agent-safe changes.
 
 Hard rules:

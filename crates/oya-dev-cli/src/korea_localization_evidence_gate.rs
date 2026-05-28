@@ -281,7 +281,7 @@ fn validate_pack_manifest(contents: &str) -> Result<(), String> {
     )?;
     for required in [
         "regulatory_bindings:",
-        "connect-retention-kr",
+        "retention-kr",
         "pipa-b2b",
         "microservices_in_scope:",
     ] {

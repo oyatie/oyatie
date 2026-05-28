@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/schemas/kg-audit/index.schema.json",
+  "$id": "https://docs.oyatie.com/schemas/kg-audit/index.schema.json",
   "title": "KnowledgeGraphRobustnessAudit",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",

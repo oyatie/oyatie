@@ -75,14 +75,14 @@ code --install-extension redhat.vscode-yaml
 code --install-extension svelte.svelte-vscode
 code --install-extension ms-playwright.playwright
 ./bin/oya doctor
-./bin/oya vcs status
+git status --short --branch
 ./bin/oya dev cell status --cell dev-cell-a
 ```
 
 | Tool | Role-specific expectation |
 | --- |--- |
 | VS Code | Install the repo profile plus rust-analyzer, Even Better TOML, YAML, Svelte for VS Code, Playwright Test, CodeLLDB, Cedar policy syntax, and Markdown All in One. Artifact: screenshot or `code --list-extensions` pasted into the onboarding issue. |
-| oya CLI | Run `./bin/oya doctor`, `./bin/oya vcs status`, and the role-specific smoke command. Artifact: terminal transcript with command, exit code, and expected output note. |
+| oya CLI | Run `./bin/oya doctor`, `git status --short --branch`, `./bin/oya verify --help`, and the role-specific smoke command. Artifact: terminal transcript with command, exit code, and expected output note. |
 | vault credentials | Request the dev-cell OpenBao path for the role and confirm access to read-only bootstrap credentials only. Artifact: secret path receipt with values redacted. |
 | dev cell access | Join `dev-cell-a` with the assigned sandbox tenant and verify the cell health endpoint. Artifact: `dev-cell-access-ok` evidence row in the onboarding issue. |
 | mentor pairing | Book the named mentor checkpoint series before writing code. Artifact: calendar holds for day 1, day 3, week 2, week 4, month 2, and quarter 1. |
@@ -112,7 +112,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 9. microservices/workflow-studio/migration-playbooks/from-n8n.md
 10. microservices/messenger/migration-playbooks/from-slack.md
 11. microservices/mail/decisions/ADR-MAIL-0004-spam-classifier-eu-ai-act-scope.md
-12. microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md
+12. microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md
 13. microservices/marketplace/migration-playbooks/from-stripe-connect.md
 14. docs/runbooks/tenant-escalation-management.md
 15. docs/runbooks/regulator-evidence-pack-regen.md
@@ -482,7 +482,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-011 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-012: customer objection mapping
-- Read: microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md
+- Read: microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md
 - Connects to: migration playbook rollback and validation
 - Build or inspect: a minimal artifact that proves customer objection mapping without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for customer objection mapping.
@@ -632,7 +632,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-026 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-027: support escalation handoff
-- Read: microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md
+- Read: microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md
 - Connects to: design partner feedback capture and synthesis
 - Build or inspect: a minimal artifact that proves support escalation handoff without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for support escalation handoff.
@@ -782,7 +782,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-041 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-042: email deliverability prerequisite
-- Read: microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md
+- Read: microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md
 - Connects to: migration playbook rollback and validation
 - Build or inspect: a minimal artifact that proves email deliverability prerequisite without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for email deliverability prerequisite.
@@ -932,7 +932,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-056 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-057: migration rollback FAQ
-- Read: microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md
+- Read: microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md
 - Connects to: design partner feedback capture and synthesis
 - Build or inspect: a minimal artifact that proves migration rollback FAQ without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for migration rollback FAQ.
@@ -1082,7 +1082,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-071 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-072: FAQ drift review
-- Read: microservices/connect/migration-playbooks/from-slack-connect-and-teams-external.md
+- Read: microservices/connector/migration-playbooks/from-slack-connect-and-teams-external.md
 - Connects to: migration playbook rollback and validation
 - Build or inspect: a minimal artifact that proves FAQ drift review without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for FAQ drift review.

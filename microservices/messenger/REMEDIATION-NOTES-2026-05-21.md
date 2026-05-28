@@ -49,7 +49,7 @@
 - **Paid billing components:** `manifest.json`, `PRD.md`, and each deployment-context module use `paid_billing_components_emitted = ["per_seat", "per_usage"]`.
 - **Principal claim binding:** `PRD.md`, `manifest.json`, and `policy/tenant-class.cedar` bind messenger authorization to `principal.tenant_class`, `principal.billing_components`, `principal.cap_breached`, and `principal.demo_trial_expires_at` from the shared cloud-iam session.
 - **Demo trial caps:** `PRD.md`, `manifest.json`, and `policy/tenant-class.cedar` cover message volume, active channel count, message retention, huddle minutes, and attachment storage caps. The cap behavior preserves reads and denies write-heavy paths until conversion or grace-window recovery.
-- **Paid Cedar gate:** `policy/tenant-class.cedar` makes compliance-pack activation, HSM escrow, work-mode MLS recovery escrow, BYOK, Slack Connect pairing, and retention overrides paid-only. Compliance pack activation requires `tenant_class == "paid"` and `per_seat`; metered write-heavy operations require `per_usage` for paid tenants.
+- **Paid Cedar gate:** `policy/tenant-class.cedar` makes compliance-pack activation, HSM escrow, work-mode MLS recovery escrow, BYOK, Slack pairing, and retention overrides paid-only. Compliance pack activation requires `tenant_class == "paid"` and `per_seat`; metered write-heavy operations require `per_usage` for paid tenants.
 - **SLO surface:** All messenger OpenSLO files now label `tenant_class: demo_trial,paid`, expose eligibility/billing/principal/cap/gate references, and split best-effort demo objectives from contractual paid objectives.
 
 ## Mobile-app-bundle coordination summary

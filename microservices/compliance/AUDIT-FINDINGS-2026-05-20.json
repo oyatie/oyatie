@@ -12,7 +12,7 @@
     {
       "id": "F-COMPL-001",
       "severity": "info",
-      "category": "doc-suite-completeness",
+      "category": "doc-set-completeness",
       "summary": "ARCHITECTURE.md + README.md + CHANGELOG.md added.",
       "resolution": "added"
     },

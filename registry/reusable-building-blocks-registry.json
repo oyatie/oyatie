@@ -17,7 +17,7 @@
       "Lockfile + reproducible builds (Cargo.lock, content-addressed)",
       "Drift detection: scan for inline-duplicate patterns matching registered block; suggest extraction",
       "Block versioning (semver per block) prevents silent breaks",
-      "Deprecation flow: block deprecated \u2192 replacement_block_id named \u2192 migration deadline",
+      "Deprecation flow: block deprecated → replacement_block_id named → migration deadline",
       "Reuse_count auto-computed; ranks blocks by adoption; surfaces 'core primitives'",
       "Per-domain sub-registries instead of one monolith"
     ],
@@ -42,7 +42,7 @@
     "github-actions-composite": "Composite action in .github/actions/ reusable across workflows.",
     "cargo-workspace-dep": "Pinned dependency in Cargo.toml [workspace.dependencies]; crate members reference as `dep.workspace = true`.",
     "template": "Hand-authored or auto-generated template in docs/templates/ or /templates/.",
-    "adr-pattern": "Recurring ADR shape (e.g., \u00b5service scaffolding ADR pattern at ADR-0081 through 0088).",
+    "adr-pattern": "Recurring ADR shape (e.g., µservice scaffolding ADR pattern at ADR-0081 through 0088).",
     "runbook-pattern": "Recurring runbook shape (e.g., reconciler-worker-runbook pattern).",
     "ci-lane-definition": "Lane defined in registry/quality/lanes.yaml; reusable across phases.",
     "secret-reference-pattern": "SecretReference pattern per ADR-0067 / OpenBao default; consumers reference but never inline raw secrets.",
@@ -64,7 +64,7 @@
         "/registry/artifact-capabilities-registry.json",
         "/evidence/ledger/ops-portal-ledger.json (forward consumer when v3.0.0 _capabilities_ref adopted)",
         "/registry/claim-matrix/ops-portal.json (forward consumer)",
-        "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json (forward consumer)"
+        "/evidence/ops-portal-plan-set-accepted-2026-05-13.json (forward consumer)"
       ],
       "consumer_selectors": [],
       "consumer_count_listed": 4
@@ -113,7 +113,7 @@
       "block_kind": "adr-pattern",
       "canonical_path": "skills/oh-my-claudecode:ralplan + .omc/plans/ralplan-*.md",
       "version": "v1.0.0",
-      "purpose_short": "Multi-round architect+critic consensus pattern (Planner draft \u2192 Architect review \u2192 Critic evaluate \u2192 iterate). Used for high-risk planning artifacts.",
+      "purpose_short": "Multi-round architect+critic consensus pattern (Planner draft → Architect review → Critic evaluate → iterate). Used for high-risk planning artifacts.",
       "consumer_count_estimated": 20,
       "consumer_count_resolved_today_auto_computed": 5,
       "deprecation": null,
@@ -133,7 +133,7 @@
     {
       "block_id": "wave-5-cedar-fragment-set",
       "block_kind": "cedar-policy-fragment",
-      "canonical_path": "cedar-policies/ops/ (PLANNED \u2014 not yet in HEAD; Wave 5 prerequisite)",
+      "canonical_path": "cedar-policies/ops/ (PLANNED — not yet in HEAD; Wave 5 prerequisite)",
       "version": "v0.1.0",
       "purpose_short": "12 Cedar fragments for Wave 5 tenant/user/deployments BCs (6 tenant-tier + 5 internal-tier + 1 multi-party-approval with Rule 1 vote + Rule 2 execute).",
       "consumer_count_estimated": 5,
@@ -143,7 +143,7 @@
       "owner_team": "ops-security + axis-foundry",
       "foundation_prerequisite": "Cedar 4.x parser compatibility check",
       "consumer_refs": [
-        ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a75 + \u00a76(d)"
+        ".omc/plans/ralplan-ops-wave-5-2026-05-13.md §5 + §6(d)"
       ],
       "consumer_selectors": [
         "future Wave 5.5/5.6/5.7 plans for fragment extension"
@@ -153,7 +153,7 @@
     {
       "block_id": "write-action-token-store-contract",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-shared-ontology-write-action-port (PLANNED \u2014 Wave 5 IP-X10-1a-3 prerequisite)",
+      "canonical_path": "crates/oya-shared-ontology-write-action-port (PLANNED — Wave 5 IP-X10-1a-3 prerequisite)",
       "version": "v0.1.0",
       "purpose_short": "WriteActionTokenStorePort trait + WriteActionType enum (9 variants) + ops_write_action_token_store schema. Canonical write-action idempotency contract per Wave 5 v18 Principle 6.",
       "consumer_count_estimated": 20,
@@ -174,7 +174,7 @@
     {
       "block_id": "approval-ticket-store-contract",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-shared-ontology-approval-port (PLANNED \u2014 Wave 5 IP-X10-1a-3 prerequisite)",
+      "canonical_path": "crates/oya-shared-ontology-approval-port (PLANNED — Wave 5 IP-X10-1a-3 prerequisite)",
       "version": "v0.1.0",
       "purpose_short": "ApprovalTicketStorePort + ops_approval_ticket_store + ops_approval_votes schemas + threshold-flip idempotency. Multi-party N-of-M approval primitive per Wave 5 v18 Principle 7.",
       "consumer_count_estimated": 10,
@@ -193,7 +193,7 @@
     {
       "block_id": "bulkhead-per-tenant-quota-contract",
       "block_kind": "rust-trait",
-      "canonical_path": "crates/oya-shared-ontology-bulkhead-port (PLANNED \u2014 Wave 5 IP-X10-1a-3 prerequisite)",
+      "canonical_path": "crates/oya-shared-ontology-bulkhead-port (PLANNED — Wave 5 IP-X10-1a-3 prerequisite)",
       "version": "v0.1.0",
       "purpose_short": "BulkheadPort + per-tenant TCP/DB/queue/CPU quota state in Redis cluster with mTLS. Per Wave 5 v18 Principle 8.",
       "consumer_count_estimated": 30,
@@ -232,7 +232,7 @@
       "block_kind": "vcs-state-transition-pattern",
       "canonical_path": "/specs/master-plan-sequencing.json#repo_state_protocol",
       "version": "v2.0.0",
-      "purpose_short": "Every agent\u2192repo state transition: oya vcs claim --agent <id> --intent <slice> <file::Identifier> \u2192 oya vcs verify --changeset <id> \u2192 oya vcs done --changeset <id> \u2192 oya vcs promote --changeset <id>.",
+      "purpose_short": "Every agent→repo state transition: oya vcs claim --agent <id> --intent <slice> <file::Identifier> → oya vcs verify --changeset <id> → oya vcs done --changeset <id> → oya vcs promote --changeset <id>.",
       "consumer_count_estimated": 1000,
       "consumer_count_resolved_today_auto_computed": 0,
       "deprecation": null,
@@ -285,9 +285,9 @@
     {
       "block_id": "linus-style-critic-prompt-shape",
       "block_kind": "template",
-      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a713 (Linus-grade critic anticipation pattern)",
+      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md §13 (Linus-grade critic anticipation pattern)",
       "version": "v1.0.0",
-      "purpose_short": "Adversarial review prompt template: anticipated Linus objection \u00d7 concrete file:line-grounded answer. Pattern emerged from Wave 5 \u00a713 L1-L10.",
+      "purpose_short": "Adversarial review prompt template: anticipated Linus objection × concrete file:line-grounded answer. Pattern emerged from Wave 5 §13 L1-L10.",
       "consumer_count_estimated": 30,
       "consumer_count_resolved_today_auto_computed": 1,
       "deprecation": null,
@@ -295,7 +295,7 @@
       "owner_team": "council-architecture + axis-foundry",
       "consumer_refs": [],
       "consumer_selectors": [
-        "future plan \u00a713 sections",
+        "future plan §13 sections",
         "codex critic prompts in consensus loop",
         "ai-slop-cleaner critic mode"
       ],
@@ -304,7 +304,7 @@
     {
       "block_id": "evergreen-revision-pointer-pattern",
       "block_kind": "template",
-      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a712 + \u00a714.3 (evergreen wording pointing to frontmatter version)",
+      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md §12 + §14.3 (evergreen wording pointing to frontmatter version)",
       "version": "v1.0.0",
       "purpose_short": "Anti-cascade-re-versioning pattern: body wording says 'the current revision (see frontmatter `version:`)' instead of hard-coded version. Emerged from Wave 5 v18 critic r6 sweep.",
       "consumer_count_estimated": 100,
@@ -323,7 +323,7 @@
     {
       "block_id": "s3a-s3b-stop-condition-split",
       "block_kind": "template",
-      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a714.2",
+      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md §14.2",
       "version": "v1.0.0",
       "purpose_short": "Stop-condition split: S3a (plan-stage; achievable now) vs S3b (operational-stage; post-implementation). Prevents conflating plan acceptance with operational acceptance.",
       "consumer_count_estimated": 20,
@@ -420,7 +420,7 @@
     }
   ],
   "_known_data_quality_gaps_per_architect_r17": {
-    "finding_6_consumer_counts": "All consumer_count_resolved_today_auto_computed values are 0 because no validator yet resolves consumers\u2192graph-node edges. Field renamed from consumer_count_actual_today (which was misleadingly manual). Validator crate oya-check-active-artifact-contract will compute the resolved count from consumer_refs against the graph. Until then, treat as null/unresolved.",
+    "finding_6_consumer_counts": "All consumer_count_resolved_today_auto_computed values are 0 because no validator yet resolves consumers→graph-node edges. Field renamed from consumer_count_actual_today (which was misleadingly manual). Validator crate oya-check-active-artifact-contract will compute the resolved count from consumer_refs against the graph. Until then, treat as null/unresolved.",
     "finding_7_typed_consumer_refs": "consumers array currently mixes concrete file paths with prose selectors like 'every future BC' and 'every runbook in docs/runbooks/'. Tracked as deferred surgery: schema change to split into consumer_refs (resolvable) + consumer_selectors (predicate). 14 block rows need surgery. Status: PLANNED, scoped follow-up after Phase F lands."
   },
   "optimization_measures_status": {
@@ -436,11 +436,11 @@
     "per_domain_subregistries": "not-yet (single monolith registry today; will split when row count >100)"
   },
   "drift_detector_invariants": [
-    "Two different paths defining the same Cedar predicate \u2192 DRIFT VIOLATION",
-    "Two different crates exporting traits with identical method signatures + identical naming roots (e.g., both define TokenStore::consume) \u2192 DRIFT VIOLATION (unless one declared canonical + other declared adapter)",
-    "Two different JSON Schemas defining $defs with identical name + identical structure \u2192 DRIFT VIOLATION (must use $ref to one)",
-    "Two CI lanes with overlapping invariant assertions \u2192 DRIFT VIOLATION (consolidate)",
-    "OpenAPI contracts defining the same component twice \u2192 DRIFT VIOLATION"
+    "Two different paths defining the same Cedar predicate → DRIFT VIOLATION",
+    "Two different crates exporting traits with identical method signatures + identical naming roots (e.g., both define TokenStore::consume) → DRIFT VIOLATION (unless one declared canonical + other declared adapter)",
+    "Two different JSON Schemas defining $defs with identical name + identical structure → DRIFT VIOLATION (must use $ref to one)",
+    "Two CI lanes with overlapping invariant assertions → DRIFT VIOLATION (consolidate)",
+    "OpenAPI contracts defining the same component twice → DRIFT VIOLATION"
   ],
   "purpose": "Auto-backfilled purpose for reusable-building-blocks-registry.json"
 }

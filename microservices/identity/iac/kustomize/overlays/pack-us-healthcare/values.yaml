@@ -2,12 +2,12 @@
 packLabel: us-healthcare
 zitadel:
   zitadelConfig:
-    externalDomain: identity-us-healthcare.oyatie.dev
+    externalDomain: identity-us-healthcare.oyatie.com
     Telemetry:
       Endpoint: otel-collector.observability-us-healthcare.svc.cluster.local:4317
 webauthn:
   attestation: direct  # HIPAA requires strong identity
-  rpId: identity-us-healthcare.oyatie.dev
+  rpId: identity-us-healthcare.oyatie.com
 openbao:
   hsm:
     type: aws-cloudhsm

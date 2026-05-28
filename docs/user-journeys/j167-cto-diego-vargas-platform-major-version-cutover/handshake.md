@@ -473,8 +473,8 @@ Content-Type: application/json
   "qms_safety_relevant_interface_preserved": true,
   "evidence": {
     "interface_diff_report": "<base64-encoded-interface-comparison>",
-    "qms_test_suite_pass_rate": 100,
-    "qms_test_suite_total_cases": 4218
+    "qms_test_set_pass_rate": 100,
+    "qms_test_set_total_cases": 4218
   },
   "signers": [
     "diego.vargas@aurelia-robotics-internacional-sa-de-cv-mx",

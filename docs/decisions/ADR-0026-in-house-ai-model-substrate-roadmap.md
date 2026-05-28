@@ -4,7 +4,7 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0026: In-house AI model substrate — long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval suite favors in-house
+# ADR-0026: In-house AI model substrate — long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval set favors in-house
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -19,13 +19,13 @@ doc_status: published
 
 We do not aspire to be a frontier-LLM lab. The forces that pull us toward in-house models are different: per-vertical accuracy where regional and domain language matters more than generalist reasoning (Korean legal corpus, Korean clinical text, Japanese employment law), residency where customer data cannot leave the region, cost where high-volume inference of small specialized tasks (embedding, OCR, STT/TTS, doc layout, vertical safety classification) dwarfs the cost of frontier general inference, and concentration risk where Anthropic / OpenAI / Google outages or pricing shocks would propagate to every Oyatie surface.
 
-The forces against are also clear: training and serving foundation models is capital-intensive; the talent market is brutal; the iteration cycle of frontier vendors is faster than ours can be. The pragmatic path is therefore not "build a frontier lab" but "build a per-task in-house substrate that consumes provider models for everything until and unless an in-house variant beats the provider on a per-vertical eval suite — and then cut over." The same eval harness (ADR-0024) and provider adapter trait (ADR-0020) make the cutover structurally trivial.
+The forces against are also clear: training and serving foundation models is capital-intensive; the talent market is brutal; the iteration cycle of frontier vendors is faster than ours can be. The pragmatic path is therefore not "build a frontier lab" but "build a per-task in-house substrate that consumes provider models for everything until and unless an in-house variant beats the provider on a per-vertical eval set — and then cut over." The same eval harness (ADR-0024) and provider adapter trait (ADR-0020) make the cutover structurally trivial.
 
 ---
 
 ## Decision
 
-We commit to a long-horizon **W-AI-Model-Substrate** wave that produces in-house production model training and inference for Oyatie-specific tasks. We are not a frontier-LLM lab; we consume Anthropic / OpenAI / Gemini until the in-house variant beats the per-vertical eval suite per ADR-0024. The `ProviderAdapter` trait extends to `oya-internal-<model-id>` so the cutover is one router preference change.
+We commit to a long-horizon **W-AI-Model-Substrate** wave that produces in-house production model training and inference for Oyatie-specific tasks. We are not a frontier-LLM lab; we consume Anthropic / OpenAI / Gemini until the in-house variant beats the per-vertical eval set per ADR-0024. The `ProviderAdapter` trait extends to `oya-internal-<model-id>` so the cutover is one router preference change.
 
 ### In-scope model families
 
@@ -57,9 +57,9 @@ pub fn evaluate_cutover(
     capability_id: CapabilityId,
     incumbent_route: ProviderRoute,    // e.g. claude-api
     candidate_route: ProviderRoute,    // e.g. oya-internal-kr-foundation-v3
-    eval_suite: EvalSuite,             // per-vertical, per-cohort
+    eval_set: EvalSet,             // per-vertical, per-cohort
 ) -> CutoverDecision {
-    // 1. Run candidate against eval_suite
+    // 1. Run candidate against eval_set
     // 2. Compare per-cohort dominance vs. incumbent
     // 3. Adversarial cohort must pass at incumbent-or-better
     // 4. Linguistic cohort must pass at incumbent-or-better in the locales the capability serves

@@ -10,15 +10,15 @@
 use std::collections::BTreeMap;
 
 pub use oya_intelligence_eval_domain::{
-    DomainEvalSuiteRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalDomainDecision,
-    EvalDomainDenialKind, EvalDomainStatus, EvalFailureKind, EvalPolicyDecision, EvalSuite,
-    EvalSuiteStatus, EvalSuiteThresholds, evaluate_domain_eval_suite,
+    DomainEvalSetRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalDomainDecision,
+    EvalDomainDenialKind, EvalDomainStatus, EvalFailureKind, EvalPolicyDecision, EvalSet,
+    EvalSetStatus, EvalSetThresholds, evaluate_domain_eval_set,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EvalUsecaseInput {
-    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
-    pub request: DomainEvalSuiteRequest, // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,       // data_class: INTERNAL_ONLY
+    pub request: DomainEvalSetRequest, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -40,12 +40,12 @@ pub struct EvalUsecaseReceipt {
     pub tenant_id: String,         // data_class: INTERNAL_ONLY
     pub principal_id: String,      // data_class: INTERNAL_ONLY
     pub eval_surface: String,      // data_class: INTERNAL_ONLY
-    pub suite_id: String,          // data_class: INTERNAL_ONLY
+    pub eval_set_id: String,       // data_class: INTERNAL_ONLY
     pub model_ref: String,         // data_class: INTERNAL_ONLY
     pub status: EvalUsecaseStatus, // data_class: PUBLIC
     pub denial_kind: Option<EvalUsecaseDenialKind>, // data_class: INTERNAL_ONLY
     pub domain_denial_kind: Option<EvalDomainDenialKind>, // data_class: INTERNAL_ONLY
-    pub suite_status: Option<EvalSuiteStatus>, // data_class: INTERNAL_ONLY
+    pub eval_set_status: Option<EvalSetStatus>, // data_class: INTERNAL_ONLY
     pub failure_kinds: Vec<EvalFailureKind>, // data_class: INTERNAL_ONLY
     pub evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
 }
@@ -60,15 +60,15 @@ pub enum EvalAuditEventKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EvalAuditEvent {
-    pub kind: EvalAuditEventKind,              // data_class: INTERNAL_ONLY
-    pub tenant_id: String,                     // data_class: INTERNAL_ONLY
-    pub principal_id: String,                  // data_class: INTERNAL_ONLY
-    pub eval_surface: String,                  // data_class: INTERNAL_ONLY
-    pub suite_id: String,                      // data_class: INTERNAL_ONLY
-    pub idempotency_key: String,               // data_class: INTERNAL_ONLY
-    pub status: Option<EvalUsecaseStatus>,     // data_class: PUBLIC
-    pub suite_status: Option<EvalSuiteStatus>, // data_class: INTERNAL_ONLY
-    pub evidence_refs: Vec<String>,            // data_class: INTERNAL_ONLY
+    pub kind: EvalAuditEventKind,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                      // data_class: INTERNAL_ONLY
+    pub principal_id: String,                   // data_class: INTERNAL_ONLY
+    pub eval_surface: String,                   // data_class: INTERNAL_ONLY
+    pub eval_set_id: String,                    // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                // data_class: INTERNAL_ONLY
+    pub status: Option<EvalUsecaseStatus>,      // data_class: PUBLIC
+    pub eval_set_status: Option<EvalSetStatus>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,             // data_class: INTERNAL_ONLY
 }
 
 #[derive(Default)]
@@ -90,7 +90,7 @@ impl IntelligenceEvalUsecase {
             );
         }
 
-        let domain_decision = evaluate_domain_eval_suite(input.request.clone());
+        let domain_decision = evaluate_domain_eval_set(input.request.clone());
         if let EvalDomainDecision::Deny(denial) = &domain_decision
             && matches!(
                 denial.denial_kind,
@@ -163,14 +163,14 @@ impl IntelligenceEvalUsecase {
             tenant_id: receipt.tenant_id.clone(),
             principal_id: receipt.principal_id.clone(),
             eval_surface: receipt.eval_surface.clone(),
-            suite_id: receipt.suite_id.clone(),
+            eval_set_id: receipt.eval_set_id.clone(),
             idempotency_key: receipt.idempotency_key.clone(),
             status: if kind == EvalAuditEventKind::EvalRequested {
                 None
             } else {
                 Some(receipt.status)
             },
-            suite_status: receipt.suite_status,
+            eval_set_status: receipt.eval_set_status,
             evidence_refs: sorted_unique(receipt.evidence_refs.clone()),
         });
     }
@@ -247,50 +247,61 @@ impl EvalUsecaseIntent {
                 "eval_registry_snapshot",
                 &input.request.policy_decision.eval_registry_snapshot_ref,
             ),
-            canonical_entry("suite_id", &input.request.suite.suite_id),
-            canonical_entry("suite_model", &input.request.suite.model_ref),
-            canonical_entry("suite_route", &input.request.suite.route_evidence_ref),
+            canonical_entry("eval_set_id", &input.request.eval_set.eval_set_id),
+            canonical_entry("eval_set_model", &input.request.eval_set.model_ref),
+            canonical_entry("eval_set_route", &input.request.eval_set.route_evidence_ref),
             canonical_entry(
-                "suite_guardrail",
-                &input.request.suite.guardrail_evidence_ref,
-            ),
-            canonical_entry("suite_dataset", &input.request.suite.dataset_snapshot_ref),
-            canonical_entry(
-                "suite_min_pass_rate",
-                &input.request.suite.thresholds.min_pass_rate_bps.to_string(),
+                "eval_set_guardrail",
+                &input.request.eval_set.guardrail_evidence_ref,
             ),
             canonical_entry(
-                "suite_max_safety_rate",
+                "eval_set_dataset",
+                &input.request.eval_set.dataset_snapshot_ref,
+            ),
+            canonical_entry(
+                "eval_set_min_pass_rate",
                 &input
                     .request
-                    .suite
+                    .eval_set
+                    .thresholds
+                    .min_pass_rate_bps
+                    .to_string(),
+            ),
+            canonical_entry(
+                "eval_set_max_safety_rate",
+                &input
+                    .request
+                    .eval_set
                     .thresholds
                     .max_safety_violation_rate_bps
                     .to_string(),
             ),
             canonical_entry(
-                "suite_require_golden",
-                &input.request.suite.thresholds.require_golden.to_string(),
+                "eval_set_require_golden",
+                &input.request.eval_set.thresholds.require_golden.to_string(),
             ),
             canonical_entry(
-                "suite_require_adversarial",
+                "eval_set_require_adversarial",
                 &input
                     .request
-                    .suite
+                    .eval_set
                     .thresholds
                     .require_adversarial
                     .to_string(),
             ),
             canonical_entry(
-                "suite_require_linguistic",
+                "eval_set_require_linguistic",
                 &input
                     .request
-                    .suite
+                    .eval_set
                     .thresholds
                     .require_linguistic
                     .to_string(),
             ),
-            canonical_vec_entry("suite_cases", &case_entries(&input.request.suite.cases)),
+            canonical_vec_entry(
+                "eval_set_cases",
+                &case_entries(&input.request.eval_set.cases),
+            ),
         ];
         entries.sort();
         Self { entries }
@@ -309,12 +320,12 @@ fn requested_receipt_for(input: &EvalUsecaseInput) -> EvalUsecaseReceipt {
         tenant_id: input.request.tenant_id.clone(),
         principal_id: input.request.principal_id.clone(),
         eval_surface: input.request.eval_surface.clone(),
-        suite_id: input.request.suite.suite_id.clone(),
-        model_ref: input.request.suite.model_ref.clone(),
+        eval_set_id: input.request.eval_set.eval_set_id.clone(),
+        model_ref: input.request.eval_set.model_ref.clone(),
         status: EvalUsecaseStatus::Evaluated,
         denial_kind: None,
         domain_denial_kind: None,
-        suite_status: None,
+        eval_set_status: None,
         failure_kinds: Vec::new(),
         evidence_refs: sorted_unique(vec![
             input.request.request_evidence_ref.clone(),
@@ -334,13 +345,13 @@ fn receipt_from_domain_decision(
             tenant_id: report.tenant_id,
             principal_id: report.principal_id,
             eval_surface: report.eval_surface,
-            suite_id: report.suite_report.suite_id,
-            model_ref: report.suite_report.model_ref,
+            eval_set_id: report.eval_set_report.eval_set_id,
+            model_ref: report.eval_set_report.model_ref,
             status: EvalUsecaseStatus::Evaluated,
             denial_kind: None,
             domain_denial_kind: None,
-            suite_status: Some(report.suite_report.status),
-            failure_kinds: report.suite_report.failure_kinds,
+            eval_set_status: Some(report.eval_set_report.status),
+            failure_kinds: report.eval_set_report.failure_kinds,
             evidence_refs: sorted_unique(report.evidence_refs),
         },
         EvalDomainDecision::Deny(denial) => receipt_from_domain_denial(
@@ -361,12 +372,12 @@ fn receipt_from_domain_denial(
         tenant_id: denial.tenant_id.clone(),
         principal_id: denial.principal_id.clone(),
         eval_surface: denial.eval_surface.clone(),
-        suite_id: denial.suite_id.clone(),
+        eval_set_id: denial.eval_set_id.clone(),
         model_ref: denial.model_ref.clone(),
         status: EvalUsecaseStatus::Denied,
         denial_kind: Some(denial_kind),
         domain_denial_kind: Some(denial.denial_kind),
-        suite_status: None,
+        eval_set_status: None,
         failure_kinds: Vec::new(),
         evidence_refs: sorted_unique(denial.evidence_refs.clone()),
     }
@@ -383,12 +394,18 @@ fn invalid_receipt_from_input(
         tenant_id: safe_ref(&input.request.tenant_id, "redacted-invalid-tenant-id"),
         principal_id: safe_metadata(&input.request.principal_id, "redacted-invalid-principal-id"),
         eval_surface: safe_metadata(&input.request.eval_surface, "redacted-invalid-eval-surface"),
-        suite_id: safe_metadata(&input.request.suite.suite_id, "redacted-invalid-suite-id"),
-        model_ref: safe_ref(&input.request.suite.model_ref, "redacted-invalid-model-ref"),
+        eval_set_id: safe_metadata(
+            &input.request.eval_set.eval_set_id,
+            "redacted-invalid-eval_set-id",
+        ),
+        model_ref: safe_ref(
+            &input.request.eval_set.model_ref,
+            "redacted-invalid-model-ref",
+        ),
         status: EvalUsecaseStatus::Denied,
         denial_kind: Some(denial_kind),
         domain_denial_kind: None,
-        suite_status: None,
+        eval_set_status: None,
         failure_kinds: Vec::new(),
         evidence_refs: sorted_unique(evidence_refs),
     }
@@ -526,14 +543,14 @@ mod tests {
         }
     }
 
-    fn sample_suite(suite_id: &str) -> EvalSuite {
-        EvalSuite {
-            suite_id: suite_id.to_owned(),
+    fn sample_eval_set(eval_set_id: &str) -> EvalSet {
+        EvalSet {
+            eval_set_id: eval_set_id.to_owned(),
             model_ref: "modelref://openai/gpt-preview".to_owned(),
             route_evidence_ref: "route:evidence:eval-usecase:1".to_owned(),
             guardrail_evidence_ref: "guardrail:evidence:eval-usecase:1".to_owned(),
             dataset_snapshot_ref: "eval-dataset:snapshot:eval-usecase:1".to_owned(),
-            thresholds: EvalSuiteThresholds {
+            thresholds: EvalSetThresholds {
                 min_pass_rate_bps: 7_500,
                 max_safety_violation_rate_bps: 0,
                 require_golden: true,
@@ -597,8 +614,8 @@ mod tests {
         }
     }
 
-    fn sample_domain_request(suite_id: &str) -> DomainEvalSuiteRequest {
-        DomainEvalSuiteRequest {
+    fn sample_domain_request(eval_set_id: &str) -> DomainEvalSetRequest {
+        DomainEvalSetRequest {
             tenant_id: "tenant:alpha".to_owned(),
             principal_id: "principal:eval-owner".to_owned(),
             eval_surface: "surface:release-gate".to_owned(),
@@ -606,14 +623,14 @@ mod tests {
             trace_context_ref: "trace:eval-usecase:1".to_owned(),
             policy_decision_ref: "policy:evidence:eval-usecase:1".to_owned(),
             policy_decision: sample_policy(),
-            suite: sample_suite(suite_id),
+            eval_set: sample_eval_set(eval_set_id),
         }
     }
 
     fn sample_input(idempotency_key: &str) -> EvalUsecaseInput {
         EvalUsecaseInput {
             idempotency_key: idempotency_key.to_owned(),
-            request: sample_domain_request("eval-suite:usecase-pass"),
+            request: sample_domain_request("eval_set:usecase-pass"),
         }
     }
 
@@ -623,7 +640,7 @@ mod tests {
         let receipt = usecase.evaluate(sample_input("idem:eval:1"));
 
         assert_eq!(receipt.status, EvalUsecaseStatus::Evaluated);
-        assert_eq!(receipt.suite_status, Some(EvalSuiteStatus::Passed));
+        assert_eq!(receipt.eval_set_status, Some(EvalSetStatus::Passed));
         assert_eq!(receipt.failure_kinds, Vec::<EvalFailureKind>::new());
         assert_eq!(usecase.cached_receipt_count(), 1);
         assert_eq!(usecase.audit_events().len(), 2);
@@ -655,8 +672,8 @@ mod tests {
     fn invalid_raw_eval_request_denies_before_audit_side_effect() {
         let mut usecase = IntelligenceEvalUsecase::default();
         let mut input = sample_input("raw prompt: write an email");
-        input.request.suite.suite_id = "sk-usecase-suite".to_owned();
-        input.request.suite.model_ref = "Bearer model answer".to_owned();
+        input.request.eval_set.eval_set_id = "sk-usecase-eval_set".to_owned();
+        input.request.eval_set.model_ref = "Bearer model answer".to_owned();
 
         let receipt = usecase.evaluate(input);
         let debug = format!("{receipt:?}");
@@ -667,7 +684,7 @@ mod tests {
             Some(EvalUsecaseDenialKind::InvalidInput)
         );
         assert_eq!(receipt.idempotency_key, "redacted-invalid-idempotency-key");
-        assert_eq!(receipt.suite_id, "redacted-invalid-suite-id");
+        assert_eq!(receipt.eval_set_id, "redacted-invalid-eval_set-id");
         assert_eq!(receipt.model_ref, "redacted-invalid-model-ref");
         assert!(usecase.audit_events().is_empty());
         assert_eq!(usecase.cached_receipt_count(), 0);
@@ -687,7 +704,7 @@ mod tests {
         assert_eq!(usecase.audit_events().len(), 2);
 
         let mut changed = sample_input("idem:eval:replay");
-        changed.request.suite.thresholds.min_pass_rate_bps = 8_000;
+        changed.request.eval_set.thresholds.min_pass_rate_bps = 8_000;
         let conflict = usecase.evaluate(changed);
 
         assert_eq!(conflict.status, EvalUsecaseStatus::Denied);
@@ -709,7 +726,7 @@ mod tests {
         let mut usecase = IntelligenceEvalUsecase::default();
         let first = usecase.evaluate(sample_input("idem:eval:case-order"));
         let mut reordered = sample_input("idem:eval:case-order");
-        reordered.request.suite.cases.reverse();
+        reordered.request.eval_set.cases.reverse();
 
         let replay = usecase.evaluate(reordered);
 
@@ -721,7 +738,7 @@ mod tests {
     fn domain_policy_denial_records_fail_closed_audit() {
         let mut usecase = IntelligenceEvalUsecase::default();
         let mut input = sample_input("idem:eval:domain-denied");
-        input.request.suite.model_ref = "modelref://openai/unapproved".to_owned();
+        input.request.eval_set.model_ref = "modelref://openai/unapproved".to_owned();
 
         let receipt = usecase.evaluate(input);
 
@@ -749,7 +766,7 @@ mod tests {
     fn safety_failed_eval_report_records_evaluated_audit() {
         let mut usecase = IntelligenceEvalUsecase::default();
         let mut input = sample_input("idem:eval:safety-failed");
-        input.request.suite.cases[3] = case(
+        input.request.eval_set.cases[3] = case(
             "case-safety-usecase-1",
             EvalCaseKind::Safety,
             EvalCaseOutcome::SafetyViolation,
@@ -760,7 +777,7 @@ mod tests {
         let receipt = usecase.evaluate(input);
 
         assert_eq!(receipt.status, EvalUsecaseStatus::Evaluated);
-        assert_eq!(receipt.suite_status, Some(EvalSuiteStatus::Failed));
+        assert_eq!(receipt.eval_set_status, Some(EvalSetStatus::Failed));
         assert!(
             receipt
                 .failure_kinds
@@ -773,10 +790,10 @@ mod tests {
     }
 
     #[test]
-    fn domain_invalid_suite_metadata_denies_before_audit_side_effect() {
+    fn domain_invalid_eval_set_metadata_denies_before_audit_side_effect() {
         let mut usecase = IntelligenceEvalUsecase::default();
         let mut input = sample_input("idem:eval:domain-invalid");
-        input.request.suite.cases.clear();
+        input.request.eval_set.cases.clear();
 
         let receipt = usecase.evaluate(input);
 

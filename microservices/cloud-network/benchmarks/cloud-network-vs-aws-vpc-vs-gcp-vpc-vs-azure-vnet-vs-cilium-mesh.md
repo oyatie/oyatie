@@ -53,7 +53,7 @@ Cloudflare wins at the edge by sheer PoP count; `cloud-network` is competitive b
 | Surface | p50 | p95 |
 | --- | --- | --- |
 | `cloud-network` (paid, gobgp 3.x + RPKI) | **18 s** | **34 s** |
-| AWS Direct Connect Gateway | 24 s | 48 s |
+| AWS Direct Gateway | 24 s | 48 s |
 | GCP Cloud Interconnect | 22 s | 42 s |
 | Azure ExpressRoute | 28 s | 56 s |
 

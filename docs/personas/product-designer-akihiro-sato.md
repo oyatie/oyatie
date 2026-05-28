@@ -215,7 +215,7 @@ Core capability tiers:
 | 10 | comms-email | secondary | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 11 | community | primary | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 12 | compliance | secondary | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
-| 13 | connect | ambient | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
+| 13 | connector | ambient | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 14 | consent-graph | ambient | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 15 | contact-center | ambient | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |
 | 16 | contract-lifecycle-management | ambient | Product Designer Akihiro Sato must preserve tenant scope, audit events, active-context UX, and pack overlays if this surface is reached. |

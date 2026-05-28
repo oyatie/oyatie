@@ -14,7 +14,7 @@ availability: paid
 
 ## Context
 
-This slice defines the first HTTP/3 REST contract for agent, queue, callback, and recording operations. It displaces Genesys Cloud APIs, NICE CXone APIs, Five9 APIs, Talkdesk APIs, and AWS Connect APIs with tenant-scoped routes that always return Cedar decision and audit evidence.
+This slice defines the first HTTP/3 REST contract for agent, queue, callback, and recording operations. It displaces Genesys Cloud APIs, NICE CXone APIs, Five9 APIs, Talkdesk APIs, and AWS APIs with tenant-scoped routes that always return Cedar decision and audit evidence.
 
 ## Data Model Deltas
 
@@ -67,7 +67,7 @@ gRPC `ContactCenterRestBridge.CreateCallback(CreateCallbackRequest)` keeps REST 
 | NICE CXone Contact | `ContactInteraction` | contact id and skill map to interaction and queue refs. |
 | Five9 Call | `ContactInteraction` | call id maps to source ref. |
 | Talkdesk Interaction | `ContactInteraction` | interaction id maps to source ref. |
-| AWS Connect Contact | `ContactInteraction` | contact id maps to source ref and flow ref. |
+| AWS Contact | `ContactInteraction` | contact id maps to source ref and flow ref. |
 
 ## Workflow Steps
 

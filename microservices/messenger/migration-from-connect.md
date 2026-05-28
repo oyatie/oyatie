@@ -12,7 +12,7 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Migration: `oya-connect-messenger-*` → `oya-messenger-*`
+# Migration: `oya-messenger-*` → `oya-messenger-*`
 
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **messenger** µservice. It is the
@@ -28,7 +28,7 @@ in dev cluster.**
 |---|---|
 | Replacement | `oya-messenger-*` crate family under `microservices/messenger/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-MESSENGER accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + MLS RFC 9420 E2E group messaging is a clean replacement boundary that did not exist in the legacy surface |
+| Reason | ADR-0132 no-grouping forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + MLS RFC 9420 E2E group messaging is a clean replacement boundary that did not exist in the legacy surface |
 | Migration owner (Churn Rule) | axis-messenger |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -36,57 +36,57 @@ in dev cluster.**
 
 The 9 bounded-contexts of the `messenger` µservice live under
 `microservices/messenger/src/crates/` per ADR-0131. Each legacy
-`oya-connect-messenger-*` crate has a 1:1 replacement under the new prefix.
+`oya-messenger-*` crate has a 1:1 replacement under the new prefix.
 
 ### Crate import-path map
 
-| Legacy `oya-connect-messenger-*` path | New `oya-messenger-*` path |
+| Legacy `oya-messenger-*` path | New `oya-messenger-*` path |
 |---|---|
-| `oya-connect-messenger-domain` | (split per BC; see note below) |
-| `oya-connect-messenger-channel-store-kernel` | `oya-messenger-channel-store-kernel` |
-| `oya-connect-messenger-channel-store-usecase` | `oya-messenger-channel-store-usecase` |
-| `oya-connect-messenger-channel-store-adapter-postgres` | `oya-messenger-channel-store-adapter-postgres` |
-| `oya-connect-messenger-channel-store-rest` | `oya-messenger-channel-store-rest` |
-| `oya-connect-messenger-channel-store-app` | `oya-messenger-channel-store-app` |
-| `oya-connect-messenger-message-stream-kernel` | `oya-messenger-message-stream-kernel` |
-| `oya-connect-messenger-message-stream-usecase` | `oya-messenger-message-stream-usecase` |
-| `oya-connect-messenger-message-stream-adapter-kafka` | `oya-messenger-message-stream-adapter-kafka` |
-| `oya-connect-messenger-message-stream-worker` | `oya-messenger-message-stream-worker` |
-| `oya-connect-messenger-message-stream-app` | `oya-messenger-message-stream-app` |
-| `oya-connect-messenger-presence-kernel` | `oya-messenger-presence-kernel` |
-| `oya-connect-messenger-presence-usecase` | `oya-messenger-presence-usecase` |
-| `oya-connect-messenger-presence-adapter-valkey` | `oya-messenger-presence-adapter-valkey` |
-| `oya-connect-messenger-presence-worker` | `oya-messenger-presence-worker` |
-| `oya-connect-messenger-presence-app` | `oya-messenger-presence-app` |
-| `oya-connect-messenger-file-attachment-kernel` | `oya-messenger-file-attachment-kernel` |
-| `oya-connect-messenger-file-attachment-usecase` | `oya-messenger-file-attachment-usecase` |
-| `oya-connect-messenger-file-attachment-adapter-s3` | `oya-messenger-file-attachment-adapter-s3` |
-| `oya-connect-messenger-file-attachment-worker` | `oya-messenger-file-attachment-worker` |
-| `oya-connect-messenger-file-attachment-app` | `oya-messenger-file-attachment-app` |
-| `oya-connect-messenger-thread-tree-kernel` | `oya-messenger-thread-tree-kernel` |
-| `oya-connect-messenger-thread-tree-usecase` | `oya-messenger-thread-tree-usecase` |
-| `oya-connect-messenger-thread-tree-app` | `oya-messenger-thread-tree-app` |
-| `oya-connect-messenger-mention-router-kernel` | `oya-messenger-mention-router-kernel` |
-| `oya-connect-messenger-mention-router-worker` | `oya-messenger-mention-router-worker` |
-| `oya-connect-messenger-mention-router-app` | `oya-messenger-mention-router-app` |
-| `oya-connect-messenger-read-receipt-kernel` | `oya-messenger-read-receipt-tracker-kernel` |
-| `oya-connect-messenger-read-receipt-usecase` | `oya-messenger-read-receipt-tracker-usecase` |
-| `oya-connect-messenger-read-receipt-app` | `oya-messenger-read-receipt-tracker-app` |
-| `oya-connect-messenger-rest-api` | `oya-messenger-rest-api-surface-rest` |
-| `oya-connect-messenger-websocket` | `oya-messenger-websocket-frame-protocol-rest` |
-| `oya-connect-messenger-search-cedar-kernel` | `oya-messenger-search-and-cedar-filter-kernel` |
-| `oya-connect-messenger-search-cedar-app` | `oya-messenger-search-and-cedar-filter-app` |
-| `oya-connect-messenger-huddle-kernel` | `oya-messenger-huddles-livekit-signaling-kernel` |
-| `oya-connect-messenger-huddle-app` | `oya-messenger-huddles-livekit-signaling-app` |
+| `oya-messenger-domain` | (split per BC; see note below) |
+| `oya-messenger-channel-store-kernel` | `oya-messenger-channel-store-kernel` |
+| `oya-messenger-channel-store-usecase` | `oya-messenger-channel-store-usecase` |
+| `oya-messenger-channel-store-adapter-postgres` | `oya-messenger-channel-store-adapter-postgres` |
+| `oya-messenger-channel-store-rest` | `oya-messenger-channel-store-rest` |
+| `oya-messenger-channel-store-app` | `oya-messenger-channel-store-app` |
+| `oya-messenger-message-stream-kernel` | `oya-messenger-message-stream-kernel` |
+| `oya-messenger-message-stream-usecase` | `oya-messenger-message-stream-usecase` |
+| `oya-messenger-message-stream-adapter-kafka` | `oya-messenger-message-stream-adapter-kafka` |
+| `oya-messenger-message-stream-worker` | `oya-messenger-message-stream-worker` |
+| `oya-messenger-message-stream-app` | `oya-messenger-message-stream-app` |
+| `oya-messenger-presence-kernel` | `oya-messenger-presence-kernel` |
+| `oya-messenger-presence-usecase` | `oya-messenger-presence-usecase` |
+| `oya-messenger-presence-adapter-valkey` | `oya-messenger-presence-adapter-valkey` |
+| `oya-messenger-presence-worker` | `oya-messenger-presence-worker` |
+| `oya-messenger-presence-app` | `oya-messenger-presence-app` |
+| `oya-messenger-file-attachment-kernel` | `oya-messenger-file-attachment-kernel` |
+| `oya-messenger-file-attachment-usecase` | `oya-messenger-file-attachment-usecase` |
+| `oya-messenger-file-attachment-adapter-s3` | `oya-messenger-file-attachment-adapter-s3` |
+| `oya-messenger-file-attachment-worker` | `oya-messenger-file-attachment-worker` |
+| `oya-messenger-file-attachment-app` | `oya-messenger-file-attachment-app` |
+| `oya-messenger-thread-tree-kernel` | `oya-messenger-thread-tree-kernel` |
+| `oya-messenger-thread-tree-usecase` | `oya-messenger-thread-tree-usecase` |
+| `oya-messenger-thread-tree-app` | `oya-messenger-thread-tree-app` |
+| `oya-messenger-mention-router-kernel` | `oya-messenger-mention-router-kernel` |
+| `oya-messenger-mention-router-worker` | `oya-messenger-mention-router-worker` |
+| `oya-messenger-mention-router-app` | `oya-messenger-mention-router-app` |
+| `oya-messenger-read-receipt-kernel` | `oya-messenger-read-receipt-tracker-kernel` |
+| `oya-messenger-read-receipt-usecase` | `oya-messenger-read-receipt-tracker-usecase` |
+| `oya-messenger-read-receipt-app` | `oya-messenger-read-receipt-tracker-app` |
+| `oya-messenger-rest-api` | `oya-messenger-rest-api-surface-rest` |
+| `oya-messenger-websocket` | `oya-messenger-websocket-frame-protocol-rest` |
+| `oya-messenger-search-cedar-kernel` | `oya-messenger-search-and-cedar-filter-kernel` |
+| `oya-messenger-search-cedar-app` | `oya-messenger-search-and-cedar-filter-app` |
+| `oya-messenger-huddle-kernel` | `oya-messenger-huddles-livekit-signaling-kernel` |
+| `oya-messenger-huddle-app` | `oya-messenger-huddles-livekit-signaling-app` |
 
-> **`oya-connect-messenger-domain` split.** Legacy bundled crate splits per
+> **`oya-messenger-domain` split.** Legacy bundled crate splits per
 > ADR-0131 + ADR-0105; consumers must pick the specific replacement BC per
 > import-site.
 
 ### Net-new boundary — MLS RFC 9420 E2E group messaging
 
 The new µservice introduces **E2E (MLS RFC 9420)** as a first-class capability
-that did NOT exist in `oya-connect-messenger-*`. It is therefore not part of
+that did NOT exist in `oya-messenger-*`. It is therefore not part of
 the migration surface — it is a clean replacement-boundary feature. Specifically:
 
 - `oya-messenger-e2e-mls-kernel`, `-usecase`, `-adapter`, `-worker`, `-app` —
@@ -118,8 +118,8 @@ use oya_messenger_presence_kernel::PresenceState;
 ```toml
 # BEFORE
 [dependencies]
-oya-connect-messenger-channel-store-kernel  = { workspace = true }
-oya-connect-messenger-message-stream-usecase = { workspace = true }
+oya-messenger-channel-store-kernel  = { workspace = true }
+oya-messenger-message-stream-usecase = { workspace = true }
 
 # AFTER
 [dependencies]
@@ -129,11 +129,11 @@ oya-messenger-message-stream-usecase = { workspace = true }
 
 ## Reason
 
-The legacy `oya-connect-messenger-*` family was authored before the no-suite
+The legacy `oya-messenger-*` family was authored before the no-grouping
 forward-policy (ADR-0132) and the per-µservice flat layout (ADR-0131)
 crystallised. Specifically:
 
-1. **ADR-0132 no-suite forward-policy.** A `connect-*` crate prefix encodes
+1. **ADR-0132 no-grouping forward-policy.** A `connect-*` crate prefix encodes
    bundle membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
 2. **ADR-0139 per-µservice SLO authority.** Messenger's persistent-connection
@@ -153,7 +153,7 @@ ediscovery-export, huddle-sfu-degraded, mention-storm-throttle,
 moderation-classifier-rollback, presence-rebuild, search-index-rebuild,
 websocket-storm.
 
-Of these, **6 had direct `oya-connect-messenger-*` predecessors with the same
+Of these, **6 had direct `oya-messenger-*` predecessors with the same
 operational surface** (per this migration prompt's runbook callout):
 
 | New runbook | Legacy operational surface | Semantic preservation |
@@ -190,7 +190,7 @@ Identical 5-step process to mail's `migration-from-connect.md`:
 ### Step 3 — Verify behavioural parity
 
 ```bash
-cargo nextest run --features connect-messenger-strangler-canary
+cargo nextest run --features messenger-strangler-canary
 ```
 
 ### Step 4 — Remove the legacy dependency
@@ -198,7 +198,7 @@ cargo nextest run --features connect-messenger-strangler-canary
 ### Step 5 — Verify zero residual
 
 ```bash
-cargo tree -e normal -p your-crate | grep oya-connect-messenger   # expect empty
+cargo tree -e normal -p your-crate | grep oya-messenger   # expect empty
 rg "use oya_connect_messenger_" --type rust path/to/your/crate    # expect zero hits
 ```
 
@@ -209,7 +209,7 @@ rg "use oya_connect_messenger_" --type rust path/to/your/crate    # expect zero 
 | Feature flag namespace | `connect.messenger.*` | `messenger.*` |
 | OpenSLO file | bundled in `Connect.openslo.yaml` | `microservices/messenger/slos/messenger.openslo.yaml` |
 | Helm chart values key | `.Values.connect.messenger.*` | `.Values.messenger.*` |
-| K8s namespace | `connect` | `messenger` |
+| K8s namespace | `connector` | `messenger` |
 | WebSocket public endpoint | `wss://connect.<tenant>.oyatie.com/messenger/ws` | `wss://messenger.<tenant>.oyatie.com/ws` |
 | REST API base | `https://connect.<tenant>.oyatie.com/messenger/v1/...` | `https://messenger.<tenant>.oyatie.com/v1/...` |
 | Cedar policy fragment path | `policy/connect/messenger/*.cedar` | `microservices/messenger/policy/cedar/*.cedar` |
@@ -268,12 +268,12 @@ behaviour, preserved verbatim during the canary:
   ```
 - [ ] **All active consumers migrated** (per Phase 4):
   ```bash
-  cargo tree -e normal -p oya-connect-messenger-domain --invert    | grep -v 'oya-connect-messenger-migration-adapter' | wc -l   # expect 0
+  cargo tree -e normal -p oya-messenger-domain --invert    | grep -v 'oya-messenger-migration-adapter' | wc -l   # expect 0
   rg "use oya_connect_messenger_" --type rust    | rg -v "migration-adapter|legacy_in_process|tests/"    | wc -l   # expect 0
   ```
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
-  find crates -maxdepth 1 -type d -name "oya-connect-messenger-*" | wc -l   # expect 0
+  find crates -maxdepth 1 -type d -name "oya-messenger-*" | wc -l   # expect 0
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:
   ```bash
@@ -299,11 +299,11 @@ had no E2E to compare against.
 
 ## References
 
-- ADR-0135: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
-- ADR-0132: No-suite forward-policy.
+- ADR-0132: No-grouping forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational policy).
+- ADR-0134: dissolution Strangler migration (operational policy).
 - `microservices/messenger/PRD.md` — full target-state product definition.
 - `microservices/messenger/PHASE-01-TEAM-CHANNELS-DM-THREADS.md` — phase plan.
 - `microservices/messenger/runbooks/*.md` — 10 runbooks.

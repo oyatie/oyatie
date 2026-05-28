@@ -287,15 +287,15 @@
     },
     {
       "id": "ADR-0234",
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
-      "title": "Product Suite And Bundle Dissolution",
+      "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0236",
@@ -305,7 +305,7 @@
     },
     {
       "id": "ADR-0238",
-      "title": "Connect Super App Expansion",
+      "title": "Super App Expansion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
     },
@@ -408,7 +408,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; the legacy oya-connect-drive-domain crate at crates/oya-connect-drive-domain/ migrates via microservices/drive/migration-from-connect.md and deprecation-notice.md per ADR-0135 / ADR-0134; |",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; the legacy oya-drive-domain crate at crates/oya-drive-domain/ migrates via microservices/drive/migration-from-connect.md and deprecation-notice.md per ADR-0135 / ADR-0134; |",
   "owner_team": "axis-drive",
   "tier_classification": "tenant-facing",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",

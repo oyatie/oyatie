@@ -52,7 +52,7 @@ info:
   title: Oyatie Ecosystem API
   version: 1.0.0
 servers:
-  - url: https://api.oyatie.dev/v1
+  - url: https://api.oyatie.com/v1
 components:
   securitySchemes:
     EcosystemBearer:

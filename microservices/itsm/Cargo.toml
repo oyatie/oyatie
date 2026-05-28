@@ -22,7 +22,7 @@ bounded_contexts = [
 ]
 architecture_layers = "ADR-0105-13-layer-enum-with-ADR-0106-usecase"
 flat_layout_authority = "ADR-0131"
-no_suite_authority = "ADR-0132"
+no_grouping_authority = "ADR-0132"
 contracts = ["openapi-v1", "grpc-v1", "asyncapi-v1"]
 scaffold_wave = "Wave-15A-ITSM-Remediation"
 scaffold_date = "2026-05-21"

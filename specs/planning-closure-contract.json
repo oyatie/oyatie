@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/planning-closure-contract.json",
+  "$id": "https://docs.oyatie.com/specs/planning-closure-contract.json",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-PLANNING-CLOSURE-CONTRACT",
@@ -35,7 +35,7 @@
   },
   "first_deliverable": {
     "id": "FD-001-enterprise-smb-generic-core",
-    "name": "Enterprise Generic + SMB Generic full-depth production delivery",
+    "name": "Tenant RBAC view + Tenant RBAC view full-depth production delivery",
     "delivery_mode": "full_depth_production_hyperscaler_exit",
     "scope_posture": "not_mvp_not_preview_not_reduced_scope",
     "exit_claim_bar": "industry_leading_production_grade_hyperscaler_grade",
@@ -67,7 +67,7 @@
       "education",
       "government"
     ],
-    "success_shape": "Enterprise Generic and SMB Generic both exit as complete production-grade products with core tenancy, communications, community, infrastructure, Ops Dashboard / Control Center, Foundry, Workflow, and Ontology proven together at hyperscaler-grade depth before regulated or sector-specific vertical depth begins.",
+    "success_shape": "Tenant RBAC view and Tenant RBAC view both exit as complete production-grade products with core tenancy, communications, community, infrastructure, Ops Dashboard / Control Center, Foundry, Workflow, and Ontology proven together at hyperscaler-grade depth before regulated or sector-specific vertical depth begins.",
     "exit_requirements": [
       "production_grade_customer_workflows",
       "hyperscaler_grade_architecture_and_system_design",
@@ -98,7 +98,7 @@
         "operational_runbooks_and_slos",
         "ops_control_center_localization_runbooks_and_escalation_flows"
       ],
-      "exit_rule": "The first deliverable cannot close on canonical global base alone; it must ship the canonical base plus KR localization pack evidence for the full Enterprise Generic + SMB Generic scope."
+      "exit_rule": "The first deliverable cannot close on canonical global base alone; it must ship the canonical base plus KR localization pack evidence for the full Tenant RBAC view + Tenant RBAC view scope."
     },
     "architecture_exit_bar": {
       "clean_architecture_required": true,
@@ -125,7 +125,7 @@
         "runtime_as_composition_root_only"
       ],
       "required_microservice_rules": [
-        "flat_microservice_catalog_not_suite_forks",
+        "flat_microservice_catalog_not_grouping_forks",
         "per_microservice_prd_manifest_phase_ip_contracts",
         "per_microservice_clean_architecture_crate_layers",
         "per_microservice_api_first_contracts_before_handlers",
@@ -277,7 +277,7 @@
       "security_and_privacy_controls"
     ],
     "anti_regret_controls": [
-      "flat_microservice_catalog_not_suite_forks",
+      "flat_microservice_catalog_not_grouping_forks",
       "workflow_and_ontology_as_only_cross_product_adapter_layer",
       "oya_vcs_changeset_promotion_path",
       "kernel_domain_adapter_boundary_discipline",

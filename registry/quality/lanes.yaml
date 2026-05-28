@@ -524,7 +524,7 @@ lanes:
     status: active
     severity: report-only
     owner_team: council-architecture
-    purpose: documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
+    purpose: documentation set coverage — every µservice has full canonical + per-pack documentation set per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
     source: ADR-0063
     runtime_budget_seconds: 600
     check_command: cargo run -p oya-dev-cli -- gate validate documentation-system

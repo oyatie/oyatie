@@ -66,7 +66,7 @@ surface and the chaos-test plan.
 |---|---|---|---|---|
 | Redirect chain > 5 | 508 from CDN | single redirect chain | LEAN refuse at write; runtime detection | `runbooks/page-export-corruption.md` |
 | Wildcard route shadows specific route | wrong page rendered | per-tenant | route-precedence rules in domain; LEAN check | n/a |
-| URL signature regression (vs legacy connect-sites) | 404 on legacy URL | migrated tenant | redirect map preserved via migration-adapter; canary test corpus | `migration-from-connect.md` Hyrum #1 |
+| URL signature regression (vs legacy sites) | 404 on legacy URL | migrated tenant | redirect map preserved via migration-adapter; canary test corpus | `migration-from-connect.md` Hyrum #1 |
 
 ### domain-binding
 

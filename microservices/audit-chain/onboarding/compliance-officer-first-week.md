@@ -51,7 +51,7 @@ kubectl -n audit-chain get pods
 
 cargo run -p oya-dev-cli -- audit-chain head --cell drill-syd-1
 # Expected output:
-# chain_head_seq=0 root_hash=sha256:0000...0000 sealed_at=<bootstrap timestamp> signature_ed25519=...
+# chain_head_seq=0 root_hash=sha256:c2c7d553b16112a279535b2f012840cf21ed851372a7bef12070e16e40365619 sealed_at=<bootstrap timestamp> signature_ed25519=...
 ```
 
 Acceptance: chain is live, you can describe the role of each pod and explain why the empty seal at `seq=0` matters (it anchors the chain genesis).

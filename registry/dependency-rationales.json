@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/dependency-rationales.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/dependency-rationales.schema.json",
   "title": "DependencyRationales",
   "description": "Flat overlay: per external workspace dependency, the rationale + owner + layer seam + replacement strategy. Joined with `cargo metadata --no-deps` output at lane time. Replaces the over-engineered tech-debt-ledger.json planned in original IP-002 (state machine + trigger DSL + monotonic graph DROPPED per multispectrum F1 + F2 + F6 critique).",
   "_meta": {
@@ -42,7 +42,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime \u2014 those leaks are CLOSED.",
+      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
@@ -77,11 +77,11 @@
         "oya-cloud-storage-object-api",
         "oya-cloud-surface-domain",
         "oya-collab-crdt-portability-kernel",
-        "oya-connect-document-format-domain",
-        "oya-connect-mail-domain",
+        "oya-document-format-domain",
+        "oya-mail-domain",
         "oya-connector-slack-adapter",
         "oya-dev-cli",
-        "oya-enterprise-suite-runtime",
+        "oya-tenant-rbac-runtime",
         "oya-gen-microservice-manifests-app",
         "oya-governance-authoritative-tracked-app",
         "oya-governance-image-discipline-kernel",
@@ -201,7 +201,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "HTTP I/O protocol \u2014 h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
+      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
@@ -257,7 +257,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-and-application",
       "owner_team": "council-architecture",
-      "rationale": "Serialization framework. Used by adapters (DTOs), application orchestrators (event emission), and the application-shell frontend prototype's mock-only render-envelope DTO boundary. Kernels SHOULD NOT depend on serde \u2014 pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.) Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
+      "rationale": "Serialization framework. Used by adapters (DTOs), application orchestrators (event emission), and the application-shell frontend prototype's mock-only render-envelope DTO boundary. Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.) Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter and application layer crates; kernel violations report-only",
       "allowed_crates": [
@@ -274,8 +274,8 @@
         "oya-check-ontology-projection-coverage",
         "oya-check-step-up-auth-coverage",
         "oya-codeview-cli",
-        "oya-enterprise-suite-api",
-        "oya-enterprise-suite-runtime",
+        "oya-tenant-rbac-api",
+        "oya-tenant-rbac-runtime",
         "oya-gen-microservice-manifests-app",
         "oya-governance-license-policy-kernel",
         "oya-hr-employment-api",
@@ -341,8 +341,8 @@
         "oya-check-ontology-projection-coverage",
         "oya-codeview-cli",
         "oya-dev-cli",
-        "oya-enterprise-suite-api",
-        "oya-enterprise-suite-runtime",
+        "oya-tenant-rbac-api",
+        "oya-tenant-rbac-runtime",
         "oya-gen-microservice-manifests-app",
         "oya-governance-purpose-audit-app",
         "oya-governance-upstream-api-drift-kernel",
@@ -490,7 +490,7 @@
       "version_pin": "0.1",
       "layer_seam": "infrastructure-only",
       "owner_team": "council-architecture",
-      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing \u2014 pure types don't emit spans. Current usage is bounded.",
+      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates",
       "allowed_crates": [
@@ -515,7 +515,7 @@
       "version_pin": "0.3",
       "layer_seam": "app-only",
       "owner_team": "council-architecture",
-      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries \u2014 never in libraries \u2014 so binaries decide their own log routing.",
+      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "app-layer binaries (composition roots)",
       "allowed_crates": [
@@ -582,7 +582,7 @@
         "oya-shared-postgres-command-kernel",
         "oya-shared-transactional-outbox-adapter-sqlx",
         "oya-shared-transactional-outbox-worker-app",
-        "oya-social-post-composition-adapter-postgres"
+        "oya-community-social-post-composition-adapter-postgres"
       ]
     },
     "tonic": {
@@ -629,15 +629,15 @@
       "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
         "oya-check-otel-trace-propagation",
-        "oya-enterprise-suite-audit-chain-runtime-evidence",
-        "oya-enterprise-suite-cloud-deployment-evidence",
-        "oya-enterprise-suite-listener-runtime-evidence",
-        "oya-enterprise-suite-tenant-cost-allocation-contract",
-        "oya-enterprise-suite-tenant-residency-contract",
-        "oya-enterprise-suite-tenant-workload-identity-contract",
-        "oya-enterprise-suite-tenant-workload-manifest",
-        "oya-enterprise-suite-tenant-workload-runtime-evidence",
-        "oya-enterprise-suite-workflow-runtime-evidence",
+        "oya-tenant-rbac-audit-chain-runtime-evidence",
+        "oya-tenant-rbac-cloud-deployment-evidence",
+        "oya-tenant-rbac-listener-runtime-evidence",
+        "oya-tenant-rbac-tenant-cost-allocation-contract",
+        "oya-tenant-rbac-tenant-residency-contract",
+        "oya-tenant-rbac-tenant-workload-identity-contract",
+        "oya-tenant-rbac-tenant-workload-manifest",
+        "oya-tenant-rbac-tenant-workload-runtime-evidence",
+        "oya-tenant-rbac-workflow-runtime-evidence",
         "oya-shared-hyperscaler-metrics-adapter-otlp"
       ]
     },
@@ -667,7 +667,7 @@
       "version_pin": "4.11",
       "layer_seam": "adapter-only-authorization-engine",
       "owner_team": "axis-identity + ops-security",
-      "rationale": "AWS Cedar (Apache-2.0, OSI-clean) is the formally-verified authorization engine \u2014 default-deny, forbid-overrides-permit, order-independent (arXiv 2403.04651). Used only by the workload-identity authz-gate adapter to evaluate PARC requests; the engine named in microservices/identity/manifest.json#consumes_upstream_oss and exercised by microservices/identity/policy/identity.cedar. Domain/kernel crates stay Cedar-free and pass typed AuthorizationRequest/AuthorizationDecision across the boundary.",
+      "rationale": "AWS Cedar (Apache-2.0, OSI-clean) is the formally-verified authorization engine — default-deny, forbid-overrides-permit, order-independent (arXiv 2403.04651). Used only by the workload-identity authz-gate adapter to evaluate PARC requests; the engine named in microservices/identity/manifest.json#consumes_upstream_oss and exercised by microservices/identity/policy/identity.cedar. Domain/kernel crates stay Cedar-free and pass typed AuthorizationRequest/AuthorizationDecision across the boundary.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
       "isolated_in_crate": "oya-identity-workload-authz-cedar-adapter",
       "allowed_crates": [
@@ -717,39 +717,6 @@
       "isolated_in_crate": "oya-shared-olap-clickhouse-adapter",
       "allowed_crates": [
         "oya-shared-olap-clickhouse-adapter"
-      ]
-    },
-    "kube": {
-      "version_pin": "3.1",
-      "layer_seam": "adapter-only",
-      "owner_team": "council-architecture + ops-platform",
-      "rationale": "Kubernetes client (Client + dynamic Api) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Used only to talk to the management cluster's CAPI control-plane providers (Kamaji TenantControlPlane on controlplane.cluster.x-k8s.io; the dedicated Talos control-plane reference). The LIVE CRD reconciliation is honest-deferred per registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration, so the adapter references kube-rs's dynamic surface and returns Unimplemented::KamajiProviderLiveIntegration instead of faking success. Kernel/api/inmemory crates stay kube-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
-      "allowed_crates": [
-        "oya-managed-k8s-control-plane-host-adapter-capi"
-      ]
-    },
-    "kube-runtime": {
-      "version_pin": "3.1",
-      "layer_seam": "adapter-only",
-      "owner_team": "council-architecture + ops-platform",
-      "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; the live control-plane reconcile loop is honest-deferred (kamaji-provider-live-integration), so the dependency is the declared seam the follow-on ADR's controller will consume without a caller change.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
-      "allowed_crates": [
-        "oya-managed-k8s-control-plane-host-adapter-capi"
-      ]
-    },
-    "k8s-openapi": {
-      "version_pin": "0.27",
-      "layer_seam": "adapter-only",
-      "owner_team": "council-architecture + ops-platform",
-      "rationale": "Kubernetes API object types (ObjectMeta and core types referenced by the dynamic CAPI objects) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; isolated to the -adapter-capi crate. Kernel/api/inmemory crates stay k8s-openapi-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
-      "allowed_crates": [
-        "oya-managed-k8s-control-plane-host-adapter-capi"
       ]
     }
   },

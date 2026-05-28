@@ -292,9 +292,9 @@ Source anchor 14: chat history `/Users/jasonlee/.claude/projects/-Users-jasonlee
 
 1. The manifest owns many bounded contexts inside one µservice, with file-store, folder-hierarchy, upload, download, sync, share-link, permissions, search-index, preview, dlp-virus-scan, immutability-tier, migration, quota, SDK, and API entries in `manifest.json:1-131`.
 2. The PRD assigns drive as the owner of object/file storage semantics, not connect or workspace, at `PRD.md:20-28`.
-3. Migration evidence confirms the replacement of legacy `oya-connect-drive-*` surfaces by `oya-drive-*` at `migration-from-connect.md:15-33`.
-4. Migration evidence says the old bundled `oya-connect-drive-domain` crate split into specific drive bounded contexts at `migration-from-connect.md:33-63`.
-5. The deprecation notice names the old `oya-connect-drive-*` crate family and points to the new µservice ownership at `deprecation-notice.md:16-48`.
+3. Migration evidence confirms the replacement of legacy `oya-drive-*` surfaces by `oya-drive-*` at `migration-from-connect.md:15-33`.
+4. Migration evidence says the old bundled `oya-drive-domain` crate split into specific drive bounded contexts at `migration-from-connect.md:33-63`.
+5. The deprecation notice names the old `oya-drive-*` crate family and points to the new µservice ownership at `deprecation-notice.md:16-48`.
 6. Ownership is strong for object-store, folder, upload, download, sync, share, permissions, search, preview, scan, immutability, and migration.
 7. Ownership is less clear for cross-service OCR handoff because `IP-011-search-index.md:17-20` names a foundry-runtime OCR handoff while `manifest.json:473-492` lists `foundry`, not `foundry-runtime`, as a dependency.
 8. That naming drift is a cross-microservice dependency coherence issue, not a product-purpose issue.

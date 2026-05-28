@@ -453,7 +453,7 @@ Cost basis: ~$12,000/month/cell × 6-10 cells = ~$72k-$120k/month for Envelope C
 Per the existing benchmark file `microservices/itsm/benchmarks/servicenow-vs-jsm-vs-freshservice-vs-oyatie.md` line 105 ("Benchmark harness at `benchmarks/itsm/`. Re-run weekly in CI."), the harness is referenced but not implemented in the current µservice tree.
 
 Findings:
-- F-BM-02 [P1]: No `benchmarks/itsm/harness/` directory exists with executable test rigs. The line in the existing benchmark file is a future-work pointer. Wave 15E target: author Rust benchmark harness using `criterion` or equivalent + tokio benchmark suite + Goss/k6/wrk3 for load tests against the deployed surfaces.
+- F-BM-02 [P1]: No `benchmarks/itsm/harness/` directory exists with executable test rigs. The line in the existing benchmark file is a future-work pointer. Wave 15E target: author Rust benchmark harness using `criterion` or equivalent + tokio benchmark set + Goss/k6/wrk3 for load tests against the deployed surfaces.
 
 ### 7.2 Counterpart benchmark reproducibility
 

@@ -174,11 +174,11 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | ADR-0244 D-2 | Dotted hierarchical sub-scope | Hierarchical Principal Path | AWS IAM principal paths; GCP resource hierarchy; Azure RBAC scope; Kubernetes namespace hierarchy | Flat Namespace Drift — inheritance requires explicit cross-namespace queries at scale |
 | ADR-0244 D-2.d | Max depth 5 | Bounded-Depth Hierarchy | AWS IAM path limit; Azure subscription nesting limit; GCP folder depth limit (10 in practice; 5 recommended) | Unbounded Tree Depth — policy evaluation exponential in depth |
 | ADR-0244 D-3 | Tenant table schema (single source of truth) | Single Source of Truth Tenant Registry | AWS Organizations master account table; GCP Resource Manager hierarchy table; Stripe Accounts table | Per-µservice Tenant View Drift — each µservice rolls its own tenant concept |
-| ADR-0244 D-3.c | Capability flags column | Capability-Based Authorization | Stripe Connect account capabilities; AWS IAM permission boundaries; Linux capabilities(7) | Role-Based-Only — coarse role assignment misses per-capability gating |
+| ADR-0244 D-3.c | Capability flags column | Capability-Based Authorization | Stripe account capabilities; AWS IAM permission boundaries; Linux capabilities(7) | Role-Based-Only — coarse role assignment misses per-capability gating |
 | ADR-0244 D-3.dr | DR pair strategy enum | Tier-Aware DR Strategy | AWS Resilience Hub tiers; Azure Site Recovery patterns | One-Size-Fits-All DR — premium tier RTO applied to every tenant |
 | ADR-0244 D-4 | Cedar entity-types for tenants + sub-scopes | Typed Entity Policy Schema | AWS Verified Permissions Cedar entity schema; OPA structured-data policies | Untyped String Match Policy — fragile per-string conditions |
 | ADR-0244 D-5 | Manifest schema; drop audience field | Caller-Side Attribute Resolution | AWS principal-attribute policy conditions; Azure AAD claims-based; Stripe webhook tenant_id in payload | Callee-Side Audience Declaration — category error retired |
-| ADR-0244 D-6 | Cross-tenant grants (time-bounded) | Time-Bounded Cross-Tenant Grant | AWS STS AssumeRole cross-account; Azure AAD B2B Collaboration; Stripe Connect platform-on-behalf-of | Permanent Cross-Tenant Trust — perpetual elevation; bypass-path acquisition |
+| ADR-0244 D-6 | Cross-tenant grants (time-bounded) | Time-Bounded Cross-Tenant Grant | AWS STS AssumeRole cross-account; Azure AAD B2B Collaboration; Stripe platform-on-behalf-of | Permanent Cross-Tenant Trust — perpetual elevation; bypass-path acquisition |
 | ADR-0244 D-6.3 | Partner on-behalf-of pattern | Platform-on-Behalf-Of Pattern | Stripe Connect; Salesforce Partner Portal; AWS Marketplace partner accounts | Direct Customer Credential Sharing — partner holds customer secrets |
 | ADR-0244 D-7 | Tenant lifecycle state machine + soft-delete window | Multi-State Tenant Lifecycle with Soft-Delete Window | AWS Organizations account close (90-day grace); GCP Project delete (30-day soft-delete); Azure AD tenant delete (30-day recovery) | Hard-Delete-Only Lifecycle — accidental deletes irrecoverable |
 | ADR-0244 D-7.h | Hard delete cascade + tombstone | Cascade-Plus-Tombstone Deletion | AWS Organizations CLOSED account preserves audit; GCP Project SOFT_DELETED preserves logs | Total Erasure Including Audit — regulatory violation; tamper detection broken |
@@ -197,7 +197,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | ADR-0245 D-3 | Full classification table for the portfolio | Per-Service Tier Registration | AWS Service Health Dashboard registry; GCP service catalog; Apple Framework Index | Lazy Tier Classification — services emerge without tier classification |
 | ADR-0245 D-4 | Cross-tier dependency rules | Layered Service Tier DAG | AWS Builders' Library service-layering pattern; GCP service dependency graph; Apple Framework dependency rules | Inverted Dependency — substrate depends on product (architectural inversion) |
 | ADR-0245 D-4.B | Substrate DAG ordering | Foundational Dependency DAG | AWS Builders' Library "Static stability"; GCP Borg/Omega layering (Verma et al. 2016); Apple Frameworks Reference dependency layers | Cyclic Substrate Dependency — chicken-egg bootstrap failure |
-| ADR-0245 D-5 | Service-cell deep-dive (peer-cell pattern) | Peer-Cell Service Pattern | AWS Marketplace + AWS Activate peer-cell pattern; Salesforce AppExchange peer-cell; Stripe Connect peer-cell | Forced Two-Tier — service cells classified as substrate or product creating ambiguity |
+| ADR-0245 D-5 | Service-cell deep-dive (peer-cell pattern) | Peer-Cell Service Pattern | AWS Marketplace + AWS Activate peer-cell pattern; Salesforce AppExchange peer-cell; Stripe peer-cell | Forced Two-Tier — service cells classified as substrate or product creating ambiguity |
 | ADR-0245 D-6 | Reserved µservice rules (built-but-pre-cert) | Build-Ahead-of-Certification | AWS pre-launch service pattern; FedRAMP reserved namespace; Apple beta-framework pattern | Live-Before-Certified — uncertified service deployed live, missing regulatory gate |
 | ADR-0245 D-7 | CI lane coherence enforcement | Coverage-Required Tier Classification | AWS Config conformance packs; Google SRE Workbook ch. 4 SLO coverage; Apple Xcode static analysis | Honour-System Tier — tier classification not enforced at CI time |
 | ADR-0245 D-8 | Substrate SLO floor 99.99% minimum | Per-Tier SLO Floor | Google SRE Workbook ch. 2 SLO composition; AWS Well-Architected v2024-Q4 Pillar 4; Microsoft Azure Well-Architected | Uniform SLO — substrate underprovisioning + product overprovisioning |
@@ -209,7 +209,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | Decision ID | Decision Summary | Hyperscaler Pattern (named) | Source Citation | Anti-Pattern Avoided |
 |---|---|---|---|---|
 | ADR-0246 D-1 | Promote bounded contexts to peer substrate µservice | Centralized Policy Service | AWS Verified Permissions (re:Invent 2023 BOA303); Google Org Policy; Netflix authz service (Netflix Tech Blog 2024) | Embedded Policy in Application Service — policy evolution coupled to host service deploy cycle |
-| ADR-0246 D-2 | 8 BCs (fragment-registry, evaluator, signing-chain, hot-reload, coverage-audit, pack-overlay, tenant-overlay, bootstrap-genesis) | Single-Concern Bounded Contexts | DDD (Evans 2003); ADR-0132 no-suite forward policy | Bundle Bounded Context — multi-concern BCs prone to coupling drift |
+| ADR-0246 D-2 | 8 BCs (fragment-registry, evaluator, signing-chain, hot-reload, coverage-audit, pack-overlay, tenant-overlay, bootstrap-genesis) | Single-Concern Bounded Contexts | DDD (Evans 2003); ADR-0132 no-grouping forward policy | Bundle Bounded Context — multi-concern BCs prone to coupling drift |
 | ADR-0246 D-3 | 47-crate redistribution per BNF v4.1 + ADR-0105 | Hexagonal Architecture with Port-in-Kernel | Cockburn 2005 Hexagonal; ADR-0105 13-value canonical enum | Anemic Layered Architecture — ports defined outside kernel, leaking I/O concerns |
 | ADR-0246 D-4 | gRPC + OpenAPI 3.2.0 dual surface; 10 operations | gRPC-Primary with REST Compat | Google API Design Guide; Stripe API design (REST primary with gRPC for internal); Cloudflare Workers gRPC | Single-Protocol Lock-in — REST-only locks out efficient inter-µservice calls; gRPC-only locks out browser callers |
 | ADR-0246 D-5 | Per-cell deployment: 3+ replicas + HPA + PDB + cross-region paired DR cell | Cell-Sharded Stateless Tier with HA | AWS cell-based architecture (Bryan Liston re:Invent 2018); ADR-0009 cell architecture; ADR-0048 cell sharding | Global Singleton Service — single-region or single-replica policy service is a portfolio-wide blast radius |
@@ -263,7 +263,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 
 | Decision ID | Decision Summary | Hyperscaler Pattern (named) | Source Citation | Anti-Pattern Avoided |
 |---|---|---|---|---|
-| ADR-0249 D-1 | 8 marketplace substrates (catalog, inventory, orders, fulfillment, reviews, discovery, pricing, trust-safety) | Substrate-Shared, Surface-Specialised | Amazon ASIN evolution (Bezos 1997 + Bryar/Carr 2021); Stripe Connect Platform docs; Apple One subscription bundle | Per-Category Stack Duplication — N stacks for N commerce shapes |
+| ADR-0249 D-1 | 8 marketplace substrates (catalog, inventory, orders, fulfillment, reviews, discovery, pricing, trust-safety) | Substrate-Shared, Surface-Specialised | Amazon ASIN evolution (Bezos 1997 + Bryar/Carr 2021); Stripe Tenant/RBAC Packaging docs; Apple One subscription bundle | Per-Category Stack Duplication — N stacks for N commerce shapes |
 | ADR-0249 D-1.1 | Catalog universal Listing identifier | Universal Product Identifier | Amazon ASIN; eBay Item ID; Walmart Marketplace Item ID; Etsy Listing ID | Per-Category Catalog Fragmentation — categories share no identity primitive |
 | ADR-0249 D-1.2 | Inventory per-warehouse stock | Per-Warehouse Stock State | Amazon Fulfilled-By-Amazon docs; Shopify Inventory API; ShipBob docs | Single Global Inventory — no warehouse dimension makes 3PL impossible |
 | ADR-0249 D-1.3 | Orders as durable saga | Saga Pattern for Distributed Order Workflow | Temporal.io docs (Workflow Engine inheritance); AWS Step Functions Saga blueprint; Stripe Order API | Synchronous Order Pipeline — long pipeline blocks under failure |
@@ -279,7 +279,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | ADR-0249 D-6 | `fulfillment_capabilities[]` | Declared Fulfillment Capabilities | Shopify Locations API; Amazon Seller Fulfilled vs FBA distinction | Implicit Fulfillment — no declared shape leads to fulfillment failures |
 | ADR-0249 D-7 | Trust + reputation + cold-start with graduated limits | Cold-Start with Graduated Limits | Stripe Radar; Airbnb New Host program; eBay 100-feedback restriction history | No Cold-Start Friction — fraud floods new accounts |
 | ADR-0249 D-8 | Marketplace cell pinning + cross-cell projection | Cell-Local Surface + Cross-Cell Projection | Amazon's per-region retail with cross-region catalog; AWS Marketplace cross-region catalog | Single Global Cell — single point of failure |
-| ADR-0249 D-9 | Per-category certification-readiness wave | Phased Activation by Certification | Stripe Atlas + Connect + Treasury phased launches; Apple Pay country-by-country activation | Big-Bang Multi-Category Launch — fails when one cert blocks others |
+| ADR-0249 D-9 | Per-category certification-readiness wave | Phased Activation by Certification | Stripe Atlas + + Treasury phased launches; Apple Pay country-by-country activation | Big-Bang Multi-Category Launch — fails when one cert blocks others |
 | ADR-0249 D-10 | Cross-tenant + cross-cell saga | Compensating Saga across Cells | AWS Step Functions Saga; Temporal cross-cluster workflow | Two-Phase Commit Across Cells — synchronous 2PC blocking |
 | ADR-0249 D-11 | Marketplace facilitator tax (per-jurisdiction activation) | Marketplace Facilitator with Per-Jurisdiction Activation | Amazon's MTL implementation; Etsy's state-by-state activation; Shopify Tax | Seller Self-Reports Tax — collection failure + compliance risk |
 | ADR-0249 D-12 | Per-category Cedar gating | Per-Category Policy Overlay | Apple App Store category-specific review (Health/Medical); Shopify per-category requirements | Single Policy for All Categories — under-restricts healthcare etc. |
@@ -314,7 +314,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | ADR-0251 D-4 | Cell certification level matrix (general / hipaa / fedramp-mod / fedramp-high / dod-il5 / dod-il6) | Cell-Certification-as-Discrete-Levels | AWS regions partitioned (Commercial vs GovCloud vs ISO vs China vs Top Secret); Google Cloud regional compliance designations; Azure compliance offerings per region; AWS Outposts compliance binding | Single-Tier Substrate — one substrate must satisfy all regulations |
 | ADR-0251 D-5 | Tenant → cell pinning rule (mandatory) | Mandatory-Compliance-Pinning | AWS Organizations + Control Tower account-to-OU pinning; Azure Subscription compliance binding; Google Cloud Project assured-workloads binding | Drift via Tenant Movement — tenant migrates to incompatible cell silently |
 | ADR-0251 D-6 | Cross-pack traffic Cedar-gated; full deny matrix | Cross-Tenant Policy Gate | AWS Verified Permissions cross-account evaluation; AWS Resource Access Manager (RAM) cross-account share gating; Azure RBAC cross-tenant guest access; Google IAM cross-project deny | Implicit Cross-Tenant Trust — data flows freely across compliance domains |
-| ADR-0251 D-7 | BAA/DPA agreement lifecycle saga | Durable-Workflow-Driven Compliance-Agreement Lifecycle | AWS Artifact agreement automation; DocuSign + Adobe Sign integration; Stripe Connect onboarding workflow | Manual-Email-PDF Agreement Lifecycle — agreements lost in inboxes |
+| ADR-0251 D-7 | BAA/DPA agreement lifecycle saga | Durable-Workflow-Driven Compliance-Agreement Lifecycle | AWS Artifact agreement automation; DocuSign + Adobe Sign integration; Stripe onboarding workflow | Manual-Email-PDF Agreement Lifecycle — agreements lost in inboxes |
 | ADR-0251 D-8 | Breach notification per-jurisdiction workflow | Per-Jurisdiction Breach-Notification Workflow | AWS GuardDuty + Detective + Security Hub integrated incident response; Microsoft Sentinel + Compliance Manager breach playbook; Atlassian + PagerDuty + ServiceNow incident response | First-Breach Scramble — workflow built under deadline pressure with errors |
 | ADR-0251 D-9 | De-identification engine substrate (tokenization + k-anon + l-div + t-close + DP + HIPAA Safe Harbor + GDPR pseudonymization) | Shared De-Identification Substrate | AWS Glue DataBrew PII transforms; Google Cloud DLP API; Microsoft Presidio; Privitar (acquired by Informatica 2023) | Per-Use-Case De-ID Implementation — HIPAA Safe Harbor implemented incorrectly |
 | ADR-0251 D-10 | Encryption substrate (per-data-class + encryption-key BYOK + HYOK + FIPS 140-2/3 + HSM-rooted + PQ-hybrid) | Hierarchical-Key-Management Substrate | AWS KMS + CloudHSM + per-service-key hierarchy; Google Cloud KMS + Cloud HSM + External Key Manager; Azure Key Vault Managed HSM | Per-Service KMS — keys reimplemented per service inconsistently |
@@ -584,9 +584,9 @@ pattern catalog (Builder's Library + Well-Architected + service docs).
 - ADR-0243 — (general Stripe API design lineage in D-1 through D-13)
 - ADR-0244 D-1 — Globally Unique Slug + DNS-Compatible Segments (Stripe account ID conventions)
 - ADR-0244 D-3 — Single Source of Truth Tenant Registry (Stripe Accounts table)
-- ADR-0244 D-3.c — Capability-Based Authorization (Stripe Connect account capabilities)
+- ADR-0244 D-3.c — Capability-Based Authorization (Stripe account capabilities)
 - ADR-0244 D-5 — Caller-Side Attribute Resolution (Stripe webhook tenant_id in payload)
-- ADR-0244 D-6 — Time-Bounded Cross-Tenant Grant (Stripe Connect platform-on-behalf-of)
+- ADR-0244 D-6 — Time-Bounded Cross-Tenant Grant (Stripe platform-on-behalf-of)
 - ADR-0244 D-6.3 — Platform-on-Behalf-Of Pattern (Stripe Connect)
 - ADR-0244 D-8 — Per-Engineer Sandbox Tenant (Stripe Test Mode)
 - ADR-0244 D-11 — Closed-Enum Tenant Classification (Stripe account type enum)
@@ -598,19 +598,19 @@ pattern catalog (Builder's Library + Well-Architected + service docs).
 - ADR-0248 D-6 — Hot-Path-Intra-Cell (Stripe per-account locality)
 - ADR-0248 D-10 — Capacity-Aware Auto-Spawn (Stripe Cells 2024 sizing)
 - ADR-0248 D-12 — Audit-Trail-Backed Tenant Migration (Stripe Cells 2024 account migration)
-- ADR-0249 D-1 — Substrate-Shared, Surface-Specialised (Stripe Connect Platform docs)
+- ADR-0249 D-1 — Substrate-Shared, Surface-Specialised (Stripe Tenant/RBAC Packaging docs)
 - ADR-0249 D-1.3 — Saga Pattern for Distributed Order Workflow (Stripe Order API)
 - ADR-0249 D-1.7 — Pricing-Promotion-Tax Substrate (Stripe Tax)
 - ADR-0249 D-1.8 — Multi-Signal Trust Score with Cold-Start (Stripe Radar)
 - ADR-0249 D-2 — Per-Category Surface BC (Stripe Connect's diverse partners)
 - ADR-0249 D-7 — Cold-Start with Graduated Limits (Stripe Radar)
-- ADR-0249 D-9 — Phased Activation by Certification (Stripe Atlas + Connect + Treasury phased launches)
+- ADR-0249 D-9 — Phased Activation by Certification (Stripe Atlas + + Treasury phased launches)
 - ADR-0250 D-2 — Operationally-Ready-Before-Launch (Stripe Engineering blog 2014-2020)
 - ADR-0250 D-3 — Per-Market Launch Gate Matrix (Stripe per-country onboarding sequence)
 - ADR-0250 D-8 — Multi-Year Capability Roadmap (Stripe 2011-2025 product + country progression)
 - ADR-0250 D-10 — Sandbox-Tenant Pilot (Stripe test mode)
 - ADR-0250 D-12 — Graceful Capability Sunset (Stripe API version sunset cadence)
-- ADR-0251 D-7 — Durable-Workflow-Driven Compliance-Agreement Lifecycle (Stripe Connect onboarding)
+- ADR-0251 D-7 — Durable-Workflow-Driven Compliance-Agreement Lifecycle (Stripe onboarding)
 - ADR-0252 D-4 — Stripe Idempotency Key (Brandur Leach 2014; Stripe API docs)
 - ADR-0252 D-8 — Opaque Self-Describing Key (Stripe key shape)
 - ADR-0253 D-3.a — Modern Crypto at Edge (Stripe API TLS 1.3 only)
@@ -809,7 +809,7 @@ canonical commerce-substrate reference pattern.
 - ADR-0243 D-10 — Hot-Reload Configuration Distribution (etcd watch pattern; Apollo / Argo CD sync)
 - ADR-0243 D-11 — Static Stability + Fail-Closed (NIST SP 800-207 deny-by-default)
 - ADR-0244 D-4 — Typed Entity Policy Schema (OPA structured-data policies)
-- ADR-0246 D-2 — Single-Concern Bounded Contexts (DDD, Evans 2003; ADR-0132 no-suite forward policy)
+- ADR-0246 D-2 — Single-Concern Bounded Contexts (DDD, Evans 2003; ADR-0132 no-grouping forward policy)
 - ADR-0246 D-3 — Hexagonal Architecture with Port-in-Kernel (Cockburn 2005 Hexagonal)
 - ADR-0246 D-8 — PKI Root + Intermediate Certificate Chain (Sigstore Rekor)
 - ADR-0246 D-9 — Substrate Cohesion via PRD Amendment (DDD context-mapping, Evans 2003; ADR pattern, Nygard 2011)
@@ -1469,7 +1469,7 @@ to hunt for the right URL or paper.
   diverse partners): cited by ADR-0244 D-3.c, D-6, D-6.3; ADR-0249
   D-1, D-2; ADR-0251 D-7.
 - **Stripe Engineering blog 2014-2020**: cited by ADR-0250 D-2.
-- **Stripe Atlas + Treasury + Connect phased launches**: cited by
+- **Stripe Atlas + Treasury + phased launches**: cited by
   ADR-0249 D-9; ADR-0250 D-3, D-8.
 - **Stripe Radar**: cited by ADR-0249 D-1.8, D-7.
 - **Stripe Cells 2024**: cited by ADR-0248 D-3, D-4, D-10, D-12.

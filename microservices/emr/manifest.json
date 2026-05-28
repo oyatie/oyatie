@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.oyatie.dev/schemas/microservice-manifest.schema.json",
+  "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "emr",
   "title": "Electronic Medical Record (EMR/EHR)",
   "status": "wave-15m-b-authoring",

@@ -430,7 +430,7 @@ related_oyatie_adrs:
   - Rollback: use the rollback_pointer from action 15 and restore the previous authority flag before retrying.
 
 ## Phase 4: Verification
-- Named test suite: itsm-migration-bmc-regression-suite.
+- Named test set: itsm-migration-bmc-regression-suite.
 - Named SLO targets: P95 ticket read <140 ms, P95 comment write <220 ms, import lag <30 minutes, SLA clock parity 99.9%, and P1 incident loss exactly 0.
 - Named delta-detection algorithm: Updated timestamp overlap plus audit/changelog sequence replay, ticket graph Merkle hash keyed by tenant/projectOrInstance/ticketId/status/updated, and attachment checksum ledger.
 - Verification must be run from an operator account that is not the migration writer account.

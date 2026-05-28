@@ -69,7 +69,7 @@ pub enum GeneratedBackboneGrpcAdapterError {
     },
     Messenger(oya_messenger_message_stream_grpc::MessengerGrpcError),
     Mail(oya_mail_mailbox_store_grpc::MailGrpcError),
-    Social(oya_social_post_composition_grpc::SocialGrpcError),
+    Social(oya_community_social_post_composition_grpc::SocialGrpcError),
     Community(oya_community_post_store_grpc::CommunityGrpcError),
 }
 
@@ -180,10 +180,12 @@ pub fn social_publish_post_generated_write_plan(
     tenant: TenantSqlContext,
     request: social::v1::PublishPostRequest,
 ) -> Result<
-    oya_social_post_composition_grpc::GrpcResponse<oya_social_app::SocialPublishPlan>,
+    oya_community_social_post_composition_grpc::GrpcResponse<
+        oya_community_social_app::SocialPublishPlan,
+    >,
     GeneratedBackboneGrpcAdapterError,
 > {
-    let context = oya_social_post_composition_api::AuthorizedSocialContext {
+    let context = oya_community_social_post_composition_api::AuthorizedSocialContext {
         context: social_context(request.context)?,
         scope_ref: request.scope_ref,
         principal_ref: request.principal_ref,
@@ -192,7 +194,7 @@ pub fn social_publish_post_generated_write_plan(
         audit_correlation_id: request.audit_correlation_id,
     };
     let story_purge_now = nonzero_u64(request.story_purge_now);
-    let request = oya_social_post_composition_api::ComposePostRequest {
+    let request = oya_community_social_post_composition_api::ComposePostRequest {
         post_id: request.post_id,
         creator_ref: request.creator_ref,
         kind: social_artifact_kind(request.kind)?,
@@ -204,7 +206,7 @@ pub fn social_publish_post_generated_write_plan(
         ar_biometric_persisted: request.ar_biometric_persisted,
     };
 
-    oya_social_post_composition_grpc::publish_post_write_plan(
+    oya_community_social_post_composition_grpc::publish_post_write_plan(
         tenant,
         context,
         request,
@@ -319,11 +321,14 @@ fn mail_context(
 
 fn social_context(
     value: i32,
-) -> Result<oya_social_post_composition_api::SocialApiContext, GeneratedBackboneGrpcAdapterError> {
+) -> Result<
+    oya_community_social_post_composition_api::SocialApiContext,
+    GeneratedBackboneGrpcAdapterError,
+> {
     if value == social::v1::SocialContextKind::Personal as i32 {
-        Ok(oya_social_post_composition_api::SocialApiContext::Personal)
+        Ok(oya_community_social_post_composition_api::SocialApiContext::Personal)
     } else if value == social::v1::SocialContextKind::Work as i32 {
-        Ok(oya_social_post_composition_api::SocialApiContext::Work)
+        Ok(oya_community_social_post_composition_api::SocialApiContext::Work)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "PublishPostRequest",
@@ -335,14 +340,16 @@ fn social_context(
 
 fn social_artifact_kind(
     value: i32,
-) -> Result<oya_social_post_composition_api::SocialApiArtifactKind, GeneratedBackboneGrpcAdapterError>
-{
+) -> Result<
+    oya_community_social_post_composition_api::SocialApiArtifactKind,
+    GeneratedBackboneGrpcAdapterError,
+> {
     if value == social::v1::SocialArtifactKind::FeedPost as i32 {
-        Ok(oya_social_post_composition_api::SocialApiArtifactKind::FeedPost)
+        Ok(oya_community_social_post_composition_api::SocialApiArtifactKind::FeedPost)
     } else if value == social::v1::SocialArtifactKind::Story as i32 {
-        Ok(oya_social_post_composition_api::SocialApiArtifactKind::Story)
+        Ok(oya_community_social_post_composition_api::SocialApiArtifactKind::Story)
     } else if value == social::v1::SocialArtifactKind::CollaborativePost as i32 {
-        Ok(oya_social_post_composition_api::SocialApiArtifactKind::CollaborativePost)
+        Ok(oya_community_social_post_composition_api::SocialApiArtifactKind::CollaborativePost)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "PublishPostRequest",

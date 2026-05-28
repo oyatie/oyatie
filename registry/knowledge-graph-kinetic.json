@@ -34,7 +34,7 @@
       ]
     },
     "PromoteCapabilityStatus": {
-      "purpose": "Lifecycle promotion of a capability declaration: planned \u2192 operational (or downgrade).",
+      "purpose": "Lifecycle promotion of a capability declaration: planned → operational (or downgrade).",
       "input_node_type": "Capability",
       "required_fields": [
         "artifact_id",
@@ -138,7 +138,7 @@
       "lock_pattern": "registry row + destination archive folder"
     },
     "BumpPlanVersion": {
-      "purpose": "Increment plan version (vN.M.P \u2192 vN.M.(P+1)) after closing critic/architect fixes.",
+      "purpose": "Increment plan version (vN.M.P → vN.M.(P+1)) after closing critic/architect fixes.",
       "input_node_type": "Plan",
       "required_fields": [
         "plan_id",
@@ -246,7 +246,7 @@
       ]
     },
     "wave_acceptance": {
-      "purpose": "Drive a wave plan from pending approval \u2192 Accepted.",
+      "purpose": "Drive a wave plan from pending approval → Accepted.",
       "actions_in_order": [
         "LandConsensusVerdict (architect/critic rounds)",
         "BumpPlanVersion (per ITERATE)",
@@ -255,10 +255,10 @@
       ]
     },
     "capability_promotion": {
-      "purpose": "Promote a capability from planned \u2192 operational once evidence lands.",
+      "purpose": "Promote a capability from planned → operational once evidence lands.",
       "actions_in_order": [
         "AddRegistryRow (evidence: crate path in HEAD; lane status=active; green CI run URL)",
-        "PromoteCapabilityStatus (capability planned\u2192operational)",
+        "PromoteCapabilityStatus (capability planned→operational)",
         "EmitEvidenceBundle (audit)"
       ]
     },

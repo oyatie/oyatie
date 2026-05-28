@@ -171,7 +171,7 @@ cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo tzdb
 
 - File the regression upstream (IANA tz mailing list +
   `chrono-tz` GitHub issue).
-- Update the `rrule_edge_cases` test suite with the offending case
+- Update the `rrule_edge_cases` test set with the offending case
   if it was not already covered.
 - Review the auto-promoter's gating logic — did the bumping
   ChangeSet run the full corpus before opening for review? If not,
