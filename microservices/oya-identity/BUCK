@@ -1,0 +1,40 @@
+# Buck2 build targets for oya-identity.
+# Placeholder — full rule wiring follows ADR-0476 D1-D5 implementation phases.
+
+rust_library(
+    name = "oya-identity-kernel",
+    srcs = glob(["crates/oya-identity-kernel/src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "oya-identity-rest",
+    srcs = glob(["crates/oya-identity-rest/src/**/*.rs"]),
+    deps = [":oya-identity-kernel"],
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "oya-identity-app",
+    srcs = glob(["crates/oya-identity-app/src/**/*.rs"]),
+    deps = [
+        ":oya-identity-kernel",
+        ":oya-identity-rest",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+alias(
+    name = "check",
+    actual = ":oya-identity-app",
+)
+
+alias(
+    name = "test",
+    actual = ":oya-identity-app",
+)
+
+alias(
+    name = "image",
+    actual = ":oya-identity-app",
+)
