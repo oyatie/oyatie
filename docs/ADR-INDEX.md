@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 320
-- **Numbering:** ADR-0001..ADR-0383 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0384
-- **Status counts:** Accepted 142, Accepted (amendment) 2, Amended 1, Proposed 89, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 34, superseded 1
+- **Total ADRs:** 321
+- **Numbering:** ADR-0001..ADR-0384 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0385
+- **Status counts:** Accepted 142, Accepted (amendment) 2, Amended 1, Proposed 90, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 34, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -341,11 +341,12 @@ doc_status: published
 | ADR-0381 | Proposed | Kaniko → BuildKit migration + multi-node Talos cell topology | ops-platform | [`ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md`](decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md) |
 | ADR-0382 | Proposed | Bare-metal Talos zero-day bring-up via Sidero Metal | ops-platform | [`ADR-0382-bare-metal-talos-zero-day-sidero.md`](decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md) |
 | ADR-0383 | Accepted | Observability stack reconciliation: keep Loki / Tempo / Mimir / Grafana under AGPL-3 | ops-platform | [`ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md`](decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md) |
+| ADR-0384 | Proposed | LLM gateway Path B redesign: OAuth subscription-pool replacing static API-key pool | council-architecture | [`ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md`](decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0384), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0385), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -372,6 +373,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 320 ADR files (sorted ascending)
+- `decisions/` directory listing — 321 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
