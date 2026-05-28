@@ -1,0 +1,21 @@
+# ADR-0381 D2 — control-plane cell patch.
+#
+# Applied to all 3 CP nodes (cp-0/cp-1/cp-2) so kubelet registers them with the
+# `oya.cell/foundation=true` label. The label is read by:
+#   - ADR-0083 pod-runtime-tier scheduling (Tier-0 foundation pods land here).
+#   - ADR-0381 D3 cell-boundary NetworkPolicies (foundation-only seams).
+#   - Future operator dashboards / debug tooling.
+#
+# No taint here — CP nodes are already non-schedulable for non-system pods via
+# the standard node-role.kubernetes.io/control-plane:NoSchedule taint Talos
+# applies by default.
+#
+# Apply with:
+#   talosctl apply-config --insecure --nodes $IP \
+#     --file $WORKDIR/controlplane.yaml \
+#     --config-patch @infra/talos/local/patches/cell-foundation.yaml
+machine:
+  kubelet:
+    nodeLabels:
+      oya.cell/foundation: "true"
+      oya.cell/role: "control-plane"
