@@ -6,10 +6,11 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# OAuth subscription-pool REST adapter (ADR-0384 Path B, Stage-5 GREEN).
+# OAuth subscription-pool REST adapter (ADR-0384 Path B, Stage-6 GREEN).
 # Owns:
-#   D2 — axum reverse-proxy router (wired in Stage-5 GREEN)
-#   D3 — Anthropic provider adapter + OAuth refresh state machine (reqwest blocking)
+#   D2 — axum reverse-proxy router
+#   D3 — Anthropic provider adapter + async OAuth refresh (reqwest async, Item 1)
+#         + upstream OAuth singleflight (Item 2)
 #   D6 — EventSink fan-out to ClickHouse + Valkey Stream (trait mock here)
 #   D8 — OpenBao envelope-encrypted refresh-token storage (trait mock here)
 #
@@ -29,8 +30,9 @@ bytes.workspace = true
 # axum + reqwest not yet in workspace deps — pinned directly here per ADR-0090
 # blessed-allowlist. Add to workspace in a follow-up consolidation PR.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
-tokio.workspace = true
+# blocking feature removed (Item 1: migrated to async reqwest::Client).
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
 oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
@@ -41,6 +43,7 @@ tower = { version = "0.5", features = ["util"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 http-body-util = "0.1"
 bytes.workspace = true
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 
 [lints]
 workspace = true

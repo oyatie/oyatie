@@ -678,6 +678,9 @@ members = [
   # Cedar adapter implementing the kernel's AuthzGate trait (ADR-0384 D7 +
   # ADR-0183 inheritance). Consumes the bundled .cedar policy file.
   "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-authz-cedar-adapter",
+  # OAuth subscription-pool app composition crate + cloud-intelligence binary
+  # (ADR-0384 Path B, Stage-6). Wires kernel + Cedar + REST + in-process stubs.
+  "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-app",
   # ci-webhook-gateway µservice kernel (ADR-0387). Stage-4 RED: CiTriggerEvent,
   # WebhookSignature, JenkinsJob, CommitStatusContext trait seams + failing tests.
   # Stage-5 GREEN implements ed25519 verifier, Jenkins REST client, GitHub status poster.
