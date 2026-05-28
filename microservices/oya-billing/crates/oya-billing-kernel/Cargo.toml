@@ -1,0 +1,27 @@
+[package]
+name = "oya-billing-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Pure billing domain: subscription/plan/invoice state machines + value objects. No I/O, no async, std+serde only. ADR-0478 D1-D2."
+
+[package.metadata.oya]
+microservice = "oya-billing"
+bounded_context = "billing-substrate"
+layer = "kernel"
+owner_team = "council-billing"
+adr_anchors = ["ADR-0083", "ADR-0478"]
+data_classification = "PII_FINANCIAL, PII_USER_DATA, AUDIT, INTERNAL_ONLY"
+
+[lib]
+name = "oya_billing_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+
+[lints]
+workspace = true
