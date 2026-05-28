@@ -6385,6 +6385,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-llm-gateway-oauth-pool-codex-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "httpmock",
+ "oya-llm-gateway-oauth-pool-kernel",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "oya-llm-gateway-oauth-pool-kernel"
 version = "0.1.0"
 dependencies = [
@@ -8867,12 +8883,14 @@ dependencies = [
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
+ "tokio-util",
  "tower 0.5.3",
  "tower-http",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams",
  "web-sys",
 ]
 
