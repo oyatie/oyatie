@@ -1,0 +1,24 @@
+[package]
+name = "oya-llm-gateway-oauth-pool-authz-cedar-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Cedar (cedar-policy crate, Apache-2.0, AWS) adapter implementing the kernel's
+# AuthzGate trait (ADR-0384 D7). Evaluates kernel AuthzRequests against the
+# bundled policy at microservices/llm-gateway/policy/llm-gateway.cedar with
+# Cedar's deny-by-default + forbid-wins semantics (ADR-0183 inheritance).
+
+[dependencies]
+oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
+cedar-policy = { workspace = true }
+
+[lib]
+name = "oya_llm_gateway_oauth_pool_authz_cedar_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

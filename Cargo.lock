@@ -5783,6 +5783,14 @@ name = "oya-llm-gateway-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-llm-gateway-oauth-pool-authz-cedar-adapter"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "oya-llm-gateway-oauth-pool-kernel",
+]
+
+[[package]]
 name = "oya-llm-gateway-oauth-pool-kernel"
 version = "0.1.0"
 
