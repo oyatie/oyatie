@@ -6,11 +6,15 @@
 //! - [`oya_llm_gateway_oauth_pool_kernel`] — pure-Rust pool + trait seams.
 //! - [`oya_llm_gateway_oauth_pool_authz_cedar_adapter`] — Cedar AuthzGate.
 //! - [`oya_llm_gateway_oauth_pool_rest`] — axum REST adapter + AnthropicAdapter.
-//! - In-process stubs for OpenBaoSecretStore and EventSink (Stage-7 replaces
-//!   these with the real OpenBao adapter and ClickHouse/Valkey sinks).
+//! - [`oya_llm_gateway_oauth_pool_openbao_adapter::OpenBaoTransitStore`] — real
+//!   OpenBao Transit envelope-encrypted secret store (D8).
+//! - [`oya_llm_gateway_oauth_pool_eventsink_clickhouse_adapter::ClickHouseEventSink`] +
+//!   [`oya_llm_gateway_oauth_pool_eventsink_valkey_adapter::ValkeyEventSink`] — real
+//!   D6 event sinks fanned out via [`EventSinkFanout`].
 //!
-//! Entry-point for the binary is `src/main.rs`; `build_app` is the testable
-//! composition function.
+//! Entry-point for the binary is `src/main.rs`; `build_app` is the
+//! production composition function. `build_app_for_tests` uses in-process
+//! mocks and is available unconditionally for unit/integration tests.
 //!
 //! ADR-0083 Tier-3: no unwrap/expect/panic on the request path. Errors from
 //! build_app propagate as `AppBuildError`.
@@ -20,11 +24,17 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use oya_llm_gateway_oauth_pool_authz_cedar_adapter::CedarAuthzGate;
+use oya_llm_gateway_oauth_pool_eventsink_clickhouse_adapter::ClickHouseEventSink;
+use oya_llm_gateway_oauth_pool_eventsink_valkey_adapter::ValkeyEventSink;
 use oya_llm_gateway_oauth_pool_kernel::{
     EventSink, LlmGatewayEvent, OAuthSubscription, Provider, SelectionStrategy, SubscriptionPool,
     TenantId,
 };
-use oya_llm_gateway_oauth_pool_rest::{AppState, OpenBaoSecretStore, RestAdapterError};
+use oya_llm_gateway_oauth_pool_openbao_adapter::OpenBaoTransitStore;
+use oya_llm_gateway_oauth_pool_rest::{
+    AppState, EventSinkFanout, OpenBaoSecretStore, RestAdapterError,
+};
+use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
 
 // ---------------------------------------------------------------------------
@@ -42,20 +52,43 @@ pub struct AppConfig {
     /// Anthropic API base URL (override for testing; default is production URL).
     pub anthropic_base_url: String, // data_class: INTERNAL_ONLY
     /// Optional comma-separated initial seat handles for bootstrapping the pool.
-    /// Format: `seat_id:handle,...` — only used for the in-process stub stage.
-    /// Stage-7: seats are loaded from OpenBao at start-up.
+    /// Format: `seat_id:handle,...`
     pub initial_seats: Vec<(String, String)>, // data_class: INTERNAL_ONLY
+    /// OpenBao base URL for Transit envelope-encryption (D8).
+    /// e.g. `https://openbao.infra.svc:8200`
+    pub openbao_url: String, // data_class: INTERNAL_ONLY
+    /// OpenBao vault token. Sourced from `OYA_CLOUD_INTEL_OPENBAO_TOKEN`.
+    pub openbao_token: String, // data_class: SECRET
+    /// Transit key name used for envelope-encryption of refresh tokens.
+    pub transit_key_name: String, // data_class: INTERNAL_ONLY
+    /// ClickHouse HTTP URL for OLAP event sink (D6).
+    /// e.g. `http://clickhouse.analytics.svc:8123`
+    pub clickhouse_url: String, // data_class: INTERNAL_ONLY
+    /// ClickHouse user.
+    pub clickhouse_user: String, // data_class: INTERNAL_ONLY
+    /// ClickHouse password. Sourced from `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD`.
+    pub clickhouse_password: String, // data_class: SECRET
+    /// Valkey/Redis URL for stream event sink (D6).
+    /// e.g. `redis://valkey.infra.svc:6379` or `rediss://...` for TLS.
+    pub valkey_url: String, // data_class: INTERNAL_ONLY
 }
 
 impl AppConfig {
     /// Read config from environment variables.
     ///
-    /// | Env var                          | Default                              |
-    /// |----------------------------------|--------------------------------------|
-    /// | `OYA_CLOUD_INTEL_LISTEN_ADDR`    | `0.0.0.0:8080`                       |
-    /// | `OYA_CLOUD_INTEL_TENANT_ID`      | *(required)*                         |
-    /// | `OYA_CLOUD_INTEL_ANTHROPIC_URL`  | `https://api.anthropic.com`          |
-    /// | `OYA_CLOUD_INTEL_INITIAL_SEATS`  | *(empty)*                            |
+    /// | Env var                              | Default                          |
+    /// |--------------------------------------|----------------------------------|
+    /// | `OYA_CLOUD_INTEL_LISTEN_ADDR`        | `0.0.0.0:8080`                   |
+    /// | `OYA_CLOUD_INTEL_TENANT_ID`          | *(required)*                     |
+    /// | `OYA_CLOUD_INTEL_ANTHROPIC_URL`      | `https://api.anthropic.com`      |
+    /// | `OYA_CLOUD_INTEL_INITIAL_SEATS`      | *(empty)*                        |
+    /// | `OYA_CLOUD_INTEL_OPENBAO_URL`        | *(required)*                     |
+    /// | `OYA_CLOUD_INTEL_OPENBAO_TOKEN`      | *(required)*                     |
+    /// | `OYA_CLOUD_INTEL_TRANSIT_KEY_NAME`   | `llm-gateway-rt`                 |
+    /// | `OYA_CLOUD_INTEL_CLICKHOUSE_URL`     | `http://clickhouse.analytics.svc:8123` |
+    /// | `OYA_CLOUD_INTEL_CLICKHOUSE_USER`    | `default`                        |
+    /// | `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD`| *(required)*                     |
+    /// | `OYA_CLOUD_INTEL_VALKEY_URL`         | `redis://valkey.infra.svc:6379`  |
     pub fn from_env() -> Result<Self, AppBuildError> {
         let listen_addr = std::env::var("OYA_CLOUD_INTEL_LISTEN_ADDR")
             .unwrap_or_else(|_| "0.0.0.0:8080".to_string());
@@ -67,11 +100,36 @@ impl AppConfig {
         let initial_seats = parse_initial_seats(
             &std::env::var("OYA_CLOUD_INTEL_INITIAL_SEATS").unwrap_or_default(),
         );
+        let openbao_url = std::env::var("OYA_CLOUD_INTEL_OPENBAO_URL").map_err(|_| {
+            AppBuildError::Config("OYA_CLOUD_INTEL_OPENBAO_URL is required".to_string())
+        })?;
+        let openbao_token = std::env::var("OYA_CLOUD_INTEL_OPENBAO_TOKEN").map_err(|_| {
+            AppBuildError::Config("OYA_CLOUD_INTEL_OPENBAO_TOKEN is required".to_string())
+        })?;
+        let transit_key_name = std::env::var("OYA_CLOUD_INTEL_TRANSIT_KEY_NAME")
+            .unwrap_or_else(|_| "llm-gateway-rt".to_string());
+        let clickhouse_url = std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_URL")
+            .unwrap_or_else(|_| "http://clickhouse.analytics.svc:8123".to_string());
+        let clickhouse_user = std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_USER")
+            .unwrap_or_else(|_| "default".to_string());
+        let clickhouse_password =
+            std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD").map_err(|_| {
+                AppBuildError::Config("OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD is required".to_string())
+            })?;
+        let valkey_url = std::env::var("OYA_CLOUD_INTEL_VALKEY_URL")
+            .unwrap_or_else(|_| "redis://valkey.infra.svc:6379".to_string());
         Ok(Self {
             listen_addr,
             tenant_id,
             anthropic_base_url,
             initial_seats,
+            openbao_url,
+            openbao_token,
+            transit_key_name,
+            clickhouse_url,
+            clickhouse_user,
+            clickhouse_password,
+            valkey_url,
         })
     }
 }
@@ -134,7 +192,22 @@ impl From<reqwest::Error> for AppBuildError {
 }
 
 // ---------------------------------------------------------------------------
-// In-process stubs (Stage-7: replace with real adapters)
+// EventSinkFanoutAdapter — thin EventSink wrapper around EventSinkFanout
+// ---------------------------------------------------------------------------
+
+/// Wraps [`EventSinkFanout`] so it can be stored as `Arc<dyn EventSink>`.
+/// `EventSinkFanout` exposes `broadcast()` rather than `emit()` directly;
+/// this adapter bridges the two.
+struct EventSinkFanoutAdapter(EventSinkFanout);
+
+impl EventSink for EventSinkFanoutAdapter {
+    fn emit(&self, event: LlmGatewayEvent) {
+        self.0.broadcast(event);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// In-process stubs (kept for build_app_for_tests)
 // ---------------------------------------------------------------------------
 
 /// In-process stub secret store. Holds a plaintext map keyed by handle.
@@ -212,17 +285,16 @@ impl EventSink for InProcessEventSink {
 // build_app — testable composition root
 // ---------------------------------------------------------------------------
 
-/// Wire up all components and return the shared [`AppState`].
+/// Wire up all components with **real production adapters** and return the
+/// shared [`AppState`].
 ///
-/// This function is the composition root: it constructs the Cedar gate, the
-/// in-process stubs, the subscription pool, and the shared `reqwest::Client`,
-/// then assembles them into an [`AppState`] ready to be passed to
-/// [`oya_llm_gateway_oauth_pool_rest::build_router`].
+/// Uses:
+/// - [`OpenBaoTransitStore`] for D8 envelope-encrypted secret storage.
+/// - [`ClickHouseEventSink`] + [`ValkeyEventSink`] fanned out via
+///   [`EventSinkFanout`] for D6 event emission.
 ///
-/// `config.initial_seats` entries are registered into the pool using
-/// `SubscriptionState::Active` so the gateway can serve traffic immediately
-/// on startup without waiting for a refresh cycle (Stage-7: token bootstrap
-/// from OpenBao replaces this).
+/// Reads all adapter config from `AppConfig` (populated from env vars).
+/// Returns [`AppBuildError`] on any fatal configuration or connection failure.
 pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
     // Cedar gate (loaded from bundled policy; fail-closed on parse error).
     let gate = CedarAuthzGate::with_default_policy()
@@ -232,18 +304,102 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
     let tenant_id = TenantId::new(&config.tenant_id)
         .map_err(|_| AppBuildError::Config(format!("invalid tenant_id: {:?}", config.tenant_id)))?;
 
-    // In-process secret store.
-    let secret_store = Arc::new(InProcessSecretStore::new());
+    // Build shared reqwest::Client used by both AppState and OpenBaoTransitStore.
+    let http_client = Arc::new(
+        reqwest::Client::builder()
+            .build()
+            .map_err(AppBuildError::HttpClient)?,
+    );
+
+    // Real OpenBao Transit secret store (D8).
+    let secret_store: Arc<dyn OpenBaoSecretStore> = Arc::new(OpenBaoTransitStore::new(
+        Arc::clone(&http_client),
+        &config.openbao_url,
+        &config.transit_key_name,
+        &config.openbao_token,
+    ));
+
+    // Real D6 event sinks — ClickHouse + Valkey fanned out.
+    let ch_sink = ClickHouseEventSink::new(ClickHouseConfig {
+        url: config.clickhouse_url.clone(),
+        user: config.clickhouse_user.clone(),
+        password: config.clickhouse_password.clone(),
+    });
+
+    let valkey_sink = ValkeyEventSink::connect(&config.valkey_url)
+        .map_err(|e| AppBuildError::Config(format!("valkey connect failed: {e}")))?;
+
+    let mut fanout = EventSinkFanout::new();
+    fanout.add_sink(Box::new(ch_sink));
+    fanout.add_sink(Box::new(valkey_sink));
+    let sink: Arc<dyn EventSink + Send + Sync> = Arc::new(EventSinkFanoutAdapter(fanout));
 
     // Subscription pool (one pool per tenant-provider pair; v1 = Anthropic only).
+    let pool_arc = build_pool(tenant_id.clone(), &config.initial_seats)?;
+
+    // Build AppState (uses the shared reqwest::Client for upstream proxy calls).
+    let state = AppState::new(
+        pool_arc,
+        Arc::new(gate),
+        sink,
+        secret_store,
+        config.anthropic_base_url,
+        tenant_id,
+    )
+    .map_err(AppBuildError::HttpClient)?;
+
+    Ok(Arc::new(state))
+}
+
+/// Wire up all components with **in-process mocks** for unit and integration
+/// tests. This constructor is always available (not gated behind a feature flag)
+/// so the test suite never depends on live OpenBao / ClickHouse / Valkey.
+pub fn build_app_for_tests(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
+    // Cedar gate.
+    let gate = CedarAuthzGate::with_default_policy()
+        .map_err(|e| AppBuildError::CedarPolicy(e.to_string()))?;
+
+    // Tenant ID validation.
+    let tenant_id = TenantId::new(&config.tenant_id)
+        .map_err(|_| AppBuildError::Config(format!("invalid tenant_id: {:?}", config.tenant_id)))?;
+
+    // In-process secret store.
+    let secret_store = Arc::new(InProcessSecretStore::new());
+    for (_, handle) in &config.initial_seats {
+        secret_store.preload(handle, "test-placeholder-token");
+    }
+
+    // In-process event sink.
+    let sink: Arc<dyn EventSink + Send + Sync> = Arc::new(InProcessEventSink);
+
+    // Subscription pool.
+    let pool_arc = build_pool(tenant_id.clone(), &config.initial_seats)?;
+
+    let state = AppState::new(
+        pool_arc,
+        Arc::new(gate),
+        sink,
+        secret_store,
+        config.anthropic_base_url,
+        tenant_id,
+    )
+    .map_err(AppBuildError::HttpClient)?;
+
+    Ok(Arc::new(state))
+}
+
+/// Shared pool construction helper used by both `build_app` and
+/// `build_app_for_tests`.
+fn build_pool(
+    tenant_id: TenantId,
+    initial_seats: &[(String, String)],
+) -> Result<Arc<Mutex<SubscriptionPool>>, AppBuildError> {
     let mut pool = SubscriptionPool::new(
         tenant_id.clone(),
         Provider::Anthropic,
         SelectionStrategy::RoundRobin,
     );
-
-    // Bootstrap initial seats from config.
-    for (seat_str, handle) in &config.initial_seats {
+    for (seat_str, handle) in initial_seats {
         use oya_llm_gateway_oauth_pool_kernel::{SeatId, SubscriptionId, SubscriptionState};
         let seat_id = SeatId::new(seat_str.as_str()).map_err(|_| {
             AppBuildError::PoolSetup(format!("invalid seat_id in initial_seats: {seat_str}"))
@@ -261,28 +417,8 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
         );
         pool.add_seat(sub)
             .map_err(|e| AppBuildError::PoolSetup(format!("add_seat failed: {e:?}")))?;
-        // Pre-load a placeholder token so the in-process store doesn't return
-        // SecretNotFound on first request. Stage-7: real token loaded from OpenBao.
-        secret_store.preload(handle, "stage7-openbao-placeholder");
     }
-
-    let pool_arc = Arc::new(Mutex::new(pool));
-
-    // In-process event sink.
-    let sink: Arc<dyn EventSink + Send + Sync> = Arc::new(InProcessEventSink);
-
-    // Build AppState (constructs shared reqwest::Client internally).
-    let state = AppState::new(
-        pool_arc,
-        Arc::new(gate),
-        sink,
-        secret_store,
-        config.anthropic_base_url,
-        tenant_id,
-    )
-    .map_err(AppBuildError::HttpClient)?;
-
-    Ok(Arc::new(state))
+    Ok(Arc::new(Mutex::new(pool)))
 }
 
 // ---------------------------------------------------------------------------
@@ -299,39 +435,54 @@ mod tests {
             tenant_id: "test-tenant".to_string(),
             anthropic_base_url: "http://127.0.0.1:1".to_string(),
             initial_seats: vec![],
+            // These fields are not used by build_app_for_tests (in-process mocks).
+            openbao_url: "http://127.0.0.1:1".to_string(),
+            openbao_token: "test-token".to_string(),
+            transit_key_name: "llm-gateway-rt".to_string(),
+            clickhouse_url: "http://127.0.0.1:1".to_string(),
+            clickhouse_user: "default".to_string(),
+            clickhouse_password: "test".to_string(),
+            valkey_url: "redis://127.0.0.1:1".to_string(),
         }
     }
 
     #[test]
-    fn build_app_returns_state_for_valid_config() {
+    fn build_app_for_tests_returns_state_for_valid_config() {
         let config = test_config();
-        let state = build_app(config).unwrap();
+        let state = build_app_for_tests(config).unwrap();
         // Pool exists and has 0 seats (no initial_seats).
         let pool = state.pool.lock().unwrap();
         assert_eq!(pool.seat_count(), 0);
     }
 
     #[test]
-    fn build_app_registers_initial_seats() {
+    fn build_app_for_tests_registers_initial_seats() {
         let mut config = test_config();
         config.initial_seats = vec![
             ("seat-a".to_string(), "handle-a".to_string()),
             ("seat-b".to_string(), "handle-b".to_string()),
         ];
-        let state = build_app(config).unwrap();
+        let state = build_app_for_tests(config).unwrap();
         let pool = state.pool.lock().unwrap();
         assert_eq!(pool.seat_count(), 2);
     }
 
     #[test]
-    fn build_app_fails_on_empty_tenant_id() {
+    fn build_app_for_tests_fails_on_empty_tenant_id() {
         let config = AppConfig {
             listen_addr: "127.0.0.1:0".to_string(),
             tenant_id: "".to_string(),
             anthropic_base_url: "http://127.0.0.1:1".to_string(),
             initial_seats: vec![],
+            openbao_url: "http://127.0.0.1:1".to_string(),
+            openbao_token: "test-token".to_string(),
+            transit_key_name: "llm-gateway-rt".to_string(),
+            clickhouse_url: "http://127.0.0.1:1".to_string(),
+            clickhouse_user: "default".to_string(),
+            clickhouse_password: "test".to_string(),
+            valkey_url: "redis://127.0.0.1:1".to_string(),
         };
-        match build_app(config) {
+        match build_app_for_tests(config) {
             Err(err) => assert!(
                 matches!(err, AppBuildError::Config(_)),
                 "expected Config error, got: {err}"
