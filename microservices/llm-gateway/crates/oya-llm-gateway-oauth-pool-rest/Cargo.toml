@@ -31,8 +31,10 @@ bytes.workspace = true
 # blessed-allowlist. Add to workspace in a follow-up consolidation PR.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 # blocking feature removed (Item 1: migrated to async reqwest::Client).
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+# stream feature added (Stage-7: SSE passthrough via bytes_stream()).
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "stream"] }
 tokio = { workspace = true, features = ["sync"] }
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
@@ -43,7 +45,8 @@ tower = { version = "0.5", features = ["util"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 http-body-util = "0.1"
 bytes.workspace = true
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "stream"] }
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
 
 [lints]
 workspace = true

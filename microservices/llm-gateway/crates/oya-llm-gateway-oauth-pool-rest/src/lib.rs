@@ -1,6 +1,6 @@
 //! llm-gateway REST adapter — OAuth subscription pool (ADR-0384 Path B).
 //!
-//! Stage-6 GREEN. Implements:
+//! Stage-6 GREEN. Stage-7 SSE passthrough added. Implements:
 //! - [`OpenBaoSecretStore`] trait — D8 envelope-encrypted refresh-token storage seam.
 //! - [`EventSinkFanout`] — D6 fan-out broadcaster.
 //! - [`AnthropicAdapter`] — D3 Anthropic OAuth refresh + async reqwest proxy.
@@ -18,13 +18,24 @@
 //!   on the same handle now coalesce exactly ONE upstream OAuth call (Item 2).
 //! - `handle_proxy` no longer uses `spawn_blocking`.
 //!
+//! Stage-7 changes (SSE streaming passthrough):
+//! - `AnthropicAdapter::proxy_stream` — returns a `BoxStream` of raw SSE `Bytes`
+//!   chunks from Anthropic. Detected by `Accept: text/event-stream` request header.
+//! - `SseStreamWithLease` — wrapper that holds a `SeatLease` alive for the full
+//!   duration of the stream. Lease is completed with `Ok` on clean end-of-stream,
+//!   or `Released` (via `Drop`) if the client disconnects mid-stream.
+//! - `handle_proxy` branches on `Accept: text/event-stream` and returns a chunked
+//!   HTTP/1.1 `text/event-stream` response instead of a buffered JSON body.
+//!
 //! TODO(codex-adapter): add `CodexAdapter` mirroring `AnthropicAdapter` once
 //! the Codex OAuth refresh flow is documented. Tracked as a separate follow-up
 //! PR per ADR-0384 §v1-scope.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, HashMap};
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use axum::Router;
@@ -34,9 +45,13 @@ use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use bytes::Bytes;
+use futures::Stream;
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tracing::{debug, warn};
+
+/// Type alias for a heap-allocated, `Send + 'static` SSE byte stream.
+pub type BoxStream<T> = Pin<Box<dyn Stream<Item = T> + Send + 'static>>;
 
 pub use oya_llm_gateway_oauth_pool_kernel::{
     AgentId, AuthzGate, EventSink, LlmGatewayEvent, Provider, SeatId, SeatLease, SeatOutcome,
@@ -71,6 +86,24 @@ impl From<SubscriptionPoolError> for RestAdapterError {
         RestAdapterError::PoolError(e)
     }
 }
+
+impl std::fmt::Display for RestAdapterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SecretNotFound => write!(f, "secret not found"),
+            Self::SecretStoreUnavailable(msg) => write!(f, "secret store unavailable: {msg}"),
+            Self::InvalidSecret => write!(f, "invalid secret"),
+            Self::UpstreamError { status, body } => {
+                write!(f, "upstream error {status}: {body}")
+            }
+            Self::OAuthRefreshFailed(msg) => write!(f, "OAuth refresh failed: {msg}"),
+            Self::PoolError(e) => write!(f, "pool error: {e:?}"),
+            Self::SinkEmitFailed(msg) => write!(f, "sink emit failed: {msg}"),
+        }
+    }
+}
+
+impl std::error::Error for RestAdapterError {}
 
 // ---------------------------------------------------------------------------
 // D8 — OpenBao envelope-encrypted refresh-token storage seam
@@ -566,6 +599,161 @@ impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
             body,
         })
     }
+
+    /// Forward `request` to the Anthropic API as an SSE stream.
+    ///
+    /// Detects streaming intent via `Accept: text/event-stream` in `request.headers`.
+    /// Returns the upstream HTTP status alongside a `BoxStream` of raw `Bytes` chunks
+    /// (the SSE wire bytes — not parsed or re-framed).
+    ///
+    /// The caller is responsible for attaching `Content-Type: text/event-stream`,
+    /// `Cache-Control: no-cache`, and `Connection: keep-alive` to the HTTP response,
+    /// and for driving the stream to completion before releasing the associated
+    /// [`SeatLease`].
+    ///
+    /// ADR-0083 Tier-3: this method never panics on the request path. All errors
+    /// that occur before the first byte is received are returned as `Err(...)`; errors
+    /// that occur mid-stream are surfaced as `Err` items in the returned `BoxStream`.
+    pub async fn proxy_stream(
+        &self,
+        http_client: &reqwest::Client,
+        access_token: &str,
+        request: ProxyRequest,
+    ) -> Result<(u16, BoxStream<Result<Bytes, RestAdapterError>>), RestAdapterError> {
+        let url = format!("{}{}", self.base_url, request.path);
+
+        // RFC 7230 §6.1 hop-by-hop headers — never forwarded.
+        let hop_by_hop: std::collections::HashSet<&str> = [
+            "connection",
+            "keep-alive",
+            "proxy-authenticate",
+            "proxy-authorization",
+            "te",
+            "trailers",
+            "transfer-encoding",
+            "upgrade",
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        let connection_tokens: std::collections::HashSet<String> = request
+            .headers
+            .get("connection")
+            .map(|v| v.split(',').map(|t| t.trim().to_lowercase()).collect())
+            .unwrap_or_default();
+
+        let mut req_builder = http_client
+            .post(&url)
+            .header("Authorization", format!("Bearer {access_token}"))
+            .header("anthropic-version", ANTHROPIC_VERSION)
+            .header("anthropic-beta", ANTHROPIC_BETA_OAUTH)
+            // Always set the SSE accept header for stream requests.
+            .header("Accept", "text/event-stream")
+            .body(request.body);
+
+        for (k, v) in &request.headers {
+            let key_lower = k.to_lowercase();
+            if matches!(
+                key_lower.as_str(),
+                "authorization" | "host" | "content-length" | "accept"
+            ) {
+                continue;
+            }
+            if hop_by_hop.contains(key_lower.as_str()) {
+                continue;
+            }
+            if connection_tokens.contains(&key_lower) {
+                continue;
+            }
+            req_builder = req_builder.header(k.as_str(), v.as_str());
+        }
+
+        let resp = req_builder
+            .send()
+            .await
+            .map_err(|e| RestAdapterError::UpstreamError {
+                status: 502,
+                body: e.to_string(),
+            })?;
+
+        let status = resp.status().as_u16();
+
+        // Map the reqwest byte stream errors to RestAdapterError.
+        use futures::StreamExt as _;
+        let byte_stream: BoxStream<Result<Bytes, RestAdapterError>> =
+            Box::pin(resp.bytes_stream().map(|r| {
+                r.map_err(|e| RestAdapterError::UpstreamError {
+                    status: 502,
+                    body: e.to_string(),
+                })
+            }));
+
+        Ok((status, byte_stream))
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Stage-7 — SseStreamWithLease
+// ---------------------------------------------------------------------------
+
+/// Wraps a raw SSE `BoxStream` and holds the [`SeatLease`] alive until the
+/// stream completes or the client disconnects.
+///
+/// - When the inner stream signals `Poll::Ready(None)` (clean end), the lease
+///   is completed with [`SeatOutcome::Ok`].
+/// - When a mid-stream error is observed, the lease is completed with
+///   [`SeatOutcome::ServerError5xx`].
+/// - When the struct is dropped before `Poll::Ready(None)` (client disconnect
+///   or stream abandoned), the [`SeatLease`] `Drop` impl fires with the
+///   `Released` fallback, satisfying the kernel reservation invariant.
+pub struct SseStreamWithLease {
+    inner: BoxStream<Result<Bytes, RestAdapterError>>, // data_class: INTERNAL_ONLY
+    lease: Option<SeatLease>,                          // data_class: INTERNAL_ONLY
+    errored: bool,                                     // data_class: INTERNAL_ONLY
+}
+
+impl SseStreamWithLease {
+    /// Construct with a stream and its associated lease.
+    pub fn new(inner: BoxStream<Result<Bytes, RestAdapterError>>, lease: SeatLease) -> Self {
+        Self {
+            inner,
+            lease: Some(lease),
+            errored: false,
+        }
+    }
+
+    /// Complete the lease with the given outcome and drop it so the kernel
+    /// releases the seat immediately.
+    fn complete_lease(&mut self, outcome: SeatOutcome) {
+        if let Some(lease) = self.lease.take() {
+            let _ = lease.complete(outcome, Instant::now());
+        }
+    }
+}
+
+impl Stream for SseStreamWithLease {
+    type Item = Result<Bytes, RestAdapterError>;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match Pin::new(&mut self.inner).poll_next(cx) {
+            Poll::Pending => Poll::Pending,
+            Poll::Ready(None) => {
+                // Clean end of stream — complete with Ok.
+                if !self.errored {
+                    self.complete_lease(SeatOutcome::Ok);
+                }
+                Poll::Ready(None)
+            }
+            Poll::Ready(Some(Err(e))) => {
+                // Mid-stream error — complete with ServerError5xx.
+                self.errored = true;
+                self.complete_lease(SeatOutcome::ServerError5xx);
+                Poll::Ready(Some(Err(e)))
+            }
+            Poll::Ready(Some(Ok(chunk))) => Poll::Ready(Some(Ok(chunk))),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -794,7 +982,7 @@ async fn handle_proxy(
     // Convention: handle = "<tenant_id>/<seat_id>".
     let refresh_handle = format!("{}/{}", state.tenant_id.as_str(), seat_id.as_str());
 
-    // Build the async adapter and proxy (no spawn_blocking — Item 1).
+    // Build the async adapter (no spawn_blocking — Item 1).
     let adapter = AnthropicAdapter::with_base_url(
         ArcSecretStore {
             inner: Arc::clone(&state.secret_store),
@@ -802,72 +990,123 @@ async fn handle_proxy(
         state.anthropic_base_url.clone(),
     );
 
-    let result = adapter
-        .proxy(&state.http_client, &proxy_request, &refresh_handle)
-        .await;
+    // Detect SSE streaming intent from the Accept header.
+    let wants_sse = proxy_request
+        .headers
+        .get("accept")
+        .map(|v| v.to_lowercase().contains("text/event-stream"))
+        .unwrap_or(false);
 
-    match result {
-        Ok(resp) => {
-            // Success — complete lease with Ok outcome.
-            let _ = lease.complete(SeatOutcome::Ok, Instant::now());
-
-            // Emit event (non-fatal).
-            let now_ms = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis() as u64;
-            let event = LlmGatewayEvent {
-                request_id: format!("req-{now_ms}"),
-                tenant_id: state.tenant_id.clone(),
-                agent_id,
-                seat_id: seat_id.clone(),
-                provider: Provider::Anthropic,
-                model: String::new(),
-                prompt_tokens: 0,
-                completion_tokens: 0,
-                ms_latency: 0,
-                status: oya_llm_gateway_oauth_pool_kernel::EventStatus::Ok,
-                timestamp_unix_ms: now_ms,
-            };
-            state.sink.emit(event);
-
-            // Build axum response.
-            let mut builder = axum::response::Response::builder().status(resp.status);
-            for (k, v) in &resp.headers {
-                if let (Ok(name), Ok(value)) = (
-                    HeaderName::from_bytes(k.as_bytes()),
-                    HeaderValue::from_str(v),
-                ) {
-                    builder = builder.header(name, value);
-                }
+    if wants_sse {
+        // --- SSE streaming path ---
+        // Obtain access token first (refresh may fail before we stream anything).
+        let access_token = match adapter
+            .refresh_token(&state.http_client, &refresh_handle)
+            .await
+        {
+            Ok(t) => t,
+            Err(_) => {
+                let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
-            builder
-                .body(Body::from(resp.body))
-                .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+        };
+
+        match adapter
+            .proxy_stream(&state.http_client, &access_token, proxy_request)
+            .await
+        {
+            Ok((upstream_status, byte_stream)) => {
+                // Wrap the stream with the lease so the seat is held until the
+                // response body is fully consumed (or client disconnects).
+                let lease_stream = SseStreamWithLease::new(byte_stream, lease);
+                let body = Body::from_stream(lease_stream);
+                axum::response::Response::builder()
+                    .status(upstream_status)
+                    .header("content-type", "text/event-stream")
+                    .header("cache-control", "no-cache")
+                    .header("connection", "keep-alive")
+                    .body(body)
+                    .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+            }
+            Err(RestAdapterError::OAuthRefreshFailed(_)) => {
+                let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
+            Err(e) => {
+                warn!(error = ?e, "sse proxy_stream error before first byte");
+                let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
+                StatusCode::BAD_GATEWAY.into_response()
+            }
         }
-        Err(RestAdapterError::OAuthRefreshFailed(_)) => {
-            let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-        Err(RestAdapterError::UpstreamError { status: 429, .. }) => {
-            let _ = lease.complete(SeatOutcome::RateLimited429, Instant::now());
-            StatusCode::TOO_MANY_REQUESTS.into_response()
-        }
-        Err(RestAdapterError::UpstreamError {
-            status,
-            body: err_body,
-        }) => {
-            let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
-            (
-                StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
-                err_body,
-            )
-                .into_response()
-        }
-        Err(e) => {
-            warn!(error = ?e, "proxy error");
-            let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
-            StatusCode::BAD_GATEWAY.into_response()
+    } else {
+        // --- Non-streaming (one-shot JSON) path — unchanged from Stage-6 ---
+        let result = adapter
+            .proxy(&state.http_client, &proxy_request, &refresh_handle)
+            .await;
+
+        match result {
+            Ok(resp) => {
+                // Success — complete lease with Ok outcome.
+                let _ = lease.complete(SeatOutcome::Ok, Instant::now());
+
+                // Emit event (non-fatal).
+                let now_ms = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as u64;
+                let event = LlmGatewayEvent {
+                    request_id: format!("req-{now_ms}"),
+                    tenant_id: state.tenant_id.clone(),
+                    agent_id,
+                    seat_id: seat_id.clone(),
+                    provider: Provider::Anthropic,
+                    model: String::new(),
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    ms_latency: 0,
+                    status: oya_llm_gateway_oauth_pool_kernel::EventStatus::Ok,
+                    timestamp_unix_ms: now_ms,
+                };
+                state.sink.emit(event);
+
+                // Build axum response.
+                let mut builder = axum::response::Response::builder().status(resp.status);
+                for (k, v) in &resp.headers {
+                    if let (Ok(name), Ok(value)) = (
+                        HeaderName::from_bytes(k.as_bytes()),
+                        HeaderValue::from_str(v),
+                    ) {
+                        builder = builder.header(name, value);
+                    }
+                }
+                builder
+                    .body(Body::from(resp.body))
+                    .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+            }
+            Err(RestAdapterError::OAuthRefreshFailed(_)) => {
+                let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
+            Err(RestAdapterError::UpstreamError { status: 429, .. }) => {
+                let _ = lease.complete(SeatOutcome::RateLimited429, Instant::now());
+                StatusCode::TOO_MANY_REQUESTS.into_response()
+            }
+            Err(RestAdapterError::UpstreamError {
+                status,
+                body: err_body,
+            }) => {
+                let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
+                (
+                    StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
+                    err_body,
+                )
+                    .into_response()
+            }
+            Err(e) => {
+                warn!(error = ?e, "proxy error");
+                let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
+                StatusCode::BAD_GATEWAY.into_response()
+            }
         }
     }
 }

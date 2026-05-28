@@ -12,7 +12,7 @@ traceability:
   changeset: CS-LLM-GATEWAY-AGENT-DISPATCH-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0384]
 non_claims:
-  - no SSE streaming (Stage-6 follow-up per ADR-0384 §v1-scope)
+  - SSE streaming passthrough shipped; pool lease lifecycle extended to span streamed responses
   - no Codex provider adapter (follow-up PR per ADR-0384 v1-scope; see TODO in lib.rs)
   - no Cedar policy evaluation (D7 AuthzGate consumed from kernel seam; Cedar adapter lives in a separate crate)
   - no ClickHouse or Valkey Stream concrete adapter (trait-only mocks; real adapter crates ship separately)

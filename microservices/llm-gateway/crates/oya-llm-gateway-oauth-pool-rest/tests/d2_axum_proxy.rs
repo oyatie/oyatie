@@ -11,7 +11,6 @@ use oya_llm_gateway_oauth_pool_kernel::{
 use oya_llm_gateway_oauth_pool_rest::{
     AnthropicAdapter, OpenBaoSecretStore, ProxyRequest, ProxyResponse, RestAdapterError,
 };
-use reqwest;
 use std::collections::BTreeMap;
 
 // ---------------------------------------------------------------------------
