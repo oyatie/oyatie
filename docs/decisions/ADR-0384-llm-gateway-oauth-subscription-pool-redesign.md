@@ -27,20 +27,20 @@ deliverables:
     exit_criteria: "AnthropicAdapter + CodexAdapter compile; each refresh_token() succeeds against its provider's OAuth endpoint in a spike test; parse_rate_headers() covers Anthropic + OpenAI header schemas; cross-adapter trait surface remains stable for v2 Gemini + v3 Cursor extension."
     verified_by: "cargo nextest -p oya-llm-gateway-rest (per-adapter integration tests for Anthropic + Codex)"
   - id: D4
-    description: "Config schema migration: microservices/llm-gateway/k8s/llm-gateway.yaml ConfigMap.data.config.json moves from .groups[].keys[] to .providers[].subscriptions[].openbao_refresh_token_path. Backward-compat: existing static-key path stays under providers[].auth_mode: 'static_key'; new code uses auth_mode: 'oauth_subscription'."
+    description: "Config schema migration: microservices/cloud-intelligence/k8s/cloud-intelligence.yaml ConfigMap.data.config.json moves from .groups[].keys[] to .providers[].subscriptions[].openbao_refresh_token_path. Backward-compat: existing static-key path stays under providers[].auth_mode: 'static_key'; new code uses auth_mode: 'oauth_subscription'."
     exit_criteria: "llm-gateway.yaml ConfigMap updated to new schema; gateway boots with both auth_mode: static_key and auth_mode: oauth_subscription groups present; oya gate validate honest-claims green."
     verified_by: "cargo test -p oya-llm-gateway-rest (config deserialization tests) + kubectl apply --dry-run=client on llm-gateway.yaml"
   - id: D5
     description: "SETUP-RUNBOOK rewrite: operator runs claude login / codex login on a host with the respective CLI installed (v1 providers only); extracts refresh_token from each CLI's local credential store; stores at 'bao kv put secret/oya/llm-gateway/<provider>/seats/<seat-name> refresh_token=<token>'. Gateway reads via ExternalSecret and refreshes access tokens on demand. Gemini login (v2) and Cursor login (v3) added in their respective amendments."
-    exit_criteria: "microservices/llm-gateway/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions for v1 providers (Anthropic + Codex); credential file paths verified empirically (OQ-5 resolved); runbook covers both v1 providers with exact bao kv put commands."
+    exit_criteria: "microservices/cloud-intelligence/SETUP-RUNBOOK.md rewritten with OAuth-subscription-pool instructions for v1 providers (Anthropic + Codex); credential file paths verified empirically (OQ-5 resolved); runbook covers both v1 providers with exact bao kv put commands."
     verified_by: "Manual review: runbook credential paths match actual CLI output on a test host; oya gate validate honest-claims green on SETUP-RUNBOOK.md"
   - id: D6
     description: "Event-emission to configurable sink — every llm-gateway request emits a structured event to (a) ClickHouse OLAP (per ADR-0193) for analytics rollup + (b) Valkey Stream (per canonical primitives) for audit-chain consumption. Pluggable wire-format: {tenant_id, agent_id, seat_id, provider, model, prompt_tokens, completion_tokens, ms_latency, status, request_id}. Sinks subscribe independently (no coupling between analytics + audit + billing consumers). Direction C from idea-refine; informed by CLIProxyAPI's CPA Usage Keeper decoupling pattern."
     exit_criteria: "kernel emits per-request events to a EventSink trait; integration test asserts a synthetic request produces the expected event shape on both ClickHouse insert + Valkey Stream XADD."
     verified_by: "cargo nextest -p oya-llm-gateway-kernel + cargo nextest -p oya-llm-gateway-rest (sink integration tests)"
   - id: D7
-    description: "Per-tenant Cedar isolation contract — every request's principal includes a tenant attribute; Cedar policy at microservices/llm-gateway/policy/llm-gateway.cedar adds explicit forbid rules: forbid (principal, action, resource) when principal.tenant != resource.tenant. Adversarial test set: at least 50 Cedar test cases including cross-tenant access attempts, seat-id mismatch, admin-realm cross-tenant impersonation. Cross-tenant access always forbids-wins per ADR-0183 and ADR-0193."
-    exit_criteria: "microservices/llm-gateway/policy/llm-gateway.cedar contains the per-tenant forbid rule; cargo nextest -p oya-llm-gateway-kernel passes at least 50 adversarial cedar_per_tenant_isolation test cases."
+    description: "Per-tenant Cedar isolation contract — every request's principal includes a tenant attribute; Cedar policy at microservices/cloud-intelligence/policy/cloud-intelligence.cedar adds explicit forbid rules: forbid (principal, action, resource) when principal.tenant != resource.tenant. Adversarial test set: at least 50 Cedar test cases including cross-tenant access attempts, seat-id mismatch, admin-realm cross-tenant impersonation. Cross-tenant access always forbids-wins per ADR-0183 and ADR-0193."
+    exit_criteria: "microservices/cloud-intelligence/policy/cloud-intelligence.cedar contains the per-tenant forbid rule; cargo nextest -p oya-llm-gateway-kernel passes at least 50 adversarial cedar_per_tenant_isolation test cases."
     verified_by: "cargo nextest -p oya-llm-gateway-kernel cedar_per_tenant_isolation"
   - id: D8
     description: "Envelope encryption for refresh tokens at rest in OpenBao. Per-tenant Data Encryption Key (DEK) lives in OpenBao Transit; refresh tokens stored encrypted under that DEK. Gateway decrypts on token-load; never logs decrypted form. Operator rotation of the Transit Key Encryption Key (KEK) re-wraps DEKs without rewriting refresh tokens. Aligns with ADR-0043 sref://openbao/... and the canonical OpenBao Transit pattern."
@@ -58,7 +58,7 @@ Proposed (2026-05-28).
 
 ### Current architecture (static API-key pool)
 
-`microservices/llm-gateway` and crates `oya-llm-gateway-{kernel,rest,app}` (~5,600 LOC) implement a
+`microservices/cloud-intelligence` and crates `oya-cloud-intelligence-{kernel,rest,app}` (~5,600 LOC) implement a
 **static API-key pool**: each provider group carries a list of opaque bearer tokens sourced from
 OpenBao KV paths (e.g. `secret/oya/llm-gateway/openai`). The kernel state machine (`oya-llm-gateway-kernel`)
 performs round-robin selection, per-key failure-count blacklisting, jittered cooldown, and lazy

@@ -128,16 +128,16 @@ apps:
     namespace: oya-storage
     syncWave: "1"
 
-  # llm-gateway microservice — agent-dispatch reverse proxy with OpenBao-bound
-  # provider keys (per microservices/llm-gateway/PRD.md). Kernel + rest adapter
+  # cloud-intelligence microservice — agent-dispatch reverse proxy with OpenBao-bound
+  # provider keys (per microservices/cloud-intelligence/PRD.md). Kernel + rest adapter
   # + app are Rust-implemented (~5,600 LOC + 30 tests across the 3 crates).
   # The image is BuildKit-built via the operator-run Job (see
-  # microservices/llm-gateway/k8s/BUILDKIT-JOB-TEMPLATE.md); the Deployment
-  # references it at registry.oya-registry.svc.cluster.local:5000/llm-gateway:dev.
-  - name: llm-gateway
+  # microservices/cloud-intelligence/k8s/BUILDKIT-JOB-TEMPLATE.md); the Deployment
+  # references it at registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev.
+  - name: cloud-intelligence
     type: path
-    path: microservices/llm-gateway/k8s
-    namespace: oya-llm-gateway
+    path: microservices/cloud-intelligence/k8s
+    namespace: oya-cloud-intelligence
     syncWave: "2"
 
   # Cell-boundary NetworkPolicies (ADR-0381 D3). First boundary: oya-storage

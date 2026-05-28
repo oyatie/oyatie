@@ -96,7 +96,7 @@ uneven + rebalance churn); (c) control-plane/xDS service. **Decision: (a)** — 
 - Workspace-wide: **replace `serde_yaml`** (archived); move `ed25519-dalek`+`sha2` out of the `*-domain` (kernel-pure) crate.
 
 ## Sequencing
-v1 (gpt-load core, OpenBao keys) builds now → land in `microservices/llm-gateway/` → **v1.5 integration**
+v1 (gpt-load core, OpenBao keys) builds now → land in `microservices/cloud-intelligence/` → **v1.5 integration**
 folds the above (E,D,A,B,C,F first) → verify (build/clippy/gates) → **deploy to k3s** with `BAO_TOKEN`
 from a Secret. Record as an ADR (decision + the working code together) — gateway is real implementation,
 not aspirational doctrine. Quota/fairness (E) MUST be in before deploy (else a runaway agent drains the pool).

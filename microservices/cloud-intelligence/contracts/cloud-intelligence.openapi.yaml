@@ -1,0 +1,552 @@
+openapi: 3.2.0
+info:
+  title: Oyatie LLM Gateway API
+  version: 1.0.0
+  description: |
+    Multi-provider LLM/AI gateway — a key-pool reverse proxy fronting OpenAI/Codex,
+    Anthropic, and Google Gemini behind ONE canonical OpenAI-compatible wire surface.
+
+    Design + research grounding: microservices/cloud-intelligence/PRD.md and
+    microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md (brief §2 REST API
+    contract). The OpenAI Chat Completions / Embeddings / Models surface is the de-facto
+    industry standard (Azure APIM imports OpenAI- and Anthropic-Messages-conformant
+    endpoints; Kong AI Proxy normalizes to llm/v1/*), so a stock OpenAI SDK works with
+    zero custom client code.
+
+    Error envelope is the OpenAI shape VERBATIM: {"error":{"message","type","param","code"}}.
+    Gateway-specific failures map into this envelope with distinguishing `type` values
+    (gateway_key_exhausted, gateway_provider_unavailable, budget_exceeded) so an OpenAI SDK
+    surfaces them without crashing (brief §2, §10).
+
+    Two security schemes (brief §2 "Adopt"): `ingressBearer` for the agent/tenant data plane
+    and `adminBearer` for control-plane ops. Token comparison is constant-time (subtle crate)
+    — a documented contract guarantee, not an implementation detail.
+
+    Streaming (brief §1 Architecture): POST /v1/chat/completions with "stream": true returns
+    Content-Type text/event-stream; each event is `data: `-prefixed JSON; the stream
+    terminates with exactly one `data: [DONE]` sentinel line. SSE bytes are passed through
+    from the upstream provider and are NEVER buffered, parsed, or logged.
+  contact:
+    name: council-foundry
+    url: https://github.com/oyatie/oyatie/blob/dev/docs/AGENTS.md
+  license:
+    name: Internal
+servers:
+  - url: https://cloud-intelligence.{cell}.oyatie.io
+    description: Cell-routed LLM gateway ingress
+    variables:
+      cell:
+        default: dev
+        enum: [dev, kr-seoul-1, eu-frankfurt-1, us-east-1, ksa-1, uae-1]
+security:
+  - ingressBearer: []
+tags:
+  - name: inference
+    description: Canonical OpenAI-compatible inference data plane (ingress realm)
+  - name: models
+    description: Model discovery (ingress realm)
+  - name: admin
+    description: Control-plane key-pool operations (admin realm — separate security scheme)
+  - name: internal
+    description: Liveness/readiness/metrics
+paths:
+  /healthz:
+    get:
+      tags: [internal]
+      summary: Liveness probe
+      security: []
+      responses:
+        '200':
+          description: ok
+  /readyz:
+    get:
+      tags: [internal]
+      summary: Readiness — verifies at least one provider pool has an active key and OpenBao is reachable
+      security: []
+      responses:
+        '200':
+          description: ready
+        '503':
+          description: not ready (no active key in any pool, or vault unreachable)
+  /metrics:
+    get:
+      tags: [internal]
+      summary: Prometheus/OpenTelemetry exposition (oya_cloud_intelligence_*)
+      security: []
+      responses:
+        '200':
+          description: Prometheus text exposition
+          content:
+            text/plain:
+              schema: { type: string }
+
+  /v1/chat/completions:
+    post:
+      tags: [inference]
+      summary: Create a chat completion (stream or non-stream)
+      description: |
+        OpenAI-compatible chat completion. The gateway selects an active key from the
+        caller's per-tenant pool for the requested model's provider, injects the provider
+        auth header, and proxies upstream. On a transient upstream failure the proxy rotates
+        keys (never past the first streamed token), then falls back to a configured alternate
+        provider pool, then fails 503 (brief §1, §10 failure ladder).
+
+        When `stream` is true the response is `text/event-stream`: each chunk is a
+        `data: `-prefixed JSON `ChatCompletionChunk`, and the stream ends with a single
+        `data: [DONE]` line. TTFT (time-to-first-token) is the headline SLI
+        (slos/ttft.openslo.yaml).
+      operationId: createChatCompletion
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/OyatieTenant'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: |
+            Completion. Non-stream returns application/json (ChatCompletion).
+            Stream (`"stream": true`) returns text/event-stream terminated by `data: [DONE]`.
+          headers:
+            x-oyatie-tokens-remaining:
+              $ref: '#/components/headers/TokensRemaining'
+            x-oyatie-ratelimit-remaining:
+              $ref: '#/components/headers/RateLimitRemaining'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletion'
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Server-Sent Events. Each event: `data: {ChatCompletionChunk JSON}\n\n`.
+                  Final line is the literal sentinel `data: [DONE]`. Bytes are passed through
+                  from the provider unmodified.
+              examples:
+                streamSample:
+                  summary: SSE chunk stream ending in [DONE]
+                  value: |
+                    data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"Hel"}}]}
+
+                    data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"lo"}}]}
+
+                    data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+                    data: [DONE]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+
+  /v1/embeddings:
+    post:
+      tags: [inference]
+      summary: Create embeddings
+      description: OpenAI-compatible embeddings. Same key-pool selection + failover ladder as chat completions (non-streaming).
+      operationId: createEmbeddings
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/OyatieTenant'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbeddingsRequest'
+      responses:
+        '200':
+          description: Embedding vectors
+          headers:
+            x-oyatie-tokens-remaining:
+              $ref: '#/components/headers/TokensRemaining'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbeddingsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+
+  /v1/models:
+    get:
+      tags: [models]
+      summary: List models reachable through the gateway
+      description: OpenAI-compatible model list aggregated across configured provider pools.
+      operationId: listModels
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Model list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/v1/pools:
+    get:
+      tags: [admin]
+      summary: Key-pool status across all provider channels
+      description: |
+        Returns per-pool health: total keys, active count, blacklisted count, soonest
+        cooldown-restore timestamp. Keys are identified ONLY by hash fingerprint — no raw
+        key material is ever returned (brief §5). Admin realm only.
+      operationId: getPoolStatus
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Pool status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/v1/pools/{provider}/refresh:
+    post:
+      tags: [admin]
+      summary: Force a key-pool refresh from OpenBao for one provider
+      description: |
+        Triggers an out-of-band re-read of secret/data/agent-gateway/{provider} from OpenBao
+        and rebuilds the in-memory pool. Idempotent. Never reads keys from disk/env (brief §5, §7).
+        Admin realm only.
+      operationId: refreshPool
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [openai, anthropic, gemini]
+      responses:
+        '200':
+          description: Refresh result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+
+components:
+  securitySchemes:
+    ingressBearer:
+      type: http
+      scheme: bearer
+      description: |
+        Ingress data-plane realm. The bearer token is an Oyatie ingress proxy-key that maps
+        to a tenant id and its per-tenant key pool + budget tier. Compared in constant time
+        (subtle crate) — documented contract guarantee (brief §2, §5).
+    adminBearer:
+      type: http
+      scheme: bearer
+      description: |
+        Admin control-plane realm — DISTINCT from ingressBearer. Authorizes pool status and
+        key-refresh ops. Compared in constant time. An ingress token is never valid here and
+        vice versa (Cedar default-deny cross-realm; policy/cloud-intelligence.cedar).
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      schema:
+        type: string
+        format: uuid
+      description: Distributed-trace correlation; auto-generated if absent. Becomes the audit/usage envelope correlationId.
+    OyatieTenant:
+      name: X-Oyatie-Tenant
+      in: header
+      schema:
+        type: string
+      description: |
+        Optional explicit tenant override (admin/dogfood only). Normally the tenant is derived
+        from the ingress bearer token; this header is ignored unless the token is privileged.
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Required on mutating admin ops; 24h window.
+  headers:
+    RetryAfter:
+      schema: { type: integer }
+      description: |
+        Seconds until the caller may retry. On a 429/503 the gateway sets this from the upstream
+        provider `Retry-After` when present, else the soonest key-pool cooldown-restore time
+        (brief §10 — all-keys-cooling-down fast-fails with Retry-After = soonest restore; never
+        a DoS amplifier per OWASP LLM10).
+    TokensRemaining:
+      schema: { type: integer, format: int64 }
+      description: Remaining token budget for the calling tenant in the current window (brief §8).
+    RateLimitRemaining:
+      schema: { type: integer, format: int64 }
+      description: Remaining requests for the calling tenant in the current window.
+  responses:
+    BadRequest:
+      description: Malformed request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            invalidRequest:
+              value: { error: { message: "model is required", type: "invalid_request_error", param: "model", code: null } }
+    Unauthorized:
+      description: Missing or invalid bearer token (constant-time check failed)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            authError:
+              value: { error: { message: "invalid bearer token", type: "authentication_error", param: null, code: "invalid_api_key" } }
+    Forbidden:
+      description: Wrong realm or cross-tenant (Cedar forbid)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            forbidden:
+              value: { error: { message: "admin realm required", type: "permission_error", param: null, code: null } }
+    NotFound:
+      description: Unknown model or provider
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    RateLimited:
+      description: |
+        Per-tenant rate or token budget exceeded, OR upstream rate-limit propagated.
+        Always carries Retry-After (brief §2, §8, §10). `type` distinguishes the cause:
+        `budget_exceeded` (tenant token/cost budget), `rate_limit_error` (request rate or
+        upstream 429 propagated).
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        x-oyatie-tokens-remaining:
+          $ref: '#/components/headers/TokensRemaining'
+        x-oyatie-ratelimit-remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            budgetExceeded:
+              value: { error: { message: "tenant token budget exhausted for window", type: "budget_exceeded", param: null, code: "insufficient_quota" } }
+            rateLimited:
+              value: { error: { message: "rate limit reached", type: "rate_limit_error", param: null, code: "rate_limit_exceeded" } }
+    InternalError:
+      description: Unexpected gateway error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Unavailable:
+      description: |
+        No usable upstream capacity. Always carries Retry-After. `type` distinguishes the cause
+        (brief §10 — key-exhaustion vs provider-outage are separate states/error types/SLIs):
+        `gateway_key_exhausted` (every key in the pool is blacklisted/cooling-down) or
+        `gateway_provider_unavailable` (provider-wide outage, circuit breaker open, fallback
+        exhausted).
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            keyExhausted:
+              value: { error: { message: "all provider keys are in cooldown; retry after soonest restore", type: "gateway_key_exhausted", param: null, code: null } }
+            providerOutage:
+              value: { error: { message: "upstream provider unavailable and no fallback succeeded", type: "gateway_provider_unavailable", param: null, code: null } }
+  schemas:
+    ErrorEnvelope:
+      type: object
+      description: OpenAI error envelope, verbatim (brief §2).
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message, type]
+          properties:
+            message: { type: string }
+            type:
+              type: string
+              description: |
+                OpenAI error types plus gateway-specific values. One of:
+                invalid_request_error, authentication_error, permission_error, not_found_error,
+                rate_limit_error, budget_exceeded, gateway_key_exhausted,
+                gateway_provider_unavailable, api_error.
+            param: { type: string, nullable: true }
+            code: { type: string, nullable: true }
+    ChatCompletionRequest:
+      type: object
+      required: [model, messages]
+      properties:
+        model: { type: string, description: "Provider-routed model id, e.g. gpt-4o, claude-3-7-sonnet, gemini-2.0-flash" }
+        messages:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ChatMessage' }
+        stream:
+          type: boolean
+          default: false
+          description: "When true, response is text/event-stream terminated by `data: [DONE]`."
+        max_tokens: { type: integer, format: int32, minimum: 1 }
+        temperature: { type: number, minimum: 0, maximum: 2 }
+        top_p: { type: number, minimum: 0, maximum: 1 }
+        stop:
+          oneOf:
+            - { type: string }
+            - { type: array, items: { type: string } }
+        stream_options:
+          type: object
+          description: >-
+            When include_usage is set true, the final stream chunk carries token usage for
+            metering (brief §8 — meter on actual returned tokens).
+          properties:
+            include_usage: { type: boolean }
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [system, user, assistant, tool] }
+        content: { type: string }
+        name: { type: string }
+    ChatCompletion:
+      type: object
+      required: [id, object, created, model, choices]
+      properties:
+        id: { type: string }
+        object: { type: string, const: chat.completion }
+        created: { type: integer, format: int64 }
+        model: { type: string }
+        choices:
+          type: array
+          items: { $ref: '#/components/schemas/ChatChoice' }
+        usage: { $ref: '#/components/schemas/Usage' }
+    ChatChoice:
+      type: object
+      required: [index, message]
+      properties:
+        index: { type: integer }
+        message: { $ref: '#/components/schemas/ChatMessage' }
+        finish_reason: { type: string, nullable: true, enum: [stop, length, content_filter, tool_calls, null] }
+    Usage:
+      type: object
+      description: Token counts as returned by the provider; the basis for billing metering (brief §8).
+      properties:
+        prompt_tokens: { type: integer, format: int64 }
+        completion_tokens: { type: integer, format: int64 }
+        total_tokens: { type: integer, format: int64 }
+    EmbeddingsRequest:
+      type: object
+      required: [model, input]
+      properties:
+        model: { type: string }
+        input:
+          oneOf:
+            - { type: string }
+            - { type: array, items: { type: string } }
+        encoding_format: { type: string, enum: [float, base64], default: float }
+    EmbeddingsResponse:
+      type: object
+      required: [object, data, model]
+      properties:
+        object: { type: string, const: list }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/EmbeddingVector' }
+        model: { type: string }
+        usage: { $ref: '#/components/schemas/Usage' }
+    EmbeddingVector:
+      type: object
+      required: [object, index, embedding]
+      properties:
+        object: { type: string, const: embedding }
+        index: { type: integer }
+        embedding:
+          type: array
+          items: { type: number, format: float }
+    ModelList:
+      type: object
+      required: [object, data]
+      properties:
+        object: { type: string, const: list }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Model' }
+    Model:
+      type: object
+      required: [id, object, owned_by]
+      properties:
+        id: { type: string }
+        object: { type: string, const: model }
+        created: { type: integer, format: int64 }
+        owned_by: { type: string, description: "Provider channel: openai | anthropic | gemini" }
+    PoolStatusResponse:
+      type: object
+      required: [pools]
+      properties:
+        pools:
+          type: array
+          items: { $ref: '#/components/schemas/PoolStatus' }
+    PoolStatus:
+      type: object
+      required: [provider, total_keys, active_keys, blacklisted_keys]
+      properties:
+        provider: { type: string, enum: [openai, anthropic, gemini] }
+        total_keys: { type: integer }
+        active_keys: { type: integer, description: "KeyPool::active_count at evaluation time" }
+        blacklisted_keys: { type: integer }
+        soonest_restore_epoch_ms:
+          type: integer
+          format: int64
+          nullable: true
+          description: Soonest cooldown-restore timestamp across blacklisted keys; null if none blacklisted.
+        key_fingerprints:
+          type: array
+          description: Hash-only fingerprints (never raw keys) for the keys in this pool (brief §5).
+          items: { type: string }
+    RefreshResult:
+      type: object
+      required: [provider, keys_loaded, refreshed_at]
+      properties:
+        provider: { type: string, enum: [openai, anthropic, gemini] }
+        keys_loaded: { type: integer }
+        refreshed_at: { type: string, format: date-time }
+        source: { type: string, const: openbao }

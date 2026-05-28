@@ -812,10 +812,10 @@ follow_ups:
       OR an audit requirement needs a persistent per-delivery ledger.
     status: pending
 
-  - id: adr-0373-llm-gateway-openbao-wire-in
+  - id: adr-0373-cloud-intelligence-openbao-wire-in
     intent: |
       Wire the production OpenBao-backed `KeyMaterialRepository` adapter
-      into `oya-llm-gateway-app` so pooled provider keys are sourced
+      into `oya-cloud-intelligence-app` so pooled provider keys are sourced
       from `secret/data/agent-gateway/<provider>` at startup and on a
       periodic refresh task (PRD §4.5 vault-only secrets). The composition
       root currently surfaces a typed `Unimplemented::OpenBaoResolution`
@@ -826,10 +826,10 @@ follow_ups:
       previous-keys-on-failure semantics (the rest crate's `OpenBaoKeyStore`
       already implements the at-most-once load).
     driver_docs:
-      - microservices/llm-gateway/PRD.md
-      - crates/oya-llm-gateway-app/src/lib.rs
-      - crates/oya-llm-gateway-app/src/main.rs
-      - crates/oya-llm-gateway-rest/src/keystore.rs
+      - microservices/cloud-intelligence/PRD.md
+      - crates/oya-cloud-intelligence-app/src/lib.rs
+      - crates/oya-cloud-intelligence-app/src/main.rs
+      - crates/oya-cloud-intelligence-rest/src/keystore.rs
     owner: council-foundry + ops-security
     trigger: |
       First cell-deploy of the LLM gateway against a real OpenBao
@@ -837,7 +837,7 @@ follow_ups:
       keys to be rejected end-to-end.
     status: pending
 
-  - id: adr-0373-llm-gateway-bedrock-audit-emission
+  - id: adr-0373-cloud-intelligence-bedrock-audit-emission
     intent: |
       Emit the Bedrock-shaped `llm.audit.v1` immutable invocation record
       (schema_version, timestamp, tenant_id, request_id, provider,
@@ -849,15 +849,15 @@ follow_ups:
       audit-chain consumer trait + Bedrock-shape contract land in this
       follow-up.
     driver_docs:
-      - microservices/llm-gateway/PRD.md
-      - microservices/llm-gateway/design/hyperscaler-best-practice-brief.md
+      - microservices/cloud-intelligence/PRD.md
+      - microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
     owner: council-foundry + axis-audit
     trigger: |
       First production tenant requiring auditable invocation evidence,
       or a compliance review that demands the Bedrock-shape audit record.
     status: pending
 
-  - id: adr-0373-llm-gateway-per-tenant-rate-limit
+  - id: adr-0373-cloud-intelligence-per-tenant-rate-limit
     intent: |
       Per-tenant token budget admission + concurrent budget windows
       (PRD §4.4 / AC-4.2) on the gateway hot path: estimate prompt
@@ -868,8 +868,8 @@ follow_ups:
       kernel's per-key cooldown is the front-line denial-of-wallet
       control but is NOT a substitute for per-tenant accounting.
     driver_docs:
-      - microservices/llm-gateway/PRD.md
-      - microservices/llm-gateway/design/hyperscaler-best-practice-brief.md
+      - microservices/cloud-intelligence/PRD.md
+      - microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
     owner: council-foundry + axis-finops
     trigger: |
       First multi-tenant deployment of the gateway, OR a tenant being
@@ -1162,10 +1162,10 @@ follow_ups:
     status: pending
     adr_when_landed: ""
 
-  - id: llm-gateway-internaldogfood-bypass-removal
+  - id: cloud-intelligence-internaldogfood-bypass-removal
     intent: |
       Document the removal of the implicit InternalDogfood escape clause from
-      the llm-gateway Cedar policy (LANE-1 hardening 2026-05-28). The previous
+      the cloud-intelligence Cedar policy (LANE-1 hardening 2026-05-28). The previous
       bypass shorted forbid rules for any principal in Role::"InternalDogfood";
       that is incompatible with default-deny forbid-wins semantics required by
       ADR-0183. Existing dogfood principals must be migrated to explicit Role
@@ -1173,8 +1173,8 @@ follow_ups:
       hits Forbidden after this PR, that surfaces as a typed auth failure
       rather than a silent allow.
     driver_docs:
-      - microservices/llm-gateway/policy/llm-gateway.cedar
-    owner: council-architecture + axis-llm-gateway
+      - microservices/cloud-intelligence/policy/cloud-intelligence.cedar
+    owner: council-architecture + axis-cloud-intelligence
     trigger: First dogfood principal hits a Forbidden response on a route that previously worked.
     status: pending
     adr_when_landed: ""

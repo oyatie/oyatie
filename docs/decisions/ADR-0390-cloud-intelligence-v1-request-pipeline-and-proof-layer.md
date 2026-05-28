@@ -137,10 +137,10 @@ Each lane has disjoint file paths (enforced by `oya gate validate lane-overlap`,
 
 | Lane | Scope | Crate path |
 |---|---|---|
-| **K** | Kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) | `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel/` |
-| **R** | REST adapter (P0/P3/P6 + AnthropicAdapter async migration) | `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest/` |
+| **K** | Kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) | `microservices/cloud-intelligence/crates/oya-cloud-intelligence-kernel/` |
+| **R** | REST adapter (P0/P3/P6 + AnthropicAdapter async migration) | `microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/` |
 | **Z** | Proof harness (loom + proptest + chaos) | Same crates, in `tests/` |
-| **A** | Admin API + subscription CRUD + window-tracking endpoints | `microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-admin-api/` |
+| **A** | Admin API + subscription CRUD + window-tracking endpoints | `microservices/cloud-intelligence/crates/oya-cloud-intelligence-admin-api/` |
 | **C** | Console v0 wiring + cloud-intelligence tab | `microservices/devops-console/` |
 | **N** | Rename sweep `llm-gateway` → `cloud-intelligence` (runs last) | All of the above (cosmetic, after lanes K/R/Z/A/C land) |
 
@@ -178,7 +178,7 @@ Lanes K + R + Z run in parallel (3 agents with disjoint paths, overlap-gate enfo
 ## Cross-Cutting Concerns
 
 - **ADR-0083 Tier-3**: no `unwrap`/`expect`/`panic` on the request path.
-- **ADR-0131 flat layout**: all crates at `microservices/llm-gateway/crates/`.
+- **ADR-0131 flat layout**: all crates at `microservices/cloud-intelligence/crates/`.
 - **ADR-0132 no-suite**: each lane is a single-concern crate.
 - **Dogfood tenancy**: `oyatie-dogfood` tenant traverses the same Cedar authorization path as all tenants.
 - **Observability**: all P0-P7 metrics are Prometheus-exposition compliant; consumed by the DevOps console v0 (ADR-0391).

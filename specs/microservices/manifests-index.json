@@ -172,8 +172,8 @@
       "manifest": "microservices/ops-dashboard-control-center/manifest.json"
     },
     {
-      "name": "llm-gateway",
-      "manifest": "microservices/llm-gateway/manifest.json",
+      "name": "cloud-intelligence",
+      "manifest": "microservices/cloud-intelligence/manifest.json",
       "fd001_material": false
     },
     {

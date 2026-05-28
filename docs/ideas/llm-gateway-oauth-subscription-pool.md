@@ -1,6 +1,6 @@
-# llm-gateway OAuth subscription-pool — idea-refine one-pager
+# cloud-intelligence OAuth subscription-pool — idea-refine one-pager
 
-**Status**: ideation artifact (2026-05-28). Forward-pointer to the in-flight LLM-gateway OAuth ADR (in flight on chore/llm-gateway-oauth-pool-2026-05-28).
+**Status**: ideation artifact (2026-05-28). Forward-pointer to the in-flight cloud-intelligence OAuth ADR (in flight on chore/llm-gateway-oauth-pool-2026-05-28).
 **Direction**: C (audit/billing/analytics spine from v1).
 **Reference repos**: tbphp/gpt-load + songquanpeng/one-api + router-for-me/CLIProxyAPI + nguyenphutrong/quotio.
 
