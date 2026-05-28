@@ -1,17 +1,37 @@
 ---
 id: ADR-0042
-status: proposed
+status: superseded
 doc_status: published
+superseded_by: [ADR-0383]
 ---
 
 # ADR-0042: Observability stack — OpenTelemetry SDK + VictoriaMetrics, in-house Leptos portal long-horizon, gen_ai semconv per capability
 
-> **Status:** Proposed
+> **Status:** Superseded by [ADR-0383](ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md)
 > **Supersedes:** -
-> **Superseded-by:** -
+> **Superseded-by:** ADR-0383
 > **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0043
+
+---
+
+## Superseded by
+
+> **This ADR is superseded by [ADR-0383](ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md)
+> (Observability stack reconciliation: keep Loki / Tempo / Mimir / Grafana under AGPL-3),
+> accepted 2026-05-28.**
+>
+> ADR-0042's prohibition on Loki / Tempo / Mimir / Grafana (AGPL-3) and its mandate for
+> VictoriaMetrics + ClickHouse + Jaeger + in-house Leptos portal as the canonical storage tier are
+> **retired**. The five-stage observability backplane defined in ADR-0186 (Grafana Labs LGTM stack,
+> fully self-hosted in oya-cells) is the canonical architecture. See ADR-0383 for the full
+> license-reconciliation record and the three gates (self-hosted, network-clause satisfied,
+> ops-platform lifecycle ownership) that govern the AGPL-3 components.
+>
+> The OTel SDK instrumentation surface, per-cell namespace pattern, per-tenant cost-attribution
+> dashboards, and gen_ai semantic conventions defined here remain valid and are carried forward by
+> ADR-0186.
 
 ---
 

@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 319,
-    "numbering": "ADR-0001..ADR-0382 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
+    "total_adrs": 320,
+    "numbering": "ADR-0001..ADR-0383 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291"],
-    "next_adr": "ADR-0383",
+    "next_adr": "ADR-0384",
     "status_counts": {
-      "Accepted": 141,
+      "Accepted": 142,
       "Accepted (amendment)": 2,
       "Amended": 1,
       "Proposed": 89,
@@ -20,7 +20,8 @@
       "Superseded": 11,
       "accepted": 37,
       "deprecated": 1,
-      "proposed": 35
+      "proposed": 34,
+      "superseded": 1
     }
   },
   "decisions": [
@@ -496,12 +497,12 @@
       "adr": "ADR-0042",
       "number": 42,
       "title": "Observability stack — OpenTelemetry SDK + VictoriaMetrics, in-house Leptos portal long-horizon, gen_ai semconv per capability",
-      "status": "proposed",
+      "status": "superseded",
       "owner": "foundry",
       "date": "2026-05-09",
       "path": "decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md",
       "supersedes": [],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0383"],
       "related": ["ADR-0001", "ADR-0003", "ADR-0007", "ADR-0011", "ADR-0028", "ADR-0036", "ADR-0037", "ADR-0038", "ADR-0040", "ADR-0043"]
     },
     {
@@ -3851,6 +3852,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0375", "ADR-0378", "ADR-0381", "ADR-0148", "ADR-0083"]
+    },
+    {
+      "adr": "ADR-0383",
+      "number": 383,
+      "title": "Observability stack reconciliation: keep Loki / Tempo / Mimir / Grafana under AGPL-3",
+      "status": "Accepted",
+      "owner": "ops-platform",
+      "date": "2026-05-28",
+      "path": "decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md",
+      "supersedes": ["ADR-0042"],
+      "superseded_by": [],
+      "related": ["ADR-0186", "ADR-0173", "ADR-0211", "ADR-0349"]
     }
   ]
 }

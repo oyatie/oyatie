@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 319
-- **Numbering:** ADR-0001..ADR-0382 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
-- **Next ADR number:** 0383
-- **Status counts:** Accepted 141, Accepted (amendment) 2, Amended 1, Proposed 89, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 35
+- **Total ADRs:** 320
+- **Numbering:** ADR-0001..ADR-0383 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291)
+- **Next ADR number:** 0384
+- **Status counts:** Accepted 142, Accepted (amendment) 2, Amended 1, Proposed 89, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 11, accepted 37, deprecated 1, proposed 34, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -60,7 +60,7 @@ doc_status: published
 | ADR-0039 | proposed | Supply chain security — Trivy 4-layer scan, Cosign keyless signing, SBOM dual-format, signed commits and tags, Kyverno admission | foundry | [`ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md`](decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) |
 | ADR-0040 | proposed | Progressive delivery — Argo Rollouts canary, blue-green for stateful surfaces, metric-gated rollback at SLO burn-rate ≥ 14.4× | foundry | [`ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md`](decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) |
 | ADR-0041 | proposed | GitOps — trunk-based development with release branch cut at tag, merge queue with one-PR-at-a-time root-Cargo-touch | foundry | [`ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md`](decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md) |
-| ADR-0042 | proposed | Observability stack — OpenTelemetry SDK + VictoriaMetrics, in-house Leptos portal long-horizon, gen_ai semconv per capability | foundry | [`ADR-0042-observability-stack-otel-and-in-house-ui.md`](decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
+| ADR-0042 | superseded | Observability stack — OpenTelemetry SDK + VictoriaMetrics, in-house Leptos portal long-horizon, gen_ai semconv per capability | foundry | [`ADR-0042-observability-stack-otel-and-in-house-ui.md`](decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
 | ADR-0043 | proposed | Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCminimum-shippable-tier + FIPS 140-3), per-capability SecretProvider | foundry | [`ADR-0043-secrets-management-openbao-and-hsm-per-cell.md`](decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md) |
 | ADR-0044 | proposed | Service mesh — Istio Ambient mode for east-west, Envoy as edge gateway, mTLS everywhere, per-cell namespace, audited cross-cell traffic | cloud | [`ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`](decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md) |
 | ADR-0045 | proposed | Database tier strategy — PostgreSQL + Citus for OLTP, ClickHouse-fork for OLAP, Iceberg + DataFusion for lakehouse | foundry | [`ADR-0045-database-tier-strategy.md`](decisions/ADR-0045-database-tier-strategy.md) |
@@ -340,11 +340,12 @@ doc_status: published
 | ADR-0380 | Accepted (amendment) | CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating | ops-platform | [`ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md`](decisions/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md) |
 | ADR-0381 | Proposed | Kaniko → BuildKit migration + multi-node Talos cell topology | ops-platform | [`ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md`](decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md) |
 | ADR-0382 | Proposed | Bare-metal Talos zero-day bring-up via Sidero Metal | ops-platform | [`ADR-0382-bare-metal-talos-zero-day-sidero.md`](decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md) |
+| ADR-0383 | Accepted | Observability stack reconciliation: keep Loki / Tempo / Mimir / Grafana under AGPL-3 | ops-platform | [`ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md`](decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0383), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0384), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -371,6 +372,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 319 ADR files (sorted ascending)
+- `decisions/` directory listing — 320 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
