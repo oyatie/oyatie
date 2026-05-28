@@ -301,3 +301,73 @@ need a description tweak.
 
 > Until §8a and §8b are done, the relax-merge memory remains ACTIVE — this
 > runbook section documents the planned transition, not its completion.
+
+---
+
+## 9. Production deploy on Talos  **[HUMAN-AUTH]**
+
+The ci-webhook-gateway ships as a Helm chart managed by ArgoCD on the Talos
+local substrate (ADR-0387). Once the gateway is running and Forgejo webhooks
+flow through it, the admin-merge bridge described in §8 can be permanently
+retired.
+
+### 9a. Chart location
+
+```
+microservices/ci-webhook-gateway/iac/k8s/helm/
+```
+
+The chart follows the per-microservice flat layout (ADR-0131) with templates
+for Deployment, Service, ServiceAccount, ExternalSecret (ESO → OpenBao),
+NetworkPolicy, and HTTPRoute (Istio Gateway). Service port is **8081**.
+
+### 9b. ArgoCD ApplicationSet
+
+```
+microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/ci-webhook-gateway-applicationset.yaml
+```
+
+This ApplicationSet generates Applications for `dev`, `staging`, and `prod`
+environments. Sync policy is `automated + selfHeal + prune`. Destination
+namespace is `ci-webhook-gateway` (ArgoCD creates it with the correct Istio
+ambient-mode labels).
+
+ArgoCD syncs the chart from `dev` branch for the dev environment and `main`
+for staging/prod. Image digests are passed as Helm parameters; cosign
+verification is required (`image.cosign.required: true`, ADR-0181).
+
+### 9c. Provision secrets before first sync
+
+Run **`microservices/ci-webhook-gateway/runbooks/provision-secrets.md`** in
+full before allowing ArgoCD to sync. The ExternalSecret will fail to sync
+(and the pod will fail to start) if `secret/oya/ci-webhook-gateway` does not
+exist in OpenBao with the three required keys:
+`forgejo_ed25519_pub`, `jenkins_api_token`, `github_token`.
+
+### 9d. Verify ArgoCD sync
+
+```sh
+# Watch the ApplicationSet generate Applications
+kubectl -n oya-cd-argocd get applications -l app.kubernetes.io/name=ci-webhook-gateway
+
+# Check the dev Application health
+kubectl -n oya-cd-argocd get application ci-webhook-gateway-dev -o jsonpath='{.status.health.status}'
+
+# Check the ESO secret sync
+kubectl -n ci-webhook-gateway get externalsecret ci-webhook-gateway-secrets
+
+# Check the pod is running
+kubectl -n ci-webhook-gateway get pods -l app.kubernetes.io/name=ci-webhook-gateway
+
+# Smoke-test the health endpoint
+kubectl -n ci-webhook-gateway exec -it deploy/ci-webhook-gateway -- \
+  curl -fsS http://localhost:8081/healthz
+```
+
+Expected output from `/healthz`: `{"status":"ok"}`.
+
+### 9e. Retire the admin-merge seam
+
+Once §9d passes and a real test PR completes one full cycle (§8a), proceed
+with §8b and §8c to flip dev branch-protection back to strict and stop using
+the admin-merge path.

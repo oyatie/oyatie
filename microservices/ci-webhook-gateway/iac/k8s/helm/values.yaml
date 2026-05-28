@@ -1,0 +1,112 @@
+microservice:
+  id: ci-webhook-gateway
+  cargoPackage: oya-ci-webhook-gateway
+  tenantClass: contributor
+
+workloadLabels:
+  tenantId: oyatie-dogfood
+  costCenter: fd001-backbone
+  workloadClass: app
+  regulatoryPack: generic
+  dogfoodSubstrate: oyatie-cloud
+  productGoal: fd-001
+
+replicaCount: 1
+
+podRuntime:
+  runtimeClassName: kata-cloud-hypervisor
+
+serviceAccount:
+  name: oya-ci-webhook-gateway
+  automountToken: false
+  nonClaim: static-serviceaccount-template-only-no-live-cluster-rbac-tokenreview-or-bound-token-issuance
+
+networkPolicy:
+  # Static app network boundary for FD-001 Oyatie Cloud dogfood posture.
+  # Live CNI enforcement, namespace labels, and traffic-flow proof remain separate rollout evidence.
+  enabled: true
+  nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
+  ingress:
+    forgejoNamespaceName: oya-forge
+    gatewayNamespaceName: oya-gateway
+  egress:
+    dnsNamespaceName: kube-system
+    jenkinsNamespaceName: oya-ci-jenkins
+    jenkinsPort: 8080
+    openbaoNamespaceName: oya-secrets
+    openbaoPort: 8200
+    githubApiPort: 443
+    otelNamespaceName: observability
+    otelPort: 4317
+
+image:
+  registry: registry.oyatie.dev
+  repository: oya-ci-webhook-gateway
+  tag: "0.1.0"
+  digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  pullPolicy: IfNotPresent
+  cosign:
+    required: true
+    policy: ADR-0181
+
+service:
+  type: ClusterIP
+  port: 8081
+  targetPort: 8081
+
+gateway:
+  # Disabled by default so chart installation does not accidentally expose a
+  # service before a pack-owned Gateway listener, DNS record, ECH config, and
+  # PQC/classical certificate are provisioned and audited.
+  enabled: true
+  routeNameSuffix: http
+  parentRef:
+    name: oyatie-public-edge
+    namespace: oya-gateway
+    sectionName: https
+  hostnames:
+    - intelligence.oya.cloud
+  pathPrefix: /webhook/forgejo
+  tlsTermination: parent-gateway-tls13-ech-pqc
+  openapiContract: microservices/ci-webhook-gateway/contracts/ci-webhook-gateway.openapi.yaml
+  echConfigRef: microservices/ci-webhook-gateway/iac/ech-config.yaml
+  pqcCertificateRef: microservices/ci-webhook-gateway/iac/pqc-cert.yaml
+  nonClaim: static-httproute-template-only-no-live-gateway-dns-tls-or-cloud-rollout
+
+config:
+  tenantId: oyatie-dogfood
+  environment: production
+  auditChainEnabled: true
+  imagePromotionPolicy: cosign-required
+
+externalSecret:
+  # ExternalSecret pulling credentials from OpenBao via ESO.
+  enabled: true
+  refreshInterval: 1h
+  openbaoPath: secret/oya/ci-webhook-gateway
+  secretName: ci-webhook-gateway-secrets
+  nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
+
+jenkins:
+  baseUrl: http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080
+  jobName: oya-ci-gate
+
+github:
+  repoOwner: oya-admin
+  repoName: oyatie
+
+cedar:
+  enabled: false
+  policyConfigMapName: oya-ci-webhook-gateway-cedar
+
+otel:
+  enabled: true
+  endpoint: http://otel-collector.observability.svc.cluster.local:4317
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
