@@ -1,0 +1,134 @@
+# Enroll first Anthropic OAuth subscription
+
+This runbook provisions the oyatie-dogfood tenant's first Anthropic OAuth subscription
+into the cloud-intelligence gateway. Every step that requires human credentials is
+flagged **[human-auth]**.
+
+Prereqs: Talos cluster with ArgoCD + OpenBao + ESO + cloud-intelligence deployed and
+running (see `SETUP-RUNBOOK.md` — "Production deploy on Talos" section).
+
+---
+
+## Step 1 — Obtain an Anthropic OAuth refresh token  **[human-auth]**
+
+Visit the Anthropic OAuth authorization endpoint in a browser:
+
+```
+https://claude.ai/oauth/authorize
+  ?client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e
+  &response_type=code
+  &redirect_uri=https://intelligence.oya.cloud/anthropic/oauth/callback
+  &scope=openid%20profile%20email
+  &state=<random-csrf-token>
+```
+
+Complete the OAuth flow on claude.ai. The authorization server will redirect to the
+callback URI with a `code` parameter. Exchange it for tokens:
+
+```sh
+curl -s -X POST https://claude.ai/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=<code-from-redirect>" \
+  -d "client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e" \
+  -d "redirect_uri=https://intelligence.oya.cloud/anthropic/oauth/callback"
+```
+
+Copy the `refresh_token` from the response. Keep it in a password manager — it is the
+long-lived credential.
+
+---
+
+## Step 2 — Provision the refresh token into OpenBao  **[human-auth]**
+
+```sh
+# Authenticate to OpenBao (token scoped to write on secret/oya/cloud-intelligence)
+export VAULT_ADDR=https://openbao.cloud-secrets.svc.cluster.local:8200
+export VAULT_TOKEN=<your-openbao-token>
+
+# Write the subscription record
+vault kv put secret/oya/cloud-intelligence \
+  anthropic_refresh_token=<token-from-step-1> \
+  seat_id=seat-dogfood-1 \
+  openbao_token=<token-scoped-to-read-secret-oya-cloud-intelligence> \
+  openai_api_key=<openai-key-or-placeholder> \
+  gemini_api_key=<gemini-key-or-placeholder>
+```
+
+The ESO ExternalSecret `cloud-intelligence-secrets` will sync within the configured
+`refreshInterval` (default: 5 minutes). Verify:
+
+```sh
+kubectl -n cloud-intelligence get externalsecret cloud-intelligence-secrets \
+  -o jsonpath='{.status.conditions[0]}'
+# expect: {"reason":"SecretSynced","status":"True","type":"Ready"}
+
+kubectl -n cloud-intelligence get secret cloud-intelligence-secrets
+# expect: NAME                          TYPE     DATA   AGE
+#         cloud-intelligence-secrets   Opaque   4      <age>
+```
+
+---
+
+## Step 3 — Verify the gateway picks up the seat  **[human-auth]**
+
+After the secret syncs, restart the deployment so the new secret is mounted:
+
+```sh
+kubectl -n cloud-intelligence rollout restart deploy/cloud-intelligence
+kubectl -n cloud-intelligence rollout status deploy/cloud-intelligence --timeout=5m
+```
+
+Confirm the seat is registered in the logs:
+
+```sh
+kubectl -n cloud-intelligence logs deploy/cloud-intelligence | grep seat-dogfood-1
+# expect a log line containing seat_id=seat-dogfood-1 and event=seat_registered (or similar)
+```
+
+---
+
+## Step 4 — Smoke-test the proxy  **[human-auth]**
+
+Point Claude Code at the gateway using the ingress proxy key obtained from OpenBao:
+
+```sh
+# Retrieve an ingress proxy key
+PROXY_KEY=$(kubectl -n cloud-intelligence exec deploy/cloud-intelligence -- \
+  printenv OYA_CLOUD_INTEL_OPENBAO_TOKEN 2>/dev/null || \
+  echo "<retrieve from OpenBao secret/oya/cloud-intelligence openbao_token>")
+
+# Health check
+curl -sS \
+  -H "Authorization: Bearer ${PROXY_KEY}" \
+  https://intelligence.oya.cloud/anthropic/v1/health
+# expect: HTTP 200 {"status":"ok"}
+
+# Route a real request through the gateway
+ANTHROPIC_BASE_URL=https://intelligence.oya.cloud/anthropic \
+  claude --version
+# expect: version printed without TLS or auth error
+```
+
+---
+
+## Step 5 — Label agent namespaces that should reach the gateway
+
+Any namespace whose pods must reach the gateway needs the Cilium egress label:
+
+```sh
+kubectl label namespace <your-agent-namespace> oya.gateway-client=true
+```
+
+Without this label, the L4 network policy denies the connection.
+
+---
+
+## Rotation
+
+90-day cadence: re-run steps 1–2 with fresh tokens; ESO syncs within 5 minutes; restart
+the deployment to pick up the new secret:
+
+```sh
+kubectl -n cloud-intelligence rollout restart deploy/cloud-intelligence
+```
