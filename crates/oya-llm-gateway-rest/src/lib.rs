@@ -53,7 +53,7 @@ pub use openai::{
     extract_retry_after_seconds, retry_after_from_headers,
 };
 pub use proxy::{ProxyError, ProxyOutcome};
-pub use state::{ChosenKey, GatewayState, GroupRuntime, KeyChoice};
+pub use state::{GatewayState, GroupRuntime};
 
 /// Stable hex fingerprint of a raw API key for hash-only logging/metrics.
 ///

@@ -146,12 +146,6 @@ impl Default for PoolPolicy {
 pub enum KeyState {
     /// Eligible for selection.
     Active,
-    /// Selected and held by an in-flight [`SeatLease`]. No second lease can be
-    /// issued for this slot until the lease is completed (success or failure).
-    /// This eliminates the TOCTOU window between `select()` and
-    /// `record_outcome()` that existed when `select()` returned a plain
-    /// `Selection` with no ownership semantics.
-    Reserved,
     /// Tripped by failures; not eligible until `cooldown_until_millis` passes,
     /// at which point selection lazily restores it to [`KeyState::Active`].
     Blacklisted {
@@ -178,35 +172,12 @@ struct KeySlot {
 /// The pool is intentionally *not* `Sync`-mutated internally beyond the
 /// cursor: keeping mutation `&mut` makes the state machine trivially
 /// race-free to reason about and to test.
-///
-/// The `Debug` representation NEVER includes fingerprint values (which, while
-/// hashed, could still fingerprint an individual key in logs). It prints only
-/// the channel, policy, slot count, and cursor.
+#[derive(Debug)]
 pub struct KeyPool {
     channel: ProviderChannel, // data_class: INTERNAL_ONLY
     policy: PoolPolicy,       // data_class: INTERNAL_ONLY
     slots: Vec<KeySlot>,      // data_class: INTERNAL_ONLY
     cursor: AtomicUsize,      // data_class: INTERNAL_ONLY
-}
-
-/// Custom `Debug` that NEVER exposes key fingerprints (even though they are
-/// hashed, emitting them in logs creates a correlation vector). Only the
-/// channel, policy shape, slot count, and cursor are shown.
-impl std::fmt::Debug for KeyPool {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("KeyPool")
-            .field("channel", &self.channel)
-            .field("policy", &self.policy)
-            .field(
-                "slots",
-                &format_args!("<{} slots, fingerprints redacted>", self.slots.len()),
-            )
-            .field(
-                "cursor",
-                &self.cursor.load(std::sync::atomic::Ordering::Relaxed),
-            )
-            .finish()
-    }
 }
 
 /// Outcome of a [`KeyPool::select`] call.
@@ -224,62 +195,6 @@ pub enum Selection {
     Exhausted,
     /// The pool was constructed with no keys at all.
     Empty,
-}
-
-/// Outcome of a completed seat lease.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SeatOutcome {
-    /// The upstream call succeeded; reset failure count and restore the key to
-    /// [`KeyState::Active`].
-    Success,
-    /// The upstream call failed; increment the failure counter and potentially
-    /// blacklist the key.
-    Failure {
-        /// Caller-injected clock reading (unix ms) for the cooldown deadline.
-        now_unix_millis: u64, // data_class: INTERNAL_ONLY
-        /// Caller-injected jitter seed for the cooldown window.
-        jitter_seed: u64, // data_class: INTERNAL_ONLY
-    },
-    /// A vault/secret-store error occurred before the upstream was reached.
-    /// The key is penalised the same as a failure so the pool fails over to
-    /// the next eligible slot.
-    RefreshFailed {
-        /// Caller-injected clock reading (unix ms) for the cooldown deadline.
-        now_unix_millis: u64, // data_class: INTERNAL_ONLY
-        /// Caller-injected jitter seed for the cooldown window.
-        jitter_seed: u64, // data_class: INTERNAL_ONLY
-    },
-}
-
-/// A held reference to a reserved key slot. While the lease is alive the slot
-/// is in [`KeyState::Reserved`] and no second `lease()` call can return it.
-/// Complete the lease by calling [`KeyPool::complete_lease`] with the outcome.
-///
-/// Dropping a lease without completing it is a logic error; in debug builds
-/// this triggers a panic. In release builds the slot stays `Reserved`
-/// permanently (a safe but degraded state — the pool loses one slot).
-#[derive(Debug)]
-pub struct SeatLease {
-    /// The reserved slot.
-    pub id: KeyId, // data_class: INTERNAL_ONLY
-    /// Hash-only fingerprint for logs/metrics.
-    pub fingerprint: KeyFingerprint, // data_class: INTERNAL_ONLY
-}
-
-impl Drop for SeatLease {
-    fn drop(&mut self) {
-        // A lease must be explicitly completed. Dropping it silently is a bug.
-        #[cfg(debug_assertions)]
-        {
-            // Only fire in test/debug builds; production code always calls
-            // complete_lease before drop.
-            debug_assert!(
-                false,
-                "SeatLease for KeyId({}) dropped without completing — call KeyPool::complete_lease",
-                self.id.0
-            );
-        }
-    }
 }
 
 impl KeyPool {
@@ -328,15 +243,13 @@ impl KeyPool {
     /// Number of keys that are active (selectable) at `now_unix_millis`,
     /// counting keys whose cooldown has expired (they are restored lazily on
     /// the next `select`, but counted as active here so the metric reflects
-    /// true availability). `Reserved` slots are in-flight and counted as
-    /// available (they will return to `Active` once their lease completes).
-    /// Pure read — does not mutate.
+    /// true availability). Pure read — does not mutate.
     #[must_use]
     pub fn active_count(&self, now_unix_millis: u64) -> usize {
         self.slots
             .iter()
             .filter(|slot| match slot.state {
-                KeyState::Active | KeyState::Reserved => true,
+                KeyState::Active => true,
                 KeyState::Blacklisted {
                     cooldown_until_millis,
                 } => now_unix_millis >= cooldown_until_millis,
@@ -353,10 +266,6 @@ impl KeyPool {
     ///
     /// Requires `&mut self` because an expired-cooldown key is restored
     /// in-place (a state transition). Selection performs no I/O.
-    ///
-    /// **Prefer [`KeyPool::lease`] over this method.** `lease` atomically marks
-    /// the selected slot as `Reserved`, preventing a second concurrent caller
-    /// from obtaining the same slot before the first caller records its outcome.
     pub fn select(&mut self, now_unix_millis: u64) -> Selection {
         let len = self.slots.len();
         if len == 0 {
@@ -366,15 +275,13 @@ impl KeyPool {
         let start = self.cursor.fetch_add(1, Ordering::Relaxed) % len;
         for offset in 0..len {
             let idx = (start + offset) % len;
-            let usable = match self.slots[idx].state {
+            let restore = match self.slots[idx].state {
                 KeyState::Active => true,
-                // Reserved slots are in-flight — skip them.
-                KeyState::Reserved => false,
                 KeyState::Blacklisted {
                     cooldown_until_millis,
                 } => now_unix_millis >= cooldown_until_millis,
             };
-            if usable {
+            if restore {
                 // Lazy restore: clear blacklist + failure history on re-entry.
                 if matches!(self.slots[idx].state, KeyState::Blacklisted { .. }) {
                     self.slots[idx].state = KeyState::Active;
@@ -389,94 +296,9 @@ impl KeyPool {
         Selection::Exhausted
     }
 
-    /// Select the next usable key and atomically mark its slot `Reserved`,
-    /// returning a [`SeatLease`] that holds the exclusive right to this slot
-    /// until [`KeyPool::complete_lease`] is called.
-    ///
-    /// While a slot is `Reserved` no other `lease()` (or `select()`) call
-    /// will return it, eliminating the TOCTOU race between selection and
-    /// outcome recording.
-    ///
-    /// `now_unix_millis` is used for cooldown expiry checks (same semantics as
-    /// [`KeyPool::select`]).
-    pub fn lease(&mut self, now_unix_millis: u64) -> Selection {
-        let len = self.slots.len();
-        if len == 0 {
-            return Selection::Empty;
-        }
-        let start = self.cursor.fetch_add(1, Ordering::Relaxed) % len;
-        for offset in 0..len {
-            let idx = (start + offset) % len;
-            let usable = match self.slots[idx].state {
-                KeyState::Active => true,
-                // Reserved slots are in-flight — skip them.
-                KeyState::Reserved => false,
-                KeyState::Blacklisted {
-                    cooldown_until_millis,
-                } => now_unix_millis >= cooldown_until_millis,
-            };
-            if usable {
-                // Lazy restore on cooldown expiry.
-                if matches!(self.slots[idx].state, KeyState::Blacklisted { .. }) {
-                    self.slots[idx].failure_count = 0;
-                }
-                // Atomically mark as Reserved — no second lease can land here.
-                self.slots[idx].state = KeyState::Reserved;
-                return Selection::Key {
-                    id: KeyId(idx),
-                    fingerprint: self.slots[idx].fingerprint.clone(),
-                };
-            }
-        }
-        Selection::Exhausted
-    }
-
-    /// Complete a [`SeatLease`] (obtained from [`KeyPool::lease`]) by recording
-    /// the outcome and releasing the `Reserved` hold on the slot.
-    ///
-    /// After this call the slot transitions to `Active` (on success or restore)
-    /// or `Blacklisted` (if the failure threshold is reached).
-    pub fn complete_lease(&mut self, lease: SeatLease, outcome: SeatOutcome) {
-        // Disarm the Drop panic by mem::forgetting the lease after we've
-        // extracted the id — we are the one legitimate completion path.
-        let id = lease.id;
-        std::mem::forget(lease);
-        self.apply_outcome(id, outcome);
-    }
-
-    /// Apply an outcome to a slot that is currently `Reserved` (or `Active`
-    /// for the legacy `select`-based path). Internal helper shared between
-    /// `complete_lease` and the legacy `record_success`/`record_failure` API.
-    fn apply_outcome(&mut self, id: KeyId, outcome: SeatOutcome) {
-        match outcome {
-            SeatOutcome::Success => {
-                self.record_success(id);
-            }
-            SeatOutcome::Failure {
-                now_unix_millis,
-                jitter_seed,
-            }
-            | SeatOutcome::RefreshFailed {
-                now_unix_millis,
-                jitter_seed,
-            } => {
-                // Release the Reserved hold before recording failure so
-                // record_failure can transition the state correctly.
-                if let Some(slot) = self.slots.get_mut(id.0)
-                    && slot.state == KeyState::Reserved
-                {
-                    slot.state = KeyState::Active;
-                }
-                self.record_failure(id, now_unix_millis, jitter_seed);
-            }
-        }
-    }
-
     /// Record a successful upstream call for `id`: resets the failure counter
     /// and (defensively) restores the key to active. Idempotent and safe to
-    /// call on an unknown/out-of-range id (no-op). Also releases a
-    /// [`KeyState::Reserved`] hold (when called via the legacy path after
-    /// `select()`).
+    /// call on an unknown/out-of-range id (no-op).
     pub fn record_success(&mut self, id: KeyId) {
         if let Some(slot) = self.slots.get_mut(id.0) {
             slot.failure_count = 0;
@@ -545,92 +367,6 @@ mod tests {
     fn pool_of(n: usize, policy: PoolPolicy) -> KeyPool {
         let fps = (0..n).map(|i| fp(&format!("kf{i}"))).collect();
         KeyPool::new(ProviderChannel::OpenAi, policy, fps)
-    }
-
-    // ── Fix #3: token-handle redaction in Debug ──────────────────────────────
-
-    #[test]
-    fn key_pool_debug_does_not_expose_fingerprints() {
-        let pool = pool_of(2, PoolPolicy::default());
-        let dbg = format!("{pool:?}");
-        // Must NOT contain individual fingerprint values (kf0, kf1).
-        assert!(
-            !dbg.contains("kf0"),
-            "Debug must not expose key fingerprints: {dbg}"
-        );
-        assert!(
-            !dbg.contains("kf1"),
-            "Debug must not expose key fingerprints: {dbg}"
-        );
-        // Must show the slot count so the output is still useful.
-        assert!(dbg.contains('2'), "Debug should show slot count: {dbg}");
-    }
-
-    #[test]
-    fn key_fingerprint_debug_shows_only_hex() {
-        let fp = KeyFingerprint::from_hex("deadbeef12345678");
-        let dbg = format!("{fp:?}");
-        // The derive includes the hex string — that is intentional; fingerprints
-        // are hashes and are safe to log. This test documents that the derive is
-        // deliberate (NOT a leak of raw secrets).
-        assert!(
-            dbg.contains("deadbeef12345678"),
-            "fingerprint Debug should show the hex: {dbg}"
-        );
-    }
-
-    #[test]
-    fn seat_lease_reserved_state_prevents_double_allocation() {
-        // Fix #1: while a slot is Reserved, lease() must not return it.
-        let mut pool = pool_of(1, PoolPolicy::default());
-        // Obtain first lease — slot transitions to Reserved.
-        match pool.lease(0) {
-            Selection::Key { id, .. } => {
-                assert_eq!(id.0, 0);
-                // The slot is now Reserved; a second lease must report Exhausted.
-                assert_eq!(
-                    pool.lease(0),
-                    Selection::Exhausted,
-                    "reserved slot must not be double-allocated"
-                );
-                // Complete the first lease — slot returns to Active.
-                pool.complete_lease(
-                    SeatLease {
-                        id,
-                        fingerprint: KeyFingerprint::from_hex("kf0"),
-                    },
-                    SeatOutcome::Success,
-                );
-                // Now it is selectable again.
-                assert!(matches!(pool.lease(0), Selection::Key { .. }));
-            }
-            other => panic!("expected key, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn refresh_failed_outcome_penalises_slot() {
-        // Fix #6: RefreshFailed must blacklist the slot the same as Failure.
-        let mut pool = pool_of(1, PoolPolicy::new(1, 5_000, 0));
-        match pool.lease(0) {
-            Selection::Key { id, fingerprint } => {
-                pool.complete_lease(
-                    SeatLease { id, fingerprint },
-                    SeatOutcome::RefreshFailed {
-                        now_unix_millis: 0,
-                        jitter_seed: 0,
-                    },
-                );
-                // threshold=1 → slot is now blacklisted.
-                assert!(
-                    matches!(pool.state_of(id), Some(KeyState::Blacklisted { .. })),
-                    "RefreshFailed must blacklist the slot"
-                );
-                // Pool is exhausted.
-                assert_eq!(pool.lease(0), Selection::Exhausted);
-            }
-            other => panic!("expected key, got {other:?}"),
-        }
     }
 
     #[test]
