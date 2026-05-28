@@ -670,6 +670,11 @@ members = [
   # crates/oya-llm-gateway-kernel until the OAuth pool reaches parity; a follow-up
   # cleanup PR retires the legacy crates and promotes this to the canonical name.
   "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-kernel",
+  # llm-gateway µservice OAuth subscription-pool REST adapter (ADR-0384 Path B).
+  # Stage-4 RED: public API surface + failing tests. Stage-5 GREEN wires axum,
+  # reqwest, Anthropic OAuth refresh, EventSink fan-out, and OpenBao envelope
+  # encryption.
+  "microservices/llm-gateway/crates/oya-llm-gateway-oauth-pool-rest",
 ]
 resolver = "2"
 
