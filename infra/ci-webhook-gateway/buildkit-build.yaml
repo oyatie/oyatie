@@ -174,8 +174,20 @@ spec:
                 --opt "filename=Dockerfile" \
                 --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev,push=true,registry.insecure=true" \
                 --import-cache "${CACHE_PARAMS}" \
-                --export-cache "${CACHE_PARAMS},mode=max"
-              cosign sign --key oya-ci/cosign-key registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev
+                --export-cache "${CACHE_PARAMS},mode=max" \
+                --metadata-file=/tmp/buildkit-meta.json
+              # Sign by digest, not tag — tag can be re-pointed after signing,
+              # which would silently break the verification chain.
+              DIGEST=$(jq -r '."containerimage.digest"' /tmp/buildkit-meta.json)
+              # cosign is not present in moby/buildkit; download a pinned release.
+              # cosign v2.4.1 linux/amd64 SHA256 (sigstore upstream release):
+              #   8b24b946dd5809c6bd93de08033bcf6bc0ed7d336b7785787c080f574b89249b
+              curl -fsSL -o /tmp/cosign \
+                https://github.com/sigstore/cosign/releases/download/v2.4.1/cosign-linux-amd64
+              echo "8b24b946dd5809c6bd93de08033bcf6bc0ed7d336b7785787c080f574b89249b  /tmp/cosign" | sha256sum -c -
+              chmod +x /tmp/cosign
+              /tmp/cosign sign --key oya-ci/cosign-key \
+                "registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway@${DIGEST}"
           env:
             - name: GIT_USERNAME
               valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }

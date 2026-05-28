@@ -1,4 +1,4 @@
-# SLSA-L3 image signature chain for the in-cluster registry.
+# SLSA-L2 signing chain (attestation pending; see follow-up ADR) for the in-cluster registry.
 # External Secrets Operator projects the signing key and verification key from
 # OpenBao before the BuildKit jobs and Kyverno policy are applied.
 ---
@@ -50,7 +50,7 @@ metadata:
   name: verify-oya-registry-images-signed
   labels:
     oyatie.com/admission-adapter: kyverno
-    oyatie.com/slsa-level: "3"
+    oyatie.com/slsa-level: "2"
   annotations:
     policies.kyverno.io/title: Verify Oyatie Registry Image Signatures
     policies.kyverno.io/category: Software Supply Chain Security
