@@ -13,23 +13,8 @@
       "name": "ontology-substrate",
       "description": "Typed ontology substrate spanning object/link/action/function registries, entity store, function/action/query engines, agent gateway, audit-chain, and pillar enforcement contexts.",
       "crates": [
-        "oya-ontology-action-engine-usecase",
-        "oya-ontology-agent-gateway-rest",
-        "oya-ontology-app",
-        "oya-ontology-audit-chain-worker",
-        "oya-ontology-cedar-fragment-coverage-adapter",
-        "oya-ontology-entity-store-adapter-clickhouse",
-        "oya-ontology-entity-store-adapter-postgres",
-        "oya-ontology-entity-store-kernel",
-        "oya-ontology-function-engine-rest",
-        "oya-ontology-object-type-registry-domain",
-        "oya-ontology-object-type-registry-kernel",
-        "oya-ontology-object-type-registry-usecase",
-        "oya-ontology-pillar-domain",
         "oya-ontology-query-engine-domain",
-        "oya-ontology-query-engine-usecase",
-        "oya-ontology-query-engine-adapter-clickhouse",
-        "oya-ontology-sdk"
+        "oya-ontology-query-engine-usecase"
       ]
     }
   ],

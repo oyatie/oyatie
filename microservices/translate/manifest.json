@@ -7,69 +7,42 @@
     {
       "name": "bulk-translate",
       "description": "Bounded context 'bulk-translate' within translate (data plane)",
-      "crates": [
-        "oya-translate-bulk-worker"
-      ]
+      "crates": []
     },
     {
       "name": "document-localization",
       "description": "Bounded context 'document-localization' within translate (data plane)",
-      "crates": [
-        "oya-translate-doc-adapter-libreoffice",
-        "oya-translate-doc-adapter-pandoc"
-      ]
+      "crates": []
     },
     {
       "name": "language-detection",
       "description": "Bounded context 'language-detection' within translate (data plane)",
-      "crates": [
-        "oya-translate-langdetect-adapter-foundry-runtime"
-      ]
+      "crates": []
     },
     {
       "name": "quality-estimation",
       "description": "Bounded context 'quality-estimation' within translate (data plane)",
-      "crates": [
-        "oya-translate-qe-adapter-foundry-runtime",
-        "oya-translate-qe-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "real-time-stream",
       "description": "Bounded context 'real-time-stream' within translate (data plane)",
-      "crates": [
-        "oya-translate-stream-adapter-foundry-runtime"
-      ]
+      "crates": []
     },
     {
       "name": "termbase-and-glossary",
       "description": "Bounded context 'termbase-and-glossary' within translate (data plane)",
-      "crates": [
-        "oya-translate-termbase-adapter-postgres",
-        "oya-translate-termbase-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "translate-router",
       "description": "Bounded context 'translate-router' within translate (data plane)",
-      "crates": [
-        "oya-translate-router-api",
-        "oya-translate-router-app",
-        "oya-translate-router-domain",
-        "oya-translate-router-kernel",
-        "oya-translate-router-rest",
-        "oya-translate-router-sdk",
-        "oya-translate-router-usecase"
-      ]
+      "crates": []
     },
     {
       "name": "translation-memory",
       "description": "Bounded context 'translation-memory' within translate (data plane)",
-      "crates": [
-        "oya-translate-tm-adapter-meilisearch",
-        "oya-translate-tm-adapter-postgres",
-        "oya-translate-tm-kernel"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -239,13 +212,13 @@
     },
     {
       "id": "IP-012-engine-adapter-foundry-runtime",
-      "title": "IP-012: Engine adapter — foundry-runtime (in-house)",
+      "title": "IP-012: Engine adapter \u2014 foundry-runtime (in-house)",
       "acceptance_status": "ga",
       "file": "microservices/translate/IP-012-engine-adapter-foundry-runtime.md"
     },
     {
       "id": "IP-013-engine-adapters-external",
-      "title": "IP-013: Engine adapters — external vendors (Anthropic / OpenAI / Google / DeepL)",
+      "title": "IP-013: Engine adapters \u2014 external vendors (Anthropic / OpenAI / Google / DeepL)",
       "acceptance_status": "ga",
       "file": "microservices/translate/IP-013-engine-adapters-external.md"
     },
@@ -336,10 +309,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_signals": "INV-FOUR-reference-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -386,7 +359,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-translate",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [

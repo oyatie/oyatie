@@ -7,87 +7,32 @@
     {
       "name": "auth-gateway",
       "description": "Bounded context 'auth-gateway' within application (control plane)",
-      "crates": [
-        "oya-application-auth-gateway-adapter",
-        "oya-application-auth-gateway-adapter-oidc",
-        "oya-application-auth-gateway-adapter-saml",
-        "oya-application-auth-gateway-api",
-        "oya-application-auth-gateway-app",
-        "oya-application-auth-gateway-domain",
-        "oya-application-auth-gateway-kernel",
-        "oya-application-auth-gateway-rest",
-        "oya-application-auth-gateway-usecase",
-        "oya-application-auth-gateway-worker"
-      ]
+      "crates": []
     },
     {
       "name": "frontend-bundle-serve",
       "description": "Bounded context 'frontend-bundle-serve' within application (control plane)",
-      "crates": [
-        "oya-application-frontend-bundle-serve-adapter",
-        "oya-application-frontend-bundle-serve-adapter-cdn",
-        "oya-application-frontend-bundle-serve-adapter-postgres",
-        "oya-application-frontend-bundle-serve-api",
-        "oya-application-frontend-bundle-serve-app",
-        "oya-application-frontend-bundle-serve-kernel",
-        "oya-application-frontend-bundle-serve-usecase",
-        "oya-application-frontend-bundle-serve-worker"
-      ]
+      "crates": []
     },
     {
       "name": "module-loader",
       "description": "Bounded context 'module-loader' within application (control plane)",
-      "crates": [
-        "oya-application-module-loader-adapter",
-        "oya-application-module-loader-adapter-cdn",
-        "oya-application-module-loader-api",
-        "oya-application-module-loader-app",
-        "oya-application-module-loader-domain",
-        "oya-application-module-loader-kernel",
-        "oya-application-module-loader-rest",
-        "oya-application-module-loader-sdk",
-        "oya-application-module-loader-usecase"
-      ]
+      "crates": []
     },
     {
       "name": "shell-routing",
       "description": "Bounded context 'shell-routing' within application (data plane)",
-      "crates": [
-        "oya-application-shell-frontend",
-        "oya-application-shell-routing-adapter",
-        "oya-application-shell-routing-api",
-        "oya-application-shell-routing-app",
-        "oya-application-shell-routing-domain",
-        "oya-application-shell-routing-kernel",
-        "oya-application-shell-routing-rest",
-        "oya-application-shell-routing-sdk",
-        "oya-application-shell-routing-usecase"
-      ]
+      "crates": []
     },
     {
       "name": "tenant-context",
       "description": "Bounded context 'tenant-context' within application (control plane)",
-      "crates": [
-        "oya-application-tenant-context-adapter",
-        "oya-application-tenant-context-api",
-        "oya-application-tenant-context-app",
-        "oya-application-tenant-context-domain",
-        "oya-application-tenant-context-kernel",
-        "oya-application-tenant-context-rest",
-        "oya-application-tenant-context-usecase"
-      ]
+      "crates": []
     },
     {
       "name": "tenant-admin-console",
       "description": "No-code tenant control plane for roles, Cedar fragments, JIT access, context visibility, and AI enablement per ADR-0218.",
-      "crates": [
-        "oya-application-tenant-admin-console-kernel",
-        "oya-application-tenant-admin-console-domain",
-        "oya-application-tenant-admin-console-usecase",
-        "oya-application-tenant-admin-console-api",
-        "oya-application-tenant-admin-console-rest",
-        "oya-application-tenant-admin-console-app"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -355,10 +300,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -383,7 +328,10 @@
     "north_south_only": false
   },
   "naming_justifications": "application is a BNF v4.1 kebab-case microservice slug; generated names follow oya-application-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
-  "tenant_class_eligibility": ["demo_trial", "paid"],
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
   "paid_billing_components_emitted": [],
   "packs": [
     "kr",
@@ -406,7 +354,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-application",
   "tier_classification": "B2B",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",

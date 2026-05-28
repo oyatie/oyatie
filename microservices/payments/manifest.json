@@ -21,9 +21,7 @@
         "oya-payments-charge-usecase",
         "oya-payments-charge-rest",
         "oya-payments-charge-grpc",
-        "oya-payments-charge-app",
-        "oya-payments-charge-api",
-        "oya-payments-charge-sdk"
+        "oya-payments-charge-app"
       ]
     },
     {
@@ -31,8 +29,7 @@
       "description": "Refund issuance, window enforcement, PSP refund",
       "crates": [
         "oya-payments-refund-domain",
-        "oya-payments-refund-usecase",
-        "oya-payments-refund-adapter"
+        "oya-payments-refund-usecase"
       ]
     },
     {
@@ -40,8 +37,7 @@
       "description": "Payout scheduling, cooling-period, bank-account verification",
       "crates": [
         "oya-payments-payout-domain",
-        "oya-payments-payout-usecase",
-        "oya-payments-payout-worker"
+        "oya-payments-payout-usecase"
       ]
     },
     {
@@ -57,8 +53,7 @@
       "description": "Subscription, billing-cycle, dunning, trial, usage-based billing",
       "crates": [
         "oya-payments-subscription-domain",
-        "oya-payments-subscription-usecase",
-        "oya-payments-subscription-worker"
+        "oya-payments-subscription-usecase"
       ]
     },
     {
@@ -66,8 +61,7 @@
       "description": "Sub-merchant onboarding, KYC/KYB verification, AML monitoring",
       "crates": [
         "oya-payments-kyc-kyb-domain",
-        "oya-payments-kyc-kyb-usecase",
-        "oya-payments-kyc-kyb-worker"
+        "oya-payments-kyc-kyb-usecase"
       ]
     },
     {
@@ -313,7 +307,7 @@
     },
     {
       "id": "ADR-0131",
-      "title": "Per-µservice flat layout"
+      "title": "Per-\u00b5service flat layout"
     },
     {
       "id": "ADR-0145",
@@ -406,7 +400,7 @@
   },
   "provider_credential_mode": {
     "default": "byok",
-    "note": "Every tenant brings their own PSP account per ADR-0255 §D-4; platform_default only for oyatie-internal tenant"
+    "note": "Every tenant brings their own PSP account per ADR-0255 \u00a7D-4; platform_default only for oyatie-internal tenant"
   },
   "mesh_layering": {
     "cilium_l4": true,

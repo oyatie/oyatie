@@ -84,11 +84,6 @@
         "oya-intelligence-model-routing-kernel",
         "oya-intelligence-model-routing-domain",
         "oya-intelligence-model-routing-usecase",
-        "oya-intelligence-model-routing-adapter",
-        "oya-intelligence-model-routing-api",
-        "oya-intelligence-model-routing-rest",
-        "oya-intelligence-model-routing-grpc",
-        "oya-intelligence-model-routing-worker",
         "oya-intelligence-dispatch-usecase"
       ]
     },
@@ -96,24 +91,7 @@
       "name": "providers",
       "description": "Per-vendor adapters for 18 first-class providers. Each implements ProviderAdapterPort.",
       "crates": [
-        "oya-intelligence-providers-adapter-anthropic",
-        "oya-intelligence-providers-adapter-openai",
-        "oya-intelligence-providers-adapter-google",
-        "oya-intelligence-providers-adapter-bedrock",
-        "oya-intelligence-providers-adapter-azure-openai",
-        "oya-intelligence-providers-adapter-cohere",
-        "oya-intelligence-providers-adapter-mistral",
-        "oya-intelligence-providers-adapter-vllm",
-        "oya-intelligence-providers-adapter-sglang",
-        "oya-intelligence-providers-adapter-tensorrt-llm",
-        "oya-intelligence-providers-adapter-apple-foundation",
-        "oya-intelligence-providers-adapter-openrouter",
-        "oya-intelligence-providers-adapter-together",
-        "oya-intelligence-providers-adapter-groq",
-        "oya-intelligence-providers-adapter-huggingface-inference",
-        "oya-intelligence-providers-adapter-replicate",
-        "oya-intelligence-providers-adapter-alibaba-qwen",
-        "oya-intelligence-providers-adapter-tencent-hunyuan"
+        "oya-intelligence-providers-adapter-openai"
       ]
     },
     {
@@ -122,8 +100,7 @@
       "crates": [
         "oya-intelligence-guardrails-kernel",
         "oya-intelligence-guardrails-domain",
-        "oya-intelligence-guardrails-usecase",
-        "oya-intelligence-guardrails-adapter"
+        "oya-intelligence-guardrails-usecase"
       ]
     },
     {
@@ -151,19 +128,12 @@
     {
       "name": "brand-ux-surface",
       "description": "Layer-B consumer brand chrome: SparkleIcon, StreamingText, TierBadge, RefusalBanner, CostFloorDisclosure, CitationCard.",
-      "crates": [
-        "oya-intelligence-brand-ux-surface-sdk-rs",
-        "oya-intelligence-brand-ux-surface-sdk-ts",
-        "oya-intelligence-brand-ux-surface-sdk-swift",
-        "oya-intelligence-brand-ux-surface-sdk-kotlin",
-        "oya-intelligence-brand-ux-surface-adapter"
-      ]
+      "crates": []
     },
     {
       "name": "credential-resolver",
       "description": "Resolves SecretReference \u2192 CredentialHandle via OpenBao sidecar. Credentials never enter intelligence process memory per ADR-0296; the metadata-only credential sidecar adapter validates sidecar channel/signer/audit/audience refs, builds request envelopes for parsed secret references, maps sidecar outcome metadata to short-lived opaque handles or sanitized failures, and performs no OpenBao call, Unix socket I/O, network execution, provider SDK work, raw secret material handling, durable audit-chain write, or cloud runtime dispatch.",
       "crates": [
-        "oya-intelligence-credential-resolver-kernel",
         "oya-intelligence-credential-resolver-domain",
         "oya-intelligence-credential-resolver-usecase",
         "oya-intelligence-credential-resolver-adapter"
@@ -198,8 +168,6 @@
         "oya-intelligence-context-aware-retrieval-kernel",
         "oya-intelligence-context-aware-retrieval-domain",
         "oya-intelligence-context-aware-retrieval-usecase",
-        "oya-intelligence-context-aware-retrieval-api",
-        "oya-intelligence-context-aware-retrieval-rest",
         "oya-intelligence-context-aware-retrieval-adapter",
         "oya-intelligence-context-aware-retrieval-worker"
       ]

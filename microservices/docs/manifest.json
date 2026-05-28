@@ -7,69 +7,42 @@
     {
       "name": "block-types",
       "description": "Bounded context 'block-types' within docs (data plane)",
-      "crates": [
-        "oya-docs-block-types-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "collab-crdt",
       "description": "Bounded context 'collab-crdt' within docs (data plane)",
-      "crates": [
-        "oya-docs-collab-crdt-adapter",
-        "oya-docs-collab-crdt-adapter-valkey",
-        "oya-docs-collab-crdt-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "comments-and-suggestions",
       "description": "Bounded context 'comments-and-suggestions' within docs (data plane)",
-      "crates": [
-        "oya-docs-comments-and-suggestions-adapter-postgres",
-        "oya-docs-comments-and-suggestions-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "document-store",
       "description": "Bounded context 'document-store' within docs (data plane)",
-      "crates": [
-        "oya-docs-document-store-adapter-postgres",
-        "oya-docs-document-store-adapter-s3",
-        "oya-docs-document-store-app",
-        "oya-docs-document-store-kernel",
-        "oya-docs-export-import-adapter-clamav",
-        "oya-docs-export-import-adapter-opswat"
-      ]
+      "crates": []
     },
     {
       "name": "embed-resolver",
       "description": "Bounded context 'embed-resolver' within docs (data plane)",
-      "crates": [
-        "oya-docs-embed-resolver-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "export-import",
       "description": "Bounded context 'export-import' within docs (data plane)",
-      "crates": [
-        "oya-docs-export-import-adapter-chromium",
-        "oya-docs-export-import-adapter-pandoc",
-        "oya-docs-export-import-adapter-weasyprint",
-        "oya-docs-export-import-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "sharing-and-permissions",
       "description": "Bounded context 'sharing-and-permissions' within docs (control plane)",
-      "crates": [
-        "oya-docs-sharing-and-permissions-kernel"
-      ]
+      "crates": []
     },
     {
       "name": "version-history",
       "description": "Bounded context 'version-history' within docs (data plane)",
-      "crates": [
-        "oya-docs-version-history-kernel"
-      ]
+      "crates": []
     }
   ],
   "layers": [
@@ -167,13 +140,13 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor",
+      "title": "IP-001: IaC bootstrap \u2014 Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor",
       "acceptance_status": "ga",
       "file": "microservices/docs/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-document-store-kernel",
-      "title": "IP-002: document-store kernel — Document + BlockTree + RetentionPolicyRef + LegalHoldRef + port traits",
+      "title": "IP-002: document-store kernel \u2014 Document + BlockTree + RetentionPolicyRef + LegalHoldRef + port traits",
       "acceptance_status": "ga",
       "file": "microservices/docs/IP-002-document-store-kernel.md"
     },
@@ -197,7 +170,7 @@
     },
     {
       "id": "IP-006-collab-crdt-kernel-domain",
-      "title": "IP-006: collab-crdt kernel + domain + adapter (Loro 1.x integration; cross-µservice consistent per ADR-DOCS-0001 + ADR-WS-0001)",
+      "title": "IP-006: collab-crdt kernel + domain + adapter (Loro 1.x integration; cross-\u00b5service consistent per ADR-DOCS-0001 + ADR-WS-0001)",
       "acceptance_status": "ga",
       "file": "microservices/docs/IP-006-collab-crdt-kernel-domain.md"
     },
@@ -227,7 +200,7 @@
     },
     {
       "id": "IP-011-export-import",
-      "title": "IP-011: export-import BC (11 crates) — Pandoc + WeasyPrint + Chromium inside gVisor sandbox",
+      "title": "IP-011: export-import BC (11 crates) \u2014 Pandoc + WeasyPrint + Chromium inside gVisor sandbox",
       "acceptance_status": "ga",
       "file": "microservices/docs/IP-011-export-import.md"
     },
@@ -342,10 +315,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -395,7 +368,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-docs",
   "tier_classification": "tenant-facing",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
