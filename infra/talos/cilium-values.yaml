@@ -8,6 +8,9 @@ ipam:
 kubeProxyReplacement: true
 k8sServiceHost: localhost        # KubePrism in-cluster apiserver endpoint on every Talos node
 k8sServicePort: 7445
+operator:
+  replicas: 1                      # single-node local cluster (ADR-0378): the default 2 replicas
+                                   # cannot satisfy pod anti-affinity on one node (one stays Pending)
 cgroup:
   autoMount:
     enabled: false               # Talos already mounts cgroup2; Cilium must not remount

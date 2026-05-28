@@ -55,5 +55,7 @@ spec:
   {{- end }}
   syncPolicy:
     automated: { prune: true, selfHeal: true }
-    syncOptions: [CreateNamespace=true]
+    # ServerSideApply: large CRDs (kyverno/kubewarden/istio/external-secrets) exceed
+    # the 256KB client-side last-applied-config annotation limit; SSA avoids it.
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
 {{- end }}
