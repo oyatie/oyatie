@@ -1,6 +1,7 @@
 # In-cluster OCI registry (registry:2) — image target for in-cluster builds.
 # Host docker is retired (ADR-0378); gateway + future microservice images are built
-# in-cluster (kaniko/buildkit) and pushed here. Plain-HTTP, in-cluster only.
+# in-cluster by BuildKit (ADR-0381 D1; Kaniko archived 2024) and pushed here.
+# Plain-HTTP, in-cluster only.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
