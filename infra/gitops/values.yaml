@@ -128,6 +128,18 @@ apps:
     namespace: oya-storage
     syncWave: "1"
 
+  # llm-gateway microservice — agent-dispatch reverse proxy with OpenBao-bound
+  # provider keys (per microservices/llm-gateway/PRD.md). Kernel + rest adapter
+  # + app are Rust-implemented (~5,600 LOC + 30 tests across the 3 crates).
+  # The image is BuildKit-built via the operator-run Job (see
+  # microservices/llm-gateway/k8s/BUILDKIT-JOB-TEMPLATE.md); the Deployment
+  # references it at registry.oya-registry.svc.cluster.local:5000/llm-gateway:dev.
+  - name: llm-gateway
+    type: path
+    path: microservices/llm-gateway/k8s
+    namespace: oya-llm-gateway
+    syncWave: "2"
+
   # Cell-boundary NetworkPolicies (ADR-0381 D3). First boundary: oya-storage
   # ingress restricted to the CI cell + ArgoCD + same-namespace. Cilium L3/L4
   # (ADR-0148) enforces. Sibling boundaries (ci/tenant/foundation) follow as
