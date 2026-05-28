@@ -6,14 +6,13 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# OAuth subscription-pool REST adapter (ADR-0384 Path B, Stage-4 RED scaffold).
+# OAuth subscription-pool REST adapter (ADR-0384 Path B, Stage-5 GREEN).
 # Owns:
-#   D2 — axum reverse-proxy (placeholder, wired in Stage-5 GREEN)
-#   D3 — Anthropic provider adapter + OAuth refresh state machine
+#   D2 — axum reverse-proxy router (wired in Stage-5 GREEN)
+#   D3 — Anthropic provider adapter + OAuth refresh state machine (reqwest blocking)
 #   D6 — EventSink fan-out to ClickHouse + Valkey Stream (trait mock here)
 #   D8 — OpenBao envelope-encrypted refresh-token storage (trait mock here)
 #
-# Stage-5 GREEN adds axum, reqwest, and the concrete adapter wiring.
 # Codex provider adapter is deferred to a follow-up PR (see TODO in lib.rs).
 
 [lib]
@@ -24,9 +23,18 @@ doctest = false
 [dependencies]
 oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
 serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+bytes.workspace = true
+# axum + reqwest not yet in workspace deps — pinned directly here per ADR-0090
+# blessed-allowlist. Add to workspace in a follow-up consolidation PR.
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
+tokio.workspace = true
 
 [dev-dependencies]
 oya-llm-gateway-oauth-pool-kernel = { path = "../oya-llm-gateway-oauth-pool-kernel" }
+tokio = { workspace = true, features = ["rt", "macros"] }
 
 [lints]
 workspace = true
