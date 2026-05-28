@@ -682,6 +682,12 @@ members = [
   # WebhookSignature, JenkinsJob, CommitStatusContext trait seams + failing tests.
   # Stage-5 GREEN implements ed25519 verifier, Jenkins REST client, GitHub status poster.
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel",
+  # ci-webhook-gateway Stage-5 GREEN adapters + app (ADR-0387).
+  "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-ed25519-adapter",
+  "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-jenkins-adapter",
+  "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
+  "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
+  "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
 ]
 resolver = "2"
 
