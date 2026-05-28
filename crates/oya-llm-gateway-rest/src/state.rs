@@ -16,7 +16,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use oya_llm_gateway_kernel::{
-    KeyFingerprint, KeyId, KeyPool, KeyState, PoolPolicy, ProviderChannel, Selection,
+    KeyFingerprint, KeyId, KeyPool, KeyState, PoolPolicy, ProviderChannel, SeatLease, SeatOutcome,
+    Selection,
 };
 
 use crate::auth::AuthVerifier;
@@ -50,7 +51,9 @@ struct GroupInner {
     retry_after_until_millis: BTreeMap<usize, u64>, // data_class: INTERNAL_ONLY
 }
 
-/// A key chosen for an attempt: its slot id, hash fingerprint, and raw value.
+/// A key chosen for an attempt: its slot id, hash fingerprint, raw value, and
+/// the exclusive [`SeatLease`] that keeps the slot `Reserved` until the
+/// outcome is recorded.
 pub struct ChosenKey {
     /// Slot handle to report success/failure against.
     pub id: KeyId,
@@ -58,9 +61,26 @@ pub struct ChosenKey {
     pub fingerprint: String,
     /// The live key (forward to upstream auth only; never log).
     pub raw_key: String,
+    /// The seat lease — must be passed to [`GroupRuntime::complete_lease`]
+    /// once the upstream outcome is known.
+    pub lease: SeatLease,
+}
+
+/// Custom `Debug` that redacts `raw_key` (the live provider key). The
+/// fingerprint and lease are safe to show.
+impl std::fmt::Debug for ChosenKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ChosenKey")
+            .field("id", &self.id)
+            .field("fingerprint", &self.fingerprint)
+            .field("raw_key", &"<REDACTED>")
+            .field("lease", &self.lease)
+            .finish()
+    }
 }
 
 /// Result of asking a group for a key.
+#[derive(Debug)]
 pub enum KeyChoice {
     /// A usable key was selected.
     Chosen(ChosenKey),
@@ -142,10 +162,16 @@ impl GroupRuntime {
 
     /// Select the next key for an attempt, injecting the wall clock.
     ///
+    /// Uses [`KeyPool::lease`] so the returned slot is atomically marked
+    /// `Reserved` — no second concurrent caller can receive the same slot
+    /// before the lease is completed. The caller MUST call
+    /// [`GroupRuntime::complete_lease`] with the upstream outcome once the
+    /// attempt finishes.
+    ///
     /// Walks the kernel's round-robin selection up to `len()` times so a key
     /// whose Retry-After override has not yet elapsed is skipped (not
-    /// returned). When every key is either kernel-blacklisted or under an
-    /// active Retry-After override, returns [`KeyChoice::Exhausted`].
+    /// returned). When every key is either kernel-blacklisted/reserved or
+    /// under an active Retry-After override, returns [`KeyChoice::Exhausted`].
     pub fn choose_key(&self) -> KeyChoice {
         let now = now_unix_millis();
         let Ok(mut inner) = self.inner.lock() else {
@@ -156,22 +182,30 @@ impl GroupRuntime {
             return KeyChoice::Empty;
         }
         for _ in 0..total {
-            match inner.pool.select(now) {
+            match inner.pool.lease(now) {
                 Selection::Key { id, fingerprint } => {
                     let blocked = inner
                         .retry_after_until_millis
                         .get(&id.0)
                         .is_some_and(|&until| now < until);
                     if blocked {
-                        // The kernel will rotate the cursor onward; we just
-                        // loop to look at the next slot.
+                        // Release the reserved hold immediately so the slot
+                        // can be used again; then keep scanning.
+                        inner.pool.record_success(id);
                         continue;
                     }
                     let raw = inner.raw_keys.get(id.0).cloned().unwrap_or_default();
+                    // Build the SeatLease value object; the slot stays Reserved
+                    // until complete_lease is called.
+                    let lease = SeatLease {
+                        id,
+                        fingerprint: fingerprint.clone(),
+                    };
                     return KeyChoice::Chosen(ChosenKey {
                         id,
                         fingerprint: fingerprint.as_str().to_string(),
                         raw_key: raw,
+                        lease,
                     });
                 }
                 Selection::Exhausted => return KeyChoice::Exhausted,
@@ -179,6 +213,40 @@ impl GroupRuntime {
             }
         }
         KeyChoice::Exhausted
+    }
+
+    /// Complete a seat lease returned by [`GroupRuntime::choose_key`], recording
+    /// the upstream outcome and releasing the `Reserved` hold on the slot.
+    pub fn complete_lease(&self, lease: SeatLease, outcome: SeatOutcome) {
+        if let Ok(mut inner) = self.inner.lock() {
+            inner.pool.complete_lease(lease, outcome);
+        } else {
+            // Mutex poisoned — disarm the drop-panic by forgetting the lease.
+            std::mem::forget(lease);
+        }
+    }
+
+    /// Extend the Retry-After cooldown override for `id` without recording an
+    /// additional failure. Used after `complete_lease` when the upstream
+    /// returned a `Retry-After` header whose duration exceeds the kernel's
+    /// own jittered cooldown.
+    pub fn apply_retry_after_override(
+        &self,
+        id: KeyId,
+        retry_after_seconds: u64,
+        now_unix_millis: u64,
+    ) {
+        if let Ok(mut inner) = self.inner.lock() {
+            let until = now_unix_millis.saturating_add(retry_after_seconds.saturating_mul(1_000));
+            let existing = inner
+                .retry_after_until_millis
+                .get(&id.0)
+                .copied()
+                .unwrap_or(0);
+            if until > existing {
+                inner.retry_after_until_millis.insert(id.0, until);
+            }
+        }
     }
 
     /// Report a successful upstream call for `id`. Clears any Retry-After
@@ -241,7 +309,7 @@ impl GroupRuntime {
         for idx in 0..total {
             let key_id = KeyId(idx);
             let kernel_until = match inner.pool.state_of(key_id) {
-                Some(KeyState::Active) => None,
+                Some(KeyState::Active) | Some(KeyState::Reserved) => None,
                 Some(KeyState::Blacklisted {
                     cooldown_until_millis,
                 }) if cooldown_until_millis > now => Some(cooldown_until_millis),
@@ -286,8 +354,11 @@ fn retry_after_active_block_count(inner: &GroupInner, now: u64) -> usize {
             continue;
         }
         // Only subtract from `active_count` when the kernel side reports the
-        // slot as Active. A kernel-blacklisted slot was already excluded.
-        if let Some(KeyState::Active) = inner.pool.state_of(KeyId(idx)) {
+        // slot as Active or Reserved. A kernel-blacklisted slot was already excluded.
+        if matches!(
+            inner.pool.state_of(KeyId(idx)),
+            Some(KeyState::Active) | Some(KeyState::Reserved)
+        ) {
             blocked += 1;
         }
     }
@@ -380,6 +451,23 @@ impl GatewayState {
         }
     }
 
+    /// Apply only the Retry-After cooldown override for a slot that has
+    /// already had its failure recorded via `complete_lease`. Does not
+    /// double-count the failure — it only extends the effective cooldown
+    /// window when the upstream instructed us to wait longer than the kernel's
+    /// jittered policy.
+    pub fn record_retry_after_override(
+        &self,
+        group: &str,
+        id: KeyId,
+        retry_after_seconds: u64,
+        now_unix_millis: u64,
+    ) {
+        if let Some(group) = self.groups.get(group) {
+            group.apply_retry_after_override(id, retry_after_seconds, now_unix_millis);
+        }
+    }
+
     /// The soonest restore time, in seconds-from-now, across `group`'s pool.
     /// `None` if the group is unknown OR at least one key is selectable right
     /// now. Used by the OpenAI handlers to set the 503 `Retry-After` when the
@@ -434,6 +522,7 @@ fn jitter_seed() -> u64 {
 mod tests {
     use super::*;
     use crate::config::RetryPolicyConfig;
+    use oya_llm_gateway_kernel::SeatOutcome;
 
     fn material(channel: ProviderChannel, keys: &[(&str, &str)]) -> KeyMaterial {
         let mut map = BTreeMap::new();
@@ -462,6 +551,8 @@ mod tests {
                 assert_eq!(c.raw_key, "sk-aaa");
                 assert_eq!(c.fingerprint, crate::fingerprint_key("sk-aaa"));
                 assert_eq!(c.id.0, 0);
+                // Complete the lease to avoid the drop-without-complete panic.
+                g.complete_lease(c.lease, SeatOutcome::Success);
             }
             _ => panic!("expected a chosen key"),
         }
@@ -476,27 +567,59 @@ mod tests {
 
     #[test]
     fn failures_blacklist_then_exhaust() {
+        let now = now_unix_millis();
         let g = group(&[("a", "sk-aaa")]);
         // threshold = 2; two failures blacklist the only key.
-        let id = match g.choose_key() {
-            KeyChoice::Chosen(c) => c.id,
+        // Use complete_lease for both failures so the lease is properly released.
+        let c = match g.choose_key() {
+            KeyChoice::Chosen(c) => c,
             _ => panic!("expected key"),
         };
-        g.record_failure(id);
-        g.record_failure(id);
+        g.complete_lease(
+            c.lease,
+            SeatOutcome::Failure {
+                now_unix_millis: now,
+                jitter_seed: 0,
+            },
+        );
+        // Second failure: choose again (key is still Active after 1 failure; threshold=2).
+        let c2 = match g.choose_key() {
+            KeyChoice::Chosen(c) => c,
+            _ => panic!("expected key second time"),
+        };
+        g.complete_lease(
+            c2.lease,
+            SeatOutcome::Failure {
+                now_unix_millis: now,
+                jitter_seed: 0,
+            },
+        );
         // Now the only key is in cooldown (10s) → exhausted.
         assert!(matches!(g.choose_key(), KeyChoice::Exhausted));
     }
 
     #[test]
     fn success_keeps_key_active_and_counted() {
+        let now = now_unix_millis();
         let g = group(&[("a", "sk-aaa"), ("b", "sk-bbb")]);
-        let id = match g.choose_key() {
-            KeyChoice::Chosen(c) => c.id,
+        let c = match g.choose_key() {
+            KeyChoice::Chosen(c) => c,
             _ => panic!("expected key"),
         };
-        g.record_failure(id);
-        g.record_success(id); // resets
+        // Fail it once (threshold=2, so still Active).
+        g.complete_lease(
+            c.lease,
+            SeatOutcome::Failure {
+                now_unix_millis: now,
+                jitter_seed: 0,
+            },
+        );
+        // Now record success — resets failure count.
+        let c2 = match g.choose_key() {
+            KeyChoice::Chosen(c) => c,
+            _ => panic!("expected key"),
+        };
+        g.complete_lease(c2.lease, SeatOutcome::Success);
         assert_eq!(g.active_key_count(), 2);
     }
 
@@ -512,7 +635,10 @@ mod tests {
         );
         assert_eq!(g.active_key_count(), 2);
         match g.choose_key() {
-            KeyChoice::Chosen(c) => assert!(c.raw_key.starts_with("sk-new")),
+            KeyChoice::Chosen(c) => {
+                assert!(c.raw_key.starts_with("sk-new"));
+                g.complete_lease(c.lease, SeatOutcome::Success);
+            }
             _ => panic!("expected key"),
         }
     }
