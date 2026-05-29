@@ -1,5 +1,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod feed_ranking;
+
 use oya_community_social_domain::{
     OwnershipPillar as SocialOwnershipPillar, PurgeTarget, SocialArtifactKind, SocialContextKind,
     SocialError, SocialPost, SocialPostCreate, story_purge,
