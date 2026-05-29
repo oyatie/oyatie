@@ -75,6 +75,8 @@ use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
 use futures_util::stream::Stream;
+use std::collections::HashSet;
+use std::sync::OnceLock;
 
 pub use oya_intelligence_account_kernel::{ProviderFamily, SecretReference};
 pub use oya_intelligence_provider_pool_kernel::{
@@ -986,36 +988,166 @@ impl ProviderInvocationTransport for InMemoryProviderInvocationTransport {
 }
 
 // =====================================================================
-// Production hyper-backed transport (honest boundary)
+// Production hyper-backed transport
 // =====================================================================
 
-/// Production [`ProviderInvocationTransport`] scaffold. The transport itself
-/// is wired up — but the credential resolution it needs (per-provider OAuth
-/// access token from the OpenBao secret-resolution path) and the Bedrock-
-/// shaped audit emission downstream are not yet implemented, so today this
-/// adapter returns [`TransportError::NonRetryable`] referencing
-/// [`Unimplemented::OpenBaoSecretResolution`].
+/// Anthropic API version header value (stable; bump only with provider change).
+const ANTHROPIC_VERSION: &str = "2023-06-01";
+
+/// RFC 7230 §6.1 hop-by-hop header names that must never be forwarded upstream
+/// or returned to the caller.
+const HOP_BY_HOP_HEADERS: &[&str] = &[
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailers",
+    "transfer-encoding",
+    "upgrade",
+];
+
+/// Status classification used by [`classify_status`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum StatusClass {
+    /// 2xx — forward as `Ok(ProviderResponse)`.
+    Success,
+    /// 5xx + network errors — `TransportError::Retryable`.
+    Retryable,
+    /// 4xx, 1xx, 3xx — `TransportError::NonRetryable`.
+    NonRetryable,
+}
+
+/// Classify an HTTP status code into the dispatch loop's three-way decision.
+pub(crate) fn classify_status(status: u16) -> StatusClass {
+    match status {
+        200..=299 => StatusClass::Success,
+        500..=599 => StatusClass::Retryable,
+        _ => StatusClass::NonRetryable,
+    }
+}
+
+/// Filter hop-by-hop headers from `headers`, additionally stripping any tokens
+/// named in `connection_nominated` (RFC 7230 §6.1 dynamic removal).
 ///
-/// This is the **honest-claims** posture mandated by ADR-0083 + the
-/// honest-claims gate: we do not stub a fake `Ok(...)`; we surface a typed
-/// `Unimplemented` boundary so callers see the gap and the placeholder-debt
-/// registry tracks the follow-up. When the OpenBao adapter lands the
-/// production path through this transport activates without any caller
-/// change.
-#[derive(Clone, Debug, Default)]
+/// Returns only headers that survive the filter, in original order.
+pub(crate) fn filter_hop_by_hop(
+    headers: &[(String, String)],
+    connection_nominated: &HashSet<String>,
+) -> Vec<(String, String)> {
+    headers
+        .iter()
+        .filter(|(name, _)| {
+            let lower = name.to_ascii_lowercase();
+            !HOP_BY_HOP_HEADERS.contains(&lower.as_str())
+                && !connection_nominated.contains(&lower)
+        })
+        .cloned()
+        .collect()
+}
+
+/// Extract the set of connection-nominated tokens from the `connection` header
+/// value (comma-separated, trimmed, lowercased).
+fn connection_nominated_tokens(headers: &[(String, String)]) -> HashSet<String> {
+    headers
+        .iter()
+        .find(|(name, _)| name.eq_ignore_ascii_case("connection"))
+        .map(|(_, val)| {
+            val.split(',')
+                .map(|t| t.trim().to_ascii_lowercase())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+// Lazy process-wide hyper HTTPS client (one per process; shared across all
+// dispatch calls via OnceLock). Uses hyper-util legacy Client + hyper-rustls
+// on aws-lc-rs backend + webpki-tokio trust roots. No native-certs.
+static HYPER_CLIENT: OnceLock<
+    hyper_util::client::legacy::Client<
+        hyper_rustls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>,
+        http_body_util::Full<Bytes>,
+    >,
+> = OnceLock::new();
+
+fn get_or_init_client() -> &'static hyper_util::client::legacy::Client<
+    hyper_rustls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>,
+    http_body_util::Full<Bytes>,
+> {
+    HYPER_CLIENT.get_or_init(|| {
+        let tls = hyper_rustls::HttpsConnectorBuilder::new()
+            .with_webpki_roots()
+            .https_or_http()
+            .enable_http1()
+            .enable_http2()
+            .build();
+        hyper_util::client::legacy::Client::builder(hyper_util::rt::TokioExecutor::new())
+            .build(tls)
+    })
+}
+
+/// Production [`ProviderInvocationTransport`] backed by `hyper-util` legacy
+/// Client + `hyper-rustls` (aws-lc-rs crypto, webpki trust roots).
+///
+/// Credential resolution is delegated to the injected [`SecretResolution`]
+/// adapter (default: [`OpenBaoSecretResolver`], which surfaces the honest-claims
+/// [`Unimplemented::OpenBaoSecretResolution`] boundary until the OpenBao adapter
+/// lands). When an [`InMemorySecretResolver`] is injected (tests), the transport
+/// performs real in-process HTTP dispatch against the provided upstream URL.
+///
+/// ## Non-streaming only
+///
+/// `dispatch` is fully implemented. `dispatch_stream` remains an honest-boundary
+/// stub (`Unimplemented::OpenBaoSecretResolution`) — streaming is a separate
+/// follow-up slice.
+#[derive(Clone)]
 pub struct HyperProviderInvocationTransport {
-    /// Process-wide upstream base URL ceiling (e.g. https://api.anthropic.com).
-    /// Empty until configured.
-    upstream_base_url: String, // data_class: INTERNAL_ONLY
+    /// Process-wide upstream base URL (e.g. `https://api.anthropic.com`).
+    /// Used to build the per-provider path. data_class: INTERNAL_ONLY
+    upstream_base_url: String,
+    /// Secret resolution adapter. Defaults to [`OpenBaoSecretResolver`]
+    /// (honest-boundary today). data_class: INTERNAL_ONLY
+    secret_resolver: Arc<dyn SecretResolution + Send + Sync>,
+}
+
+impl fmt::Debug for HyperProviderInvocationTransport {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("HyperProviderInvocationTransport")
+            .field("upstream_base_url", &self.upstream_base_url)
+            .field("secret_resolver", &"<dyn SecretResolution>")
+            .finish()
+    }
+}
+
+impl Default for HyperProviderInvocationTransport {
+    fn default() -> Self {
+        Self {
+            upstream_base_url: String::new(),
+            secret_resolver: Arc::new(OpenBaoSecretResolver),
+        }
+    }
 }
 
 impl HyperProviderInvocationTransport {
-    /// Build a transport with the upstream-base URL configured.
+    /// Build a transport with the upstream-base URL configured, using the
+    /// default [`OpenBaoSecretResolver`] (honest-claims boundary today).
     #[must_use]
     pub fn new(upstream_base_url: impl Into<String>) -> Self {
         Self {
             upstream_base_url: upstream_base_url.into(),
+            secret_resolver: Arc::new(OpenBaoSecretResolver),
         }
+    }
+
+    /// Builder: attach a custom [`SecretResolution`] adapter.
+    /// Used by tests to inject [`InMemorySecretResolver`].
+    #[must_use]
+    pub fn with_secret_resolver(
+        mut self,
+        resolver: Arc<dyn SecretResolution + Send + Sync>,
+    ) -> Self {
+        self.secret_resolver = resolver;
+        self
     }
 
     /// The configured upstream base URL.
@@ -1023,21 +1155,187 @@ impl HyperProviderInvocationTransport {
     pub fn upstream_base_url(&self) -> &str {
         &self.upstream_base_url
     }
+
+    /// Compute the upstream request URL for the given provider family.
+    fn upstream_url(&self, provider: ProviderFamily) -> Result<String, TransportError> {
+        let path = match provider {
+            ProviderFamily::Claude => "/v1/messages",
+            ProviderFamily::OpenAiOrCodex => "/v1/chat/completions",
+            _ => {
+                return Err(TransportError::NonRetryable {
+                    detail: format!("unsupported provider family: {provider:?}"),
+                });
+            }
+        };
+        Ok(format!("{}{}", self.upstream_base_url, path))
+    }
+
+    /// Build the per-provider authentication headers from the resolved credential.
+    fn auth_headers(
+        provider: ProviderFamily,
+        credential: &ProviderCredential,
+    ) -> Result<Vec<(String, String)>, TransportError> {
+        // Credentials are raw bytes; they must be valid UTF-8 to insert as header values.
+        let token =
+            std::str::from_utf8(credential.as_bytes().as_ref()).map_err(|_| {
+                TransportError::NonRetryable {
+                    // NEVER include the raw credential bytes in the detail string.
+                    detail: "credential encoding: not valid UTF-8".into(),
+                }
+            })?;
+        let token = token.trim();
+        match provider {
+            ProviderFamily::Claude => Ok(vec![
+                ("x-api-key".to_string(), token.to_string()),
+                ("anthropic-version".to_string(), ANTHROPIC_VERSION.to_string()),
+            ]),
+            ProviderFamily::OpenAiOrCodex => Ok(vec![(
+                "authorization".to_string(),
+                format!("Bearer {token}"),
+            )]),
+            _ => Err(TransportError::NonRetryable {
+                detail: format!("unsupported provider family for auth: {provider:?}"),
+            }),
+        }
+    }
+
+    /// Internal async dispatch implementation — extracted so the
+    /// `ProviderInvocationTransport` trait impl can box it cleanly.
+    async fn do_dispatch(
+        &self,
+        account_id: ProviderAccountId,
+        provider: ProviderFamily,
+        body: Bytes,
+    ) -> Result<ProviderResponse, TransportError> {
+        // 1. Resolve secret. The account_id is treated as the SecretReference path
+        //    (in production, account IDs are sref:// URIs per ADR-0374). If the
+        //    account_id is not a valid sref:// reference, it is an honest-boundary
+        //    placeholder — surface the same Unimplemented error as OpenBaoSecretResolver
+        //    would return, because any non-sref account ID means credential resolution
+        //    is not yet plumbed through.
+        let unimplemented_detail = || format!(
+            "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
+            Unimplemented::OpenBaoSecretResolution.as_str(),
+            Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
+        );
+        let secret_ref = match SecretReference::new(account_id.0.clone()) {
+            Ok(r) => r,
+            Err(_) => {
+                return Err(TransportError::NonRetryable {
+                    detail: unimplemented_detail(),
+                });
+            }
+        };
+        let credential = self
+            .secret_resolver
+            .resolve(&secret_ref)
+            .await
+            .map_err(|e| match e {
+                SecretResolutionError::Unimplemented { .. } => TransportError::NonRetryable {
+                    detail: unimplemented_detail(),
+                },
+                SecretResolutionError::Denied { .. } => TransportError::NonRetryable {
+                    detail: "secret resolution: access denied".into(),
+                },
+                SecretResolutionError::NotFound { .. } => TransportError::NonRetryable {
+                    detail: "secret resolution: not found".into(),
+                },
+                SecretResolutionError::Store(msg) => TransportError::Retryable {
+                    detail: format!("secret resolution: store error: {msg}"),
+                },
+            })?;
+
+        // 2. Build upstream URL.
+        let url = self.upstream_url(provider)?;
+
+        // 3. Build auth headers.
+        let auth_headers = Self::auth_headers(provider, &credential)?;
+
+        // 4. Build hyper request. Always POST; content-type: application/json.
+        let mut req_builder = hyper::Request::builder()
+            .method(hyper::Method::POST)
+            .uri(&url)
+            .header(
+                hyper::header::CONTENT_TYPE,
+                "application/json",
+            );
+
+        // Inject auth headers.
+        for (name, value) in &auth_headers {
+            req_builder = req_builder.header(name.as_str(), value.as_str());
+        }
+
+        let hyper_request = req_builder
+            .body(http_body_util::Full::new(body))
+            .map_err(|e| TransportError::Retryable {
+                detail: format!("request build error: {e}"),
+            })?;
+
+        // 5. Send via process-wide client.
+        let client = get_or_init_client();
+        let response = client.request(hyper_request).await.map_err(|e| {
+            TransportError::Retryable {
+                detail: format!("upstream network error: {e}"),
+            }
+        })?;
+
+        let status = response.status().as_u16();
+
+        // 6. Collect response headers (filter hop-by-hop).
+        let mut raw_response_headers: Vec<(String, String)> = Vec::new();
+        for (name, value) in response.headers() {
+            if let Ok(val_str) = value.to_str() {
+                raw_response_headers
+                    .push((name.as_str().to_ascii_lowercase(), val_str.to_string()));
+            }
+        }
+        let resp_nominated = connection_nominated_tokens(&raw_response_headers);
+        let filtered_headers = filter_hop_by_hop(&raw_response_headers, &resp_nominated);
+
+        // 7. Parse Retry-After.
+        let retry_after_seconds = raw_response_headers
+            .iter()
+            .find(|(name, _)| name == "retry-after")
+            .and_then(|(_, val)| val.trim().parse::<u64>().ok());
+
+        // 8. Collect body.
+        use http_body_util::BodyExt as _;
+        let body_bytes = response
+            .into_body()
+            .collect()
+            .await
+            .map_err(|e| TransportError::Retryable {
+                detail: format!("upstream body read error: {e}"),
+            })?
+            .to_bytes();
+
+        // 9. Classify status and return.
+        match classify_status(status) {
+            StatusClass::Success => Ok(ProviderResponse {
+                status,
+                headers: filtered_headers,
+                body: body_bytes,
+                retry_after_seconds,
+                provider_account_id: account_id,
+            }),
+            StatusClass::Retryable => Err(TransportError::Retryable {
+                detail: format!("upstream returned {status}"),
+            }),
+            StatusClass::NonRetryable => Err(TransportError::NonRetryable {
+                detail: format!("upstream returned {status}"),
+            }),
+        }
+    }
 }
 
 impl ProviderInvocationTransport for HyperProviderInvocationTransport {
     fn dispatch(
         &self,
-        _account_id: ProviderAccountId,
-        _provider: ProviderFamily,
-        _body: Bytes,
+        account_id: ProviderAccountId,
+        provider: ProviderFamily,
+        body: Bytes,
     ) -> Pin<Box<dyn Future<Output = Result<ProviderResponse, TransportError>> + Send + '_>> {
-        let detail = format!(
-            "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
-            Unimplemented::OpenBaoSecretResolution.as_str(),
-            Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
-        );
-        Box::pin(async move { Err(TransportError::NonRetryable { detail }) })
+        Box::pin(self.do_dispatch(account_id, provider, body))
     }
 
     fn dispatch_stream(
@@ -1047,6 +1345,7 @@ impl ProviderInvocationTransport for HyperProviderInvocationTransport {
         _credential: ProviderCredential,
         _body: Bytes,
     ) -> Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send + '_>> {
+        // Streaming is a separate slice; honest-claims boundary maintained.
         let detail = format!(
             "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
             Unimplemented::OpenBaoSecretResolution.as_str(),
@@ -1840,5 +2139,405 @@ mod tests {
         let drained = sink.drain();
         assert_eq!(drained.len(), 1);
         assert!(sink.snapshot().is_empty(), "drain must clear the event log");
+    }
+
+    // ── transport unit tests ──────────────────────────────────────────────────
+
+    #[test]
+    fn filter_hop_by_hop_strips_standard_headers() {
+        let headers: Vec<(String, String)> = vec![
+            ("connection".into(), "keep-alive".into()),
+            ("keep-alive".into(), "timeout=5".into()),
+            ("transfer-encoding".into(), "chunked".into()),
+            ("upgrade".into(), "websocket".into()),
+            ("te".into(), "trailers".into()),
+            ("trailers".into(), "expires".into()),
+            ("proxy-authenticate".into(), "Basic".into()),
+            ("proxy-authorization".into(), "Basic abc".into()),
+            ("content-type".into(), "application/json".into()),
+            ("x-custom".into(), "value".into()),
+        ];
+        let nominated = HashSet::new();
+        let filtered = filter_hop_by_hop(&headers, &nominated);
+        let names: Vec<&str> = filtered.iter().map(|(n, _)| n.as_str()).collect();
+        // Hop-by-hop headers must be stripped.
+        for hop in HOP_BY_HOP_HEADERS {
+            assert!(
+                !names.contains(hop),
+                "hop-by-hop header '{hop}' must be stripped, but was present: {names:?}"
+            );
+        }
+        // Safe headers must survive.
+        assert!(names.contains(&"content-type"), "content-type must pass through");
+        assert!(names.contains(&"x-custom"), "x-custom must pass through");
+    }
+
+    #[test]
+    fn filter_hop_by_hop_strips_connection_nominated_tokens() {
+        let headers: Vec<(String, String)> = vec![
+            ("connection".into(), "keep-alive, x-nominated".into()),
+            ("x-nominated".into(), "strip-me".into()),
+            ("content-type".into(), "application/json".into()),
+        ];
+        let nominated: HashSet<String> = ["keep-alive".to_string(), "x-nominated".to_string()]
+            .iter()
+            .cloned()
+            .collect();
+        let filtered = filter_hop_by_hop(&headers, &nominated);
+        let names: Vec<&str> = filtered.iter().map(|(n, _)| n.as_str()).collect();
+        assert!(
+            !names.contains(&"x-nominated"),
+            "connection-nominated header must be stripped"
+        );
+        assert!(!names.contains(&"keep-alive"), "keep-alive must be stripped");
+        assert!(
+            names.contains(&"content-type"),
+            "content-type must pass through"
+        );
+    }
+
+    #[test]
+    fn filter_hop_by_hop_passes_safe_headers() {
+        let headers: Vec<(String, String)> = vec![
+            ("x-api-key".into(), "sk-abc".into()),
+            ("anthropic-version".into(), "2023-06-01".into()),
+            ("content-type".into(), "application/json".into()),
+            ("x-request-id".into(), "req-123".into()),
+        ];
+        let nominated = HashSet::new();
+        let filtered = filter_hop_by_hop(&headers, &nominated);
+        assert_eq!(
+            filtered.len(),
+            4,
+            "all safe headers must survive: {filtered:?}"
+        );
+    }
+
+    #[test]
+    fn classify_status_maps_2xx_to_success() {
+        for status in [200u16, 201, 206, 299] {
+            assert_eq!(
+                classify_status(status),
+                StatusClass::Success,
+                "status {status} must be Success"
+            );
+        }
+    }
+
+    #[test]
+    fn classify_status_maps_5xx_to_retryable() {
+        for status in [500u16, 502, 503, 504, 599] {
+            assert_eq!(
+                classify_status(status),
+                StatusClass::Retryable,
+                "status {status} must be Retryable"
+            );
+        }
+    }
+
+    #[test]
+    fn classify_status_maps_4xx_to_non_retryable() {
+        for status in [400u16, 401, 403, 404, 422, 429] {
+            assert_eq!(
+                classify_status(status),
+                StatusClass::NonRetryable,
+                "status {status} must be NonRetryable"
+            );
+        }
+    }
+
+    // ── transport integration tests (hermetic in-process hyper server) ────────
+
+    /// Spawn a minimal in-process HTTP/1.1 server on 127.0.0.1:0, call the
+    /// supplied `handler` function with the request, and return the port.
+    ///
+    /// The server serves exactly ONE connection then exits.
+    async fn spawn_test_server(
+        response_status: u16,
+        response_headers: Vec<(&'static str, &'static str)>,
+        response_body: &'static [u8],
+    ) -> u16 {
+        use hyper::server::conn::http1;
+        use hyper::service::service_fn;
+        use hyper_util::rt::TokioIo;
+        use tokio::net::TcpListener;
+
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind test server");
+        let port = listener.local_addr().expect("local_addr").port();
+
+        tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.expect("accept");
+            let io = TokioIo::new(stream);
+
+            let svc = service_fn(move |req: hyper::Request<hyper::body::Incoming>| {
+                // Consume the request body so hyper doesn't stall.
+                let rh = response_headers.clone();
+                let rb = response_body;
+                let rs = response_status;
+                async move {
+                    use http_body_util::BodyExt as _;
+                    let _ = req.collect().await;
+                    let mut builder = hyper::Response::builder().status(rs);
+                    for (name, value) in &rh {
+                        builder = builder.header(*name, *value);
+                    }
+                    let resp = builder
+                        .body(http_body_util::Full::new(bytes::Bytes::from_static(rb)))
+                        .expect("build response");
+                    Ok::<_, std::convert::Infallible>(resp)
+                }
+            });
+
+            let _ = http1::Builder::new()
+                .keep_alive(false)
+                .serve_connection(io, svc)
+                .await;
+        });
+
+        port
+    }
+
+    /// Spawn a test server that echoes request headers as a JSON object body.
+    async fn spawn_echo_headers_server() -> u16 {
+        use hyper::server::conn::http1;
+        use hyper::service::service_fn;
+        use hyper_util::rt::TokioIo;
+        use tokio::net::TcpListener;
+
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind echo server");
+        let port = listener.local_addr().expect("local_addr").port();
+
+        tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.expect("accept");
+            let io = TokioIo::new(stream);
+
+            let svc = service_fn(|req: hyper::Request<hyper::body::Incoming>| async move {
+                // Build a JSON body: {"<header>": "<value>", ...}
+                let pairs: Vec<String> = req
+                    .headers()
+                    .iter()
+                    .map(|(k, v)| {
+                        format!(
+                            r#""{}":"{}""#,
+                            k.as_str(),
+                            v.to_str().unwrap_or("")
+                        )
+                    })
+                    .collect();
+                let json = format!("{{{}}}", pairs.join(","));
+                let resp = hyper::Response::builder()
+                    .status(200)
+                    .header("content-type", "application/json")
+                    .body(http_body_util::Full::new(bytes::Bytes::from(json)))
+                    .expect("build response");
+                Ok::<_, std::convert::Infallible>(resp)
+            });
+
+            let _ = http1::Builder::new()
+                .keep_alive(false)
+                .serve_connection(io, svc)
+                .await;
+        });
+
+        port
+    }
+
+    fn sref(id: &str) -> SecretReference {
+        SecretReference::new(format!("sref://{id}")).expect("valid sref")
+    }
+
+    fn transport_with_resolver(
+        base_url: impl Into<String>,
+        resolver: Arc<dyn SecretResolution + Send + Sync>,
+    ) -> HyperProviderInvocationTransport {
+        HyperProviderInvocationTransport::new(base_url).with_secret_resolver(resolver)
+    }
+
+    fn in_memory_resolver(key: &str, token: &str) -> Arc<dyn SecretResolution + Send + Sync> {
+        let sr = sref(key);
+        Arc::new(
+            InMemorySecretResolver::new()
+                .with_secret(sr, Bytes::copy_from_slice(token.as_bytes())),
+        )
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_forwards_post_and_returns_200() {
+        let port = spawn_test_server(200, vec![("content-type", "application/json")], b"{\"ok\":true}").await;
+        let resolver = in_memory_resolver("my-key", "tok_test_abc");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://my-key".into());
+        let result = transport
+            .dispatch(account_id.clone(), ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .await;
+        let resp = result.expect("200 must return Ok(ProviderResponse)");
+        assert_eq!(resp.status, 200);
+        assert_eq!(resp.body, Bytes::from_static(b"{\"ok\":true}"));
+        assert_eq!(resp.provider_account_id, account_id);
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_maps_5xx_to_retryable() {
+        let port = spawn_test_server(500, vec![], b"internal server error").await;
+        let resolver = in_memory_resolver("key-500", "tok_500");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://key-500".into());
+        let err = transport
+            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .await
+            .expect_err("500 must return Err(Retryable)");
+        assert!(
+            matches!(err, TransportError::Retryable { .. }),
+            "expected Retryable, got {err:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_maps_4xx_to_non_retryable() {
+        let port = spawn_test_server(429, vec![("retry-after", "60")], b"rate limited").await;
+        let resolver = in_memory_resolver("key-429", "tok_429");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://key-429".into());
+        let err = transport
+            .dispatch(account_id, ProviderFamily::OpenAiOrCodex, Bytes::from_static(b"{}"))
+            .await
+            .expect_err("429 must return Err(NonRetryable)");
+        assert!(
+            matches!(err, TransportError::NonRetryable { .. }),
+            "expected NonRetryable, got {err:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_injects_anthropic_auth_headers() {
+        let port = spawn_echo_headers_server().await;
+        let resolver = in_memory_resolver("anthropic-key", "sk-ant-my-token");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://anthropic-key".into());
+        let resp = transport
+            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .await
+            .expect("echo server returns 200");
+        let body_str = std::str::from_utf8(&resp.body).expect("body is UTF-8");
+        assert!(
+            body_str.contains("x-api-key"),
+            "x-api-key header must be injected; got body: {body_str}"
+        );
+        assert!(
+            body_str.contains("sk-ant-my-token"),
+            "x-api-key value must be the credential; got body: {body_str}"
+        );
+        assert!(
+            body_str.contains("anthropic-version"),
+            "anthropic-version header must be injected; got body: {body_str}"
+        );
+        assert!(
+            body_str.contains(ANTHROPIC_VERSION),
+            "anthropic-version value must be {ANTHROPIC_VERSION}; got body: {body_str}"
+        );
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_injects_openai_bearer_header() {
+        let port = spawn_echo_headers_server().await;
+        let resolver = in_memory_resolver("openai-key", "sk-openai-my-token");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://openai-key".into());
+        let resp = transport
+            .dispatch(account_id, ProviderFamily::OpenAiOrCodex, Bytes::from_static(b"{}"))
+            .await
+            .expect("echo server returns 200");
+        let body_str = std::str::from_utf8(&resp.body).expect("body is UTF-8");
+        assert!(
+            body_str.contains("authorization"),
+            "authorization header must be injected; got body: {body_str}"
+        );
+        assert!(
+            body_str.contains("Bearer sk-openai-my-token"),
+            "authorization value must be Bearer token; got body: {body_str}"
+        );
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_strips_hop_by_hop_from_response() {
+        let port = spawn_test_server(
+            200,
+            vec![
+                ("content-type", "application/json"),
+                ("transfer-encoding", "chunked"),
+                ("connection", "keep-alive"),
+                ("keep-alive", "timeout=60"),
+            ],
+            b"{\"stripped\":true}",
+        )
+        .await;
+        let resolver = in_memory_resolver("hop-key", "tok_hop");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://hop-key".into());
+        let resp = transport
+            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .await
+            .expect("200 must succeed");
+        let header_names: Vec<&str> = resp.headers.iter().map(|(n, _)| n.as_str()).collect();
+        for hop in HOP_BY_HOP_HEADERS {
+            assert!(
+                !header_names.contains(hop),
+                "hop-by-hop response header '{hop}' must be stripped; headers: {header_names:?}"
+            );
+        }
+        assert!(
+            header_names.contains(&"content-type"),
+            "content-type must pass through; headers: {header_names:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn hyper_transport_network_error_returns_retryable() {
+        // Use a port that (very likely) has nothing listening. We pick a
+        // port in the ephemeral range that we know is free because we bound
+        // and immediately dropped a listener to it.
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind free port");
+        let port = listener.local_addr().expect("local_addr").port();
+        // Drop the listener — the port is now free but no server is listening.
+        drop(listener);
+
+        let resolver = in_memory_resolver("net-err-key", "tok_net");
+        let transport = transport_with_resolver(
+            format!("http://127.0.0.1:{port}"),
+            resolver,
+        );
+        let account_id = ProviderAccountId("sref://net-err-key".into());
+        let err = transport
+            .dispatch(account_id, ProviderFamily::Claude, Bytes::from_static(b"{}"))
+            .await
+            .expect_err("connection refused must return Err");
+        assert!(
+            matches!(err, TransportError::Retryable { .. }),
+            "network error must be Retryable, got {err:?}"
+        );
     }
 }
