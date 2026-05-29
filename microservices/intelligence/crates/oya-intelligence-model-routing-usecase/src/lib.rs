@@ -8,13 +8,17 @@
 //! durable audit-chain emission, or cloud runtime scheduling.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub use oya_intelligence_model_routing_domain::{
     CredentialMode, DomainRouteDecision, IntelligenceDataClass, ModelCapability, ModelProvider,
     ModelRouteRequest, ProviderRouteProfile, RequestAudience, RouteDecision, RouteDenial,
     RouteDenialReason, RouteSelection, route_validated_request,
 };
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModelRoutingUsecaseInput {
@@ -40,6 +44,17 @@ pub enum ModelRoutingUsecaseDenialKind {
     RouteDenied,
 }
 
+/// Metadata-only record of a single candidate that was evaluated and denied
+/// during the catalog walk. Carries no credential fields or provider secrets.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CandidateDenial {
+    pub provider: ModelProvider,                  // data_class: PUBLIC
+    pub model_id: String,                         // data_class: INTERNAL_ONLY
+    pub priority: u16,                            // data_class: INTERNAL_ONLY
+    pub reasons: BTreeSet<RouteDenialReason>,     // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,               // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModelRoutingUsecaseReceipt {
     pub idempotency_key: String,             // data_class: INTERNAL_ONLY
@@ -52,6 +67,11 @@ pub struct ModelRoutingUsecaseReceipt {
     pub denial_kind: Option<ModelRoutingUsecaseDenialKind>, // data_class: INTERNAL_ONLY
     pub route_selection: Option<RouteSelection>, // data_class: INTERNAL_ONLY
     pub route_denial: Option<RouteDenial>,   // data_class: INTERNAL_ONLY
+    /// Per-candidate denial trail produced by the catalog walk.
+    /// On Routed: candidates tried and denied before the selected one (may be empty).
+    /// On Denied: every candidate in stable priority order with its denial reasons.
+    /// On InvalidInput / IdempotencyConflict: empty (walk was not reached).
+    pub candidate_denials: Vec<CandidateDenial>, // data_class: INTERNAL_ONLY
     pub evidence_refs: Vec<String>,          // data_class: INTERNAL_ONLY
 }
 
@@ -72,6 +92,10 @@ pub struct ModelRoutingAuditEvent {
     pub evidence_refs: Vec<String>,       // data_class: INTERNAL_ONLY
 }
 
+// ---------------------------------------------------------------------------
+// Private state
+// ---------------------------------------------------------------------------
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ModelRouteIntent {
     fingerprint: String,
@@ -83,6 +107,10 @@ pub struct IntelligenceModelRoutingUsecase {
     events: Vec<ModelRoutingAuditEvent>,
 }
 
+// ---------------------------------------------------------------------------
+// Usecase entry point
+// ---------------------------------------------------------------------------
+
 impl IntelligenceModelRoutingUsecase {
     pub fn route(&mut self, input: ModelRoutingUsecaseInput) -> ModelRoutingUsecaseReceipt {
         if let Err(evidence_ref) = validate_input(&input) {
@@ -92,6 +120,7 @@ impl IntelligenceModelRoutingUsecase {
                 Some(ModelRoutingUsecaseDenialKind::InvalidInput),
                 None,
                 None,
+                vec![],
                 vec![evidence_ref],
             );
         }
@@ -111,6 +140,7 @@ impl IntelligenceModelRoutingUsecase {
                 Some(ModelRoutingUsecaseDenialKind::IdempotencyConflict),
                 None,
                 None,
+                vec![],
                 vec![
                     input.request.request_evidence_ref.clone(),
                     "model-routing:idempotency-conflict".to_owned(),
@@ -124,39 +154,7 @@ impl IntelligenceModelRoutingUsecase {
             canonical_request_evidence_refs(&input),
         );
 
-        let receipt = match route_validated_request(input.request.clone(), &input.catalog) {
-            DomainRouteDecision::Routed(RouteDecision::Allow(selection)) => receipt_from_input(
-                &input,
-                ModelRoutingUsecaseStatus::Routed,
-                None,
-                Some(selection.clone()),
-                None,
-                sorted_unique(
-                    [
-                        canonical_request_evidence_refs(&input),
-                        selection.evidence_refs.clone(),
-                        vec!["model-routing:route-selected".to_owned()],
-                    ]
-                    .concat(),
-                ),
-            ),
-            DomainRouteDecision::Routed(RouteDecision::Deny(denial))
-            | DomainRouteDecision::Invalid(denial) => receipt_from_input(
-                &input,
-                ModelRoutingUsecaseStatus::Denied,
-                Some(ModelRoutingUsecaseDenialKind::RouteDenied),
-                None,
-                Some(denial.clone()),
-                sorted_unique(
-                    [
-                        canonical_request_evidence_refs(&input),
-                        denial.evidence_refs.clone(),
-                        vec!["model-routing:route-denied".to_owned()],
-                    ]
-                    .concat(),
-                ),
-            ),
-        };
+        let receipt = walk_catalog_for_route(&input);
 
         let event_kind = match receipt.status {
             ModelRoutingUsecaseStatus::Routed => ModelRoutingAuditEventKind::RouteSelected,
@@ -198,6 +196,166 @@ impl IntelligenceModelRoutingUsecase {
         });
     }
 }
+
+// ---------------------------------------------------------------------------
+// Catalog-walk fallback (SUB-1 + SUB-2)
+// ---------------------------------------------------------------------------
+
+/// Walk the catalog in stable priority order, attempting each candidate
+/// individually. Returns on the first allowed selection or on a terminal
+/// (request-level) denial. Collects per-candidate denial metadata for the
+/// receipt trail.
+fn walk_catalog_for_route(input: &ModelRoutingUsecaseInput) -> ModelRoutingUsecaseReceipt {
+    // Sort a local copy into the canonical priority order so the walk is
+    // deterministic regardless of input ordering.
+    let mut sorted_catalog = input.catalog.clone();
+    sorted_catalog.sort_by(|a, b| {
+        a.priority
+            .cmp(&b.priority)
+            .then_with(|| a.provider.cmp(&b.provider))
+            .then_with(|| a.model_id.cmp(&b.model_id))
+    });
+
+    let mut candidate_denials: Vec<CandidateDenial> = Vec::new();
+
+    for profile in &sorted_catalog {
+        match route_validated_request(input.request.clone(), std::slice::from_ref(profile)) {
+            DomainRouteDecision::Invalid(denial) => {
+                // Terminal: the request itself is malformed; stop immediately.
+                return receipt_from_input(
+                    input,
+                    ModelRoutingUsecaseStatus::Denied,
+                    Some(ModelRoutingUsecaseDenialKind::RouteDenied),
+                    None,
+                    Some(denial.clone()),
+                    candidate_denials,
+                    sorted_unique(
+                        [
+                            canonical_request_evidence_refs(input),
+                            denial.evidence_refs.clone(),
+                            vec!["model-routing:route-denied".to_owned()],
+                        ]
+                        .concat(),
+                    ),
+                );
+            }
+            DomainRouteDecision::Routed(RouteDecision::Allow(selection)) => {
+                return receipt_from_input(
+                    input,
+                    ModelRoutingUsecaseStatus::Routed,
+                    None,
+                    Some(selection.clone()),
+                    None,
+                    candidate_denials,
+                    sorted_unique(
+                        [
+                            canonical_request_evidence_refs(input),
+                            selection.evidence_refs.clone(),
+                            vec!["model-routing:route-selected".to_owned()],
+                        ]
+                        .concat(),
+                    ),
+                );
+            }
+            DomainRouteDecision::Routed(RouteDecision::Deny(denial)) => {
+                // Recoverable: record and continue to next candidate.
+                candidate_denials.push(CandidateDenial {
+                    provider: profile.provider,
+                    model_id: profile.model_id.clone(),
+                    priority: profile.priority,
+                    reasons: denial.reasons.clone(),
+                    evidence_refs: sorted_unique(denial.evidence_refs.clone()),
+                });
+            }
+        }
+    }
+
+    // All candidates exhausted; build aggregate denial from the trail.
+    let aggregate_denial = aggregate_denial_from_trail(&candidate_denials, input);
+    let evidence_refs = sorted_unique(
+        [
+            canonical_request_evidence_refs(input),
+            aggregate_denial.evidence_refs.clone(),
+            vec!["model-routing:route-denied".to_owned()],
+        ]
+        .concat(),
+    );
+    receipt_from_input(
+        input,
+        ModelRoutingUsecaseStatus::Denied,
+        Some(ModelRoutingUsecaseDenialKind::RouteDenied),
+        None,
+        Some(aggregate_denial),
+        candidate_denials,
+        evidence_refs,
+    )
+}
+
+/// Build a `RouteDenial` that aggregates reasons and evidence from the full
+/// denial trail. Used when the catalog is exhausted without a match.
+fn aggregate_denial_from_trail(
+    trail: &[CandidateDenial],
+    input: &ModelRoutingUsecaseInput,
+) -> RouteDenial {
+    let mut reasons: BTreeSet<RouteDenialReason> = BTreeSet::new();
+    let mut evidence_refs: Vec<String> = vec![input.request.request_evidence_ref.clone()];
+
+    if trail.is_empty() || input.catalog.iter().all(|p| !p.enabled) {
+        reasons.insert(RouteDenialReason::NoEnabledProvider);
+    }
+
+    for denial in trail {
+        reasons.extend(denial.reasons.iter().copied());
+        evidence_refs.extend(denial.evidence_refs.iter().cloned());
+    }
+
+    RouteDenial {
+        reasons,
+        evidence_refs: sorted_unique(evidence_refs),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Receipt assembly
+// ---------------------------------------------------------------------------
+
+fn receipt_from_input(
+    input: &ModelRoutingUsecaseInput,
+    status: ModelRoutingUsecaseStatus,
+    denial_kind: Option<ModelRoutingUsecaseDenialKind>,
+    route_selection: Option<RouteSelection>,
+    route_denial: Option<RouteDenial>,
+    candidate_denials: Vec<CandidateDenial>,
+    evidence_refs: Vec<String>,
+) -> ModelRoutingUsecaseReceipt {
+    ModelRoutingUsecaseReceipt {
+        idempotency_key: safe_metadata(&input.idempotency_key, "redacted-invalid-idempotency-key"),
+        tenant_id: safe_tenant(&input.request.tenant_id),
+        principal_id: safe_metadata(&input.principal_id, "redacted-invalid-principal-id"),
+        trace_context_ref: safe_ref(
+            &input.trace_context_ref,
+            "model-routing:redacted-invalid-trace-context-ref",
+        ),
+        policy_decision_ref: safe_ref(
+            &input.policy_decision_ref,
+            "model-routing:redacted-invalid-policy-decision-ref",
+        ),
+        route_registry_snapshot_ref: safe_ref(
+            &input.route_registry_snapshot_ref,
+            "model-routing:redacted-invalid-registry-snapshot-ref",
+        ),
+        status,
+        denial_kind,
+        route_selection,
+        route_denial,
+        candidate_denials,
+        evidence_refs: sorted_unique(evidence_refs),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Validation helpers
+// ---------------------------------------------------------------------------
 
 fn validate_input(input: &ModelRoutingUsecaseInput) -> Result<(), String> {
     require_metadata(
@@ -244,37 +402,9 @@ fn validate_profile(profile: &ProviderRouteProfile) -> Result<(), String> {
     Ok(())
 }
 
-fn receipt_from_input(
-    input: &ModelRoutingUsecaseInput,
-    status: ModelRoutingUsecaseStatus,
-    denial_kind: Option<ModelRoutingUsecaseDenialKind>,
-    route_selection: Option<RouteSelection>,
-    route_denial: Option<RouteDenial>,
-    evidence_refs: Vec<String>,
-) -> ModelRoutingUsecaseReceipt {
-    ModelRoutingUsecaseReceipt {
-        idempotency_key: safe_metadata(&input.idempotency_key, "redacted-invalid-idempotency-key"),
-        tenant_id: safe_tenant(&input.request.tenant_id),
-        principal_id: safe_metadata(&input.principal_id, "redacted-invalid-principal-id"),
-        trace_context_ref: safe_ref(
-            &input.trace_context_ref,
-            "model-routing:redacted-invalid-trace-context-ref",
-        ),
-        policy_decision_ref: safe_ref(
-            &input.policy_decision_ref,
-            "model-routing:redacted-invalid-policy-decision-ref",
-        ),
-        route_registry_snapshot_ref: safe_ref(
-            &input.route_registry_snapshot_ref,
-            "model-routing:redacted-invalid-registry-snapshot-ref",
-        ),
-        status,
-        denial_kind,
-        route_selection,
-        route_denial,
-        evidence_refs: sorted_unique(evidence_refs),
-    }
-}
+// ---------------------------------------------------------------------------
+// Fingerprint
+// ---------------------------------------------------------------------------
 
 fn canonical_request_evidence_refs(input: &ModelRoutingUsecaseInput) -> Vec<String> {
     sorted_unique(vec![
@@ -339,6 +469,10 @@ fn canonical_profile(profile: &ProviderRouteProfile) -> String {
 fn canonical_entry(label: &str, value: &str) -> String {
     format!("{}:{}{}:{}", label.len(), label, value.len(), value)
 }
+
+// ---------------------------------------------------------------------------
+// Metadata safety helpers
+// ---------------------------------------------------------------------------
 
 fn require_metadata(value: &str, evidence_ref: &str) -> Result<(), String> {
     if is_safe_metadata_ref(value) {
@@ -449,12 +583,20 @@ fn contains_raw_content_material(value: &str) -> bool {
         || lower.contains("raw output")
 }
 
+// ---------------------------------------------------------------------------
+// Util
+// ---------------------------------------------------------------------------
+
 fn sorted_unique(mut values: Vec<String>) -> Vec<String> {
     values.retain(|value| !value.trim().is_empty());
     values.sort();
     values.dedup();
     values
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -501,6 +643,10 @@ mod tests {
             ],
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Existing regression tests (unchanged behaviour)
+    // -----------------------------------------------------------------------
 
     #[test]
     fn routes_authorized_request_with_metadata_audit_and_idempotency() {
@@ -634,5 +780,236 @@ mod tests {
         assert!(!debug.contains("raw prompt"));
         assert!(!debug.contains("raw output"));
         assert!(!debug.contains("model answer"));
+    }
+
+    // -----------------------------------------------------------------------
+    // SUB-1: catalog-walk fallback
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn fallback_to_second_candidate_when_first_is_denied_by_capability_mismatch() {
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+        // profile-A: priority 1, wrong capability -> recoverable denial
+        let mut profile_a = profile(ModelProvider::OpenAi, "gpt-embedding", 1);
+        profile_a.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+        // profile-B: priority 2, fully eligible
+        let profile_b = profile(ModelProvider::Anthropic, "claude-chat", 2);
+
+        let mut inp = input("idem:model-routing:fallback-cap");
+        inp.catalog = vec![profile_a, profile_b];
+
+        let receipt = usecase.route(inp);
+
+        assert_eq!(receipt.status, ModelRoutingUsecaseStatus::Routed);
+        assert_eq!(
+            receipt.route_selection.as_ref().unwrap().model_id,
+            "claude-chat"
+        );
+        // exactly one candidate was tried and denied before the selected one
+        assert_eq!(receipt.candidate_denials.len(), 1);
+        assert_eq!(receipt.candidate_denials[0].model_id, "gpt-embedding");
+        assert!(receipt.candidate_denials[0]
+            .reasons
+            .contains(&RouteDenialReason::CapabilityUnavailable));
+    }
+
+    #[test]
+    fn terminal_denial_fails_fast_without_walking_remaining_catalog() {
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+        // Request that triggers DomainRouteDecision::Invalid (ExternalEndUser + PiiIdentifying)
+        let mut inp = input("idem:model-routing:terminal");
+        inp.request.audience = RequestAudience::ExternalEndUser;
+        inp.request.data_class = IntelligenceDataClass::PiiIdentifying;
+        // Two profiles; neither should be reached past the first terminal check
+        inp.catalog = vec![
+            profile(ModelProvider::OpenAi, "gpt-preview", 1),
+            profile(ModelProvider::Anthropic, "claude-preview", 2),
+        ];
+
+        let receipt = usecase.route(inp);
+
+        assert_eq!(receipt.status, ModelRoutingUsecaseStatus::Denied);
+        assert_eq!(
+            receipt.denial_kind,
+            Some(ModelRoutingUsecaseDenialKind::RouteDenied)
+        );
+        // Terminal failure: no candidates were accepted, so denial trail has at most 0
+        // entries (the first domain call returned Invalid before any Allow/Deny walk)
+        assert!(receipt.candidate_denials.is_empty());
+        assert!(receipt
+            .evidence_refs
+            .contains(&"validation:external-sensitive-data".to_owned()));
+    }
+
+    #[test]
+    fn fallback_ordering_is_deterministic_with_shuffled_catalog() {
+        // Same two profiles submitted in two different orders must yield the
+        // same Routed receipt (same chosen candidate, same candidate_denials).
+        let profile_low = {
+            // priority 1 — eligible
+            profile(ModelProvider::Anthropic, "claude-preview", 1)
+        };
+        let profile_high = {
+            // priority 10 — capability mismatch → recoverable denial
+            let mut p = profile(ModelProvider::OpenAi, "gpt-embed", 10);
+            p.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+            p
+        };
+
+        let mut inp_ab = input("idem:model-routing:order-ab");
+        inp_ab.catalog = vec![profile_high.clone(), profile_low.clone()];
+
+        let mut inp_ba = input("idem:model-routing:order-ba");
+        inp_ba.catalog = vec![profile_low.clone(), profile_high.clone()];
+
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+        let receipt_ab = usecase.route(inp_ab);
+        let receipt_ba = usecase.route(inp_ba);
+
+        // Both should select the same eligible candidate
+        assert_eq!(receipt_ab.status, ModelRoutingUsecaseStatus::Routed);
+        assert_eq!(receipt_ba.status, ModelRoutingUsecaseStatus::Routed);
+        assert_eq!(
+            receipt_ab.route_selection.as_ref().unwrap().model_id,
+            receipt_ba.route_selection.as_ref().unwrap().model_id,
+        );
+        assert_eq!(
+            receipt_ab.candidate_denials.len(),
+            receipt_ba.candidate_denials.len(),
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // SUB-2: per-candidate denial trail
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn all_candidates_denied_receipt_enumerates_full_trail_in_stable_order() {
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+
+        // Three profiles each denied for a distinct recoverable reason:
+        // p1: wrong capability
+        let mut p1 = profile(ModelProvider::OpenAi, "gpt-embed", 1);
+        p1.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+
+        // p2: wrong credential mode
+        let mut p2 = profile(ModelProvider::Anthropic, "claude-byok", 2);
+        p2.credential_modes = BTreeSet::from([CredentialMode::BringYourOwnKey]);
+
+        // p3: tenant-restricted (denied for TenantNotAllowed)
+        let mut p3 = profile(ModelProvider::Gemini, "gemini-pro", 3);
+        p3.allowed_tenants = BTreeSet::from(["ten_other".to_owned()]);
+
+        let mut inp = input("idem:model-routing:full-trail");
+        inp.catalog = vec![p1, p2, p3];
+
+        let receipt = usecase.route(inp);
+
+        assert_eq!(receipt.status, ModelRoutingUsecaseStatus::Denied);
+        assert_eq!(
+            receipt.denial_kind,
+            Some(ModelRoutingUsecaseDenialKind::RouteDenied)
+        );
+        assert_eq!(receipt.candidate_denials.len(), 3);
+
+        // Stable order: priority 1, 2, 3
+        assert_eq!(receipt.candidate_denials[0].priority, 1);
+        assert_eq!(receipt.candidate_denials[1].priority, 2);
+        assert_eq!(receipt.candidate_denials[2].priority, 3);
+
+        assert!(receipt.candidate_denials[0]
+            .reasons
+            .contains(&RouteDenialReason::CapabilityUnavailable));
+        assert!(receipt.candidate_denials[1]
+            .reasons
+            .contains(&RouteDenialReason::CredentialModeUnavailable));
+        assert!(receipt.candidate_denials[2]
+            .reasons
+            .contains(&RouteDenialReason::TenantNotAllowed));
+
+        // Metadata-only invariant: no secrets or raw content in debug repr
+        let debug = format!("{receipt:?}");
+        assert!(!debug.contains("sk-"));
+        assert!(!debug.contains("bearer"));
+        assert!(!debug.contains("raw prompt"));
+        assert!(!debug.contains("raw output"));
+    }
+
+    #[test]
+    fn metadata_only_invariant_no_secrets_in_denial_trail() {
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+        let mut p = profile(ModelProvider::OpenAi, "gpt-embed", 1);
+        p.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+        let mut inp = input("idem:model-routing:secrets-check");
+        inp.catalog = vec![p];
+
+        let receipt = usecase.route(inp);
+        let debug = format!("{receipt:?}");
+
+        assert!(!debug.contains("sk-"));
+        assert!(!debug.contains("bearer"));
+        assert!(!debug.contains("raw prompt"));
+        assert!(!debug.contains("raw output"));
+        assert!(!debug.contains("model answer"));
+    }
+
+    // -----------------------------------------------------------------------
+    // SUB-3: idempotency replay under fallback
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn fallback_receipt_replays_identically_under_same_key() {
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+
+        // First candidate denied (capability mismatch), second selected
+        let mut p_bad = profile(ModelProvider::OpenAi, "gpt-embed", 1);
+        p_bad.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+        let p_good = profile(ModelProvider::Anthropic, "claude-chat", 2);
+
+        let mut inp = input("idem:model-routing:fallback-replay");
+        inp.catalog = vec![p_bad, p_good];
+
+        let first = usecase.route(inp.clone());
+        let replay = usecase.route(inp);
+
+        assert_eq!(first.status, ModelRoutingUsecaseStatus::Routed);
+        assert_eq!(first, replay);
+        assert_eq!(
+            first.route_selection.as_ref().unwrap().model_id,
+            "claude-chat"
+        );
+        assert_eq!(first.candidate_denials.len(), 1);
+        assert_eq!(usecase.cached_receipt_count(), 1);
+    }
+
+    #[test]
+    fn conflicting_payload_on_fallback_key_yields_idempotency_conflict() {
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+
+        let mut p_bad = profile(ModelProvider::OpenAi, "gpt-embed", 1);
+        p_bad.capabilities = BTreeSet::from([ModelCapability::Embedding]);
+        let p_good = profile(ModelProvider::Anthropic, "claude-chat", 2);
+
+        let mut original = input("idem:model-routing:fallback-conflict");
+        original.catalog = vec![p_bad, p_good];
+
+        let first = usecase.route(original.clone());
+        assert_eq!(first.status, ModelRoutingUsecaseStatus::Routed);
+
+        // Same key, different capability → conflict
+        let mut conflicting = original.clone();
+        conflicting.request.capability = ModelCapability::Embedding;
+        let conflict = usecase.route(conflicting);
+
+        assert_eq!(conflict.status, ModelRoutingUsecaseStatus::Denied);
+        assert_eq!(
+            conflict.denial_kind,
+            Some(ModelRoutingUsecaseDenialKind::IdempotencyConflict)
+        );
+
+        // Original receipt still retrievable via clean replay
+        let replay = usecase.route(original);
+        assert_eq!(replay, first);
+        assert_eq!(usecase.cached_receipt_count(), 1);
     }
 }
