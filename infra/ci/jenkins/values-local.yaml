@@ -78,10 +78,10 @@ controller:
           optional: true
     - name: GH_USERNAME
       valueFrom:
-        secretKeyRef: { name: gateway-build-git, key: username }
+        secretKeyRef: { name: gateway-build-git, key: username, optional: true }
     - name: GH_TOKEN
       valueFrom:
-        secretKeyRef: { name: gateway-build-git, key: token }
+        secretKeyRef: { name: gateway-build-git, key: token, optional: true }
   JCasC:
     defaultConfig: true
     # Contribute ONLY the kubernetes agent cloud. numExecutors (=0) and the
@@ -198,6 +198,29 @@ controller:
                               limits:
                                 cpu: "4"
                                 memory: "8Gi"
+      # ADR-0374 T2: globalLibraries — loads oyaCiLane (infra/ci/jenkins/shared-library)
+      # so per-service Jenkinsfiles can use @Library('oya-jenkins-shared') _.
+      # Source = this repo at the dev branch; the shared-library path is the
+      # subdirectory root (Jenkins treats it as a standard shared library layout
+      # with vars/ containing the groovy scripts).
+      oya-ci-shared-library: |
+        unclassified:
+          globalLibraries:
+            libraries:
+              - name: "oya-jenkins-shared"
+                defaultVersion: "dev"
+                implicit: false
+                allowVersionOverride: true
+                includeInChangesets: false
+                retriever:
+                  modernSCM:
+                    scm:
+                      git:
+                        remote: "https://github.com/jason931225/oyatie.git"
+                        credentialsId: "gateway-build-git"
+                        traits:
+                          - gitBranchDiscovery
+                    libraryPath: "infra/ci/jenkins/shared-library"
       # ADR-0380 D3: declare the two credentials used by the oya-ci-gate job.
       oya-ci-credentials: |
         credentials:
@@ -226,14 +249,24 @@ controller:
                 description('ADR-0380 D3: webhook-dispatched gated CI job. Triggered by ci-webhook-gateway (ADR-0374) via Generic Webhook Trigger with token=oya-ci-gate. Pipeline body: infra/ci/jenkins/Jenkinsfile-oya-ci-gate.')
                 triggers {
                   genericTrigger {
-                    genericVariables(
-                      [
-                        [key: 'PR_NUMBER',  value: '$.pull_request.number'],
-                        [key: 'PR_SHA',     value: '$.pull_request.head.sha'],
-                        [key: 'REPO_OWNER', value: '$.repository.owner.login'],
-                        [key: 'REPO_NAME',  value: '$.repository.name']
-                      ]
-                    )
+                    genericVariables {
+                      genericVariable {
+                        key('PR_NUMBER')
+                        value('$.pull_request.number')
+                      }
+                      genericVariable {
+                        key('PR_SHA')
+                        value('$.pull_request.head.sha')
+                      }
+                      genericVariable {
+                        key('REPO_OWNER')
+                        value('$.repository.owner.login')
+                      }
+                      genericVariable {
+                        key('REPO_NAME')
+                        value('$.repository.name')
+                      }
+                    }
                     token('oya-ci-gate')
                     causeString('Forgejo PR #$PR_NUMBER sha=$PR_SHA')
                     printContributedVariables(true)
