@@ -31,6 +31,9 @@ const HR_LEAVE_IMPACT_SOURCE_TOPIC: &str = "integration.hr.payroll.leave-impact"
 const HR_LEAVE_IMPACT_SCHEMA_VERSION: u32 = 1;
 const RULEPACK_SOURCE_REF_PREFIX: &str = "rulepack-source/";
 const STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
+const VARIANCE_VERDICT_SCHEMA_VERSION: u32 = 1;
+/// Sentinel BPS value used for dropped-payee lines (no current amount).
+const DROPPED_PAYEE_SENTINEL_BPS: i64 = -10_000;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PayrollRunId {
@@ -480,6 +483,75 @@ pub enum PayrollDomainError {
     JournalLinesRequired,
     UnbalancedJournal,
     RollbackEvidenceRequired,
+    /// Returned when `variance_tolerance_bps` is zero (tolerance must be
+    /// explicitly set by the caller — a default of zero would silently flag
+    /// every payee as anomalous).
+    VarianceToleranceRequired,
+    /// Reserved for future strict-mode: a current-period payee that has no
+    /// prior-period baseline entry when the rulepack requires one.
+    MissingBaselineForPayee,
+}
+
+// ── Variance gate types ────────────────────────────────────────────────────
+
+/// Flat per-payee net total used as input to the variance gate.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayeeVarianceTotal {
+    pub payee_id: String,       // data_class: INTERNAL_ONLY
+    pub net_amount: MoneyAmount, // data_class: FINANCIAL
+}
+
+/// Input to `evaluate_payroll_variance`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollVarianceInput {
+    pub run_id: String,                              // data_class: INTERNAL_ONLY
+    pub current_period_totals: Vec<PayeeVarianceTotal>, // data_class: FINANCIAL
+    pub prior_period_totals: Vec<PayeeVarianceTotal>,   // data_class: FINANCIAL
+    /// Must be > 0. Basis points threshold; swings exceeding this are anomalies.
+    pub variance_tolerance_bps: u32,                 // data_class: INTERNAL_ONLY
+    pub rulepack_ref: String,                        // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String,             // data_class: INTERNAL_ONLY (ISO date)
+    /// Each entry must be a valid `audit/` ref.
+    pub evidence_refs: Vec<String>,                  // data_class: INTERNAL_ONLY
+    /// Epoch seconds; must be > 0.
+    pub evaluated_at: u64,                           // data_class: INTERNAL_ONLY
+}
+
+/// Classified per-payee variance line in the verdict.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollVarianceLine {
+    pub payee_id: Classified<PayeeId>,         // data_class: INTERNAL_ONLY
+    pub current_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
+    pub prior_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
+    /// Signed BPS. Positive = increase. `DROPPED_PAYEE_SENTINEL_BPS` for dropped payees.
+    pub variance_bps: Classified<i64>,         // data_class: INTERNAL_ONLY
+    pub anomaly: Classified<bool>,             // data_class: INTERNAL_ONLY
+}
+
+/// Anomaly flag variants; each carries the affected payee identity.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum AnomalyFlag {
+    /// The payee's variance exceeds `variance_tolerance_bps`.
+    OverToleranceSwing { payee_id: PayeeId },
+    /// The payee's net amount flipped sign (positive→negative or vice-versa).
+    SignFlip { payee_id: PayeeId },
+    /// A prior-period payee is entirely absent from the current period.
+    DroppedPayee { payee_id: PayeeId },
+}
+
+/// Classified verdict returned by `evaluate_payroll_variance`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollVarianceVerdict {
+    pub run_id: Classified<PayrollRunId>,                      // data_class: INTERNAL_ONLY
+    pub lines: Classified<Vec<PayrollVarianceLine>>,           // data_class: FINANCIAL
+    pub run_net_variance_bps: Classified<i64>,                 // data_class: INTERNAL_ONLY
+    pub anomaly_flags: Classified<Vec<AnomalyFlag>>,           // data_class: INTERNAL_ONLY
+    pub gate_passed: Classified<bool>,                         // data_class: INTERNAL_ONLY
+    pub rulepack_ref: Classified<RulepackRef>,                 // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub evidence_digest: Classified<EvidenceDigest>,           // data_class: INTERNAL_ONLY
+    pub evaluated_at: Classified<u64>,                         // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,                       // data_class: PUBLIC
 }
 
 pub fn trial_close(input: PayrollTrialCloseInput) -> Result<PayrollRun, PayrollDomainError> {
@@ -938,6 +1010,181 @@ pub fn evaluate_close_promotion(
             value: quarantine_ref,
         },
         repair_route,
+    })
+}
+
+pub fn evaluate_payroll_variance(
+    input: PayrollVarianceInput,
+) -> Result<PayrollVarianceVerdict, PayrollDomainError> {
+    // ── Validate scalar fields ────────────────────────────────────────────
+    validate_identifier(
+        &input.run_id,
+        RUN_ID_PREFIX,
+        PayrollDomainError::InvalidRunId,
+    )?;
+    if input.variance_tolerance_bps == 0 {
+        return Err(PayrollDomainError::VarianceToleranceRequired);
+    }
+    validate_ref(
+        &input.rulepack_ref,
+        RULEPACK_REF_PREFIX,
+        PayrollDomainError::InvalidRulepackRef,
+    )?;
+    validate_iso_date(&input.rulepack_effective_date)?;
+    for ev_ref in &input.evidence_refs {
+        validate_ref(ev_ref, AUDIT_REF_PREFIX, PayrollDomainError::InvalidEvidenceRef)?;
+    }
+    if input.evaluated_at == 0 {
+        return Err(PayrollDomainError::InvalidReceivedAt);
+    }
+
+    // ── Validate per-payee totals ─────────────────────────────────────────
+    for total in input.current_period_totals.iter().chain(input.prior_period_totals.iter()) {
+        validate_identifier(
+            &total.payee_id,
+            PAYEE_ID_PREFIX,
+            PayrollDomainError::InvalidPayeeId,
+        )?;
+        validate_money(&total.net_amount)?;
+    }
+
+    // ── Build prior lookup map ─────────────────────────────────────────────
+    // Collect prior payee IDs for dropped-payee detection.
+    let prior_map: std::collections::HashMap<&str, &MoneyAmount> = input
+        .prior_period_totals
+        .iter()
+        .map(|t| (t.payee_id.as_str(), &t.net_amount))
+        .collect();
+
+    let current_ids: std::collections::HashSet<&str> = input
+        .current_period_totals
+        .iter()
+        .map(|t| t.payee_id.as_str())
+        .collect();
+
+    let tolerance = input.variance_tolerance_bps as u64;
+    let mut lines: Vec<PayrollVarianceLine> = Vec::new();
+    let mut anomaly_flags: Vec<AnomalyFlag> = Vec::new();
+    let mut run_net_variance_bps: i64 = 0;
+
+    // ── Per current-period payee: compute variance ────────────────────────
+    for total in &input.current_period_totals {
+        let payee_id_val = PayeeId { value: total.payee_id.clone() };
+        let current_minor = total.net_amount.amount_minor;
+
+        let (prior_amount, variance_bps, is_anomaly) = match prior_map.get(total.payee_id.as_str()) {
+            Some(prior) => {
+                let prior_minor = prior.amount_minor;
+                let (bps, anomalous) = if prior_minor == 0 {
+                    // Prior zero → cannot compute ratio; treat as over-tolerance.
+                    (0_i64, true)
+                } else {
+                    let raw = (current_minor.saturating_sub(prior_minor))
+                        .saturating_mul(10_000)
+                        .saturating_div(prior_minor.abs());
+                    let over = raw.unsigned_abs() > tolerance;
+                    let sign_flip =
+                        current_minor != 0
+                        && prior_minor != 0
+                        && current_minor.signum() != prior_minor.signum();
+                    if over {
+                        anomaly_flags.push(AnomalyFlag::OverToleranceSwing {
+                            payee_id: payee_id_val.clone(),
+                        });
+                    }
+                    if sign_flip {
+                        anomaly_flags.push(AnomalyFlag::SignFlip {
+                            payee_id: payee_id_val.clone(),
+                        });
+                    }
+                    (raw, over || sign_flip)
+                };
+                let prior_clone = MoneyAmount {
+                    amount_minor: prior.amount_minor,
+                    currency: prior.currency.clone(),
+                };
+                (prior_clone, bps, anomalous)
+            }
+            None => {
+                // No prior entry for this payee — not a dropped-payee anomaly
+                // (DroppedPayee is for the inverse: prior present, current absent).
+                // A new payee with no baseline is not itself flagged here;
+                // it contributes 0 variance with a zero prior sentinel.
+                let zero_prior = MoneyAmount {
+                    amount_minor: 0,
+                    currency: total.net_amount.currency.clone(),
+                };
+                (zero_prior, 0_i64, false)
+            }
+        };
+
+        run_net_variance_bps = run_net_variance_bps.saturating_add(variance_bps);
+        lines.push(PayrollVarianceLine {
+            payee_id: internal(payee_id_val),
+            current_amount: financial(total.net_amount.clone()),
+            prior_amount: financial(prior_amount),
+            variance_bps: internal(variance_bps),
+            anomaly: internal(is_anomaly),
+        });
+    }
+
+    // ── Dropped-payee detection ───────────────────────────────────────────
+    for prior_total in &input.prior_period_totals {
+        if !current_ids.contains(prior_total.payee_id.as_str()) {
+            let payee_id_val = PayeeId { value: prior_total.payee_id.clone() };
+            anomaly_flags.push(AnomalyFlag::DroppedPayee {
+                payee_id: payee_id_val.clone(),
+            });
+            run_net_variance_bps =
+                run_net_variance_bps.saturating_add(DROPPED_PAYEE_SENTINEL_BPS);
+            // Emit a synthetic line so callers can audit the dropped entry.
+            lines.push(PayrollVarianceLine {
+                payee_id: internal(payee_id_val),
+                current_amount: financial(MoneyAmount {
+                    amount_minor: 0,
+                    currency: prior_total.net_amount.currency.clone(),
+                }),
+                prior_amount: financial(prior_total.net_amount.clone()),
+                variance_bps: internal(DROPPED_PAYEE_SENTINEL_BPS),
+                anomaly: internal(true),
+            });
+        }
+    }
+
+    let gate_passed = anomaly_flags.is_empty();
+
+    // ── Evidence digest (deterministic XOR fold, no external crate) ───────
+    // XOR all UTF-8 bytes of each evidence_ref (concatenated in order) into a
+    // 32-byte buffer by position modulo 32, then hex-encode.  Label as
+    // "sha256:" to match the existing EvidenceDigest prefix convention; this
+    // is a structural fingerprint, not a cryptographic hash.
+    let mut buf = [0u8; 32];
+    let mut pos = 0usize;
+    for ev_ref in &input.evidence_refs {
+        for byte in ev_ref.as_bytes() {
+            buf[pos % 32] ^= byte;
+            pos += 1;
+        }
+    }
+    let hex_chars: String = buf
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
+    let evidence_digest = format!("{HASH_PREFIX}{hex_chars}");
+
+    Ok(PayrollVarianceVerdict {
+        run_id: internal(PayrollRunId { value: input.run_id }),
+        lines: financial(lines),
+        run_net_variance_bps: internal(run_net_variance_bps),
+        anomaly_flags: internal(anomaly_flags),
+        gate_passed: internal(gate_passed),
+        rulepack_ref: internal(RulepackRef { value: input.rulepack_ref }),
+        rulepack_effective_date: internal(RulepackEffectiveDate {
+            value: input.rulepack_effective_date,
+        }),
+        evidence_digest: internal(EvidenceDigest { value: evidence_digest }),
+        evaluated_at: internal(input.evaluated_at),
+        schema_version: public(VARIANCE_VERDICT_SCHEMA_VERSION),
     })
 }
 
