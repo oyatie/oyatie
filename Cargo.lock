@@ -5930,8 +5930,16 @@ dependencies = [
 name = "oya-intelligence-credential-resolver-adapter"
 version = "0.1.0"
 dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper 1.10.0",
+ "hyper-util",
  "oya-intelligence-credential-resolver-domain",
  "oya-intelligence-credential-resolver-usecase",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
