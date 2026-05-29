@@ -14,4 +14,6 @@ path = "src/lib.rs"
 
 [dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+webauthn-rs = { version = "0.5", features = ["danger-user-presence-only-security-keys"] }
+uuid = { version = "1", features = ["v4"] }
 # Add axum/tonic/sqlx/etc. as actual implementation lands; keep stub minimal for now
