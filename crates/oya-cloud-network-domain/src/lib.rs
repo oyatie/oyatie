@@ -1166,6 +1166,28 @@ pub enum CloudNetworkError {
     DuplicateLoadBalancer,
     DuplicateDnsZone,
     DuplicateCdnDistribution,
+    /// A CIDR string stored directly in an `Ipv4Cidr` or `Ipv6Cidr` value
+    /// field could not be parsed (e.g. bypassed the constructor).
+    InvalidCidrPrefix,
+}
+
+/// The direction + L4 attributes of a network flow to be evaluated against a
+/// [`SecurityGroup`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FlowMatch {
+    pub direction: RuleDirection,      // data_class: PUBLIC
+    pub protocol: IpProtocol,          // data_class: PUBLIC
+    pub port: Option<u16>,             // data_class: PUBLIC
+    pub peer_cidr: RouteDestination,   // data_class: PUBLIC
+}
+
+/// Result of evaluating a [`FlowMatch`] against a [`SecurityGroup`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Decision {
+    /// The flow is allowed; `matched_rule` is the first matching rule.
+    Allow { matched_rule: SecurityRule },
+    /// The flow is denied; `matched_rule` is `None` when no rule matched.
+    Deny { matched_rule: Option<SecurityRule> },
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -1564,6 +1586,50 @@ impl Ipv4Cidr {
         parse_ipv4_cidr(&value)?;
         Ok(Self { value })
     }
+
+    /// Returns `true` if `other` is fully contained within `self`.
+    pub fn contains_cidr(&self, other: &Ipv4Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv4_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv4_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        if other_prefix < self_prefix {
+            return Ok(false);
+        }
+        let mask = if self_prefix == 0 {
+            0u32
+        } else {
+            u32::MAX << (32 - self_prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `self` and `other` share at least one address.
+    pub fn overlaps_cidr(&self, other: &Ipv4Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv4_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv4_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let prefix = self_prefix.min(other_prefix);
+        let mask = if prefix == 0 {
+            0u32
+        } else {
+            u32::MAX << (32 - prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `addr` falls within the prefix of `self`.
+    pub fn contains_ip(&self, addr: Ipv4Addr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv4_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let mask = if self_prefix == 0 {
+            0u32
+        } else {
+            u32::MAX << (32 - self_prefix)
+        };
+        Ok((self_addr & mask) == (u32::from(addr) & mask))
+    }
 }
 
 impl Ipv6Cidr {
@@ -1571,6 +1637,50 @@ impl Ipv6Cidr {
         let value = value.into();
         parse_ipv6_cidr(&value)?;
         Ok(Self { value })
+    }
+
+    /// Returns `true` if `other` is fully contained within `self`.
+    pub fn contains_cidr(&self, other: &Ipv6Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv6_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv6_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        if other_prefix < self_prefix {
+            return Ok(false);
+        }
+        let mask = if self_prefix == 0 {
+            0u128
+        } else {
+            u128::MAX << (128 - self_prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `self` and `other` share at least one address.
+    pub fn overlaps_cidr(&self, other: &Ipv6Cidr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv6_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let (other_addr, other_prefix) =
+            parse_ipv6_cidr(&other.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let prefix = self_prefix.min(other_prefix);
+        let mask = if prefix == 0 {
+            0u128
+        } else {
+            u128::MAX << (128 - prefix)
+        };
+        Ok((self_addr & mask) == (other_addr & mask))
+    }
+
+    /// Returns `true` if `addr` falls within the prefix of `self`.
+    pub fn contains_ip(&self, addr: Ipv6Addr) -> Result<bool, CloudNetworkError> {
+        let (self_addr, self_prefix) =
+            parse_ipv6_cidr(&self.value).map_err(|_| CloudNetworkError::InvalidCidrPrefix)?;
+        let mask = if self_prefix == 0 {
+            0u128
+        } else {
+            u128::MAX << (128 - self_prefix)
+        };
+        Ok((self_addr & mask) == (u128::from(addr) & mask))
     }
 }
 
@@ -1842,6 +1952,43 @@ impl SecurityGroup {
             id,
             rules: input.rules,
         })
+    }
+
+    /// Evaluate a [`FlowMatch`] against this group's rules (first-match wins).
+    ///
+    /// Returns `Ok(Decision::Allow { matched_rule })` when the first matching
+    /// rule is found, or `Ok(Decision::Deny { matched_rule: None })` when no
+    /// rule matches.
+    pub fn evaluate(&self, flow: &FlowMatch) -> Result<Decision, CloudNetworkError> {
+        for rule in &self.rules {
+            if !rule_matches(rule, flow)? {
+                continue;
+            }
+            return Ok(Decision::Allow {
+                matched_rule: rule.clone(),
+            });
+        }
+        Ok(Decision::Deny { matched_rule: None })
+    }
+
+    /// Return all (shadowing, shadowed) rule pairs where the first rule fully
+    /// subsumes the second (same direction, protocol compatible, CIDR contains,
+    /// port range contains).
+    pub fn detect_shadowed_rules(
+        &self,
+    ) -> Result<Vec<(SecurityRule, SecurityRule)>, CloudNetworkError> {
+        let mut pairs = Vec::new();
+        let rules = &self.rules;
+        for i in 0..rules.len() {
+            for j in (i + 1)..rules.len() {
+                let a = &rules[i];
+                let b = &rules[j];
+                if rule_subsumes(a, b)? {
+                    pairs.push((a.clone(), b.clone()));
+                }
+            }
+        }
+        Ok(pairs)
     }
 }
 
@@ -3310,6 +3457,67 @@ fn ipv6_overlaps(left: &Ipv6Cidr, right: &Ipv6Cidr) -> Result<bool, CloudNetwork
         u128::MAX << (128 - prefix)
     };
     Ok((left_addr & mask) == (right_addr & mask))
+}
+
+/// Returns `true` when `rule` matches every dimension of `flow`.
+fn rule_matches(rule: &SecurityRule, flow: &FlowMatch) -> Result<bool, CloudNetworkError> {
+    if rule.direction != flow.direction {
+        return Ok(false);
+    }
+    if rule.protocol != IpProtocol::Any && rule.protocol != flow.protocol {
+        return Ok(false);
+    }
+    match (rule.port_range, flow.port) {
+        (Some((lo, hi)), Some(p)) => {
+            if p < lo || p > hi {
+                return Ok(false);
+            }
+        }
+        (Some(_), None) => return Ok(false),
+        (None, _) => {}
+    }
+    if !cidr_contains_cidr(&rule.cidr, &flow.peer_cidr)? {
+        return Ok(false);
+    }
+    Ok(true)
+}
+
+/// Returns `true` when rule `a` fully subsumes rule `b`:
+/// same direction, compatible protocol (`a` is `Any` or equal), CIDR of `a`
+/// contains CIDR of `b`, and port range of `a` contains port range of `b`.
+fn rule_subsumes(a: &SecurityRule, b: &SecurityRule) -> Result<bool, CloudNetworkError> {
+    if a.direction != b.direction {
+        return Ok(false);
+    }
+    if a.protocol != IpProtocol::Any && a.protocol != b.protocol {
+        return Ok(false);
+    }
+    if !cidr_contains_cidr(&a.cidr, &b.cidr)? {
+        return Ok(false);
+    }
+    // Port range subsumption: a's range must contain b's range.
+    match (a.port_range, b.port_range) {
+        (None, _) => {}
+        (Some(_), None) => return Ok(false),
+        (Some((a_lo, a_hi)), Some((b_lo, b_hi))) => {
+            if a_lo > b_lo || a_hi < b_hi {
+                return Ok(false);
+            }
+        }
+    }
+    Ok(true)
+}
+
+/// Returns `true` if `container` CIDR contains `inner` CIDR.
+fn cidr_contains_cidr(
+    container: &RouteDestination,
+    inner: &RouteDestination,
+) -> Result<bool, CloudNetworkError> {
+    match (container, inner) {
+        (RouteDestination::Ipv4(c), RouteDestination::Ipv4(i)) => c.contains_cidr(i),
+        (RouteDestination::Ipv6(c), RouteDestination::Ipv6(i)) => c.contains_cidr(i),
+        _ => Ok(false),
+    }
 }
 
 fn map_resource_error(error: CloudResourceError) -> CloudNetworkError {
