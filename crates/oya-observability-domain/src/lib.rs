@@ -6,7 +6,7 @@
 
 pub mod severity;
 
-pub use severity::{Severity, UnknownSeverityLabel};
+pub use severity::{Severity, UnknownSeverityLabel, should_emit};
 
 use std::fmt;
 
