@@ -101,6 +101,30 @@ impl From<serde_json::Error> for WorkflowSpecEmitError {
     }
 }
 
+impl std::fmt::Display for WorkflowSpecEmitError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use WorkflowSpecEmitError::*;
+        match self {
+            InvalidSchemaVersion => write!(f, "invalid schema version"),
+            InvalidTenantId => write!(f, "invalid tenant id: must be prefixed 'ten_'"),
+            InvalidDefinitionId => write!(f, "invalid definition id: must be prefixed 'wfd_'"),
+            InvalidVersion => write!(f, "invalid version: must be semver"),
+            EmptyNodeSet => write!(f, "node set must not be empty"),
+            EmptyNodeId => write!(f, "node id must be prefixed 'wfn_'"),
+            EmptyNodeName => write!(f, "node label must not be blank"),
+            DuplicateNodeId(id) => write!(f, "duplicate node id: {id}"),
+            EmptyEdgeEndpoint => write!(f, "edge endpoint must be prefixed 'wfn_'"),
+            DuplicateEdge(key) => write!(f, "duplicate edge: {key}"),
+            SelfLoop(key) => write!(f, "self-loop edge: {key}"),
+            DanglingEdgeSource(key) => write!(f, "dangling edge source: {key}"),
+            DanglingEdgeTarget(key) => write!(f, "dangling edge target: {key}"),
+            GraphCycle(id) => write!(f, "graph contains a cycle involving node: {id}"),
+            UnreachableNode(id) => write!(f, "node unreachable from any entry node: {id}"),
+            Json(err) => write!(f, "JSON serialisation error: {err}"),
+        }
+    }
+}
+
 impl WorkflowSpecNode {
     pub fn new(
         id: impl Into<String>,
