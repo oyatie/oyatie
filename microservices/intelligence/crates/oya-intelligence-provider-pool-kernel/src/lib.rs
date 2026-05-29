@@ -1256,4 +1256,182 @@ mod tests {
         let cp = cooldown(60_000, 100_000);
         assert!(!cp.in_cooldown(&AccountHealth::healthy()));
     }
+
+    // ── Additional red tests: untested edge cases ────────────────────────────
+
+    /// pick_account_with_cooldown on an empty pool returns EmptyMembers.
+    #[test]
+    fn cooldown_empty_pool_returns_empty_members() {
+        let p = pool_with(PoolRoutingStrategy::RoundRobin, &[]);
+        let r = pick_account_with_cooldown(
+            &p,
+            &RequestMetadata::new("m".into()),
+            &Default::default(),
+            &Default::default(),
+            cooldown(60_000, 100_000),
+        );
+        assert_eq!(r, Err(PoolError::EmptyMembers));
+    }
+
+    /// CooldownPolicy::in_cooldown at the exact boundary (elapsed == window_ms)
+    /// must return false — the window uses strict `<` semantics, so expiry is
+    /// inclusive on the boundary.
+    #[test]
+    fn in_cooldown_exact_boundary_is_not_in_cooldown() {
+        // quarantined_at = 40_000, window = 60_000, now = 100_000
+        // now - quarantined_at == 60_000 == window_ms → NOT in cooldown.
+        let cp = cooldown(60_000, 100_000);
+        let h = AccountHealth {
+            state: HealthState::Healthy,
+            consecutive_failures: 0,
+            last_quarantined_at_unix_ms: Some(UnixMillis(40_000)),
+        };
+        assert!(
+            !cp.in_cooldown(&h),
+            "elapsed == window_ms must not be in cooldown (< semantics)"
+        );
+    }
+
+    /// A Degraded (not Unhealthy) account that is inside the cooldown window
+    /// must be excluded — the cooldown filter applies independent of health
+    /// state, provided the state is not Unhealthy.
+    #[test]
+    fn degraded_account_inside_cooldown_is_excluded() {
+        let now = 100_000u64;
+        let window = 60_000u64;
+        let p = pool_with(PoolRoutingStrategy::RoundRobin, &["a", "b"]);
+        let mut health: AccountHealthMap = BTreeMap::new();
+        // "a" is Degraded (not Unhealthy) but quarantined 1 s ago — still in window.
+        health.insert(
+            pid("a"),
+            AccountHealth {
+                state: HealthState::Degraded,
+                consecutive_failures: 2,
+                last_quarantined_at_unix_ms: Some(UnixMillis(now - 1_000)),
+            },
+        );
+        health.insert(pid("b"), AccountHealth::healthy());
+        let d = pick_account_with_cooldown(
+            &p,
+            &RequestMetadata::new("m".into()),
+            &Default::default(),
+            &health,
+            cooldown(window, now),
+        )
+        .unwrap();
+        assert_eq!(
+            d.account_id,
+            pid("b"),
+            "Degraded account inside cooldown window must be excluded"
+        );
+    }
+
+    /// A Degraded account whose cooldown has elapsed must be re-admitted as an
+    /// eligible candidate.
+    #[test]
+    fn degraded_account_outside_cooldown_is_admitted() {
+        let now = 100_000u64;
+        let window = 60_000u64;
+        // Only "a" in pool; it is Degraded but cooldown has elapsed.
+        let p = pool_with(PoolRoutingStrategy::RoundRobin, &["a"]);
+        let mut health: AccountHealthMap = BTreeMap::new();
+        health.insert(
+            pid("a"),
+            AccountHealth {
+                state: HealthState::Degraded,
+                consecutive_failures: 1,
+                last_quarantined_at_unix_ms: Some(UnixMillis(now - 90_000)),
+            },
+        );
+        let d = pick_account_with_cooldown(
+            &p,
+            &RequestMetadata::new("m".into()),
+            &Default::default(),
+            &health,
+            cooldown(window, now),
+        )
+        .unwrap();
+        assert_eq!(
+            d.account_id,
+            pid("a"),
+            "Degraded account with elapsed cooldown must be admitted"
+        );
+    }
+
+    /// An account with no entry in the health map must be treated as healthy
+    /// and not in cooldown — eligible for routing.
+    #[test]
+    fn missing_health_entry_treated_as_healthy_not_in_cooldown() {
+        let now = 100_000u64;
+        // "a" has no health entry; pool has one member.
+        let p = pool_with(PoolRoutingStrategy::RoundRobin, &["a"]);
+        let d = pick_account_with_cooldown(
+            &p,
+            &RequestMetadata::new("m".into()),
+            &Default::default(),
+            &Default::default(), // empty health map
+            cooldown(60_000, now),
+        )
+        .unwrap();
+        assert_eq!(
+            d.account_id,
+            pid("a"),
+            "account absent from health map must be treated as eligible"
+        );
+    }
+
+    /// decided_at_unix_ms on the cooldown decision must reflect cooldown.now,
+    /// not some other timestamp.
+    #[test]
+    fn cooldown_decision_timestamp_equals_cooldown_now() {
+        let now = 999_999u64;
+        let p = pool_with(PoolRoutingStrategy::RoundRobin, &["a"]);
+        let d = pick_account_with_cooldown(
+            &p,
+            &RequestMetadata::new("m".into()),
+            &Default::default(),
+            &Default::default(),
+            cooldown(60_000, now),
+        )
+        .unwrap();
+        assert_eq!(
+            d.decided_at_unix_ms,
+            UnixMillis(now),
+            "decided_at_unix_ms must equal cooldown.now"
+        );
+    }
+
+    /// When previous_account is itself in cooldown (excluded from eligible),
+    /// round-robin must signal PoolRoutingReason::FailoverFrom(prev) to
+    /// indicate an anti-correlation failover, not Healthy.
+    ///
+    /// This is the ccproxy-api anti-correlation semantic: the caller learns
+    /// *which* account was abandoned due to quarantine.
+    #[test]
+    fn cooldown_failover_from_previous_in_cooldown_emits_failover_reason() {
+        let now = 100_000u64;
+        let window = 60_000u64;
+        // Pool: a (in cooldown), b (healthy).
+        let p = pool_with(PoolRoutingStrategy::RoundRobin, &["a", "b"]);
+        let mut health: AccountHealthMap = BTreeMap::new();
+        health.insert(pid("a"), health_quarantined_at(now - 1_000));
+        health.insert(pid("b"), AccountHealth::healthy());
+        let mut req = RequestMetadata::new("m".into());
+        // previous_account = "a" (the account that was just quarantined).
+        req.previous_account = Some(pid("a"));
+        let d = pick_account_with_cooldown(
+            &p,
+            &req,
+            &Default::default(),
+            &health,
+            cooldown(window, now),
+        )
+        .unwrap();
+        assert_eq!(d.account_id, pid("b"), "must route away from cooldown account");
+        assert_eq!(
+            d.reason,
+            PoolRoutingReason::FailoverFrom(pid("a")),
+            "must emit FailoverFrom(prev) when previous account is in cooldown"
+        );
+    }
 }
