@@ -57,6 +57,12 @@ pub enum CloudIacError {
     CatalogPathOutsideRoot,
     CatalogMainFileInvalid,
     CatalogSkeletonOverclaim,
+    /// Resource address is empty, contains whitespace/control chars, or looks secret-like.
+    InvalidResourceAddress,
+    /// Two entries in the same `PlanChangeset` share the same resource address.
+    DuplicateResourceAddress,
+    /// Plan ID is empty or contains characters outside `[a-z0-9-]`.
+    InvalidPlanId,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -1273,4 +1279,209 @@ fn looks_secret_like(value: &str) -> bool {
         || lower.contains("-----begin")
         || lower.contains("sk-live")
         || lower.contains("sk-")
+}
+
+// ---------------------------------------------------------------------------
+// OpenTofu plan-changeset model
+// ---------------------------------------------------------------------------
+
+/// The action OpenTofu will take on a single resource during `tofu apply`.
+///
+/// This models the five-action taxonomy emitted by `tofu plan` / `tofu show -json`,
+/// distinct from [`PlanAction`] (which models desired-vs-observed topology diff).
+///
+/// Destructive actions: [`ResourceChangeAction::Delete`] and
+/// [`ResourceChangeAction::Replace`].
+///
+/// Ord rank (natural declaration order):
+/// `Create < Update < Delete < Replace < NoOp`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ResourceChangeAction {
+    /// Resource will be created (absent from current state).
+    Create,
+    /// Resource exists; an in-place attribute update is sufficient.
+    Update,
+    /// Resource will be permanently removed from state and infrastructure.
+    Delete,
+    /// Resource must be destroyed and re-created (implies destructive).
+    Replace,
+    /// Resource is in-state and unchanged; no plan action required.
+    NoOp,
+}
+
+/// A single entry in a [`PlanChangeset`], keyed by fully-qualified resource address.
+///
+/// The resource address matches the format produced by `tofu plan`, e.g.
+/// `module.cell_vpc.aws_vpc.main`.
+///
+/// Constructed via [`ResourceChange::new`].
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct ResourceChange {
+    resource_address: String,
+    action: ResourceChangeAction,
+}
+
+/// Per-action counts summarising a [`PlanChangeset`].
+///
+/// `total` always equals the sum of all per-action counts.
+/// Intended to be emitted directly as OTel histogram/counter attributes by
+/// upstream telemetry adapters without re-iterating the changeset.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PlanChangesetSummary {
+    pub create_count: usize,
+    pub update_count: usize,
+    pub delete_count: usize,
+    pub replace_count: usize,
+    pub no_op_count: usize,
+    pub total: usize,
+}
+
+/// Aggregate of all [`ResourceChange`] entries produced by a single OpenTofu plan run.
+///
+/// Constructed via [`PlanChangeset::new`].
+///
+/// # Safety gate
+///
+/// Call [`PlanChangeset::has_destructive_changes`] before applying a plan.
+/// Returns `true` when any entry carries [`ResourceChangeAction::Delete`] or
+/// [`ResourceChangeAction::Replace`].
+///
+/// # Determinism
+///
+/// All methods are pure: no I/O, no clocks, no randomness.
+/// [`PlanChangeset::summarize`] always returns the same output for the same input.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PlanChangeset {
+    plan_id: String,
+    changes: Vec<ResourceChange>,
+}
+
+impl ResourceChange {
+    /// Construct a validated `ResourceChange`.
+    ///
+    /// # Errors
+    ///
+    /// - [`CloudIacError::InvalidResourceAddress`] if `resource_address` is empty,
+    ///   contains ASCII whitespace, contains control characters, or looks secret-like.
+    pub fn new(
+        resource_address: impl Into<String>,
+        action: ResourceChangeAction,
+    ) -> Result<Self, CloudIacError> {
+        let resource_address = resource_address.into();
+        validate_resource_address(&resource_address)?;
+        Ok(Self {
+            resource_address,
+            action,
+        })
+    }
+
+    /// The fully-qualified resource address, e.g. `module.cell_vpc.aws_vpc.main`.
+    pub fn resource_address(&self) -> &str {
+        &self.resource_address
+    }
+
+    /// The planned action for this resource.
+    pub const fn action(&self) -> ResourceChangeAction {
+        self.action
+    }
+}
+
+impl PlanChangeset {
+    /// Construct a validated `PlanChangeset`.
+    ///
+    /// # Errors
+    ///
+    /// - [`CloudIacError::InvalidPlanId`] if `plan_id` is empty or contains
+    ///   characters outside `[a-z0-9-]`.
+    /// - [`CloudIacError::DuplicateResourceAddress`] if any two entries in
+    ///   `changes` share the same `resource_address`.
+    pub fn new(
+        plan_id: impl Into<String>,
+        changes: Vec<ResourceChange>,
+    ) -> Result<Self, CloudIacError> {
+        let plan_id = plan_id.into();
+        validate_slug(&plan_id).map_err(|()| CloudIacError::InvalidPlanId)?;
+
+        // Detect duplicate resource addresses using a sorted scan (no HashMap).
+        let mut addresses: Vec<&str> = changes.iter().map(|c| c.resource_address()).collect();
+        addresses.sort_unstable();
+        for window in addresses.windows(2) {
+            if window[0] == window[1] {
+                return Err(CloudIacError::DuplicateResourceAddress);
+            }
+        }
+
+        Ok(Self { plan_id, changes })
+    }
+
+    /// The plan identifier.
+    pub fn plan_id(&self) -> &str {
+        &self.plan_id
+    }
+
+    /// All resource changes in this plan.
+    pub fn changes(&self) -> &[ResourceChange] {
+        &self.changes
+    }
+
+    /// Returns `true` if any entry has action [`ResourceChangeAction::Delete`]
+    /// or [`ResourceChangeAction::Replace`].
+    ///
+    /// This is the safety gate that upstream callers check before applying a plan.
+    pub fn has_destructive_changes(&self) -> bool {
+        self.changes.iter().any(|c| {
+            matches!(
+                c.action(),
+                ResourceChangeAction::Delete | ResourceChangeAction::Replace
+            )
+        })
+    }
+
+    /// Compute per-action counts and a total.
+    ///
+    /// Pure function: no I/O, no side effects. Identical inputs always produce
+    /// identical output.
+    pub fn summarize(&self) -> PlanChangesetSummary {
+        let mut create_count = 0usize;
+        let mut update_count = 0usize;
+        let mut delete_count = 0usize;
+        let mut replace_count = 0usize;
+        let mut no_op_count = 0usize;
+
+        for change in &self.changes {
+            match change.action() {
+                ResourceChangeAction::Create => create_count += 1,
+                ResourceChangeAction::Update => update_count += 1,
+                ResourceChangeAction::Delete => delete_count += 1,
+                ResourceChangeAction::Replace => replace_count += 1,
+                ResourceChangeAction::NoOp => no_op_count += 1,
+            }
+        }
+
+        PlanChangesetSummary {
+            create_count,
+            update_count,
+            delete_count,
+            replace_count,
+            no_op_count,
+            total: create_count + update_count + delete_count + replace_count + no_op_count,
+        }
+    }
+}
+
+fn validate_resource_address(address: &str) -> Result<(), CloudIacError> {
+    if address.trim().is_empty() {
+        return Err(CloudIacError::InvalidResourceAddress);
+    }
+    if address
+        .chars()
+        .any(|ch| ch.is_ascii_whitespace() || ch.is_control())
+    {
+        return Err(CloudIacError::InvalidResourceAddress);
+    }
+    if looks_secret_like(address) {
+        return Err(CloudIacError::InvalidResourceAddress);
+    }
+    Ok(()
+    )
 }
