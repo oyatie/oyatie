@@ -56,14 +56,15 @@ pub struct AttributionClaim {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AttributionRequest {
-    pub tenant_id: String,               // data_class: INTERNAL_ONLY
-    pub output_ref: String,              // data_class: INTERNAL_ONLY
-    pub audience: AttributionAudience,   // data_class: INTERNAL_ONLY
-    pub policy_evidence_ref: String,     // data_class: INTERNAL_ONLY
-    pub trace_context_ref: String,       // data_class: INTERNAL_ONLY
-    pub max_citations: usize,            // data_class: INTERNAL_ONLY
-    pub sources: Vec<AttributionSource>, // data_class: INTERNAL_ONLY
-    pub claims: Vec<AttributionClaim>,   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
+    pub output_ref: String,                   // data_class: INTERNAL_ONLY
+    pub audience: AttributionAudience,        // data_class: INTERNAL_ONLY
+    pub policy_evidence_ref: String,          // data_class: INTERNAL_ONLY
+    pub trace_context_ref: String,            // data_class: INTERNAL_ONLY
+    pub max_citations: usize,                 // data_class: INTERNAL_ONLY
+    pub max_citations_per_claim: usize,       // data_class: INTERNAL_ONLY
+    pub sources: Vec<AttributionSource>,      // data_class: INTERNAL_ONLY
+    pub claims: Vec<AttributionClaim>,        // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -75,6 +76,7 @@ pub enum AttributionStatus {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum AttributionDenialKind {
     CitationLimitExceeded,
+    ClaimCitationFanoutExceeded,
     InvalidInput,
     MissingSource,
     SensitiveExternalCitation,
@@ -120,6 +122,20 @@ pub fn plan_attribution(request: AttributionRequest) -> AttributionReport {
         if !sensitive.is_empty() {
             return denied_report(AttributionDenialKind::SensitiveExternalCitation, sensitive);
         }
+    }
+
+    let fanout_exceeded = request
+        .claims
+        .iter()
+        .any(|claim| claim.source_ids.len() > request.max_citations_per_claim);
+    if fanout_exceeded {
+        return denied_report(
+            AttributionDenialKind::ClaimCitationFanoutExceeded,
+            vec![
+                request.policy_evidence_ref.clone(),
+                "validation:intelligence-attribution-claim-fanout".to_owned(),
+            ],
+        );
     }
 
     let planned = planned_citations(&request, &sources_by_id);
@@ -171,6 +187,12 @@ fn invalid_input_reasons(request: &AttributionRequest) -> Vec<String> {
     if request.max_citations == 0 || request.max_citations > MAX_CITATIONS {
         reasons.push(format!("max citations must be 1..={MAX_CITATIONS}"));
     }
+    if request.max_citations_per_claim == 0 || request.max_citations_per_claim > request.max_citations {
+        reasons.push(format!(
+            "max citations per claim must be 1..=max_citations ({})",
+            request.max_citations
+        ));
+    }
     if request.sources.is_empty() {
         reasons.push("attribution sources are required".to_owned());
     }
@@ -201,8 +223,15 @@ fn invalid_input_reasons(request: &AttributionRequest) -> Vec<String> {
         if claim.confidence_bps > BASIS_POINTS_DENOMINATOR {
             reasons.push("claim confidence must be 0..=10000 basis points".to_owned());
         }
+        let mut seen_in_claim = BTreeSet::new();
         for source_id in &claim.source_ids {
             require_metadata("claim source id", source_id, &mut reasons);
+            if !seen_in_claim.insert(source_id.as_str()) {
+                reasons.push(format!(
+                    "claim {} contains duplicate source_id: {source_id}",
+                    claim.claim_id
+                ));
+            }
         }
     }
     sorted_unique(reasons)
@@ -441,6 +470,7 @@ mod tests {
     fn citation_limit_denies_deterministically() {
         let mut request = sample_request();
         request.max_citations = 1;
+        request.max_citations_per_claim = 1;
 
         let report = plan_attribution(request);
 
@@ -459,12 +489,11 @@ mod tests {
     }
 
     #[test]
-    fn citation_order_and_duplicate_claim_sources_are_deterministic() {
+    fn citation_order_is_deterministic_regardless_of_input_order() {
+        // Reverse both claims and sources order; result must still be
+        // claim-1 -> src-kg-policy, claim-2 -> src-doc-refund
         let mut request = sample_request();
         request.claims.reverse();
-        request.claims[0]
-            .source_ids
-            .push("src-kg-policy".to_owned());
         request.sources.reverse();
 
         let report = plan_attribution(request);
@@ -477,6 +506,89 @@ mod tests {
         assert_eq!(report.citations[1].source_id, "src-doc-refund");
     }
 
+    #[test]
+    fn per_claim_fanout_cap_exceeded_is_denied_with_correct_evidence() {
+        let mut request = sample_request();
+        // Set cap to 1 but claim-1 already has 1 source; add a second to exceed it
+        request.max_citations_per_claim = 1;
+        request.claims[1]
+            .source_ids
+            .push("src-doc-refund".to_owned());
+        // Also make src-doc-refund available to claim-1 (it's claim_id "claim-1" after sort)
+        // claim-1 has source_ids = ["src-kg-policy", "src-doc-refund"] => len 2 > cap 1
+        let report = plan_attribution(request);
+
+        assert_eq!(report.status, AttributionStatus::Denied);
+        assert_eq!(
+            report.denial_kind,
+            Some(AttributionDenialKind::ClaimCitationFanoutExceeded)
+        );
+        assert!(report.citations.is_empty());
+        assert!(
+            report
+                .evidence_refs
+                .contains(&"policy:evidence:attribution:1".to_owned())
+        );
+        assert!(
+            report
+                .evidence_refs
+                .contains(&"validation:intelligence-attribution-claim-fanout".to_owned())
+        );
+    }
+
+    #[test]
+    fn duplicate_source_ids_within_claim_is_denied_as_invalid_input() {
+        let mut request = sample_request();
+        // Inject duplicate source_id in claim-2 (index 0 in sample = claim-2)
+        let dup_id = request.claims[0].source_ids[0].clone();
+        request.claims[0].source_ids.push(dup_id);
+
+        let report = plan_attribution(request);
+
+        assert_eq!(report.status, AttributionStatus::Denied);
+        assert_eq!(
+            report.denial_kind,
+            Some(AttributionDenialKind::InvalidInput)
+        );
+        assert!(report.citations.is_empty());
+    }
+
+    #[test]
+    fn within_claim_source_ordering_is_stable_lexicographic() {
+        let mut request = sample_request();
+        // Give claim-1 two sources; add a second source that sorts before src-kg-policy
+        request.sources.push(AttributionSource {
+            source_id: "src-aaa-early".to_owned(),
+            resource_ref: "doc://early/resource".to_owned(),
+            title_ref: "title://early/resource".to_owned(),
+            source_kind: AttributionSourceKind::RetrievalDocument,
+            data_class: AttributionDataClass::Public,
+            evidence_ref: "evidence:early:resource".to_owned(),
+            freshness_epoch_seconds: 1_779_523_202,
+        });
+        // claim-1 is at index 1 in sample_request claims
+        request.claims[1]
+            .source_ids
+            .push("src-aaa-early".to_owned());
+        // max_citations_per_claim must accommodate 2 sources
+        request.max_citations_per_claim = 2;
+        request.max_citations = 8;
+
+        let report = plan_attribution(request);
+
+        assert_eq!(report.status, AttributionStatus::Rendered);
+        // claim-1 should yield citations for "src-aaa-early" then "src-kg-policy"
+        // (lexicographic order within claim)
+        let claim_1_citations: Vec<_> = report
+            .citations
+            .iter()
+            .filter(|c| c.claim_id == "claim-1")
+            .collect();
+        assert_eq!(claim_1_citations.len(), 2);
+        assert_eq!(claim_1_citations[0].source_id, "src-aaa-early");
+        assert_eq!(claim_1_citations[1].source_id, "src-kg-policy");
+    }
+
     fn sample_request() -> AttributionRequest {
         AttributionRequest {
             tenant_id: "tenant:alpha".to_owned(),
@@ -485,6 +597,7 @@ mod tests {
             policy_evidence_ref: "policy:evidence:attribution:1".to_owned(),
             trace_context_ref: "trace:attribution:1".to_owned(),
             max_citations: 8,
+            max_citations_per_claim: 4,
             sources: vec![
                 AttributionSource {
                     source_id: "src-kg-policy".to_owned(),
