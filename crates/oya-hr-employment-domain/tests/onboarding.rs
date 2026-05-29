@@ -1,16 +1,18 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_hr_employment_domain::{
-    HrDomainError, OnboardingChecklistItem, OnboardingChecklistItemKind, OnboardingReadinessInput,
-    OnboardingReadinessOutcome, evaluate_onboarding_readiness,
+    AuditEvidenceRef, HrDomainError, OnboardingChecklistItem, OnboardingChecklistItemKind,
+    OnboardingDecision, OnboardingReadinessInput, evaluate_onboarding_readiness,
 };
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-fn valid_evidence(suffix: &str) -> String {
-    format!("audit/hr/onboarding/{suffix}")
+fn valid_evidence(suffix: &str) -> AuditEvidenceRef {
+    AuditEvidenceRef {
+        value: format!("audit/hr/onboarding/{suffix}"),
+    }
 }
 
 /// Returns an input where every mandatory item is cleared with evidence.
@@ -19,35 +21,36 @@ fn all_cleared_input() -> OnboardingReadinessInput {
         employee_id: "emp_001".to_owned(),
         tenant_id: "ten_acme".to_owned(),
         legal_entity_id: "le_kr_001".to_owned(),
-        checklist_items: vec![
+        evaluated_at_epoch_seconds: 1_700_000_000,
+        checklist: vec![
             OnboardingChecklistItem {
-                kind: OnboardingChecklistItemKind::RightToWork,
+                kind: OnboardingChecklistItemKind::RightToWorkI9,
                 is_mandatory: true,
-                cleared: true,
+                is_cleared: true,
                 evidence_ref: Some(valid_evidence("rtw/001")),
             },
             OnboardingChecklistItem {
                 kind: OnboardingChecklistItemKind::BackgroundCheck,
                 is_mandatory: true,
-                cleared: true,
+                is_cleared: true,
                 evidence_ref: Some(valid_evidence("bgcheck/001")),
             },
             OnboardingChecklistItem {
                 kind: OnboardingChecklistItemKind::EquipmentProvisioning,
                 is_mandatory: false,
-                cleared: true,
+                is_cleared: true,
                 evidence_ref: Some(valid_evidence("equip/001")),
             },
             OnboardingChecklistItem {
                 kind: OnboardingChecklistItemKind::AccessGrant,
                 is_mandatory: false,
-                cleared: true,
+                is_cleared: true,
                 evidence_ref: Some(valid_evidence("access/001")),
             },
             OnboardingChecklistItem {
                 kind: OnboardingChecklistItemKind::MandatoryTraining,
                 is_mandatory: true,
-                cleared: true,
+                is_cleared: true,
                 evidence_ref: Some(valid_evidence("training/001")),
             },
         ],
@@ -63,9 +66,9 @@ fn all_mandatory_items_cleared_returns_ready_decision() {
     let result = evaluate_onboarding_readiness(all_cleared_input())
         .expect("should not error when all items are cleared");
 
-    assert_eq!(result.outcome, OnboardingReadinessOutcome::Ready);
+    assert_eq!(result.decision.value, OnboardingDecision::Ready);
     assert!(
-        result.outstanding_mandatory_items.is_empty(),
+        result.outstanding_items.value.is_empty(),
         "READY decision must have no outstanding items"
     );
 }
@@ -79,16 +82,17 @@ fn missing_mandatory_item_returns_not_ready_with_blocker_list() {
     let mut input = all_cleared_input();
     // Remove the BackgroundCheck item entirely
     input
-        .checklist_items
+        .checklist
         .retain(|i| i.kind != OnboardingChecklistItemKind::BackgroundCheck);
 
     let result = evaluate_onboarding_readiness(input)
         .expect("should not error — missing item is a NOT_READY, not an Err");
 
-    assert_eq!(result.outcome, OnboardingReadinessOutcome::NotReady);
+    assert_eq!(result.decision.value, OnboardingDecision::NotReady);
     assert!(
         result
-            .outstanding_mandatory_items
+            .outstanding_items
+            .value
             .contains(&OnboardingChecklistItemKind::BackgroundCheck),
         "BackgroundCheck must appear in the blocker list"
     );
@@ -101,10 +105,10 @@ fn missing_mandatory_item_returns_not_ready_with_blocker_list() {
 #[test]
 fn uncleared_mandatory_item_returns_not_ready() {
     let mut input = all_cleared_input();
-    // Mark RightToWork as not cleared and strip its evidence
-    for item in &mut input.checklist_items {
-        if item.kind == OnboardingChecklistItemKind::RightToWork {
-            item.cleared = false;
+    // Mark RightToWorkI9 as not cleared and strip its evidence
+    for item in &mut input.checklist {
+        if item.kind == OnboardingChecklistItemKind::RightToWorkI9 {
+            item.is_cleared = false;
             item.evidence_ref = None;
         }
     }
@@ -112,39 +116,34 @@ fn uncleared_mandatory_item_returns_not_ready() {
     let result = evaluate_onboarding_readiness(input)
         .expect("uncleared item yields NOT_READY decision, not Err");
 
-    assert_eq!(result.outcome, OnboardingReadinessOutcome::NotReady);
+    assert_eq!(result.decision.value, OnboardingDecision::NotReady);
     assert!(
         result
-            .outstanding_mandatory_items
-            .contains(&OnboardingChecklistItemKind::RightToWork),
-        "RightToWork must be listed as an outstanding item"
+            .outstanding_items
+            .value
+            .contains(&OnboardingChecklistItemKind::RightToWorkI9),
+        "RightToWorkI9 must be listed as an outstanding item"
     );
 }
 
 // ---------------------------------------------------------------------------
-// [st3] Test: mandatory item cleared without evidence → NOT_READY
+// [st3] Test: cleared mandatory item with no evidence → OnboardingItemNotCleared
 // ---------------------------------------------------------------------------
 
 #[test]
-fn mandatory_item_cleared_without_evidence_returns_not_ready() {
+fn mandatory_item_cleared_without_evidence_returns_error() {
     let mut input = all_cleared_input();
-    for item in &mut input.checklist_items {
+    for item in &mut input.checklist {
         if item.kind == OnboardingChecklistItemKind::MandatoryTraining {
-            item.cleared = true;
+            item.is_cleared = true;
             item.evidence_ref = None; // cleared flag set but no AuditEvidenceRef
         }
     }
 
-    let result = evaluate_onboarding_readiness(input)
-        .expect("missing evidence on cleared item yields NOT_READY, not Err");
+    let err = evaluate_onboarding_readiness(input)
+        .expect_err("cleared mandatory item without evidence must return OnboardingItemNotCleared");
 
-    assert_eq!(result.outcome, OnboardingReadinessOutcome::NotReady);
-    assert!(
-        result
-            .outstanding_mandatory_items
-            .contains(&OnboardingChecklistItemKind::MandatoryTraining),
-        "MandatoryTraining without evidence must appear as a blocker"
-    );
+    assert_eq!(err, HrDomainError::OnboardingItemNotCleared);
 }
 
 // ---------------------------------------------------------------------------
@@ -157,7 +156,8 @@ fn empty_checklist_returns_onboarding_items_required_error() {
         employee_id: "emp_001".to_owned(),
         tenant_id: "ten_acme".to_owned(),
         legal_entity_id: "le_kr_001".to_owned(),
-        checklist_items: vec![],
+        evaluated_at_epoch_seconds: 1_700_000_000,
+        checklist: vec![],
     };
 
     let err = evaluate_onboarding_readiness(input)
@@ -167,24 +167,24 @@ fn empty_checklist_returns_onboarding_items_required_error() {
 }
 
 // ---------------------------------------------------------------------------
-// [st3] Test: duplicate checklist item kinds → OnboardingItemNotCleared error
+// [st3] Test: duplicate checklist item kinds → DuplicateOnboardingItem error
 // ---------------------------------------------------------------------------
 
 #[test]
 fn duplicate_checklist_item_kinds_returns_error() {
     let mut input = all_cleared_input();
-    // Duplicate RightToWork
-    input.checklist_items.push(OnboardingChecklistItem {
-        kind: OnboardingChecklistItemKind::RightToWork,
+    // Duplicate RightToWorkI9
+    input.checklist.push(OnboardingChecklistItem {
+        kind: OnboardingChecklistItemKind::RightToWorkI9,
         is_mandatory: true,
-        cleared: true,
+        is_cleared: true,
         evidence_ref: Some(valid_evidence("rtw/duplicate")),
     });
 
     let err = evaluate_onboarding_readiness(input)
         .expect_err("duplicate item kinds must return an error");
 
-    assert_eq!(err, HrDomainError::OnboardingDuplicateItem);
+    assert_eq!(err, HrDomainError::DuplicateOnboardingItem);
 }
 
 // ---------------------------------------------------------------------------
@@ -250,17 +250,18 @@ fn only_optional_items_all_cleared_returns_ready() {
         employee_id: "emp_001".to_owned(),
         tenant_id: "ten_acme".to_owned(),
         legal_entity_id: "le_kr_001".to_owned(),
-        checklist_items: vec![
+        evaluated_at_epoch_seconds: 1_700_000_000,
+        checklist: vec![
             OnboardingChecklistItem {
                 kind: OnboardingChecklistItemKind::EquipmentProvisioning,
                 is_mandatory: false,
-                cleared: true,
+                is_cleared: true,
                 evidence_ref: Some(valid_evidence("equip/001")),
             },
             OnboardingChecklistItem {
                 kind: OnboardingChecklistItemKind::AccessGrant,
                 is_mandatory: false,
-                cleared: false,
+                is_cleared: false,
                 evidence_ref: None,
             },
         ],
@@ -270,11 +271,11 @@ fn only_optional_items_all_cleared_returns_ready() {
         .expect("optional-only checklist with no mandatory items should not error");
 
     assert_eq!(
-        result.outcome,
-        OnboardingReadinessOutcome::Ready,
+        result.decision.value,
+        OnboardingDecision::Ready,
         "no mandatory items means nothing blocks READY"
     );
-    assert!(result.outstanding_mandatory_items.is_empty());
+    assert!(result.outstanding_items.value.is_empty());
 }
 
 // ---------------------------------------------------------------------------
@@ -284,9 +285,11 @@ fn only_optional_items_all_cleared_returns_ready() {
 #[test]
 fn invalid_evidence_ref_on_cleared_mandatory_item_returns_error() {
     let mut input = all_cleared_input();
-    for item in &mut input.checklist_items {
-        if item.kind == OnboardingChecklistItemKind::RightToWork {
-            item.evidence_ref = Some("audit/hr/onboarding/bearer-token".to_owned());
+    for item in &mut input.checklist {
+        if item.kind == OnboardingChecklistItemKind::RightToWorkI9 {
+            item.evidence_ref = Some(AuditEvidenceRef {
+                value: "audit/hr/onboarding/bearer-token".to_owned(),
+            });
         }
     }
 
@@ -303,12 +306,12 @@ fn invalid_evidence_ref_on_cleared_mandatory_item_returns_error() {
 #[test]
 fn multiple_uncleared_mandatory_items_lists_all_blockers() {
     let mut input = all_cleared_input();
-    for item in &mut input.checklist_items {
+    for item in &mut input.checklist {
         if matches!(
             item.kind,
-            OnboardingChecklistItemKind::RightToWork | OnboardingChecklistItemKind::BackgroundCheck
+            OnboardingChecklistItemKind::RightToWorkI9 | OnboardingChecklistItemKind::BackgroundCheck
         ) {
-            item.cleared = false;
+            item.is_cleared = false;
             item.evidence_ref = None;
         }
     }
@@ -316,22 +319,41 @@ fn multiple_uncleared_mandatory_items_lists_all_blockers() {
     let result = evaluate_onboarding_readiness(input)
         .expect("multiple uncleared items yield NOT_READY, not Err");
 
-    assert_eq!(result.outcome, OnboardingReadinessOutcome::NotReady);
+    assert_eq!(result.decision.value, OnboardingDecision::NotReady);
     assert!(
         result
-            .outstanding_mandatory_items
-            .contains(&OnboardingChecklistItemKind::RightToWork),
-        "RightToWork must be in blockers"
+            .outstanding_items
+            .value
+            .contains(&OnboardingChecklistItemKind::RightToWorkI9),
+        "RightToWorkI9 must be in blockers"
     );
     assert!(
         result
-            .outstanding_mandatory_items
+            .outstanding_items
+            .value
             .contains(&OnboardingChecklistItemKind::BackgroundCheck),
         "BackgroundCheck must be in blockers"
     );
     assert_eq!(
-        result.outstanding_mandatory_items.len(),
+        result.outstanding_items.value.len(),
         2,
         "exactly two blockers"
     );
+}
+
+// ---------------------------------------------------------------------------
+// [st3] Test: zero evaluated_at_epoch_seconds → InvalidEvaluatedAt error
+// ---------------------------------------------------------------------------
+
+#[test]
+fn zero_evaluated_at_returns_invalid_evaluated_at_error() {
+    let input = OnboardingReadinessInput {
+        evaluated_at_epoch_seconds: 0,
+        ..all_cleared_input()
+    };
+
+    let err = evaluate_onboarding_readiness(input)
+        .expect_err("zero evaluated_at_epoch_seconds must return InvalidEvaluatedAt");
+
+    assert_eq!(err, HrDomainError::InvalidEvaluatedAt);
 }
