@@ -214,11 +214,16 @@ pub struct CloudKmsCryptoSuccessResponse {
 }
 
 impl CloudKmsCryptoSuccessResponse {
-    pub fn ok(data: CloudKmsUseReceiptRecord, request_id: impl Into<String>) -> Self {
+    pub fn ok(
+        data: CloudKmsUseReceiptRecord,
+        request_id: impl Into<String>,
+        api_version: impl Into<String>,
+    ) -> Self {
         Self {
             data,
             metadata: CloudKmsApiResponseMetadata {
                 request_id: request_id.into(),
+                api_version: api_version.into(),
             },
         }
     }
@@ -226,7 +231,8 @@ impl CloudKmsCryptoSuccessResponse {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudKmsApiResponseMetadata {
-    pub request_id: String, // data_class: INTERNAL_ONLY
+    pub request_id: String,  // data_class: INTERNAL_ONLY
+    pub api_version: String, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -629,13 +635,16 @@ pub fn authorize_cloud_kms_encrypt_from_api(
     }
 
     let request_id = request.boundary.request_id.clone();
+    let api_version = request.boundary.oyatie_version.clone();
     let result = encrypt_input(&request.boundary, request.body)
         .and_then(|input| {
             directory
                 .authorize_encrypt(input)
                 .map_err(CloudKmsApiError::Kms)
         })
-        .map(|receipt| CloudKmsCryptoSuccessResponse::ok(receipt_record(receipt), request_id));
+        .map(|receipt| {
+            CloudKmsCryptoSuccessResponse::ok(receipt_record(receipt), request_id, api_version)
+        });
     idempotency_ledger.entries.insert(
         key,
         CloudKmsCryptoIdempotencyLedgerEntry {
@@ -669,13 +678,16 @@ pub fn authorize_cloud_kms_decrypt_from_api(
     }
 
     let request_id = request.boundary.request_id.clone();
+    let api_version = request.boundary.oyatie_version.clone();
     let result = decrypt_input(&request.boundary, request.body)
         .and_then(|input| {
             directory
                 .authorize_decrypt(input)
                 .map_err(CloudKmsApiError::Kms)
         })
-        .map(|receipt| CloudKmsCryptoSuccessResponse::ok(receipt_record(receipt), request_id));
+        .map(|receipt| {
+            CloudKmsCryptoSuccessResponse::ok(receipt_record(receipt), request_id, api_version)
+        });
     idempotency_ledger.entries.insert(
         key,
         CloudKmsCryptoIdempotencyLedgerEntry {
@@ -1145,5 +1157,83 @@ fn detail(field: &str, issue: &str) -> CloudKmsApiErrorDetail {
     CloudKmsApiErrorDetail {
         field: field.to_string(),
         issue: issue.to_string(),
+    }
+}
+
+/// Resolve an optional raw `Oyatie-Version` header value to the accepted API version.
+///
+/// | Header value | Result |
+/// |---|---|
+/// | `None` (absent) | `Ok(CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION)` |
+/// | empty or whitespace-only | `Err(MissingPublicApiVersion)` → 400 |
+/// | member of `CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS` | `Ok(version)` as `&'static str` |
+/// | any other value | `Err(UnsupportedPublicApiVersion { oyatie_version })` → 400 |
+///
+/// The `Ok` arm returns a pointer directly into `CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS`
+/// so no heap allocation occurs on the success path.
+pub fn negotiate_cloud_kms_api_version(
+    header: Option<&str>,
+) -> Result<&'static str, CloudKmsApiError> {
+    let Some(raw) = header else {
+        return Ok(CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION);
+    };
+    if raw.trim().is_empty() {
+        return Err(CloudKmsApiError::MissingPublicApiVersion);
+    }
+    CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS
+        .iter()
+        .copied()
+        .find(|&v| v == raw)
+        .ok_or_else(|| CloudKmsApiError::UnsupportedPublicApiVersion {
+            oyatie_version: raw.to_string(),
+        })
+}
+
+#[cfg(test)]
+mod version_negotiation_tests {
+    use super::{
+        negotiate_cloud_kms_api_version, CloudKmsApiError, CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION,
+        CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS,
+    };
+
+    #[test]
+    fn absent_header_returns_default_version() {
+        let result = negotiate_cloud_kms_api_version(None);
+        assert_eq!(result, Ok(CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION));
+    }
+
+    #[test]
+    fn each_supported_version_is_echoed() {
+        for &version in CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS {
+            let result = negotiate_cloud_kms_api_version(Some(version));
+            assert_eq!(result, Ok(version), "version {version} should be accepted");
+        }
+    }
+
+    #[test]
+    fn unknown_version_string_returns_typed_error_with_status_400() {
+        let result = negotiate_cloud_kms_api_version(Some("1999-01-01"));
+        let err = result.expect_err("unknown version must be rejected");
+        assert_eq!(
+            err,
+            CloudKmsApiError::UnsupportedPublicApiVersion {
+                oyatie_version: "1999-01-01".to_string(),
+            }
+        );
+        assert_eq!(err.crypto_status_code(), 400);
+    }
+
+    #[test]
+    fn empty_or_whitespace_header_returns_missing_error_with_status_400() {
+        for raw in ["", "  ", "\t"] {
+            let result = negotiate_cloud_kms_api_version(Some(raw));
+            let err = result.expect_err("empty/whitespace version must be rejected");
+            assert_eq!(
+                err,
+                CloudKmsApiError::MissingPublicApiVersion,
+                "input {raw:?} should yield MissingPublicApiVersion"
+            );
+            assert_eq!(err.crypto_status_code(), 400);
+        }
     }
 }
