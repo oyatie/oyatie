@@ -5161,6 +5161,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-identity"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "oya-identity-api"
 version = "0.1.0"
 dependencies = [
