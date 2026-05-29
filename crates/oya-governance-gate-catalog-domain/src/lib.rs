@@ -596,16 +596,13 @@ pub fn lanes_for_changed(changed: &[&str]) -> Vec<&'static str> {
             // Not in table → conservative Global.
             None => true,
             Some(LaneInputs::Global) => true,
+            // Empty globs list → conservative Global; otherwise selected
+            // when any changed file matches any glob.
             Some(LaneInputs::Globs(globs)) => {
-                if globs.is_empty() {
-                    // Empty globs list → conservative Global.
-                    true
-                } else {
-                    // Selected when any changed file matches any glob.
-                    changed
+                globs.is_empty()
+                    || changed
                         .iter()
                         .any(|path| globs.iter().any(|g| path_glob_matches(path, g)))
-                }
             }
         };
         if selected {
