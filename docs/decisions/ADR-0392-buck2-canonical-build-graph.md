@@ -5,7 +5,7 @@ planning_impact: true
 deciders: founder, council-architecture
 date: 2026-05-29
 owner: council-architecture
-supersedes: []
+supersedes: [ADR-0358]
 superseded_by: []
 amends: []
 related: [ADR-0358, ADR-0408, ADR-0359, ADR-0346, ADR-0111, ADR-0181, ADR-0357, ADR-0092]
