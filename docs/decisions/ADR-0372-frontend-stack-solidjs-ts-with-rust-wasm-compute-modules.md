@@ -1,12 +1,12 @@
 ---
 id: ADR-0372
-status: Accepted
+status: Superseded
 deciders: founder, council-architecture
 date: 2026-05-26
 owner: council-architecture
 supersedes: []
-superseded_by: []
-related: [ADR-0001, ADR-0013, ADR-0023]
+superseded_by: [ADR-0393]
+related: [ADR-0001, ADR-0013, ADR-0023, ADR-0393]
 planning_impact: true
 milestone: M-APP-SHELL-FRONTEND
 depends_on: []
@@ -42,7 +42,9 @@ purpose: Choose the app-shell FRONTEND stack on performance, scalability, resour
 # ADR-0372: Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules
 
 ## Status
-Accepted — 2026-05-26. **AMENDED 2026-05-27** (see Amendment): the supersede-Leptos stance is reversed — Leptos retained canonical, SolidJS evaluation-only.
+**SUPERSEDED by ADR-0393 (2026-05-29).** Leptos (Rust/WASM, SSR+hydration) is the canonical app-shell frontend; SolidJS is not a canonical target. The body below is retained as the historical record of the original SolidJS decision and its 2026-05-27 Leptos-retention amendment. See ADR-0393 for the clean Leptos-canonical decision and the reconciliation of the codebase drift.
+
+~~Accepted — 2026-05-26. **AMENDED 2026-05-27** (see Amendment): the supersede-Leptos stance is reversed — Leptos retained canonical, SolidJS evaluation-only.~~
 
 ## Amendment (2026-05-27)
 **Founder decision (2026-05-27) REVERSES the supersede-Leptos stance of this ADR.** Leptos (`crates/oya-application-shell-frontend-prototype`, Rust→WASM) is RETAINED as the **canonical** app-shell frontend. SolidJS is retained as an **evaluation track only** — the `microservices/app-shell-frontend` SolidJS scaffold (PR #201) is that evaluation, NOT a migration commitment. SolidJS replaces Leptos as canonical ONLY if it demonstrates superiority **at massive scale**; absent that proof, Leptos stays. Deliverable D4 (retire the Leptos prototype) is WITHDRAWN; D1–D3 stand as EVALUATION work, not a committed migration. The analysis below is retained as the historical rationale for the (now-reversed) decision; the backend-stays-Rust and WASM-for-compute conclusions are unaffected.

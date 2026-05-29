@@ -1,11 +1,12 @@
 ---
 id: ADR-0359
-status: Proposed
+status: Superseded
 planning_impact: true
 date: 2026-05-25
 owners:
   - council-architecture
 supersedes: []
+superseded_by: [ADR-0511]
 amends:
   - ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 ---
