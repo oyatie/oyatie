@@ -13,6 +13,7 @@ pub mod dkim_signing_input;
 pub mod governance;
 pub mod sending_domain_authentication;
 pub mod spf_alignment;
+pub mod thread_grouping;
 pub mod thread_state;
 pub use dkim_canonicalization::{
     canonicalize_body, canonicalize_header, DkimCanonicalizationAlgorithm, RawHeader,
@@ -24,6 +25,7 @@ pub use dkim_signing_input::{
 pub use governance::*;
 pub use sending_domain_authentication::*;
 pub use spf_alignment::{evaluate_spf_alignment, SpfAlignmentMode, SpfAlignmentVerdict};
+pub use thread_grouping::{group_into_thread, ThreadAssignment, ThreadTransitionError, transition_thread_status};
 pub use thread_state::{MailboxKind, ThreadStatus};
 
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
