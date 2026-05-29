@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use oya_shared_webauthn_server_kernel::{
     Aaguid, AttestationConveyance, AuthenticationChallenge, AuthenticationResponse, Credential,
-    CredentialId, InMemoryChallengeStore, InMemoryCredentialStore, Mediation, PackTier,
+    CredentialId, CoseKeyCbor, InMemoryChallengeStore, InMemoryCredentialStore, Mediation, PackTier,
     ReferenceWebauthnServer, RegistrationChallenge, RegistrationResponse, TenantId, Transport,
     UserId, WebauthnError, WebauthnRpAdapter, WebauthnServer,
 };
@@ -475,4 +475,170 @@ fn exclude_credentials_returns_user_existing_set() {
     // The exclude_credentials in the 3rd challenge should already contain
     // the previous registrations.
     assert!(!chal3.exclude_credentials.is_empty());
+}
+
+// ---------------------------------------------------------------------------
+// Attestation-policy gate: PackTier::admit_credential
+// ---------------------------------------------------------------------------
+
+/// Build a minimal `Credential` for policy-gate tests. No I/O; pure construction.
+fn make_credential(aaguid: Aaguid) -> Credential {
+    Credential {
+        credential_id: CredentialId(b"test-cred".to_vec()),
+        tenant_id: TenantId("t".into()),
+        user_id: UserId("u".into()),
+        public_key: CoseKeyCbor(vec![0x01]),
+        aaguid,
+        transports: vec![Transport::Internal],
+        attestation_format: "packed".into(),
+        backup_eligible: false,
+        backup_state: false,
+        sign_count: 0,
+        last_used_at_unix: 0,
+        created_at_unix: 0,
+    }
+}
+
+#[test]
+fn sandbox_or_dev_always_admits() {
+    let cred = make_credential(Aaguid::ZERO); // even zero AAGUID is fine here
+    assert!(PackTier::SandboxOrDev
+        .admit_credential(AttestationConveyance::None, &cred, None)
+        .is_ok());
+    // Higher conveyances also pass
+    assert!(PackTier::SandboxOrDev
+        .admit_credential(AttestationConveyance::Direct, &cred, None)
+        .is_ok());
+}
+
+#[test]
+fn pack_standard_indirect_admits() {
+    let cred = make_credential(Aaguid([1u8; 16]));
+    assert!(PackTier::PackStandard
+        .admit_credential(AttestationConveyance::Indirect, &cred, None)
+        .is_ok());
+}
+
+#[test]
+fn pack_standard_none_rejects() {
+    let cred = make_credential(Aaguid([1u8; 16]));
+    let err = PackTier::PackStandard
+        .admit_credential(AttestationConveyance::None, &cred, None)
+        .unwrap_err();
+    assert!(
+        matches!(
+            err,
+            WebauthnError::AttestationLevelInsufficient {
+                required: AttestationConveyance::Indirect,
+                actual: AttestationConveyance::None,
+            }
+        ),
+        "unexpected error: {err:?}"
+    );
+}
+
+#[test]
+fn regulated_direct_allowlisted_admits() {
+    let aaguid = Aaguid([1u8; 16]);
+    let mut al = BTreeSet::new();
+    al.insert(aaguid);
+    let cred = make_credential(aaguid);
+    assert!(PackTier::PackRegulated
+        .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
+        .is_ok());
+}
+
+#[test]
+fn regulated_direct_zero_aaguid_rejects() {
+    let aaguid = Aaguid::ZERO;
+    let mut al = BTreeSet::new();
+    al.insert(aaguid);
+    let cred = make_credential(aaguid);
+    let err = PackTier::PackRegulated
+        .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
+        .unwrap_err();
+    assert!(
+        matches!(err, WebauthnError::AaguidNotAllowlisted(_)),
+        "unexpected error: {err:?}"
+    );
+}
+
+#[test]
+fn regulated_direct_not_in_allowlist_rejects() {
+    let aaguid = Aaguid([1u8; 16]);
+    let mut al = BTreeSet::new();
+    al.insert(Aaguid([2u8; 16])); // different AAGUID in allowlist
+    let cred = make_credential(aaguid);
+    let err = PackTier::PackRegulated
+        .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
+        .unwrap_err();
+    assert!(
+        matches!(err, WebauthnError::AaguidNotAllowlisted(_)),
+        "unexpected error: {err:?}"
+    );
+}
+
+#[test]
+fn regulated_none_rejects_conveyance() {
+    let aaguid = Aaguid([1u8; 16]);
+    let mut al = BTreeSet::new();
+    al.insert(aaguid);
+    let cred = make_credential(aaguid);
+    let err = PackTier::PackRegulated
+        .admit_credential(AttestationConveyance::None, &cred, Some(&al))
+        .unwrap_err();
+    assert!(
+        matches!(err, WebauthnError::AttestationLevelInsufficient { .. }),
+        "unexpected error: {err:?}"
+    );
+}
+
+#[test]
+fn critical_enterprise_admits() {
+    let aaguid = Aaguid([1u8; 16]);
+    let mut al = BTreeSet::new();
+    al.insert(aaguid);
+    let cred = make_credential(aaguid);
+    assert!(PackTier::AcrCritical
+        .admit_credential(AttestationConveyance::Enterprise, &cred, Some(&al))
+        .is_ok());
+}
+
+#[test]
+fn critical_direct_admits() {
+    let aaguid = Aaguid([1u8; 16]);
+    let mut al = BTreeSet::new();
+    al.insert(aaguid);
+    let cred = make_credential(aaguid);
+    assert!(PackTier::AcrCritical
+        .admit_credential(AttestationConveyance::Direct, &cred, Some(&al))
+        .is_ok());
+}
+
+#[test]
+fn critical_indirect_rejects() {
+    let aaguid = Aaguid([1u8; 16]);
+    let mut al = BTreeSet::new();
+    al.insert(aaguid);
+    let cred = make_credential(aaguid);
+    let err = PackTier::AcrCritical
+        .admit_credential(AttestationConveyance::Indirect, &cred, Some(&al))
+        .unwrap_err();
+    assert!(
+        matches!(err, WebauthnError::AttestationLevelInsufficient { .. }),
+        "unexpected error: {err:?}"
+    );
+}
+
+#[test]
+fn regulated_nil_allowlist_rejects() {
+    let aaguid = Aaguid([1u8; 16]);
+    let cred = make_credential(aaguid);
+    let err = PackTier::PackRegulated
+        .admit_credential(AttestationConveyance::Direct, &cred, None)
+        .unwrap_err();
+    assert!(
+        matches!(err, WebauthnError::AaguidNotAllowlisted(_)),
+        "unexpected error: {err:?}"
+    );
 }
