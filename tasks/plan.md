@@ -1,8 +1,12 @@
-# Implementation Plan: FD-001 Masterplan Execution — Phase 0 Cloud Foundations
+# RETIRED — pointer hub only
 
-## Status and authority
+This file is retired per the markdown-retirement-policy (`/specs/markdown-retirement-policy.json`).
 
-This file supersedes the stale observability gap-closure task plan that previously occupied `tasks/plan.md`.
+Authoritative planning SSOT: `/specs/masterplan.json`
+Execution sequencing: `/specs/master-plan-sequencing.json`
+ADR decisions: `docs/decisions/`
+
+## Archived content (non-authoritative)
 
 Authoritative inputs, in precedence order for this plan:
 

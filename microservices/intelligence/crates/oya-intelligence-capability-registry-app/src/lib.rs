@@ -1,16 +1,17 @@
 //! M02-P05-IP-001 — Capability registry use-cases.
 //!
-//! In-memory `CapabilityRegistry` + three use-cases:
+//! In-memory `CapabilityRegistry` + four use-cases:
 //!   - `RegisterCapability` (validates, then inserts)
 //!   - `ListCapabilities` (sorted by id)
 //!   - `GetCapability` (by id)
+//!   - `AffectedSet` (transitive impacted set via dependency edges)
 //!
 //! No I/O beyond optional file load for the seed JSON.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
 use oya_intelligence_capability_registry_domain::{PublishValidationError, validate_publish};
@@ -84,6 +85,53 @@ impl CapabilityRegistry {
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+
+    /// Use-case: AffectedSet.
+    ///
+    /// Given a set of changed capability IDs, returns the transitive set of
+    /// all impacted capability IDs by following `owner_capability_id` edges
+    /// in reverse (dependents propagate impact forward).
+    ///
+    /// IDs in `changed` that are not present in the registry are included
+    /// unchanged — they changed, so they are trivially affected.
+    ///
+    /// Output is a [`BTreeSet`] for deterministic, sorted iteration.
+    pub fn affected_set(&self, changed: &BTreeSet<CapabilityId>) -> BTreeSet<CapabilityId> {
+        if changed.is_empty() {
+            return BTreeSet::new();
+        }
+
+        // Build reverse index: owner_id -> Vec<dependent_id>.
+        // O(n) over the registry.
+        let mut reverse: BTreeMap<&CapabilityId, Vec<&CapabilityId>> = BTreeMap::new();
+        for (dep_id, cap) in &self.entries {
+            if let Some(owner_id) = &cap.owner_capability_id {
+                reverse.entry(owner_id).or_default().push(dep_id);
+            }
+        }
+
+        // BFS from all seeds in `changed`.
+        let mut visited: BTreeSet<CapabilityId> = BTreeSet::new();
+        let mut queue: VecDeque<&CapabilityId> = VecDeque::new();
+
+        for id in changed {
+            if visited.insert(id.clone()) {
+                queue.push_back(id);
+            }
+        }
+
+        while let Some(current) = queue.pop_front() {
+            if let Some(dependents) = reverse.get(current) {
+                for dep_id in dependents {
+                    if visited.insert((*dep_id).clone()) {
+                        queue.push_back(dep_id);
+                    }
+                }
+            }
+        }
+
+        visited
     }
 }
 
@@ -275,6 +323,110 @@ mod tests {
         let caps = parse_seed_json(src).unwrap();
         assert_eq!(caps.len(), 2);
         assert_eq!(caps[1].autonomy_tier, AutonomyTier::T2Suggest);
+    }
+
+    // ── AffectedSet use-case tests ───────────────────────────────────────
+
+    fn cap_owned(id: &str, owner: &str) -> Capability {
+        Capability::new(CapabilityId::new(id), "n", AutonomyTier::T1Read, true)
+            .owned_by(CapabilityId::new(owner))
+    }
+
+    fn id_set(ids: &[&str]) -> BTreeSet<CapabilityId> {
+        ids.iter().map(|s| CapabilityId::new(*s)).collect()
+    }
+
+    #[test]
+    fn affected_set_empty_changed() {
+        let r = CapabilityRegistry::new();
+        assert!(r.affected_set(&BTreeSet::new()).is_empty());
+    }
+
+    #[test]
+    fn affected_set_no_dependents() {
+        let mut r = CapabilityRegistry::new();
+        r.register(cap("foundry.account.list")).unwrap();
+        let result = r.affected_set(&id_set(&["foundry.account.list"]));
+        assert_eq!(result, id_set(&["foundry.account.list"]));
+    }
+
+    #[test]
+    fn affected_set_direct_dependent() {
+        let mut r = CapabilityRegistry::new();
+        r.register(cap("foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        let result = r.affected_set(&id_set(&["foundry.account.list"]));
+        assert_eq!(
+            result,
+            id_set(&["foundry.account.list", "foundry.account.summary"])
+        );
+    }
+
+    #[test]
+    fn affected_set_transitive() {
+        let mut r = CapabilityRegistry::new();
+        r.register(cap("foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.report", "foundry.account.summary")).unwrap();
+        let result = r.affected_set(&id_set(&["foundry.account.list"]));
+        assert_eq!(
+            result,
+            id_set(&[
+                "foundry.account.list",
+                "foundry.account.summary",
+                "foundry.account.report"
+            ])
+        );
+    }
+
+    #[test]
+    fn affected_set_leaf_change_no_upstream() {
+        let mut r = CapabilityRegistry::new();
+        r.register(cap("foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        // Changing the child (summary) does not pull in the parent (list).
+        let result = r.affected_set(&id_set(&["foundry.account.summary"]));
+        assert_eq!(result, id_set(&["foundry.account.summary"]));
+    }
+
+    #[test]
+    fn affected_set_diamond() {
+        // B and C both depend on A; changing A affects A, B, C.
+        let mut r = CapabilityRegistry::new();
+        r.register(cap("foundry.core.base")).unwrap();
+        r.register(cap_owned("foundry.core.alpha", "foundry.core.base")).unwrap();
+        r.register(cap_owned("foundry.core.beta", "foundry.core.base")).unwrap();
+        let result = r.affected_set(&id_set(&["foundry.core.base"]));
+        assert_eq!(
+            result,
+            id_set(&["foundry.core.base", "foundry.core.alpha", "foundry.core.beta"])
+        );
+    }
+
+    #[test]
+    fn affected_set_unknown_id_passes_through() {
+        let r = CapabilityRegistry::new();
+        let result = r.affected_set(&id_set(&["foundry.unknown.capability"]));
+        assert_eq!(result, id_set(&["foundry.unknown.capability"]));
+    }
+
+    #[test]
+    fn affected_set_multiple_roots() {
+        let mut r = CapabilityRegistry::new();
+        r.register(cap("foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        r.register(cap("foundry.session.read")).unwrap();
+        r.register(cap_owned("foundry.session.token", "foundry.session.read")).unwrap();
+        let result = r.affected_set(&id_set(&["foundry.account.list", "foundry.session.read"]));
+        assert_eq!(
+            result,
+            id_set(&[
+                "foundry.account.list",
+                "foundry.account.summary",
+                "foundry.session.read",
+                "foundry.session.token"
+            ])
+        );
     }
 
     #[test]

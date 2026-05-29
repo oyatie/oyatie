@@ -708,6 +708,63 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("http-stack")) => {
+            match crate::parse_http_stack_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_http_stack_gate(args) {
+                    Ok(report) => {
+                        for finding in &report.findings {
+                            match finding.kind {
+                                crate::HttpStackFindingKind::Forbidden => eprintln!(
+                                    "http-stack: {} ({}) declares FORBIDDEN HTTP framework `{}` in [{}] — only hyper (preferred) / axum (sanctioned) are allowed",
+                                    finding.crate_name,
+                                    finding.crate_path,
+                                    finding.framework,
+                                    finding.table
+                                ),
+                                crate::HttpStackFindingKind::UnjustifiedSanctioned => println!(
+                                    "http-stack WARN: {} ({}) declares `{}` without a recorded justification in specs/http-stack-policy.json (justified_crates.{}) — prefer hyper (low-level default) or record a rationale",
+                                    finding.crate_name,
+                                    finding.crate_path,
+                                    finding.framework,
+                                    finding.framework
+                                ),
+                            }
+                        }
+                        let forbidden = report.forbidden_count();
+                        let unjustified = report.unjustified_count();
+                        println!(
+                            "http-stack scan: {} crates scanned, {} use hyper, {} use axum, {} forbidden, {} unjustified-axum ({})",
+                            report.crates_scanned,
+                            report.hyper_crate_count,
+                            report.axum_crate_count,
+                            forbidden,
+                            unjustified,
+                            if report.enforced {
+                                "enforce"
+                            } else {
+                                "report-only"
+                            }
+                        );
+                        if report.enforced && forbidden > 0 {
+                            eprintln!(
+                                "http-stack validation failed: {forbidden} forbidden HTTP-framework dependencies"
+                            );
+                            ExitCode::FAILURE
+                        } else {
+                            ExitCode::SUCCESS
+                        }
+                    }
+                    Err(message) => {
+                        eprintln!("http-stack validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {

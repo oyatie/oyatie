@@ -91,6 +91,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "protection-context-match",
     "dependency-seam",
     "license-policy",
+    "http-stack",
     "plane-class",
     "raci-team-coverage",
     "readme-doc-coverage",
@@ -167,6 +168,14 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     // ADR-0388: doc-axis convention enforcement — status casing, shadow ideas,
     // docs proliferation, catalog/manifest drift.
     "doc-axis",
+    // M02b/P22 exit-gate quality lanes — check crates and `gate validate`
+    // dispatch arms exist; wired here so `oya gate run-all` dispatches them.
+    // ADR-0231 §"Plane 8 — Statelessness + shardability".
+    "statelessness",
+    "shardability",
+    // ADR-0062 §"performance budgets" + §"competitive benchmark".
+    "perf-budget",
+    "benchmark",
 ];
 
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
@@ -315,6 +324,305 @@ pub fn canonical_gate_validate_command(lane: &str) -> String {
         command.push_str(" --online-audit --severity error");
     }
     command
+}
+
+// -----------------------------------------------------------------------
+// Lane input-path globs — affected-scope selection data table
+// -----------------------------------------------------------------------
+
+/// Declares which paths in the repository trigger re-evaluation of a lane.
+///
+/// # Variants
+///
+/// * `Global` — the lane must always run regardless of what changed (used for
+///   cross-cutting concerns such as `supply-chain` or `license-policy`).
+/// * `Globs` — a non-empty list of path-glob patterns; the lane is selected
+///   when at least one changed file matches at least one glob.  An empty
+///   `Globs(&[])` is treated conservatively as `Global` by `lanes_for_changed`.
+#[derive(Debug)]
+pub enum LaneInputs {
+    /// Always selected; runs on every changeset.
+    Global,
+    /// Selected when at least one changed file matches at least one glob.
+    Globs(&'static [&'static str]),
+}
+
+/// Pure glob matcher covering the three canonical shapes used in
+/// `LANE_INPUT_GLOBS`.
+///
+/// Supported shapes (evaluated in order):
+/// 1. `dir/**`     — the path starts with `dir/` (directory subtree).
+/// 2. `dir/`       — trailing slash; same prefix check as `dir/**`.
+/// 3. `**/*.ext`   — any path whose file-name component ends with `.ext`.
+/// 4. `*.ext`      — file in the root (no `/`) ending with `.ext`.
+/// 5. Exact string — the path equals the glob literally.
+///
+/// Any other shape (bracket expressions, mid-path `?`, etc.) returns `false`
+/// to stay conservative — the lane falls back to the unmapped-always-selected
+/// path via `LaneInputs::Global`.
+///
+/// Leading `./` on `path` is normalised away before matching.
+#[must_use]
+pub(crate) fn path_glob_matches(path: &str, glob: &str) -> bool {
+    // Normalise leading "./" from VCS-supplied relative paths.
+    let path = path.strip_prefix("./").unwrap_or(path);
+
+    // Shape 1: "prefix/**"
+    if let Some(dir) = glob.strip_suffix("/**") {
+        let prefix = format!("{dir}/");
+        return path.starts_with(prefix.as_str()) || path == dir;
+    }
+
+    // Shape 2: trailing "/" — directory prefix
+    if glob.ends_with('/') && !glob.starts_with("**") {
+        return path.starts_with(glob);
+    }
+
+    // Shape 3: "**/*.ext" — any depth, specific extension
+    if let Some(pattern) = glob.strip_prefix("**/") {
+        // pattern is now "*.ext" or similar; must have no further wildcards
+        if let Some(ext) = pattern.strip_prefix("*.")
+            && !ext.contains(['*', '?', '[', ']'])
+        {
+            let suffix = format!(".{ext}");
+            return path.ends_with(suffix.as_str());
+        }
+        return false;
+    }
+
+    // Shape 4: "*.ext" — root-level file with extension
+    if let Some(ext) = glob.strip_prefix("*.") {
+        if !ext.contains(['*', '?', '[', ']']) && !path.contains('/') {
+            let suffix = format!(".{ext}");
+            return path.ends_with(suffix.as_str());
+        }
+        return false;
+    }
+
+    // Shape 5: exact match (no wildcards)
+    if !glob.contains(['*', '?', '[', ']']) {
+        return path == glob;
+    }
+
+    // Unknown shape: conservative false.
+    false
+}
+
+/// Maps each governance lane (from `AGGREGATED_VALIDATE_LANES`) to the
+/// repository paths that should trigger it.  Lanes absent from this table
+/// are treated as `Global` by `lanes_for_changed` (conservative fallback).
+///
+/// Keys must be a subset of `AGGREGATED_VALIDATE_LANES`; duplicates are
+/// rejected by the unit tests.
+pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
+    // ── Architecture / ADR surface ──────────────────────────────────────────
+    (
+        "architecture-boundaries",
+        LaneInputs::Globs(&[
+            "docs/decisions/**",
+            "crates/**",
+            "microservices/**",
+            "specs/**",
+        ]),
+    ),
+    (
+        "adr-citation",
+        LaneInputs::Globs(&["docs/decisions/**", "crates/**", "microservices/**"]),
+    ),
+    (
+        "adr-supersession-consistency",
+        LaneInputs::Globs(&["docs/decisions/**"]),
+    ),
+    (
+        "adr-planning-completeness",
+        LaneInputs::Globs(&["docs/decisions/**", "specs/**"]),
+    ),
+    (
+        "masterplan-drift",
+        LaneInputs::Globs(&["docs/decisions/**", "specs/**", "goal.json"]),
+    ),
+    // ── Supply-chain / licensing ─────────────────────────────────────────────
+    ("supply-chain", LaneInputs::Global),
+    ("license-policy", LaneInputs::Global),
+    ("dependency-seam", LaneInputs::Globs(&["Cargo.toml", "Cargo.lock", "crates/**"])),
+    // ── Cargo / workspace hygiene ────────────────────────────────────────────
+    ("cargo-prefix", LaneInputs::Globs(&["crates/**", "microservices/**", "Cargo.toml"])),
+    ("workspace-hygiene", LaneInputs::Globs(&["Cargo.toml", "Cargo.lock", "crates/**", "microservices/**"])),
+    ("banned-primitives", LaneInputs::Global),
+    // ── Documentation ────────────────────────────────────────────────────────
+    (
+        "documentation-system",
+        LaneInputs::Globs(&["docs/**", "registry/docs/**", "*.md"]),
+    ),
+    ("doc-catalog", LaneInputs::Globs(&["docs/**", "registry/docs/**"])),
+    ("doc-axis", LaneInputs::Globs(&["docs/**", "*.md"])),
+    ("readme-doc-coverage", LaneInputs::Globs(&["*.md", "crates/**", "microservices/**"])),
+    ("runbook-index-resolves", LaneInputs::Globs(&["docs/**", "registry/**"])),
+    ("runbook-freshness", LaneInputs::Globs(&["docs/**"])),
+    ("glossary-cross-doc-coverage", LaneInputs::Globs(&["docs/**", "*.md"])),
+    ("glossary-vocabulary", LaneInputs::Globs(&["docs/**", "*.md"])),
+    // ── OpenAPI / API surface ────────────────────────────────────────────────
+    (
+        "openapi-rest-route-parity",
+        LaneInputs::Globs(&["contracts/**", "crates/**", "microservices/**"]),
+    ),
+    ("api-semver", LaneInputs::Globs(&["contracts/**", "crates/**"])),
+    ("active-artifact-contract", LaneInputs::Globs(&["contracts/**", "registry/**"])),
+    // ── Cloud / IaC ──────────────────────────────────────────────────────────
+    ("cloud-iac-module-catalog", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    ("cloud-iac-gitops-evidence", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    ("cloud-iac-helm-chart-signed-image-wiring", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    ("cloud-iac-kubewarden-admission-policy", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    ("cloud-iac-cell-topology", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-opentofu-validation", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-module-provenance", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-module-provider-requirements", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-module-release-index", LaneInputs::Globs(&["infra/**", "registry/**"])),
+    ("cloud-iac-module-archive", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-module-registry-protocol", LaneInputs::Globs(&["infra/**", "registry/**"])),
+    ("cloud-iac-provider-readiness", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-provider-lockfile", LaneInputs::Globs(&["infra/**"])),
+    ("cloud-iac-provider-signature-review", LaneInputs::Globs(&["infra/**"])),
+    ("iac-tier-discipline", LaneInputs::Globs(&["infra/**", "microservices/observability/iac/**"])),
+    // ── SLO / observability ──────────────────────────────────────────────────
+    ("slo-coverage", LaneInputs::Globs(&["**/*.openslo.yaml", "microservices/**"])),
+    // ── Security / Cedar / authz ─────────────────────────────────────────────
+    (
+        "cedar-fragment-coverage",
+        LaneInputs::Globs(&["registry/cedar/**", "crates/**", "microservices/**"]),
+    ),
+    ("authz-tier-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("cross-tenant-access-fuzz", LaneInputs::Global),
+    ("high-risk-auto-decision-refusal", LaneInputs::Global),
+    ("slsa-l3-evidence-grounded", LaneInputs::Globs(&["evidence/**", "registry/**"])),
+    ("image-signing-discipline", LaneInputs::Globs(&["infra/**", "microservices/**"])),
+    // ── Microservice / hyperscaler patterns ──────────────────────────────────
+    ("hyperscaler-arch-invariants", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"])),
+    ("hyperscaler-maturity-claims", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"])),
+    ("platform-substrate-defaults", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("layered-architecture-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("client-stack-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("idempotency-key-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("cursor-pagination-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("rpo-rto-coverage", LaneInputs::Globs(&["crates/**", "microservices/**", "infra/**"])),
+    ("metric-cardinality", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("event-schema-versioning", LaneInputs::Globs(&["crates/**", "microservices/**", "contracts/**"])),
+    ("id-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("loop-recovery-patterns", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("http-stack", LaneInputs::Globs(&["crates/**", "microservices/**", "Cargo.toml"])),
+    // ── Data / governance policy ─────────────────────────────────────────────
+    ("data-class", LaneInputs::Globs(&["crates/**", "microservices/**", "registry/**"])),
+    ("plane-class", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("cohesion", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("authority-cohesion", LaneInputs::Globs(&["docs/decisions/**", "crates/**", "microservices/**"])),
+    ("claim-ceiling", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"])),
+    ("codeview-read-surface", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("honest-claims", LaneInputs::Globs(&["crates/**", "microservices/**", "docs/**"])),
+    ("aspirational-enforcement", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**"])),
+    ("design-spec-maturity-claims", LaneInputs::Globs(&["docs/**", "specs/**"])),
+    ("no-grouping", LaneInputs::Global),
+    ("brand-residue", LaneInputs::Global),
+    ("retired-vocabulary", LaneInputs::Global),
+    ("placeholder-debt", LaneInputs::Global),
+    // ── PR / changeset / release ─────────────────────────────────────────────
+    ("pr-traceability", LaneInputs::Global),
+    (
+        "changeset-state-monotonicity",
+        LaneInputs::Globs(&["registry/vcs/changeset-event-log.json"]),
+    ),
+    (
+        "changeset-state-enum-closed",
+        LaneInputs::Globs(&["registry/vcs/changeset-event-log.json"]),
+    ),
+    ("release-evidence-pack", LaneInputs::Globs(&["evidence/**", "registry/**"])),
+    ("vendor-contract-recency", LaneInputs::Globs(&["registry/**", "Cargo.lock"])),
+    // ── Quality / CI ─────────────────────────────────────────────────────────
+    ("quality-lanes", LaneInputs::Globs(&["registry/quality/**", "crates/**"])),
+    ("pre-push-contract", LaneInputs::Global),
+    ("codeowners-mirror", LaneInputs::Globs(&["CODEOWNERS", ".github/**", "crates/**", "microservices/**"])),
+    ("stage0-prereqs", LaneInputs::Global),
+    ("master-plan-completion", LaneInputs::Globs(&["docs/decisions/**", "specs/**", "goal.json"])),
+    ("product-index", LaneInputs::Globs(&["docs/**", "specs/**", "registry/**"])),
+    ("product-prd-json", LaneInputs::Globs(&["docs/**", "specs/**"])),
+    ("raci-team-coverage", LaneInputs::Globs(&["docs/**", "registry/**"])),
+    // ── OTel / audit ─────────────────────────────────────────────────────────
+    ("otel-trace-propagation", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("ontology-projection-coverage", LaneInputs::Globs(&["registry/**", "docs/**"])),
+    ("audit-chain-replay", LaneInputs::Globs(&["evidence/**", "registry/**"])),
+    ("audit-chain-seal-coverage", LaneInputs::Globs(&["evidence/**", "registry/**"])),
+    ("foundry-capability-schema", LaneInputs::Globs(&["registry/**", "specs/**"])),
+    ("foundry-eval", LaneInputs::Globs(&["registry/**", "specs/**"])),
+    // ── Specialty discipline ─────────────────────────────────────────────────
+    ("vendor-lockin-discipline", LaneInputs::Global),
+    ("tenant-cost-labels-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("backup-retention-discipline", LaneInputs::Globs(&["infra/**", "docs/**"])),
+    ("vector-store-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("olap-tier-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("wasm-runtime-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("a11y-discipline", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("i18n-coverage", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("compliance-evidence-coverage", LaneInputs::Globs(&["evidence/**", "registry/**"])),
+    ("realtime-transport-tier", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("mobile-native", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("protection-context-match", LaneInputs::Globs(&["crates/**", "microservices/**", "registry/cedar/**"])),
+    ("foundation-bypass", LaneInputs::Global),
+    // ── M02b/P22 quality lanes (statelessness / shardability / perf-budget / benchmark) ──
+    ("statelessness", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("shardability", LaneInputs::Globs(&["crates/**", "microservices/**"])),
+    ("perf-budget", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"])),
+    ("benchmark", LaneInputs::Globs(&["docs/**", "specs/**", "crates/**", "microservices/**"])),
+];
+
+/// Returns the subset of `AGGREGATED_VALIDATE_LANES` that should be run given
+/// the set of changed file paths.
+///
+/// # Selection algorithm
+///
+/// For each lane in `AGGREGATED_VALIDATE_LANES` (in catalog order):
+/// - If the lane has no entry in `LANE_INPUT_GLOBS`, it is treated as
+///   `Global` (always selected).
+/// - If the lane is mapped to `LaneInputs::Global`, it is always selected.
+/// - If the lane is mapped to `LaneInputs::Globs(&[])` (empty list), it is
+///   treated conservatively as `Global` (always selected).
+/// - If the lane is mapped to `LaneInputs::Globs(globs)` with at least one
+///   glob, it is selected when at least one path in `changed` matches at
+///   least one glob.
+///
+/// When `changed` is empty the full catalog is returned (conservative).
+///
+/// The output is deduplicated and preserves catalog order.
+#[must_use]
+pub fn lanes_for_changed(changed: &[&str]) -> Vec<&'static str> {
+    // Empty input → return full catalog.
+    if changed.is_empty() {
+        return AGGREGATED_VALIDATE_LANES.to_vec();
+    }
+
+    // Build lookup: lane name → LaneInputs reference.
+    use std::collections::HashMap;
+    let glob_map: HashMap<&str, &LaneInputs> =
+        LANE_INPUT_GLOBS.iter().map(|(k, v)| (*k, v)).collect();
+
+    let mut result = Vec::with_capacity(AGGREGATED_VALIDATE_LANES.len());
+    for lane in AGGREGATED_VALIDATE_LANES {
+        let selected = match glob_map.get(lane) {
+            // Not in table → conservative Global.
+            None => true,
+            Some(LaneInputs::Global) => true,
+            // Empty globs list → conservative Global; otherwise selected
+            // when any changed file matches any glob.
+            Some(LaneInputs::Globs(globs)) => {
+                globs.is_empty()
+                    || changed
+                        .iter()
+                        .any(|path| globs.iter().any(|g| path_glob_matches(path, g)))
+            }
+        };
+        if selected {
+            result.push(*lane);
+        }
+    }
+    result
 }
 
 /// Tier 1 error surface. Currently empty (the catalog is static-data;
@@ -600,5 +908,362 @@ mod tests {
             ),
             "gate catalog has duplicate entry `supply-chain`"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 1: path_glob_matches — three-shape glob matcher
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn path_glob_matches_exact_returns_true_for_identical_path() {
+        assert!(path_glob_matches("Cargo.lock", "Cargo.lock"));
+    }
+
+    #[test]
+    fn path_glob_matches_exact_returns_false_for_different_path() {
+        assert!(!path_glob_matches("Cargo.toml", "Cargo.lock"));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_double_star_matches_file_under_directory() {
+        assert!(path_glob_matches(
+            "microservices/foo/src/lib.rs",
+            "microservices/**"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_double_star_does_not_match_sibling_directory() {
+        assert!(!path_glob_matches("crates/foo/src/lib.rs", "microservices/**"));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_trailing_slash_matches_file_under_directory() {
+        assert!(path_glob_matches(
+            "crates/oya-foo/src/lib.rs",
+            "crates/oya-foo/"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_dir_trailing_slash_does_not_match_peer_directory() {
+        assert!(!path_glob_matches(
+            "crates/oya-bar/src/lib.rs",
+            "crates/oya-foo/"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_double_star_ext_matches_deep_file_with_extension() {
+        assert!(path_glob_matches(
+            "microservices/obs/slos/latency.openslo.yaml",
+            "**/*.openslo.yaml"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_double_star_ext_does_not_match_different_extension() {
+        assert!(!path_glob_matches(
+            "microservices/obs/slos/latency.yaml",
+            "**/*.openslo.yaml"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_star_ext_matches_root_level_file() {
+        assert!(path_glob_matches("README.md", "*.md"));
+    }
+
+    #[test]
+    fn path_glob_matches_star_ext_does_not_match_non_matching_extension() {
+        assert!(!path_glob_matches("README.txt", "*.md"));
+    }
+
+    #[test]
+    fn path_glob_matches_normalises_leading_dot_slash() {
+        // A changed path supplied with a leading "./" must match the same
+        // glob as the normalised form.
+        assert!(path_glob_matches("./Cargo.lock", "Cargo.lock"));
+        assert!(path_glob_matches(
+            "./microservices/foo/bar.rs",
+            "microservices/**"
+        ));
+    }
+
+    #[test]
+    fn path_glob_matches_unknown_glob_shape_returns_false() {
+        // A glob that is not one of the three supported shapes must return
+        // false (non-matching), preserving safety at the lane level via the
+        // unmapped-fallback rule.
+        assert!(!path_glob_matches(
+            "crates/foo/src/lib.rs",
+            "crates/[a-z]*/src/*.rs"
+        ));
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 2: LANE_INPUT_GLOBS table key validity
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lane_input_globs_every_key_is_a_member_of_aggregated_validate_lanes() {
+        for (lane, _inputs) in LANE_INPUT_GLOBS {
+            assert!(
+                AGGREGATED_VALIDATE_LANES.contains(lane),
+                "LANE_INPUT_GLOBS key `{lane}` is not in AGGREGATED_VALIDATE_LANES"
+            );
+        }
+    }
+
+    #[test]
+    fn lane_input_globs_no_key_is_listed_twice() {
+        let mut seen = std::collections::BTreeSet::new();
+        for (lane, _inputs) in LANE_INPUT_GLOBS {
+            assert!(
+                seen.insert(*lane),
+                "LANE_INPUT_GLOBS has duplicate key `{lane}`"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 3: lanes_for_changed base cases
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lanes_for_changed_empty_input_returns_full_catalog_in_order() {
+        let result = lanes_for_changed(&[]);
+        assert_eq!(
+            result,
+            AGGREGATED_VALIDATE_LANES.to_vec(),
+            "empty changed list must return the full catalog"
+        );
+    }
+
+    #[test]
+    fn lanes_for_changed_matching_path_includes_matched_lane_and_all_unmapped_global_lanes() {
+        // Spec criterion 3 (positive sub-case): a path that matches exactly one
+        // explicitly-mapped lane's globs must yield that lane PLUS every
+        // Global/unmapped lane, while excluding explicitly-mapped lanes the path
+        // does NOT hit.
+        //
+        // `docs/decisions/ADR-9999-test.md` matches `adr-supersession-consistency`
+        // (mapped solely to `docs/decisions/**`) but does NOT match `slo-coverage`
+        // (mapped to `**/*.openslo.yaml` + `microservices/**`).
+        let changed = ["docs/decisions/ADR-9999-test.md"];
+        let result = lanes_for_changed(&changed);
+
+        // (a) The matched lane is present.
+        assert!(
+            result.contains(&"adr-supersession-consistency"),
+            "matched lane `adr-supersession-consistency` must be selected for {changed:?}"
+        );
+
+        // (b) An explicitly-mapped lane whose globs do NOT match is absent —
+        //     proving the positive path still narrows (sanity check the chosen
+        //     path truly does not hit slo-coverage's globs before asserting).
+        let slo_globs: &[&str] = &["**/*.openslo.yaml", "microservices/**"];
+        assert!(
+            !slo_globs
+                .iter()
+                .any(|g| path_glob_matches(changed[0], g)),
+            "fixture invariant: chosen path must not match slo-coverage globs"
+        );
+        assert!(
+            !result.contains(&"slo-coverage"),
+            "non-matching explicitly-mapped lane `slo-coverage` must be excluded"
+        );
+
+        // (c) Every Global-marked and every unmapped lane is still present.
+        let mapped_keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        let global_keys: std::collections::BTreeSet<&str> = LANE_INPUT_GLOBS
+            .iter()
+            .filter_map(|(k, v)| matches!(v, LaneInputs::Global).then_some(*k))
+            .collect();
+        for lane in AGGREGATED_VALIDATE_LANES {
+            let is_unmapped = !mapped_keys.contains(*lane);
+            let is_global = global_keys.contains(*lane);
+            if is_unmapped || is_global {
+                assert!(
+                    result.contains(lane),
+                    "Global/unmapped lane `{lane}` must always be present in {changed:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_path_matching_no_mapped_lane_still_includes_unmapped_lanes() {
+        // A path that matches no declared glob must still produce all
+        // unmapped/Global lanes — it must never return an empty result.
+        let result = lanes_for_changed(&["some/completely/unknown/path.xyz"]);
+        assert!(
+            !result.is_empty(),
+            "result must be non-empty even when no mapped lane matches"
+        );
+        // Every unmapped lane must appear in the result.
+        let mapped_keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        for lane in AGGREGATED_VALIDATE_LANES {
+            if !mapped_keys.contains(*lane) {
+                assert!(
+                    result.contains(lane),
+                    "unmapped lane `{lane}` must be in result for any changed input"
+                );
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 4: conservative invariants
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lanes_for_changed_every_unmapped_lane_appears_for_any_input() {
+        // Regression guard: iterate AGGREGATED_VALIDATE_LANES; every lane
+        // absent from LANE_INPUT_GLOBS must always appear in the result.
+        let mapped_keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        let unmapped: Vec<&str> = AGGREGATED_VALIDATE_LANES
+            .iter()
+            .copied()
+            .filter(|l| !mapped_keys.contains(*l))
+            .collect();
+
+        // Test with several representative changed-file lists.
+        for changed in [
+            vec!["Cargo.lock"],
+            vec!["microservices/obs/src/main.rs"],
+            vec!["docs/decisions/ADR-9999-test.md"],
+            vec!["some/unknown/path.xyz"],
+        ] {
+            let result = lanes_for_changed(&changed);
+            for lane in &unmapped {
+                assert!(
+                    result.contains(lane),
+                    "unmapped lane `{lane}` missing from lanes_for_changed({changed:?})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_output_is_duplicate_free() {
+        let result = lanes_for_changed(&["Cargo.lock", "microservices/obs/slos/latency.openslo.yaml"]);
+        let mut seen = std::collections::BTreeSet::new();
+        for lane in &result {
+            assert!(
+                seen.insert(*lane),
+                "lanes_for_changed returned duplicate lane `{lane}`"
+            );
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_output_preserves_catalog_order() {
+        let result = lanes_for_changed(&["Cargo.lock"]);
+        // Every element of result must appear in AGGREGATED_VALIDATE_LANES
+        // and in the same relative order.
+        let catalog_positions: std::collections::HashMap<&str, usize> = AGGREGATED_VALIDATE_LANES
+            .iter()
+            .enumerate()
+            .map(|(i, l)| (*l, i))
+            .collect();
+        let mut prev_pos = 0usize;
+        for lane in &result {
+            let pos = catalog_positions[*lane];
+            assert!(
+                pos >= prev_pos,
+                "output order violation: `{lane}` at catalog pos {pos} came after pos {prev_pos}"
+            );
+            prev_pos = pos;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 0: new quality-lane acceptance tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn aggregated_validate_lanes_contains_all_four_quality_lanes() {
+        for lane in ["statelessness", "shardability", "perf-budget", "benchmark"] {
+            assert!(
+                AGGREGATED_VALIDATE_LANES.contains(&lane),
+                "quality lane `{lane}` must be present in AGGREGATED_VALIDATE_LANES"
+            );
+        }
+    }
+
+    #[test]
+    fn lane_input_globs_contains_entries_for_all_four_quality_lanes() {
+        let keys: std::collections::BTreeSet<&str> =
+            LANE_INPUT_GLOBS.iter().map(|(k, _)| *k).collect();
+        for lane in ["statelessness", "shardability", "perf-budget", "benchmark"] {
+            assert!(
+                keys.contains(lane),
+                "LANE_INPUT_GLOBS must have an entry for quality lane `{lane}`"
+            );
+        }
+    }
+
+    #[test]
+    fn lanes_for_changed_empty_globs_list_treated_as_global_always_selected() {
+        // A lane mapped with LaneInputs::Globs(&[]) (empty list) must behave
+        // like Global — always selected — not "matches nothing" (conservative
+        // signal per spec §Edge cases).
+        //
+        // We verify this by constructing a result for a very specific path
+        // and checking that any lane with an empty globs list appears.
+        let result = lanes_for_changed(&["some/path/that/matches/nothing.xyz"]);
+        for (lane, inputs) in LANE_INPUT_GLOBS {
+            if let LaneInputs::Globs(globs) = inputs
+                && globs.is_empty()
+            {
+                assert!(
+                    result.contains(lane),
+                    "lane `{lane}` with empty globs list must always be selected"
+                );
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Group 5: exclusion proof — narrowing actually works
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn lanes_for_changed_explicitly_mapped_lane_absent_when_path_does_not_match_its_globs() {
+        // Find at least one lane that is mapped with explicit Globs (not
+        // Global, not empty). Then construct a changed-file path that
+        // definitely does NOT match any of that lane's globs and verify that
+        // the lane is absent from the result (proving narrowing works).
+        //
+        // We look for the first Globs-mapped lane with at least one glob and
+        // use a path guaranteed not to match (a UUID-like sentinel under an
+        // unrelated prefix).
+        let sentinel = "zzz-no-lane-will-ever-match-this-unique-sentinel-path-xq7r9w2t.never";
+        let result = lanes_for_changed(&[sentinel]);
+
+        for (lane, inputs) in LANE_INPUT_GLOBS {
+            if let LaneInputs::Globs(globs) = inputs
+                && !globs.is_empty()
+            {
+                // Verify none of the lane's globs match the sentinel.
+                let any_match = globs.iter().any(|g| path_glob_matches(sentinel, g));
+                if !any_match {
+                    assert!(
+                        !result.contains(lane),
+                        "explicitly-mapped lane `{lane}` must be absent when its globs \
+                         do not match the changed file set"
+                    );
+                    // One proven exclusion is sufficient for this test.
+                    return;
+                }
+            }
+        }
+        // If every mapped lane is Global or has empty globs, the test is
+        // vacuously satisfied (the table has not yet grown to include any
+        // narrowing entry). This is acceptable for the starter table.
     }
 }

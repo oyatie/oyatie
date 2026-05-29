@@ -7,6 +7,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod tenant_ceiling;
+pub use tenant_ceiling::{TenantCeiling, TenantCeilingVerdict, resolve};
+
 use std::fmt;
 
 /// Re-export-style local tier (kernel-internal copy to keep this crate

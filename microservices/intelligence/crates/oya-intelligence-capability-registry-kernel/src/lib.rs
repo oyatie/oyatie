@@ -8,9 +8,13 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod registry_view;
 pub mod status;
 
-pub use status::{CapabilityStatus, CapabilityStatusParseError};
+pub use registry_view::{partition_views, RegistryViews};
+pub use status::{
+    CapabilityStatus, CapabilityStatusParseError, CapabilityStatusTransitionError,
+};
 
 use std::fmt;
 
@@ -113,6 +117,7 @@ impl TryFrom<&str> for AutonomyTier {
 /// Published capability descriptor.
 /// `evidence_emit_required` mirrors ADR-0003 audit-chain requirement.
 /// `owner_capability_id` allows capability composition (parent owns child).
+/// `status` tracks the publication lifecycle (Active by default).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Capability {
     pub id: CapabilityId,                          // data_class: INTERNAL_ONLY
@@ -120,6 +125,9 @@ pub struct Capability {
     pub autonomy_tier: AutonomyTier,               // data_class: INTERNAL_ONLY
     pub evidence_emit_required: bool,              // data_class: INTERNAL_ONLY
     pub owner_capability_id: Option<CapabilityId>, // data_class: INTERNAL_ONLY
+    /// Publication lifecycle state; starts `Active` and transitions via
+    /// [`Capability::transition_status`].  Autonomy tier is **never** affected.
+    pub status: CapabilityStatus,                  // data_class: INTERNAL_ONLY
 }
 
 impl Capability {
@@ -135,12 +143,27 @@ impl Capability {
             autonomy_tier,
             evidence_emit_required,
             owner_capability_id: None,
+            status: CapabilityStatus::Active,
         }
     }
 
     pub fn owned_by(mut self, owner: CapabilityId) -> Self {
         self.owner_capability_id = Some(owner);
         self
+    }
+
+    /// Attempt a lifecycle status transition.
+    ///
+    /// On success, `self.status` is updated and `Ok(())` is returned.
+    /// On failure, `self.status` is **not** mutated and the error is returned.
+    /// `autonomy_tier` is never modified by this method.
+    pub fn transition_status(
+        &mut self,
+        next: CapabilityStatus,
+    ) -> Result<(), CapabilityStatusTransitionError> {
+        self.status.try_transition_to(next)?;
+        self.status = next;
+        Ok(())
     }
 }
 

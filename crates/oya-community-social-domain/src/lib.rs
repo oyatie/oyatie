@@ -182,6 +182,54 @@ pub fn story_sweep(
     }
     Ok(acc)
 }
+/// Audit result for collaborative-consent reconciliation.
+///
+/// All three sets are `BTreeSet<String>`, guaranteeing deterministic lexicographic
+/// ordering regardless of the input slice order.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CollabConsentAudit {
+    /// Owners that have a matching consent ref.
+    pub satisfied: BTreeSet<String>,
+    /// Owners that have no matching consent ref.
+    pub missing_consent: BTreeSet<String>,
+    /// Consent refs that name no known owner.
+    pub extraneous_consent: BTreeSet<String>,
+}
+
+/// Reconcile `owner_refs` against `consent_refs` and produce a three-way audit report.
+///
+/// Returns `Err(SocialError::Invalid)` if any ref in either slice is blank or
+/// whitespace-only.  Otherwise computes three disjoint `BTreeSet`s deterministically:
+///
+/// | Set                  | Formula              |
+/// |----------------------|----------------------|
+/// | `satisfied`          | owners ∩ consents    |
+/// | `missing_consent`    | owners − consents    |
+/// | `extraneous_consent` | consents − owners    |
+pub fn collab_consent_audit(
+    owner_refs: &[String],
+    consent_refs: &[String],
+) -> Result<CollabConsentAudit, SocialError> {
+    for r in owner_refs.iter().chain(consent_refs.iter()) {
+        if r.trim().is_empty() {
+            return Err(SocialError::Invalid);
+        }
+    }
+    let owners: BTreeSet<&str> = owner_refs.iter().map(|s| s.as_str()).collect();
+    let consents: BTreeSet<&str> = consent_refs.iter().map(|s| s.as_str()).collect();
+    Ok(CollabConsentAudit {
+        satisfied: owners.intersection(&consents).map(|s| s.to_string()).collect(),
+        missing_consent: owners.difference(&consents).map(|s| s.to_string()).collect(),
+        extraneous_consent: consents.difference(&owners).map(|s| s.to_string()).collect(),
+    })
+}
+
+/// Returns `true` iff every required owner has a matching consent (i.e. `missing_consent`
+/// is empty).
+pub fn is_fully_consented(audit: &CollabConsentAudit) -> bool {
+    audit.missing_consent.is_empty()
+}
+
 fn ne(s: &str) -> Result<(), SocialError> {
     if s.trim().is_empty() {
         Err(SocialError::Invalid)
@@ -453,5 +501,111 @@ mod tests {
             })
             .is_ok()
         )
+    }
+
+    // ── collab_consent_audit tests ────────────────────────────────────────────
+
+    /// All owners have matching consents → satisfied contains all, missing empty.
+    #[test]
+    fn audit_full_consent() {
+        let owners = vec!["alice".into(), "bob".into()];
+        let consents = vec!["alice".into(), "bob".into()];
+        let audit = collab_consent_audit(&owners, &consents).unwrap();
+        assert_eq!(audit.satisfied, BTreeSet::from(["alice".to_string(), "bob".to_string()]));
+        assert!(audit.missing_consent.is_empty());
+        assert!(audit.extraneous_consent.is_empty());
+        assert!(is_fully_consented(&audit));
+    }
+
+    /// One owner lacks consent → appears in missing_consent; is_fully_consented false.
+    #[test]
+    fn audit_partial_gap() {
+        let owners = vec!["alice".into(), "bob".into()];
+        let consents = vec!["alice".into()];
+        let audit = collab_consent_audit(&owners, &consents).unwrap();
+        assert_eq!(audit.satisfied, BTreeSet::from(["alice".to_string()]));
+        assert_eq!(audit.missing_consent, BTreeSet::from(["bob".to_string()]));
+        assert!(audit.extraneous_consent.is_empty());
+        assert!(!is_fully_consented(&audit));
+    }
+
+    /// Consent ref naming a non-owner → appears in extraneous_consent.
+    #[test]
+    fn audit_extraneous_consent() {
+        let owners = vec!["alice".into()];
+        let consents = vec!["alice".into(), "charlie".into()];
+        let audit = collab_consent_audit(&owners, &consents).unwrap();
+        assert_eq!(audit.satisfied, BTreeSet::from(["alice".to_string()]));
+        assert!(audit.missing_consent.is_empty());
+        assert_eq!(audit.extraneous_consent, BTreeSet::from(["charlie".to_string()]));
+        assert!(is_fully_consented(&audit));
+    }
+
+    /// Blank string in owner_refs → Err(Invalid).
+    #[test]
+    fn audit_blank_owner_rejected() {
+        let owners = vec!["alice".into(), "  ".into()];
+        let consents = vec!["alice".into()];
+        assert_eq!(collab_consent_audit(&owners, &consents), Err(SocialError::Invalid));
+    }
+
+    /// Blank string in consent_refs → Err(Invalid).
+    #[test]
+    fn audit_blank_consent_rejected() {
+        let owners = vec!["alice".into()];
+        let consents = vec!["alice".into(), "".into()];
+        assert_eq!(collab_consent_audit(&owners, &consents), Err(SocialError::Invalid));
+    }
+
+    /// Both slices empty → Ok with all-empty sets; is_fully_consented true (vacuous).
+    #[test]
+    fn audit_empty_both_ok() {
+        let audit = collab_consent_audit(&[], &[]).unwrap();
+        assert!(audit.satisfied.is_empty());
+        assert!(audit.missing_consent.is_empty());
+        assert!(audit.extraneous_consent.is_empty());
+        assert!(is_fully_consented(&audit));
+    }
+
+    /// Empty owners + non-empty consents → all consents extraneous, fully consented.
+    #[test]
+    fn audit_empty_owners_all_extraneous() {
+        let consents = vec!["alice".into(), "bob".into()];
+        let audit = collab_consent_audit(&[], &consents).unwrap();
+        assert!(audit.satisfied.is_empty());
+        assert!(audit.missing_consent.is_empty());
+        assert_eq!(audit.extraneous_consent, BTreeSet::from(["alice".to_string(), "bob".to_string()]));
+        assert!(is_fully_consented(&audit));
+    }
+
+    /// Repeated calls with same inputs (in different slice order) produce identical sets.
+    #[test]
+    fn audit_deterministic_ordering() {
+        let owners_a = vec!["bob".into(), "alice".into()];
+        let consents_a = vec!["charlie".into(), "alice".into()];
+        let owners_b = vec!["alice".into(), "bob".into()];
+        let consents_b = vec!["alice".into(), "charlie".into()];
+        let audit_a = collab_consent_audit(&owners_a, &consents_a).unwrap();
+        let audit_b = collab_consent_audit(&owners_b, &consents_b).unwrap();
+        assert_eq!(audit_a, audit_b);
+        // BTreeSet ordering: alice < bob < charlie
+        assert_eq!(audit_a.satisfied.iter().next().unwrap(), "alice");
+        assert_eq!(audit_a.missing_consent.iter().next().unwrap(), "bob");
+        assert_eq!(audit_a.extraneous_consent.iter().next().unwrap(), "charlie");
+    }
+
+    /// Mixed scenario: overlap, gap, and extraneous all present simultaneously.
+    #[test]
+    fn audit_gap_and_extraneous() {
+        let owners = vec!["alice".into(), "bob".into(), "carol".into()];
+        let consents = vec!["alice".into(), "dave".into()];
+        let audit = collab_consent_audit(&owners, &consents).unwrap();
+        assert_eq!(audit.satisfied, BTreeSet::from(["alice".to_string()]));
+        assert_eq!(
+            audit.missing_consent,
+            BTreeSet::from(["bob".to_string(), "carol".to_string()])
+        );
+        assert_eq!(audit.extraneous_consent, BTreeSet::from(["dave".to_string()]));
+        assert!(!is_fully_consented(&audit));
     }
 }

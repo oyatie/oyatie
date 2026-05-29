@@ -56,9 +56,26 @@ async fn main() -> std::process::ExitCode {
         kick_jenkins,
     ));
 
+    // Resolve optional ed25519 public key from OYA_WEBHOOK_ED25519_PUBKEY
+    // (base64-encoded 32-byte ed25519 verifying key). When absent, the gateway
+    // requires HMAC-SHA256 via the HMAC secret path.
+    let ed25519_key = config::resolve_ed25519_key(|k| std::env::var(k).ok())
+        .map(|key| {
+            tracing::info!("ed25519 webhook public key loaded; ed25519 signature path enabled");
+            Arc::new(key)
+        })
+        .or_else(|| {
+            tracing::info!(
+                "{} unset; ed25519 signature path disabled (HMAC-SHA256 required)",
+                config::ENV_WEBHOOK_ED25519_PUBKEY
+            );
+            None
+        });
+
     let state = ReceiverState {
         config: config.clone(),
         secret,
+        ed25519_key,
         dispatcher,
     };
 

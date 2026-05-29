@@ -64,6 +64,11 @@ pub const ID_TOKEN_CLAIMS_SCHEMA_VERSION: u32 = 1;
 /// accept long-stale tokens.
 pub const MAX_CLOCK_SKEW_SECONDS: i64 = 300;
 
+/// Hard ceiling on the verification grace period for rotated-out keys (24 hours).
+/// A relying party must finish consuming tokens signed by a rotated-out key within
+/// this window; after that, the key is no longer trusted for verification.
+pub const VERIFICATION_GRACE_SECONDS: i64 = 86_400;
+
 /// Recommended ID-token lifetime ceiling (1 hour). Mirrors the
 /// `MAX_TOKEN_TTL_SECONDS` ceiling in `oya-identity-domain` for symmetry.
 pub const MAX_ID_TOKEN_TTL_SECONDS: i64 = 60 * 60;
@@ -134,6 +139,8 @@ pub enum IssuerError {
     MalformedClientAssertion(&'static str),
     /// Refresh request was missing the `refresh_token` or `client_id` field.
     MalformedRefreshRequest(&'static str),
+    /// Introspection request was malformed (e.g. empty token).
+    MalformedIntrospectionRequest(&'static str),
     /// Token presented was already expired at validation time.
     Expired {
         /// Validation clock.
@@ -147,6 +154,15 @@ pub enum IssuerError {
         now: i64,
         /// Token `nbf`.
         nbf: i64,
+    },
+    /// Negative grace period presented (nonsensical).
+    NegativeGracePeriod,
+    /// Grace period exceeded [`VERIFICATION_GRACE_SECONDS`].
+    GracePeriodTooLong {
+        /// Grace period requested.
+        requested_seconds: i64,
+        /// Ceiling enforced.
+        ceiling_seconds: i64,
     },
 }
 
@@ -193,10 +209,23 @@ impl fmt::Display for IssuerError {
             Self::MalformedRefreshRequest(reason) => {
                 write!(f, "malformed refresh request: {reason}")
             }
+            Self::MalformedIntrospectionRequest(reason) => {
+                write!(f, "malformed introspection request: {reason}")
+            }
             Self::Expired { now, exp } => write!(f, "token expired (now={now}, exp={exp})"),
             Self::NotYetValid { now, nbf } => {
                 write!(f, "token not yet valid (now={now}, nbf={nbf})")
             }
+            Self::NegativeGracePeriod => {
+                f.write_str("verification grace period must be non-negative")
+            }
+            Self::GracePeriodTooLong {
+                requested_seconds,
+                ceiling_seconds,
+            } => write!(
+                f,
+                "verification grace period {requested_seconds}s exceeds ceiling {ceiling_seconds}s"
+            ),
         }
     }
 }
@@ -634,6 +663,84 @@ pub fn build_jwks(keys: &[SigningKey]) -> Jwks {
 #[must_use]
 pub fn current_signing_key(keys: &[SigningKey]) -> Option<&SigningKey> {
     keys.iter().find(|key| key.state.is_signing())
+}
+
+/// Bounded grace period for verification of rotated-out signing keys.
+///
+/// Construction enforces `0 ≤ value ≤ VERIFICATION_GRACE_SECONDS` so a
+/// misconfigured deployment cannot silently trust a retired key indefinitely.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct VerificationGrace(i64); // data_class: INTERNAL_ONLY
+
+impl VerificationGrace {
+    /// Construct, validating the `0..=VERIFICATION_GRACE_SECONDS` range.
+    ///
+    /// # Errors
+    /// - [`IssuerError::NegativeGracePeriod`] when `seconds < 0`.
+    /// - [`IssuerError::GracePeriodTooLong`] when `seconds > VERIFICATION_GRACE_SECONDS`.
+    pub fn new(seconds: i64) -> Result<Self, IssuerError> {
+        if seconds < 0 {
+            return Err(IssuerError::NegativeGracePeriod);
+        }
+        if seconds > VERIFICATION_GRACE_SECONDS {
+            return Err(IssuerError::GracePeriodTooLong {
+                requested_seconds: seconds,
+                ceiling_seconds: VERIFICATION_GRACE_SECONDS,
+            });
+        }
+        Ok(Self(seconds))
+    }
+
+    /// Return the grace period in seconds.
+    #[must_use]
+    pub fn seconds(self) -> i64 {
+        self.0
+    }
+}
+
+/// Select a signing key for RP-side signature verification, honouring the
+/// rotation grace overlap window.
+///
+/// Complements [`current_signing_key`] (Active-only signer selector) by also
+/// accepting [`SigningKeyState::RotatedOut`] keys within the caller-supplied
+/// grace window. This is the verify-only path: a relying party that holds a
+/// token signed before rotation can still verify it while the old key is
+/// within the grace window.
+///
+/// ## Selection semantics
+///
+/// 1. Locate the first key in `keys` whose `kid` matches. If none → `None`.
+/// 2. [`SigningKeyState::Active`] → always `Some`.
+/// 3. [`SigningKeyState::RotatedOut`]:
+///    - `activated_at_epoch_seconds` is `None` → `None` (no activation record).
+///    - `now_epoch_seconds - activated_at <= grace.seconds()` → `Some`.
+///    - Otherwise → `None`.
+/// 4. [`SigningKeyState::NotYetActive`] or [`SigningKeyState::Retired`] → `None`.
+///
+/// ## Clock
+///
+/// `now_epoch_seconds` is caller-supplied; this function performs no I/O.
+#[must_use]
+pub fn select_verification_key<'a>(
+    keys: &'a [SigningKey],
+    kid: &str,
+    now_epoch_seconds: i64,
+    grace: VerificationGrace,
+) -> Option<&'a SigningKey> {
+    let key = keys.iter().find(|k| k.kid() == kid)?;
+    match key.state() {
+        SigningKeyState::Active => Some(key),
+        SigningKeyState::RotatedOut => {
+            let activated_at = key.activated_at_epoch_seconds()?;
+            let age = now_epoch_seconds.saturating_sub(activated_at);
+            if age <= grace.seconds() {
+                Some(key)
+            } else {
+                None
+            }
+        }
+        SigningKeyState::NotYetActive | SigningKeyState::Retired => None,
+    }
 }
 
 /// OIDC-discovery document per RFC 8414 §3.2 + OpenID Discovery 1.0
@@ -1185,6 +1292,178 @@ impl RefreshRequest {
     }
 }
 
+/// Hint about the token type presented for introspection (RFC 7662 §2.1).
+/// The kernel accepts only the two standardised values; free-text hint
+/// parsing is an adapter responsibility.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TokenTypeHint {
+    /// `access_token` hint.
+    AccessToken,
+    /// `refresh_token` hint.
+    RefreshToken,
+}
+
+/// Structural representation of an RFC 7662 §2.1 introspection request.
+/// Validates that the token is non-empty; `token_type_hint` is typed so the
+/// allowed-set constraint is enforced by the type system.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntrospectionRequest {
+    /// The opaque token string to introspect.
+    pub token: String, // data_class: SECRET
+    /// Optional hint about the token type.
+    pub token_type_hint: Option<TokenTypeHint>, // data_class: INTERNAL_ONLY
+}
+
+impl IntrospectionRequest {
+    /// Validate the shape of an introspection request.
+    ///
+    /// # Errors
+    /// Returns [`IssuerError::MalformedIntrospectionRequest`] when `token` is
+    /// empty or whitespace-only.
+    pub fn validate(
+        token: impl Into<String>,
+        token_type_hint: Option<TokenTypeHint>,
+    ) -> Result<Self, IssuerError> {
+        let token = token.into();
+        if token.trim().is_empty() {
+            return Err(IssuerError::MalformedIntrospectionRequest(
+                "token must not be empty",
+            ));
+        }
+        Ok(Self {
+            token,
+            token_type_hint,
+        })
+    }
+}
+
+/// Disclosed claim set for an active RFC 7662 introspection response.
+/// Passed to [`IntrospectionResponse::active`] to avoid the 8-argument
+/// constructor that trips `clippy::too_many_arguments`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ActiveIntrospectionClaims {
+    /// `sub` — subject identifier.
+    pub sub: String, // data_class: PII_IDENTIFYING
+    /// `aud` — intended audience list.
+    pub aud: Vec<String>, // data_class: PUBLIC
+    /// `exp` — expiry (epoch seconds).
+    pub exp: i64, // data_class: INTERNAL_ONLY
+    /// `iat` — issuance time (epoch seconds).
+    pub iat: i64, // data_class: INTERNAL_ONLY
+    /// `scope` — space-separated scope string (None when empty).
+    pub scope: Option<String>, // data_class: INTERNAL_ONLY
+    /// `client_id` — OAuth 2.0 client identifier.
+    pub client_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `tenant_id` — oyatie tenant identifier (ADR-0244 superset).
+    pub tenant_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `token_type` — e.g. `"at+jwt"` for RFC 9068 access tokens.
+    pub token_type: Option<String>, // data_class: PUBLIC
+}
+
+/// RFC 7662 §2.2 introspection response.
+///
+/// Privacy rule: when `active` is `false`, all other fields MUST be absent.
+/// The [`IntrospectionResponse::inactive`] constructor enforces this invariant.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntrospectionResponse {
+    /// Whether the token is currently active (RFC 7662 §2.2).
+    pub active: bool, // data_class: PUBLIC
+    /// `sub` — subject identifier.
+    pub sub: Option<String>, // data_class: PII_IDENTIFYING
+    /// `aud` — intended audience list.
+    pub aud: Option<Vec<String>>, // data_class: PUBLIC
+    /// `exp` — expiry (epoch seconds).
+    pub exp: Option<i64>, // data_class: INTERNAL_ONLY
+    /// `iat` — issuance time (epoch seconds).
+    pub iat: Option<i64>, // data_class: INTERNAL_ONLY
+    /// `scope` — space-separated scope string.
+    pub scope: Option<String>, // data_class: INTERNAL_ONLY
+    /// `client_id` — OAuth 2.0 client identifier.
+    pub client_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `tenant_id` — oyatie tenant identifier (ADR-0244 superset).
+    pub tenant_id: Option<String>, // data_class: INTERNAL_ONLY
+    /// `token_type` — e.g. `"at+jwt"` for RFC 9068 access tokens.
+    pub token_type: Option<String>, // data_class: PUBLIC
+}
+
+impl IntrospectionResponse {
+    /// Construct an inactive response.
+    ///
+    /// RFC 7662 §2.2 privacy rule: only `{"active": false}` is disclosed for
+    /// unknown or invalid tokens. All optional fields are explicitly `None`.
+    #[must_use]
+    pub fn inactive() -> Self {
+        Self {
+            active: false,
+            sub: None,
+            aud: None,
+            exp: None,
+            iat: None,
+            scope: None,
+            client_id: None,
+            tenant_id: None,
+            token_type: None,
+        }
+    }
+
+    /// Construct an active response from the disclosed claim set.
+    #[must_use]
+    pub fn active(claims: ActiveIntrospectionClaims) -> Self {
+        Self {
+            active: true,
+            sub: Some(claims.sub),
+            aud: Some(claims.aud),
+            exp: Some(claims.exp),
+            iat: Some(claims.iat),
+            scope: claims.scope,
+            client_id: claims.client_id,
+            tenant_id: claims.tenant_id,
+            token_type: claims.token_type,
+        }
+    }
+}
+
+/// Build an RFC 7662 introspection response from an [`AccessTokenClaims`]
+/// value and the caller's validation clock.
+///
+/// Reuses [`check_temporal_window`] + [`TokenTemporalStatus`] for the
+/// active/inactive verdict. Expired and not-yet-valid tokens collapse to
+/// `{"active": false}` per RFC 7662 §2.2 without leaking error details.
+///
+/// `scope` promotion: an empty `scope` field in the claims is promoted to
+/// `None` (a token with no scope discloses nothing rather than an empty
+/// string).
+///
+/// # Errors
+/// Currently infallible (always returns `Ok`); typed `Result<_, IssuerError>`
+/// for forward compatibility.
+pub fn build_introspection_response(
+    claims: &AccessTokenClaims,
+    now_epoch_seconds: i64,
+    skew: ClockSkewTolerance,
+) -> Result<IntrospectionResponse, IssuerError> {
+    match check_temporal_window(now_epoch_seconds, claims.nbf, claims.exp, skew) {
+        Err(_) => Ok(IntrospectionResponse::inactive()),
+        Ok(TokenTemporalStatus::Valid) => {
+            let scope = if claims.scope.is_empty() {
+                None
+            } else {
+                Some(claims.scope.clone())
+            };
+            Ok(IntrospectionResponse::active(ActiveIntrospectionClaims {
+                sub: claims.sub.clone(),
+                aud: claims.aud.clone(),
+                exp: claims.exp,
+                iat: claims.iat,
+                scope,
+                client_id: None,
+                tenant_id: Some(claims.tenant_id.clone()),
+                token_type: Some(claims.token_type.clone()),
+            }))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1492,5 +1771,257 @@ mod tests {
             Err(IssuerError::MalformedClientAssertion(_))
         ));
         assert_eq!(Signature::new("sig").expect("ok").as_str(), "sig");
+    }
+
+    // --- oidc-introspect-1: IntrospectionRequest ---
+
+    #[test]
+    fn introspection_request_rejects_empty_token() {
+        assert!(matches!(
+            IntrospectionRequest::validate("", None),
+            Err(IssuerError::MalformedIntrospectionRequest(_))
+        ));
+    }
+
+    #[test]
+    fn introspection_request_rejects_whitespace_token() {
+        assert!(matches!(
+            IntrospectionRequest::validate("   ", None),
+            Err(IssuerError::MalformedIntrospectionRequest(_))
+        ));
+    }
+
+    #[test]
+    fn introspection_request_accepts_token_without_hint() {
+        let req = IntrospectionRequest::validate("opaque-token-123", None).expect("ok");
+        assert_eq!(req.token, "opaque-token-123");
+        assert_eq!(req.token_type_hint, None);
+    }
+
+    #[test]
+    fn introspection_request_accepts_token_with_hint() {
+        let req =
+            IntrospectionRequest::validate("tok", Some(TokenTypeHint::AccessToken)).expect("ok");
+        assert_eq!(req.token, "tok");
+        assert_eq!(req.token_type_hint, Some(TokenTypeHint::AccessToken));
+
+        let req2 =
+            IntrospectionRequest::validate("tok2", Some(TokenTypeHint::RefreshToken)).expect("ok");
+        assert_eq!(req2.token_type_hint, Some(TokenTypeHint::RefreshToken));
+    }
+
+    // --- oidc-introspect-2: IntrospectionResponse ---
+
+    #[test]
+    fn introspection_response_inactive_has_no_disclosed_fields() {
+        let resp = IntrospectionResponse::inactive();
+        assert!(!resp.active);
+        assert!(resp.sub.is_none());
+        assert!(resp.aud.is_none());
+        assert!(resp.exp.is_none());
+        assert!(resp.iat.is_none());
+        assert!(resp.scope.is_none());
+        assert!(resp.client_id.is_none());
+        assert!(resp.tenant_id.is_none());
+        assert!(resp.token_type.is_none());
+    }
+
+    #[test]
+    fn introspection_response_active_carries_disclosed_claims() {
+        let resp = IntrospectionResponse::active(ActiveIntrospectionClaims {
+            sub: "usr_abc".to_owned(),
+            aud: vec!["oya-api".to_owned()],
+            exp: 1_700_003_600,
+            iat: 1_700_000_000,
+            scope: Some("openid email".to_owned()),
+            client_id: Some("client-1".to_owned()),
+            tenant_id: Some("ten_acme".to_owned()),
+            token_type: Some("at+jwt".to_owned()),
+        });
+        assert!(resp.active);
+        assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
+        assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+        assert_eq!(resp.exp, Some(1_700_003_600));
+        assert_eq!(resp.iat, Some(1_700_000_000));
+        assert_eq!(resp.scope.as_deref(), Some("openid email"));
+        assert_eq!(resp.client_id.as_deref(), Some("client-1"));
+        assert_eq!(resp.tenant_id.as_deref(), Some("ten_acme"));
+        assert_eq!(resp.token_type.as_deref(), Some("at+jwt"));
+    }
+
+    // --- oidc-introspect-3: build_introspection_response ---
+
+    fn sample_access_token_claims(iat: i64, nbf: i64, exp: i64) -> AccessTokenClaims {
+        AccessTokenClaims {
+            iss: "https://identity-kr.oyatie.com".to_owned(),
+            aud: vec!["oya-api".to_owned()],
+            sub: "usr_abc".to_owned(),
+            iat,
+            exp,
+            nbf,
+            scope: "openid email".to_owned(),
+            tenant_id: "ten_acme".to_owned(),
+            purpose: None,
+            data_class: None,
+            token_type: "at+jwt".to_owned(),
+        }
+    }
+
+    #[test]
+    fn build_introspection_response_active_token() {
+        let now = 1_700_001_000_i64;
+        let claims = sample_access_token_claims(1_700_000_000, 1_700_000_000, 1_700_003_600);
+        let skew = ClockSkewTolerance::new(60).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(resp.active);
+        assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
+        assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+        assert_eq!(resp.exp, Some(1_700_003_600));
+        assert_eq!(resp.iat, Some(1_700_000_000));
+        assert_eq!(resp.scope.as_deref(), Some("openid email"));
+        assert_eq!(resp.client_id, None);
+        assert_eq!(resp.tenant_id.as_deref(), Some("ten_acme"));
+        assert_eq!(resp.token_type.as_deref(), Some("at+jwt"));
+    }
+
+    #[test]
+    fn build_introspection_response_expired_token() {
+        // now > exp + skew → inactive
+        let now = 1_700_003_661_i64; // exp=1_700_003_600, skew=60 → boundary is 1_700_003_660
+        let claims = sample_access_token_claims(1_700_000_000, 1_700_000_000, 1_700_003_600);
+        let skew = ClockSkewTolerance::new(60).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(!resp.active);
+        assert!(resp.sub.is_none());
+        assert!(resp.exp.is_none());
+    }
+
+    #[test]
+    fn build_introspection_response_not_yet_valid_token() {
+        // now + skew < nbf → inactive
+        let now = 39_i64; // now + skew(60) = 99 < nbf(100)
+        let claims = sample_access_token_claims(100, 100, 300);
+        let skew = ClockSkewTolerance::new(60).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(!resp.active);
+        assert!(resp.sub.is_none());
+        assert!(resp.exp.is_none());
+    }
+
+    #[test]
+    fn build_introspection_response_empty_scope_becomes_none() {
+        let now = 150_i64;
+        let mut claims = sample_access_token_claims(100, 100, 300);
+        claims.scope = String::new();
+        let skew = ClockSkewTolerance::new(0).expect("ok");
+        let resp = build_introspection_response(&claims, now, skew).expect("ok");
+        assert!(resp.active);
+        assert_eq!(resp.scope, None);
+    }
+
+    // ── select_verification_key tests ─────────────────────────────────────────
+
+    fn active_key(kid: &str, activated_at: i64) -> SigningKey {
+        let mut k = SigningKey::provision(kid, Algorithm::Rs256, rsa_components()).expect("ok");
+        k.activate(activated_at).expect("ok");
+        k
+    }
+
+    fn rotated_key(kid: &str, activated_at: i64) -> SigningKey {
+        let mut k = active_key(kid, activated_at);
+        k.rotate_out().expect("ok");
+        k
+    }
+
+    fn retired_key(kid: &str, activated_at: i64) -> SigningKey {
+        let mut k = rotated_key(kid, activated_at);
+        k.retire().expect("ok");
+        k
+    }
+
+    #[test]
+    fn verification_key_active_accept() {
+        let keys = vec![active_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        let found = select_verification_key(&keys, "k1", 999_999, grace);
+        assert_eq!(found.map(|k| k.kid()), Some("k1"));
+    }
+
+    #[test]
+    fn verification_key_rotated_within_grace() {
+        // activated_at=1000, now=1000+3600=4600, grace=3600 → age==grace → accept
+        let keys = vec![rotated_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        let found = select_verification_key(&keys, "k1", 4_600, grace);
+        assert_eq!(found.map(|k| k.kid()), Some("k1"));
+    }
+
+    #[test]
+    fn verification_key_rotated_past_grace() {
+        // activated_at=1000, now=4601, grace=3600 → age=3601 > grace → reject
+        let keys = vec![rotated_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        let found = select_verification_key(&keys, "k1", 4_601, grace);
+        assert!(found.is_none());
+    }
+
+    #[test]
+    fn verification_key_retired_reject() {
+        let keys = vec![retired_key("k1", 1_000)];
+        let grace = VerificationGrace::new(86_400).expect("ok");
+        assert!(select_verification_key(&keys, "k1", 2_000, grace).is_none());
+    }
+
+    #[test]
+    fn verification_key_not_yet_active_reject() {
+        let keys =
+            vec![SigningKey::provision("k1", Algorithm::Rs256, rsa_components()).expect("ok")];
+        let grace = VerificationGrace::new(86_400).expect("ok");
+        assert!(select_verification_key(&keys, "k1", 2_000, grace).is_none());
+    }
+
+    #[test]
+    fn verification_key_unknown_kid() {
+        let keys = vec![active_key("k1", 1_000)];
+        let grace = VerificationGrace::new(3_600).expect("ok");
+        assert!(select_verification_key(&keys, "k-unknown", 2_000, grace).is_none());
+    }
+
+    #[test]
+    fn verification_grace_ceiling_bound() {
+        match VerificationGrace::new(VERIFICATION_GRACE_SECONDS + 1) {
+            Err(IssuerError::GracePeriodTooLong {
+                requested_seconds,
+                ceiling_seconds,
+            }) => {
+                assert_eq!(requested_seconds, VERIFICATION_GRACE_SECONDS + 1);
+                assert_eq!(ceiling_seconds, VERIFICATION_GRACE_SECONDS);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    #[test]
+    fn verification_grace_at_ceiling_is_ok() {
+        assert!(VerificationGrace::new(VERIFICATION_GRACE_SECONDS).is_ok());
+    }
+
+    #[test]
+    fn verification_grace_negative() {
+        assert_eq!(
+            VerificationGrace::new(-1),
+            Err(IssuerError::NegativeGracePeriod)
+        );
+    }
+
+    #[test]
+    fn verification_grace_zero_exact_boundary() {
+        // grace=0: only now == activated_at is accepted
+        let keys = vec![rotated_key("k1", 1_000)];
+        let grace = VerificationGrace::new(0).expect("ok");
+        // now == activated_at → age=0 ≤ grace(0) → accept
+        assert!(select_verification_key(&keys, "k1", 1_000, grace).is_some());
+        // now > activated_at → age=1 > grace(0) → reject
+        assert!(select_verification_key(&keys, "k1", 1_001, grace).is_none());
     }
 }

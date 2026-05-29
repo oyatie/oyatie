@@ -7,7 +7,7 @@
 //! and surfaced to the process as the env var `OYA_FORGEJO_WEBHOOK_SECRET`.
 //! The SETUP-RUNBOOK.md documents the exact human provisioning steps.
 
-use crate::signature::WebhookSecret;
+use crate::signature::{WebhookEd25519Key, WebhookSecret};
 
 /// Env var carrying the HMAC secret (injected from the `sref` above).
 pub const ENV_WEBHOOK_SECRET: &str = "OYA_FORGEJO_WEBHOOK_SECRET";
@@ -18,6 +18,11 @@ pub const ENV_JENKINS_DISPATCH_URL: &str = "OYA_JENKINS_DISPATCH_URL";
 pub const ENV_TARGET_BRANCH: &str = "OYA_GATEWAY_TARGET_BRANCH";
 /// Env var carrying the bind address (default `0.0.0.0:8099`).
 pub const ENV_BIND_ADDR: &str = "OYA_GATEWAY_BIND_ADDR";
+/// Env var carrying the ed25519 public key for `X-Forgejo-Signature` webhook
+/// verification (base64-encoded 32-byte ed25519 compressed point, standard
+/// RFC 4648 base64, with or without padding). When unset the HMAC path is the
+/// only accepted signature scheme.
+pub const ENV_WEBHOOK_ED25519_PUBKEY: &str = "OYA_FORGEJO_WEBHOOK_ED25519_PUBKEY";
 
 /// The default branch the gateway gates PRs against, per ADR-0363 (dev is the
 /// PR target; promotion to staging/production is fast-forward).
@@ -69,6 +74,24 @@ pub fn resolve_secret(get: impl Fn(&str) -> Option<String>) -> WebhookSecret {
         Some(value) if !value.trim().is_empty() => WebhookSecret::new(value.into_bytes()),
         _ => WebhookSecret::new(Vec::new()),
     }
+}
+
+/// Resolve the optional ed25519 public key from the environment.
+///
+/// Returns `Some(WebhookEd25519Key)` when `OYA_FORGEJO_WEBHOOK_ED25519_PUBKEY`
+/// is set to a non-empty, valid base64-encoded 32-byte ed25519 verifying key.
+/// Returns `None` when the variable is absent, empty, or malformed (malformed
+/// keys are silently ignored here — the gateway falls back to HMAC-only).
+pub fn resolve_ed25519_key(
+    get: impl Fn(&str) -> Option<String>,
+) -> Option<WebhookEd25519Key> {
+    use base64::Engine as _;
+    let raw = get(ENV_WEBHOOK_ED25519_PUBKEY).filter(|v| !v.trim().is_empty())?;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(raw.trim())
+        .ok()?;
+    let arr: &[u8; 32] = bytes.as_slice().try_into().ok()?;
+    WebhookEd25519Key::from_bytes(arr).ok()
 }
 
 #[cfg(test)]

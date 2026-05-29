@@ -82,6 +82,7 @@ mod glossary_cross_doc_gates;
 mod governance_advisory_lanes;
 mod governance_gates;
 mod honest_claims_gate;
+mod http_stack_gate;
 mod hyperscaler_arch_invariants_gate;
 mod hyperscaler_maturity_claims_gate;
 mod json_scan;
@@ -239,6 +240,9 @@ pub(crate) use governance_gates::{
 };
 pub(crate) use honest_claims_gate::{
     parse_honest_claims_validate_args, validate_honest_claims_gate,
+};
+pub(crate) use http_stack_gate::{
+    HttpStackFindingKind, parse_http_stack_validate_args, validate_http_stack_gate,
 };
 pub(crate) use hyperscaler_arch_invariants_gate::{
     parse_hyperscaler_arch_invariants_validate_args, validate_hyperscaler_arch_invariants_gate,

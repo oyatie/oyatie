@@ -8,7 +8,7 @@
 pub use oya_intelligence_account_domain::{UsageWindow, UsageWindowError, UsageWindowKind};
 
 /// Verdict returned by UsageEnforcement::check_limit.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EnforcementVerdict {
     /// Window has headroom; usage_pct < usage_limit_pct AND reserve held.
     WithinLimit { usage_pct: u8, headroom_pct: u8 },
@@ -24,11 +24,85 @@ pub enum EnforcementVerdict {
 pub enum EnforcementError {
     InvalidWindow(String),
     ClockBeforeWindowStart,
+    /// Supplied window slice was empty.
+    NoWindows,
+    /// A single window's check_limit call failed; aggregation aborted.
+    WindowFailed {
+        window_kind: UsageWindowKind,
+        window_index: usize,
+        source: Box<EnforcementError>,
+    },
+}
+
+/// Identifies which window produced the most-restrictive verdict.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct VerdictProvenance {
+    pub window_kind: UsageWindowKind,
+    pub window_index: usize,
+}
+
+/// Result of a multi-window aggregation: the most-restrictive verdict and its provenance.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct EnforcedDecision {
+    pub verdict: EnforcementVerdict,
+    pub provenance: VerdictProvenance,
 }
 
 pub struct UsageEnforcement;
 
 impl UsageEnforcement {
+    /// Rank a verdict for most-restrictive comparison (higher = more restrictive).
+    fn verdict_rank(v: &EnforcementVerdict) -> u8 {
+        match v {
+            EnforcementVerdict::WithinLimit { .. } => 0,
+            EnforcementVerdict::OverUsageLimit { .. } => 1,
+            EnforcementVerdict::ReserveBreached { .. } => 2,
+            EnforcementVerdict::WindowExpired => 3,
+        }
+    }
+
+    /// Aggregate over an ordered set of `(UsageWindow, budget_tokens)` pairs,
+    /// returning the most-restrictive `EnforcedDecision` + its provenance.
+    /// Short-circuits with `WindowFailed` on the first `check_limit` error.
+    /// Returns `NoWindows` if the slice is empty.
+    pub fn check_limits(
+        windows: &[(UsageWindow, u64)],
+        now_epoch_secs: u64,
+    ) -> Result<EnforcedDecision, EnforcementError> {
+        if windows.is_empty() {
+            return Err(EnforcementError::NoWindows);
+        }
+        let mut best: Option<EnforcedDecision> = None;
+        for (index, (window, budget)) in windows.iter().enumerate() {
+            let verdict = Self::check_limit(window, now_epoch_secs, *budget).map_err(|e| {
+                EnforcementError::WindowFailed {
+                    window_kind: window.kind,
+                    window_index: index,
+                    source: Box::new(e),
+                }
+            })?;
+            let candidate = EnforcedDecision {
+                verdict,
+                provenance: VerdictProvenance {
+                    window_kind: window.kind,
+                    window_index: index,
+                },
+            };
+            best = Some(match best {
+                None => candidate,
+                Some(current) => {
+                    if Self::verdict_rank(&candidate.verdict) > Self::verdict_rank(&current.verdict)
+                    {
+                        candidate
+                    } else {
+                        current
+                    }
+                }
+            });
+        }
+        Ok(best.expect("non-empty slice guarantees Some"))
+    }
+
     /// Pure check — no time travel; caller passes wall-clock.
     pub fn check_limit(
         window: &UsageWindow,

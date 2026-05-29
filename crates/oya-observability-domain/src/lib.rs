@@ -5,8 +5,18 @@
 //! avoid string drift and accidental sensitive-content telemetry.
 
 pub mod severity;
+pub mod slo;
 
 pub use severity::{Severity, UnknownSeverityLabel, should_emit};
+pub use slo::{
+    AlertDecision, InvalidSLOObjective, SLOObjective,
+    PAGE_BUDGET_CONSUMED_MIN, PAGE_BURN_RATE_THRESHOLD,
+    TICKET_BUDGET_CONSUMED_MIN, TICKET_BURN_RATE_THRESHOLD,
+    classify_burn_rate, slo_fields,
+};
+pub use slo::budget::{
+    BudgetWindow, burn_rate, classify_budget_windows, error_budget_remaining_ratio,
+};
 
 use std::fmt;
 
