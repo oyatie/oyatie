@@ -619,7 +619,7 @@ fn peek_entry_fields_match_recorded_put_response_exactly() {
     match outcome {
         CloudStorageObjectReplayOutcome::Replayed { response } => {
             assert_eq!(
-                response, stored,
+                *response, stored,
                 "Replayed response must equal the stored PUT response verbatim"
             );
         }
