@@ -15,6 +15,10 @@ use oya_social_post_composition_usecase::{SocialUsecaseError, compose_post};
 pub const PUBLISH_POST_ROUTE: &str = "/posts";
 pub const PUBLISH_POST_METHOD: &str = "POST";
 
+pub const HEALTH_ROUTE: &str = "/health";
+pub const READY_ROUTE: &str = "/ready";
+pub const PROBE_METHOD: &str = "GET";
+
 pub const SOCIAL_REST_MICROSERVICE: &str = "social";
 pub const PUBLISH_POST_OPERATION_ID: &str = "social.publish_post";
 
@@ -163,14 +167,14 @@ pub const OPENAPI_ROUTES: &[OpenApiRoute] = &[
         handler_status: RouteHandlerStatus::ContractOnly,
     },
     OpenApiRoute {
-        method: "GET",
-        path: "/health",
-        handler_status: RouteHandlerStatus::ContractOnly,
+        method: PROBE_METHOD,
+        path: HEALTH_ROUTE,
+        handler_status: RouteHandlerStatus::Implemented,
     },
     OpenApiRoute {
-        method: "GET",
-        path: "/ready",
-        handler_status: RouteHandlerStatus::ContractOnly,
+        method: PROBE_METHOD,
+        path: READY_ROUTE,
+        handler_status: RouteHandlerStatus::Implemented,
     },
 ];
 
@@ -212,6 +216,38 @@ pub struct RestResponse<T> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReadinessDependency {
+    pub name: &'static str, // data_class: INTERNAL_ONLY
+    pub ready: bool,        // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ProbeStatus {
+    Healthy,
+    Ready,
+    NotReady,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProbeRouteResponse {
+    pub status_code: u16,                       // data_class: INTERNAL_ONLY
+    pub microservice: &'static str,             // data_class: INTERNAL_ONLY
+    pub route: &'static str,                    // data_class: INTERNAL_ONLY
+    pub status: ProbeStatus,                    // data_class: INTERNAL_ONLY
+    pub dependencies: Vec<ReadinessDependency>, // data_class: INTERNAL_ONLY
+    pub non_claim: &'static str,                // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ProbeRouteDispatchError {
+    UnknownRoute,
+    NotProbeRoute {
+        method: &'static str,
+        path: &'static str,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ContractOnlyRouteResponse {
     pub status_code: u16,
     pub method: &'static str,
@@ -226,6 +262,49 @@ pub enum RouteDispatchError {
         method: &'static str,
         path: &'static str,
     },
+}
+
+pub fn dispatch_probe_route(
+    method: &str,
+    path: &str,
+    dependencies: Vec<ReadinessDependency>,
+) -> Result<RestResponse<ProbeRouteResponse>, ProbeRouteDispatchError> {
+    let Some(route) = find_openapi_route(method, path) else {
+        return Err(ProbeRouteDispatchError::UnknownRoute);
+    };
+    match (route.method, route.path) {
+        (PROBE_METHOD, HEALTH_ROUTE) => Ok(RestResponse {
+            status_code: 200,
+            body: ProbeRouteResponse {
+                status_code: 200,
+                microservice: SOCIAL_REST_MICROSERVICE,
+                route: HEALTH_ROUTE,
+                status: ProbeStatus::Healthy,
+                dependencies: Vec::new(),
+                non_claim: "process-level liveness only; no downstream dependency readiness claim",
+            },
+        }),
+        (PROBE_METHOD, READY_ROUTE) => {
+            let ready = dependencies.iter().all(|dependency| dependency.ready);
+            let status_code = if ready { 200 } else { 503 };
+            Ok(RestResponse {
+                status_code,
+                body: ProbeRouteResponse {
+                    status_code,
+                    microservice: SOCIAL_REST_MICROSERVICE,
+                    route: READY_ROUTE,
+                    status: if ready {
+                        ProbeStatus::Ready
+                    } else {
+                        ProbeStatus::NotReady
+                    },
+                    dependencies,
+                    non_claim: "readiness is caller-supplied framework-free evidence; no live deployment probe has run",
+                },
+            })
+        }
+        (method, path) => Err(ProbeRouteDispatchError::NotProbeRoute { method, path }),
+    }
 }
 
 pub fn dispatch_contract_only_route(
@@ -429,6 +508,14 @@ mod tests {
                 .map(|route| route.handler_status),
             Some(RouteHandlerStatus::Implemented)
         );
+        assert_eq!(
+            find_openapi_route(PROBE_METHOD, HEALTH_ROUTE).map(|route| route.handler_status),
+            Some(RouteHandlerStatus::Implemented)
+        );
+        assert_eq!(
+            find_openapi_route(PROBE_METHOD, READY_ROUTE).map(|route| route.handler_status),
+            Some(RouteHandlerStatus::Implemented)
+        );
         assert!(find_openapi_route("POST", "/reports").is_some());
     }
 
@@ -535,6 +622,72 @@ mod tests {
         assert_eq!(
             binding.responses_429_metric,
             "oya_social_responses_429_total"
+        );
+    }
+
+    #[test]
+    fn social_probe_dispatch_reports_liveness_and_readiness() {
+        let health = dispatch_probe_route(
+            PROBE_METHOD,
+            HEALTH_ROUTE,
+            vec![ReadinessDependency {
+                name: "sql",
+                ready: false,
+            }],
+        )
+        .unwrap();
+        assert_eq!(health.status_code, 200);
+        assert_eq!(health.body.status, ProbeStatus::Healthy);
+        assert!(health.body.dependencies.is_empty());
+        assert!(health.body.non_claim.contains("liveness"));
+
+        let not_ready = dispatch_probe_route(
+            PROBE_METHOD,
+            READY_ROUTE,
+            vec![
+                ReadinessDependency {
+                    name: "sql",
+                    ready: true,
+                },
+                ReadinessDependency {
+                    name: "outbox",
+                    ready: false,
+                },
+            ],
+        )
+        .unwrap();
+        assert_eq!(not_ready.status_code, 503);
+        assert_eq!(not_ready.body.status, ProbeStatus::NotReady);
+        assert_eq!(not_ready.body.dependencies.len(), 2);
+        assert!(
+            not_ready
+                .body
+                .non_claim
+                .contains("no live deployment probe")
+        );
+
+        let ready = dispatch_probe_route(
+            PROBE_METHOD,
+            READY_ROUTE,
+            vec![ReadinessDependency {
+                name: "sql",
+                ready: true,
+            }],
+        )
+        .unwrap();
+        assert_eq!(ready.status_code, 200);
+        assert_eq!(ready.body.status, ProbeStatus::Ready);
+
+        assert_eq!(
+            dispatch_probe_route("GET", "/profiles/me", Vec::new()),
+            Err(ProbeRouteDispatchError::NotProbeRoute {
+                method: "GET",
+                path: "/profiles/me",
+            })
+        );
+        assert_eq!(
+            dispatch_probe_route(PROBE_METHOD, "/does-not-exist", Vec::new()),
+            Err(ProbeRouteDispatchError::UnknownRoute)
         );
     }
 
