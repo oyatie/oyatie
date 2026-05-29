@@ -1,4 +1,33 @@
 //! Ontology kernel: data-classed entities, property-tier semantics, and pillar isolation.
+//!
+//! # Registration invariants
+//!
+//! ## Endpoint-reference validation
+//!
+//! [`OntologyEngine::register_link_type`] and
+//! [`OntologyEngine::register_action_type`] validate that every
+//! [`EntityTypeId`] referenced by the definition was previously registered for
+//! the same tenant via [`OntologyEngine::register_entity_type`]. A dangling
+//! reference (an `EntityTypeId` that has not been registered) is rejected with
+//! [`OntologyEngineError::UnknownEntityTypeEndpoint`].
+//!
+//! ## Pillar-consistency enforcement (Bominal-ADR-0132)
+//!
+//! [`OntologyEngine::register_link_type`] enforces the org/person isolation
+//! boundary. If both the `from_entity_type` and `to_entity_type` carry an
+//! [`OntologyPillar`] annotation (via [`EntityTypeDefinition::with_pillar`])
+//! and those pillars differ, the registration is rejected with
+//! [`OntologyEngineError::CrossPillarLink`]. Entity types with no pillar
+//! annotation (`pillar: None`) are pillar-agnostic and do not trigger this
+//! check.
+//!
+//! ## New error variants
+//!
+//! | Variant | Trigger |
+//! |---------|---------|
+//! | [`OntologyEngineError::UnknownEntityTypeEndpoint`] | A `LinkTypeDefinition` or `ActionTypeDefinition` references an `EntityTypeId` not registered for the same tenant. |
+//! | [`OntologyEngineError::CrossPillarLink`] | A `LinkTypeDefinition` binds an org-pillar endpoint to a person-pillar endpoint (or vice versa). |
+
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -296,6 +325,10 @@ pub struct EntityTypeDefinition {
     pub display_name: Classified<String>,              // data_class: INTERNAL_ONLY
     pub properties: Vec<EntityTypePropertyDefinition>, // data_class: INTERNAL_ONLY
     pub revision: u32,                                 // data_class: INTERNAL_ONLY
+    /// Optional pillar annotation for org/person isolation (Bominal-ADR-0132).
+    /// `None` means the entity type is pillar-agnostic and does not
+    /// participate in cross-pillar link rejection.
+    pub pillar: Option<OntologyPillar>, // data_class: INTERNAL_ONLY
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LinkTypeDefinition {
@@ -368,6 +401,16 @@ pub enum OntologyEngineError {
     AuthorizationDenied,
     AutonomyTierExceeded,
     InvalidEntityId,
+    /// A `LinkTypeDefinition` or `ActionTypeDefinition` references an
+    /// [`EntityTypeId`] endpoint that has not been registered for the same
+    /// tenant. Register all endpoint entity types before registering link or
+    /// action types that reference them.
+    UnknownEntityTypeEndpoint,
+    /// A `LinkTypeDefinition` binds an org-pillar endpoint to a person-pillar
+    /// endpoint (or vice versa), violating Bominal-ADR-0132 org/person
+    /// isolation. Both endpoints must share the same [`OntologyPillar`], or at
+    /// least one must be pillar-agnostic (`pillar: None`).
+    CrossPillarLink,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -446,7 +489,17 @@ impl EntityTypeDefinition {
             display_name: Classified::new(display_name, DataClass::InternalOnly),
             properties,
             revision,
+            pillar: None,
         })
+    }
+
+    /// Annotate this entity type with an [`OntologyPillar`] for org/person
+    /// isolation enforcement (Bominal-ADR-0132). Returns `self` for chaining.
+    /// Entity types without a pillar annotation are pillar-agnostic and do not
+    /// participate in cross-pillar link rejection.
+    pub fn with_pillar(mut self, pillar: OntologyPillar) -> Self {
+        self.pillar = Some(pillar);
+        self
     }
 }
 impl LinkTypeDefinition {
@@ -516,10 +569,26 @@ impl OntologyEngine {
         &mut self,
         definition: LinkTypeDefinition,
     ) -> Result<LinkTypeId, OntologyEngineError> {
-        if !self.has_entity_type(&definition.tenant_id, &definition.from_entity_type)
-            || !self.has_entity_type(&definition.tenant_id, &definition.to_entity_type)
-        {
-            return Err(OntologyEngineError::UnknownEntityType);
+        // st1: endpoint-reference validation
+        let from_def = self
+            .entity_types
+            .get(&ontology_scoped_key(
+                &definition.tenant_id,
+                &definition.from_entity_type.value,
+            ))
+            .ok_or(OntologyEngineError::UnknownEntityTypeEndpoint)?;
+        let to_def = self
+            .entity_types
+            .get(&ontology_scoped_key(
+                &definition.tenant_id,
+                &definition.to_entity_type.value,
+            ))
+            .ok_or(OntologyEngineError::UnknownEntityTypeEndpoint)?;
+        // st2: pillar-consistency enforcement (Bominal-ADR-0132)
+        if let (Some(from_pillar), Some(to_pillar)) = (from_def.pillar, to_def.pillar) {
+            if from_pillar != to_pillar {
+                return Err(OntologyEngineError::CrossPillarLink);
+            }
         }
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.link_types.contains_key(&key) {
@@ -533,8 +602,9 @@ impl OntologyEngine {
         &mut self,
         definition: ActionTypeDefinition,
     ) -> Result<ActionTypeId, OntologyEngineError> {
+        // st1: endpoint-reference validation
         if !self.has_entity_type(&definition.tenant_id, &definition.entity_type) {
-            return Err(OntologyEngineError::UnknownEntityType);
+            return Err(OntologyEngineError::UnknownEntityTypeEndpoint);
         }
         let key = ontology_scoped_key(&definition.tenant_id, &definition.id.value);
         if self.action_types.contains_key(&key) {
@@ -921,7 +991,7 @@ mod backbone_tests {
         .unwrap();
         assert_eq!(
             engine.register_link_type(unknown),
-            Err(OntologyEngineError::UnknownEntityType)
+            Err(OntologyEngineError::UnknownEntityTypeEndpoint)
         );
     }
     #[test]
@@ -980,5 +1050,362 @@ mod backbone_tests {
             )
             .unwrap_err();
         assert_eq!(too, OntologyEngineError::AutonomyTierExceeded);
+    }
+
+    // --- st1: endpoint-reference validation tests ---
+
+    #[test]
+    fn link_type_with_dangling_from_endpoint_rejected() {
+        let mut engine = OntologyEngine::default();
+        // Register only the "to" entity type; "from" is missing.
+        engine
+            .register_entity_type(
+                EntityTypeDefinition::new(
+                    "ten_clinic",
+                    EntityTypeId::new("ety_appointment").unwrap(),
+                    "Appointment",
+                    vec![property("starts_at")],
+                    1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_clinic",
+            LinkTypeId::new("lty_missing_from").unwrap(),
+            EntityTypeId::new("ety_patient").unwrap(), // not registered
+            EntityTypeId::new("ety_appointment").unwrap(),
+            LinkCardinality::OneToMany,
+            false,
+        )
+        .unwrap();
+        assert_eq!(
+            engine.register_link_type(link),
+            Err(OntologyEngineError::UnknownEntityTypeEndpoint)
+        );
+    }
+
+    #[test]
+    fn link_type_with_dangling_to_endpoint_rejected() {
+        let mut engine = OntologyEngine::default();
+        // Register only the "from" entity type; "to" is missing.
+        engine
+            .register_entity_type(patient_type())
+            .unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_clinic",
+            LinkTypeId::new("lty_missing_to").unwrap(),
+            EntityTypeId::new("ety_patient").unwrap(),
+            EntityTypeId::new("ety_appointment").unwrap(), // not registered
+            LinkCardinality::OneToMany,
+            false,
+        )
+        .unwrap();
+        assert_eq!(
+            engine.register_link_type(link),
+            Err(OntologyEngineError::UnknownEntityTypeEndpoint)
+        );
+    }
+
+    #[test]
+    fn action_type_with_dangling_entity_type_rejected() {
+        let mut engine = OntologyEngine::default();
+        // No entity types registered at all.
+        let action = ActionTypeDefinition::new(
+            "ten_clinic",
+            ActionTypeId::new("aty_discharge").unwrap(),
+            EntityTypeId::new("ety_patient").unwrap(), // not registered
+            "ontology.action.discharge",
+            AutonomyTier::T1Assist,
+            "EVT-DISCHARGE",
+        )
+        .unwrap();
+        assert_eq!(
+            engine.register_action_type(action),
+            Err(OntologyEngineError::UnknownEntityTypeEndpoint)
+        );
+    }
+
+    #[test]
+    fn valid_link_and_action_type_registers_after_endpoints_present() {
+        let mut engine = OntologyEngine::default();
+        let patient = engine.register_entity_type(patient_type()).unwrap();
+        let appointment = engine
+            .register_entity_type(
+                EntityTypeDefinition::new(
+                    "ten_clinic",
+                    EntityTypeId::new("ety_appointment").unwrap(),
+                    "Appointment",
+                    vec![property("starts_at")],
+                    1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        // Both endpoints present: link type should register successfully.
+        let link_id = engine
+            .register_link_type(
+                LinkTypeDefinition::new(
+                    "ten_clinic",
+                    LinkTypeId::new("lty_patient_appointment").unwrap(),
+                    patient.clone(),
+                    appointment,
+                    LinkCardinality::OneToMany,
+                    false,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        assert_eq!(link_id.value, "lty_patient_appointment");
+        // Endpoint present: action type should register successfully.
+        let action_id = engine
+            .register_action_type(
+                ActionTypeDefinition::new(
+                    "ten_clinic",
+                    ActionTypeId::new("aty_discharge").unwrap(),
+                    patient,
+                    "ontology.action.discharge",
+                    AutonomyTier::T1Assist,
+                    "EVT-DISCHARGE",
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        assert_eq!(action_id.value, "aty_discharge");
+    }
+
+    // --- st2: pillar-consistency tests ---
+
+    fn patient_type_with_pillar(pillar: OntologyPillar) -> EntityTypeDefinition {
+        EntityTypeDefinition::new(
+            "ten_hr",
+            EntityTypeId::new("ety_person").unwrap(),
+            "Person",
+            vec![property("name")],
+            1,
+        )
+        .unwrap()
+        .with_pillar(pillar)
+    }
+
+    fn org_type_with_pillar(pillar: OntologyPillar) -> EntityTypeDefinition {
+        EntityTypeDefinition::new(
+            "ten_hr",
+            EntityTypeId::new("ety_company").unwrap(),
+            "Company",
+            vec![property("name")],
+            1,
+        )
+        .unwrap()
+        .with_pillar(pillar)
+    }
+
+    fn agnostic_entity_type(id: &str) -> EntityTypeDefinition {
+        EntityTypeDefinition::new(
+            "ten_hr",
+            EntityTypeId::new(id).unwrap(),
+            "Agnostic",
+            vec![property("name")],
+            1,
+        )
+        .unwrap()
+        // no with_pillar call — pillar: None
+    }
+
+    #[test]
+    fn cross_pillar_link_org_to_person_rejected() {
+        let mut engine = OntologyEngine::default();
+        engine
+            .register_entity_type(org_type_with_pillar(OntologyPillar::Org))
+            .unwrap();
+        engine
+            .register_entity_type(patient_type_with_pillar(OntologyPillar::Person))
+            .unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_hr",
+            LinkTypeId::new("lty_org_person").unwrap(),
+            EntityTypeId::new("ety_company").unwrap(),
+            EntityTypeId::new("ety_person").unwrap(),
+            LinkCardinality::OneToMany,
+            false,
+        )
+        .unwrap();
+        assert_eq!(
+            engine.register_link_type(link),
+            Err(OntologyEngineError::CrossPillarLink)
+        );
+    }
+
+    #[test]
+    fn cross_pillar_link_person_to_org_rejected() {
+        let mut engine = OntologyEngine::default();
+        engine
+            .register_entity_type(patient_type_with_pillar(OntologyPillar::Person))
+            .unwrap();
+        engine
+            .register_entity_type(org_type_with_pillar(OntologyPillar::Org))
+            .unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_hr",
+            LinkTypeId::new("lty_person_org").unwrap(),
+            EntityTypeId::new("ety_person").unwrap(),
+            EntityTypeId::new("ety_company").unwrap(),
+            LinkCardinality::ManyToMany,
+            false,
+        )
+        .unwrap();
+        assert_eq!(
+            engine.register_link_type(link),
+            Err(OntologyEngineError::CrossPillarLink)
+        );
+    }
+
+    #[test]
+    fn same_pillar_link_org_to_org_accepted() {
+        let mut engine = OntologyEngine::default();
+        engine
+            .register_entity_type(org_type_with_pillar(OntologyPillar::Org))
+            .unwrap();
+        let subsidiary = EntityTypeDefinition::new(
+            "ten_hr",
+            EntityTypeId::new("ety_subsidiary").unwrap(),
+            "Subsidiary",
+            vec![property("name")],
+            1,
+        )
+        .unwrap()
+        .with_pillar(OntologyPillar::Org);
+        engine.register_entity_type(subsidiary).unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_hr",
+            LinkTypeId::new("lty_parent_subsidiary").unwrap(),
+            EntityTypeId::new("ety_company").unwrap(),
+            EntityTypeId::new("ety_subsidiary").unwrap(),
+            LinkCardinality::OneToMany,
+            false,
+        )
+        .unwrap();
+        assert!(engine.register_link_type(link).is_ok());
+    }
+
+    #[test]
+    fn same_pillar_link_person_to_person_accepted() {
+        let mut engine = OntologyEngine::default();
+        engine
+            .register_entity_type(patient_type_with_pillar(OntologyPillar::Person))
+            .unwrap();
+        let contact = EntityTypeDefinition::new(
+            "ten_hr",
+            EntityTypeId::new("ety_contact").unwrap(),
+            "Contact",
+            vec![property("email")],
+            1,
+        )
+        .unwrap()
+        .with_pillar(OntologyPillar::Person);
+        engine.register_entity_type(contact).unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_hr",
+            LinkTypeId::new("lty_person_contact").unwrap(),
+            EntityTypeId::new("ety_person").unwrap(),
+            EntityTypeId::new("ety_contact").unwrap(),
+            LinkCardinality::OneToOne,
+            false,
+        )
+        .unwrap();
+        assert!(engine.register_link_type(link).is_ok());
+    }
+
+    #[test]
+    fn pillar_agnostic_link_both_none_accepted() {
+        let mut engine = OntologyEngine::default();
+        engine
+            .register_entity_type(agnostic_entity_type("ety_agnostic_a"))
+            .unwrap();
+        engine
+            .register_entity_type(agnostic_entity_type("ety_agnostic_b"))
+            .unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_hr",
+            LinkTypeId::new("lty_agnostic").unwrap(),
+            EntityTypeId::new("ety_agnostic_a").unwrap(),
+            EntityTypeId::new("ety_agnostic_b").unwrap(),
+            LinkCardinality::ManyToMany,
+            false,
+        )
+        .unwrap();
+        assert!(engine.register_link_type(link).is_ok());
+    }
+
+    #[test]
+    fn one_pillar_agnostic_endpoint_accepted() {
+        let mut engine = OntologyEngine::default();
+        engine
+            .register_entity_type(org_type_with_pillar(OntologyPillar::Org))
+            .unwrap();
+        engine
+            .register_entity_type(agnostic_entity_type("ety_agnostic_b"))
+            .unwrap();
+        let link = LinkTypeDefinition::new(
+            "ten_hr",
+            LinkTypeId::new("lty_org_agnostic").unwrap(),
+            EntityTypeId::new("ety_company").unwrap(),
+            EntityTypeId::new("ety_agnostic_b").unwrap(),
+            LinkCardinality::OneToMany,
+            false,
+        )
+        .unwrap();
+        assert!(engine.register_link_type(link).is_ok());
+    }
+
+    #[test]
+    fn all_link_cardinality_variants_accepted_same_pillar() {
+        for (link_id, cardinality) in [
+            ("lty_one_one", LinkCardinality::OneToOne),
+            ("lty_one_many", LinkCardinality::OneToMany),
+            ("lty_many_many", LinkCardinality::ManyToMany),
+        ] {
+            let mut engine = OntologyEngine::default();
+            engine
+                .register_entity_type(
+                    EntityTypeDefinition::new(
+                        "ten_hr",
+                        EntityTypeId::new("ety_from").unwrap(),
+                        "From",
+                        vec![property("x")],
+                        1,
+                    )
+                    .unwrap()
+                    .with_pillar(OntologyPillar::Org),
+                )
+                .unwrap();
+            engine
+                .register_entity_type(
+                    EntityTypeDefinition::new(
+                        "ten_hr",
+                        EntityTypeId::new("ety_to").unwrap(),
+                        "To",
+                        vec![property("y")],
+                        1,
+                    )
+                    .unwrap()
+                    .with_pillar(OntologyPillar::Org),
+                )
+                .unwrap();
+            let link = LinkTypeDefinition::new(
+                "ten_hr",
+                LinkTypeId::new(link_id).unwrap(),
+                EntityTypeId::new("ety_from").unwrap(),
+                EntityTypeId::new("ety_to").unwrap(),
+                cardinality,
+                false,
+            )
+            .unwrap();
+            assert!(
+                engine.register_link_type(link).is_ok(),
+                "cardinality {:?} should be accepted",
+                cardinality
+            );
+        }
     }
 }
