@@ -34,13 +34,14 @@ pub struct KnowledgeGraphLinkInstance {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KnowledgeGraphQueryRequest {
-    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
-    pub query_id: String,                   // data_class: INTERNAL_ONLY
-    pub root_entity_id: String,             // data_class: INTERNAL_ONLY
-    pub edge_type_ids: Vec<String>,         // data_class: INTERNAL_ONLY
-    pub max_depth: u32,                     // data_class: INTERNAL_ONLY
-    pub freshness_floor_epoch_seconds: u64, // data_class: INTERNAL_ONLY
-    pub observed_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub query_id: String,                        // data_class: INTERNAL_ONLY
+    pub root_entity_id: String,                  // data_class: INTERNAL_ONLY
+    pub edge_type_ids: Vec<String>,              // data_class: INTERNAL_ONLY
+    pub max_depth: u32,                          // data_class: INTERNAL_ONLY
+    pub freshness_floor_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub observed_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
+    pub consented_edge_type_ids: Vec<String>,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -86,6 +87,9 @@ pub enum KnowledgeGraphQueryError {
     DepthCeilingExceeded,
     MissingRootEntity,
     DanglingLinkEndpoint { entity_id: String },
+    /// A consent grant id in `consented_edge_type_ids` is structurally invalid
+    /// (e.g. missing the `lty_` prefix).
+    MalformedConsentGrantId { id: String },
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -142,6 +146,7 @@ impl KnowledgeGraphQueryRequest {
         max_depth: u32,
         freshness_floor_epoch_seconds: u64,
         observed_at_epoch_seconds: u64,
+        consented_edge_type_ids: Vec<impl Into<String>>,
     ) -> Result<Self, KnowledgeGraphQueryError> {
         let request = Self {
             tenant_id: tenant_id.into(),
@@ -151,6 +156,7 @@ impl KnowledgeGraphQueryRequest {
             max_depth,
             freshness_floor_epoch_seconds,
             observed_at_epoch_seconds,
+            consented_edge_type_ids: consented_edge_type_ids.into_iter().map(Into::into).collect(),
         };
         request.validate()?;
         Ok(request)
@@ -164,11 +170,18 @@ impl KnowledgeGraphQueryRequest {
         for edge_type_id in &self.edge_type_ids {
             validate_edge_type_id(edge_type_id)?;
         }
+        for grant_id in &self.consented_edge_type_ids {
+            validate_consent_grant_id(grant_id)?;
+        }
         Ok(())
     }
 
     fn edge_filter(&self) -> BTreeSet<&str> {
         self.edge_type_ids.iter().map(String::as_str).collect()
+    }
+
+    pub fn consent_filter(&self) -> BTreeSet<&str> {
+        self.consented_edge_type_ids.iter().map(String::as_str).collect()
     }
 }
 
@@ -202,6 +215,7 @@ impl KnowledgeGraphQueryEngine {
         }
 
         let edge_filter = request.edge_filter();
+        let consent_filter = request.consent_filter();
         let mut queue = VecDeque::from([(request.root_entity_id.clone(), 0_u32)]);
         let mut seen_nodes = BTreeSet::from([request.root_entity_id.clone()]);
         let mut nodes = BTreeMap::new();
@@ -224,6 +238,11 @@ impl KnowledgeGraphQueryEngine {
                     continue;
                 }
                 if link.observed_at_epoch_seconds < request.freshness_floor_epoch_seconds {
+                    continue;
+                }
+                if !consent_filter.is_empty()
+                    && !consent_filter.contains(link.edge_type_id.as_str())
+                {
                     continue;
                 }
                 validate_link_endpoints(graph, link)?;
@@ -378,6 +397,16 @@ fn validate_max_depth(max_depth: u32) -> Result<(), KnowledgeGraphQueryError> {
     Ok(())
 }
 
+fn validate_consent_grant_id(grant_id: &str) -> Result<(), KnowledgeGraphQueryError> {
+    if grant_id.starts_with("lty_") && grant_id.len() > "lty_".len() {
+        Ok(())
+    } else {
+        Err(KnowledgeGraphQueryError::MalformedConsentGrantId {
+            id: grant_id.to_string(),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -431,6 +460,7 @@ mod tests {
             max_depth,
             freshness_floor_epoch_seconds,
             12,
+            Vec::<&str>::new(),
         )
         .unwrap()
     }
@@ -576,6 +606,7 @@ mod tests {
                     2,
                     0,
                     2,
+                    Vec::<&str>::new(),
                 )
                 .unwrap(),
             )
@@ -597,6 +628,7 @@ mod tests {
                 1,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::InvalidTenantId)
         );
@@ -609,6 +641,7 @@ mod tests {
                 1,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::InvalidQueryId)
         );
@@ -621,6 +654,7 @@ mod tests {
                 MAX_QUERY_DEPTH + 1,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::DepthCeilingExceeded)
         );
@@ -751,6 +785,7 @@ mod tests {
             1,
             0,
             0,
+            Vec::<&str>::new(),
         )
         .unwrap();
 
@@ -824,6 +859,7 @@ mod tests {
             1,
             0,
             0,
+            Vec::<&str>::new(),
         )
         .unwrap();
 
@@ -884,6 +920,7 @@ mod tests {
             MAX_QUERY_DEPTH + 1,
             0,
             1,
+            Vec::<&str>::new(),
         );
         // DepthCeilingExceeded variant must exist and be returned here
         assert_eq!(
@@ -906,6 +943,7 @@ mod tests {
                 MAX_QUERY_DEPTH,
                 0,
                 1,
+                Vec::<&str>::new(),
             )
             .is_ok(),
             "max_depth == MAX_QUERY_DEPTH must be accepted"
@@ -926,6 +964,7 @@ mod tests {
                 0,
                 0,
                 1,
+                Vec::<&str>::new(),
             ),
             Err(KnowledgeGraphQueryError::InvalidMaxDepth),
             "max_depth == 0 must return InvalidMaxDepth"
@@ -1133,7 +1172,7 @@ mod tests {
             3,
             0,
             1,
-            vec![],
+            Vec::<&str>::new(),
         )
         .unwrap();
 
