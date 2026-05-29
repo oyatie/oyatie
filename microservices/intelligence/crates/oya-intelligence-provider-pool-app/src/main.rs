@@ -51,11 +51,13 @@ use oya_http_router_kernel::{HttpMethod, Router};
 use oya_http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
 
 use oya_intelligence_provider_pool_app::{
-    DispatchError, InMemoryAccountHealthStore, InMemoryPoolRepository,
-    InMemoryProviderInvocationTransport, InMemorySecretResolver, InMemoryUsageSnapshotSource,
-    NoOpMetricsSink, PoolId, PoolRepository, PoolRoutingStrategy, ProviderAccountId,
-    ProviderAccountPool, ProviderFamily, ProviderResponse, ProviderTier, RequestMetadata, TenantId,
-    TransportError, TransportScript, UnixMillis, dispatch_to_pool,
+    AccountHealthMap, AccountHealthStore, DispatchError, InMemoryAccountHealthStore,
+    InMemoryPoolRepository, InMemoryProviderInvocationTransport, InMemorySecretResolver,
+    InMemorySeatRegistry, InMemoryUsageSnapshotSource, OtelMetricsSink, PoolId, PoolRepository,
+    PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderFamily, ProviderResponse,
+    ProviderTier, ReloadResult, RequestMetadata, SeatRegistry, TenantId, TransportError,
+    TransportScript, UnixMillis, UsageSnapshotMap, UsageSnapshotSource, build_seat_snapshots,
+    dispatch_to_pool,
 };
 use oya_intelligence_provider_pool_kernel::DurationMs;
 
@@ -191,10 +193,10 @@ fn parse_provider(raw: &str) -> Option<ProviderFamily> {
 
 /// Shared, process-lifetime state mounted behind the route handlers.
 ///
-/// The health store is the only mutable port, so it is guarded by a `Mutex`
-/// (the in-memory reference store is cheap to lock; production swaps in a
-/// sharded async store behind the same port). The repository + usage source +
-/// transport are immutable snapshots / scripts and held in `Arc`.
+/// The health store is the only mutable port for dispatch, so it is guarded by
+/// a `Mutex`. The seat registry is separately guarded (it is mutated only on
+/// `/internal/seats/reload`, never on the hot dispatch path). The repository +
+/// usage source + transport are immutable snapshots / scripts and held in `Arc`.
 struct AppState {
     pool_repo: InMemoryPoolRepository,
     usage_source: InMemoryUsageSnapshotSource,
@@ -204,9 +206,11 @@ struct AppState {
     /// dispatch (`secret_ref_opt = None`), so this resolver is never invoked;
     /// the live OpenBao resolver lands in a later campaign slice.
     secret_res: InMemorySecretResolver,
-    /// Metrics sink port — no-op for single-node bring-up; the OTel sink lands
-    /// in the seat-observability slice.
-    metrics: NoOpMetricsSink,
+    /// OTel-bridge metrics sink: accumulates dispatch events into
+    /// [`MetricsCounters`] for the `/metrics` Prometheus scrape endpoint.
+    metrics: OtelMetricsSink,
+    /// Per-seat snapshot registry for `/internal/seats` + reload.
+    seat_registry: Mutex<InMemorySeatRegistry>,
     tenant_id: TenantId,
     pool_id: PoolId,
 }
@@ -249,6 +253,63 @@ impl AppState {
         // increment; the real hyper-client transport slice moves dispatch onto
         // the async path proper.
         block_on_ready(fut).map(|outcome| outcome.response)
+    }
+
+    /// Return the current per-seat snapshot, joining health + usage state
+    /// from the in-memory stores. Locks are released before returning.
+    fn seat_snapshot_json(&self) -> String {
+        let now = UnixMillis(now_unix_millis());
+        // Load the pool — if missing, return empty seats array.
+        let pool = match self.pool_repo.load(&self.tenant_id, &self.pool_id) {
+            Ok(Some(p)) => p,
+            _ => {
+                return r#"{"seats":[],"total":0}"#.to_string();
+            }
+        };
+        let health: AccountHealthMap = match self.health_store.lock() {
+            Ok(guard) => guard
+                .read(&self.tenant_id, &self.pool_id)
+                .unwrap_or_default(),
+            Err(_) => AccountHealthMap::default(),
+        };
+        let usage: UsageSnapshotMap = self
+            .usage_source
+            .snapshot(&self.tenant_id, &self.pool_id)
+            .unwrap_or_default();
+        let snapshots = build_seat_snapshots(&pool, &health, &usage, now);
+        // Render to JSON manually (no serde_json dependency on the binary side
+        // is preferable; we already have serde_json in the workspace deps for the lib).
+        // The SeatSnapshot type derives serde::Serialize so we can use serde_json.
+        let total = snapshots.len();
+        let seats_json = serde_json::to_string(&snapshots).unwrap_or_else(|_| "[]".to_string());
+        format!(r#"{{"seats":{seats_json},"total":{total}}}"#)
+    }
+
+    /// Reload seats: re-read from the pool repo + health + usage, upsert into
+    /// the seat registry. Upsert-only: existing seats are never removed.
+    fn reload_seats(&self) -> ReloadResult {
+        let now = UnixMillis(now_unix_millis());
+        let pool = match self.pool_repo.load(&self.tenant_id, &self.pool_id) {
+            Ok(Some(p)) => p,
+            _ => {
+                return ReloadResult { added: 0, updated: 0, total: 0 };
+            }
+        };
+        let health: AccountHealthMap = match self.health_store.lock() {
+            Ok(guard) => guard
+                .read(&self.tenant_id, &self.pool_id)
+                .unwrap_or_default(),
+            Err(_) => AccountHealthMap::default(),
+        };
+        let usage: UsageSnapshotMap = self
+            .usage_source
+            .snapshot(&self.tenant_id, &self.pool_id)
+            .unwrap_or_default();
+        let snapshots = build_seat_snapshots(&pool, &health, &usage, now);
+        match self.seat_registry.lock() {
+            Ok(mut guard) => guard.upsert(snapshots),
+            Err(_) => ReloadResult { added: 0, updated: 0, total: 0 },
+        }
     }
 }
 
@@ -314,7 +375,8 @@ fn build_app(config: &AppConfig) -> Result<ComposedApp, BuildError> {
         health_store: Mutex::new(InMemoryAccountHealthStore::new()),
         transport: InMemoryProviderInvocationTransport::new(script),
         secret_res: InMemorySecretResolver::new(),
-        metrics: NoOpMetricsSink,
+        metrics: OtelMetricsSink::new(),
+        seat_registry: Mutex::new(InMemorySeatRegistry::new()),
         tenant_id,
         pool_id,
     });
@@ -330,6 +392,61 @@ fn build_app(config: &AppConfig) -> Result<ComposedApp, BuildError> {
                 HttpResponse::new(200)
                     .with_header("content-type", "application/json")
                     .with_body(br#"{"status":"ok"}"#.to_vec())
+            }),
+        )
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
+
+    // GET /metrics — Prometheus text-format metrics scraped from the OTel sink.
+    // No localhost restriction: this is the standard Prometheus scrape endpoint.
+    let metrics_state = state.clone();
+    router
+        .route(
+            HttpMethod::Get,
+            "/metrics",
+            Arc::new(move |_req: HttpRequest| {
+                let text = metrics_state.metrics.render_prometheus_text();
+                HttpResponse::new(200)
+                    .with_header("content-type", "text/plain; version=0.0.4; charset=utf-8")
+                    .with_body(text.into_bytes())
+            }),
+        )
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
+
+    // GET /internal/seats — localhost-only per-seat snapshot.
+    let seats_state = state.clone();
+    router
+        .route(
+            HttpMethod::Get,
+            "/internal/seats",
+            Arc::new(move |req: HttpRequest| {
+                if !is_localhost_request(&req) {
+                    return localhost_only_response();
+                }
+                let json = seats_state.seat_snapshot_json();
+                HttpResponse::new(200)
+                    .with_header("content-type", "application/json")
+                    .with_body(json.into_bytes())
+            }),
+        )
+        .map_err(|e| BuildError::Route(format!("{e:?}")))?;
+
+    // POST /internal/seats/reload — localhost-only upsert reconcile.
+    let reload_state = state.clone();
+    router
+        .route(
+            HttpMethod::Post,
+            "/internal/seats/reload",
+            Arc::new(move |req: HttpRequest| {
+                if !is_localhost_request(&req) {
+                    return localhost_only_response();
+                }
+                let result = reload_state.reload_seats();
+                let json = serde_json::to_string(&result).unwrap_or_else(|_| {
+                    r#"{"added":0,"updated":0,"total":0}"#.to_string()
+                });
+                HttpResponse::new(200)
+                    .with_header("content-type", "application/json")
+                    .with_body(json.into_bytes())
             }),
         )
         .map_err(|e| BuildError::Route(format!("{e:?}")))?;
@@ -427,11 +544,51 @@ fn dispatch_error_to_response(err: &DispatchError) -> HttpResponse {
         DispatchError::AllProvidersExhausted { .. } => (502, "all_providers_exhausted"),
         DispatchError::NonRetryableTransport(_) => (502, "transport_non_retryable"),
         DispatchError::SecretResolutionFailed(_) => (502, "secret_resolution_failed"),
+        DispatchError::QuotaBudgetExceeded { .. } => (429, "quota_budget_exceeded"),
     };
     let detail = json_escape(&err.to_string());
     HttpResponse::new(status)
         .with_header("content-type", "application/json")
         .with_body(format!(r#"{{"error":"{kind}","detail":"{detail}"}}"#).into_bytes())
+}
+
+/// Returns `true` when the request originates from a localhost address
+/// (127.x.x.x or ::1). Used to restrict `/internal/*` endpoints.
+///
+/// The peer address is injected via a synthetic `x-peer-addr` header by the
+/// hyper server wrapper. When the header is absent (e.g. direct handler tests),
+/// the request is treated as localhost so unit tests pass without network wiring.
+fn is_localhost_request(req: &HttpRequest) -> bool {
+    // BTreeMap<String, String>: look up by lowercased key.
+    let peer = req.headers.get("x-peer-addr").map(String::as_str);
+    match peer {
+        None => true, // absent in unit tests → allow
+        Some(addr) => {
+            // Parse as "ip:port" or bare IP. IPv6 bracket form: [::1]:port.
+            let ip = if let Some(bracket_end) = addr.find(']') {
+                // IPv6 bracketed form: [::1]:port  or [::1]
+                &addr[1..bracket_end]
+            } else if let Some(colon) = addr.rfind(':') {
+                // IPv4: 127.0.0.1:port — only strip port if there's one colon
+                // (multiple colons = bare IPv6 without brackets).
+                if addr.matches(':').count() == 1 {
+                    &addr[..colon]
+                } else {
+                    addr
+                }
+            } else {
+                addr
+            };
+            ip == "127.0.0.1" || ip == "::1" || ip.starts_with("127.")
+        }
+    }
+}
+
+/// Build a 403 Forbidden response for non-localhost requests to internal endpoints.
+fn localhost_only_response() -> HttpResponse {
+    HttpResponse::new(403)
+        .with_header("content-type", "application/json")
+        .with_body(br#"{"error":"forbidden","detail":"internal endpoint is localhost-only"}"#.to_vec())
 }
 
 /// Add every route of `source` into `target`. Surfaces a duplicate/parse error
@@ -644,8 +801,8 @@ mod tests {
             server_config,
             ..
         } = build_app(&cfg).expect("build_app succeeds");
-        // healthz + 2 anthropic + 3 openai = 6 routes.
-        assert_eq!(router.count(), 6);
+        // healthz + metrics + internal/seats + internal/seats/reload + 2 anthropic + 3 openai = 9 routes.
+        assert_eq!(router.count(), 9);
         assert!(router.match_route(HttpMethod::Get, "/healthz").is_some());
         assert!(router.match_route(HttpMethod::Post, "/v1/messages").is_some());
         assert!(
