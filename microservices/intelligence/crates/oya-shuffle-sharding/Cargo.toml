@@ -10,5 +10,3 @@ description = "Pure deterministic shuffle-sharding cell selection for Oyatie ten
 [lib]
 name = "oya_shuffle_sharding"
 path = "src/lib.rs"
-
-[workspace]
