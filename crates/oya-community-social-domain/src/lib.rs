@@ -135,6 +135,59 @@ pub fn story_purge(post: &SocialPost, now: u64) -> Result<BTreeSet<PurgeTarget>,
         PurgeTarget::OntologyNode,
     ]))
 }
+/// Batch story-expiry sweep scoped to a single context/pillar pair.
+///
+/// # Context guard
+/// Any post whose `context` or `pillar` does not match the supplied values causes the
+/// entire batch to be rejected with `SocialError::CrossContextArtifactRef`, mirroring
+/// the `context_snapshot` guard semantics.
+///
+/// # Artifact filtering
+/// Non-Story artifacts (`FeedPost`, `CollaborativePost`) are silently skipped; they
+/// contribute no purge targets and do not raise `StoryRequiresTtl`.
+///
+/// # Expiry aggregation
+/// Among matching Story posts, only those whose `story_expires_at <= now` contribute
+/// purge targets. Unexpired stories are silently skipped.
+///
+/// # Determinism
+/// The return type is `BTreeSet<PurgeTarget>`. `PurgeTarget` derives `Ord`, so the
+/// ordering is deterministic and stable across invocations; callers may rely on this.
+///
+/// # Empty inputs
+/// An empty slice returns `Ok(BTreeSet::new())`. A batch with no expired stories also
+/// returns `Ok(BTreeSet::new())`.
+pub fn story_sweep(
+    context: SocialContextKind,
+    pillar: OwnershipPillar,
+    posts: &[SocialPost],
+    now: u64,
+) -> Result<BTreeSet<PurgeTarget>, SocialError> {
+    // Context/pillar guard — reject the whole batch on any mismatch.
+    if posts
+        .iter()
+        .any(|p| p.context.value != context || p.pillar.value != pillar)
+    {
+        return Err(SocialError::CrossContextArtifactRef);
+    }
+    let mut acc = BTreeSet::new();
+    for post in posts {
+        // Skip non-Story artifacts without error.
+        if post.kind.value != SocialArtifactKind::Story {
+            continue;
+        }
+        // Skip unexpired stories without error.
+        let Some(exp) = post.story_expires_at.value else {
+            continue;
+        };
+        if now < exp {
+            continue;
+        }
+        // Expired story — union its purge targets into the accumulator.
+        acc.extend(story_purge(post, now).unwrap_or_default());
+    }
+    Ok(acc)
+}
 fn ne(s: &str) -> Result<(), SocialError> {
     if s.trim().is_empty() {
         Err(SocialError::Invalid)
