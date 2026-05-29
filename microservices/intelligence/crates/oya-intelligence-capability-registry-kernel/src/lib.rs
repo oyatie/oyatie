@@ -8,9 +8,13 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod registry_view;
 pub mod status;
 
-pub use status::{CapabilityStatus, CapabilityStatusParseError};
+pub use registry_view::{partition_views, RegistryViews};
+pub use status::{
+    CapabilityStatus, CapabilityStatusParseError, CapabilityStatusTransitionError,
+};
 
 use std::fmt;
 
