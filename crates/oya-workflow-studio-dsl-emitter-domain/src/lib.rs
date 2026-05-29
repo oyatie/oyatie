@@ -69,6 +69,12 @@ pub enum WorkflowSpecEmitError {
     UnreachableNode(String),
     DuplicateEdgeCondition(String),
     AmbiguousDefaultEdge(String),
+    /// A Branch node must have >=2 outgoing edges and at least one conditional edge.
+    BranchNodeRequiresConditionalEdges(String),
+    /// A Join node must have >=2 inbound edges.
+    JoinNodeRequiresMultipleInbound(String),
+    /// At least one node must have out-degree 0 (a sink/terminal).
+    MissingTerminalNode,
     Json(serde_json::Error),
 }
 
@@ -92,7 +98,15 @@ impl PartialEq for WorkflowSpecEmitError {
             | (GraphCycle(left), GraphCycle(right))
             | (UnreachableNode(left), UnreachableNode(right))
             | (DuplicateEdgeCondition(left), DuplicateEdgeCondition(right))
-            | (AmbiguousDefaultEdge(left), AmbiguousDefaultEdge(right)) => left == right,
+            | (AmbiguousDefaultEdge(left), AmbiguousDefaultEdge(right))
+            | (
+                BranchNodeRequiresConditionalEdges(left),
+                BranchNodeRequiresConditionalEdges(right),
+            )
+            | (JoinNodeRequiresMultipleInbound(left), JoinNodeRequiresMultipleInbound(right)) => {
+                left == right
+            }
+            (MissingTerminalNode, MissingTerminalNode) => true,
             (Json(left), Json(right)) => left.to_string() == right.to_string(),
             _ => false,
         }
@@ -129,6 +143,17 @@ impl std::fmt::Display for WorkflowSpecEmitError {
             }
             AmbiguousDefaultEdge(id) => {
                 write!(f, "more than one unconditional outgoing edge from node: {id}")
+            }
+            BranchNodeRequiresConditionalEdges(id) => write!(
+                f,
+                "branch node requires >=2 outgoing edges with at least one conditional: {id}"
+            ),
+            JoinNodeRequiresMultipleInbound(id) => write!(
+                f,
+                "join node requires >=2 inbound edges: {id}"
+            ),
+            MissingTerminalNode => {
+                write!(f, "workflow must have at least one terminal (sink) node with no outgoing edges")
             }
             Json(err) => write!(f, "JSON serialisation error: {err}"),
         }
@@ -345,6 +370,65 @@ impl WorkflowSpec {
             }
         }
 
+        // --- node-typology checks (fire strictly after all edge-condition checks) ---
+        // Build per-node out-degree and in-degree maps for typology checks.
+        let mut out_degree: BTreeMap<&str, usize> = BTreeMap::new();
+        let mut in_degree_topo: BTreeMap<&str, usize> = BTreeMap::new();
+        // Initialise every node with 0 so missing entries are handled uniformly.
+        for node in &self.nodes {
+            out_degree.entry(node.id.as_str()).or_insert(0);
+            in_degree_topo.entry(node.id.as_str()).or_insert(0);
+        }
+        for edge in &self.edges {
+            *out_degree.entry(edge.from.as_str()).or_insert(0) += 1;
+            *in_degree_topo.entry(edge.to.as_str()).or_insert(0) += 1;
+        }
+
+        // Build a node-kind lookup by id for typology checks.
+        let kind_by_id: BTreeMap<&str, WorkflowSpecNodeKind> = self
+            .nodes
+            .iter()
+            .map(|n| (n.id.as_str(), n.kind))
+            .collect();
+
+        // BranchNodeRequiresConditionalEdges: iterate nodes in sorted order (BTreeMap).
+        // A Branch node must have >=2 outgoing edges with at least one conditional edge.
+        for (&node_id, &kind) in &kind_by_id {
+            if kind != WorkflowSpecNodeKind::Branch {
+                continue;
+            }
+            let out = *out_degree.get(node_id).unwrap_or(&0);
+            let has_conditional = self
+                .edges
+                .iter()
+                .any(|e| e.from.as_str() == node_id && e.condition.is_some());
+            if out < 2 || !has_conditional {
+                return Err(WorkflowSpecEmitError::BranchNodeRequiresConditionalEdges(
+                    node_id.to_string(),
+                ));
+            }
+        }
+
+        // JoinNodeRequiresMultipleInbound: iterate nodes in sorted order (BTreeMap).
+        // A Join node must have >=2 inbound edges.
+        for (&node_id, &kind) in &kind_by_id {
+            if kind != WorkflowSpecNodeKind::Join {
+                continue;
+            }
+            let in_deg = *in_degree_topo.get(node_id).unwrap_or(&0);
+            if in_deg < 2 {
+                return Err(WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound(
+                    node_id.to_string(),
+                ));
+            }
+        }
+
+        // MissingTerminalNode: at least one node must have out-degree 0 (a sink/terminal).
+        let has_terminal = out_degree.values().any(|&deg| deg == 0);
+        if !has_terminal {
+            return Err(WorkflowSpecEmitError::MissingTerminalNode);
+        }
+
         Ok(())
     }
 
@@ -472,7 +556,7 @@ mod tests {
             vec![
                 WorkflowSpecNode::new("wfn_a", WorkflowSpecNodeKind::Http, "A"),
                 WorkflowSpecNode::new("wfn_b", WorkflowSpecNodeKind::Transform, "B"),
-                WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Join, "C"),
+                WorkflowSpecNode::new("wfn_c", WorkflowSpecNodeKind::Transform, "C"),
             ],
             vec![
                 WorkflowSpecEdge::new("wfn_a", "wfn_b", None),
