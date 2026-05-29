@@ -5,3 +5,5 @@ data_classes_owned:
 operational_classes_owned:
   - AUDIT
 adr_anchor: ADR-0479
+pattern: single-crate-per-service
+adr: ADR-0509

@@ -6466,31 +6466,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-meter-app"
+name = "oya-meter"
 version = "0.1.0"
 dependencies = [
- "axum",
- "oya-meter-kernel",
- "oya-meter-rest",
  "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-meter-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-meter-rest"
-version = "0.1.0"
-dependencies = [
- "axum",
- "oya-meter-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
 ]
 
 [[package]]
