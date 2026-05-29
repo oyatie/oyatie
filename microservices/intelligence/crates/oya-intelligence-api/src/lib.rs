@@ -469,6 +469,8 @@ fn foundation_error_status(error: &FoundationError) -> CapabilityInvokeApiStatus
         | FoundationError::TenantAlreadyExists
         | FoundationError::TenantNotFound
         | FoundationError::UserNotFound => CapabilityInvokeApiStatus::Forbidden,
+        // fail-closed: audit-chain append failure denies the request (no 5xx status in this enum; TODO follow-up)
+        FoundationError::AuditChainAppendFailed(_) => CapabilityInvokeApiStatus::Forbidden,
     }
 }
 

@@ -989,6 +989,7 @@ mod tests {
             policy_evidence_ref: "policy:evidence:attribution-app:1".to_owned(),
             trace_context_ref: "trace:attribution-app:1".to_owned(),
             max_citations: 8,
+            max_citations_per_claim: 8,
             sources: vec![
                 AttributionSource {
                     source_id: "src-kg-policy".to_owned(),

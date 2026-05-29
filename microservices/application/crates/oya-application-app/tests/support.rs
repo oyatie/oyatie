@@ -31,6 +31,7 @@ pub fn seed_invocation_policy(foundation: &mut Foundation, tenant_id: &str, role
                 action: "foundry.capability.invoke".into(),
                 resource_prefix: "capability:".into(),
                 required_attribute: None,
+                annotations: vec![],
             }],
         })
         .expect("tenant invocation policy is valid");
@@ -106,6 +107,7 @@ pub fn allow_capability_invocation(foundation: &mut Foundation, tenant_id: &str,
                 action: "foundry.capability.invoke".into(),
                 resource_prefix: "capability:cap.".into(),
                 required_attribute: None,
+                annotations: vec![],
             }],
         })
         .expect("capability invocation policy is valid");

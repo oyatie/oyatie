@@ -145,6 +145,7 @@ fn cedar_policy_can_deny_on_effective_autonomy_ceiling_context() {
                 action: "foundry.capability.invoke".into(),
                 resource_prefix: "capability:cap.demo.authz".into(),
                 required_attribute: Some(("effective_ceiling".into(), "T2Advisory".into())),
+                annotations: vec![],
             }],
         })
         .unwrap();
@@ -197,6 +198,7 @@ fn cedar_policy_can_deny_on_agentic_ads_cap_context() {
                 action: "foundry.capability.invoke".into(),
                 resource_prefix: "capability:cap.ads.".into(),
                 required_attribute: Some(("agentic_ads_cap".into(), "T1ViewOnly".into())),
+                annotations: vec![],
             }],
         })
         .unwrap();
