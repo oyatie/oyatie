@@ -303,12 +303,52 @@ jobs:
           toolchain: stable
       - name: cargo-prefix gate
         run: ./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-
-      - name: Parse backbone evidence, proto contracts, Gateway chart seams, and shared catalog rows
+      - name: Parse backbone evidence, proto contracts, Gateway chart seams, tenant workload labels, and shared catalog rows
         run: |
-          ruby -rjson -ryaml -e 'ARGV.each { |path| text = File.read(path); if path.end_with?(".json") then JSON.parse(text) elsif path.end_with?(".proto") then raise "#{path} is empty" if text.empty? elsif path.include?("/templates/") then required = ["apiVersion: gateway.networking.k8s.io/v1", "kind: HTTPRoute", "parentRefs:", "backendRefs:", "oyatie.com/non-claim:"]; missing = required.reject { |needle| text.include?(needle) }; raise "#{path} missing #{missing.join(", ")}" unless missing.empty? else YAML.safe_load(text, permitted_classes: [Symbol], aliases: true) end }; puts "parsed #{ARGV.length} files"' \
+          ruby -rjson -ryaml -e '
+          http_route_required = [
+            "apiVersion: gateway.networking.k8s.io/v1",
+            "kind: HTTPRoute",
+            "parentRefs:",
+            "backendRefs:",
+            "oyatie.com/non-claim:",
+          ]
+          deployment_required = [
+            "kind: Deployment",
+            "readinessProbe:",
+            "livenessProbe:",
+            "runtimeClassName:",
+            "resources:",
+            "securityContext:",
+            "oya.io/tenant-id:",
+            "oya.io/cost-center:",
+            "oya.io/workload-class:",
+            "oya.io/regulatory-pack:",
+            "oyatie.com/dogfood-substrate:",
+            "oyatie.com/product-goal:",
+          ]
+          ARGV.each do |path|
+            text = File.read(path)
+            if path.end_with?(".json")
+              JSON.parse(text)
+            elsif path.end_with?(".proto")
+              raise "#{path} is empty" if text.empty?
+            elsif path.end_with?("/templates/httproute.yaml")
+              missing = http_route_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+            elsif path.end_with?("/templates/deployment.yaml")
+              missing = deployment_required.reject { |needle| text.include?(needle) }
+              raise "#{path} missing #{missing.join(", " )}" unless missing.empty?
+            else
+              YAML.safe_load(text, permitted_classes: [Symbol], aliases: true)
+            end
+          end
+          puts "parsed #{ARGV.length} files"
+          ' \
             evidence/multispectrum/backbone-microservices-protocol-parity-20260523.json \
             evidence/multispectrum/backbone-microservices-proto-contracts-20260523.json \
             evidence/multispectrum/backbone-microservices-rest-hyper-runtime-20260525.json \
+            evidence/multispectrum/backbone-microservices-cloud-tenant-workload-labels-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
@@ -322,6 +362,10 @@ jobs:
             microservices/mail/iac/k8s/helm/templates/httproute.yaml \
             microservices/social/iac/k8s/helm/templates/httproute.yaml \
             microservices/community/iac/k8s/helm/templates/httproute.yaml \
+            microservices/messenger/iac/k8s/helm/templates/deployment.yaml \
+            microservices/mail/iac/k8s/helm/templates/deployment.yaml \
+            microservices/social/iac/k8s/helm/templates/deployment.yaml \
+            microservices/community/iac/k8s/helm/templates/deployment.yaml \
             registry/catalog/oya-shared-postgres-command-kernel.yaml \
             registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml \
             registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml \
