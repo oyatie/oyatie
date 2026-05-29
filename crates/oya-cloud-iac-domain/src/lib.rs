@@ -1482,6 +1482,315 @@ fn validate_resource_address(address: &str) -> Result<(), CloudIacError> {
     if looks_secret_like(address) {
         return Err(CloudIacError::InvalidResourceAddress);
     }
-    Ok(()
-    )
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Apply-approval gating kernel
+// ---------------------------------------------------------------------------
+
+/// Minimum combined create+update count that escalates a non-destructive
+/// changeset from `AutoApprove` to `RequiresReview { required_approvals: 1 }`.
+const NON_DESTRUCTIVE_THRESHOLD: usize = 50;
+
+/// Tiered apply-approval verdict for a [`PlanChangeset`].
+///
+/// Returned by [`PlanChangeset::approval_gate`].
+///
+/// Ord rank (natural declaration order):
+/// `AutoApprove < RequiresReview < Blocked`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ApplyApprovalVerdict {
+    /// No human review required — proceed automatically.
+    AutoApprove,
+    /// At least one human reviewer must approve before apply.
+    /// `required_approvals` scales monotonically on the destructive blast
+    /// radius (`delete_count + replace_count`).
+    RequiresReview { required_approvals: u32 },
+    /// Apply is explicitly blocked regardless of approvals (policy hook).
+    /// Reserved for future policy enforcement; not returned by the current
+    /// kernel implementation.
+    Blocked,
+}
+
+impl PlanChangeset {
+    /// Pure tiered apply-approval gate derived from the changeset summary.
+    ///
+    /// # Verdict rules (evaluated in order)
+    ///
+    /// 1. `AutoApprove` — changeset is empty or all entries are `NoOp`.
+    /// 2. `AutoApprove` — only `Create`/`Update` entries AND
+    ///    `create_count + update_count < NON_DESTRUCTIVE_THRESHOLD` (50).
+    /// 3. `RequiresReview { required_approvals: 1 }` — only `Create`/`Update`
+    ///    AND `create_count + update_count >= NON_DESTRUCTIVE_THRESHOLD`.
+    /// 4. `RequiresReview { required_approvals }` — any `Delete` or `Replace`
+    ///    present; `required_approvals` scales monotonically on
+    ///    `delete_count + replace_count`:
+    ///    - 1–5   → 1
+    ///    - 6–20  → 2
+    ///    - 21+   → 3
+    ///
+    /// Pure function: no I/O, no clocks, no randomness.
+    /// Identical inputs always produce identical output.
+    pub fn approval_gate(&self) -> ApplyApprovalVerdict {
+        let summary = self.summarize();
+
+        // Rule 1: empty or all no-ops.
+        if summary.delete_count == 0
+            && summary.replace_count == 0
+            && summary.create_count == 0
+            && summary.update_count == 0
+        {
+            return ApplyApprovalVerdict::AutoApprove;
+        }
+
+        let destructive_count = summary.delete_count + summary.replace_count;
+
+        // Rules 4: any destructive → RequiresReview scaled on blast radius.
+        if destructive_count > 0 {
+            let required_approvals = if destructive_count <= 5 {
+                1
+            } else if destructive_count <= 20 {
+                2
+            } else {
+                3
+            };
+            return ApplyApprovalVerdict::RequiresReview { required_approvals };
+        }
+
+        // Rules 2 + 3: non-destructive only.
+        let non_destructive_count = summary.create_count + summary.update_count;
+        if non_destructive_count < NON_DESTRUCTIVE_THRESHOLD {
+            ApplyApprovalVerdict::AutoApprove
+        } else {
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1,
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Helper: build a PlanChangeset with N entries of a given action.
+    fn changeset_with(plan_id: &str, actions: &[ResourceChangeAction]) -> PlanChangeset {
+        let changes: Vec<ResourceChange> = actions
+            .iter()
+            .enumerate()
+            .map(|(i, &action)| {
+                ResourceChange::new(format!("module.res_{i}.aws_instance.x"), action).unwrap()
+            })
+            .collect();
+        PlanChangeset::new(plan_id, changes).unwrap()
+    }
+
+    fn repeated(action: ResourceChangeAction, n: usize) -> Vec<ResourceChangeAction> {
+        vec![action; n]
+    }
+
+    // (a) empty changeset → AutoApprove
+    #[test]
+    fn empty_changeset_auto_approves() {
+        let cs = PlanChangeset::new("plan-empty", vec![]).unwrap();
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // (a) no-op-only changeset → AutoApprove
+    #[test]
+    fn noop_only_auto_approves() {
+        let cs = changeset_with("plan-noop", &repeated(ResourceChangeAction::NoOp, 10));
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // (b) creates-only under threshold → AutoApprove
+    #[test]
+    fn creates_only_under_threshold_auto_approves() {
+        let cs = changeset_with("plan-creates", &repeated(ResourceChangeAction::Create, 5));
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // (b) updates-only under threshold → AutoApprove
+    #[test]
+    fn updates_only_under_threshold_auto_approves() {
+        let cs = changeset_with("plan-updates", &repeated(ResourceChangeAction::Update, 49));
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // creates+updates at threshold → RequiresReview(1)
+    #[test]
+    fn creates_updates_at_threshold_requires_review() {
+        let mut actions = repeated(ResourceChangeAction::Create, 25);
+        actions.extend(repeated(ResourceChangeAction::Update, 25));
+        let cs = changeset_with("plan-at-threshold", &actions);
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // creates+updates over threshold → RequiresReview(1)
+    #[test]
+    fn creates_updates_over_threshold_requires_review() {
+        let cs = changeset_with("plan-over-threshold", &repeated(ResourceChangeAction::Create, 60));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // (c) single delete → RequiresReview(required_approvals >= 1)
+    #[test]
+    fn single_delete_requires_review() {
+        let cs = changeset_with("plan-del1", &[ResourceChangeAction::Delete]);
+        match cs.approval_gate() {
+            ApplyApprovalVerdict::RequiresReview { required_approvals } => {
+                assert!(required_approvals >= 1, "expected >= 1, got {required_approvals}");
+            }
+            other => panic!("expected RequiresReview, got {other:?}"),
+        }
+    }
+
+    // single delete → exactly RequiresReview(1)
+    #[test]
+    fn single_delete_requires_exactly_one_approval() {
+        let cs = changeset_with("plan-del1b", &[ResourceChangeAction::Delete]);
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // 5 destructive → RequiresReview(1)
+    #[test]
+    fn five_destructive_requires_one_approval() {
+        let cs = changeset_with("plan-del5", &repeated(ResourceChangeAction::Delete, 5));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
+
+    // (d) 6 destructive → RequiresReview(2) — higher than 1–5 range
+    #[test]
+    fn six_destructive_requires_two_approvals() {
+        let cs = changeset_with("plan-del6", &repeated(ResourceChangeAction::Delete, 6));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 2
+            }
+        );
+    }
+
+    // (d) 20 destructive → RequiresReview(2)
+    #[test]
+    fn twenty_destructive_requires_two_approvals() {
+        let cs = changeset_with("plan-del20", &repeated(ResourceChangeAction::Replace, 20));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 2
+            }
+        );
+    }
+
+    // (d) 21 destructive → RequiresReview(3)
+    #[test]
+    fn twentyone_destructive_requires_three_approvals() {
+        let cs = changeset_with("plan-del21", &repeated(ResourceChangeAction::Delete, 21));
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 3
+            }
+        );
+    }
+
+    // (d) mixed delete+replace blast radius is monotonic
+    #[test]
+    fn mixed_delete_replace_monotonic() {
+        let cs5 = changeset_with("plan-mix5", &{
+            let mut v = repeated(ResourceChangeAction::Delete, 3);
+            v.extend(repeated(ResourceChangeAction::Replace, 2));
+            v
+        });
+        let cs6 = changeset_with("plan-mix6", &{
+            let mut v = repeated(ResourceChangeAction::Delete, 3);
+            v.extend(repeated(ResourceChangeAction::Replace, 3));
+            v
+        });
+        let cs21 = changeset_with("plan-mix21", &{
+            let mut v = repeated(ResourceChangeAction::Delete, 11);
+            v.extend(repeated(ResourceChangeAction::Replace, 10));
+            v
+        });
+
+        let ApplyApprovalVerdict::RequiresReview { required_approvals: a5 } = cs5.approval_gate()
+        else {
+            panic!("expected RequiresReview");
+        };
+        let ApplyApprovalVerdict::RequiresReview { required_approvals: a6 } = cs6.approval_gate()
+        else {
+            panic!("expected RequiresReview");
+        };
+        let ApplyApprovalVerdict::RequiresReview { required_approvals: a21 } = cs21.approval_gate()
+        else {
+            panic!("expected RequiresReview");
+        };
+
+        assert!(a5 <= a6, "monotonic: 5 destructive ({a5}) <= 6 ({a6})");
+        assert!(a6 <= a21, "monotonic: 6 destructive ({a6}) <= 21 ({a21})");
+        assert_eq!(a5, 1);
+        assert_eq!(a6, 2);
+        assert_eq!(a21, 3);
+    }
+
+    // (e) determinism: same input → same output
+    #[test]
+    fn deterministic_same_input_same_output() {
+        let actions = {
+            let mut v = repeated(ResourceChangeAction::Create, 3);
+            v.push(ResourceChangeAction::Delete);
+            v
+        };
+        let cs = changeset_with("plan-determ", &actions);
+        let v1 = cs.approval_gate();
+        let v2 = cs.approval_gate();
+        assert_eq!(v1, v2, "approval_gate must be deterministic");
+    }
+
+    // NoOp entries mixed with creates don't count toward destructive blast
+    #[test]
+    fn noop_mixed_with_creates_does_not_escalate() {
+        let mut actions = repeated(ResourceChangeAction::NoOp, 100);
+        actions.extend(repeated(ResourceChangeAction::Create, 10));
+        let cs = changeset_with("plan-noop-creates", &actions);
+        assert_eq!(cs.approval_gate(), ApplyApprovalVerdict::AutoApprove);
+    }
+
+    // single replace → RequiresReview(1)
+    #[test]
+    fn single_replace_requires_review() {
+        let cs = changeset_with("plan-rep1", &[ResourceChangeAction::Replace]);
+        assert_eq!(
+            cs.approval_gate(),
+            ApplyApprovalVerdict::RequiresReview {
+                required_approvals: 1
+            }
+        );
+    }
 }
