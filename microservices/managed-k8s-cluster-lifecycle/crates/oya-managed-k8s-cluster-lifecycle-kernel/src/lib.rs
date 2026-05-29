@@ -134,6 +134,22 @@ impl fmt::Display for LifecycleValidationError {
 
 impl std::error::Error for LifecycleValidationError {}
 
+// ---------------------------------------------------------------------------
+// node-pool op surface — types referenced by tests (NOT YET IMPLEMENTED)
+// ---------------------------------------------------------------------------
+// pub const NODE_COUNT_CEILING: u32
+// pub enum NodePoolAction { ScaleUp, ScaleDown, Cordon, Drain }
+// pub struct NodePoolOpRequest { tenant_id, cluster_name, target_node_count, action }
+// impl NodePoolOpRequest { pub fn new(...) -> Result<Self, LifecycleValidationError> }
+//                        { pub fn validate(&self) -> Result<(), LifecycleValidationError> }
+// pub const HOSTED_NODE_FLOOR: u32
+// pub const DEDICATED_NODE_FLOOR: u32
+// pub enum DrainAdmission { Allow, Deny { reason: String } }
+// pub fn evaluate_drain_admission(current_nodes: u32, drain_target: u32,
+//                                 desired_tier: DesiredTier) -> DrainAdmission
+// LifecycleValidationError::ZeroTargetNodeCount
+// LifecycleValidationError::TargetNodeCountExceedsFloor
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,5 +202,186 @@ mod tests {
             Some(DesiredTier::Dedicated)
         );
         assert_eq!(DesiredTier::parse("unknown"), None);
+    }
+
+    // -----------------------------------------------------------------------
+    // [np-1] NodePoolOpRequest + validate() — RED tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn nodepool_op_request_validates_happy_path() {
+        // All four actions must succeed with valid identity and count.
+        for action in [
+            NodePoolAction::ScaleUp,
+            NodePoolAction::ScaleDown,
+            NodePoolAction::Cordon,
+            NodePoolAction::Drain,
+        ] {
+            let result = NodePoolOpRequest::new("ten_alpha", "dogfood-a", 3, action);
+            assert!(
+                result.is_ok(),
+                "expected Ok for action {action:?}, got {result:?}"
+            );
+            let req = result.unwrap();
+            assert_eq!(req.tenant_id, "ten_alpha");
+            assert_eq!(req.cluster_name, "dogfood-a");
+            assert_eq!(req.target_node_count, 3);
+            assert_eq!(req.action, action);
+        }
+    }
+
+    #[test]
+    fn nodepool_op_request_rejects_empty_tenant_id() {
+        assert!(matches!(
+            NodePoolOpRequest::new("", "dogfood-a", 3, NodePoolAction::ScaleUp),
+            Err(LifecycleValidationError::EmptyTenantId)
+        ));
+        // whitespace-only
+        assert!(matches!(
+            NodePoolOpRequest::new("  ", "dogfood-a", 3, NodePoolAction::Drain),
+            Err(LifecycleValidationError::EmptyTenantId)
+        ));
+    }
+
+    #[test]
+    fn nodepool_op_request_rejects_empty_cluster_name() {
+        assert!(matches!(
+            NodePoolOpRequest::new("ten_alpha", "", 3, NodePoolAction::ScaleUp),
+            Err(LifecycleValidationError::EmptyClusterName)
+        ));
+        assert!(matches!(
+            NodePoolOpRequest::new("ten_alpha", "\t", 3, NodePoolAction::Cordon),
+            Err(LifecycleValidationError::EmptyClusterName)
+        ));
+    }
+
+    #[test]
+    fn nodepool_op_request_rejects_zero_target() {
+        assert!(matches!(
+            NodePoolOpRequest::new("ten_alpha", "dogfood-a", 0, NodePoolAction::ScaleDown),
+            Err(LifecycleValidationError::ZeroTargetNodeCount)
+        ));
+    }
+
+    #[test]
+    fn nodepool_op_request_rejects_over_ceiling() {
+        assert!(matches!(
+            NodePoolOpRequest::new(
+                "ten_alpha",
+                "dogfood-a",
+                NODE_COUNT_CEILING + 1,
+                NodePoolAction::ScaleUp
+            ),
+            Err(LifecycleValidationError::TargetNodeCountExceedsFloor)
+        ));
+        // exactly at ceiling must be accepted
+        assert!(
+            NodePoolOpRequest::new("ten_alpha", "dogfood-a", NODE_COUNT_CEILING, NodePoolAction::ScaleUp).is_ok()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // [np-1] NodePoolAction serde round-trip — RED tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn nodepool_action_serde_roundtrip() {
+        let cases = [
+            (NodePoolAction::ScaleUp, "\"scale_up\""),
+            (NodePoolAction::ScaleDown, "\"scale_down\""),
+            (NodePoolAction::Cordon, "\"cordon\""),
+            (NodePoolAction::Drain, "\"drain\""),
+        ];
+        for (action, expected_json) in cases {
+            let serialized = serde_json::to_string(&action)
+                .unwrap_or_else(|e| panic!("serialize {action:?} failed: {e}"));
+            assert_eq!(
+                serialized, expected_json,
+                "JSON for {action:?} mismatch"
+            );
+            let roundtripped: NodePoolAction = serde_json::from_str(&serialized)
+                .unwrap_or_else(|e| panic!("deserialize {action:?} failed: {e}"));
+            assert_eq!(roundtripped, action, "round-trip mismatch for {action:?}");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // [np-2] evaluate_drain_admission — RED tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn drain_admission_denies_drain_target_zero() {
+        // drain_target == 0 is always denied
+        let result = evaluate_drain_admission(5, 0, DesiredTier::Hosted);
+        assert!(
+            matches!(result, DrainAdmission::Deny { .. }),
+            "expected Deny, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn drain_admission_denies_when_drain_target_equals_current_nodes() {
+        // drain_target >= current_nodes → Deny
+        let result = evaluate_drain_admission(5, 5, DesiredTier::Dedicated);
+        assert!(matches!(result, DrainAdmission::Deny { .. }));
+    }
+
+    #[test]
+    fn drain_admission_denies_when_drain_target_exceeds_current_nodes() {
+        let result = evaluate_drain_admission(3, 4, DesiredTier::Hosted);
+        assert!(matches!(result, DrainAdmission::Deny { .. }));
+    }
+
+    #[test]
+    fn drain_admission_denies_below_dedicated_floor() {
+        // Dedicated: floor = 3. current=4, drain=2 → remaining=2 < 3 → Deny
+        let result = evaluate_drain_admission(4, 2, DesiredTier::Dedicated);
+        assert!(matches!(result, DrainAdmission::Deny { .. }));
+    }
+
+    #[test]
+    fn drain_admission_denies_below_hosted_floor() {
+        // Hosted: floor = 1. current=2, drain=2 → drain_target==current → Deny (zero path)
+        let result = evaluate_drain_admission(2, 2, DesiredTier::Hosted);
+        assert!(matches!(result, DrainAdmission::Deny { .. }));
+    }
+
+    #[test]
+    fn drain_admission_allows_safe_hosted_drain() {
+        // Hosted: floor = 1. current=5, drain=2 → remaining=3 >= 1 → Allow
+        let result = evaluate_drain_admission(5, 2, DesiredTier::Hosted);
+        assert!(
+            matches!(result, DrainAdmission::Allow),
+            "expected Allow, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn drain_admission_allows_safe_dedicated_drain() {
+        // Dedicated: floor = 3. current=6, drain=2 → remaining=4 >= 3 → Allow
+        let result = evaluate_drain_admission(6, 2, DesiredTier::Dedicated);
+        assert!(
+            matches!(result, DrainAdmission::Allow),
+            "expected Allow, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn drain_admission_deterministic() {
+        // Same inputs called twice must return the same variant.
+        let a = evaluate_drain_admission(6, 2, DesiredTier::Dedicated);
+        let b = evaluate_drain_admission(6, 2, DesiredTier::Dedicated);
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn drain_admission_deny_reason_is_non_empty() {
+        // Deny variants must carry a meaningful reason string.
+        match evaluate_drain_admission(4, 2, DesiredTier::Dedicated) {
+            DrainAdmission::Deny { reason } => {
+                assert!(!reason.is_empty(), "Deny reason must not be empty");
+            }
+            DrainAdmission::Allow => panic!("expected Deny, got Allow"),
+        }
     }
 }
