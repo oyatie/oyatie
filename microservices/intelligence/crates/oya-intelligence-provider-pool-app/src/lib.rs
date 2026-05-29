@@ -1284,6 +1284,126 @@ impl HyperProviderInvocationTransport {
         }
     }
 
+    /// Internal async streaming dispatch — TRUE byte-passthrough of the upstream
+    /// SSE/chunked body. Never buffers, parses, or logs the body.
+    ///
+    /// Sends items to `tx` (a `tokio::sync::mpsc::Sender`) so the caller can
+    /// return the `Receiver` as a stream without a self-referential borrow.
+    ///
+    /// Status classification (mirrors `do_dispatch`):
+    /// - 5xx + network error → single `Err(Retryable)` item, then channel closed.
+    /// - 4xx (≠ 429) → single `Err(NonRetryable)` item, then channel closed.
+    /// - 429 → single `Err(Retryable { .. "429 (rate-limited)" .. })`, channel closed.
+    /// - 2xx → body data frames yielded as `Ok(chunk)` in arrival order; channel
+    ///   closed after the final frame (EOF).
+    async fn do_dispatch_stream(
+        upstream_url: String,
+        auth_headers: Vec<(String, String)>,
+        body: Bytes,
+        tx: tokio::sync::mpsc::Sender<Result<Bytes, TransportError>>,
+    ) {
+        // Build hyper request. Identical to `do_dispatch` minus the URL/auth
+        // computation (already resolved by the caller).
+        let mut req_builder = hyper::Request::builder()
+            .method(hyper::Method::POST)
+            .uri(&upstream_url)
+            .header(hyper::header::CONTENT_TYPE, "application/json");
+
+        for (name, value) in &auth_headers {
+            req_builder = req_builder.header(name.as_str(), value.as_str());
+        }
+
+        let hyper_request = match req_builder
+            .body(http_body_util::Full::new(body))
+            .map_err(|e| TransportError::Retryable {
+                detail: format!("stream request build error: {e}"),
+            }) {
+            Ok(r) => r,
+            Err(e) => {
+                let _ = tx.send(Err(e)).await;
+                return;
+            }
+        };
+
+        let client = get_or_init_client();
+        let response = match client.request(hyper_request).await {
+            Ok(r) => r,
+            Err(e) => {
+                let _ = tx
+                    .send(Err(TransportError::Retryable {
+                        detail: format!("upstream network error: {e}"),
+                    }))
+                    .await;
+                return;
+            }
+        };
+
+        let status = response.status().as_u16();
+
+        // Classify status before touching the body. Same four-way decision as
+        // `do_dispatch`, but 429 is also treated as Retryable here since the
+        // streaming dispatch loop cannot inspect Retry-After headers from
+        // mid-stream — the caller's `dispatch_to_pool_stream` handles health
+        // recording the same way as a first-byte retryable.
+        match classify_status(status) {
+            StatusClass::Success => {
+                // Fall through to body streaming below.
+            }
+            StatusClass::Retryable | StatusClass::RateLimited => {
+                let detail = if status == 429 {
+                    "upstream returned 429 (rate-limited) on streaming request".to_string()
+                } else {
+                    format!("upstream returned {status}")
+                };
+                let _ = tx.send(Err(TransportError::Retryable { detail })).await;
+                return;
+            }
+            StatusClass::NonRetryable => {
+                let _ = tx
+                    .send(Err(TransportError::NonRetryable {
+                        detail: format!("upstream returned {status}"),
+                    }))
+                    .await;
+                return;
+            }
+        }
+
+        // 2xx — stream body data frames chunk-by-chunk without buffering.
+        // `BodyDataStream` wraps `hyper::body::Incoming` and yields each data
+        // frame as `Result<Bytes, hyper::Error>`, skipping trailer frames.
+        use futures_util::StreamExt as _;
+        use http_body_util::BodyExt as _;
+        let mut data_stream = response.into_body().into_data_stream();
+
+        while let Some(chunk_result) = data_stream.next().await {
+            match chunk_result {
+                Ok(chunk) if chunk.is_empty() => {
+                    // Skip empty frames; do not signal EOF prematurely.
+                }
+                Ok(chunk) => {
+                    // If the receiver is gone, the caller dropped the stream —
+                    // stop pumping silently (no panic on send error).
+                    if tx.send(Ok(chunk)).await.is_err() {
+                        return;
+                    }
+                }
+                Err(e) => {
+                    // Mid-stream transport error — surface as Retryable (the
+                    // caller's dispatch loop MUST NOT walk the chain at this
+                    // point since ≥1 chunk may already have been delivered).
+                    let _ = tx
+                        .send(Err(TransportError::Retryable {
+                            detail: format!("upstream mid-stream error: {e}"),
+                        }))
+                        .await;
+                    return;
+                }
+            }
+        }
+        // Channel drops naturally when this function returns, signaling EOF to
+        // the ReceiverStream on the other end.
+    }
+
     /// Internal async dispatch implementation — extracted so the
     /// `ProviderInvocationTransport` trait impl can box it cleanly.
     async fn do_dispatch(
@@ -1430,18 +1550,43 @@ impl ProviderInvocationTransport for HyperProviderInvocationTransport {
     fn dispatch_stream(
         &self,
         _account_id: ProviderAccountId,
-        _provider: ProviderFamily,
-        _credential: ProviderCredential,
-        _body: Bytes,
+        provider: ProviderFamily,
+        credential: ProviderCredential,
+        body: Bytes,
     ) -> Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send + '_>> {
-        // Streaming is a separate slice; honest-claims boundary maintained.
-        let detail = format!(
-            "{} — see registry/placeholder-debt/adr-follow-ups.yaml#{}",
-            Unimplemented::OpenBaoSecretResolution.as_str(),
-            Unimplemented::OpenBaoSecretResolution.placeholder_debt_id()
-        );
-        Box::pin(futures_util::stream::once(async move {
-            Err(TransportError::NonRetryable { detail })
+        // Resolve URL and auth headers synchronously (no async needed).
+        let upstream_url = match self.upstream_url(provider) {
+            Ok(u) => u,
+            Err(e) => {
+                return Box::pin(futures_util::stream::once(async move { Err(e) }));
+            }
+        };
+        let auth_headers = match Self::auth_headers(provider, &credential) {
+            Ok(h) => h,
+            Err(e) => {
+                return Box::pin(futures_util::stream::once(async move { Err(e) }));
+            }
+        };
+
+        // Channel capacity 64 keeps memory bounded while allowing the hyper
+        // pump task to stay ahead of a slow consumer by a handful of chunks.
+        let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, TransportError>>(64);
+
+        // Spawn the pump task. It owns `upstream_url`, `auth_headers`, `body`,
+        // and `tx`. It pumps body frames into the channel until EOF or error,
+        // then drops `tx` (which closes the channel → ReceiverStream ends).
+        tokio::spawn(Self::do_dispatch_stream(
+            upstream_url,
+            auth_headers,
+            body,
+            tx,
+        ));
+
+        // Convert the mpsc Receiver into a Stream using tokio_stream-style
+        // unfold (avoids adding tokio-stream as a dep; `futures_util::stream`
+        // has `unfold` which works with async closures).
+        Box::pin(futures_util::stream::unfold(rx, |mut rx| async move {
+            rx.recv().await.map(|item| (item, rx))
         }))
     }
 }
@@ -2681,6 +2826,252 @@ mod tests {
         assert!(
             matches!(err, TransportError::Retryable { .. }),
             "network error must be Retryable, got {err:?}"
+        );
+    }
+
+    // ── dispatch_stream hermetic tests (in-process HTTP/1.1 mock server) ─────
+
+    /// Spawn a minimal in-process HTTP/1.1 SSE server that sends the supplied
+    /// byte chunks concatenated as a single response body. The server serves
+    /// exactly ONE connection then exits. `content_type` is included in the
+    /// response headers.
+    ///
+    /// Note: HTTP/1.1 hyper may split the body across multiple recv frames on
+    /// the client side regardless of how many logical "chunks" were written by
+    /// the server. The tests assert on the *concatenated* bytes, not per-chunk
+    /// alignment — which is correct for byte-passthrough testing.
+    async fn spawn_streaming_server(
+        response_status: u16,
+        content_type: &'static str,
+        chunks: &'static [&'static [u8]],
+    ) -> u16 {
+        use hyper::server::conn::http1;
+        use hyper::service::service_fn;
+        use hyper_util::rt::TokioIo;
+        use tokio::net::TcpListener;
+
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind streaming server");
+        let port = listener.local_addr().expect("local_addr").port();
+
+        tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.expect("accept");
+            let io = TokioIo::new(stream);
+
+            let svc = service_fn(move |req: hyper::Request<hyper::body::Incoming>| {
+                let rs = response_status;
+                let ct = content_type;
+                let ch = chunks;
+                async move {
+                    use http_body_util::BodyExt as _;
+                    // Drain request body.
+                    let _ = req.collect().await;
+
+                    // Concatenate all chunks into a single Bytes body. We use
+                    // Full<Bytes> since it is the body type already used by the
+                    // existing test helpers and requires no extra Frame API.
+                    let body_bytes: bytes::Bytes = ch
+                        .iter()
+                        .flat_map(|b| b.iter().copied())
+                        .collect::<Vec<u8>>()
+                        .into();
+
+                    let resp = hyper::Response::builder()
+                        .status(rs)
+                        .header("content-type", ct)
+                        .body(http_body_util::Full::new(body_bytes))
+                        .expect("build streaming response");
+                    Ok::<_, std::convert::Infallible>(resp)
+                }
+            });
+
+            let _ = http1::Builder::new()
+                .keep_alive(false)
+                .serve_connection(io, svc)
+                .await;
+        });
+
+        // Give the spawned server task a moment to start before returning the
+        // port so the transport can connect immediately.
+        tokio::task::yield_now().await;
+        port
+    }
+
+    /// Helper: collect all items from `dispatch_stream` into `(ok_chunks, first_err)`.
+    async fn collect_stream(
+        transport: &HyperProviderInvocationTransport,
+        account_id: ProviderAccountId,
+        provider: ProviderFamily,
+        credential: ProviderCredential,
+        body: Bytes,
+    ) -> (Vec<Bytes>, Option<TransportError>) {
+        use futures_util::StreamExt as _;
+        let mut stream = transport.dispatch_stream(account_id, provider, credential, body);
+        let mut ok_chunks: Vec<Bytes> = Vec::new();
+        let mut first_err: Option<TransportError> = None;
+        while let Some(item) = stream.next().await {
+            match item {
+                Ok(chunk) => ok_chunks.push(chunk),
+                Err(e) => {
+                    first_err = Some(e);
+                    break;
+                }
+            }
+        }
+        (ok_chunks, first_err)
+    }
+
+    fn stream_credential(token: &str) -> ProviderCredential {
+        ProviderCredential::new(Bytes::copy_from_slice(token.as_bytes()))
+    }
+
+    /// AC: 200 response — body bytes are yielded chunk-by-chunk, byte-exact,
+    /// never buffered or parsed. The concatenation of all chunks equals the
+    /// full server body.
+    #[tokio::test]
+    async fn hyper_transport_stream_200_passthrough_byte_exact() {
+        const CHUNKS: &[&[u8]] = &[
+            b"data: {\"type\":\"content_block_delta\",\"delta\":{\"text\":\"Hello\"}}\n\n",
+            b"data: {\"type\":\"content_block_delta\",\"delta\":{\"text\":\" world\"}}\n\n",
+            b"data: {\"type\":\"message_stop\"}\n\ndata: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":4}}\n\n",
+        ];
+        let port = spawn_streaming_server(200, "text/event-stream", CHUNKS).await;
+        let transport = HyperProviderInvocationTransport::new(format!("http://127.0.0.1:{port}"));
+        let cred = stream_credential("tok_stream_test");
+
+        let (chunks, err) = collect_stream(
+            &transport,
+            ProviderAccountId("any-account".into()),
+            ProviderFamily::Claude,
+            cred,
+            Bytes::from_static(b"{}"),
+        )
+        .await;
+
+        assert!(err.is_none(), "200 stream must not yield an error; got {err:?}");
+        // All chunks must arrive; concatenation must be byte-exact.
+        let expected: Bytes = CHUNKS.iter().flat_map(|c| c.iter().copied()).collect();
+        let got: Bytes = chunks.into_iter().flatten().collect();
+        assert_eq!(
+            got, expected,
+            "concatenated chunks must equal full server body"
+        );
+    }
+
+    /// AC: 5xx before any body → first stream item is Err(Retryable).
+    #[tokio::test]
+    async fn hyper_transport_stream_5xx_first_byte_retryable() {
+        let port = spawn_test_server(500, vec![], b"").await;
+        let transport = HyperProviderInvocationTransport::new(format!("http://127.0.0.1:{port}"));
+        let cred = stream_credential("tok_5xx");
+
+        let (ok_chunks, err) = collect_stream(
+            &transport,
+            ProviderAccountId("any".into()),
+            ProviderFamily::Claude,
+            cred,
+            Bytes::from_static(b"{}"),
+        )
+        .await;
+
+        assert!(
+            ok_chunks.is_empty(),
+            "5xx must yield no Ok chunks; got {ok_chunks:?}"
+        );
+        assert!(
+            matches!(err, Some(TransportError::Retryable { .. })),
+            "5xx must yield Err(Retryable) as first item; got {err:?}"
+        );
+    }
+
+    /// AC: 4xx (non-429) before any body → first stream item is Err(NonRetryable).
+    #[tokio::test]
+    async fn hyper_transport_stream_4xx_first_byte_non_retryable() {
+        let port = spawn_test_server(422, vec![], b"{\"error\":\"unprocessable\"}").await;
+        let transport = HyperProviderInvocationTransport::new(format!("http://127.0.0.1:{port}"));
+        let cred = stream_credential("tok_4xx");
+
+        let (ok_chunks, err) = collect_stream(
+            &transport,
+            ProviderAccountId("any".into()),
+            ProviderFamily::OpenAiOrCodex,
+            cred,
+            Bytes::from_static(b"{}"),
+        )
+        .await;
+
+        assert!(
+            ok_chunks.is_empty(),
+            "4xx must yield no Ok chunks; got {ok_chunks:?}"
+        );
+        assert!(
+            matches!(err, Some(TransportError::NonRetryable { .. })),
+            "4xx must yield Err(NonRetryable) as first item; got {err:?}"
+        );
+    }
+
+    /// AC: terminal SSE event (message_stop + usage frame) is NEVER dropped.
+    /// The final chunk must arrive — this verifies the EOF flush semantics.
+    #[tokio::test]
+    async fn hyper_transport_stream_terminal_event_not_dropped() {
+        // The last chunk deliberately contains the terminal event + usage frame
+        // that would be lost if the body stream were cut short.
+        const CHUNKS: &[&[u8]] = &[
+            b"data: {\"type\":\"content_block_delta\",\"delta\":{\"text\":\"token1\"}}\n\n",
+            b"data: {\"type\":\"content_block_delta\",\"delta\":{\"text\":\"token2\"}}\n\n",
+            // Terminal event + usage frame — must NOT be dropped.
+            b"data: {\"type\":\"message_stop\"}\n\ndata: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":2}}\n\n",
+        ];
+        let port = spawn_streaming_server(200, "text/event-stream", CHUNKS).await;
+        let transport = HyperProviderInvocationTransport::new(format!("http://127.0.0.1:{port}"));
+        let cred = stream_credential("tok_terminal");
+
+        let (chunks, err) = collect_stream(
+            &transport,
+            ProviderAccountId("any".into()),
+            ProviderFamily::Claude,
+            cred,
+            Bytes::from_static(b"{}"),
+        )
+        .await;
+
+        assert!(err.is_none(), "terminal stream must not yield an error");
+
+        let all_bytes: Vec<u8> = chunks.into_iter().flatten().collect();
+        let all_str = std::str::from_utf8(&all_bytes).expect("UTF-8 body");
+        assert!(
+            all_str.contains("message_stop"),
+            "terminal message_stop event must be present in received bytes; got: {all_str}"
+        );
+        assert!(
+            all_str.contains("output_tokens"),
+            "usage frame must be present in received bytes; got: {all_str}"
+        );
+    }
+
+    /// AC: 200 with empty body → stream yields zero Ok items and ends cleanly
+    /// (no error, no panic).
+    #[tokio::test]
+    async fn hyper_transport_stream_empty_body_clean_end() {
+        let port = spawn_test_server(200, vec![("content-type", "text/event-stream")], b"").await;
+        let transport = HyperProviderInvocationTransport::new(format!("http://127.0.0.1:{port}"));
+        let cred = stream_credential("tok_empty");
+
+        let (chunks, err) = collect_stream(
+            &transport,
+            ProviderAccountId("any".into()),
+            ProviderFamily::Claude,
+            cred,
+            Bytes::from_static(b"{}"),
+        )
+        .await;
+
+        assert!(err.is_none(), "empty body must not yield an error; got {err:?}");
+        // Empty body: no data frames arrive; stream ends cleanly.
+        assert!(
+            chunks.is_empty(),
+            "empty body must yield zero Ok chunks; got {chunks:?}"
         );
     }
 }
