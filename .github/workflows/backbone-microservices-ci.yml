@@ -32,6 +32,10 @@ on:
       - "crates/oya-shared-transactional-outbox-runtime-tokio-app/**"
       - "crates/oya-policy-cedar-domain/**"
       - "microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml"
+      - "microservices/messenger/iac/k8s/helm/**"
+      - "microservices/mail/iac/k8s/helm/**"
+      - "microservices/social/iac/k8s/helm/**"
+      - "microservices/community/iac/k8s/helm/**"
       - "microservices/messenger/ci/Jenkinsfile"
       - "microservices/mail/ci/Jenkinsfile"
       - "microservices/social/ci/Jenkinsfile"
@@ -75,6 +79,10 @@ on:
       - "crates/oya-shared-transactional-outbox-runtime-tokio-app/**"
       - "crates/oya-policy-cedar-domain/**"
       - "microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml"
+      - "microservices/messenger/iac/k8s/helm/**"
+      - "microservices/mail/iac/k8s/helm/**"
+      - "microservices/social/iac/k8s/helm/**"
+      - "microservices/community/iac/k8s/helm/**"
       - "microservices/messenger/ci/Jenkinsfile"
       - "microservices/mail/ci/Jenkinsfile"
       - "microservices/social/ci/Jenkinsfile"
@@ -289,9 +297,9 @@ jobs:
           toolchain: stable
       - name: cargo-prefix gate
         run: ./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-
-      - name: Parse backbone evidence, proto contracts, and shared catalog rows
+      - name: Parse backbone evidence, proto contracts, Gateway chart seams, and shared catalog rows
         run: |
-          ruby -rjson -ryaml -e 'ARGV.each { |path| path.end_with?(".json") ? JSON.parse(File.read(path)) : path.end_with?(".proto") ? File.read(path) : YAML.safe_load(File.read(path), permitted_classes: [Symbol], aliases: true) }; puts "parsed #{ARGV.length} files"' \
+          ruby -rjson -ryaml -e 'ARGV.each { |path| text = File.read(path); if path.end_with?(".json") then JSON.parse(text) elsif path.end_with?(".proto") then raise "#{path} is empty" if text.empty? elsif path.include?("/templates/") then required = ["apiVersion: gateway.networking.k8s.io/v1", "kind: HTTPRoute", "parentRefs:", "backendRefs:", "oyatie.com/non-claim:"]; missing = required.reject { |needle| text.include?(needle) }; raise "#{path} missing #{missing.join(", ")}" unless missing.empty? else YAML.safe_load(text, permitted_classes: [Symbol], aliases: true) end }; puts "parsed #{ARGV.length} files"' \
             evidence/multispectrum/backbone-microservices-protocol-parity-20260523.json \
             evidence/multispectrum/backbone-microservices-proto-contracts-20260523.json \
             specs/proto/backbone/messenger/message_stream.proto \
@@ -299,6 +307,14 @@ jobs:
             specs/proto/backbone/social/social_post_composition.proto \
             specs/proto/backbone/community/community_post_store.proto \
             microservices/cloud-iac/iac/oyatie-cloud-provider/argocd/apps/backbone-microservices-applicationset.yaml \
+            microservices/messenger/iac/k8s/helm/values.yaml \
+            microservices/mail/iac/k8s/helm/values.yaml \
+            microservices/social/iac/k8s/helm/values.yaml \
+            microservices/community/iac/k8s/helm/values.yaml \
+            microservices/messenger/iac/k8s/helm/templates/httproute.yaml \
+            microservices/mail/iac/k8s/helm/templates/httproute.yaml \
+            microservices/social/iac/k8s/helm/templates/httproute.yaml \
+            microservices/community/iac/k8s/helm/templates/httproute.yaml \
             registry/catalog/oya-shared-postgres-command-kernel.yaml \
             registry/catalog/oya-shared-postgres-command-adapter-sqlx.yaml \
             registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml \
