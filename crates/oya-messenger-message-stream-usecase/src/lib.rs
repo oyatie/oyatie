@@ -2,8 +2,8 @@
 
 pub mod delivery_receipt;
 pub use delivery_receipt::{
-    acknowledge_delivery, aggregate_channel_delivery, ChannelDeliveryAggregate, DeliveryStatus,
-    RecipientDeliveryState,
+    ChannelDeliveryAggregate, DeliveryStatus, RecipientDeliveryState, acknowledge_delivery,
+    aggregate_channel_delivery,
 };
 
 use oya_messenger_domain::{
