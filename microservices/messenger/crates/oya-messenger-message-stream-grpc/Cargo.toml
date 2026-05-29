@@ -1,0 +1,21 @@
+[package]
+name = "oya-messenger-message-stream-grpc"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-messenger-app = { path = "../oya-messenger-app" }
+oya-messenger-message-stream-api = { path = "../oya-messenger-message-stream-api" }
+oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
+
+[lib]
+name = "oya_messenger_message_stream_grpc"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
