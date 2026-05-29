@@ -812,6 +812,217 @@ pub fn reconcile_gitops_drift(
     }
 }
 
+// ---------------------------------------------------------------------------
+// IaC plan-diff model
+// ---------------------------------------------------------------------------
+
+/// The action to take on a single `(module_ref, cell_id)` resource pair.
+///
+/// Ord rank (natural declaration order): `NoChange < Create < Update < Destroy`.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum PlanAction {
+    /// The resource is present in both desired and observed with an identical
+    /// `OpenTofuModuleRef` — no change required.
+    NoChange,
+    /// The resource exists in the desired topology but not in the observed one —
+    /// it must be created.
+    Create,
+    /// The resource exists in both topologies but the `OpenTofuModuleRef`
+    /// (namespace / name / system / version) differs — it must be updated.
+    Update,
+    /// The resource exists in the observed topology but not in the desired one —
+    /// it must be destroyed.
+    Destroy,
+}
+
+/// A single entry in an [`IacPlanDiffReport`].
+///
+/// Keyed by `(module_ref, cell_id)`; carries the [`PlanAction`] for that pair.
+/// Natural sort order: `module_ref` → `cell_id` → `action`.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PlanDiffEntry {
+    /// The OpenTofu module reference this entry describes.
+    pub module_ref: OpenTofuModuleRef,
+    /// The cell this entry applies to.
+    pub cell_id: String,
+    /// The action required for this `(module_ref, cell_id)` pair.
+    pub action: PlanAction,
+}
+
+/// Aggregate verdict of an [`IacPlanDiffReport`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum IacPlanDiffVerdict {
+    /// All entries are `NoChange` — topologies are fully converged.
+    Converged,
+    /// At least one `Create`, `Update`, or `Destroy` entry exists.
+    HasChanges,
+    /// The identity tuple `(topology_id, region)` or a cell `tenant_id` differs
+    /// between desired and observed.  Fail-closed: never silently `NoChange`.
+    IdentityMismatch,
+}
+
+/// Report returned by [`compute_iac_plan_diff`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IacPlanDiffReport {
+    /// The aggregate verdict.
+    pub verdict: IacPlanDiffVerdict,
+    /// Per-resource diff entries, sorted by natural `Ord` of [`PlanDiffEntry`].
+    /// Empty when `verdict` is [`IacPlanDiffVerdict::IdentityMismatch`].
+    pub entries: Vec<PlanDiffEntry>,
+}
+
+/// Compare a desired [`CellTopologyPlan`] against an observed one and return a
+/// deterministic, sorted [`IacPlanDiffReport`].
+///
+/// # Identity contract
+///
+/// `desired` and `observed` must share the same `topology_id` and `region`, and
+/// every cell present in either topology must have the same `tenant_id` for the
+/// same `cell_id`.  Any mismatch returns
+/// [`IacPlanDiffVerdict::IdentityMismatch`] with an empty `entries` vec — the
+/// function never silently treats an identity mismatch as `NoChange`.
+///
+/// # Diff algorithm
+///
+/// For each `(module_ref, cell_id)` pair appearing in either topology:
+///
+/// | Desired | Observed | Action |
+/// |---------|----------|--------|
+/// | present | absent   | `Create` |
+/// | absent  | present  | `Destroy` |
+/// | present | same ref | `NoChange` |
+/// | present | different ref | `Update` |
+///
+/// # Determinism
+///
+/// The function has no I/O, no clocks, no randomness, and no `HashMap`.
+/// `entries` is sorted via [`Vec::sort`] on the natural `Ord` of
+/// [`PlanDiffEntry`].  Identical inputs always produce identical output.
+pub fn compute_iac_plan_diff(
+    desired: &CellTopologyPlan,
+    observed: &CellTopologyPlan,
+) -> IacPlanDiffReport {
+    // --- identity check (fail-closed) ----------------------------------------
+    if desired.topology_id() != observed.topology_id()
+        || desired.region() != observed.region()
+    {
+        return IacPlanDiffReport {
+            verdict: IacPlanDiffVerdict::IdentityMismatch,
+            entries: vec![],
+        };
+    }
+    // Build cell_id → tenant_id maps for both sides and cross-check.
+    let desired_tenants: std::collections::BTreeMap<&str, &str> = desired
+        .cells()
+        .iter()
+        .map(|c| (c.cell_id(), c.tenant_id()))
+        .collect();
+    let observed_tenants: std::collections::BTreeMap<&str, &str> = observed
+        .cells()
+        .iter()
+        .map(|c| (c.cell_id(), c.tenant_id()))
+        .collect();
+    // Any cell present in both must agree on tenant_id.
+    for (cell_id, desired_tenant) in &desired_tenants {
+        if observed_tenants
+            .get(cell_id)
+            .is_some_and(|observed_tenant| desired_tenant != observed_tenant)
+        {
+            return IacPlanDiffReport {
+                verdict: IacPlanDiffVerdict::IdentityMismatch,
+                entries: vec![],
+            };
+        }
+    }
+
+    // --- diff ----------------------------------------------------------------
+    // Collect all unique (namespace+name+system, cell_id) keys to detect Update.
+    // Two refs with the same (namespace, name, system) but different version on
+    // the same cell_id constitute an Update.
+    // Key without version: (namespace, name, system, cell_id).
+    type UnversionedKey = (String, String, String, String);
+    let mut desired_unversioned: std::collections::BTreeMap<UnversionedKey, OpenTofuModuleRef> =
+        std::collections::BTreeMap::new();
+    for cell in desired.cells() {
+        for r in cell.module_refs() {
+            let k = (
+                r.namespace().to_string(),
+                r.name().to_string(),
+                r.system().to_string(),
+                cell.cell_id().to_string(),
+            );
+            desired_unversioned.insert(k, r.clone());
+        }
+    }
+    let mut observed_unversioned: std::collections::BTreeMap<UnversionedKey, OpenTofuModuleRef> =
+        std::collections::BTreeMap::new();
+    for cell in observed.cells() {
+        for r in cell.module_refs() {
+            let k = (
+                r.namespace().to_string(),
+                r.name().to_string(),
+                r.system().to_string(),
+                cell.cell_id().to_string(),
+            );
+            observed_unversioned.insert(k, r.clone());
+        }
+    }
+
+    let mut entries: Vec<PlanDiffEntry> = Vec::new();
+
+    // Entries present in desired (Create / NoChange / Update).
+    for ((ns, name, sys, cell_id), desired_ref) in &desired_unversioned {
+        let k = (ns.clone(), name.clone(), sys.clone(), cell_id.clone());
+        if let Some(observed_ref) = observed_unversioned.get(&k) {
+            if desired_ref == observed_ref {
+                entries.push(PlanDiffEntry {
+                    module_ref: desired_ref.clone(),
+                    cell_id: cell_id.clone(),
+                    action: PlanAction::NoChange,
+                });
+            } else {
+                // Version (or other field) changed — emit Update with the desired ref.
+                entries.push(PlanDiffEntry {
+                    module_ref: desired_ref.clone(),
+                    cell_id: cell_id.clone(),
+                    action: PlanAction::Update,
+                });
+            }
+        } else {
+            entries.push(PlanDiffEntry {
+                module_ref: desired_ref.clone(),
+                cell_id: cell_id.clone(),
+                action: PlanAction::Create,
+            });
+        }
+    }
+
+    // Entries present in observed but not desired (Destroy).
+    for ((ns, name, sys, cell_id), observed_ref) in &observed_unversioned {
+        let k = (ns.clone(), name.clone(), sys.clone(), cell_id.clone());
+        if !desired_unversioned.contains_key(&k) {
+            entries.push(PlanDiffEntry {
+                module_ref: observed_ref.clone(),
+                cell_id: cell_id.clone(),
+                action: PlanAction::Destroy,
+            });
+        }
+    }
+
+    entries.sort();
+
+    let verdict = if entries
+        .iter()
+        .all(|e| e.action == PlanAction::NoChange)
+    {
+        IacPlanDiffVerdict::Converged
+    } else {
+        IacPlanDiffVerdict::HasChanges
+    };
+
+    IacPlanDiffReport { verdict, entries }
+}
+
 fn validate_slug(value: &str) -> Result<(), ()> {
     if value.trim().is_empty() {
         return Err(());
