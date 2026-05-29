@@ -71,7 +71,7 @@ PayrollVarianceVerdict {
 | Variant | Trigger |
 |---|---|
 | `VarianceToleranceRequired` | `variance_tolerance_bps == 0` |
-| `MissingBaselineForPayee` | reserved for future strict-mode; current impl uses `DroppedPayee` flag |
+| `MissingBaselineForPayee` | a current-period payee has no matching prior-period baseline entry; aborts the whole verdict so the caller can handle new-payee onboarding explicitly |
 
 ### Entry-point function
 
