@@ -32,6 +32,12 @@ pub struct RegistryViews {
 /// [`CapabilityStatus::is_invocable`]; an entry may appear in both maps, one,
 /// or neither.
 ///
+/// # Duplicate IDs
+///
+/// When the same [`CapabilityId`] appears more than once, the **last** entry
+/// wins (consistent with [`BTreeMap::insert`] semantics applied after
+/// deduplication).
+///
 /// # Ordering
 ///
 /// Both output maps are [`BTreeMap`]-backed, giving lexicographic ordering on
@@ -39,10 +45,13 @@ pub struct RegistryViews {
 pub fn partition_views(
     entries: impl IntoIterator<Item = (CapabilityId, CapabilityStatus)>,
 ) -> RegistryViews {
+    // Deduplicate first: last-writer-wins on duplicate IDs.
+    let deduped: BTreeMap<CapabilityId, CapabilityStatus> = entries.into_iter().collect();
+
     let mut discoverable = BTreeMap::new();
     let mut invocable = BTreeMap::new();
 
-    for (id, status) in entries {
+    for (id, status) in deduped {
         if status.is_discoverable() {
             discoverable.insert(id.clone(), status);
         }
