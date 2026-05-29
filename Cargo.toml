@@ -703,6 +703,8 @@ members = [
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
   "microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
+  # ADR-0508 Phase-1: authenticator-side WebAuthn firmware stub (OpenSK reference)
+  "microservices/oya-authn-device-firmware",
 ]
 resolver = "2"
 
