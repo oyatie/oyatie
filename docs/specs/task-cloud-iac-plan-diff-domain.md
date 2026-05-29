@@ -65,8 +65,9 @@ pub enum IacPlanDiffVerdict {
     Converged,
     /// At least one Create / Update / Destroy entry exists.
     HasChanges,
-    /// The identity tuple (topology_id, tenant_id, region) differs between
-    /// desired and observed.  Fail-closed: never silently treated as NoChange.
+    /// The top-level identity (topology_id, region) differs between desired and
+    /// observed, OR a shared cell_id carries mismatched tenant_id values.
+    /// Fail-closed: never silently treated as NoChange.
     IdentityMismatch,
 }
 ```

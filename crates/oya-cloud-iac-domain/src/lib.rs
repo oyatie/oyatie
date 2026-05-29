@@ -924,34 +924,18 @@ pub fn compute_iac_plan_diff(
         .collect();
     // Any cell present in both must agree on tenant_id.
     for (cell_id, desired_tenant) in &desired_tenants {
-        if let Some(observed_tenant) = observed_tenants.get(cell_id) {
-            if desired_tenant != observed_tenant {
-                return IacPlanDiffReport {
-                    verdict: IacPlanDiffVerdict::IdentityMismatch,
-                    entries: vec![],
-                };
-            }
+        if observed_tenants
+            .get(cell_id)
+            .is_some_and(|observed_tenant| desired_tenant != observed_tenant)
+        {
+            return IacPlanDiffReport {
+                verdict: IacPlanDiffVerdict::IdentityMismatch,
+                entries: vec![],
+            };
         }
     }
 
     // --- diff ----------------------------------------------------------------
-    // Build (module_ref, cell_id) → bool maps for desired and observed.
-    // Use BTreeMap to guarantee deterministic iteration order.
-    let mut desired_set: std::collections::BTreeMap<(OpenTofuModuleRef, String), ()> =
-        std::collections::BTreeMap::new();
-    for cell in desired.cells() {
-        for module_ref in cell.module_refs() {
-            desired_set.insert((module_ref.clone(), cell.cell_id().to_string()), ());
-        }
-    }
-    let mut observed_set: std::collections::BTreeMap<(OpenTofuModuleRef, String), ()> =
-        std::collections::BTreeMap::new();
-    for cell in observed.cells() {
-        for module_ref in cell.module_refs() {
-            observed_set.insert((module_ref.clone(), cell.cell_id().to_string()), ());
-        }
-    }
-
     // Collect all unique (namespace+name+system, cell_id) keys to detect Update.
     // Two refs with the same (namespace, name, system) but different version on
     // the same cell_id constitute an Update.
