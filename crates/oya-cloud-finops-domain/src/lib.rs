@@ -859,6 +859,88 @@ fn detect_anomalies(
     Ok(anomalies)
 }
 
+/// Derive a deterministic list of [`FinopsRecommendation`] values from a slice of
+/// [`CostAnomaly`] values.
+///
+/// Mapping rules:
+/// - [`CostAnomalyKind::SpendSpike`] → [`RecommendationKind::InvestigateSpendSpike`]; when the
+///   anomaly also carries a `resource_id`, an additional [`RecommendationKind::DownsizeResource`]
+///   recommendation is emitted for that resource.
+/// - [`CostAnomalyKind::BudgetSoftLimit`] | [`CostAnomalyKind::BudgetHardLimit`] →
+///   [`RecommendationKind::PurchaseCommitment`].
+/// - [`CostAnomalyKind::MarginBelowTarget`] → [`RecommendationKind::ReviewRateCard`].
+///
+/// Recommendation IDs are minted deterministically from `id_seed` so that calling this
+/// function twice with the same `anomalies` and `id_seed` produces identical output.
+///
+/// # Panics
+///
+/// Never panics; returns an empty `Vec` for an empty slice.
+pub fn recommend_from_anomalies(
+    anomalies: &[CostAnomaly],
+    id_seed: u64,
+) -> Vec<FinopsRecommendation> {
+    let mut output = Vec::new();
+    let mut slot: u64 = 0;
+    for anomaly in anomalies {
+        match anomaly.kind {
+            CostAnomalyKind::SpendSpike => {
+                let id_str = format!("{RECOMMENDATION_ID_PREFIX}s{id_seed}p{slot}");
+                if let Ok(id) = RecommendationId::new(id_str) {
+                    output.push(FinopsRecommendation {
+                        id,
+                        kind: RecommendationKind::InvestigateSpendSpike,
+                        axis: anomaly.axis,
+                        resource_id: anomaly.resource_id.clone(),
+                        evidence_anomaly: anomaly.kind,
+                    });
+                }
+                slot += 1;
+                if anomaly.resource_id.is_some() {
+                    let id_str = format!("{RECOMMENDATION_ID_PREFIX}s{id_seed}p{slot}");
+                    if let Ok(id) = RecommendationId::new(id_str) {
+                        output.push(FinopsRecommendation {
+                            id,
+                            kind: RecommendationKind::DownsizeResource,
+                            axis: anomaly.axis,
+                            resource_id: anomaly.resource_id.clone(),
+                            evidence_anomaly: anomaly.kind,
+                        });
+                    }
+                    slot += 1;
+                }
+            }
+            CostAnomalyKind::BudgetSoftLimit | CostAnomalyKind::BudgetHardLimit => {
+                let id_str = format!("{RECOMMENDATION_ID_PREFIX}s{id_seed}p{slot}");
+                if let Ok(id) = RecommendationId::new(id_str) {
+                    output.push(FinopsRecommendation {
+                        id,
+                        kind: RecommendationKind::PurchaseCommitment,
+                        axis: anomaly.axis,
+                        resource_id: anomaly.resource_id.clone(),
+                        evidence_anomaly: anomaly.kind,
+                    });
+                }
+                slot += 1;
+            }
+            CostAnomalyKind::MarginBelowTarget => {
+                let id_str = format!("{RECOMMENDATION_ID_PREFIX}s{id_seed}p{slot}");
+                if let Ok(id) = RecommendationId::new(id_str) {
+                    output.push(FinopsRecommendation {
+                        id,
+                        kind: RecommendationKind::ReviewRateCard,
+                        axis: anomaly.axis,
+                        resource_id: anomaly.resource_id.clone(),
+                        evidence_anomaly: anomaly.kind,
+                    });
+                }
+                slot += 1;
+            }
+        }
+    }
+    output
+}
+
 fn recommendations_for(
     anomalies: &[CostAnomaly],
 ) -> Result<Vec<FinopsRecommendation>, CloudFinopsError> {
@@ -1420,5 +1502,129 @@ mod tests {
             .unwrap_err(),
             CloudFinopsError::InvalidDataClass
         );
+    }
+
+    // ---- recommend_from_anomalies tests ----
+
+    fn anomaly(kind: CostAnomalyKind, resource_id: Option<ResourceId>) -> CostAnomaly {
+        CostAnomaly {
+            kind,
+            axis: AxisId::Cloud,
+            resource_id,
+            actual_cost: money_units(500),
+            baseline_cost: None,
+            threshold_bps: 1_000,
+        }
+    }
+
+    fn resource_id() -> ResourceId {
+        ResourceId::new(RESOURCE.to_string()).expect("resource id")
+    }
+
+    #[test]
+    fn empty_input_yields_empty_vec() {
+        let recs = recommend_from_anomalies(&[], 42);
+        assert!(recs.is_empty());
+    }
+
+    #[test]
+    fn spend_spike_without_resource_yields_investigate() {
+        let anomalies = vec![anomaly(CostAnomalyKind::SpendSpike, None)];
+        let recs = recommend_from_anomalies(&anomalies, 1);
+        assert_eq!(recs.len(), 1);
+        assert_eq!(recs[0].kind, RecommendationKind::InvestigateSpendSpike);
+        assert_eq!(recs[0].evidence_anomaly, CostAnomalyKind::SpendSpike);
+        assert_eq!(recs[0].axis, AxisId::Cloud);
+        assert!(recs[0].resource_id.is_none());
+    }
+
+    #[test]
+    fn spend_spike_with_resource_yields_investigate_and_downsize() {
+        let anomalies = vec![anomaly(CostAnomalyKind::SpendSpike, Some(resource_id()))];
+        let recs = recommend_from_anomalies(&anomalies, 2);
+        assert_eq!(recs.len(), 2);
+        assert_eq!(recs[0].kind, RecommendationKind::InvestigateSpendSpike);
+        assert_eq!(recs[1].kind, RecommendationKind::DownsizeResource);
+        assert_eq!(recs[1].evidence_anomaly, CostAnomalyKind::SpendSpike);
+        assert!(recs[1].resource_id.is_some());
+    }
+
+    #[test]
+    fn budget_soft_limit_yields_purchase_commitment() {
+        let anomalies = vec![anomaly(CostAnomalyKind::BudgetSoftLimit, None)];
+        let recs = recommend_from_anomalies(&anomalies, 3);
+        assert_eq!(recs.len(), 1);
+        assert_eq!(recs[0].kind, RecommendationKind::PurchaseCommitment);
+        assert_eq!(recs[0].evidence_anomaly, CostAnomalyKind::BudgetSoftLimit);
+    }
+
+    #[test]
+    fn budget_hard_limit_yields_purchase_commitment() {
+        let anomalies = vec![anomaly(CostAnomalyKind::BudgetHardLimit, None)];
+        let recs = recommend_from_anomalies(&anomalies, 4);
+        assert_eq!(recs.len(), 1);
+        assert_eq!(recs[0].kind, RecommendationKind::PurchaseCommitment);
+        assert_eq!(recs[0].evidence_anomaly, CostAnomalyKind::BudgetHardLimit);
+    }
+
+    #[test]
+    fn margin_below_target_yields_review_rate_card() {
+        let anomalies = vec![anomaly(CostAnomalyKind::MarginBelowTarget, None)];
+        let recs = recommend_from_anomalies(&anomalies, 5);
+        assert_eq!(recs.len(), 1);
+        assert_eq!(recs[0].kind, RecommendationKind::ReviewRateCard);
+        assert_eq!(recs[0].evidence_anomaly, CostAnomalyKind::MarginBelowTarget);
+    }
+
+    #[test]
+    fn determinism_same_input_twice_produces_identical_output() {
+        let anomalies = vec![
+            anomaly(CostAnomalyKind::SpendSpike, Some(resource_id())),
+            anomaly(CostAnomalyKind::BudgetHardLimit, None),
+            anomaly(CostAnomalyKind::MarginBelowTarget, None),
+        ];
+        let first = recommend_from_anomalies(&anomalies, 7);
+        let second = recommend_from_anomalies(&anomalies, 7);
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn different_seeds_produce_different_ids_same_kinds() {
+        let anomalies = vec![anomaly(CostAnomalyKind::BudgetSoftLimit, None)];
+        let recs_a = recommend_from_anomalies(&anomalies, 10);
+        let recs_b = recommend_from_anomalies(&anomalies, 99);
+        assert_eq!(recs_a.len(), 1);
+        assert_eq!(recs_b.len(), 1);
+        // kinds match but IDs are distinct
+        assert_eq!(recs_a[0].kind, recs_b[0].kind);
+        assert_ne!(recs_a[0].id, recs_b[0].id);
+    }
+
+    #[test]
+    fn all_anomaly_kinds_mixed_with_resource_scoped_spike() {
+        let anomalies = vec![
+            anomaly(CostAnomalyKind::SpendSpike, Some(resource_id())),
+            anomaly(CostAnomalyKind::BudgetSoftLimit, None),
+            anomaly(CostAnomalyKind::BudgetHardLimit, None),
+            anomaly(CostAnomalyKind::MarginBelowTarget, None),
+        ];
+        let recs = recommend_from_anomalies(&anomalies, 100);
+        // SpendSpike+resource→2, BudgetSoft→1, BudgetHard→1, Margin→1 = 5
+        assert_eq!(recs.len(), 5);
+        assert_eq!(recs[0].kind, RecommendationKind::InvestigateSpendSpike);
+        assert_eq!(recs[1].kind, RecommendationKind::DownsizeResource);
+        assert_eq!(recs[2].kind, RecommendationKind::PurchaseCommitment);
+        assert_eq!(recs[3].kind, RecommendationKind::PurchaseCommitment);
+        assert_eq!(recs[4].kind, RecommendationKind::ReviewRateCard);
+        // all IDs are distinct
+        let ids: BTreeSet<_> = recs.iter().map(|r| r.id.value.clone()).collect();
+        assert_eq!(ids.len(), 5);
+    }
+
+    #[test]
+    fn recommendation_ids_have_correct_prefix() {
+        let anomalies = vec![anomaly(CostAnomalyKind::SpendSpike, None)];
+        let recs = recommend_from_anomalies(&anomalies, 55);
+        assert!(recs[0].id.value.starts_with(RECOMMENDATION_ID_PREFIX));
     }
 }
