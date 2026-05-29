@@ -25,11 +25,12 @@ the 6 identity crates into one is out of scope for this slice.
 The dep-seam gate (`crates/oya-check-dependency-seam/`) defaults to `ReportOnly`
 (`src/lib.rs:63`; dev-cli `dependency_seam_gates.rs:24`).  Adding tonic/prost
 deps to `oya-identity-workload-rest` fires `SEAM_DEP_DECL_OUTSIDE_ISOLATED_CRATE`
-and `SEAM_IMPORT_OUTSIDE_ISOLATED_CRATE` because `registry/dependency-rationales.json`
-`allowed_crates` does not yet include `oya-identity-workload-rest`.  Since the
-gate is ReportOnly it does NOT block `gate-run-all`.  This lane does NOT claim a
-clean dep-seam pass.  A follow-on registry edit (out of this lane's disjointness
-boundary) appends `oya-identity-workload-rest` to the five dep rows.
+and `SEAM_IMPORT_OUTSIDE_ISOLATED_CRATE` unless `registry/dependency-rationales.json`
+`allowed_crates` includes `oya-identity-workload-rest`.  The registry update
+appending `oya-identity-workload-rest` to the five dep rows was committed as a
+deliberate scoped out-of-lane edit (commit b547b9e4) alongside the spec.  The
+gate is ReportOnly so this does NOT block `gate-run-all`; no concurrent lane
+touches those rows.
 
 ### BUILD WIRING (MAJOR resolved)
 
@@ -77,7 +78,7 @@ deny).  A top-level `Status::Unavailable` is reserved for unary RPCs.
 ## Acceptance criteria
 
 - `cargo check -p oya-identity-workload-rest --all-targets` clean.
-- `cargo nextest run -p oya-identity-workload-rest` green (all 4 T3 assertions).
+- `cargo nextest run -p oya-identity-workload-rest` green (19 tests: 12 REST + 7 gRPC; all 4 T3 assertions covered).
 - Root Cargo.toml unchanged.
 - No aws-lc-rs default-features regression.
 - Three lane docs exist and describe surface + fail-closed + parity.

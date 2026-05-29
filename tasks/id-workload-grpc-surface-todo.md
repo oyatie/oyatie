@@ -17,7 +17,7 @@
         one AuditRecord per authorize and per token-validation.
 
 - [x] T3: Add tests/common.rs + tests/grpc_authorize_deny.rs
-      — 9 gRPC tests passing alongside 10 REST tests (19/19 total);
+      — 7 gRPC tests passing alongside 12 REST tests (19/19 total);
         assertions (a) allow, (b) deny-as-response, (c) invalid-token-typed-error,
         (d) store-unavailable-Unavailable all green;
         engine-not-consulted proven structurally (permit vs empty authorizer);
@@ -33,9 +33,10 @@
       — SLOs: authorize-latency-p99.openslo.yaml + decision-correctness.openslo.yaml
         cover the gRPC authorize/validate paths (shared use-case core). No new SLO added.
 
-## Follow-on (out of this lane's disjointness boundary)
+## Registry note
 
-- [ ] Registry update: append `oya-identity-workload-rest` to the `allowed_crates`
-      arrays in registry/dependency-rationales.json for tonic, tonic-prost,
-      tonic-prost-build, prost, and protoc-bin-vendored.
-      (Dep-seam gate is ReportOnly so this is non-blocking; tracked for hygiene.)
+The `registry/dependency-rationales.json` `allowed_crates` arrays for tonic,
+tonic-prost, tonic-prost-build, prost, and protoc-bin-vendored were updated to
+include `oya-identity-workload-rest` as a deliberate scoped out-of-lane edit
+(commit b547b9e4).  Dep-seam gate is ReportOnly (non-blocking); no concurrent
+lane touches those rows.

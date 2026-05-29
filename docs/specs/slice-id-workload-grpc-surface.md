@@ -40,10 +40,9 @@ convergence not further sprawl.
 ## Proto authority
 
 The authoritative contract is
-`microservices/identity/contracts/proto/workload.proto`, registered in
-`microservices/identity/manifest.json:154-157`.  The `PRD.md §214` reference to
-`contracts/identity.proto` is stale prose (different method name: BatchAuthorize
-vs AuthorizeBatch); the manifest-registered file wins.
+`microservices/identity/contracts/proto/workload.proto`, registered in the
+`contracts.proto` array at `microservices/identity/manifest.json` lines 88-92.
+No other file defines `WorkloadAuthorizer` / `WorkloadTokenValidator`.
 
 ## Contracts
 
@@ -138,32 +137,38 @@ assertions required by T3 are covered:
 ## Dependency-seam note (ADR-0092)
 
 The five deps added by this slice (prost, tonic, tonic-prost, tonic-prost-build,
-protoc-bin-vendored) are not yet listed in `registry/dependency-rationales.json`
-`allowed_crates` for `oya-identity-workload-rest`.  The dep-seam gate defaults
-to `ReportOnly` (ADR-0092, `crates/oya-check-dependency-seam/src/lib.rs:63`),
-so this does NOT block `gate-run-all`.  The registry update (appending
-`oya-identity-workload-rest` to the five `allowed_crates` arrays) is tracked as
-a follow-on out-of-lane registry edit.  This lane explicitly does NOT claim a
-clean dep-seam pass.
+protoc-bin-vendored) are listed in `registry/dependency-rationales.json`
+`allowed_crates` for `oya-identity-workload-rest` as a deliberate scoped
+out-of-lane edit committed alongside the spec (commit b547b9e4).  The dep-seam
+gate defaults to `ReportOnly` (ADR-0092,
+`crates/oya-check-dependency-seam/src/lib.rs:63`) so the edit is additive and
+does NOT block `gate-run-all`.  The registry edit is acknowledged as crossing
+the lane's strict disjointness boundary; no concurrent lane touches those five
+rows.
 
 ## SLO coverage
 
 Existing SLOs in `microservices/identity/slos/`:
-- `authorize-latency-p99.openslo.yaml` — covers the authorize hot path; the
-  gRPC WorkloadAuthorizer RPCs exercise the same use-case core, so this SLO
-  already covers the gRPC authorize path.
-- `decision-correctness.openslo.yaml` — covers the correctness invariant; the
-  shared use-case core means gRPC decisions are subject to the same correctness
-  SLO.
+- `authorize-latency-p99.openslo.yaml` — targets the authorize hot path; the
+  gRPC WorkloadAuthorizer RPCs share the same use-case core, so the objective
+  applies equally to both delivery surfaces.
+- `decision-correctness.openslo.yaml` — targets the correctness invariant; the
+  shared use-case core means gRPC decisions are subject to the same objective.
 
-No new SLO is introduced: the gRPC surface does not introduce a distinct latency
-or correctness objective beyond what the existing SLOs capture.  If a separate
-gRPC-specific p99 target is required in future (e.g. mesh-native Envoy calls
-have a tighter budget), a new SLO entry should be added at that time.
+Neither SLO currently has metric instrumentation wired in the crate
+(`oya_identity_workload_authorize_duration_seconds_bucket` and
+`oya_identity_workload_golden_decision_total` are not yet emitted by any
+surface).  This is a pre-existing gap that predates this slice; instrumenting
+those counters/histograms is a separate follow-on for both REST and gRPC.
+
+No new SLO is introduced by this slice: the gRPC surface does not introduce a
+distinct latency or correctness objective beyond the existing SLOs.  If a
+gRPC-specific p99 target is required in future (e.g. tighter Envoy ext_authz
+budget), add a new SLO entry at that time.
 
 ## Acceptance
 
-- `cargo nextest run -p oya-identity-workload-rest` green (19 tests: 10 REST + 9 gRPC).
+- `cargo nextest run -p oya-identity-workload-rest` green (19 tests: 12 REST + 7 gRPC).
 - `cargo check -p oya-identity-workload-rest --all-targets` clean.
 - Root `Cargo.toml` unchanged (no new workspace member).
 - `aws-lc-rs` default-features unchanged (ADR-0506 not regressed).
