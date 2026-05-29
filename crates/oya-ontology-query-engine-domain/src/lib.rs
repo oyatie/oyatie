@@ -4,8 +4,8 @@
 //! preview Knowledge Graph contract. It intentionally stays adapter-free: cloud
 //! storage, query languages, distributed execution, authz enforcement, and SLO
 //! runtime evidence are future slices. The implemented semantics are bounded,
-//! tenant-scoped, deterministic outbound traversal over validated link
-//! instances.
+//! tenant-scoped, deterministic traversal (outbound, inbound, or both) over
+//! validated link instances.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -13,6 +13,22 @@
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use oya_ontology_kernel::ObjectGraph;
+
+/// Direction of BFS traversal relative to the root entity.
+///
+/// `Outbound` (the default) follows edges from `from_entity_id` to `to_entity_id`.
+/// `Inbound` follows edges in reverse — from `to_entity_id` back to `from_entity_id`.
+/// `Both` is the union; edges are emitted in canonical `from→to` orientation in all cases.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum TraversalDirection {
+    /// Follow edges in the forward (from→to) direction. Default.
+    #[default]
+    Outbound,
+    /// Follow edges in the reverse (to→from) direction.
+    Inbound,
+    /// Follow edges in both directions.
+    Both,
+}
 
 /// Hard cap for source-level recursive traversal in this preview foundation.
 pub const MAX_QUERY_DEPTH: u32 = 16;
@@ -42,6 +58,7 @@ pub struct KnowledgeGraphQueryRequest {
     pub freshness_floor_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
     pub observed_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
     pub consented_edge_type_ids: Vec<String>,    // data_class: INTERNAL_ONLY
+    pub direction: TraversalDirection,           // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -94,15 +111,26 @@ pub enum KnowledgeGraphQueryError {
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct KnowledgeGraphQueryEngine {
-    links: BTreeMap<KnowledgeGraphLinkKey, KnowledgeGraphLinkInstance>, // data_class: INTERNAL_ONLY
+    links: BTreeMap<KnowledgeGraphLinkKey, KnowledgeGraphLinkInstance>,        // data_class: INTERNAL_ONLY
+    inbound: BTreeMap<KnowledgeGraphLinkInboundKey, KnowledgeGraphLinkInstance>, // data_class: INTERNAL_ONLY
 }
 
+/// Primary (outbound) index key: (tenant, from, edge_type, to).
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 struct KnowledgeGraphLinkKey {
     tenant_id: String,
     from_entity_id: String,
     edge_type_id: String,
     to_entity_id: String,
+}
+
+/// Secondary (inbound) index key: (tenant, to, edge_type, from).
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+struct KnowledgeGraphLinkInboundKey {
+    tenant_id: String,
+    to_entity_id: String,
+    edge_type_id: String,
+    from_entity_id: String,
 }
 
 impl KnowledgeGraphLinkInstance {
@@ -147,6 +175,7 @@ impl KnowledgeGraphQueryRequest {
         freshness_floor_epoch_seconds: u64,
         observed_at_epoch_seconds: u64,
         consented_edge_type_ids: Vec<impl Into<String>>,
+        direction: TraversalDirection,
     ) -> Result<Self, KnowledgeGraphQueryError> {
         let request = Self {
             tenant_id: tenant_id.into(),
@@ -157,6 +186,7 @@ impl KnowledgeGraphQueryRequest {
             freshness_floor_epoch_seconds,
             observed_at_epoch_seconds,
             consented_edge_type_ids: consented_edge_type_ids.into_iter().map(Into::into).collect(),
+            direction,
         };
         request.validate()?;
         Ok(request)
@@ -193,11 +223,13 @@ impl KnowledgeGraphQueryEngine {
     ) -> Result<KnowledgeGraphLinkUpsertOutcome, KnowledgeGraphQueryError> {
         validate_link_endpoints(graph, &link)?;
         let key = link.key();
-        let outcome = if self.links.insert(key, link).is_some() {
+        let inbound_key = link.inbound_key();
+        let outcome = if self.links.insert(key, link.clone()).is_some() {
             KnowledgeGraphLinkUpsertOutcome::Updated
         } else {
             KnowledgeGraphLinkUpsertOutcome::Inserted
         };
+        self.inbound.insert(inbound_key, link);
         Ok(outcome)
     }
 
@@ -233,7 +265,23 @@ impl KnowledgeGraphQueryEngine {
                 continue;
             }
 
-            for link in self.outbound_links(&request.tenant_id, &entity_id) {
+            // Collect candidate links for this entity based on traversal direction.
+            // Both outbound and inbound iterators borrow &self so we materialise
+            // the inbound candidates into a Vec to avoid simultaneous borrows.
+            let outbound_links: Vec<&KnowledgeGraphLinkInstance> =
+                if matches!(request.direction, TraversalDirection::Outbound | TraversalDirection::Both) {
+                    self.outbound_links(&request.tenant_id, &entity_id).collect()
+                } else {
+                    vec![]
+                };
+            let inbound_links: Vec<&KnowledgeGraphLinkInstance> =
+                if matches!(request.direction, TraversalDirection::Inbound | TraversalDirection::Both) {
+                    self.inbound_links(&request.tenant_id, &entity_id).collect()
+                } else {
+                    vec![]
+                };
+
+            for link in outbound_links.into_iter().chain(inbound_links) {
                 if !edge_filter.is_empty() && !edge_filter.contains(link.edge_type_id.as_str()) {
                     continue;
                 }
@@ -252,17 +300,25 @@ impl KnowledgeGraphQueryEngine {
                     result_truncated = true;
                     break 'bfs;
                 }
+                // Emit edge in canonical from→to orientation regardless of traversal direction.
                 edges.insert(link.as_contract_edge());
+
+                // Determine the neighbor node (the side we haven't visited yet).
+                let neighbor_id = if link.from_entity_id == entity_id {
+                    &link.to_entity_id
+                } else {
+                    &link.from_entity_id
+                };
 
                 // Node cap: stop before inserting when at limit.
                 if nodes.len() >= MAX_QUERY_RESULT_NODES {
                     result_truncated = true;
                     break 'bfs;
                 }
-                insert_node(graph, &request.tenant_id, &link.to_entity_id, &mut nodes)?;
+                insert_node(graph, &request.tenant_id, neighbor_id, &mut nodes)?;
 
-                if seen_nodes.insert(link.to_entity_id.clone()) {
-                    queue.push_back((link.to_entity_id.clone(), depth + 1));
+                if seen_nodes.insert(neighbor_id.clone()) {
+                    queue.push_back((neighbor_id.clone(), depth + 1));
                 }
             }
         }
@@ -304,6 +360,26 @@ impl KnowledgeGraphQueryEngine {
                     .then_some(link)
             })
     }
+
+    fn inbound_links<'a>(
+        &'a self,
+        tenant_id: &'a str,
+        to_entity_id: &'a str,
+    ) -> impl Iterator<Item = &'a KnowledgeGraphLinkInstance> + 'a {
+        self.inbound
+            .range(
+                KnowledgeGraphLinkInboundKey {
+                    tenant_id: tenant_id.to_string(),
+                    to_entity_id: to_entity_id.to_string(),
+                    edge_type_id: String::new(),
+                    from_entity_id: String::new(),
+                }..,
+            )
+            .map_while(move |(key, link)| {
+                ((key.tenant_id == tenant_id) && (key.to_entity_id == to_entity_id))
+                    .then_some(link)
+            })
+    }
 }
 
 impl KnowledgeGraphLinkInstance {
@@ -313,6 +389,15 @@ impl KnowledgeGraphLinkInstance {
             from_entity_id: self.from_entity_id.clone(),
             edge_type_id: self.edge_type_id.clone(),
             to_entity_id: self.to_entity_id.clone(),
+        }
+    }
+
+    fn inbound_key(&self) -> KnowledgeGraphLinkInboundKey {
+        KnowledgeGraphLinkInboundKey {
+            tenant_id: self.tenant_id.clone(),
+            to_entity_id: self.to_entity_id.clone(),
+            edge_type_id: self.edge_type_id.clone(),
+            from_entity_id: self.from_entity_id.clone(),
         }
     }
 }
@@ -461,6 +546,7 @@ mod tests {
             freshness_floor_epoch_seconds,
             12,
             Vec::<&str>::new(),
+            TraversalDirection::Outbound,
         )
         .unwrap()
     }
@@ -607,6 +693,7 @@ mod tests {
                     0,
                     2,
                     Vec::<&str>::new(),
+                    TraversalDirection::Outbound,
                 )
                 .unwrap(),
             )
@@ -629,6 +716,7 @@ mod tests {
                 0,
                 1,
                 Vec::<&str>::new(),
+                TraversalDirection::Outbound,
             ),
             Err(KnowledgeGraphQueryError::InvalidTenantId)
         );
@@ -642,6 +730,7 @@ mod tests {
                 0,
                 1,
                 Vec::<&str>::new(),
+                TraversalDirection::Outbound,
             ),
             Err(KnowledgeGraphQueryError::InvalidQueryId)
         );
@@ -655,6 +744,7 @@ mod tests {
                 0,
                 1,
                 Vec::<&str>::new(),
+                TraversalDirection::Outbound,
             ),
             Err(KnowledgeGraphQueryError::DepthCeilingExceeded)
         );
@@ -786,6 +876,7 @@ mod tests {
             0,
             0,
             Vec::<&str>::new(),
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -860,6 +951,7 @@ mod tests {
             0,
             0,
             Vec::<&str>::new(),
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -921,6 +1013,7 @@ mod tests {
             0,
             1,
             Vec::<&str>::new(),
+            TraversalDirection::Outbound,
         );
         // DepthCeilingExceeded variant must exist and be returned here
         assert_eq!(
@@ -944,6 +1037,7 @@ mod tests {
                 0,
                 1,
                 Vec::<&str>::new(),
+                TraversalDirection::Outbound,
             )
             .is_ok(),
             "max_depth == MAX_QUERY_DEPTH must be accepted"
@@ -965,6 +1059,7 @@ mod tests {
                 0,
                 1,
                 Vec::<&str>::new(),
+                TraversalDirection::Outbound,
             ),
             Err(KnowledgeGraphQueryError::InvalidMaxDepth),
             "max_depth == 0 must return InvalidMaxDepth"
@@ -1035,6 +1130,7 @@ mod tests {
             0,
             1,
             vec!["bad_id"],
+            TraversalDirection::Outbound,
         );
         assert_eq!(
             result,
@@ -1058,6 +1154,7 @@ mod tests {
             0,
             1,
             vec!["lty_partner"],
+            TraversalDirection::Outbound,
         );
         assert!(
             result.is_ok(),
@@ -1078,6 +1175,7 @@ mod tests {
             0,
             1,
             vec!["lty_partner", "lty_member"],
+            TraversalDirection::Outbound,
         )
         .unwrap();
         let filter = req.consent_filter();
@@ -1110,6 +1208,7 @@ mod tests {
             0,
             1,
             vec!["lty_partner"],
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -1173,6 +1272,7 @@ mod tests {
             0,
             1,
             Vec::<&str>::new(),
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -1207,6 +1307,7 @@ mod tests {
             0,
             1,
             vec!["lty_partner"],
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -1256,6 +1357,7 @@ mod tests {
             10, // freshness floor is 10
             1,
             vec!["lty_partner"], // lty_partner is consented, but observed_at=5 < floor=10
+            TraversalDirection::Outbound,
         )
         .unwrap();
 
@@ -1265,5 +1367,502 @@ mod tests {
             !node_ids.contains(&"ent_b"),
             "a consented but stale edge must be pruned by freshness; ent_b must be absent"
         );
+    }
+
+    // ---- TraversalDirection: Inbound / Both tests ----
+
+    /// Builds a directed chain graph for direction traversal tests:
+    ///   ent_pred --lty_owns--> ent_root --lty_owns--> ent_succ
+    ///
+    /// Outbound from ent_root reaches ent_succ only.
+    /// Inbound from ent_root reaches ent_pred only.
+    /// Both from ent_root reaches ent_pred and ent_succ.
+    fn dir_graph() -> ObjectGraph {
+        let mut g = ObjectGraph::default();
+        for (entity_id, entity_type) in [
+            ("ent_pred", "ety_account"),
+            ("ent_root", "ety_account"),
+            ("ent_succ", "ety_account"),
+        ] {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        g
+    }
+
+    fn dir_engine(g: &ObjectGraph) -> KnowledgeGraphQueryEngine {
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        for (from, to) in [("ent_pred", "ent_root"), ("ent_root", "ent_succ")] {
+            engine
+                .upsert_link(
+                    g,
+                    KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_owns", 1).unwrap(),
+                )
+                .unwrap();
+        }
+        engine
+    }
+
+    /// Inbound traversal from ent_root reaches ent_pred (predecessor) but NOT
+    /// ent_succ (successor). Outbound would not reach ent_pred.
+    #[test]
+    fn inbound_reaches_predecessors_outbound_cannot() {
+        let g = dir_graph();
+        let engine = dir_engine(&g);
+
+        let inbound_req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_inbound",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            0,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Inbound,
+        )
+        .unwrap();
+        let inbound_resp = engine.query_graph_slice(&g, inbound_req).unwrap();
+        let inbound_nodes: Vec<&str> =
+            inbound_resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+
+        assert!(
+            inbound_nodes.contains(&"ent_pred"),
+            "Inbound must reach predecessor ent_pred"
+        );
+        assert!(
+            !inbound_nodes.contains(&"ent_succ"),
+            "Inbound must NOT reach successor ent_succ"
+        );
+
+        let outbound_req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_outbound_dir",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            0,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Outbound,
+        )
+        .unwrap();
+        let outbound_resp = engine.query_graph_slice(&g, outbound_req).unwrap();
+        let outbound_nodes: Vec<&str> =
+            outbound_resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+
+        assert!(
+            !outbound_nodes.contains(&"ent_pred"),
+            "Outbound must NOT reach predecessor ent_pred"
+        );
+        assert!(
+            outbound_nodes.contains(&"ent_succ"),
+            "Outbound must reach successor ent_succ"
+        );
+    }
+
+    /// Both direction from ent_root yields the union: ent_pred and ent_succ
+    /// both visible, with no duplicate nodes or edges.
+    #[test]
+    fn both_yields_union_of_outbound_and_inbound() {
+        let g = dir_graph();
+        let engine = dir_engine(&g);
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_both",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            0,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Both,
+        )
+        .unwrap();
+        let resp = engine.query_graph_slice(&g, req).unwrap();
+        let node_ids: Vec<&str> = resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+
+        assert!(node_ids.contains(&"ent_pred"), "Both must include ent_pred");
+        assert!(node_ids.contains(&"ent_root"), "Both must include ent_root");
+        assert!(node_ids.contains(&"ent_succ"), "Both must include ent_succ");
+        // No duplicate nodes
+        assert_eq!(node_ids.len(), 3, "Both must not duplicate nodes");
+        // Both edges present with canonical from->to orientation
+        assert_eq!(resp.edges.len(), 2, "Both must return exactly 2 edges");
+        assert!(
+            resp.edges
+                .iter()
+                .any(|e| e.from_entity_id == "ent_pred" && e.to_entity_id == "ent_root"),
+            "pred->root edge must be present in canonical orientation"
+        );
+        assert!(
+            resp.edges
+                .iter()
+                .any(|e| e.from_entity_id == "ent_root" && e.to_entity_id == "ent_succ"),
+            "root->succ edge must be present in canonical orientation"
+        );
+    }
+
+    /// Omitting an explicit direction (using Outbound default) reproduces the
+    /// same result as an explicit Outbound request byte-for-byte.
+    #[test]
+    fn default_direction_reproduces_outbound_result() {
+        let g = dir_graph();
+        let engine = dir_engine(&g);
+
+        let explicit = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_explicit_out",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            0,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Outbound,
+        )
+        .unwrap();
+        let default_dir = KnowledgeGraphQueryRequest {
+            query_id: "kgq_default_dir".to_string(),
+            ..explicit.clone()
+        };
+
+        let r_explicit = engine.query_graph_slice(&g, explicit).unwrap();
+        let r_default = engine.query_graph_slice(&g, default_dir).unwrap();
+
+        assert_eq!(
+            r_explicit.nodes, r_default.nodes,
+            "default direction must produce same nodes as explicit Outbound"
+        );
+        assert_eq!(
+            r_explicit.edges, r_default.edges,
+            "default direction must produce same edges as explicit Outbound"
+        );
+        assert_eq!(
+            r_explicit.result_truncated, r_default.result_truncated,
+            "default direction must produce same result_truncated as explicit Outbound"
+        );
+    }
+
+    /// Consent scope prunes correctly under Inbound traversal.
+    /// Graph: ent_pred --lty_owns--> ent_root <--lty_partner-- ent_other
+    /// With consent scope ["lty_partner"], inbound traversal from ent_root
+    /// must see ent_other (via consented lty_partner) but not ent_pred (via
+    /// non-consented lty_owns).
+    #[test]
+    fn inbound_consent_prunes_non_consented_edges() {
+        let mut g = ObjectGraph::default();
+        for (entity_id, entity_type) in [
+            ("ent_pred", "ety_account"),
+            ("ent_root", "ety_account"),
+            ("ent_other", "ety_account"),
+        ] {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_pred", "ent_root", "lty_owns", 1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_other", "ent_root", "lty_partner", 1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_inbound_consent",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            0,
+            1,
+            vec!["lty_partner"],
+            TraversalDirection::Inbound,
+        )
+        .unwrap();
+        let resp = engine.query_graph_slice(&g, req).unwrap();
+        let node_ids: Vec<&str> = resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+
+        assert!(
+            node_ids.contains(&"ent_other"),
+            "ent_other (via consented lty_partner inbound) must be present"
+        );
+        assert!(
+            !node_ids.contains(&"ent_pred"),
+            "ent_pred (via non-consented lty_owns inbound) must be absent"
+        );
+    }
+
+    /// Freshness floor prunes stale inbound edges correctly.
+    #[test]
+    fn inbound_freshness_floor_prunes_stale_edges() {
+        let mut g = ObjectGraph::default();
+        for (entity_id, entity_type) in [("ent_pred", "ety_account"), ("ent_root", "ety_account")]
+        {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        // stale inbound edge: observed_at=5, freshness_floor=10
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_pred", "ent_root", "lty_owns", 5,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_inbound_stale",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            10,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Inbound,
+        )
+        .unwrap();
+        let resp = engine.query_graph_slice(&g, req).unwrap();
+        let node_ids: Vec<&str> = resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+
+        assert!(
+            !node_ids.contains(&"ent_pred"),
+            "stale inbound edge must be pruned by freshness floor"
+        );
+    }
+
+    /// Node cardinality cap triggers result_truncated under Inbound traversal.
+    #[test]
+    fn inbound_node_cap_triggers_result_truncated() {
+        let cap = MAX_QUERY_RESULT_NODES;
+        let pred_count = cap + 1;
+
+        let mut g = ObjectGraph::default();
+        g.upsert_entity(
+            ObjectEntity::new(
+                "ten_alpha".to_string(),
+                "ent_root".to_string(),
+                "ety_account".to_string(),
+                vec![property("name")],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        for i in 0..pred_count {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    format!("ent_pred_{i:04}"),
+                    "ety_account".to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        for i in 0..pred_count {
+            engine
+                .upsert_link(
+                    &g,
+                    KnowledgeGraphLinkInstance::new(
+                        "ten_alpha",
+                        format!("ent_pred_{i:04}"),
+                        "ent_root",
+                        "lty_owns",
+                        1_u64,
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+        }
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_inbound_cap",
+            "ent_root",
+            Vec::<&str>::new(),
+            1,
+            0,
+            0,
+            Vec::<&str>::new(),
+            TraversalDirection::Inbound,
+        )
+        .unwrap();
+        let resp = engine.query_graph_slice(&g, req).unwrap();
+
+        assert!(resp.result_truncated, "Inbound node cap must set result_truncated");
+        assert!(
+            resp.nodes.len() <= cap + 1,
+            "Inbound nodes must not exceed cap + root"
+        );
+    }
+
+    /// Tenant isolation: inbound links from a different tenant are never returned.
+    /// This is structurally enforced because upsert_link validates both endpoints
+    /// exist in the same-tenant ObjectGraph. This test confirms the BFS inbound
+    /// scan only returns same-tenant predecessors.
+    #[test]
+    fn inbound_tenant_isolation() {
+        let mut g = ObjectGraph::default();
+        for (tenant, entity_id, entity_type) in [
+            ("ten_alpha", "ent_root", "ety_account"),
+            ("ten_alpha", "ent_pred", "ety_account"),
+            ("ten_beta", "ent_beta_pred", "ety_account"),
+            ("ten_beta", "ent_beta_root", "ety_account"),
+        ] {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    tenant.to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        // ten_alpha: ent_pred -> ent_root
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_alpha", "ent_pred", "ent_root", "lty_owns", 1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        // ten_beta: ent_beta_pred -> ent_beta_root (different tenant — must not leak)
+        engine
+            .upsert_link(
+                &g,
+                KnowledgeGraphLinkInstance::new(
+                    "ten_beta", "ent_beta_pred", "ent_beta_root", "lty_owns", 1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_inbound_isolation",
+            "ent_root",
+            Vec::<&str>::new(),
+            2,
+            0,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Inbound,
+        )
+        .unwrap();
+        let resp = engine.query_graph_slice(&g, req).unwrap();
+        let node_ids: Vec<&str> = resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+
+        assert!(
+            node_ids.contains(&"ent_pred"),
+            "same-tenant predecessor ent_pred must be visible"
+        );
+        assert!(
+            !node_ids.contains(&"ent_beta_pred"),
+            "cross-tenant ent_beta_pred must not be visible"
+        );
+        assert!(
+            !node_ids.contains(&"ent_beta_root"),
+            "cross-tenant ent_beta_root must not be visible"
+        );
+    }
+
+    /// Cyclic inbound graph does not cause unbounded revisit.
+    /// Graph (forming a cycle): ent_a -> ent_b -> ent_c -> ent_a
+    /// Inbound from ent_a: should visit ent_c (direct predecessor), then ent_b,
+    /// then back to ent_a (already seen), stopping. No infinite loop.
+    #[test]
+    fn inbound_cycle_no_unbounded_revisit() {
+        let mut g = ObjectGraph::default();
+        for (entity_id, entity_type) in [
+            ("ent_a", "ety_account"),
+            ("ent_b", "ety_account"),
+            ("ent_c", "ety_account"),
+        ] {
+            g.upsert_entity(
+                ObjectEntity::new(
+                    "ten_alpha".to_string(),
+                    entity_id.to_string(),
+                    entity_type.to_string(),
+                    vec![property("name")],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let mut engine = KnowledgeGraphQueryEngine::default();
+        for (from, to) in [("ent_a", "ent_b"), ("ent_b", "ent_c"), ("ent_c", "ent_a")] {
+            engine
+                .upsert_link(
+                    &g,
+                    KnowledgeGraphLinkInstance::new("ten_alpha", from, to, "lty_owns", 1).unwrap(),
+                )
+                .unwrap();
+        }
+
+        let req = KnowledgeGraphQueryRequest::new(
+            "ten_alpha",
+            "kgq_inbound_cycle",
+            "ent_a",
+            Vec::<&str>::new(),
+            16,
+            0,
+            1,
+            Vec::<&str>::new(),
+            TraversalDirection::Inbound,
+        )
+        .unwrap();
+        // Must terminate and return the 3 cycle nodes.
+        let resp = engine.query_graph_slice(&g, req).unwrap();
+        assert_eq!(resp.nodes.len(), 3, "inbound cycle must terminate and return 3 nodes");
+        assert_eq!(resp.edges.len(), 3, "inbound cycle must return 3 edges");
     }
 }
