@@ -1,7 +1,7 @@
 //! `oya gate validate workspace-topology` — canonical monorepo topology gate.
 //!
 //! Codifies ADR-0512: vertical-slice nesting, one workspace, bounded-context
-//! crates, dependency-rule modules. Enforces six structural invariants:
+//! crates, dependency-rule modules. Enforces seven structural invariants:
 //!
 //! - R1: no flat top-level `crates/` directory that contains any `Cargo.toml`
 //!       (vertical-slice canon: code lives under microservices/<ms>/crates/ or libs/).
@@ -15,6 +15,8 @@
 //! - R6: every member path is under one of the canonical prefixes:
 //!       `microservices/<ms>/crates/<crate>`, `microservices/<ms>` (single-level),
 //!       `libs/<lib>`, or `tools/<name>`.
+//! - R7: every workspace member's crate-dir basename MUST equal its `[package].name`
+//!       (dir==name invariant: the directory that houses a crate is named after it).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -53,6 +55,8 @@ pub(crate) enum WorkspaceTopologyRule {
     R5OrphanCrate,
     /// R6: member path is not under a canonical prefix.
     R6InvalidLocation,
+    /// R7: crate-dir basename does not equal `[package].name`.
+    R7DirNameMismatch,
 }
 
 impl WorkspaceTopologyRule {
@@ -64,6 +68,7 @@ impl WorkspaceTopologyRule {
             WorkspaceTopologyRule::R4PhantomMember => "R4-phantom-member",
             WorkspaceTopologyRule::R5OrphanCrate => "R5-orphan-crate",
             WorkspaceTopologyRule::R6InvalidLocation => "R6-invalid-location",
+            WorkspaceTopologyRule::R7DirNameMismatch => "R7-dir-name-mismatch",
         }
     }
 }
@@ -195,6 +200,11 @@ pub(crate) fn validate_workspace_topology_gate(
 
         // R6: member path must be under a canonical prefix.
         check_r6_location(rel_path, &mut findings);
+
+        // R7: crate-dir basename must equal [package].name.
+        if let Some(name) = read_package_name_from_contents(&contents) {
+            check_r7_dir_name_match(rel_path, &name, &mut findings);
+        }
     }
 
     // R5: every crate dir on disk under microservices/ and libs/ must be a member.
@@ -305,6 +315,25 @@ fn check_r6_location(rel_path: &str, findings: &mut Vec<WorkspaceTopologyFinding
                 "member `{rel_path}` is not under a canonical prefix \
                  (expected libs/<lib>, tools/<name>, microservices/<ms>, \
                  or microservices/<ms>/crates/<crate>)"
+            ),
+        });
+    }
+}
+
+/// R7: the crate-dir basename (last path segment of `rel_path`) must equal
+/// `[package].name` declared in the manifest.
+fn check_r7_dir_name_match(
+    rel_path: &str,
+    package_name: &str,
+    findings: &mut Vec<WorkspaceTopologyFinding>,
+) {
+    let dir_basename = rel_path.split('/').next_back().unwrap_or(rel_path);
+    if dir_basename != package_name {
+        findings.push(WorkspaceTopologyFinding {
+            rule: WorkspaceTopologyRule::R7DirNameMismatch,
+            detail: format!(
+                "member `{rel_path}` dir basename `{dir_basename}` != package name `{package_name}` \
+                 (dir==name invariant violated)"
             ),
         });
     }
@@ -536,7 +565,7 @@ mod tests {
                 "microservices/accounting/crates/oya-accounting-journal-domain",
                 "libs/oya-check-brand-residue",
                 "tools/oya-governance-adr-shape-app",
-                "microservices/crm",
+                "microservices/oya-crm-app",
             ],
         );
         write_member(
@@ -550,7 +579,7 @@ mod tests {
             "tools/oya-governance-adr-shape-app",
             "oya-governance-adr-shape-app",
         );
-        write_member(&root, "microservices/crm", "oya-crm-app");
+        write_member(&root, "microservices/oya-crm-app", "oya-crm-app");
         let report = run(&root, true);
         assert!(
             report.findings.is_empty(),
@@ -684,6 +713,64 @@ mod tests {
             .filter(|f| f.rule == WorkspaceTopologyRule::R6InvalidLocation)
             .collect();
         assert!(!r6.is_empty(), "expected R6 finding, got: {:?}", report.findings);
+        cleanup(&root);
+    }
+
+    // --- R7: dir==name ---
+
+    #[test]
+    fn r7_dir_name_match_happy_path_passes() {
+        let root = scratch_root("r7-happy");
+        // dir basename == package name on all three canonical prefix forms.
+        write_workspace(
+            &root,
+            &[
+                "microservices/accounting/crates/oya-accounting-domain",
+                "libs/oya-shared-types",
+                "tools/oya-governance-adr-app",
+            ],
+        );
+        write_member(
+            &root,
+            "microservices/accounting/crates/oya-accounting-domain",
+            "oya-accounting-domain",
+        );
+        write_member(&root, "libs/oya-shared-types", "oya-shared-types");
+        write_member(&root, "tools/oya-governance-adr-app", "oya-governance-adr-app");
+        let report = run(&root, true);
+        let r7: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == WorkspaceTopologyRule::R7DirNameMismatch)
+            .collect();
+        assert!(r7.is_empty(), "expected no R7 findings, got: {:?}", r7);
+        cleanup(&root);
+    }
+
+    #[test]
+    fn r7_dir_name_mismatch_fails() {
+        let root = scratch_root("r7-violation");
+        // Dir is named "oya-accounting-domain" but package name is "oya-accounting-core" — mismatch.
+        let path = "microservices/accounting/crates/oya-accounting-domain";
+        write_workspace(&root, &[path]);
+        write_member(&root, path, "oya-accounting-core");
+        let report = run(&root, true);
+        let r7: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.rule == WorkspaceTopologyRule::R7DirNameMismatch)
+            .collect();
+        assert!(!r7.is_empty(), "expected R7 finding, got: {:?}", report.findings);
+        assert!(
+            r7[0].detail.contains("oya-accounting-domain"),
+            "detail should mention dir basename, got: {}",
+            r7[0].detail
+        );
+        assert!(
+            r7[0].detail.contains("oya-accounting-core"),
+            "detail should mention package name, got: {}",
+            r7[0].detail
+        );
         cleanup(&root);
     }
 }
