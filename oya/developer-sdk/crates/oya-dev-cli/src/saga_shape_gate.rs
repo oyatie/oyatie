@@ -1,6 +1,7 @@
 //! `oya gate validate saga-shape` runner (ADR-0222).
 //!
-//! Reads every `microservices/<axis>/specs/saga-*.json` file plus the
+//! Reads every `cloud/<svc>/specs/saga-*.json`, `oya/<svc>/specs/saga-*.json`,
+//! and `microservices/<axis>/specs/saga-*.json` file plus the
 //! canonical schema at `specs/saga-shape.json` and delegates to the
 //! kernel validator in `oya-check-saga-shape`.
 //!
@@ -20,12 +21,13 @@ use serde_json::Value;
 
 use crate::usage;
 
-const DEFAULT_MICROSERVICES_ROOT: &str = "microservices";
+/// Canonical service roots scanned when no explicit `--microservices-root` is given.
+const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
 const DEFAULT_SCHEMA_PATH: &str = "specs/saga-shape.json";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct SagaShapeValidateArgs {
-    microservices_root: PathBuf,
+    service_roots: Vec<PathBuf>,
     schema_path: PathBuf,
     allow_empty: bool,
 }
@@ -33,7 +35,7 @@ pub(crate) struct SagaShapeValidateArgs {
 impl Default for SagaShapeValidateArgs {
     fn default() -> Self {
         Self {
-            microservices_root: PathBuf::from(DEFAULT_MICROSERVICES_ROOT),
+            service_roots: DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect(),
             schema_path: PathBuf::from(DEFAULT_SCHEMA_PATH),
             allow_empty: true,
         }
@@ -64,7 +66,8 @@ pub(crate) fn parse_saga_shape_validate_args(
                 let Some(value) = iter.next() else {
                     return Err(usage());
                 };
-                parsed.microservices_root = PathBuf::from(value);
+                // Single explicit root overrides the multi-root default.
+                parsed.service_roots = vec![PathBuf::from(value)];
             }
             "--schema" => {
                 let Some(value) = iter.next() else {
@@ -91,7 +94,7 @@ pub(crate) fn validate_saga_shape_gate(
         ));
     }
 
-    let saga_files = discover_saga_files(&args.microservices_root)?;
+    let saga_files = discover_saga_files(&args.service_roots)?;
     if saga_files.is_empty() && args.allow_empty {
         return Ok(SagaShapeReport {
             sagas_checked: 0,
@@ -131,37 +134,39 @@ pub(crate) fn validate_saga_shape_gate(
     }
 }
 
-fn discover_saga_files(microservices_root: &PathBuf) -> Result<Vec<PathBuf>, String> {
+fn discover_saga_files(service_roots: &[PathBuf]) -> Result<Vec<PathBuf>, String> {
     let mut paths = Vec::new();
-    if !microservices_root.exists() {
-        return Ok(paths);
-    }
-    let entries = fs::read_dir(microservices_root)
-        .map_err(|error| format!("cannot read microservices/: {error}"))?;
-    for entry in entries {
-        let entry = entry.map_err(|error| format!("microservices entry unreadable: {error}"))?;
-        let ms_dir = entry.path();
-        if !ms_dir.is_dir() {
+    for root in service_roots {
+        if !root.exists() {
             continue;
         }
-        let specs_dir = ms_dir.join("specs");
-        if !specs_dir.exists() {
-            continue;
-        }
-        let spec_entries = fs::read_dir(&specs_dir)
-            .map_err(|error| format!("cannot read {}: {error}", specs_dir.display()))?;
-        for spec_entry in spec_entries {
-            let spec_entry =
-                spec_entry.map_err(|error| format!("spec entry unreadable: {error}"))?;
-            let path = spec_entry.path();
-            if !path.is_file() {
+        let entries = fs::read_dir(root)
+            .map_err(|error| format!("cannot read {}: {error}", root.display()))?;
+        for entry in entries {
+            let entry = entry.map_err(|error| format!("service root entry unreadable: {error}"))?;
+            let svc_dir = entry.path();
+            if !svc_dir.is_dir() {
                 continue;
             }
-            let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+            let specs_dir = svc_dir.join("specs");
+            if !specs_dir.exists() {
                 continue;
-            };
-            if file_name.starts_with("saga-") && file_name.ends_with(".json") {
-                paths.push(path);
+            }
+            let spec_entries = fs::read_dir(&specs_dir)
+                .map_err(|error| format!("cannot read {}: {error}", specs_dir.display()))?;
+            for spec_entry in spec_entries {
+                let spec_entry =
+                    spec_entry.map_err(|error| format!("spec entry unreadable: {error}"))?;
+                let path = spec_entry.path();
+                if !path.is_file() {
+                    continue;
+                }
+                let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+                    continue;
+                };
+                if file_name.starts_with("saga-") && file_name.ends_with(".json") {
+                    paths.push(path);
+                }
             }
         }
     }

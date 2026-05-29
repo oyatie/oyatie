@@ -168,7 +168,14 @@ impl CleanupPlan {
 fn build_cleanup_plan() -> Result<CleanupPlan, String> {
     let tombstones = find_tombstones(Path::new("."))?;
     let retired_specs = find_retired_specs(Path::new("specs"), Path::new("docs"))?;
-    let retired_microservice_dirs = find_retired_microservice_dirs(Path::new("microservices"))?;
+    // Scan all canonical service roots for retired directories.
+    let retired_microservice_dirs: Vec<PathBuf> = {
+        let mut dirs = Vec::new();
+        for root in &["cloud", "oya", "microservices"] {
+            dirs.extend(find_retired_microservice_dirs(Path::new(root))?);
+        }
+        dirs
+    };
     let capability_tier_paths = find_capability_tier_paths(Path::new("."))?;
     let adr_records = read_adr_records(Path::new("docs/decisions"))?;
     let tier_reference_files = find_files_containing_any(
@@ -733,6 +740,8 @@ fn text_roots() -> Vec<PathBuf> {
         "tools",
         "scripts",
         "registry",
+        "cloud",
+        "oya",
         "microservices",
     ]
     .iter()

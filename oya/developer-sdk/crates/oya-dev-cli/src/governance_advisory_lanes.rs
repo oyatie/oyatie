@@ -27,28 +27,35 @@ use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-/// Scan root for `microservices/*/manifest.json` paths.
+/// Canonical service roots scanned when discovering manifests.
+const SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
+
+/// Scan all canonical service roots for `*/manifest.json` paths.
 ///
-/// Common helper: every advisory walker uses the same enumeration. Returns the
-/// path list sorted by directory name for deterministic gate output.
+/// Common helper: every advisory walker uses the same enumeration. Scans
+/// `cloud/*/manifest.json`, `oya/*/manifest.json`, and
+/// `microservices/*/manifest.json`. Returns the path list sorted for
+/// deterministic gate output. Roots that are absent are silently skipped.
 fn discover_microservice_manifests() -> Result<Vec<PathBuf>, String> {
-    let root = Path::new("microservices");
-    if !root.exists() {
-        // Honest disclosure: no microservices/ tree present.
-        return Ok(Vec::new());
-    }
     let mut manifests = Vec::new();
-    let entries =
-        fs::read_dir(root).map_err(|error| format!("unable to read microservices/: {error}"))?;
-    for entry in entries {
-        let entry = entry.map_err(|error| format!("unable to walk microservices/: {error}"))?;
-        let path = entry.path();
-        if !path.is_dir() {
+    for root_str in SERVICE_ROOTS {
+        let root = Path::new(root_str);
+        if !root.exists() {
             continue;
         }
-        let manifest = path.join("manifest.json");
-        if manifest.exists() {
-            manifests.push(manifest);
+        let entries = fs::read_dir(root)
+            .map_err(|error| format!("unable to read {root_str}/: {error}"))?;
+        for entry in entries {
+            let entry =
+                entry.map_err(|error| format!("unable to walk {root_str}/: {error}"))?;
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+            let manifest = path.join("manifest.json");
+            if manifest.exists() {
+                manifests.push(manifest);
+            }
         }
     }
     manifests.sort();

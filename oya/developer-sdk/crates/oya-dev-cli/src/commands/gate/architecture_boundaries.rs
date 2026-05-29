@@ -223,6 +223,10 @@ pub(crate) struct ArchitectureBoundariesReport {
     pub(crate) packages_checked: usize,
     pub(crate) catalog_records_seen: usize,
     pub(crate) dependency_edges_checked: usize,
+    /// Number of oya/-crate -> cloud/-crate dependency edges found
+    /// (tenant-boundary rule). Zero means enforce mode is active and the
+    /// rule will fail on any future violation. Non-zero means report-only.
+    pub(crate) tenant_boundary_violations: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -286,7 +290,7 @@ pub(crate) fn validate_architecture_boundaries(
     )
     .map_err(|err| vec![err])?;
     let legacy_dirs = detect_legacy_dirs(&absolute_root);
-    let (errors, edges_checked) =
+    let (errors, edges_checked, tenant_violations) =
         validate_packages(&packages, &catalog_records, &absolute_root, &legacy_dirs);
     if !errors.is_empty() {
         return Err(errors);
@@ -295,6 +299,7 @@ pub(crate) fn validate_architecture_boundaries(
         packages_checked: packages.len(),
         catalog_records_seen: catalog_records.len(),
         dependency_edges_checked: edges_checked,
+        tenant_boundary_violations: tenant_violations,
     })
 }
 
@@ -422,7 +427,7 @@ fn validate_packages(
     catalog_records: &BTreeMap<String, CatalogRoleRecord>,
     repo_root: &Path,
     legacy_dirs: &BTreeSet<String>,
-) -> (Vec<String>, usize) {
+) -> (Vec<String>, usize, usize) {
     let role_table = allowed_dependency_roles();
     let mut errors = Vec::new();
     let mut edges_checked = 0;
@@ -438,6 +443,18 @@ fn validate_packages(
     let by_name: BTreeMap<&str, &WorkspacePackage> = packages
         .iter()
         .map(|package| (package.name.as_str(), package))
+        .collect();
+
+    // Build root-segment map: package name -> top-level root ("cloud", "oya", …).
+    // Used for the tenant-boundary rule below.
+    let pkg_root: BTreeMap<String, String> = packages
+        .iter()
+        .filter_map(|pkg| {
+            let manifest_parent = pkg.manifest_path.parent().unwrap_or_else(|| Path::new(""));
+            let rel = relative_path(manifest_parent, repo_root)?;
+            let root = rel.iter().next()?.to_str()?.to_string();
+            Some((pkg.name.clone(), root))
+        })
         .collect();
 
     for package in packages {
@@ -456,18 +473,18 @@ fn validate_packages(
         let crates_parent = PathBuf::from("crates").join(&package.name);
         let tools_parent = PathBuf::from("tools").join(&package.name);
         let libs_parent = PathBuf::from("libs").join(&package.name);
-        // Structural check: microservices/<ms>/crates/<name> is a valid workspace
+        // Structural check: <root>/<svc>/crates/<name> is a valid workspace
         // member location for any crate whose directory name equals its package
-        // name (ADR-0131/0132/0512). No name-prefix requirement is imposed — the
-        // gate enforces structure only (4 segments, segments[0]=="microservices",
-        // segments[2]=="crates", segments[3]==package.name). Microservice dirs
-        // with no relation to the crate name (e.g. legacy crates relocated under
-        // an existing ms umbrella) are accepted as long as dir==name holds.
+        // name (ADR-0131/0132/0512). Accepted roots: "cloud", "oya", and the
+        // legacy "microservices". No name-prefix requirement is imposed — the
+        // gate enforces structure only (4 segments, segments[0] in
+        // {"cloud","oya","microservices"}, segments[2]=="crates",
+        // segments[3]==package.name).
         let ms_nested_valid = (|| -> Option<bool> {
             let rel = relative_parent.as_ref()?;
             let segments: Vec<&str> = rel.iter().map(|s| s.to_str()).collect::<Option<Vec<_>>>()?;
             if segments.len() != 4
-                || segments[0] != "microservices"
+                || !matches!(segments[0], "cloud" | "oya" | "microservices")
                 || segments[2] != "crates"
                 || segments[3] != package.name
             {
@@ -538,7 +555,50 @@ fn validate_packages(
         }
     }
 
-    (errors, edges_checked)
+    // Tenant-boundary rule: a crate under `oya/` must NOT directly link a crate
+    // under `cloud/` (oya integrates with cloud only via API-client libs under
+    // `libs/`, never by linking cloud internals).
+    //
+    // REPORT-FIRST: compute every current oya/-crate -> cloud/-crate edge. If any
+    // exist, print them and warn (report-only). If none exist, enforce (fail on
+    // violation). This allows a clean migration without immediately breaking the
+    // gate on legacy edges that pre-date the split.
+    let tenant_violations: Vec<String> = packages
+        .iter()
+        .filter(|pkg| pkg_root.get(&pkg.name).map(|s| s.as_str()) == Some("oya"))
+        .flat_map(|pkg| {
+            pkg.dependencies.iter().filter_map(|dep_name| {
+                if !by_name.contains_key(dep_name.as_str()) {
+                    return None;
+                }
+                if pkg_root.get(dep_name.as_str()).map(|s| s.as_str()) == Some("cloud") {
+                    Some(format!(
+                        "tenant-boundary violation: oya crate `{}` depends on cloud crate `{}`",
+                        pkg.name, dep_name
+                    ))
+                } else {
+                    None
+                }
+            })
+        })
+        .collect();
+
+    let tenant_violation_count = tenant_violations.len();
+    if tenant_violations.is_empty() {
+        // No current violations — rule is ENFORCE (any future oya->cloud edge fails).
+        // Nothing to do; the rule is clean.
+    } else {
+        // Current violations exist — REPORT-ONLY: print them but do not fail.
+        println!(
+            "tenant-boundary: {} oya->cloud dependency edge(s) found (report-only; clean up before enforcement flips):",
+            tenant_violation_count
+        );
+        for v in &tenant_violations {
+            println!("  {v}");
+        }
+    }
+
+    (errors, edges_checked, tenant_violation_count)
 }
 
 /// Compute `path` relative to `root` by direct component prefix
@@ -568,6 +628,7 @@ fn run_self_test() -> Result<ArchitectureBoundariesReport, Vec<String>> {
         packages_checked: 0,
         catalog_records_seen: 0,
         dependency_edges_checked: 0,
+        tenant_boundary_violations: 0,
     })
 }
 
@@ -607,7 +668,7 @@ fn run_fixture(
     catalog: BTreeMap<String, CatalogRoleRecord>,
     legacy_dirs: BTreeSet<String>,
 ) -> Vec<String> {
-    let (errors, _) = validate_packages(&packages, &catalog, &fixture_repo_root(), &legacy_dirs);
+    let (errors, _, _) = validate_packages(&packages, &catalog, &fixture_repo_root(), &legacy_dirs);
     errors
 }
 
@@ -875,7 +936,7 @@ mod tests {
     #[test]
     fn happy_path_has_no_errors() {
         let (packages, catalog) = happy_packages();
-        let (errors, edges) =
+        let (errors, edges, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "unexpected errors: {errors:?}");
         assert_eq!(edges, 1);
@@ -893,7 +954,7 @@ mod tests {
             fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
         let packages = vec![rest_pkg, kernel_pkg];
         let catalog = [rest_rec, kernel_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -924,7 +985,7 @@ mod tests {
         let catalog = [kernel_rec, usecase_rec, app_rec, rest_rec]
             .into_iter()
             .collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -964,7 +1025,7 @@ mod tests {
         let catalog = [kernel_rec, usecase_rec, app_rec, grpc_helper_rec, grpc_rec]
             .into_iter()
             .collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -987,7 +1048,7 @@ mod tests {
         );
         let packages = vec![kernel_pkg, usecase_pkg, adapter_pkg];
         let catalog = [kernel_rec, usecase_rec, adapter_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -1010,7 +1071,7 @@ mod tests {
         );
         let packages = vec![kernel_pkg, rest_pkg, adapter_pkg];
         let catalog = [kernel_rec, rest_rec, adapter_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -1033,7 +1094,7 @@ mod tests {
         );
         let packages = vec![grpc_pkg, usecase_pkg, app_pkg];
         let catalog = [grpc_rec, usecase_rec, app_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -1056,7 +1117,7 @@ mod tests {
         );
         let packages = vec![kernel_pkg, usecase_pkg, app_pkg];
         let catalog = [kernel_rec, usecase_rec, app_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
     }
@@ -1073,7 +1134,7 @@ mod tests {
             fixture_package("oya-foundry-subagent-app", "app", &[], "crates");
         let packages = vec![left_pkg, right_pkg];
         let catalog = [left_rec, right_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors
@@ -1094,7 +1155,7 @@ mod tests {
         let (app_pkg, app_rec) = fixture_package("oya-foundation-app", "app", &[], "crates");
         let packages = vec![kernel_pkg, app_pkg];
         let catalog = [kernel_rec, app_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors
@@ -1109,7 +1170,7 @@ mod tests {
         let (bad_pkg, bad_rec) = fixture_package("platform-tenant-kernel", "kernel", &[], "crates");
         let packages = vec![bad_pkg];
         let catalog = [bad_rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors.iter().any(|e| e.contains("oya- prefix")),
@@ -1125,7 +1186,7 @@ mod tests {
         let catalog = [kernel_rec].into_iter().collect();
         let mut legacy = BTreeSet::new();
         legacy.insert("services".to_string());
-        let (errors, _) = validate_packages(&packages, &catalog, &fixture_repo_root(), &legacy);
+        let (errors, _, _) = validate_packages(&packages, &catalog, &fixture_repo_root(), &legacy);
         assert!(
             errors
                 .iter()
@@ -1146,7 +1207,7 @@ mod tests {
         )]
         .into_iter()
         .collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors.iter().any(|e| e.contains("unknown role")),
@@ -1211,7 +1272,7 @@ mod tests {
             .join("Cargo.toml");
         let packages = vec![pkg];
         let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors.is_empty(),
@@ -1237,7 +1298,7 @@ mod tests {
             .join("Cargo.toml");
         let packages = vec![pkg];
         let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors.is_empty(),
@@ -1259,7 +1320,7 @@ mod tests {
             .join("Cargo.toml");
         let packages = vec![pkg];
         let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors.is_empty(),
@@ -1279,11 +1340,109 @@ mod tests {
             .join("Cargo.toml");
         let packages = vec![pkg];
         let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
-        let (errors, _) =
+        let (errors, _, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
             errors.is_empty(),
             "libs/oya-check-brand-residue should pass: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn cloud_nested_crate_path_passes() {
+        // cloud/<svc>/crates/<name> is a valid workspace member location.
+        let (mut pkg, rec) = fixture_package("oya-cloud-billing-kernel", "kernel", &[], "crates");
+        pkg.manifest_path = fixture_repo_root()
+            .join("cloud")
+            .join("cloud-billing")
+            .join("crates")
+            .join("oya-cloud-billing-kernel")
+            .join("Cargo.toml");
+        let packages = vec![pkg];
+        let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
+        let (errors, _, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            errors.is_empty(),
+            "cloud/cloud-billing/crates/oya-cloud-billing-kernel should pass: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn oya_nested_crate_path_passes() {
+        // oya/<svc>/crates/<name> is a valid workspace member location.
+        let (mut pkg, rec) =
+            fixture_package("oya-accounting-journal-domain", "domain", &[], "crates");
+        pkg.manifest_path = fixture_repo_root()
+            .join("oya")
+            .join("accounting")
+            .join("crates")
+            .join("oya-accounting-journal-domain")
+            .join("Cargo.toml");
+        let packages = vec![pkg];
+        let catalog: BTreeMap<_, _> = [rec].into_iter().collect();
+        let (errors, _, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            errors.is_empty(),
+            "oya/accounting/crates/oya-accounting-journal-domain should pass: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn tenant_boundary_oya_to_cloud_dep_is_report_only() {
+        // An oya/-root crate that depends on a cloud/-root crate triggers the
+        // tenant-boundary rule in REPORT-ONLY mode (violation count > 0, no error).
+        let (mut oya_pkg, oya_rec) =
+            fixture_package("oya-accounting-journal-domain", "domain", &["oya-cloud-billing-kernel"], "crates");
+        oya_pkg.manifest_path = fixture_repo_root()
+            .join("oya")
+            .join("accounting")
+            .join("crates")
+            .join("oya-accounting-journal-domain")
+            .join("Cargo.toml");
+        let (mut cloud_pkg, cloud_rec) =
+            fixture_package("oya-cloud-billing-kernel", "kernel", &[], "crates");
+        cloud_pkg.manifest_path = fixture_repo_root()
+            .join("cloud")
+            .join("cloud-billing")
+            .join("crates")
+            .join("oya-cloud-billing-kernel")
+            .join("Cargo.toml");
+        let packages = vec![oya_pkg, cloud_pkg];
+        let catalog: BTreeMap<_, _> = [oya_rec, cloud_rec].into_iter().collect();
+        let (errors, _, tenant_violations) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        // REPORT-ONLY: no errors emitted (gate does not fail), but violation count is non-zero.
+        assert!(
+            errors.iter().all(|e| !e.contains("tenant-boundary")),
+            "tenant-boundary should be report-only (no hard error), got: {errors:?}"
+        );
+        assert_eq!(
+            tenant_violations, 1,
+            "expected 1 tenant-boundary violation, got {tenant_violations}"
+        );
+    }
+
+    #[test]
+    fn tenant_boundary_clean_workspace_has_zero_violations() {
+        // A workspace with only oya/-root crates (no cloud/ deps) has zero violations.
+        let (mut oya_pkg, oya_rec) =
+            fixture_package("oya-accounting-journal-domain", "domain", &[], "crates");
+        oya_pkg.manifest_path = fixture_repo_root()
+            .join("oya")
+            .join("accounting")
+            .join("crates")
+            .join("oya-accounting-journal-domain")
+            .join("Cargo.toml");
+        let packages = vec![oya_pkg];
+        let catalog: BTreeMap<_, _> = [oya_rec].into_iter().collect();
+        let (errors, _, tenant_violations) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+        assert_eq!(
+            tenant_violations, 0,
+            "expected 0 tenant-boundary violations, got {tenant_violations}"
         );
     }
 }
