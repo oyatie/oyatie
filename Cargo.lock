@@ -4604,6 +4604,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cost"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "oya-crm-customer-engagement-domain"
 version = "0.1.0"
 dependencies = [
