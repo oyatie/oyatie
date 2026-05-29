@@ -171,4 +171,97 @@ mod tests {
         .collect();
         assert_eq!(s.len(), 4);
     }
+
+    // --- admit_budget tests (co-3) ---
+    // These tests reference admit_budget and ObservabilityError::AggregateEnvelopeExceeded
+    // which do not exist yet. They will fail to compile until co-1 and co-2 are implemented.
+
+    /// Two plans for the same signal each pass individually but their sum exceeds the envelope.
+    /// Expects AggregateEnvelopeExceeded.
+    #[test]
+    fn aggregate_over_envelope_rejected() {
+        // envelope: Metric max=1000
+        // plan A: 600 (under 1000 individually)
+        // plan B: 600 (under 1000 individually)
+        // sum: 1200 > 1000 → should be rejected
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Metric, 600),
+            plan("p2", SignalKind::Metric, 600),
+        ];
+        assert!(matches!(
+            admit_budget(&plans, &envelopes),
+            Err(ObservabilityError::AggregateEnvelopeExceeded {
+                signal: SignalKind::Metric,
+                max: 1000,
+                aggregate: 1200,
+            })
+        ));
+    }
+
+    /// Two plans for the same signal whose sum equals the envelope exactly — must pass.
+    #[test]
+    fn aggregate_at_boundary_passes() {
+        // envelope: Metric max=1000
+        // plan A: 500, plan B: 500 → sum = 1000 = max → Ok
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Metric, 500),
+            plan("p2", SignalKind::Metric, 500),
+        ];
+        assert!(admit_budget(&plans, &envelopes).is_ok());
+    }
+
+    /// A plan for a signal that has no declared envelope returns NoEnvelopeForSignal.
+    #[test]
+    fn aggregate_no_envelope_for_signal_rejected() {
+        // only a Metric envelope; plan uses Log
+        let envelopes = [env(SignalKind::Metric, 1000)];
+        let plans = [plan("p1", SignalKind::Log, 10)];
+        assert!(matches!(
+            admit_budget(&plans, &envelopes),
+            Err(ObservabilityError::NoEnvelopeForSignal {
+                signal: SignalKind::Log,
+            })
+        ));
+    }
+
+    /// Two plans with u64::MAX estimated_combinations must not panic (saturating_add);
+    /// the saturated sum still exceeds any realistic envelope, so AggregateEnvelopeExceeded
+    /// is returned.
+    #[test]
+    fn aggregate_saturating_add_no_panic() {
+        // saturating_add(u64::MAX, u64::MAX) = u64::MAX (no overflow/panic)
+        // u64::MAX > 1000 → AggregateEnvelopeExceeded
+        let envelopes = [env(SignalKind::Trace, 1000)];
+        let plans = [
+            plan("p1", SignalKind::Trace, u64::MAX),
+            plan("p2", SignalKind::Trace, u64::MAX),
+        ];
+        assert!(matches!(
+            admit_budget(&plans, &envelopes),
+            Err(ObservabilityError::AggregateEnvelopeExceeded { .. })
+        ));
+    }
+
+    /// AggregateEnvelopeExceeded message is stable, low-cardinality, and data-class-safe.
+    /// Contains signal name + the two integers; no plan IDs or attribute values.
+    #[test]
+    fn aggregate_envelope_exceeded_message_format() {
+        let err = ObservabilityError::AggregateEnvelopeExceeded {
+            signal: SignalKind::Metric,
+            max: 1000,
+            aggregate: 1200,
+        };
+        let msg = err.message();
+        assert!(
+            msg.contains("aggregate cardinality envelope exceeded"),
+            "message must contain stable prefix: {msg}"
+        );
+        assert!(msg.contains("signal=metric"), "message must contain signal name: {msg}");
+        assert!(msg.contains("max=1000"), "message must contain max value: {msg}");
+        assert!(msg.contains("aggregate=1200"), "message must contain aggregate value: {msg}");
+        // must NOT leak plan IDs or dynamic payload
+        assert!(!msg.contains("p1"), "message must not contain plan id: {msg}");
+    }
 }
