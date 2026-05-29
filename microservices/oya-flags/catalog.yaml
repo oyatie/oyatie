@@ -14,3 +14,5 @@ spec:
   criticality_tier: substrate-critical
   flat_layout_authority: ADR-0131
   no_grouping_authority: ADR-0132
+  pattern: single-crate-per-service
+  adr: ADR-0509

@@ -1,3 +1,16 @@
-# microservices/oya-flags/Cargo.toml
-# Per-microservice virtual manifest — DO NOT declare a [workspace] here.
-# The root Cargo.toml is the single workspace root (ADR-0131).
+[package]
+name = "oya-flags"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[[bin]]
+name = "oya-flags"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
