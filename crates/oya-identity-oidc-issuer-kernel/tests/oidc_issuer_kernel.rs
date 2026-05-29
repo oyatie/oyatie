@@ -11,7 +11,7 @@
 use std::collections::BTreeMap;
 
 use oya_identity_oidc_issuer_kernel::{
-    AccessTokenSpec, ActiveIntrospectionClaims, AcrLevel, Algorithm, Audience, ClientAssertion,
+    AccessTokenSpec, AcrLevel, ActiveIntrospectionClaims, Algorithm, Audience, ClientAssertion,
     ClockSkewTolerance, ID_TOKEN_CLAIMS_SCHEMA_VERSION, IdTokenSpec, IntrospectionRequest,
     IntrospectionResponse, IssuerError, IssuerUrl, JwsSigner, MAX_ACCESS_TOKEN_TTL_SECONDS,
     MAX_CLOCK_SKEW_SECONDS, MAX_ID_TOKEN_TTL_SECONDS, RefreshRequest, Signature, SigningKey,
@@ -532,8 +532,7 @@ fn introspection_request_rejects_empty_and_accepts_typed_hints() {
     assert_eq!(req.token, "opaque-token");
     assert_eq!(req.token_type_hint, None);
     // Valid token with access_token hint accepted.
-    let req2 =
-        IntrospectionRequest::validate("tok", Some(TokenTypeHint::AccessToken)).expect("ok");
+    let req2 = IntrospectionRequest::validate("tok", Some(TokenTypeHint::AccessToken)).expect("ok");
     assert_eq!(req2.token_type_hint, Some(TokenTypeHint::AccessToken));
     // Valid token with refresh_token hint accepted.
     let req3 =
@@ -567,7 +566,10 @@ fn build_introspection_response_active_token_discloses_claims() {
     assert_eq!(resp.exp, Some(1_700_003_600));
     assert_eq!(resp.iat, Some(1_700_000_000));
     assert_eq!(resp.scope.as_deref(), Some("openid email"));
-    assert_eq!(resp.client_id, None, "kernel has no client_id in AccessTokenClaims");
+    assert_eq!(
+        resp.client_id, None,
+        "kernel has no client_id in AccessTokenClaims"
+    );
     assert_eq!(resp.tenant_id.as_deref(), Some("ten_acme"));
     assert_eq!(resp.token_type.as_deref(), Some("at+jwt"));
 }
