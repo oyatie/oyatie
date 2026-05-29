@@ -2,6 +2,7 @@
 id: ADR-0323
 status: Proposed
 date: 2026-05-20
+owner: council-foundry
 owners:
   - council-architecture
   - council-engineering

@@ -2,6 +2,7 @@
 id: ADR-0325
 status: Proposed
 date: 2026-05-20
+owner: council-product
 owners:
   - council-product
   - council-architecture
