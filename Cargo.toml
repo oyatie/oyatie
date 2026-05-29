@@ -711,6 +711,9 @@ members = [
   "microservices/oya-identity",
   # oya-cost — K8s cost allocation µservice (ADR-0480, single-crate per ADR-0509).
   "microservices/oya-cost",
+  # oya-flags µservice — bespoke Rust OpenFeature server (ADR-0481).
+  # Single-crate-per-service pattern per ADR-0509.
+  "microservices/oya-flags",
 ]
 resolver = "2"
 
@@ -1034,6 +1037,12 @@ status = "active"
 owner = "council-cloud"
 rationale = "Cloud-cell µservice — per-cell isolation primitive (Bominal ADR-0009 inherited). Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
+status = "active"
+
+[workspace.metadata.oya.microservices.oya-flags]
+owner = "council-platform"
+rationale = "Bespoke Rust OpenFeature flag server — tenant-scoped flag evaluation at sub-ms latency; OFREP protocol surface (ADR-0481)."
+adr_cite = "ADR-0481"
 status = "active"
 
 [workspace.metadata.oya.microservices.ops]
