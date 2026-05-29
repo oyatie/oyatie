@@ -281,7 +281,7 @@ fn alert_decision_is_copy_and_clone() {
     let d = AlertDecision::Page;
     let copy = d;
     assert_eq!(copy, AlertDecision::Page);
-    let cloned = d.clone();
+    let cloned = d;
     assert_eq!(cloned, AlertDecision::Page);
 }
 
