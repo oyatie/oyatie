@@ -966,4 +966,178 @@ mod tests {
         assert_eq!(DeliveryEventKind::Complained.to_string(), "complained");
         assert_eq!(DeliveryEventKind::Suppressed.to_string(), "suppressed");
     }
+
+    // ---- ST1: classify_bounce_enhanced ----
+
+    /// RFC 3463 class 5 enhanced codes map to Hard regardless of sub-class.
+    #[test]
+    fn classify_enhanced_5xx_is_hard() {
+        use super::{BounceCategory, classify_bounce_enhanced};
+        assert_eq!(classify_bounce_enhanced("5.1.1"), Some(BounceCategory::Hard));
+        assert_eq!(classify_bounce_enhanced("5.0.0"), Some(BounceCategory::Hard));
+        assert_eq!(classify_bounce_enhanced("5.7.1"), Some(BounceCategory::Hard));
+    }
+
+    /// RFC 3463 class 4 enhanced codes (excluding 4.2.1) map to Transient.
+    #[test]
+    fn classify_enhanced_4xx_is_transient() {
+        use super::{BounceCategory, classify_bounce_enhanced};
+        assert_eq!(classify_bounce_enhanced("4.2.2"), Some(BounceCategory::Transient));
+        assert_eq!(classify_bounce_enhanced("4.4.7"), Some(BounceCategory::Transient));
+    }
+
+    /// RFC 3463 4.2.1 ("mailbox disabled, not accepting messages") maps to Soft.
+    #[test]
+    fn classify_enhanced_421_soft() {
+        use super::{BounceCategory, classify_bounce_enhanced};
+        assert_eq!(classify_bounce_enhanced("4.2.1"), Some(BounceCategory::Soft));
+    }
+
+    /// Malformed or out-of-class enhanced status codes return None.
+    #[test]
+    fn classify_enhanced_malformed_is_none() {
+        use super::classify_bounce_enhanced;
+        assert_eq!(classify_bounce_enhanced("5.1"), None);
+        assert_eq!(classify_bounce_enhanced("abc"), None);
+        assert_eq!(classify_bounce_enhanced(""), None);
+        // Class 2 is success — not a bounce category.
+        assert_eq!(classify_bounce_enhanced("2.0.0"), None);
+    }
+
+    /// Confirm DeliveryEventKind::Bounced display is unchanged by the new types.
+    #[test]
+    fn delivery_event_kind_bounced_display_unchanged() {
+        assert_eq!(DeliveryEventKind::Bounced.to_string(), "bounced");
+    }
+
+    // ---- ST1: classify_bounce_smtp ----
+
+    /// SMTP 5xx reply codes map to Hard.
+    #[test]
+    fn classify_smtp_5xx_is_hard() {
+        use super::{BounceCategory, classify_bounce_smtp};
+        assert_eq!(classify_bounce_smtp(550), Some(BounceCategory::Hard));
+        assert_eq!(classify_bounce_smtp(521), Some(BounceCategory::Hard));
+        assert_eq!(classify_bounce_smtp(554), Some(BounceCategory::Hard));
+    }
+
+    /// SMTP 452 (over-quota) maps to Soft.
+    #[test]
+    fn classify_smtp_452_is_soft() {
+        use super::{BounceCategory, classify_bounce_smtp};
+        assert_eq!(classify_bounce_smtp(452), Some(BounceCategory::Soft));
+    }
+
+    /// SMTP 4xx codes (excluding 452) map to Transient.
+    #[test]
+    fn classify_smtp_4xx_is_transient() {
+        use super::{BounceCategory, classify_bounce_smtp};
+        assert_eq!(classify_bounce_smtp(421), Some(BounceCategory::Transient));
+        assert_eq!(classify_bounce_smtp(450), Some(BounceCategory::Transient));
+        assert_eq!(classify_bounce_smtp(451), Some(BounceCategory::Transient));
+    }
+
+    /// SMTP codes outside the 4xx–5xx range return None.
+    #[test]
+    fn classify_smtp_out_of_range_is_none() {
+        use super::classify_bounce_smtp;
+        assert_eq!(classify_bounce_smtp(200), None);
+        assert_eq!(classify_bounce_smtp(350), None);
+        assert_eq!(classify_bounce_smtp(600), None);
+    }
+
+    // ---- ST2: bounce_suppression_decision ----
+
+    /// A Hard bounce always suppresses immediately, regardless of prior soft count.
+    #[test]
+    fn hard_bounce_suppresses() {
+        use super::{BounceCategory, BounceSuppressionOutcome, bounce_suppression_decision};
+        assert_eq!(
+            bounce_suppression_decision(BounceCategory::Hard, 0),
+            BounceSuppressionOutcome::Suppress,
+        );
+    }
+
+    /// A single soft bounce (first occurrence) yields Retry, not Suppress.
+    #[test]
+    fn single_soft_bounce_retries() {
+        use super::{BounceCategory, BounceSuppressionOutcome, bounce_suppression_decision};
+        assert_eq!(
+            bounce_suppression_decision(BounceCategory::Soft, 0),
+            BounceSuppressionOutcome::Retry,
+        );
+    }
+
+    /// Soft bounces reaching the suppress threshold promote to Suppress.
+    #[test]
+    fn soft_at_threshold_suppresses() {
+        use super::{
+            BounceCategory, BounceSuppressionOutcome, SOFT_BOUNCE_SUPPRESS_THRESHOLD,
+            bounce_suppression_decision,
+        };
+        assert_eq!(
+            bounce_suppression_decision(BounceCategory::Soft, SOFT_BOUNCE_SUPPRESS_THRESHOLD),
+            BounceSuppressionOutcome::Suppress,
+        );
+    }
+
+    /// Soft bounces below threshold remain in Retry state.
+    #[test]
+    fn soft_below_threshold_retries() {
+        use super::{
+            BounceCategory, BounceSuppressionOutcome, SOFT_BOUNCE_SUPPRESS_THRESHOLD,
+            bounce_suppression_decision,
+        };
+        // prior = threshold - 1; must still be Retry.
+        assert_eq!(
+            bounce_suppression_decision(BounceCategory::Soft, SOFT_BOUNCE_SUPPRESS_THRESHOLD - 1),
+            BounceSuppressionOutcome::Retry,
+        );
+    }
+
+    /// A Transient bounce yields NoAction (infrastructure retry is sufficient).
+    #[test]
+    fn transient_no_action() {
+        use super::{BounceCategory, BounceSuppressionOutcome, bounce_suppression_decision};
+        assert_eq!(
+            bounce_suppression_decision(BounceCategory::Transient, 0),
+            BounceSuppressionOutcome::NoAction,
+        );
+    }
+
+    /// Hard bounce produces Suppress regardless of any prior soft-bounce count.
+    #[test]
+    fn hard_bounce_suppresses_regardless_of_prior_soft_count() {
+        use super::{BounceCategory, BounceSuppressionOutcome, bounce_suppression_decision};
+        for prior in [0u32, 1, 3, 99] {
+            assert_eq!(
+                bounce_suppression_decision(BounceCategory::Hard, prior),
+                BounceSuppressionOutcome::Suppress,
+                "Hard bounce must suppress for prior_soft={prior}",
+            );
+        }
+    }
+
+    /// Transient bounce is NoAction regardless of prior soft-bounce count.
+    #[test]
+    fn transient_no_action_regardless_of_prior_soft_count() {
+        use super::{BounceCategory, BounceSuppressionOutcome, bounce_suppression_decision};
+        for prior in [0u32, 1, 3, 99] {
+            assert_eq!(
+                bounce_suppression_decision(BounceCategory::Transient, prior),
+                BounceSuppressionOutcome::NoAction,
+                "Transient bounce must be NoAction for prior_soft={prior}",
+            );
+        }
+    }
+
+    /// enforce_deliverability_invariants is unchanged — existing tests still pass.
+    /// This smoke test re-runs the happy path to confirm no regression.
+    #[test]
+    fn enforce_deliverability_invariants_still_passes_happy_path() {
+        let b = good_binding();
+        let m = good_message();
+        enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
+            .expect("happy-path preflight must still pass after bounce types added");
+    }
 }
